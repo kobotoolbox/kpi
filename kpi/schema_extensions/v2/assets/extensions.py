@@ -16,7 +16,7 @@ from .schema import (
     ASSET_URL_SCHEMA,
     BULK_ACTION,
     BULK_ASSET_UIDS,
-    BULK_CONFIRM,
+    BULK_CONFIRM, ASSET_CONTENT, ASSET_ENABLED, ASSET_FIELDS,
 )
 
 
@@ -92,6 +92,38 @@ class AssetCreateRequestSerializerExtension(OpenApiSerializerFieldExtension):
         }
 
 
+
+class AssetPatchRequestSerializerExtension(OpenApiSerializerFieldExtension):
+
+    target_class = 'kpi.schema_extensions.v2.assets.serializers.AssetPatchRequest'
+
+    def map_serializer(self, auto_schema, direction):
+
+        return {
+            'oneOf': [
+                build_object_type(
+                    properties={
+                        'content': ASSET_NAME,
+                        'name': ASSET_CONTENT,
+                    }
+                ),
+                build_object_type(
+                    properties={
+                        'enabled': ASSET_ENABLED,
+                        'fields': ASSET_FIELDS,
+                    }
+                ),
+            ]
+        }
+
+
+
+class AssetFieldsFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.fields.AssetFieldsField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return ASSET_FIELDS
+
 class AssetURLFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AssetURLField'
 
@@ -111,18 +143,6 @@ class AssetSettingsFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return ASSET_SETTINGS
-
-
-class AssetUpdateRequestFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.assets.fields.AssetUpdateField'
-
-    def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(
-            properties={
-                'enabled': build_basic_type(OpenApiTypes.BOOL),
-                'fields': build_array_type(schema={}),
-            }
-        )
 
 
 class BulkActionFieldExtension(OpenApiSerializerFieldExtension):

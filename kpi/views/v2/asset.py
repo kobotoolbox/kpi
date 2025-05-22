@@ -49,9 +49,8 @@ from kpi.schema_extensions.v2.assets.serializers import (
     AssetHashResponse,
     AssetMetadataResponse,
     AssetReportResponse,
-    AssetUpdateRequest,
     AssetValidContentResponse,
-    AssetXFormResponse,
+    AssetXFormResponse, AssetPatchRequest,
 )
 from kpi.serializers.v2.asset import (
     AssetBulkActionsSerializer,
@@ -100,6 +99,9 @@ class AssetSchema(AutoSchema):
             ASSET_NAME,
             ASSET_SETTINGS,
             ASSET_TYPE,
+            ASSET_FIELDS,
+            ASSET_ENABLED,
+            ASSET_CONTENT,
             BULK_ACTION,
             BULK_ASSET_UIDS,
             BULK_CONFIRM,
@@ -147,6 +149,25 @@ class AssetSchema(AutoSchema):
                         'action': generate_example_from_schema(BULK_ACTION),
                     },
                     'summary': 'Perform bulk on ALL asset',
+                },
+            }
+
+        if operation.get('operationId') == 'api_v2_assets_partial_update':
+
+            operation['requestBody']['content']['application/json']['examples'] = {
+                'Updating': {
+                    'value': {
+                        'content': generate_example_from_schema(ASSET_CONTENT),
+                        'name': generate_example_from_schema(ASSET_NAME),
+                    },
+                    'summary': 'Updating an asset',
+                },
+                'ControlSharing': {
+                    'value': {
+                        'enabled': generate_example_from_schema(ASSET_ENABLED),
+                        'fields': generate_example_from_schema(ASSET_FIELDS),
+                    },
+                    'summary': 'Control sharing of the project',
                 },
             }
 
@@ -223,7 +244,7 @@ class AssetSchema(AutoSchema):
     ),
     partial_update=extend_schema(
         description=read_md('kpi', 'assets/patch.md'),
-        request={'application/json': AssetUpdateRequest},
+        request={'application/json': AssetPatchRequest},
         responses=open_api_200_ok_response(
             AssetSerializer(),
             raise_access_forbidden=False,

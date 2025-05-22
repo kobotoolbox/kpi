@@ -4,7 +4,6 @@ from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
     AssetCloneField,
     AssetSettingsField,
-    AssetUpdateField,
     BulkActionField,
     BulkAssetConfirmField,
     BulkAssetUidsField,
@@ -25,6 +24,17 @@ AssetCreateRequest = inline_serializer_class(
         'clone_from': AssetCloneField(),
         'settings': AssetSettingsField(),
         'asset_type': serializers.CharField(),
+    },
+)
+
+
+AssetPatchRequest = inline_serializer_class(
+    name='AssetCreateRequest',
+    fields={
+        'content': serializers.CharField(),
+        'name': serializers.CharField(),
+        'enabled': serializers.BooleanField(),
+        'fields': serializers.CharField(),
     },
 )
 
@@ -83,14 +93,6 @@ AssetReportResponse = inline_serializer_class(
         'url': ReportURLField(),
         'count': serializers.IntegerField(),
         'list': ReportListField(),
-    },
-)
-
-
-AssetUpdateRequest = inline_serializer_class(
-    name='AssetUpdateRequest',
-    fields={
-        'data_sharing': AssetUpdateField(),
     },
 )
 

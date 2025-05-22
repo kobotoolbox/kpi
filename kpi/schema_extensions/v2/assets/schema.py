@@ -5,6 +5,7 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
+from kpi.mixins import ObjectPermissionMixin
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 """
@@ -12,6 +13,12 @@ Common schemas to avoid redundancy
 """
 
 ASSET_CLONE_FROM = build_basic_type(OpenApiTypes.STR)
+
+ASSET_CONTENT = build_basic_type(OpenApiTypes.STR)
+
+ASSET_ENABLED = build_basic_type(OpenApiTypes.BOOL)
+
+ASSET_FIELDS = build_array_type(schema={})
 
 ASSET_SETTINGS = build_object_type(
     properties={

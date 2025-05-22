@@ -29,15 +29,15 @@ class AssetCloneField(serializers.CharField):
     pass
 
 
+class AssetFieldsField(serializers.ListField):
+    pass
+
+
 class AssetSettingsField(serializers.JSONField):
     pass
 
 
 class AssetURLField(serializers.URLField):
-    pass
-
-
-class AssetUpdateField(serializers.JSONField):
     pass
 
 
