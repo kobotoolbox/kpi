@@ -1,18 +1,23 @@
-# coding: utf-8
 import contextlib
 import copy
 import re
+import time
 from abc import ABC
 from collections import defaultdict
 from urllib.parse import urlparse
 
 from django.apps import apps
 from django.conf import settings
+from django.db import connections, transaction, OperationalError
 from django.db import models
+from django.db.models import F
+from django.db.models.expressions import CombinedExpression
 from django.urls import Resolver404, resolve
 from taggit.models import Tag, TaggedItem
 
 from kpi.constants import ASSET_TYPE_COLLECTION
+from kpi.utils.log import logging
+
 
 TAG_RE = r'tag:(.*)'
 
@@ -180,3 +185,91 @@ class DjangoModelABCMetaclass(type(models.Model), type(ABC)):
     two others.
     """
     pass
+
+class SafePostCommitQuerySet(models.QuerySet):
+
+    def update_on_commit(
+        self,
+        retries: int = 5,
+        delay: float = 0.05,
+        lock_timeout: int = 0.2,
+        **kwargs
+    ):
+        """
+        Perform an UPDATE after the current transaction commits, using FOR UPDATE NOWAIT
+        to avoid blocking.
+        Supports basic F expressions and math.
+        """
+        model = self.model
+        table = model._meta.db_table
+        connection = connections[self._db]
+        compiler = self.query.get_compiler(using=self._db)
+
+        # WHERE clause
+        where_sql, where_params = self.query.where.as_sql(
+            compiler=compiler, connection=connection
+        )
+
+        # SET clause
+        set_clauses = []
+        set_params = []
+
+        for field, value in kwargs.items():
+            if isinstance(value, CombinedExpression):
+                # Only support F('field') ± int|float
+                lhs, rhs = value.lhs, value.rhs
+                if (
+                    not isinstance(lhs, F)
+                    or not isinstance(rhs, (int, float))
+                    or lhs.name != field
+                ):
+                    raise ValueError(
+                        f"Only `F('{field}') ± int|float` is supported for {field}"
+                    )
+                set_clauses.append(f"{field} = {field} {value.connector} %s")
+                set_params.append(rhs)
+            else:
+                set_clauses.append(f"{field} = %s")
+                set_params.append(value)
+
+        sql = f"""
+            WITH row AS (
+                SELECT 1 FROM {table}
+                WHERE {where_sql}
+                FOR UPDATE NOWAIT
+            )
+            UPDATE {table}
+            SET {', '.join(set_clauses)}
+            FROM row
+            WHERE {where_sql};
+        """
+
+        def _execute():
+            for attempt in range(1, retries + 1):
+                try:
+                    with connection.cursor() as cursor:
+                        lock_timeout_ms = lock_timeout * 1000
+                        cursor.execute(
+                            f"SET LOCAL lock_timeout = '{lock_timeout_ms}ms';"
+                        )
+                        cursor.execute(sql, where_params + set_params + where_params)
+                    return
+                except OperationalError as e:
+                    if (
+                        'could not obtain lock on row' in str(e)
+                        or 'canceling statement due to lock timeout' in str(e)
+                    ):
+                        if attempt < retries - 1:
+                            time.sleep(delay * (2 ** attempt))
+                            continue
+
+                        logging.error(
+                            'safe_post_commit_update failed after retries',
+                            exc_info=True,
+                        )
+                    raise
+
+        if transaction.get_connection().in_atomic_block:
+            transaction.on_commit(_execute)
+        else:
+            _execute()
