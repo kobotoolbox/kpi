@@ -1,4 +1,4 @@
-## Reports of a user's asset
+## Report of a user's asset
 
 Returns the submission data for all deployments of a survey.
 This data is grouped by answers, and does not show the data for individual submissions.

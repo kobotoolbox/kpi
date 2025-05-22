@@ -1,1 +1,1 @@
-## Returns valid content for user's asset
+## Return valid content for user's asset

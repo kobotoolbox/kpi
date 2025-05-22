@@ -8,7 +8,7 @@ Search filters can be returned with results by passing `metadata=on` to querystr
 Results can be sorted with `ordering` parameter, e.g.:
 
 ```shell
-curl -X GET https://[kpi]/api/v2/assets/?ordering=-name
+curl -X GET https://kf.kobotoolbox.org/api/v2/assets/?ordering=-name
 ```
 
 
@@ -24,5 +24,5 @@ Allowed fields are:
 Note: Collections can be displayed first with parameter `collections_first`, e.g.:
 
 ```shell
-curl -X GET https://[kpi]/api/v2/assets/?collections_first=true&ordering=-name
+curl -X GET https://kf.kobotoolbox.org/api/v2/assets/?collections_first=true&ordering=-name
 ```

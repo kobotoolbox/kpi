@@ -1,1 +1,1 @@
-## Get metadata for all assets
+## Get metadata for all authenticated user' assets

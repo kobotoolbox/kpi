@@ -1,1 +1,1 @@
-## Returns plain HTML of survey in tabular format
+## Return plain HTML of survey in tabular format

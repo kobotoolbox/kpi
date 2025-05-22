@@ -8,5 +8,5 @@ Default amount is 30 days
 
 
 ```shell
-curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/counts/?days=7
+curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/counts/?days=7
 ```

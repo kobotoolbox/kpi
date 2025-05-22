@@ -1,1 +1,1 @@
-## Returns the content of a user's asset.
+## Return the content of a user's asset.
