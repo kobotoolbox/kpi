@@ -635,7 +635,9 @@ class AttachmentTrashTestCase(TestCase):
         assert not self.attachment.delete_status
         assert self.xform.attachment_storage_bytes > 0
         assert self.user_profile.attachment_storage_bytes > 0
-        assert not AttachmentTrash.objects.filter(attachment_id=self.attachment.id).exists()
+        assert not AttachmentTrash.objects.filter(
+            attachment_id=self.attachment.id
+        ).exists()
         assert not PeriodicTask.objects.filter(
             pk=trash_obj.periodic_task_id
         ).exists()
