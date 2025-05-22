@@ -432,7 +432,7 @@ export function getCheckboxNameByPermission(permName: PermissionCodename): Check
  * Returns a human readable permission label, has to do some juggling for
  * partial permissions. Fallback is permission codename.
  */
-export function getPermLabel(perm: PermissionResponse) {
+export function getPermLabel(perm: PermissionResponse, assetType: AssetTypeName) {
   // For partial permissions we return a general label that matches all possible
   // partial permissions (i.e. same label for "View submissions only from
   // specific users" and "Edit submissions only from specific users" etc.). With
@@ -455,7 +455,7 @@ export function getPermLabel(perm: PermissionResponse) {
     const checkboxName = getCheckboxNameByPermission(permDef.codename)
 
     if (checkboxName) {
-      return CHECKBOX_LABELS[checkboxName]
+      return getContextualPermLabel(assetType, checkboxName)
     }
   }
 
@@ -470,9 +470,9 @@ export function getPermLabel(perm: PermissionResponse) {
  *
  * Example: if we are sharing a library collection, the permissions will all say "[View, Edit, Manage] collection"
  *
- * Note: if used with `survey` asset types, this function returns an "unfriendly" permission label, but it handles it
- * instead of returning an empty string or worse
- *
+ * Note: If used directly with `survey` asset types, this function returns an "unfriendly" permission label only. (An
+ * "unfriendly" label is one that doesn't account for specific partial permissions, see `getFriendlyPermName`). This is
+ * OK if "friendly" permissions aren't needed (like in `userAssetPermsEditor`).
  */
 export function getContextualPermLabel(
   assetType: AssetTypeName | undefined,
@@ -496,6 +496,7 @@ export function getContextualPermLabel(
     }
   }
 
+  // If all else fails, return an "unfriendly" label
   return CHECKBOX_LABELS[checkboxName]
 }
 
@@ -508,8 +509,8 @@ export function getContextualPermLabel(
  * it happens given permission is both "by users" and "by responses" we return
  * combined name.
  */
-export function getFriendlyPermName(perm: PermissionResponse, maxParentheticalUsernames = 3) {
-  const permLabel = getPermLabel(perm)
+export function getFriendlyPermName(perm: PermissionResponse, assetType: AssetTypeName, maxParentheticalUsernames = 3) {
+  const permLabel = getPermLabel(perm, assetType)
 
   const hasByUsers = hasPartialByUsers(perm)
   const hasByResponses = hasPartialByResponses(perm)

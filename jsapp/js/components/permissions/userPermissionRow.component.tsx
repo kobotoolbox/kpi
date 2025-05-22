@@ -108,7 +108,7 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
             return null
           }
 
-          const permLabel = getPermLabel(perm)
+          const permLabel = getPermLabel(perm, this.props.asset.asset_type)
 
           let friendlyPermName = ''
           // Between UserPermissionRow and UserAssetPermsEditor, generation of permission labels takes a small but
@@ -118,14 +118,7 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
           // See https://github.com/kobotoolbox/kpi/pull/5736#discussion_r2085252485
           const permDef = permConfig.getPermission(perm.permission)
           if (permDef) {
-            if (this.props.asset.asset_type !== AssetTypeName.survey) {
-              friendlyPermName = getContextualPermLabel(
-                this.props.asset.asset_type,
-                getCheckboxNameByPermission(permDef.codename),
-              )
-            } else {
-              friendlyPermName = getFriendlyPermName(perm)
-            }
+            friendlyPermName = getFriendlyPermName(perm, this.props.asset.asset_type)
           }
 
           return <bem.UserRow__perm key={permLabel}>{friendlyPermName}</bem.UserRow__perm>

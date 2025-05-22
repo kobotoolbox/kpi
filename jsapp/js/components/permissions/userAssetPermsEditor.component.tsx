@@ -392,12 +392,8 @@ export default class UserAssetPermsEditor extends React.Component<
     const disabledPropName = (checkboxName + CHECKBOX_DISABLED_SUFFIX) as keyof UserAssetPermsEditorState
     const isDisabled = Boolean(this.state[disabledPropName])
 
-    let checkboxLabel = ''
-    if (this.props.asset.asset_type !== AssetTypeName.survey) {
-      checkboxLabel = getContextualPermLabel(this.props.asset.asset_type, checkboxName)
-    } else {
-      checkboxLabel = CHECKBOX_LABELS[checkboxName]
-    }
+    // No specific partial permission labels needed, so using this function directly on a survey is OK
+    const checkboxLabel = getContextualPermLabel(this.props.asset.asset_type, checkboxName)
 
     return (
       <Checkbox
