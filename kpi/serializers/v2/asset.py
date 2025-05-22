@@ -11,6 +11,8 @@ from django.db.models import F
 from django.utils.translation import gettext as t
 from django.utils.translation import ngettext as nt
 from django_request_cache import cache_for_request
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import exceptions, serializers
 from rest_framework.fields import empty
 from rest_framework.reverse import reverse
@@ -93,7 +95,7 @@ from ...schema_extensions.v2.assets.fields import (
     UserURLField,
     VersionCountField,
     XFormLinkField,
-    XLSLinkField,
+    XLSLinkField, AccessTypeField,
 )
 from .asset_export_settings import AssetExportSettingsSerializer
 from .asset_file import AssetFileSerializer
@@ -373,11 +375,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     data = DataURLField()
     # Only add link instead of hooks list to avoid multiple access to DB.
     hooks_link = HooksUrlField()
-
+    kind = serializers.CharField()
     children = ChildrenField()
     subscribers_count = SubscribersCountField()
     status = serializers.SerializerMethodField()
-    access_types = serializers.SerializerMethodField()
+    access_types = AccessTypeField()
     data_sharing = DataSharingField(required=False)
     paired_data = PairedDataURLField()
     project_ownership = serializers.SerializerMethodField()
@@ -586,6 +588,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                        args=(obj.uid,),
                        request=self.context.get('request', None))
 
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_kind(self, obj):
+        return Asset.kind
+
     def get_embeds(self, obj):
         request = self.context.get('request', None)
 
@@ -628,6 +634,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                        kwargs=kwargs,
                        request=self.context.get('request', None))
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_deployed_version_id(self, obj):
         if not obj.has_deployment:
             return
@@ -723,6 +730,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # ToDo Optimize this. What about caching it inside `summary`
         return UserAssetSubscription.objects.filter(asset_id=asset.pk).count()
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_status(self, asset):
 
         # `order_by` lets us check `AnonymousUser`'s permissions first.
@@ -883,6 +891,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return access_types
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_owner_label(self, asset):
         try:
             organization = self.context['organizations_per_asset'].get(asset.id)

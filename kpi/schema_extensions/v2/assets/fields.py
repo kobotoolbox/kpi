@@ -9,6 +9,10 @@ from kpi.fields import (
 )
 
 
+class AccessTypeField(serializers.SerializerMethodField):
+    pass
+
+
 class AdvancedFeatureField(WritableAdvancedFeaturesField):
     pass
 

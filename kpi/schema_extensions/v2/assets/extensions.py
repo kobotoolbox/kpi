@@ -20,6 +20,12 @@ from .schema import (
 )
 
 
+class AccessTypeFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.fields.AccessTypeField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_array_type(schema={})
+
 class AdvancedFeatureFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AdvancedFeatureField'
 
