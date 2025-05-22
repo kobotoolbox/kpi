@@ -247,10 +247,7 @@ export const CHECKBOX_LABELS: { [key in CheckboxNameAll]: string } = {
 }
 Object.freeze(CHECKBOX_LABELS)
 
-type CheckboxNameLibrary =
-  | 'formView'
-  | 'formEdit'
-  | 'formManage'
+type CheckboxNameLibrary = 'formView' | 'formEdit' | 'formManage'
 
 export const CHECKBOX_LABELS_BLOCK: { [key in CheckboxNameLibrary]: string } = {
   formView: t('View block'),
