@@ -310,8 +310,9 @@ class DeployedVersionsFieldExtension(OpenApiSerializerFieldExtension):
                         properties={
                             'uid': build_basic_type(OpenApiTypes.STR),
                             'url': build_url_type(
-                                'asset-detail',
-                                uid='aBeA23YCYjkGTFvYVHuAyU',
+                                'asset-version-detail',
+                                parent_lookup_asset='aBeA23YCYjkGTFvYVHuAyU',
+                                uid='vBeA23YCYjkGTFvYVHuAyU',
                             ),
                             'content_hash': build_basic_type(OpenApiTypes.STR),
                             'date_deployed': build_basic_type(OpenApiTypes.DATETIME),
