@@ -105,6 +105,7 @@ class XForm(AbstractTimeStampedModel):
 
     kpi_asset_uid = models.CharField(max_length=32, null=True, db_index=True)
     pending_delete = models.BooleanField(default=False)
+    pending_transfer = models.BooleanField(default=False, null=True)
 
     class Meta:
         app_label = 'logger'

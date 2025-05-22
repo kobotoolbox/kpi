@@ -1363,18 +1363,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     def xform_id_string(self):
         return self.get_data('backend_response.id_string')
 
-    @staticmethod
     @contextmanager
-    def suspend_submissions(user_ids: list[int]):
-        UserProfile.objects.filter(user_id__in=user_ids).update(
-            submissions_suspended=True
-        )
+    def suspend_submissions(self):
+        XForm.objects.filter(pk=self.xform_id).update(pending_transfer=True)
         try:
             yield
         finally:
-            UserProfile.objects.filter(user_id__in=user_ids).update(
-                submissions_suspended=False
-            )
+            XForm.objects.filter(pk=self.xform_id).update(pending_transfer=False)
 
     def transfer_submissions_ownership(self, previous_owner_username: str) -> bool:
 
