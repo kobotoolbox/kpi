@@ -1,7 +1,8 @@
 from django.conf import settings
 from django.http import Http404
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, viewsets
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -16,12 +17,16 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 @extend_schema(
     tags=['Asset'],
-    description=read_md('kpi', 'assets/count.md'),
-    responses=open_api_200_ok_response(
-        AssetCountResponse,
-        raise_access_forbidden=False,
-        validate_payload=False,
-    ),
+)
+@extend_schema_view(
+    list=extend_schema(
+        description=read_md('kpi', 'assets/count.md'),
+        responses=open_api_200_ok_response(
+            AssetCountResponse,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    )
 )
 class AssetCountsViewSet(
     AssetNestedObjectViewsetMixin,
@@ -69,6 +74,7 @@ class AssetCountsViewSet(
     """
     parent_model = Asset
     permission_classes = [ViewSubmissionPermission]
+    renderer_classes = [JSONRenderer]
 
     def list(self, request, *args, **kwargs):
         if not self.asset.has_deployment:
