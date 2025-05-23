@@ -170,7 +170,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
     ) {
       return (
         <UserPermissionRow
-          assetUid={this.props.assetUid}
+          asset={this.state.asset}
           userCanEditPerms={userCanEditPerms}
           nonOwnerPerms={this.state.nonOwnerPerms}
           assignablePerms={this.state.assignablePerms}
@@ -232,13 +232,13 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
 
           {this.state.permissions.map((perm) => {
             // don't show anonymous user permissions in UI
-            if (perm.user.name === ANON_USERNAME) {
+            if (perm.user.name === ANON_USERNAME || !this.state.asset) {
               return null
             }
             return (
               <UserPermissionRow
                 key={`perm.${this.props.assetUid}.${perm.user.name}`}
-                assetUid={this.props.assetUid}
+                asset={this.state.asset}
                 userCanEditPerms={isManagingPossible}
                 nonOwnerPerms={this.state.nonOwnerPerms}
                 assignablePerms={this.state.assignablePerms}
@@ -272,7 +272,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
               />
 
               <UserAssetPermsEditor
-                assetUid={this.props.assetUid}
+                asset={this.state.asset}
                 assignablePerms={this.state.assignablePerms}
                 nonOwnerPerms={this.state.nonOwnerPerms}
                 onSubmitEnd={this.onPermissionsEditorSubmitEnd.bind(this)}
