@@ -57,11 +57,11 @@ deploy-staging:
 
 pages:
   stage: deploy
-  image: node:18
+  image: node:20
   script:
     - apt-get update && apt-get install python-is-python3
     - npm i --force
-    - npm run build-storybook -- -o public
+    - npx storybook build --output-dir public
   artifacts:
     paths:
       - public

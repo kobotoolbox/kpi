@@ -18,6 +18,7 @@ function createUniversalTableExampleData(index: number): UniversalTableExampleDa
   const sources = ['MacOS', 'iOS', 'Windows 98', 'CrunchBang Linux', 'Firefox', 'Safari', 'Gossip']
 
   faker.seed(index)
+  faker.setDefaultRefDate('2023-01-01T00:00:00.000Z')
 
   return {
     date_created: formatDate(faker.date.recent().toString()),
