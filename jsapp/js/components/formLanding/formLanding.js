@@ -10,6 +10,7 @@ import Reflux from 'reflux'
 import { actions } from '#/actions'
 import bem from '#/bem'
 import AnonymousSubmission from '#/components/anonymousSubmission.component'
+import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -30,7 +31,6 @@ import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { formatTime, notify } from '#/utils'
-import AssetStatusBadge from '#/components/common/assetStatusBadge'
 
 const DVCOUNT_LIMIT_MINIMUM = 20
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url
