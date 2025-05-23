@@ -446,6 +446,10 @@ $side-tabs-width-mobile: 70px;
       }
     }
 
+    .form-view__label--date {
+      text-align: left;
+    }
+
     &.recent {
       background-color: lighten(colors.$kobo-blue, 40%);
       animation: recent 5s 1;

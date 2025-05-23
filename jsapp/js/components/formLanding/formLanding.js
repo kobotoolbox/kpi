@@ -240,16 +240,19 @@ class FormLanding extends React.Component {
                     </bem.FormView__label>
                     <bem.FormView__label m='date'>{formatTime(item.date_deployed)}</bem.FormView__label>
                     {isLoggedIn && (
-                      <Button
-                        type='text'
-                        size='m'
-                        onClick={() => {
-                          this.saveCloneAs(item.uid)
-                        }}
-                        startIcon='duplicate'
-                        tooltip={t('Clone this version as a new project')}
-                        tooltipPosition='right'
-                      />
+                      <bem.FormView__label>
+                        <Button
+                          type='text'
+                          size='m'
+                          onClick={() => {
+                            this.saveCloneAs(item.uid)
+                          }}
+                          startIcon='duplicate'
+                          tooltip={t('Clone this version as a new project')}
+                          tooltipPosition='right'
+                          className='history-clone'
+                        />
+                      </bem.FormView__label>
                     )}
                   </bem.FormView__group>
                 )
