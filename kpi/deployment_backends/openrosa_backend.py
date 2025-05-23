@@ -39,6 +39,7 @@ from kobo.apps.openrosa.apps.logger.utils.instance import (
 )
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
+from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, publish_xls_form
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kobo.apps.subsequences.utils import stream_with_extras
@@ -252,7 +253,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             grace_period=config.ATTACHMENT_TRASH_GRACE_PERIOD,
             trash_type='attachment',
         )
-
+        ParsedInstance.bulk_update_attachments(list(submission_ids))
         return count
 
     def delete_submission(

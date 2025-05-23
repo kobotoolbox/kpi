@@ -125,13 +125,13 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
         ]
         self.asset.deployment.mock_submissions(submissions, create_uuids=False)
 
-        first_instance = Instance.objects.get(root_uuid='test_uuid1')
-        second_instance = Instance.objects.get(root_uuid='test_uuid2')
-        third_instance = Instance.objects.get(root_uuid='test_uuid3')
+        self.first_instance = Instance.objects.get(root_uuid='test_uuid1')
+        self.second_instance = Instance.objects.get(root_uuid='test_uuid2')
+        self.third_instance = Instance.objects.get(root_uuid='test_uuid3')
 
-        self.submission_root_uuid_1 = first_instance.root_uuid
-        self.submission_root_uuid_2 = second_instance.root_uuid
-        self.submission_root_uuid_3 = third_instance.root_uuid
+        self.submission_root_uuid_1 = self.first_instance.root_uuid
+        self.submission_root_uuid_2 = self.second_instance.root_uuid
+        self.submission_root_uuid_3 = self.third_instance.root_uuid
 
         self.submission_root_uuids = [
             self.submission_root_uuid_1,
@@ -139,12 +139,12 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
             self.submission_root_uuid_3,
         ]
 
-        self.attachment_uid_1 = first_instance.attachments.all()[0].uid
-        self.attachment_uid_2 = first_instance.attachments.all()[1].uid
-        self.attachment_uid_3 = second_instance.attachments.all()[0].uid
-        self.attachment_uid_4 = second_instance.attachments.all()[1].uid
-        self.attachment_uid_5 = third_instance.attachments.all()[0].uid
-        self.attachment_uid_6 = third_instance.attachments.all()[1].uid
+        self.attachment_uid_1 = self.first_instance.attachments.all()[0].uid
+        self.attachment_uid_2 = self.first_instance.attachments.all()[1].uid
+        self.attachment_uid_3 = self.second_instance.attachments.all()[0].uid
+        self.attachment_uid_4 = self.second_instance.attachments.all()[1].uid
+        self.attachment_uid_5 = self.third_instance.attachments.all()[0].uid
+        self.attachment_uid_6 = self.third_instance.attachments.all()[1].uid
 
         self.attachment_uids = [
             self.attachment_uid_1,
@@ -187,6 +187,47 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
                 string='One or more of the attachment UIDs are invalid', code='invalid'
             )
         ]
+
+    def test_attachment_trash_updates_is_deleted_flag_in_mongo(self):
+        """
+        Test that when attachments are deleted (moved to trash),
+        the `is_deleted` flag is correctly set in MongoDB
+        """
+        # Check the initial submission details
+        submission_detail_url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.first_instance.pk,
+            },
+        )
+        response = self.client.get(submission_detail_url)
+        assert response.status_code == status.HTTP_200_OK
+
+        for attachment in response.data['_attachments']:
+            assert attachment['is_deleted'] is False
+
+        # Delete the attachment
+        delete_response = self.client.delete(
+            self.bulk_delete_url,
+            data=json.dumps(
+                {
+                    'submission_root_uuids': [self.first_instance.root_uuid]
+                }
+            ),
+            content_type='application/json',
+        )
+
+        assert delete_response.status_code == status.HTTP_202_ACCEPTED
+        assert delete_response.data == {'message': '2 attachments deleted'}
+        assert AttachmentTrash.objects.count() == 2
+
+        # Check the updated submission details
+        updated_response = self.client.get(submission_detail_url)
+        assert updated_response.status_code == status.HTTP_200_OK
+
+        for attachment in updated_response.data['_attachments']:
+            assert attachment['is_deleted'] is True
 
     def test_bulk_delete_attachments_success(self):
         initial_trash_count = AttachmentTrash.objects.count()

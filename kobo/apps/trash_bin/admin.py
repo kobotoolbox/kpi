@@ -3,6 +3,7 @@ from django.db.models import F
 
 from kpi.models import Asset
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
+from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 
 from .exceptions import TrashTaskInProgressError
 from .models import TrashStatus
@@ -200,13 +201,12 @@ class AttachmentTrashAdmin(TrashMixin, admin.ModelAdmin):
             id__in=list(queryset.values_list('attachment_id', flat=True))
         ).annotate(
             attachment_uid=F('uid'), attachment_basename=F('media_file_basename')
-        ).values('pk', 'attachment_uid', 'attachment_basename')
-
-        AttachmentTrash.toggle_statuses(
-            [att['attachment_uid'] for att in attachments], active=True
-        )
+        ).values('pk', 'attachment_uid', 'attachment_basename', 'instance_id')
         try:
             put_back(request.user, attachments, 'attachment')
+            ParsedInstance.bulk_update_attachments(
+                list({att['instance_id'] for att in attachments})
+            )
         except TrashTaskInProgressError:
             self.message_user(
                 request,
