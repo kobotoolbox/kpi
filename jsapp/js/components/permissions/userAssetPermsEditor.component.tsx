@@ -196,7 +196,7 @@ export default class UserAssetPermsEditor extends React.Component<
     // Merge built form data with existing state (with defaults) and then apply
     // validity rules (handles disabling and checking/unchecking properties
     // based on implied/contradictory rules from `permConfig`).
-    this.state = applyValidityRules(Object.assign(this.state, formData))
+    this.state = applyValidityRules(Object.assign(this.state, formData), this.props.assignablePerms)
   }
 
   componentDidMount() {
@@ -237,7 +237,7 @@ export default class UserAssetPermsEditor extends React.Component<
   onCheckboxChange(checkboxName: CheckboxNameAll, isChecked: boolean) {
     let output = clonedeep(this.state)
     output = Object.assign(output, { [checkboxName]: isChecked })
-    this.setState(applyValidityRules(output))
+    this.setState(applyValidityRules(output, this.props.assignablePerms))
   }
 
   /**
