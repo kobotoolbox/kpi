@@ -443,7 +443,16 @@ $side-tabs-width-mobile: 70px;
       &--version {
         width: 39%;
         text-align: initial;
+
+        > span {
+          margin-right: 12px;
+          vertical-align: middle;
+        }
       }
+    }
+
+    .form-view__label--date {
+      text-align: left;
     }
 
     &.recent {
