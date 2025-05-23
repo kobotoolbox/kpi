@@ -249,33 +249,29 @@ Object.freeze(CHECKBOX_LABELS)
 
 type CheckboxNameLibrary = 'formView' | 'formEdit' | 'formManage'
 
-export const CHECKBOX_LABELS_BLOCK: { [key in CheckboxNameLibrary]: string } = {
+export const CHECKBOX_LABELS_BLOCK: { [key in CheckboxNameLibrary]: string } = Object.freeze({
   formView: t('View block'),
   formEdit: t('Edit block'),
   formManage: t('Manage block'),
-}
-Object.freeze(CHECKBOX_LABELS_BLOCK)
+})
 
-export const CHECKBOX_LABELS_QUESTION: { [key in 'formView' | 'formEdit' | 'formManage']: string } = {
+export const CHECKBOX_LABELS_QUESTION: { [key in CheckboxNameLibrary]: string } = Object.freeze({
   formView: t('View question'),
   formEdit: t('Edit question'),
   formManage: t('Manage question'),
-}
-Object.freeze(CHECKBOX_LABELS_QUESTION)
+})
 
-export const CHECKBOX_LABELS_TEMPLATE: { [key in 'formView' | 'formEdit' | 'formManage']: string } = {
+export const CHECKBOX_LABELS_TEMPLATE: { [key in CheckboxNameLibrary]: string } = Object.freeze({
   formView: t('View template'),
   formEdit: t('Edit template'),
   formManage: t('Manage template'),
-}
-Object.freeze(CHECKBOX_LABELS_TEMPLATE)
+})
 
-export const CHECKBOX_LABELS_COLLECTION: { [key in 'formView' | 'formEdit' | 'formManage']: string } = {
+export const CHECKBOX_LABELS_COLLECTION: { [key in CheckboxNameLibrary]: string } = Object.freeze({
   formView: t('View collection'),
   formEdit: t('Edit collection'),
   formManage: t('Manage collection'),
-}
-Object.freeze(CHECKBOX_LABELS_COLLECTION)
+})
 
 export const PARTIAL_BY_USERS_LABEL = t('Act on submissions only from specific users')
 
