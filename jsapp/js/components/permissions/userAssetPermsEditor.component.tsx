@@ -12,12 +12,12 @@ import Checkbox from '#/components/common/checkbox'
 import KoboSelect from '#/components/common/koboSelect'
 import type { KoboSelectOption } from '#/components/common/koboSelect'
 import TextBox from '#/components/common/textBox'
-import { AssetTypeName, KEY_CODES } from '#/constants'
+import { KEY_CODES } from '#/constants'
 import type { AssetResponse, PermissionBase, PermissionResponse } from '#/dataInterface'
 import userExistence from '#/users/userExistence.store'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { notify } from '#/utils'
-import { CHECKBOX_DISABLED_SUFFIX, CHECKBOX_LABELS, CHECKBOX_NAMES, CHECKBOX_PERM_PAIRS } from './permConstants'
+import { CHECKBOX_DISABLED_SUFFIX, CHECKBOX_NAMES, CHECKBOX_PERM_PAIRS } from './permConstants'
 import type {
   CheckboxNameAll,
   CheckboxNamePartialByResponses,

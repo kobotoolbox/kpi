@@ -6,7 +6,6 @@ import assetStore from '#/assetStore'
 import bem from '#/bem'
 import Avatar from '#/components/common/avatar'
 import Button from '#/components/common/button'
-import { AssetTypeName } from '#/constants'
 import type { AssetResponse, PermissionBase, PermissionResponse } from '#/dataInterface'
 import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
@@ -17,7 +16,7 @@ import permConfig from './permConfig'
 import { PERMISSIONS_CODENAMES } from './permConstants'
 import type { AssignablePermsMap } from './sharingForm.component'
 import UserAssetPermsEditor from './userAssetPermsEditor.component'
-import { getCheckboxNameByPermission, getContextualPermLabel, getFriendlyPermName, getPermLabel } from './utils'
+import { getFriendlyPermName, getPermLabel } from './utils'
 
 interface UserPermissionRowProps {
   asset: AssetResponse
