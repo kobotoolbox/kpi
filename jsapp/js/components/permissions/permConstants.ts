@@ -27,7 +27,7 @@ export type PermissionCodename =
  * where you have to match the classes with endpoints and their HTTP methods.
  */
 type PermissionsCodenames = { [P in PermissionCodename]: PermissionCodename }
-export const PERMISSIONS_CODENAMES: PermissionsCodenames = {
+export const PERMISSIONS_CODENAMES: PermissionsCodenames = Object.freeze({
   // Is user able to view asset - mostly handled by Backend just not returning
   // asset in the results or direct endpoint.
   view_asset: 'view_asset',
@@ -66,7 +66,7 @@ export const PERMISSIONS_CODENAMES: PermissionsCodenames = {
   validate_submissions: 'validate_submissions',
 
   change_metadata_asset: 'change_metadata_asset',
-}
+})
 
 /**
  * Hi! Sorry for these checkboxes related types and enums being so complex, but
@@ -164,13 +164,12 @@ Object.freeze(CHECKBOX_NAMES)
  */
 export const PARTIAL_BY_USERS_PERM_PAIRS: {
   [key in CheckboxNamePartialByUsers]: PermissionCodename
-} = {
+} = Object.freeze({
   submissionsViewPartialByUsers: 'view_submissions',
   submissionsEditPartialByUsers: 'change_submissions',
   submissionsValidatePartialByUsers: 'validate_submissions',
   submissionsDeletePartialByUsers: 'delete_submissions',
-}
-Object.freeze(PARTIAL_BY_USERS_PERM_PAIRS)
+})
 
 /**
  * This is a map of pairs that connects a partial "by responses" checkbox to
@@ -178,20 +177,19 @@ Object.freeze(PARTIAL_BY_USERS_PERM_PAIRS)
  */
 export const PARTIAL_BY_RESPONSES_PERM_PAIRS: {
   [key in CheckboxNamePartialByResponses]: PermissionCodename
-} = {
+} = Object.freeze({
   submissionsViewPartialByResponses: 'view_submissions',
   submissionsEditPartialByResponses: 'change_submissions',
   submissionsValidatePartialByResponses: 'validate_submissions',
   submissionsDeletePartialByResponses: 'delete_submissions',
-}
-Object.freeze(PARTIAL_BY_RESPONSES_PERM_PAIRS)
+})
 
 /**
  * This is a map of pairs that connect a checkbox name to a permission name.
  */
 export const CHECKBOX_PERM_PAIRS: {
   [key in CheckboxNameAll]: PermissionCodename
-} = {
+} = Object.freeze({
   formView: 'view_asset',
   formEdit: 'change_asset',
   formManage: 'manage_asset',
@@ -208,18 +206,16 @@ export const CHECKBOX_PERM_PAIRS: {
   submissionsDelete: 'delete_submissions',
   submissionsDeletePartialByUsers: 'partial_submissions',
   submissionsDeletePartialByResponses: 'partial_submissions',
-}
-Object.freeze(CHECKBOX_PERM_PAIRS)
+})
 
 /**
  * This is a map to handle exceptions for partial submissions which imply
  * a regular permission
  */
-export const PARTIAL_IMPLIED_CHECKBOX_PAIRS = {
+export const PARTIAL_IMPLIED_CHECKBOX_PAIRS = Object.freeze({
   [CHECKBOX_NAMES.submissionsEditPartialByUsers]: CHECKBOX_NAMES.submissionsAdd,
   [CHECKBOX_NAMES.submissionsEditPartialByResponses]: CHECKBOX_NAMES.submissionsAdd,
-}
-Object.freeze(PARTIAL_IMPLIED_CHECKBOX_PAIRS)
+})
 
 /**
  * Most of these labels are also available from `api/v2/assets/<uid>/` endpoint
@@ -227,7 +223,7 @@ Object.freeze(PARTIAL_IMPLIED_CHECKBOX_PAIRS)
  * is architectured, the labels for partial permissions are not going to be
  * available for multiple types.
  */
-export const CHECKBOX_LABELS: { [key in CheckboxNameAll]: string } = {
+export const CHECKBOX_LABELS: { [key in CheckboxNameAll]: string } = Object.freeze({
   formView: t('View form'),
   formEdit: t('Edit form'),
   formManage: t('Manage project'),
@@ -244,8 +240,7 @@ export const CHECKBOX_LABELS: { [key in CheckboxNameAll]: string } = {
   submissionsDelete: t('Delete submissions'),
   submissionsDeletePartialByUsers: t('Delete submissions only from specific users'),
   submissionsDeletePartialByResponses: t('Delete submissions based on a condition'),
-}
-Object.freeze(CHECKBOX_LABELS)
+})
 
 type CheckboxNameLibrary = 'formView' | 'formEdit' | 'formManage'
 
