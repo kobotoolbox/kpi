@@ -80,7 +80,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
       actions.permissions.getAssetPermissions.completed.listen(this.onAssetPermissionsUpdated.bind(this)),
     )
     if (this.props.assetUid) {
-      actions.resources.loadAsset({ id: this.props.assetUid })
+      actions.resources.loadAsset({ id: this.props.assetUid }, true)
     }
 
     this.onAllAssetsChange()
