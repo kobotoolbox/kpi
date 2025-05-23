@@ -399,4 +399,3 @@ def generate_mass_email_user_lists():
             processed_configs.add(email_config.id)
     cache.set(cache_key, list(processed_configs), timeout=60*60*24)
     logging.info(f'Processed {len(processed_configs)} email configs for {today}')
-    logging.info(f'Set cache key {cache_key} to {processed_configs}')
