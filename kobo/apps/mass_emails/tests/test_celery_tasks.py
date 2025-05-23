@@ -20,10 +20,11 @@ from kpi.tests.base_test_case import BaseTestCase
 from kpi.utils.log import logging
 from ..models import EmailStatus, MassEmailConfig, MassEmailJob, MassEmailRecord
 from ..tasks import (
+    PROCESSED_EMAILS_CACHE_KEY,
     MassEmailSender,
     generate_mass_email_user_lists,
     render_template,
-    send_emails, PROCESSED_EMAILS_CACHE_KEY,
+    send_emails,
 )
 
 
@@ -61,7 +62,9 @@ class BaseMassEmailsTestCase(BaseTestCase):
             last_login=timezone.now() - timedelta(days=7),
             email='user3@test.com',
         )
-        self.cache_key = PROCESSED_EMAILS_CACHE_KEY.format(key_date=timezone.now().date())
+        self.cache_key = PROCESSED_EMAILS_CACHE_KEY.format(
+            key_date=timezone.now().date()
+        )
         cache.delete(self.cache_key)
 
     def _create_email_config(self, name, template=None, frequency=-1):
