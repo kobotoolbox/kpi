@@ -13,11 +13,11 @@ import KoboSelect from '#/components/common/koboSelect'
 import type { KoboSelectOption } from '#/components/common/koboSelect'
 import TextBox from '#/components/common/textBox'
 import { KEY_CODES } from '#/constants'
-import type { PermissionBase, PermissionResponse } from '#/dataInterface'
+import type { AssetResponse, PermissionBase, PermissionResponse } from '#/dataInterface'
 import userExistence from '#/users/userExistence.store'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { notify } from '#/utils'
-import { CHECKBOX_DISABLED_SUFFIX, CHECKBOX_LABELS, CHECKBOX_NAMES, CHECKBOX_PERM_PAIRS } from './permConstants'
+import { CHECKBOX_DISABLED_SUFFIX, CHECKBOX_NAMES, CHECKBOX_PERM_PAIRS } from './permConstants'
 import type {
   CheckboxNameAll,
   CheckboxNamePartialByResponses,
@@ -35,13 +35,18 @@ import {
   isPartialByResponsesValid,
   isPartialByUsersValid,
 } from './userAssetPermsEditor.utils'
-import { getPartialByResponsesQuestionName, getPartialByResponsesValueName, getPartialByUsersListName } from './utils'
+import {
+  getContextualPermLabel,
+  getPartialByResponsesQuestionName,
+  getPartialByResponsesValueName,
+  getPartialByUsersListName,
+} from './utils'
 
 const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma')
 const USERNAMES_SEPARATOR = ','
 
 interface UserAssetPermsEditorProps {
-  assetUid: string
+  asset: AssetResponse
   /** Permissions user username (could be empty for new) */
   username?: string
   /** list of permissions (could be empty for new) */
@@ -369,7 +374,7 @@ export default class UserAssetPermsEditor extends React.Component<
       // bulk endpoint needs all other users permissions to be passed
       const otherUserPerms = this.props.nonOwnerPerms.filter((perm) => perm.user !== buildUserUrl(formData.username))
       this.setState({ isSubmitPending: true })
-      actions.permissions.bulkSetAssetPermissions(this.props.assetUid, otherUserPerms.concat(parsedPerms))
+      actions.permissions.bulkSetAssetPermissions(this.props.asset.uid, otherUserPerms.concat(parsedPerms))
     } else {
       // if nothing changes but user submits, just notify parent we're good
       this.notifyParentAboutSubmitEnd(true)
@@ -386,12 +391,16 @@ export default class UserAssetPermsEditor extends React.Component<
     // much code to make it perfect
     const disabledPropName = (checkboxName + CHECKBOX_DISABLED_SUFFIX) as keyof UserAssetPermsEditorState
     const isDisabled = Boolean(this.state[disabledPropName])
+
+    // No specific partial permission labels needed, so using this function directly on a survey is OK
+    const checkboxLabel = getContextualPermLabel(this.props.asset.asset_type, checkboxName)
+
     return (
       <Checkbox
         checked={this.state[checkboxName]}
         disabled={isDisabled}
         onChange={this.onCheckboxChange.bind(this, checkboxName)}
-        label={CHECKBOX_LABELS[checkboxName]}
+        label={checkboxLabel}
       />
     )
   }
@@ -427,7 +436,7 @@ export default class UserAssetPermsEditor extends React.Component<
 
   getQuestionNameSelectOptions(): KoboSelectOption[] {
     const output: KoboSelectOption[] = []
-    const foundAsset = assetStore.getAsset(this.props.assetUid)
+    const foundAsset = assetStore.getAsset(this.props.asset.uid)
     if (foundAsset?.content?.survey) {
       const flatPaths = getSurveyFlatPaths(foundAsset.content?.survey, false, true)
       for (const [, path] of Object.entries(flatPaths)) {
