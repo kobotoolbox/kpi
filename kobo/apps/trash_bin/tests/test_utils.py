@@ -14,14 +14,16 @@ from freezegun import freeze_time
 from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from kobo.apps.openrosa.apps.logger.models import Instance, XForm
+from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
+from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 
 from kpi.models import Asset
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
 from ..models import TrashStatus
 from ..models.account import AccountTrash
+from ..models.attachment import AttachmentTrash
 from ..models.project import ProjectTrash
-from ..tasks import empty_account, empty_project, task_restarter
+from ..tasks import empty_account, empty_attachment, empty_project, task_restarter
 from ..utils import move_to_trash, put_back
 
 
@@ -592,3 +594,222 @@ class ProjectTrashTestCase(TestCase):
         user_profile.refresh_from_db()
         self.assertEqual(xform_storage_init, xform.attachment_storage_bytes)
         self.assertEqual(user_storage_init, user_profile.attachment_storage_bytes)
+
+
+@ddt
+class AttachmentTrashTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(username='user', password='password')
+        self._create_asset_and_submission()
+
+    def test_move_to_trash(self):
+        assert self.xform.attachment_storage_bytes > 0
+        assert self.user_profile.attachment_storage_bytes > 0
+        assert not self.attachment.delete_status
+        assert not AttachmentTrash.objects.filter(
+            attachment_id=self.attachment.id
+        ).exists()
+
+        self._move_attachment_to_trash(self.attachment, self.user)
+
+        assert self.xform.attachment_storage_bytes == 0
+        assert self.user_profile.attachment_storage_bytes == 0
+        assert self.attachment.delete_status == AttachmentDeleteStatus.PENDING_DELETE
+        assert AttachmentTrash.objects.filter(
+            attachment_id=self.attachment.id
+        ).exists()
+
+        assert AuditLog.objects.filter(
+            app_label='logger',
+            model_name='attachment',
+            object_id=self.attachment.pk,
+            user=self.user,
+            action=AuditAction.IN_TRASH,
+            log_type=AuditType.ATTACHMENT_MANAGEMENT,
+        ).exists()
+
+    def test_put_back(self):
+        trash_obj = self._move_attachment_to_trash(self.attachment, self.user)
+        self._put_back_attachment_from_trash(self.attachment, self.user)
+
+        assert not self.attachment.delete_status
+        assert self.xform.attachment_storage_bytes > 0
+        assert self.user_profile.attachment_storage_bytes > 0
+        assert not AttachmentTrash.objects.filter(
+            attachment_id=self.attachment.id
+        ).exists()
+        assert not PeriodicTask.objects.filter(
+            pk=trash_obj.periodic_task_id
+        ).exists()
+
+        assert AuditLog.objects.filter(
+            app_label='logger',
+            model_name='attachment',
+            object_id=self.attachment.pk,
+            user=self.user,
+            action=AuditAction.PUT_BACK,
+            log_type=AuditType.ATTACHMENT_MANAGEMENT,
+        ).exists()
+
+    def test_trashing_attachment_deletes_file_but_preserves_db_object(self):
+        """
+        Test that moving an attachment to trash removes the file from storage
+        but not the attachment object itself
+        """
+        media_file = self.attachment.media_file
+        assert self.attachment.media_file.storage.exists(str(media_file))
+
+        trash_obj = self._move_attachment_to_trash(self.attachment, self.user)
+        empty_attachment(trash_obj.pk)
+
+        assert Attachment.all_objects.filter(pk=self.attachment.pk).exists()
+        assert not self.attachment.media_file.storage.exists(str(media_file))
+        assert not AttachmentTrash.objects.filter(
+            attachment_id=self.attachment.pk
+        ).exists()
+
+        assert AuditLog.objects.filter(
+            app_label='logger',
+            model_name='attachment',
+            object_id=self.attachment.pk,
+            user=self.user,
+            action=AuditAction.DELETE,
+            log_type=AuditType.ATTACHMENT_MANAGEMENT,
+            metadata={
+                'attachment_uid': self.attachment.uid,
+                'attachment_name': self.attachment.media_file_basename,
+                'instance__root_uuid': self.attachment.instance.root_uuid,
+            },
+        ).exists()
+
+    @data(
+        # Format: (task status, is time frozen, is stuck, expected restart count)
+        # `is_time_frozen=True` simulates a past time (grace period expired)
+        # `is_time_frozen=False` uses current time (still within grace period)
+
+        # Trivial case: Task is pending and still within the grace period
+        (TrashStatus.PENDING, False, False, 0),
+        # Task is pending but the grace period has expired — it should be restarted
+        (TrashStatus.PENDING, True, False, 1),
+        # Task has started and is still running normally
+        (TrashStatus.IN_PROGRESS, True, False, 0),
+        # Task has started but is now stuck — it should be restarted
+        (TrashStatus.IN_PROGRESS, True, True, 1),
+        # Task failed but is not considered stuck — no restart needed
+        (TrashStatus.FAILED, True, False, 0),
+        # Task failed and is considered stuck — still no restart (handled differently)
+        (TrashStatus.FAILED, True, True, 0),
+    )
+    @unpack
+    def test_task_restarter(self, status, is_time_frozen, is_stuck, restart_count):
+        """
+        A freshly created task should not be restarted if it is in grace period.
+        """
+        if is_time_frozen:
+            # Freeze time to simulate that the grace period has passed.
+            # This allows us to test behavior after grace period expiration.
+            frozen_time = '2024-12-10'
+        else:
+            # Use the current time, meaning the task is still within its grace period.
+            frozen_time = str(timezone.now())
+
+        with freeze_time(frozen_time):
+            self._move_attachment_to_trash(self.attachment, self.user)
+
+        if status != TrashStatus.PENDING:
+            # Only tasks that are not pending can be considered as stuck
+            if is_stuck:
+                # Simulate a stuck task by setting its last run time far beyond
+                # the allowed execution window: Add a buffer of 5 mins + 10 secs
+                # to the CELERY time limit to ensure it's well overdue.
+                last_run = timezone.now() - timedelta(
+                    seconds=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5 + 10
+                )
+            else:
+                last_run = timezone.now()
+
+            AttachmentTrash.objects.filter(attachment_id=self.attachment.id).update(
+                status=status,
+                date_modified=last_run,
+            )
+
+        with patch('kobo.apps.trash_bin.tasks.empty_attachment', return_value=True):
+            with patch(
+                'kobo.apps.trash_bin.tasks.empty_attachment.delay'
+            ) as patched_spawned_task:
+                task_restarter()
+
+                assert patched_spawned_task.call_count == restart_count
+
+    def _create_asset_and_submission(self):
+        """
+        Helper method to create an asset and its associated submission
+        with an attachment
+        """
+        self.asset = Asset.objects.create(
+            asset_type='survey',
+            content={
+                'survey': [
+                    {'type': 'audio', 'label': 'q1', 'name': 'q1'},
+                ]
+            },
+            owner=self.user
+        )
+        self.asset.deploy(backend='mock', active=True)
+        self.asset.save()
+
+        username = self.user.username
+        instance_id = uuid.uuid4()
+        submission = {
+            'q1': 'audio_conversion_test_clip.3gp',
+            '_uuid': instance_id,
+            '_attachments': [
+                {
+                    'download_url': f'http://testserver/{username}/audio_conversion_test_clip.3gp',  # noqa: E501
+                    'filename': f'{username}/audio_conversion_test_clip.3gp',
+                    'mimetype': 'video/3gpp',
+                },
+            ],
+            '_submitted_by': username,
+        }
+        self.asset.deployment.mock_submissions([submission])
+        self.xform = self.asset.deployment.xform
+        self.user_profile = UserProfile.objects.get(user=self.xform.user)
+        self.attachment = self.xform.attachments.first()
+        self._refresh_all()
+
+    def _move_attachment_to_trash(self, attachment, user):
+        move_to_trash(
+            request_author=user,
+            objects_list=[{
+                'pk': attachment.pk,
+                'attachment_uid': attachment.uid,
+                'attachment_basename': attachment.media_file_basename,
+            }],
+            grace_period=config.ATTACHMENT_TRASH_GRACE_PERIOD,
+            trash_type='attachment',
+            retain_placeholder=False,
+        )
+        self._refresh_all()
+        return AttachmentTrash.objects.get(attachment_id=attachment.pk)
+
+    def _put_back_attachment_from_trash(self, attachment, user):
+        put_back(
+            request_author=user,
+            objects_list=[{
+                'pk': attachment.pk,
+                'attachment_uid': attachment.uid,
+                'attachment_basename': attachment.media_file_basename,
+            }],
+            trash_type='attachment',
+        )
+        self._refresh_all()
+
+    def _refresh_all(self):
+        """
+        Refresh all test objects from the database to get updated values
+        """
+        self.asset.refresh_from_db()
+        self.xform.refresh_from_db()
+        self.user_profile.refresh_from_db()
+        self.attachment.refresh_from_db()
