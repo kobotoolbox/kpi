@@ -30,6 +30,7 @@ import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { formatTime, notify } from '#/utils'
+import AssetStatusBadge from '#/components/common/assetStatusBadge'
 
 const DVCOUNT_LIMIT_MINIMUM = 20
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url
@@ -233,9 +234,9 @@ class FormLanding extends React.Component {
                 return (
                   <bem.FormView__group m='items' key={n} className={n >= this.state.DVCOUNT_LIMIT ? 'hidden' : ''}>
                     <bem.FormView__label m='version'>
-                      {`v${dvcount - n}`}
+                      <span>{`v${dvcount - n}`}</span>
                       {item.uid === this.state.deployed_version_id && this.state.deployment__active && (
-                        <bem.FormView__cell m='deployed'>{t('Deployed')}</bem.FormView__cell>
+                        <AssetStatusBadge deploymentStatus={this.state.deployment_status} />
                       )}
                     </bem.FormView__label>
                     <bem.FormView__label m='date'>{formatTime(item.date_deployed)}</bem.FormView__label>
