@@ -1316,6 +1316,11 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0),
         'options': {'queue': 'kpi_queue'},
     },
+    'mass-emails-enqueue-records': {
+        'task': 'kobo.apps.mass_emails.tasks.generate_mass_email_user_lists',
+        'schedule': crontab(minute=0, hour=0),
+        'options': {'queue': 'kpi_queue'},
+    }
 }
 
 
@@ -1418,13 +1423,18 @@ MAX_MASS_EMAILS_PER_DAY = 1000
 MASS_EMAIL_THROTTLE_PER_SECOND = 40
 MASS_EMAIL_SLEEP_SECONDS = 1
 # change the interval between "daily" email sends for testing. this will set both
-# the frequency of the task and the expiry time of the cached email limits. should
+# the frequency of the tasks and the expiry time of the cached email limits. should
 # only be True on small testing instances
 MASS_EMAILS_CONDENSE_SEND = env.bool('MASS_EMAILS_CONDENSE_SEND', False)
 if MASS_EMAILS_CONDENSE_SEND:
     CELERY_BEAT_SCHEDULE['mass-emails-send'] = {
         'task': 'kobo.apps.mass_emails.tasks.send_emails',
         'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'kpi_queue'},
+    }
+    CELERY_BEAT_SCHEDULE['mass-emails-enqueue-records'] = {
+        'task': 'kobo.apps.mass_emails.tasks.generate_mass_email_user_lists',
+        'schedule': crontab(minute='*/15'),
         'options': {'queue': 'kpi_queue'},
     }
 

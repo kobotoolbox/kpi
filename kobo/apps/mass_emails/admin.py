@@ -1,7 +1,6 @@
 from django.contrib import admin, messages
 
-from .models import EmailStatus, MassEmailConfig, MassEmailRecord, EmailType
-from .tasks import enqueue_mass_email_records
+from .models import MassEmailConfig, EmailType
 
 
 @admin.register(MassEmailConfig)

@@ -35,7 +35,33 @@ templates_placeholders = {
     '##date_created##': 'date_created',
 }
 
-PROCESSED_EMAILS_CACHE_KEY = 'mass_emails_{today}_emails'
+PROCESSED_EMAILS_CACHE_KEY = 'mass_emails_{key_date}_emails'
+
+# separated for easier testing
+def get_cache_key_date(send_date: datetime) -> datetime | date:
+    if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', False):
+        minute_boundary = (send_date.minute // 15) * 15
+        return send_date.replace(minute=minute_boundary, second=0, microsecond=0)
+    return send_date.date()
+
+
+def enqueue_mass_email_records(email_config):
+    """
+    Creates a email job and enqueues email records for users based on query
+    """
+    job = MassEmailJob.objects.create(email_config=email_config)
+    users = get_users_for_config(email_config)
+
+    records = [
+        MassEmailRecord(user=user, email_job=job, status=EmailStatus.ENQUEUED)
+        for user in users
+    ]
+    MassEmailRecord.objects.bulk_create(records)
+
+    logging.info(
+        f'Created {len(records)} MassEmailRecord(s) for {email_config.name} '
+        f'with query {email_config.query}'
+    )
 
 
 @celery_app.task
@@ -71,7 +97,7 @@ class MassEmailSender:
     def __init__(self):
         now = timezone.now()
         self.today = now.date()
-        cache_date = self.get_cache_key_date(send_date=now)
+        cache_date = get_cache_key_date(send_date=now)
         self.cache_key_prefix = f'mass_emails_{cache_date.isoformat()}_email_remaining'
 
         self.total_records = MassEmailRecord.objects.filter(
@@ -85,13 +111,6 @@ class MassEmailSender:
         ).filter(enqueued_records_count__gt=0)
         logging.info(f'Found {self.total_records} enqueued records')
         self.get_day_limits()
-
-    # separated for easier testing
-    def get_cache_key_date(self, send_date: datetime) -> datetime | date:
-        if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', False):
-            minute_boundary = (send_date.minute // 15) * 15
-            return send_date.replace(minute=minute_boundary, second=0, microsecond=0)
-        return send_date.date()
 
     def cache_limit_value(self, email_config: Optional[MassEmailConfig], limit: int):
         if email_config is None:
@@ -141,6 +160,7 @@ class MassEmailSender:
         MAX_EMAILS = settings.MAX_MASS_EMAILS_PER_DAY
         self.limits = {}
         self.total_limit = cache.get(f'{self.cache_key_prefix}_total')
+
 
         if self.total_limit is not None:
             for email_config in self.configs:
@@ -277,24 +297,23 @@ class MassEmailSender:
 
 @celery_app.task(time_limit=3300)  # 55 minutes
 def send_emails():
-    """Send the emails for the current day. It schedules the emails if they have not
-    been scheduled yet.
-
-    NOTE: This function will replace the function called send_emails in the near future.
     """
-    today = timezone.now().date()
-    sender = MassEmailSender()
-    cache_key = PROCESSED_EMAILS_CACHE_KEY.format(today=today)
+    Send the emails for the current day. It schedules the emails if they have not
+    been scheduled yet.
+    """
+    today = timezone.now()
+    cache_key_date = get_cache_key_date(today)
+    cache_key = PROCESSED_EMAILS_CACHE_KEY.format(key_date=cache_key_date)
     cached_data = cache.get(cache_key, [])
     processed_configs = set(cached_data)
-    config_ids = {email_config.id for email_config in sender.configs}
-    if config_ids != processed_configs:
+    all_active_email_ids = MassEmailConfig.objects.filter(live=True).values_list('id', flat=True)
+
+    if set(all_active_email_ids) != processed_configs:
         logging.info(
-            "Skipping send emails task because enqueued configurations don't "
-            'match the cached list of processed configurations for today'
+            "Skipping send emails task because we have not yet generated send lists"
         )
         return
-
+    sender = MassEmailSender()
     sender.send_day_emails()
 
 
@@ -306,14 +325,20 @@ def get_users_for_config(email_config):
     frequency = 1: Daily emails
     frequency > 1: Recurring emails
     """
+    now = timezone.now()
     users = USER_QUERIES.get(email_config.query, lambda: [])()
     if email_config.frequency == -1:
         return users
 
-    today_midnight = timezone.now().replace(
+    today_midnight = now.replace(
         hour=0, minute=0, second=0, microsecond=0
     )
     cutoff_date = today_midnight - timedelta(days=email_config.frequency-1)
+    if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', False):
+        # if we're condensing sends, pretend 15 minutes is a day
+        date_boundary = get_cache_key_date(now)
+        delta = (email_config.frequency-1)*15
+        cutoff_date = date_boundary - timedelta(minutes=delta)
 
     recent_recipients = set(
         MassEmailRecord.objects.filter(
@@ -331,12 +356,13 @@ def generate_mass_email_user_lists():
     configs and users
     """
 
-    today = timezone.now().date()
-    cache_key = PROCESSED_EMAILS_CACHE_KEY.format(today=today)
+    today = timezone.now()
+    cache_key_date = get_cache_key_date(today)
+    cache_key = PROCESSED_EMAILS_CACHE_KEY.format(key_date=cache_key_date)
     cached_data = cache.get(cache_key, [])
     processed_configs = set(cached_data)
     email_configs = MassEmailConfig.objects.filter(
-        date_created__lt=today, live=True
+        date_created__lt=cache_key_date, live=True
     )
 
     for email_config in email_configs:
@@ -373,3 +399,4 @@ def generate_mass_email_user_lists():
             processed_configs.add(email_config.id)
     cache.set(cache_key, list(processed_configs), timeout=60*60*24)
     logging.info(f'Processed {len(processed_configs)} email configs for {today}')
+    logging.info(f'Set cache key {cache_key} to {processed_configs}')
