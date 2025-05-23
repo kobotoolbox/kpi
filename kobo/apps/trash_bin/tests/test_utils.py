@@ -683,7 +683,10 @@ class AttachmentTrashTestCase(TestCase):
         ).exists()
 
     @data(
-        # Format: (task status, within grace period, is stuck, expected restart count)
+        # Format: (task status, is time frozen, is stuck, expected restart count)
+        # `is_time_frozen=True` simulates a past time (grace period expired)
+        # `is_time_frozen=False` uses current time (still within grace period)
+
         # Trivial case: Task is pending and still within the grace period
         (TrashStatus.PENDING, False, False, 0),
         # Task is pending but the grace period has expired — it should be restarted
@@ -703,8 +706,11 @@ class AttachmentTrashTestCase(TestCase):
         A freshly created task should not be restarted if it is in grace period.
         """
         if is_time_frozen:
+            # Freeze time to simulate that the grace period has passed.
+            # This allows us to test behavior after grace period expiration.
             frozen_time = '2024-12-10'
         else:
+            # Use the current time, meaning the task is still within its grace period.
             frozen_time = str(timezone.now())
 
         with freeze_time(frozen_time):
@@ -713,8 +719,9 @@ class AttachmentTrashTestCase(TestCase):
         if status != TrashStatus.PENDING:
             # Only tasks that are not pending can be considered as stuck
             if is_stuck:
-                # Fake the task was started but is now stuck (its last run is older than
-                # the expected threshold).
+                # Simulate a stuck task by setting its last run time far beyond
+                # the allowed execution window: Add a buffer of 5 mins + 10 secs
+                # to the CELERY time limit to ensure it's well overdue.
                 last_run = timezone.now() - timedelta(
                     seconds=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5 + 10
                 )
