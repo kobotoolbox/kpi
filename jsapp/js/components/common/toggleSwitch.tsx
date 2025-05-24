@@ -11,7 +11,6 @@ interface ToggleSwitchProps {
   name?: string
   id?: number
   onChange: (isChecked: boolean) => void
-  'data-cy'?: string
 }
 
 /**
@@ -33,7 +32,6 @@ class ToggleSwitch extends React.Component<ToggleSwitchProps, {}> {
             onChange={this.onChange.bind(this)}
             checked={this.props.checked}
             disabled={this.props.disabled}
-            data-cy={this.props['data-cy']}
           />
           <bem.ToggleSwitch__slider disabled={this.props.disabled} />
 
