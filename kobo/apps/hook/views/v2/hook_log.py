@@ -1,6 +1,7 @@
 # coding: utf-8
 from django.utils.translation import gettext as t
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -15,6 +16,9 @@ from kpi.permissions import AssetEditorSubmissionViewerPermission
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
+@extend_schema(
+    tags=['logs'],
+)
 class HookLogViewSet(AssetNestedObjectViewsetMixin,
                      NestedViewSetMixin,
                      mixins.RetrieveModelMixin,

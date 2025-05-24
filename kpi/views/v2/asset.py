@@ -6,6 +6,7 @@ from operator import itemgetter
 from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -55,6 +56,9 @@ from kpi.utils.object_permission import get_database_user, get_objects_for_user
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 
+@extend_schema(
+    tags=['asset'],
+)
 class AssetViewSet(
     AssetViewSetListMixin,
     ObjectPermissionViewSetMixin,
