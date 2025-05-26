@@ -1,4 +1,3 @@
-# coding: utf-8
 import os
 import re
 from unittest.mock import patch
@@ -6,8 +5,9 @@ from unittest.mock import patch
 from django.http import Http404
 from django_digest.test import DigestAuth
 from django_digest.test import Client as DigestClient
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm
+from rest_framework import status
 
+from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.logger.models import Instance, Attachment
@@ -245,7 +245,7 @@ class TestFormSubmission(TestBase):
         self.assertEqual(Instance.objects.count(), pre_count + 1)
         inst = Instance.objects.order_by('pk').last()
         self._make_submission(duplicate_xml_submission_file_path, assert_success=False)
-        self.assertEqual(self.response.status_code, 409)
+        self.assertEqual(self.response.status_code, status.HTTP_409_CONFLICT)
         self.assertEqual(Instance.objects.count(), pre_count + 1)
         # this is exactly the same instance
         another_inst = Instance.objects.order_by('pk').last()
@@ -293,7 +293,7 @@ class TestFormSubmission(TestBase):
         - Resubmission with the same attachment should be rejected
          with a 202 status code.
         - Resubmission with a different attachment (same file name) should be
-         rejected with a 202 status code.
+         rejected with a 409 status code.
         """
         xml_submission_file_path = os.path.join(
             os.path.dirname(__file__),
@@ -316,35 +316,67 @@ class TestFormSubmission(TestBase):
         # Test submission with XML file
         self._make_submission(xml_submission_file_path)
         initial_instance = Instance.objects.last()
-        self.assertEqual(self.response.status_code, 201)
-        self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
+        assert self.response.status_code == status.HTTP_201_CREATED
+        assert Instance.objects.count() == initial_instance_count + 1
+        assert Attachment.objects.filter(instance=initial_instance).count() == 0
+
 
         # Test duplicate submission with attachment
         with open(media_file_path1, 'rb') as media_file:
             self._make_submission(xml_submission_file_path, media_file=media_file)
-        self.assertEqual(self.response.status_code, 201)
-        self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
-        self.assertEqual(
-            Attachment.objects.filter(instance=initial_instance).count(), 1
-        )
 
-        # Test duplicate submission with the same attachment
+        assert self.response.status_code == status.HTTP_201_CREATED
+        assert Instance.objects.count() == initial_instance_count + 1
+        assert (
+            Instance.objects.filter(
+                xform_id=initial_instance.xform_id,
+                root_uuid=initial_instance.root_uuid,
+                uuid=initial_instance.uuid,
+            ).count()
+            == initial_instance_count + 1
+        )
+        assert Attachment.objects.filter(instance=initial_instance).count() == 1
+        attachment = initial_instance.attachments.first()
+
+        # Test duplicate submission with the same attachment. No attachments added
         with open(media_file_path1, 'rb') as media_file:
-            self._make_submission(xml_submission_file_path, media_file=media_file)
-        self.assertEqual(self.response.status_code, 202)
+            self._make_submission(
+                xml_submission_file_path, media_file=media_file
+            )
+        self.assertEqual(self.response.status_code, status.HTTP_202_ACCEPTED)
         self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
-        self.assertEqual(
-            Attachment.objects.filter(instance=initial_instance).count(), 1
+        # Validate the attachment is still the same
+        assert (
+            Attachment.objects.filter(
+                hash=attachment.hash, instance=initial_instance
+            ).count()
+            == 1
         )
 
         # Test duplicate submission with the same attachment name but with
-        # different attachment content
+        # different attachment content. Submission should be rejected
         with open(media_file_path2, 'rb') as media_file2:
-            self._make_submission(xml_submission_file_path, media_file=media_file2)
-        self.assertEqual(self.response.status_code, 202)
-        self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
-        self.assertEqual(
-            Attachment.objects.filter(instance=initial_instance).count(), 1
+            self._make_submission(
+                xml_submission_file_path,
+                media_file=media_file2,
+                assert_success=False,
+            )
+
+        assert self.response.status_code == status.HTTP_409_CONFLICT
+        assert Instance.objects.count() == initial_instance_count + 1
+        assert (
+            Instance.objects.filter(
+                xform_id=initial_instance.xform_id,
+                root_uuid=initial_instance.root_uuid,
+                uuid=initial_instance.uuid,
+            ).count()
+            == initial_instance_count + 1
+        )
+        assert (
+            Attachment.objects.filter(
+                hash=attachment.hash, instance=initial_instance
+            ).count()
+            == 1
         )
 
     def test_edit_submission_with_same_attachment_name_but_different_content(self):
@@ -387,26 +419,30 @@ class TestFormSubmission(TestBase):
         self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
         attachment = attachments[0]
         attachment_basename = attachment.media_file_basename
-        attachment_hash = attachment.file_hash
+        attachment_hash = attachment.hash
 
-        # test edit submission with the same attachment name but different attachment
-        # content
+        # Test edit submission with the same attachment name but different attachment
+        # content. It should be rejected
         with open(media_file_path2, 'rb') as media_file:
             self._make_submission(
-                xml_edit_submission_file_path, media_file=media_file
+                xml_edit_submission_file_path,
+                media_file=media_file,
+                assert_success=False,
             )
 
-        edited_instance = Instance.objects.order_by('-pk')[0]
-        edited_attachments = Attachment.objects.filter(instance=edited_instance)
-        self.assertTrue(attachments.count() == 1)
-        self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
-        self.assertEqual(self.response.status_code, 201)
-
+        assert self.response.status_code == status.HTTP_409_CONFLICT
+        edited_instance = Instance.objects.get(
+            xform_id=initial_instance.xform_id,
+            root_uuid=initial_instance.root_uuid,
+        )
+        # Instance and its attachment did not change
+        assert edited_instance.uuid == initial_instance.uuid
+        edited_attachments = Attachment.all_objects.filter(instance=edited_instance).all()
+        # No attachments have been deleted
+        assert edited_attachments.count() == 1
         edited_attachment = edited_attachments[0]
-        edited_attachment_basename = edited_attachment.media_file_basename
-        edited_attachment_hash = edited_attachment.file_hash
-        self.assertEqual(attachment_basename, edited_attachment_basename)
-        self.assertNotEqual(attachment_hash, edited_attachment_hash)
+        assert edited_attachment.hash == attachment_hash
+        assert edited_attachment.media_file_basename == attachment_basename
 
     def test_owner_can_edit_submissions(self):
         xml_submission_file_path = os.path.join(
