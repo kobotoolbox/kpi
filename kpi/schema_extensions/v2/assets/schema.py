@@ -4,6 +4,7 @@ from drf_spectacular.plumbing import (
     build_object_type,
 )
 from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import inline_serializer
 
 from kpi.mixins import ObjectPermissionMixin
 from kpi.utils.schema_extensions.url_builder import build_url_type

@@ -1,5 +1,11 @@
 ## Create or clone an asset
 
+When cloning an asset, you must provide:
+
+- the name (as a string),
+- the `clone_from` (the uid representing the asset),
+- the asset_type
+
 Where `asset_type` must be one of these values:
 
 * block (can be cloned to `block`, `question`, `survey`, `template`)

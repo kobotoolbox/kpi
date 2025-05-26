@@ -185,7 +185,7 @@ class SummaryField(serializers.ReadOnlyField):
     pass
 
 
-class UserURLField(HyperlinkedIdentityField):
+class AssetHyperlinkedURLField(HyperlinkedIdentityField):
     pass
 
 
@@ -207,3 +207,7 @@ class XFormLinkField(serializers.SerializerMethodField):
 
 class XLSLinkField(serializers.SerializerMethodField):
     pass
+
+
+def generic_uid_field(uid:str):
+    return serializers.CharField(default=uid)

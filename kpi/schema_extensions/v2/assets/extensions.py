@@ -421,7 +421,7 @@ class OwnerURLFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.OwnerURLField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type('user-kpi-detail', username='bob')
+        return build_url_type('api_v2:user-kpi-detail', username='bob')
 
 
 class PairedDataURLFieldExtension(OpenApiSerializerFieldExtension):
@@ -550,8 +550,8 @@ class SummaryFieldExtension(OpenApiSerializerFieldExtension):
         )
 
 
-class UserURLFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.assets.fields.UserURLField'
+class AssetHyperlinkedURLFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.fields.AssetHyperlinkedURLField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type('asset-detail', uid='aBeA23YCYjkGTFvYVHuAyU')

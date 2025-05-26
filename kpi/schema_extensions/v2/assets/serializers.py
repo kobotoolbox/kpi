@@ -15,6 +15,7 @@ from .fields import (
     ReportURLField,
     ValidContentDataField,
     XFormField,
+    generic_uid_field,
 )
 
 AssetCreateRequest = inline_serializer_class(
@@ -62,7 +63,7 @@ AssetContentResponse = inline_serializer_class(
     name='ContentResponse',
     fields={
         'kind': serializers.CharField(),
-        'uid': serializers.CharField(),
+        'uid': generic_uid_field(uid='akJTPb4JLVFqXMqYhKiPXZ'),
         'data': ContentDataField(),
     },
 )
@@ -101,7 +102,7 @@ AssetValidContentResponse = inline_serializer_class(
     name='AssetValidContentResponse',
     fields={
         'kind': serializers.CharField(),
-        'uid': serializers.CharField(),
+        'uid': generic_uid_field(uid='akJTPb4JLVFqXMqYhKiPXZ'),
         'data': ValidContentDataField(),
     },
 )

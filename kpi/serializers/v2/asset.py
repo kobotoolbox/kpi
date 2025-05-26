@@ -92,7 +92,7 @@ from ...schema_extensions.v2.assets.fields import (
     SettingsField,
     SubscribersCountField,
     SummaryField,
-    UserURLField,
+    AssetHyperlinkedURLField,
     VersionCountField,
     XFormLinkField,
     XLSLinkField, AccessTypeField,
@@ -324,7 +324,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         view_name='user-kpi-detail', lookup_field='username', read_only=True)
     owner__username = serializers.ReadOnlyField(source='owner.username')
     owner_label = serializers.SerializerMethodField()
-    url = UserURLField(lookup_field='uid', view_name='asset-detail')
+    url = AssetHyperlinkedURLField(lookup_field='uid', view_name='asset-detail')
     asset_type = serializers.ChoiceField(choices=ASSET_TYPES)
     settings = SettingsField(required=False, allow_blank=True)
     content = ContentField(required=False)

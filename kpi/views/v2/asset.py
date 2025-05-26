@@ -45,6 +45,7 @@ from kpi.permissions import (
     get_perm_name,
 )
 from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, XlsRenderer
+from kpi.schema_extensions.v2.assets.fields import generic_uid_field
 from kpi.schema_extensions.v2.assets.serializers import (
     AssetContentResponse,
     AssetCreateRequest,
@@ -97,7 +98,6 @@ class AssetSchema(AutoSchema):
     def get_operation(self, *args, **kwargs):
 
         from kpi.schema_extensions.v2.assets.schema import (
-            ASSET_CLONE_FROM,
             ASSET_NAME,
             ASSET_SETTINGS,
             ASSET_TYPE,
@@ -128,7 +128,7 @@ class AssetSchema(AutoSchema):
                 'UsingSource': {
                     'value': {
                         'name': generate_example_from_schema(ASSET_NAME),
-                        'clone_from': generate_example_from_schema(ASSET_CLONE_FROM),
+                        'clone_from': 'akJTPb4JLVFqXMqYhKiPXZ',
                         'asset_type': generate_example_from_schema(ASSET_TYPE),
                     },
                     'summary': 'Cloning an asset',
@@ -174,7 +174,6 @@ class AssetSchema(AutoSchema):
             }
 
         return operation
-
 
 @extend_schema(
     tags=['Asset'],
@@ -319,6 +318,9 @@ class AssetViewSet(
     NestedViewSetMixin,
     AuditLoggedModelViewSet,
 ):
+    # TODO
+    #   Define the leftover docstring in their respective endpoint documentation in
+    #   next PRs.
     """
     * Assign an asset to a collection
       <span class='label label-warning'>
