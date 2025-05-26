@@ -375,7 +375,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     data = DataURLField()
     # Only add link instead of hooks list to avoid multiple access to DB.
     hooks_link = HooksUrlField()
-    kind = serializers.CharField()
     children = ChildrenField()
     subscribers_count = SubscribersCountField()
     status = serializers.SerializerMethodField()

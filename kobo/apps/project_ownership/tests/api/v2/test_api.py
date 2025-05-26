@@ -279,7 +279,7 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
         # Should be a 204, but DRF Browsable API renderer (the default)
         # alter the status code and returns a 200 instead.
         # All other deletion tests on Asset assert a 200 either.
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_204_NO_CONTENT
 
         self.client.login(username='anotheruser', password='anotheruser')
         response = self.client.get(self.invite_detail_url, format='json')

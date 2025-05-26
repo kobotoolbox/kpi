@@ -70,7 +70,8 @@ from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
-    open_api_204_empty_response, open_api_http_example_response,
+    open_api_204_empty_response,
+    open_api_http_example_response,
 )
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
