@@ -1,4 +1,5 @@
 import json
+from collections import defaultdict
 from typing import Optional
 
 from bson import json_util
@@ -454,13 +455,14 @@ class ParsedInstance(models.Model):
         if not instance_ids:
             return
 
+        grouped_attachments = _get_grouped_attachments_for_instances(instance_ids)
+
         attachments_to_update = []
         for inst_id in instance_ids:
-            new_attachments = _get_attachments_from_instance(inst_id)
             attachments_to_update.append(
                 UpdateOne(
                     {'_id': inst_id},
-                    {'$set': {'_attachments': new_attachments}},
+                    {'$set': {'_attachments': grouped_attachments.get(inst_id, [])}},
                 )
             )
 
@@ -468,24 +470,34 @@ class ParsedInstance(models.Model):
             xform_instances.bulk_write(attachments_to_update)
 
 
-def _get_attachments_from_instance(instance_id):
-    attachments = []
-    for a in Attachment.all_objects.filter(
-        instance_id=instance_id
-    ).exclude(delete_status=AttachmentDeleteStatus.SOFT_DELETED):
-        attachment = dict()
-        attachment['download_url'] = a.secure_url()
-        for suffix in settings.THUMB_CONF.keys():
-            attachment['download_{}_url'.format(suffix)] = a.secure_url(suffix)
-        attachment['mimetype'] = a.mimetype
-        attachment['filename'] = a.media_file.name
-        attachment['instance'] = a.instance.pk
-        attachment['xform'] = a.xform.id
-        attachment['id'] = a.id
-        attachment['uid'] = a.uid
-        attachment['is_deleted'] = a.delete_status in [
-            AttachmentDeleteStatus.PENDING_DELETE, AttachmentDeleteStatus.DELETED
-        ]
-        attachments.append(attachment)
+def _get_attachments_from_instance(instance_id) -> list[dict]:
+    return _get_grouped_attachments_for_instances([instance_id]).get(instance_id, [])
 
-    return attachments
+
+def _get_grouped_attachments_for_instances(
+    instance_ids: list[int]
+) -> dict[int, list[dict]]:
+    grouped_attachments = defaultdict(list)
+    attachments = Attachment.all_objects.filter(
+        instance_id__in=instance_ids
+    ).exclude(delete_status=AttachmentDeleteStatus.SOFT_DELETED)
+
+    for a in attachments:
+        attachment = {
+            'download_url': a.secure_url(),
+            'mimetype': a.mimetype,
+            'filename': a.media_file.name,
+            'instance': a.instance.pk,
+            'xform': a.xform.id,
+            'id': a.id,
+            'uid': a.uid,
+            'is_deleted': a.delete_status in [
+                AttachmentDeleteStatus.PENDING_DELETE, AttachmentDeleteStatus.DELETED
+            ],
+        }
+        for suffix in settings.THUMB_CONF.keys():
+            attachment[f'download_{suffix}_url'] = a.secure_url(suffix)
+
+        grouped_attachments[a.instance_id].append(attachment)
+
+    return grouped_attachments

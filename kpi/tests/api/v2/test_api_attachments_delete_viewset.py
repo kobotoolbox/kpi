@@ -188,7 +188,49 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
             )
         ]
 
-    def test_attachment_trash_updates_is_deleted_flag_in_mongo(self):
+    def test_delete_single_attachment_updates_is_deleted_flag_in_mongo(self):
+        """
+        Test that when an attachment is deleted (moved to trash),
+        the `is_deleted` flag is correctly set in MongoDB
+        """
+        # Check the initial submission details
+        submission_detail_url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.first_instance.pk,
+            },
+        )
+        response = self.client.get(submission_detail_url)
+        assert response.status_code == status.HTTP_200_OK
+
+        for attachment in response.data['_attachments']:
+            assert attachment['is_deleted'] is False
+
+        # Delete the attachment
+        delete_url = reverse(
+            self._get_endpoint('asset-attachments-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.attachment_uid_1,
+            },
+        )
+        delete_response = self.client.delete(delete_url)
+
+        assert delete_response.status_code == status.HTTP_204_NO_CONTENT
+        assert AttachmentTrash.objects.count() == 1
+
+        # Check the updated submission details
+        updated_response = self.client.get(submission_detail_url)
+        assert updated_response.status_code == status.HTTP_200_OK
+
+        for attachment in updated_response.data['_attachments']:
+            if attachment['uid'] == self.attachment_uid_1:
+                assert attachment['is_deleted'] is True
+            else:
+                assert attachment['is_deleted'] is False
+
+    def test_delete_bulk_attachments_updates_is_deleted_flag_in_mongo(self):
         """
         Test that when attachments are deleted (moved to trash),
         the `is_deleted` flag is correctly set in MongoDB

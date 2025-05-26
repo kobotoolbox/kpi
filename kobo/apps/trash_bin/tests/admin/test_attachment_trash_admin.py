@@ -1,5 +1,3 @@
-import uuid
-
 from django.contrib.admin.sites import site
 from django.urls import reverse
 from rest_framework import status
@@ -7,19 +5,17 @@ from rest_framework import status
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
-from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 from kobo.apps.trash_bin.admin import AttachmentTrashAdmin
 from kobo.apps.trash_bin.models.attachment import AttachmentTrash
 from kobo.apps.trash_bin.utils import move_to_trash
-from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
-class AttachmentTrashAdminTestCase(BaseTestCase):
+class AttachmentTrashAdminTestCase(BaseTestCase, AssetSubmissionTestMixin):
     """
     Test that AttachmentTrashAdmin actions correctly delete or restore attachments
     """
@@ -32,7 +28,9 @@ class AttachmentTrashAdminTestCase(BaseTestCase):
         self.client.force_login(self.admin)
 
         # Create a new asset and submission with an attachment
-        self._create_asset_and_submission()
+        self.asset, self.xform, self.instance, self.user_profile, self.attachment = (
+            self._create_test_asset_and_submission(user=self.user)
+        )
         self.initial_xform_storage = self.xform.attachment_storage_bytes
         self.initial_user_storage = self.user_profile.attachment_storage_bytes
 
@@ -145,44 +143,6 @@ class AttachmentTrashAdminTestCase(BaseTestCase):
 
         for attachment in updated_response.data['_attachments']:
             assert attachment['is_deleted'] is False
-
-    def _create_asset_and_submission(self):
-        """
-        Helper method to create an asset and its associated submission
-        with an attachment
-        """
-        self.asset = Asset.objects.create(
-            asset_type='survey',
-            content={
-                'survey': [
-                    {'type': 'audio', 'label': 'q1', 'name': 'q1'},
-                ]
-            },
-            owner=self.user
-        )
-        self.asset.deploy(backend='mock', active=True)
-        self.asset.save()
-
-        username = self.user.username
-        instance_id = uuid.uuid4()
-        submission = {
-            'q1': 'audio_conversion_test_clip.3gp',
-            '_uuid': instance_id,
-            '_attachments': [
-                {
-                    'download_url': f'http://testserver/{username}/audio_conversion_test_clip.3gp',  # noqa: E501
-                    'filename': f'{username}/audio_conversion_test_clip.3gp',
-                    'mimetype': 'video/3gpp',
-                },
-            ],
-            '_submitted_by': username,
-        }
-        self.asset.deployment.mock_submissions([submission])
-        self.instance = Instance.objects.get(root_uuid=instance_id)
-        self.xform = self.asset.deployment.xform
-        self.user_profile = UserProfile.objects.get(user=self.xform.user)
-        self.attachment = self.xform.attachments.first()
-        self._refresh_all()
 
     def _refresh_all(self):
         """
