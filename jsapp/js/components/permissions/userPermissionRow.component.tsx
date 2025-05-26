@@ -6,7 +6,7 @@ import assetStore from '#/assetStore'
 import bem from '#/bem'
 import Avatar from '#/components/common/avatar'
 import Button from '#/components/common/button'
-import type { PermissionBase, PermissionResponse } from '#/dataInterface'
+import type { AssetResponse, PermissionBase, PermissionResponse } from '#/dataInterface'
 import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
@@ -19,7 +19,7 @@ import UserAssetPermsEditor from './userAssetPermsEditor.component'
 import { getFriendlyPermName, getPermLabel } from './utils'
 
 interface UserPermissionRowProps {
-  assetUid: string
+  asset: AssetResponse
   userCanEditPerms: boolean
   nonOwnerPerms: PermissionBase[]
   assignablePerms: AssignablePermsMap
@@ -74,7 +74,7 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
       (perm) => perm.permission === permConfig.getPermissionByCodename('view_asset')?.url,
     )
     const isCurrentUser = this.props.username === sessionStore.currentAccount.username
-    actions.permissions.removeAssetPermission(this.props.assetUid, userAssetPermUrl?.url, true)
+    actions.permissions.removeAssetPermission(this.props.asset.uid, userAssetPermUrl?.url, true)
     permissionsActions.removeAssetPermission.completed.listen(() => {
       // If the user deletes their own permissions, they will be routed to the form landing page
       if (isCurrentUser) {
@@ -107,9 +107,18 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
             return null
           }
 
-          const permLabel = getPermLabel(perm)
+          const permLabel = getPermLabel(perm, this.props.asset.asset_type)
 
-          const friendlyPermName = getFriendlyPermName(perm)
+          let friendlyPermName = ''
+          // Between UserPermissionRow and UserAssetPermsEditor, generation of permission labels takes a small but
+          // significantly different starting point. To avoid deeper complications we do a little bit of redundant work
+          // here (to get the permission definition) needed to generate contextual labels.
+          //
+          // See https://github.com/kobotoolbox/kpi/pull/5736#discussion_r2085252485
+          const permDef = permConfig.getPermission(perm.permission)
+          if (permDef) {
+            friendlyPermName = getFriendlyPermName(perm, this.props.asset.asset_type)
+          }
 
           return <bem.UserRow__perm key={permLabel}>{friendlyPermName}</bem.UserRow__perm>
         })}
@@ -164,7 +173,7 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
         {this.state.isEditFormVisible && (
           <bem.UserRow__editor>
             <UserAssetPermsEditor
-              assetUid={this.props.assetUid}
+              asset={this.props.asset}
               username={this.props.username}
               permissions={this.props.permissions}
               assignablePerms={this.props.assignablePerms}
