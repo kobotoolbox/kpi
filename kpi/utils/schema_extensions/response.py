@@ -177,6 +177,7 @@ def open_api_http_example_response(
         validate_payload=validate_payload,
         raise_access_forbidden=raise_access_forbidden,
         raise_not_found=raise_not_found,
+        media_type='text/html',
         **kwargs,
     )
 
@@ -187,9 +188,11 @@ def open_api_error_responses(
     validate_payload: bool = True,
     raise_access_forbidden: bool = True,
     raise_not_found: bool = True,
+    media_type: str = 'application/json',
     **kwargs,
 ):
     if require_auth:
+
         response[status.HTTP_401_UNAUTHORIZED] = OpenApiResponse(
             response=ErrorDetailSerializer(),
             examples=[
@@ -216,18 +219,28 @@ def open_api_error_responses(
         )
 
     if raise_not_found:
-        response[status.HTTP_404_NOT_FOUND] = OpenApiResponse(
-            response=ErrorDetailSerializer(),
-            examples=[
-                OpenApiExample(
-                    name='Not Found',
-                    value={
-                        'detail': 'Not found.'
-                    },
-                    response_only=True,
-                )
-            ]
-        )
+        if media_type == 'text/html':
+            response[status.HTTP_404_NOT_FOUND] = OpenApiResponse(
+                response=ErrorDetailSerializer(),
+                examples=[
+                    OpenApiExample(
+                        name='Not Found',
+                        value='404 Not Found',
+                        response_only=True,
+                    )
+                ]
+            )
+        else:
+            response[status.HTTP_404_NOT_FOUND] = OpenApiResponse(
+                response=ErrorDetailSerializer(),
+                examples=[
+                    OpenApiExample(
+                        name='Not Found',
+                        value={'detail': 'Not found.'},
+                        response_only=True,
+                    )
+                ]
+            )
 
     if validate_payload:
         validation_errors = kwargs.get(
