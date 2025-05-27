@@ -478,7 +478,6 @@ class GenerateDailyEmailUserListTaskTestCase(BaseMassEmailsTestCase):
         Test that the cache expires after 24 hours
         """
         email_config = self._create_email_config('Test')
-        logging.info(f'Test cache key: {self.cache_key}')
         generate_mass_email_user_lists()
         self.assertIn(email_config.id, cache.get(self.cache_key))
 
