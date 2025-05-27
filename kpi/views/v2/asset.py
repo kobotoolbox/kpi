@@ -319,6 +319,44 @@ class AssetViewSet(
     NestedViewSetMixin,
     AuditLoggedModelViewSet,
 ):
+    """
+    ViewSet for managing the current user's assets
+
+    Available actions:
+    - list           → GET /api/v2/assets/
+    - create         → POST /api/v2/assets/
+    - counts         → GET /api/v2/assets/{parent_lookup_assets}/counts/
+    - retrieve       → GET /api/v2/assets/{uid}/
+    - patch          → PATCH /api/v2/assets/{uid}/
+    - delete         → DELETE /api/v2/assets/{uid}/
+    - content        → GET /api/v2/assets/{uid}/content/
+    - reports        → GET /api/v2/assets/{uid}/reports/
+    - table_view     → GET /api/v2/assets/{uid}/table_view/
+    - valid_content  → GET /api/v2/assets/{uid}/valid_content/
+    - xform          → GET /api/v2/assets/{uid}/xform/
+    - xls            → GET /api/v2/assets/{uid}/xls/
+    - bulk           → POST /api/v2/assets/bulk/
+    - hash           → GET /api/v2/assets/hash/
+    - metadata       → GET /api/v2/assets/metadata/
+
+    Documentation:
+    - docs/api/v2/assets/list.md
+    - docs/api/v2/assets/create.md
+    - docs/api/v2/assets/counts.md
+    - docs/api/v2/assets/retrieve.md
+    - docs/api/v2/assets/patch.md
+    - docs/api/v2/assets/delete.md
+    - docs/api/v2/assets/content.md
+    - docs/api/v2/assets/reports.md
+    - docs/api/v2/assets/table_view.md
+    - docs/api/v2/assets/valid_content.md
+    - docs/api/v2/assets/xform.md
+    - docs/api/v2/assets/xls.md
+    - docs/api/v2/assets/bulk.md
+    - docs/api/v2/assets/hash.md
+    - docs/api/v2/assets/metadata.md
+    """
+
     # TODO
     #   Define the leftover docstring in their respective endpoint documentation in
     #   next PRs.
