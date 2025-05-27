@@ -53,7 +53,7 @@ from kpi.schema_extensions.v2.assets.serializers import (
     AssetMetadataResponse,
     AssetReportResponse,
     AssetValidContentResponse,
-    AssetPatchRequest,
+    AssetPatchRequest, AssetBulkResponse,
 )
 from kpi.serializers.v2.asset import (
     AssetBulkActionsSerializer,
@@ -183,6 +183,7 @@ class AssetSchema(AutoSchema):
     bulk=extend_schema(
         description=read_md('kpi', 'assets/bulk.md'),
         responses=open_api_200_ok_response(
+            AssetBulkResponse(),
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,

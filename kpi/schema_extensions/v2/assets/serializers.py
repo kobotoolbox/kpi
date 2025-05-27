@@ -49,6 +49,14 @@ AssetBulkRequest = inline_serializer_class(
 )
 
 
+AssetBulkResponse = inline_serializer_class(
+    name='AssetBulkResponse',
+    fields={
+        'detail': serializers.CharField(),
+    },
+)
+
+
 AssetCountResponse = inline_serializer_class(
     name='AssetCountResponse',
     fields={

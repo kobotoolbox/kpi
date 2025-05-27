@@ -36,7 +36,7 @@ ASSET_TYPE = build_basic_type(OpenApiTypes.STR)
 
 ASSET_URL_SCHEMA = build_url_type('api_v2:asset-detail', uid='a5owyo85mHyFazzgsZK45c')
 
-BULK_ACTION = build_object_type(properties={})
+BULK_ACTION = build_basic_type(OpenApiTypes.STR)
 
 BULK_ASSET_UIDS = build_object_type(
     properties={
