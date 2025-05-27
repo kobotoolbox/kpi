@@ -7,6 +7,7 @@ import pytest
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.cache import cache
+from django.test.utils import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from model_bakery import baker
@@ -479,6 +480,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
 
         assert usage_balances[UsageType.STORAGE_BYTES] is None
 
+    @override_settings(STRIPE_ENABLED=False)
     def test_usage_balances_without_stripe(self):
         """
         Ensure usage balance code works when Stripe is not enabled.
