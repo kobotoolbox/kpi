@@ -274,7 +274,10 @@ class AssetSchema(AutoSchema):
     ),
     table_view=extend_schema(
         description=read_md('kpi', 'assets/table_view.md'),
-        responses=open_api_200_ok_response(
+        responses=open_api_http_example_response(
+            name='Table View Example',
+            summary='Expected HTML response',
+            value=read_md('kpi', 'assets/http_examples/table_example.md'),
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
@@ -305,7 +308,7 @@ class AssetSchema(AutoSchema):
         responses=open_api_http_example_response(
             name='XLS Example',
             summary='Expected HTML response',
-            value=read_md('kpi', 'assets/http_examples/xls_example.md'),
+            value=read_md('kpi', 'assets/http_examples/table_example.md'),
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
