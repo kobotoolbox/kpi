@@ -28,7 +28,8 @@ class MassEmailConfigAdmin(admin.ModelAdmin):
                 elif config.live:
                     self.message_user(
                         request,
-                        f'Emails for {config.name} have already been scheduled for tomorrow',
+                        f'Emails for {config.name} have already been scheduled for'
+                        f' tomorrow',
                         level=messages.SUCCESS,
                     )
                 else:
