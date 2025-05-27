@@ -1,7 +1,7 @@
 from typing import Optional
 
-from drf_spectacular.utils import OpenApiResponse, OpenApiExample
-from rest_framework import status, serializers
+from drf_spectacular.utils import OpenApiExample, OpenApiResponse
+from rest_framework import serializers, status
 from rest_framework.serializers import Serializer
 from rest_framework.status import HTTP_200_OK
 
@@ -148,6 +148,7 @@ def open_api_302_found(
         **kwargs,
     )
 
+
 def open_api_http_example_response(
     name: str,
     value: str,
@@ -167,7 +168,7 @@ def open_api_http_example_response(
                     value=value,
                     summary=summary,
                 )
-            ]
+            ],
         )
     }
 
@@ -201,7 +202,7 @@ def open_api_error_responses(
                     value={'detail': 'Authentication credentials were not provided.'},
                     response_only=True,
                 )
-            ]
+            ],
         )
 
     if raise_access_forbidden:
@@ -215,7 +216,7 @@ def open_api_error_responses(
                     },
                     response_only=True,
                 )
-            ]
+            ],
         )
 
     if raise_not_found:
@@ -228,7 +229,7 @@ def open_api_error_responses(
                         value='404 Not Found',
                         response_only=True,
                     )
-                ]
+                ],
             )
         else:
             response[status.HTTP_404_NOT_FOUND] = OpenApiResponse(
@@ -239,7 +240,7 @@ def open_api_error_responses(
                         value={'detail': 'Not found.'},
                         response_only=True,
                     )
-                ]
+                ],
             )
 
     if validate_payload:
@@ -254,7 +255,7 @@ def open_api_error_responses(
                     value=validation_errors,
                     response_only=True,
                 )
-            ]
+            ],
         )
 
     return response

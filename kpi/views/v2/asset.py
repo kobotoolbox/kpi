@@ -6,10 +6,8 @@ from operator import itemgetter
 from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from docutils.nodes import description
 from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse, \
-    OpenApiExample
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -45,15 +43,15 @@ from kpi.permissions import (
     get_perm_name,
 )
 from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, XlsRenderer
-from kpi.schema_extensions.v2.assets.fields import generic_uid_field
 from kpi.schema_extensions.v2.assets.serializers import (
+    AssetBulkResponse,
     AssetContentResponse,
     AssetCreateRequest,
     AssetHashResponse,
     AssetMetadataResponse,
+    AssetPatchRequest,
     AssetReportResponse,
     AssetValidContentResponse,
-    AssetPatchRequest, AssetBulkResponse,
 )
 from kpi.serializers.v2.asset import (
     AssetBulkActionsSerializer,
@@ -99,12 +97,12 @@ class AssetSchema(AutoSchema):
     def get_operation(self, *args, **kwargs):
 
         from kpi.schema_extensions.v2.assets.schema import (
+            ASSET_CONTENT,
+            ASSET_ENABLED,
+            ASSET_FIELDS,
             ASSET_NAME,
             ASSET_SETTINGS,
             ASSET_TYPE,
-            ASSET_FIELDS,
-            ASSET_ENABLED,
-            ASSET_CONTENT,
             BULK_ACTION,
             BULK_ASSET_UIDS,
             BULK_CONFIRM,
@@ -175,6 +173,7 @@ class AssetSchema(AutoSchema):
             }
 
         return operation
+
 
 @extend_schema(
     tags=['Asset'],
@@ -299,9 +298,9 @@ class AssetSchema(AutoSchema):
             name='XFORM Example',
             summary='Expected HTML response',
             value=read_md('kpi', 'assets/http_examples/xform_example.md'),
-                require_auth=False,
-                raise_access_forbidden=False,
-                validate_payload=False,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         ),
     ),
     xls=extend_schema(
@@ -316,7 +315,6 @@ class AssetSchema(AutoSchema):
         ),
     ),
 )
-
 class AssetViewSet(
     AssetViewSetListMixin,
     ObjectPermissionViewSetMixin,

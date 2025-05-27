@@ -69,8 +69,9 @@ class AssetListApiTests(BaseAssetTestCase):
         creation_response = self.create_asset()
         asset_url = creation_response.data['url']
         response = self.client.delete(asset_url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT,
-                         msg=response.data)
+        self.assertEqual(
+            response.status_code, status.HTTP_204_NO_CONTENT, msg=response.data
+        )
 
     def test_asset_list_matches_detail(self):
         detail_response = self.create_asset()

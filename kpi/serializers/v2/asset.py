@@ -39,15 +39,8 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.fields import (
-    WritableJSONField,
-)
-from kpi.models import (
-    Asset,
-    AssetVersion,
-    ObjectPermission,
-    UserAssetSubscription,
-)
+from kpi.fields import WritableJSONField
+from kpi.models import Asset, AssetVersion, ObjectPermission, UserAssetSubscription
 from kpi.models.asset import AssetDeploymentStatus
 from kpi.utils.object_permission import (
     get_cached_code_names,
@@ -60,11 +53,12 @@ from kpi.utils.project_views import (
     user_has_project_view_asset_perm,
     view_has_perm,
 )
-
 from ...schema_extensions.v2.assets.fields import (
+    AccessTypeField,
     AdvancedFeatureField,
     AdvancedSubmissionSchemaField,
     AnalysisFormJsonField,
+    AssetHyperlinkedURLField,
     AssignablePermissionField,
     ChildrenField,
     ContentField,
@@ -92,10 +86,9 @@ from ...schema_extensions.v2.assets.fields import (
     SettingsField,
     SubscribersCountField,
     SummaryField,
-    AssetHyperlinkedURLField,
     VersionCountField,
     XFormLinkField,
-    XLSLinkField, AccessTypeField,
+    XLSLinkField,
 )
 from .asset_export_settings import AssetExportSettingsSerializer
 from .asset_file import AssetFileSerializer

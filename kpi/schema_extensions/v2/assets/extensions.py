@@ -7,16 +7,18 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from ..openrosa.schema import XFORM_SCHEMA
 from .schema import (
     ASSET_CLONE_FROM,
+    ASSET_CONTENT,
+    ASSET_ENABLED,
+    ASSET_FIELDS,
     ASSET_NAME,
     ASSET_SETTINGS,
     ASSET_TYPE,
     ASSET_URL_SCHEMA,
     BULK_ACTION,
     BULK_ASSET_UIDS,
-    BULK_CONFIRM, ASSET_CONTENT, ASSET_ENABLED, ASSET_FIELDS,
+    BULK_CONFIRM,
 )
 
 
@@ -25,6 +27,7 @@ class AccessTypeFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_array_type(schema={})
+
 
 class AdvancedFeatureFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AdvancedFeatureField'
@@ -92,7 +95,6 @@ class AssetCreateRequestSerializerExtension(OpenApiSerializerFieldExtension):
         }
 
 
-
 class AssetPatchRequestSerializerExtension(OpenApiSerializerFieldExtension):
 
     target_class = 'kpi.schema_extensions.v2.assets.serializers.AssetPatchRequest'
@@ -117,12 +119,12 @@ class AssetPatchRequestSerializerExtension(OpenApiSerializerFieldExtension):
         }
 
 
-
 class AssetFieldsFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AssetFieldsField'
 
     def map_serializer_field(self, auto_schema, direction):
         return ASSET_FIELDS
+
 
 class AssetURLFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AssetURLField'
