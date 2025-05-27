@@ -17,7 +17,6 @@ from model_bakery.recipe import seq
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
-from kpi.utils.log import logging
 from ..models import EmailStatus, MassEmailConfig, MassEmailJob, MassEmailRecord
 from ..tasks import (
     PROCESSED_EMAILS_CACHE_KEY,
