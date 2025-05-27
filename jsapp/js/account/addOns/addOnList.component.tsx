@@ -155,6 +155,7 @@ const AddOnList = (props: {
               subscribedAddOns={subscribedAddOns}
               activeSubscriptions={activeSubscriptions}
               organization={props.organization}
+              isRecurring
             />
           )}
           {!!oneTimeAddOnProducts.length && (
