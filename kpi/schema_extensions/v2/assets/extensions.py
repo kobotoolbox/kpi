@@ -598,13 +598,6 @@ class XFormLinkFieldExtension(OpenApiSerializerFieldExtension):
         return build_url_type('api_v2:asset-xform', uid='aBeA23YCYjkGTFvYVHuAyU')
 
 
-class XFormFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.assets.fields.XFormField'
-
-    def map_serializer_field(self, auto_schema, direction):
-        return XFORM_SCHEMA
-
-
 class XLSLinkFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.XLSLinkField'
 

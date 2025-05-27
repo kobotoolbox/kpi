@@ -53,7 +53,7 @@ from kpi.schema_extensions.v2.assets.serializers import (
     AssetMetadataResponse,
     AssetReportResponse,
     AssetValidContentResponse,
-    AssetXFormResponse, AssetPatchRequest,
+    AssetPatchRequest,
 )
 from kpi.serializers.v2.asset import (
     AssetBulkActionsSerializer,

@@ -197,10 +197,6 @@ class VersionCountField(serializers.SerializerMethodField):
     pass
 
 
-class XFormField(serializers.JSONField):
-    pass
-
-
 class XFormLinkField(serializers.SerializerMethodField):
     pass
 

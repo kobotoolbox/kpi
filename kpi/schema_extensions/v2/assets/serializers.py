@@ -14,7 +14,6 @@ from .fields import (
     ReportListField,
     ReportURLField,
     ValidContentDataField,
-    XFormField,
     generic_uid_field,
 )
 
@@ -104,13 +103,5 @@ AssetValidContentResponse = inline_serializer_class(
         'kind': serializers.CharField(),
         'uid': generic_uid_field(uid='akJTPb4JLVFqXMqYhKiPXZ'),
         'data': ValidContentDataField(),
-    },
-)
-
-
-AssetXFormResponse = inline_serializer_class(
-    name='XFormResponse',
-    fields={
-        'html': XFormField(),
     },
 )
