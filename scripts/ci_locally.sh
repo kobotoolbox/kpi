@@ -48,6 +48,9 @@ echo '   cd kobo-install'
 echo '   ./run.py'
 echo '   ./run.py -cf exec kpi ./scripts/ci_locally.sh'
 
+
+echo -e '\n\n## Job: npm-test'
+
 # Uncomment lines below until this comment (https://github.com/kobotoolbox/kpi/pull/5593#discussion_r1999067788)
 # is addressed.
 # echo -e '\n\n### Step: Setup Node'
@@ -55,7 +58,10 @@ echo '   ./run.py -cf exec kpi ./scripts/ci_locally.sh'
 # npm run hint
 # echo 'Disclaimer: CI caches node_modules, this script does not.'
 
-echo -e '\n\n### Step: Install JavaScript dependencies (npm install)'
+echo -e '\n\n### Step: Install system dependencies for playwright'
+npx playwright install-deps
+
+echo -e '\n\n### Step: Install JavaScript dependencies'
 npm install
 
 echo -e '\n\n### Step: Run all linters, builds and tests'
