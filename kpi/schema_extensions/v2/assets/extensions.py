@@ -215,7 +215,9 @@ class ContentDataFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'survey': build_array_type(schema={}),
+                'survey': build_array_type(
+                    schema=build_object_type(properties={}),
+                ),
                 'settings': build_object_type(properties={}),
             }
         )
