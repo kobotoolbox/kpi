@@ -395,14 +395,6 @@ $side-tabs-width-mobile: 70px;
       text-transform: uppercase;
     }
   }
-
-  &.form-view__cell--deployed {
-    margin-left: 10px;
-    display: inline-block;
-    padding: 6px;
-    background-color: colors.$kobo-green;
-    border-radius: 2px;
-  }
 }
 
 @keyframes recent {
@@ -443,11 +435,9 @@ $side-tabs-width-mobile: 70px;
       &--version {
         width: 39%;
         text-align: initial;
-
-        > span {
-          margin-right: 12px;
-          vertical-align: middle;
-        }
+        display: flex;
+        gap: 12px;
+        align-items: center;
       }
     }
 

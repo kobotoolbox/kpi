@@ -234,7 +234,7 @@ class FormLanding extends React.Component {
                 return (
                   <bem.FormView__group m='items' key={n} className={n >= this.state.DVCOUNT_LIMIT ? 'hidden' : ''}>
                     <bem.FormView__label m='version'>
-                      <span>{`v${dvcount - n}`}</span>
+                      {`v${dvcount - n}`}
                       {item.uid === this.state.deployed_version_id && this.state.deployment__active && (
                         <AssetStatusBadge deploymentStatus={this.state.deployment_status} />
                       )}
