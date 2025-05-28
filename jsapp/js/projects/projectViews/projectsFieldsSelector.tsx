@@ -8,7 +8,7 @@ import KoboModalContent from '#/components/modals/koboModalContent'
 import KoboModalFooter from '#/components/modals/koboModalFooter'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
 import type { ProjectFieldName } from './constants'
-import { DEFAULT_VISIBLE_FIELDS, PROJECT_FIELDS } from './constants'
+import { HOME_DEFAULT_VISIBLE_FIELDS, PROJECT_FIELDS } from './constants'
 import styles from './projectsFieldsSelector.module.scss'
 
 interface ProjectsFieldsSelectorProps {
@@ -28,7 +28,7 @@ export default function ProjectsFieldsSelector(props: ProjectsFieldsSelectorProp
   const getInitialSelectedFields = () => {
     let outcome: ProjectFieldName[] = []
     if (!props.selectedFields || props.selectedFields.length === 0) {
-      outcome = DEFAULT_VISIBLE_FIELDS
+      outcome = HOME_DEFAULT_VISIBLE_FIELDS
     } else {
       outcome = Array.from(props.selectedFields)
     }
