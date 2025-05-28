@@ -173,7 +173,6 @@ class ExportTaskViewSet(AuditLoggedNoUpdateModelViewSet):
         return queryset
 
     def create(self, request, *args, **kwargs):
-        print(f'{request.POST}')
         if self.request.user.is_anonymous:
             raise exceptions.NotAuthenticated()
 
