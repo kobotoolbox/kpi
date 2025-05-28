@@ -27,8 +27,9 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
     [suffix for suffix in settings.THUMB_CONF]
 )
 
+
 @extend_schema(
-    tags=['attachments'],
+    tags=['Attachments'],
 )
 class AttachmentViewSet(
     NestedViewSetMixin,

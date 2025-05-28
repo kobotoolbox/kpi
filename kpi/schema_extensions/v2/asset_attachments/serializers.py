@@ -6,7 +6,7 @@ from .fields import (
 
 
 AssetAttachmentBulkRequest = inline_serializer_class(
-    name='AssetAttachmentDeleteRequest',
+    name='AssetAttachmentBulkRequest',
     fields={
         'submission_root_uuids': SubmissionRootIdField(),
     },
