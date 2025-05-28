@@ -464,6 +464,7 @@ class ImportTask(ImportExportTask):
                         'source': self.data.get('source', None),
                         'old_name': old_name,
                         'new_name': asset.name,
+                        'project_owner': asset.owner.username,
                     }
                 )
 
