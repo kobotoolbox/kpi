@@ -2,11 +2,6 @@
 
 from django.conf import settings
 from django.db import migrations, models
-import django.db.models.deletion
-import kobo.apps.openrosa.apps.logger.models.attachment
-import kobo.apps.openrosa.apps.logger.models.xform
-import kpi.deployment_backends.kc_access.storage
-import kpi.fields.file
 
 
 class Migration(migrations.Migration):

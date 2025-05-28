@@ -320,7 +320,6 @@ class TestFormSubmission(TestBase):
         assert Instance.objects.count() == initial_instance_count + 1
         assert Attachment.objects.filter(instance=initial_instance).count() == 0
 
-
         # Test duplicate submission with attachment
         with open(media_file_path1, 'rb') as media_file:
             self._make_submission(xml_submission_file_path, media_file=media_file)
@@ -437,7 +436,9 @@ class TestFormSubmission(TestBase):
         )
         # Instance and its attachment did not change
         assert edited_instance.uuid == initial_instance.uuid
-        edited_attachments = Attachment.all_objects.filter(instance=edited_instance).all()
+        edited_attachments = Attachment.all_objects.filter(
+            instance=edited_instance
+        ).all()
         # No attachments have been deleted
         assert edited_attachments.count() == 1
         edited_attachment = edited_attachments[0]

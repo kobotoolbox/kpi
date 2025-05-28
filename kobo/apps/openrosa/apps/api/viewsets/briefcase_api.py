@@ -1,4 +1,3 @@
-# coding: utf-8
 from xml.dom import NotFoundErr
 
 from django.conf import settings
@@ -6,7 +5,6 @@ from django.core.files import File
 from django.core.validators import ValidationError
 from django.http import Http404
 from django.utils.translation import gettext as t
-from dns.dnssecalgs import algorithms
 from rest_framework import exceptions, mixins, status, permissions
 from rest_framework.generics import get_object_or_404
 from rest_framework.renderers import BrowsableAPIRenderer
