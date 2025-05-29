@@ -67,10 +67,6 @@ def get_id_string_from_xml_str(xml_str):
     return id_string
 
 
-def submission_time():
-    return timezone.now()
-
-
 @reversion.register
 class Instance(AbstractTimeStampedModel):
     XML_HASH_LENGTH = 64
@@ -171,8 +167,7 @@ class Instance(AbstractTimeStampedModel):
         doc = self.get_dict()
 
         if not self.date_created:
-            now = submission_time()
-            self.date_created = now
+            self.date_created = timezone.now()
 
         point = self.point
         if point:
@@ -180,8 +175,9 @@ class Instance(AbstractTimeStampedModel):
 
         doc[SUBMISSION_TIME] = self.date_created.strftime(MONGO_STRFTIME)
         doc[XFORM_ID_STRING] = self._parser.get_xform_id_string()
-        doc[SUBMITTED_BY] = self.user.username\
-            if self.user is not None else None
+        doc[SUBMITTED_BY] = (
+            self.user.username if self.user is not None else None
+        )
         self.json = doc
 
     def _set_parser(self):
