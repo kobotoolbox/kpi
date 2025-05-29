@@ -4,6 +4,7 @@ from typing import Optional, Union
 from django.conf import settings
 from django.shortcuts import Http404
 from django.utils.translation import gettext as t
+from drf_spectacular.plumbing import build_array_type
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from rest_framework import serializers, viewsets
@@ -44,6 +45,13 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
                 type=OpenApiTypes.STR,
                 location=OpenApiParameter.QUERY
             ),
+            OpenApiParameter(
+                name='format',
+                required=False,
+                type=OpenApiTypes.STR,
+                enum=['mp3'],
+                location=OpenApiParameter.QUERY
+            )
         ],
         responses=open_api_200_ok_response(
             description='Will return a content type with the type of the attachment as well as the attachment itself.',  # noqa
@@ -64,6 +72,11 @@ class AttachmentViewSet(
     AssetNestedObjectViewsetMixin,
     viewsets.ViewSet
 ):
+    # TODO: Need to change response util so we can accept a media_type for the errors
+    #   examples and so that we pass kwargs to the generic response (so we can pass
+    #   for example, a description). (PR for asset (5783) needs to be merged first, then
+    #   have an option to only get the demanded media_type on the errors only if we have
+    #   one, otherwise we keep the default that comes with the serializer.
     """
     ViewSet for managing the current user's asset attachment
 
