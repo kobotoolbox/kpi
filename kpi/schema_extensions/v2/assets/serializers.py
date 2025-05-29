@@ -29,7 +29,7 @@ AssetCreateRequest = inline_serializer_class(
 
 
 AssetPatchRequest = inline_serializer_class(
-    name='AssetCreateRequest',
+    name='AssetPatchRequest',
     fields={
         'content': serializers.CharField(),
         'name': serializers.CharField(),

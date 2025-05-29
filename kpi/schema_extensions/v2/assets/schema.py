@@ -17,7 +17,7 @@ ASSET_CONTENT = build_basic_type(OpenApiTypes.STR)
 
 ASSET_ENABLED = build_basic_type(OpenApiTypes.BOOL)
 
-ASSET_FIELDS = build_array_type(schema={})
+ASSET_FIELDS = build_array_type({'type': 'string'})
 
 ASSET_SETTINGS = build_object_type(
     properties={

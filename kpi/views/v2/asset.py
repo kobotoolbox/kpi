@@ -168,7 +168,7 @@ class AssetSchema(AutoSchema):
                         'enabled': generate_example_from_schema(ASSET_ENABLED),
                         'fields': generate_example_from_schema(ASSET_FIELDS),
                     },
-                    'summary': 'Control sharing of the project',
+                    'summary': 'Data sharing of the project',
                 },
             }
 

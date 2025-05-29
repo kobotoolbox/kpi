@@ -1,4 +1,4 @@
-from drf_spectacular.extensions import OpenApiSerializerFieldExtension
+from drf_spectacular.extensions import OpenApiSerializerFieldExtension, OpenApiSerializerExtension
 from drf_spectacular.plumbing import (
     build_array_type,
     build_basic_type,
@@ -95,7 +95,7 @@ class AssetCreateRequestSerializerExtension(OpenApiSerializerFieldExtension):
         }
 
 
-class AssetPatchRequestSerializerExtension(OpenApiSerializerFieldExtension):
+class AssetPatchRequestSerializerExtension(OpenApiSerializerExtension):
 
     target_class = 'kpi.schema_extensions.v2.assets.serializers.AssetPatchRequest'
 
@@ -105,8 +105,8 @@ class AssetPatchRequestSerializerExtension(OpenApiSerializerFieldExtension):
             'oneOf': [
                 build_object_type(
                     properties={
-                        'content': ASSET_NAME,
-                        'name': ASSET_CONTENT,
+                        'content': ASSET_CONTENT,
+                        'name': ASSET_NAME,
                     }
                 ),
                 build_object_type(
@@ -117,6 +117,7 @@ class AssetPatchRequestSerializerExtension(OpenApiSerializerFieldExtension):
                 ),
             ]
         }
+
 
 
 class AssetFieldsFieldExtension(OpenApiSerializerFieldExtension):
@@ -176,7 +177,7 @@ class BulkConfirmFieldExtension(OpenApiSerializerFieldExtension):
         return build_basic_type(OpenApiTypes.BOOL)
 
 
-class BulkPayloadSerializerExtension(OpenApiSerializerFieldExtension):
+class BulkPayloadSerializerExtension(OpenApiSerializerExtension):
 
     target_class = 'kpi.schema_extensions.v2.assets.serializers.AssetBulkRequest'
 
