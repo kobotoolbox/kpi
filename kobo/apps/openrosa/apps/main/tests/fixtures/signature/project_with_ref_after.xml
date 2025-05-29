@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:h="http://www.w3.org/1999/xhtml"
+        xmlns:ev="http://www.w3.org/2001/xml-events"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:jr="http://openrosa.org/javarosa" xmlns:orx="http://openrosa.org/xforms"
+        xmlns:odk="http://www.opendatakit.org/xforms">
+  <h:head>
+    <h:title>Project with 2 attachments</h:title>
+    <model odk:xforms-version="1.0.0">
+      <instance>
+        <project_with_ref_after id="project_with_ref_after" version="1 (2025-04-30 20:19:50)">
+          <formhub>
+            <uuid/>
+          </formhub>
+          <start/>
+          <end/>
+          <image/>
+          <signature/>
+          <__version__/>
+          <meta>
+            <instanceID/>
+          </meta>
+        </project_with_ref_after>
+      </instance>
+
+      <bind nodeset="/project_with_ref_after/start" jr:preload="timestamp" type="dateTime" jr:preloadParams="start"/>
+
+      <bind nodeset="/project_with_ref_after/end" jr:preload="timestamp" type="dateTime" jr:preloadParams="end"/>
+
+      <bind nodeset="/project_with_ref_after/image" type="binary" required="false()"/>
+
+      <bind nodeset="/project_with_ref_after/signature" type="binary" required="false()" orx:max-pixels="1024"/>
+
+      <bind nodeset="/project_with_ref_after/__version__" type="string" calculate="\'vugu7d2UrKF8UNcnBkF2Gv\'"/>
+
+      <bind nodeset="/project_with_ref_after/meta/instanceID" type="string" readonly="true()" jr:preload="uid"/>
+
+      <bind nodeset="/project_with_ref_after/formhub/uuid" type="string" calculate="\'6ec7e72ee2944696bbca46b677db03b2\'"/>
+
+    </model>
+
+  </h:head>
+
+  <h:body>
+    <upload mediatype="image/*" ref="/project_with_ref_after/image">
+      <label>image</label>
+    </upload>
+
+    <upload
+      mediatype="image/*"
+      appearance="signature"
+      ref="/project_with_ref_after/signature"
+    >
+      <label>signature</label>
+    </upload>
+
+  </h:body>
+
+</h:html>

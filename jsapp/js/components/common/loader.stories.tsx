@@ -1,5 +1,5 @@
 import { Center, Loader } from '@mantine/core'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
 
 /**
  * Mantine [Loader](https://mantine.dev/core/loader/) component stories.

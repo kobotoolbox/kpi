@@ -20,10 +20,3 @@ FREE_TIER_EMPTY_DISPLAY = {
 }
 
 ORGANIZATION_USAGE_MAX_CACHE_AGE = timedelta(minutes=15)
-
-USAGE_LIMIT_MAP = {
-    'characters': 'mt_characters',
-    'seconds': 'asr_seconds',
-    'storage': 'storage_bytes',
-    'submission': 'submission',
-}

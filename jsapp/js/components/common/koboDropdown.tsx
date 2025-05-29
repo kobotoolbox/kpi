@@ -28,7 +28,6 @@ interface KoboDropdownProps {
    * the `data-name` attribute.
    */
   name: string
-  'data-cy'?: string
   /** Alternative way of getting the opened status of the menu. */
   onMenuVisibilityChange?: (isOpened: boolean) => void
   /** Additional class names. */
@@ -41,7 +40,6 @@ interface KoboDropdownState {
 
 interface AdditionalWrapperAttributes {
   'data-name': string
-  'data-cy'?: string
 }
 
 bem.KoboDropdown = makeBem(null, 'kobo-dropdown')
@@ -211,10 +209,6 @@ export default class KoboDropdown extends React.Component<KoboDropdownProps, Kob
     const additionalWrapperAttributes: AdditionalWrapperAttributes = {
       // We use `data-name` attribute to allow any character in the name.
       ['data-name']: this.props.name,
-    }
-
-    if (this.props['data-cy']) {
-      additionalWrapperAttributes['data-cy'] = this.props['data-cy']
     }
 
     return (

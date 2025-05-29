@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import KoboRange, { KoboRangeColors } from '#/components/common/koboRange'
 
 const meta: Meta<typeof KoboRange> = {
@@ -13,6 +13,7 @@ const meta: Meta<typeof KoboRange> = {
     value: { type: 'number' },
     onChange: { action: 'changed' },
   },
+  parameters: { a11y: { test: 'todo' } },
 }
 
 export default meta

@@ -23,7 +23,6 @@ interface AudioPlayerProps {
   /** Pass it to show a filename above the player. */
   filename?: string
   mediaURL: string
-  'data-cy'?: string
   rightHeaderSection?: React.ReactNode
 }
 
@@ -141,7 +140,6 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
             startIcon={this.state.isPlaying ? 'pause' : 'caret-right'}
             size='l'
             onClick={this.onPlayStatusChange.bind(this)}
-            data-cy='audio player pauseplay'
           />
         </bem.AudioPlayer__controls>
 
@@ -157,7 +155,7 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
 
   render() {
     return (
-      <bem.AudioPlayer data-cy={this.props['data-cy']}>
+      <bem.AudioPlayer>
         {this.state.isLoading && <LoadingSpinner />}
         {!this.state.isLoading && this.state.isBroken && (
           <InlineMessage type='error' message={t('Could not load media file')} />

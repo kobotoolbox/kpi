@@ -1,4 +1,4 @@
-import type { Meta, StoryFn } from '@storybook/react'
+import type { Meta, StoryFn } from '@storybook/react-webpack5'
 import ExportToEmailButton from './exportToEmailButton.component'
 
 export default {
@@ -9,6 +9,7 @@ export default {
       control: 'text',
     },
   },
+  parameters: { a11y: { test: 'todo' } },
 } as Meta<typeof ExportToEmailButton>
 
 const Template: StoryFn<typeof ExportToEmailButton> = (args) => <ExportToEmailButton {...args} />

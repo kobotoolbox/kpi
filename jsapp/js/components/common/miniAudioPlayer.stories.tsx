@@ -1,10 +1,11 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import MiniAudioPlayer from './miniAudioPlayer'
 
 const meta: Meta<typeof MiniAudioPlayer> = {
   title: 'Design system old/MiniAudioPlayer',
   component: MiniAudioPlayer,
   argTypes: {},
+  parameters: { a11y: { test: 'todo' } },
 }
 
 export default meta

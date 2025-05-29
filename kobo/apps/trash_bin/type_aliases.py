@@ -1,4 +1,4 @@
-from typing import Callable, TypeAlias, Union
+from typing import Callable, TypeAlias, TypedDict, Union
 
 from django.db import models
 
@@ -20,3 +20,23 @@ TrashBinModelInstance: TypeAlias = TrashBinModel
 # A callback function that takes a TrashBinModelInstance and returns nothing.
 # Used to define pre-deletion or deletion logic for a specific object.
 DeletionCallback: TypeAlias = Callable[[TrashBinModel], None]
+
+
+class AttachmentTrashDict(TypedDict):
+    pk: int
+    attachment_uid: str
+    attachment_basename: str
+
+
+class ProjectTrashDict(TypedDict):
+    pk: int
+    asset_uid: str
+    asset_name: str
+
+
+class AccountTrashDict(TypedDict):
+    pk: int
+    username: str
+
+
+TrashObject: TypeAlias = AccountTrashDict | ProjectTrashDict | AttachmentTrashDict

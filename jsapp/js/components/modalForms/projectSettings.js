@@ -884,7 +884,6 @@ class ProjectSettings extends React.Component {
               errors={this.hasFieldError('name') ? t('Please enter a title for your project!') : false}
               label={addRequiredToLabel(this.getNameInputLabel(this.state.fields.name))}
               placeholder={t('Enter title of project here')}
-              data-cy='title'
             />
           </div>
 
@@ -898,7 +897,6 @@ class ProjectSettings extends React.Component {
                 errors={this.hasFieldError('description') ? t('Please enter a description for your project') : false}
                 label={addRequiredToLabel(descriptionField.label, descriptionField.required)}
                 placeholder={t('Enter short description here')}
-                data-cy='description'
               />
             </div>
           )}
@@ -915,7 +913,6 @@ class ProjectSettings extends React.Component {
                 menuPlacement='top'
                 isClearable
                 error={this.hasFieldError('sector') ? t('Please choose a sector') : false}
-                data-cy='sector'
               />
             </div>
           )}
@@ -933,7 +930,6 @@ class ProjectSettings extends React.Component {
                 menuPlacement='top'
                 isClearable
                 error={this.hasFieldError('country') ? t('Please select at least one country') : false}
-                data-cy='country'
               />
             </div>
           )}

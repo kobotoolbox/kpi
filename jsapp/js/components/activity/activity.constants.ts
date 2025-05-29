@@ -1,3 +1,6 @@
+import type { PartialPermission } from '#/dataInterface'
+import type { PermissionCodename } from '../permissions/permConstants'
+
 /**
  * All possible log item actions.
  * @see `AuditAction` class from {@link kobo/apps/audit_log/models.py} (BE code)
@@ -237,19 +240,6 @@ export const FALLBACK_MESSAGE = '##username## did action ##action##'
 
 export const HIDDEN_AUDIT_ACTIONS = [AuditActions['add-submission']]
 
-/**
- * All possible log item types.
- * @see `AuditType` class from {@link kobo/apps/audit_log/models.py} (BE code)
- */
-export enum AuditTypes {
-  access = 'access',
-  'project-history' = 'project-history',
-  'data-editing' = 'data-editing',
-  'user-management' = 'user-management',
-  'asset-management' = 'asset-management',
-  'submission-management' = 'submission-management',
-}
-
 export enum AuditSubTypes {
   project = 'project',
   permission = 'permission',
@@ -263,7 +253,6 @@ export interface ActivityLogsItem {
   /** Date string in ISO 8601. E.g. "2024-10-04T14:04:18Z" */
   date_created: string
   action: AuditActions
-  log_type: AuditTypes
   metadata: {
     /** E.g. "Firefox (Ubuntu)" */
     source: string
@@ -271,14 +260,41 @@ export interface ActivityLogsItem {
     /** E.g. "71.235.120.86" */
     ip_address: string
     log_subtype: AuditSubTypes
+    // All props below are optional and depends on the action
     old_name?: string
     new_name?: string
-    latest_deployed_version_id?: string
-    latest_version_id?: string
     version_uid?: string
+    latest_version_uid?: string
+    latest_deployed_version_uid?: string
     username?: string
     permissions?: {
       username: string
+      added?: Array<PermissionCodename | AuditPartialPermission>
+      removed?: Array<PermissionCodename | AuditPartialPermission>
+    }
+    submission?: {
+      root_uuid: string
+      submitted_by: string
+    }
+    /** Username */
+    project_owner?: string
+    'asset-file'?: {
+      uid: string
+      filename: string
+      md5_hash: string
+      download_url: string
     }
   }
+}
+
+/**
+ * This is a partial permission object that is used in history endpoint. It uses `code` instead of `url`, which might be
+ * a mistake.
+ */
+export interface AuditPartialPermission extends Omit<PartialPermission, 'url'> {
+  code: PermissionCodename
+}
+
+export interface AssetHistoryActionsResponse {
+  actions: Array<keyof typeof AuditActions>
 }

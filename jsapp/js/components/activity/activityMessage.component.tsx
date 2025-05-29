@@ -1,3 +1,4 @@
+import { getTextContentOnly } from '#/utils'
 import Avatar from '../common/avatar'
 import { AUDIT_ACTION_TYPES, type ActivityLogsItem, FALLBACK_MESSAGE } from './activity.constants'
 import styles from './activityMessage.module.scss'
@@ -29,7 +30,7 @@ export function ActivityMessage(props: { data: ActivityLogsItem }) {
   }
 
   return (
-    <div className={styles.activityMessage}>
+    <div className={styles.activityMessage} title={getTextContentOnly(message)}>
       <Avatar size='s' username={props.data.username} />
       <span dangerouslySetInnerHTML={{ __html: message }} />
     </div>

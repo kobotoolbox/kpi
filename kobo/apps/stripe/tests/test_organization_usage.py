@@ -308,6 +308,9 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
                 current_billing_period_end.year,
                 current_billing_period_end.month,
             )[1]
+            if last_day_of_billing_period > canceled_at.day:
+                last_day_of_billing_period = canceled_at.day
+
             current_billing_period_end = current_billing_period_end.replace(
                 day=last_day_of_billing_period
             )
@@ -536,7 +539,6 @@ class OrganizationAssetUsageAPITestCase(AssetUsageAPITestCase):
         assert response.data['count'] == 2
 
 
-@override_settings(STRIPE_ENABLED=True)
 class OrganizationsModelIntegrationTestCase(BaseTestCase):
     fixtures = ['test_data']
 
@@ -557,5 +559,17 @@ class OrganizationsModelIntegrationTestCase(BaseTestCase):
         subscription.save()
 
         product_metadata['mmo_enabled'] = 'true'
-        generate_plan_subscription(self.organization, metadata=product_metadata)
+        mmo_subscription = generate_plan_subscription(
+            self.organization, metadata=product_metadata
+        )
         assert self.organization.is_mmo is True
+
+        # Ensure non-plan subscriptions are ignored
+        addon_metadata = {'product_type': 'addon'}
+        generate_plan_subscription(self.organization, metadata=addon_metadata)
+        assert self.organization.is_mmo is True
+
+        # ensure inactive mmo-enabled subscriptions are ignored
+        mmo_subscription.status = 'canceled'
+        mmo_subscription.save()
+        assert self.organization.is_mmo is False

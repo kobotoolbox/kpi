@@ -226,6 +226,12 @@ class BaseDeploymentBackend(abc.ABC):
         self.asset._deployment_data.clear()  # noqa
 
     @abc.abstractmethod
+    def delete_attachments(
+        self, user: settings.AUTH_USER_MODEL, attachment_uids: list
+    ) -> list:
+        pass
+
+    @abc.abstractmethod
     def delete_submission(
         self, submission_id: int, user: settings.AUTH_USER_MODEL
     ) -> dict:
@@ -424,7 +430,9 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def rename_enketo_id_key(self, previous_owner_username: str):
+    def rename_enketo_id_key(
+        self, previous_owner_username: str, project_identifier: str = None
+    ):
         pass
 
     def save_to_db(self, updates: dict, update_date_modified=True):
@@ -522,10 +530,9 @@ class BaseDeploymentBackend(abc.ABC):
     def submission_model(self):
         pass
 
-    @staticmethod
     @abc.abstractmethod
     @contextmanager
-    def suspend_submissions(user_ids: list[int]):
+    def suspend_submissions(self):
         pass
 
     @abc.abstractmethod

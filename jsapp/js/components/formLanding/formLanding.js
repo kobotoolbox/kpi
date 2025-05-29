@@ -475,14 +475,7 @@ class FormLanding extends React.Component {
               We put non clickable button inside Link, so that it's possible
               to open it in new tab.
             */}
-            <Button
-              type='text'
-              size='m'
-              startIcon='edit'
-              data-cy='edit'
-              tooltip={t('Edit in Form Builder')}
-              tooltipPosition='right'
-            />
+            <Button type='text' size='m' startIcon='edit' tooltip={t('Edit in Form Builder')} tooltipPosition='right' />
           </Link>
         ) : (
           <Button

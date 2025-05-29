@@ -1,6 +1,6 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { expect, fn, userEvent, within } from '@storybook/test'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { ForwardRefExoticComponent } from 'react'
+import { expect, fn, userEvent, within } from 'storybook/test'
 import { IconNames } from '#/k-icons'
 import type { StoryArgsFromPolymorphic } from '#/storybookUtils'
 import ActionIcon, { type ActionIconProps } from './ActionIcon'
@@ -42,6 +42,7 @@ const meta = {
     disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
   },
+  parameters: { a11y: { test: 'todo' } },
 } satisfies Meta<StoryArgs>
 
 export default meta

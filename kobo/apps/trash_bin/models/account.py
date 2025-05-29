@@ -35,9 +35,9 @@ class AccountTrash(BaseTrash):
 
         date_removal_requested = None if active else now()
         with transaction.atomic():
-            get_user_model().objects.filter(pk__in=object_identifiers).update(
-                is_active=active
-            )
+            queryset = get_user_model().objects.filter(pk__in=object_identifiers)
+            updated = queryset.update(is_active=active)
             ExtraUserDetail.objects.filter(user_id__in=object_identifiers).update(
                 date_removal_requested=date_removal_requested
             )
+        return queryset, updated

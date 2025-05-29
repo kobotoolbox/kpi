@@ -34,7 +34,6 @@ interface KoboRangeProps {
   totalLabel?: string
   /** optional string to append to value */
   currentLabel?: string
-  'data-cy'?: string
   /** optional format to display only one statistic (max value is hidden) */
   singleStat?: boolean
 }
@@ -73,7 +72,7 @@ export default class KoboRange extends React.Component<KoboRangeProps> {
     const isDataLoaded = !(this.props.max === 0)
 
     return (
-      <bem.KoboRange data-cy={this.props['data-cy']}>
+      <bem.KoboRange>
         {isDataLoaded && !this.props.singleStat && (
           <bem.KoboRange__values>
             <bem.KoboRange__currentValue>

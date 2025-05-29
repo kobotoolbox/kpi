@@ -1,4 +1,4 @@
-import type { DecoratorFunction } from '@storybook/core/csf'
+import type { DecoratorFunction } from '@storybook/types'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 export const queryClientDecorator: DecoratorFunction = (Story) => {

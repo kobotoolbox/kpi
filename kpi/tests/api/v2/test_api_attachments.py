@@ -69,7 +69,7 @@ class AttachmentApiTests(BaseAssetTestCase):
                     'mimetype': 'image/jpeg',
                 },
             ],
-            '_submitted_by': 'someuser'
+            '_submitted_by': 'someuser',
         }
         submissions.append(submission)
 

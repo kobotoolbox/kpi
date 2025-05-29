@@ -10,19 +10,18 @@ import traceback
 from contextlib import contextmanager
 from datetime import date, datetime, timezone
 from typing import Generator, Optional, Union
+from wsgiref.util import FileWrapper
+from xml.dom import Node
 from xml.etree import ElementTree as ET
 from xml.parsers.expat import ExpatError
 from zoneinfo import ZoneInfo
-
-from wsgiref.util import FileWrapper
-from xml.dom import Node
 
 from dict2xml import dict2xml
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.base import File
 from django.core.mail import mail_admins
-from django.db import connection, IntegrityError, transaction
+from django.db import IntegrityError, connection, transaction
 from django.db.models import Q
 from django.http import (
     Http404,
@@ -35,16 +34,19 @@ from django.utils import timezone as dj_timezone
 from django.utils.encoding import DjangoUnicodeDecodeError, smart_str
 from django.utils.translation import gettext as t
 from modilabs.utils.subprocess_timeout import ProcessTimedOut
-from pyxform.errors import PyXFormError
-from pyxform.xform2json import create_survey_element_from_xml
 from rest_framework.exceptions import NotAuthenticated
 
 from kobo.apps.openrosa.apps.logger.exceptions import (
     AccountInactiveError,
+    ConflictingSubmissionUUIDError,
+    DuplicateInstanceError,
     DuplicateUUIDError,
     FormInactiveError,
+    InstanceEmptyError,
     InstanceIdMissingError,
-    TemporarilyUnavailableError, ConflictingSubmissionUUIDError,
+    InstanceInvalidUserError,
+    InstanceMultipleNodeError,
+    TemporarilyUnavailableError,
 )
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import (
@@ -63,14 +65,10 @@ from kobo.apps.openrosa.apps.logger.signals import (
     update_xform_monthly_counter,
     update_xform_submission_count,
 )
-from kobo.apps.openrosa.apps.logger.exceptions import (
-    DuplicateInstanceError,
-    InstanceEmptyError,
-    InstanceInvalidUserError,
-    InstanceMultipleNodeError,
-)
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    XFormInstanceParser,
     clean_and_parse_xml,
+    get_abbreviated_xpath,
     get_deprecated_uuid_from_xml,
     get_submission_date_from_xml,
     get_uuid_from_xml,
@@ -80,12 +78,15 @@ from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.libs.utils import common_tags
 from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uuid
+from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
+from pyxform.errors import PyXFormError
+from pyxform.xform2json import create_survey_element_from_xml
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
@@ -481,9 +482,8 @@ def mongo_sync_status(remongo=False, update_all=False, user=None, xform=None):
     report_string = ''
     for xform in queryset_iterator(qs, 100):
         # get the count
-        user = xform.user
         instance_count = Instance.objects.filter(xform=xform).count()
-        userform_id = '%s_%s' % (user.username, xform.id_string)
+        userform_id = get_mongo_userform_id(xform)
         mongo_count = mongo_instances.count_documents(
             {common_tags.USERFORM_ID: userform_id},
             maxTimeMS=MongoHelper.get_max_time_ms()
@@ -494,7 +494,7 @@ def mongo_sync_status(remongo=False, update_all=False, user=None, xform=None):
                 'user: %s, id_string: %s\nInstance count: %d\t'
                 'Mongo count: %d\n---------------------------------'
                 '-----\n'
-                % (user.username, xform.id_string, instance_count, mongo_count)
+                % (xform.user.username, xform.id_string, instance_count, mongo_count)
             )
             report_string += line
             found += 1
@@ -961,13 +961,13 @@ def _has_edit_xform_permission(
 
 
 def _update_mongo_for_xform(xform, only_update_missing=True):
+    xform.refresh_from_db(fields=xform.get_deferred_fields())
 
     instance_ids = set(
         [i.id for i in Instance.objects.only('id').filter(xform=xform)])
     sys.stdout.write('Total no of instances: %d\n' % len(instance_ids))
-    mongo_ids = set()
-    user = xform.user
-    userform_id = '%s_%s' % (user.username, xform.id_string)
+    userform_id = get_mongo_userform_id(xform)
+
     if only_update_missing:
         sys.stdout.write('Only updating missing mongo instances\n')
         mongo_ids = set(
@@ -981,34 +981,53 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
         instance_ids = instance_ids.difference(mongo_ids)
     else:
         # clear mongo records
-        mongo_instances.delete_many({common_tags.USERFORM_ID: userform_id})
+        MongoHelper.delete_many({common_tags.USERFORM_ID: userform_id})
 
     # get instances
     sys.stdout.write('Total no of instances to update: %d\n' % len(instance_ids))
-    instances = Instance.objects.only('id').in_bulk([id_ for id_ in instance_ids])
+    instances = Instance.objects.only('id', 'xml', 'json').in_bulk(
+        [id_ for id_ in instance_ids]
+    )
     total = len(instances)
     done = 0
+
+    data_dict = xform.data_dictionary(use_cache=True)
+    repeat_groups = [
+        get_abbreviated_xpath(e)
+        for e in data_dict.get_survey_elements_of_type('repeat')
+    ]
     for id_, instance in instances.items():
-        (pi, created) = ParsedInstance.objects.get_or_create(instance=instance)
+        parser = XFormInstanceParser(
+            instance.xml, data_dictionary=None, delay_parse=True
+        )
+        parser.parse(instance.xml, repeats=repeat_groups)
+        as_dict = parser.get_flat_dict_with_attributes()
         try:
-            save_success = pi.save(asynchronous=False)
+            (pi, created) = ParsedInstance.objects.get_or_create(
+                instance=instance, defaults={'mongo_dict_override': as_dict}
+            )
+            if not created:
+                pi.mongo_dict_override = as_dict
+                save_success = pi.save(asynchronous=False)
+                if not save_success:
+                    print(
+                        '\033[91m[ERROR] - Instance #{}/uuid:{} - Could not save '
+                        'the parsed instance\033[0m'.format(id_, instance.uuid)
+                    )
+                else:
+                    done += 1
+            else:
+                done += 1
         except InstanceEmptyError:
             print(
                 '\033[91m[WARNING] - Skipping Instance #{}/uuid:{} because '
                 'it is empty\033[0m'.format(id_, instance.uuid)
             )
-        else:
-            if not save_success:
-                print(
-                    '\033[91m[ERROR] - Instance #{}/uuid:{} - Could not save '
-                    'the parsed instance\033[0m'.format(id_, instance.uuid)
-                )
-            else:
-                done += 1
 
         progress = '\r%.2f %% done...' % ((float(done) / float(total)) * 100)
         sys.stdout.write(progress)
         sys.stdout.flush()
+
     sys.stdout.write(
         '\nUpdated %s\n------------------------------------------\n' % xform.id_string
     )

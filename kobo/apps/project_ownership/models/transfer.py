@@ -10,12 +10,17 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.organizations.utils import get_real_owner
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.deployment_backends.kc_access.utils import (
     assign_applicable_kc_permissions,
     kc_transaction_atomic,
     reset_kc_permissions,
+)
+from kpi.exceptions import (
+    InvalidXFormException,
+    MissingXFormException,
 )
 from kpi.fields import KpiUidField
 from kpi.models import Asset, ObjectPermission
@@ -135,21 +140,41 @@ class Transfer(AbstractTimeStampedModel):
                 with transaction.atomic():
                     with kc_transaction_atomic():
                         deployment = self.asset.deployment
-                        with deployment.suspend_submissions(
-                            [self.asset.owner_id, new_owner.pk]
-                        ):
+                        try:
+                            xform = deployment.xform
+                        except (InvalidXFormException, MissingXFormException):
+                            id_string = deployment.xform_id_string
+                            self.status = (
+                                TransferStatusChoices.FAILED,
+                                f'Project `{self.asset.uid}` could not be transferred '
+                                f'because XForm `{id_string}` does not exist.',
+                            )
+                            return
+
+                        with deployment.suspend_submissions():
+                            old_id_string = None
+                            if XForm.objects.filter(
+                                id_string=xform.id_string,
+                                user_id=new_owner.pk,
+                            ).exists():
+                                old_id_string = xform.id_string
+                                deployment.reset_backend_response_id_string()
+
                             # Update counters
                             deployment.transfer_counters_ownership(new_owner)
                             previous_owner_username = self.asset.owner.username
                             self._reassign_project_permissions(
                                 update_deployment=True
                             )
-                            deployment.rename_enketo_id_key(previous_owner_username)
+                            deployment.rename_enketo_id_key(
+                                previous_owner_username, old_id_string
+                            )
 
                         self._sent_in_app_messages()
 
                     # Update `is_excluded_from_projects_list` flag
                     self._update_project_exclusion_flag()
+
             # Do not delegate anything to Celery before the transaction has
             # been validated. Otherwise, Celery could fetch outdated data.
             transaction.on_commit(lambda: self._start_async_jobs(_rewrite_mongo))

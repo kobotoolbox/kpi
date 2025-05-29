@@ -5,7 +5,7 @@ import type { FailResponse, LabelValuePair, PaginatedResponse } from '#/dataInte
 import { QueryKeys } from '#/query/queryKeys'
 import type { PaginatedQueryHookParams } from '#/universalTable/paginatedQueryUniversalTable.component'
 import { AUDIT_ACTION_TYPES, HIDDEN_AUDIT_ACTIONS } from './activity.constants'
-import type { ActivityLogsItem, AuditActions } from './activity.constants'
+import type { ActivityLogsItem, AssetHistoryActionsResponse } from './activity.constants'
 
 /**
  * Fetches the activity logs from the server.
@@ -55,9 +55,7 @@ const getActivityLogs = async ({
 const getFilterOptions = async (assetUid: string): Promise<LabelValuePair[]> => {
   const endpointUrl = endpoints.ASSET_HISTORY_ACTIONS.replace(':asset_uid', assetUid)
 
-  const filterOptions = await fetchGet<{
-    actions: Array<keyof typeof AuditActions>
-  }>(endpointUrl, {
+  const filterOptions = await fetchGet<AssetHistoryActionsResponse>(endpointUrl, {
     errorMessageDisplay: t('There was an error getting the filter options.'),
   })
 

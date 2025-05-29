@@ -83,7 +83,6 @@ export function deleteAsset(
 
     onshow = () => {
       const okBtn = dialog.elements.buttons.primary.firstChild as HTMLElement
-      okBtn.setAttribute('data-cy', 'delete')
       const $els = $('.alertify-toggle input')
 
       okBtn.setAttribute('disabled', 'true')

@@ -153,7 +153,6 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
             onChange={(code: string | null) => {
               onFilterValueChange(code || '')
             }}
-            data-cy='country'
           />
         )}
       </div>

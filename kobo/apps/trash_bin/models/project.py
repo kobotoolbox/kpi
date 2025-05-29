@@ -3,7 +3,10 @@ from __future__ import annotations
 from django.db import models, transaction
 from django.utils import timezone
 
-from kobo.apps.openrosa.apps.logger.models import XForm
+from kobo.apps.openrosa.apps.logger.models import XForm, Attachment
+from kobo.apps.openrosa.apps.logger.utils.attachment import (
+    bulk_update_attachment_storage_counters
+)
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import KpiUidField
@@ -36,6 +39,20 @@ class ProjectTrash(BaseTrash):
     ) -> UpdatedQuerySetAndCount:
         """
         Toggle statuses of projects based on their `uid`.
+
+        Args:
+            object_identifiers (list[str]): List of project UIDs to toggle.
+            active (bool): If True, the projects are activated/untrashed;
+                           if False, they are deactivated/trashed.
+            toggle_delete (bool): If True, the projects are marked for
+                                  trashing/restoring; if False, the projects are
+                                  marked for archived/unarchived.
+
+        - If `active` is False and `toggle_delete` is False, the assets are archived.
+        - If `active` is False and `toggle_delete` is True, the assets are marked
+          for deletion/trashed.
+        - If `active` is True and `toggle_delete` is False, the assets are unarchived.
+        - If `active` is True and `toggle_delete` is True, the assets are untrashed.
         """
 
         kc_filter_params = {'kpi_asset_uid__in': object_identifiers}
@@ -70,17 +87,25 @@ class ProjectTrash(BaseTrash):
                     **update_params
                 )
 
-                if toggle_delete and not active:
-                    Invite.objects.filter(
-                        pk__in=Transfer.objects.filter(
-                            asset_id__in=queryset.values_list('pk', flat=True),
-                            invite__status=InviteStatusChoices.PENDING,
-                        ).values_list('invite_id', flat=True)
-                    ).update(status=InviteStatusChoices.CANCELLED)
+                if toggle_delete:
+                    if not active:
+                        Invite.objects.filter(
+                            pk__in=Transfer.objects.filter(
+                                asset_id__in=queryset.values_list('pk', flat=True),
+                                invite__status=InviteStatusChoices.PENDING,
+                            ).values_list('invite_id', flat=True)
+                        ).update(status=InviteStatusChoices.CANCELLED)
+
+                    # Update attachment storage counters
+                    attachments = Attachment.objects.filter(
+                        xform__kpi_asset_uid__in=object_identifiers
+                    )
+                    bulk_update_attachment_storage_counters(
+                        attachments, subtract=not active
+                    )
 
                 kc_updated = XForm.all_objects.filter(**kc_filter_params).update(
                     **kc_update_params
                 )
                 assert updated >= kc_updated
-
         return queryset, updated

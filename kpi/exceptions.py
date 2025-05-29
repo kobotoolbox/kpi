@@ -29,6 +29,10 @@ class AttachmentNotFoundException(Exception):
     pass
 
 
+class AttachmentUidMismatchException(Exception):
+    pass
+
+
 class BadAssetTypeException(Exception):
     pass
 

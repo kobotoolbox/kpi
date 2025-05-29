@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { IconNames } from '#/k-icons'
 import TextBox from './textBox'
 import type { TextBoxSize, TextBoxType } from './textBox'
@@ -62,7 +62,6 @@ const meta: Meta<typeof TextBox> = {
     className: {
       description: 'Adds custom class name to topmost wrapper',
     },
-    'data-cy': { description: 'Cypress identifier' },
   },
   parameters: {
     docs: {

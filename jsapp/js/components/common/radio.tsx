@@ -30,7 +30,6 @@ interface RadioProps {
   isDisabled?: boolean
   /** This is `false` by default */
   isClearable?: boolean
-  'data-cy'?: string
 }
 
 /** A radio input generic component. */
@@ -70,7 +69,6 @@ class Radio extends React.Component<RadioProps> {
               onClick={this.onClick.bind(this)}
               checked={this.props.selected === option.value}
               disabled={this.props.isDisabled || option.isDisabled}
-              data-cy={this.props['data-cy']}
             />
 
             <bem.Radio__label>{option.label}</bem.Radio__label>

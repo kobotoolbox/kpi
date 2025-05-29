@@ -16,6 +16,7 @@ interface OneTimeAddOnRowProps {
   activeSubscriptions: SubscriptionInfo[]
   subscribedAddOns: SubscriptionInfo[]
   organization: Organization
+  isRecurring?: boolean
 }
 
 export const OneTimeAddOnRow = ({
@@ -25,6 +26,7 @@ export const OneTimeAddOnRow = ({
   activeSubscriptions,
   subscribedAddOns,
   organization,
+  isRecurring,
 }: OneTimeAddOnRowProps) => {
   const [selectedProduct, setSelectedProduct] = useState(products[0])
   const [selectedPrice, setSelectedPrice] = useState<Product['prices'][0]>(selectedProduct.prices[0])
@@ -145,7 +147,8 @@ export const OneTimeAddOnRow = ({
             onChange={(productId: string | null) => onChangeProduct(productId)}
             value={selectedProduct.id}
           />
-          {displayName === 'File Storage' && (
+          {isRecurring && (
+            // Recurring interval selector
             <Select
               size='sm'
               className={styles.selectPrices}

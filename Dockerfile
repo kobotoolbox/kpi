@@ -122,7 +122,7 @@ ENV PATH=$PATH:${KPI_NODE_PATH}/.bin
 # Build client code. #
 ######################
 
-RUN npm run build
+RUN npm run build:app
 
 ###########################
 # Organize static assets. #

@@ -58,7 +58,7 @@ def delete_asset(request_author: settings.AUTH_USER_MODEL, asset: Asset):
         rmdir(f'{owner_username}/asset_files/{asset_uid}')
 
 
-def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: Asset):
+def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.Asset'):
 
     # Test if XForm is still valid
     try:
@@ -68,7 +68,13 @@ def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: Asset):
         # already deleted
         xform_id_string = asset.deployment.backend_response['id_string']
         xform_uuid = asset.deployment.backend_response['uuid']
-        deleted_orphans = MongoHelper.delete(xform_id_string, xform_uuid)
+        mongo_query = {
+            '$or': [
+                {'_xform_id_string': xform_id_string},
+                {'formhub/uuid': xform_uuid},
+            ],
+        }
+        deleted_orphans = MongoHelper.delete_many(mongo_query)
         logging.warning(f'TrashBin: {deleted_orphans} deleted MongoDB orphans')
 
         return
@@ -93,7 +99,7 @@ def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: Asset):
             if not (
                 submissions := queryset_or_false.annotate(
                     _id=F('pk'), _uuid=F('uuid')
-                ).values('_id', '_uuid')[: settings.SUBMISSION_DELETION_BATCH_SIZE]
+                ).values('_id', '_uuid')[:settings.SUBMISSION_DELETION_BATCH_SIZE]
             ):
                 break
 

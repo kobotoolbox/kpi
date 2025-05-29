@@ -1,13 +1,11 @@
-# coding: utf-8
-import os
 import logging
+import os
 import traceback
-import requests
 import zipfile
 from datetime import datetime
-
 from tempfile import NamedTemporaryFile
 
+import requests
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -19,7 +17,7 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 
-SLASH = "/"
+SLASH = '/'
 
 
 class MyError(Exception):
@@ -34,6 +32,16 @@ def format_date_for_mongo(x):
     return datetime.strptime(x, '%y_%m_%d_%H_%M_%S').strftime(
         '%Y-%m-%dT%H:%M:%S'
     )
+
+
+def get_mongo_userform_id(xform: 'logger.XForm', username: str = None) -> str:
+    # Auto-detect the username from the XForm if it is not provided.
+    # Avoids an additional query on the User model when the username is already
+    # available.
+    if not username:
+        username = xform.user.username
+
+    return xform.mongo_uuid or f'{username}_{xform.id_string}'
 
 
 def get_optimized_image_path(path: str, suffix: str) -> str:
@@ -60,9 +68,11 @@ def image_urls_dict(instance):
 def report_exception(subject, info, exc_info=None):
     if exc_info:
         cls, err = exc_info[:2]
-        info += t("Exception in request: %(class)s: %(error)s") \
-            % {'class': cls.__name__, 'error': err}
-        info += "".join(traceback.format_exception(*exc_info))
+        info += t('Exception in request: %(class)s: %(error)s') % {
+            'class': cls.__name__,
+            'error': err,
+        }
+        info += ''.join(traceback.format_exception(*exc_info))
 
     if settings.DEBUG:
         print(subject, flush=True)
@@ -223,7 +233,7 @@ def create_attachments_zipfile(attachments, output_file=None):
                         )
                 except Exception as e:
                     report_exception(
-                        "Error adding file \"{}\" to archive.".format(
+                        'Error adding file "{}" to archive.'.format(
                             attachment.media_file.name
                         ),
                         e,

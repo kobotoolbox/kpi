@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { IconNames } from '#/k-icons'
 import KoboPrompt from './koboPrompt'
 
@@ -11,6 +11,7 @@ const meta: Meta<typeof KoboPrompt> = {
       control: { type: 'select' },
     },
   },
+  parameters: { a11y: { test: 'todo' } },
 }
 
 export default meta

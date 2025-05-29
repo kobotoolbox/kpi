@@ -61,6 +61,7 @@ class AuditType(models.TextChoices):
     USER_MANAGEMENT = 'user-management'
     ASSET_MANAGEMENT = 'asset-management'
     SUBMISSION_MANAGEMENT = 'submission-management'
+    ATTACHMENT_MANAGEMENT = 'attachment-management'
 
 
 class AuditLog(models.Model):
