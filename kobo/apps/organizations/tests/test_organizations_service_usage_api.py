@@ -27,12 +27,13 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         cls.organization.save(update_fields=['mmo_override'])
         cls.organization.add_user(cls.someuser, is_admin=True)
 
+        # Alice is a non-admin member of anotheruser's organization
         alice = User.objects.create_user(
             username='alice', password='alice', email='alice@alice.com'
         )
         cls.organization.add_user(alice, is_admin=False)
 
-        # bob is external to someuser's organization
+        # bob is external to anotheruser's organization
         User.objects.create_user(
             username='bob', password='bob', email='bob@bob.com'
         )
