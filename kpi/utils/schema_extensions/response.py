@@ -12,34 +12,6 @@ class ErrorDetailSerializer(serializers.Serializer):
     detail = serializers.CharField()
 
 
-# Generic function that builds an OpenApiResponse with the given http_code and
-# given serializer.
-def open_api_generic_response(
-    http_code: int,
-    given_serializer: Optional[Serializer] = None,
-    media_type: Optional[str] = None,
-    require_auth: bool = True,
-    validate_payload: bool = True,
-    raise_access_forbidden: bool = True,
-    raise_not_found: bool = True,
-    **kwargs,
-) -> OpenApiGenericResponse:
-    success_key = http_code
-    if media_type:
-        success_key = (http_code, media_type)
-
-    response = {success_key: OpenApiResponse(response=given_serializer)}
-
-    return open_api_error_responses(
-        response=response,
-        require_auth=require_auth,
-        validate_payload=validate_payload,
-        raise_access_forbidden=raise_access_forbidden,
-        raise_not_found=raise_not_found,
-        **kwargs,
-    )
-
-
 # Returns an OpenApiResponse with the given serializer and a 200 http code
 def open_api_200_ok_response(
     given_serializer: Optional[Serializer] = None,
@@ -149,39 +121,6 @@ def open_api_302_found(
     )
 
 
-def open_api_http_example_response(
-    name: str,
-    value: str,
-    summary: str,
-    require_auth: bool = True,
-    validate_payload: bool = True,
-    raise_access_forbidden: bool = True,
-    raise_not_found: bool = True,
-    **kwargs,
-):
-    response = {
-        (HTTP_200_OK, 'text/html'): OpenApiResponse(
-            response=str,
-            examples=[
-                OpenApiExample(
-                    name=name,
-                    value=value,
-                    summary=summary,
-                )
-            ],
-        )
-    }
-
-    return open_api_error_responses(
-        response=response,
-        require_auth=require_auth,
-        validate_payload=validate_payload,
-        raise_access_forbidden=raise_access_forbidden,
-        raise_not_found=raise_not_found,
-        media_type='text/html',
-        **kwargs,
-    )
-
 
 def open_api_error_responses(
     response,
@@ -259,3 +198,65 @@ def open_api_error_responses(
         )
 
     return response
+
+
+# Generic function that builds an OpenApiResponse with the given http_code and
+# given serializer.
+def open_api_generic_response(
+    http_code: int,
+    given_serializer: Optional[Serializer] = None,
+    media_type: Optional[str] = None,
+    require_auth: bool = True,
+    validate_payload: bool = True,
+    raise_access_forbidden: bool = True,
+    raise_not_found: bool = True,
+    **kwargs,
+) -> OpenApiGenericResponse:
+    success_key = http_code
+    if media_type:
+        success_key = (http_code, media_type)
+
+    response = {success_key: OpenApiResponse(response=given_serializer)}
+
+    return open_api_error_responses(
+        response=response,
+        require_auth=require_auth,
+        validate_payload=validate_payload,
+        raise_access_forbidden=raise_access_forbidden,
+        raise_not_found=raise_not_found,
+        **kwargs,
+    )
+
+
+def open_api_http_example_response(
+    name: str,
+    value: str,
+    summary: str,
+    require_auth: bool = True,
+    validate_payload: bool = True,
+    raise_access_forbidden: bool = True,
+    raise_not_found: bool = True,
+    **kwargs,
+):
+    response = {
+        (HTTP_200_OK, 'text/html'): OpenApiResponse(
+            response=str,
+            examples=[
+                OpenApiExample(
+                    name=name,
+                    value=value,
+                    summary=summary,
+                )
+            ],
+        )
+    }
+
+    return open_api_error_responses(
+        response=response,
+        require_auth=require_auth,
+        validate_payload=validate_payload,
+        raise_access_forbidden=raise_access_forbidden,
+        raise_not_found=raise_not_found,
+        media_type='text/html',
+        **kwargs,
+    )
