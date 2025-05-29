@@ -1,5 +1,6 @@
 from django.utils.translation import gettext_lazy as t
 
+
 class AccountInactiveError(Exception):
     pass
 
