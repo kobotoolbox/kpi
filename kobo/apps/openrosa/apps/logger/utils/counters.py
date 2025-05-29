@@ -1,3 +1,9 @@
+from django.db.models import F
+
+from kpi.deployment_backends.kc_access.utils import conditional_kc_transaction_atomic
+from ...main.models import UserProfile
+from ..models import XForm
+
 def delete_null_user_daily_counters(apps, *args):
     """
     Find any DailyXFormCounters without a user, assign them to a user if we can,
@@ -42,3 +48,14 @@ def delete_null_user_daily_counters(apps, *args):
 
     # Delete daily counters without a user to avoid creating invalid monthly counters
     DailyXFormSubmissionCounter.objects.filter(user=None).delete()
+
+
+def update_storage_counters(xform_id: int, user_id: int, total_bytes: int):
+
+    with conditional_kc_transaction_atomic():
+        UserProfile.objects.filter(user_id=user_id).update(
+            attachment_storage_bytes=F('attachment_storage_bytes') + total_bytes
+        )
+        XForm.objects.filter(pk=xform_id).update(
+            attachment_storage_bytes=F('attachment_storage_bytes') + total_bytes
+        )
