@@ -79,8 +79,9 @@ def qpath_to_xpath(qpath: str, asset: 'Asset') -> str:
         if '$qpath' in row and '$xpath' in row and row['$qpath'] == qpath:
             return row['$xpath']
 
-    # If qpath relates to an existing question on the asset, skip this field
-    # by returning an empty string
+    # If the `qpath` refers to a question that was renamed or deleted, it may
+    # no longer match any XPath in the form. In such cases, where it's still
+    # present in known_cols, skip this field by returning an empty string
     dashed_qpath = qpath.replace('/', '-')
     for known_col in asset.known_cols:
         if known_col.startswith(dashed_qpath):
