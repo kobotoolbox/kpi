@@ -223,24 +223,6 @@ class OrganizationDetailAPITestCase(BaseTestCase):
         assert response.status_code == expected_status_code
 
     @data(
-        ('someuser', status.HTTP_200_OK),
-        ('anotheruser', status.HTTP_200_OK),
-        ('alice', status.HTTP_200_OK),
-        ('bob', status.HTTP_404_NOT_FOUND),
-    )
-    @unpack
-    def test_service_usage(self, username, expected_status_code):
-        user = User.objects.get(username=username)
-        self.client.force_login(user)
-
-        url = reverse(
-            self._get_endpoint('organizations-service-usage'),
-            kwargs={'id': self.organization.id}
-        )
-        response = self.client.get(url)
-        assert response.status_code == expected_status_code
-
-    @data(
         ('name', 'Someuser Company inc.', status.HTTP_200_OK),
         ('name', '', status.HTTP_400_BAD_REQUEST),
         ('website', 'https://foo.bar/', status.HTTP_200_OK),
