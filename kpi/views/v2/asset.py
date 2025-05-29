@@ -327,7 +327,6 @@ class AssetViewSet(
     Available actions:
     - list           → GET /api/v2/assets/
     - create         → POST /api/v2/assets/
-    - counts         → GET /api/v2/assets/{parent_lookup_assets}/counts/
     - retrieve       → GET /api/v2/assets/{uid}/
     - patch          → PATCH /api/v2/assets/{uid}/
     - delete         → DELETE /api/v2/assets/{uid}/
@@ -344,7 +343,6 @@ class AssetViewSet(
     Documentation:
     - docs/api/v2/assets/list.md
     - docs/api/v2/assets/create.md
-    - docs/api/v2/assets/counts.md
     - docs/api/v2/assets/retrieve.md
     - docs/api/v2/assets/patch.md
     - docs/api/v2/assets/delete.md
