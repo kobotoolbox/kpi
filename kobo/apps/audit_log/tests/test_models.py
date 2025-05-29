@@ -439,7 +439,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         ('source', None, '1.2.3.4', 'project', 'someuser'),  # missing asset_uid
         (None, 'a1234', '1.2.3.4', 'project', 'someuser'),  # missing source
         ('source', 'a1234', '1.2.3.4', None, 'someuser'),  # missing subtype
-        ('source', 'a1234', '1.2.3.4', 'bad_type','someuser'),  # bad subtype
+        ('source', 'a1234', '1.2.3.4', 'bad_type', 'someuser'),  # bad subtype
         ('source', 'a1234', '1.2.3.4', 'project', None),  # missing owner
     )
     @unpack
