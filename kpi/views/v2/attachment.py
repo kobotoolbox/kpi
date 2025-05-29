@@ -79,9 +79,16 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
         ),
     ),
     thumb=extend_schema(
-        description=read_md('kpi', 'asset_attachments/suffix.md')
+        description=read_md('kpi', 'asset_attachments/suffix.md'),
+        responses=open_api_200_ok_response(
+            description='Will return a content type with the type of the attachment as well as the attachment itself in the demanded format.',
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
     ),
 )
+
 class AttachmentViewSet(
     NestedViewSetMixin,
     AssetNestedObjectViewsetMixin,
@@ -92,6 +99,8 @@ class AttachmentViewSet(
     #   for example, a description). (PR for asset (5783) needs to be merged first, then
     #   have an option to only get the demanded media_type on the errors only if we have
     #   one, otherwise we keep the default that comes with the serializer.
+    #   CURRENTLY: description will not show since we haven't given kwargs
+    #       and the errors won't have the correct media_type.
     """
     ViewSet for managing the current user's asset attachment
 
@@ -107,7 +116,6 @@ class AttachmentViewSet(
     """
     renderer_classes = (
         MediaFileRenderer,
-        MP3ConversionRenderer,
     )
     permission_classes = (SubmissionPermission,)
 
@@ -142,6 +150,14 @@ class AttachmentViewSet(
             }, 'xpath_missing')
 
         return self._get_response(request, submission_id_or_uuid, xpath=xpath)
+
+    def get_renderers(self):
+        if self.action == 'retrieve' or self.action == 'list':
+            return [
+                MediaFileRenderer(),
+                MP3ConversionRenderer(),
+            ]
+        return super().get_renderers()
 
     def _get_response(
         self,
