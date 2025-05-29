@@ -449,8 +449,8 @@ class ParsedInstance(models.Model):
     @staticmethod
     def bulk_update_attachments(instance_ids: list[int]):
         """
-        Bulk update the `is_deleted` flag in Mongo's `_attachments` for given
-        instances
+        Bulk update attachments for given instances. Mostly used to set/update
+        the `is_deleted` flag in Mongo's `_attachments`.
         """
         if not instance_ids:
             return
