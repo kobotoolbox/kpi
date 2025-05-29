@@ -112,7 +112,7 @@ class ProjectAdvancedFeaturesTestCase(TestCase):
             'group_ia0id17-q1:translation:en',
             'group_ia0id17-q1:translation:fr'
         ]
-        _afj = asset.analysis_form_json()
+        asset.save()
 
         self.client.force_login(asset.owner)
         resp = self.client.get(f'/api/v2/assets/{asset.uid}/')
