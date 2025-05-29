@@ -38,6 +38,7 @@ from rest_framework.exceptions import NotAuthenticated
 
 from kobo.apps.openrosa.apps.logger.exceptions import (
     AccountInactiveError,
+    ConflictingAttachmentBasenameError,
     ConflictingSubmissionUUIDError,
     DuplicateInstanceError,
     DuplicateUUIDError,
@@ -49,9 +50,6 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
     TemporarilyUnavailableError,
 )
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
-from kobo.apps.openrosa.apps.logger.models.attachment import (
-    generate_attachment_filename,
-)
 from kobo.apps.openrosa.apps.logger.models.instance import (
     InstanceHistory,
     get_id_string_from_xml_str,
@@ -82,6 +80,7 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
+from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from pyxform.errors import PyXFormError
@@ -385,9 +384,8 @@ def http_open_rosa_error_handler(func, request):
     except ExpatError:
         result.error = t('Improperly formatted XML.')
         result.http_error_response = OpenRosaResponseBadRequest(result.error)
-    except ConflictingSubmissionUUIDError:
-        result.error = t('Submission with this instance ID already exists')
-        response = OpenRosaResponse(result.error)
+    except (ConflictingSubmissionUUIDError, ConflictingAttachmentBasenameError) as e:
+        response = OpenRosaResponse(str(e))
         response.status_code = 409
         response['Location'] = request.build_absolute_uri(request.path)
         result.http_error_response = response
@@ -699,21 +697,34 @@ def save_attachments(
     new_attachments = []
 
     for f in media_files:
-        attachment_filename = generate_attachment_filename(
-            instance, os.path.basename(f.name)
-        )
+        media_file_basename = os.path.basename(f.name)
+
+        # The basename of a (non-deleted) attachment must be unique per instance.
         existing_attachment = Attachment.objects.filter(
             instance=instance,
-            media_file=attachment_filename,
-            mimetype=f.content_type,
+            media_file_basename=media_file_basename,
         ).first()
+
+        uploaded_file_hash = calculate_hash(f, 'sha1')
+
         if existing_attachment:
-            # We already have this attachment!
-            continue
-        f.seek(0)
+            # We only accept the exact same uploaded file. The submission should be
+            # rejected if the file differs in any way.
+            # Validation is done by comparing the SHA-1 hash.
+            existing_attachment_hash = (
+                existing_attachment.hash or existing_attachment.get_hash()
+            )
+            if uploaded_file_hash == existing_attachment_hash:
+                # We already have this attachment!
+                continue
+            raise ConflictingAttachmentBasenameError
+
         # This is a new attachment; save it!
         new_attachment = Attachment(
-            instance=instance, media_file=f, mimetype=f.content_type
+            instance=instance,
+            media_file=f,
+            mimetype=f.content_type,
+            hash=uploaded_file_hash,
         )
         if defer_counting:
             # Only set the attribute if requested, i.e. don't bother ever

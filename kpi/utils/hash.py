@@ -13,7 +13,7 @@ def calculate_hash(
     prefix: bool = False,
 ) -> str:
     """
-    Calculates the hash for `source`. Supported algorithm are `md5` and `sha1`.
+    Calculates the hash for `source`. Supported algorithms are `md5` and `sha1`.
     The returned string is prefixed with `algorithm` if `prefix` is `True`.
     If `source` is a file, it must be opened in binary mode.
     If `source` is a URL, headers are used to build the hash in this order.
@@ -77,13 +77,22 @@ def calculate_hash(
         return hash_
 
     if not isinstance(source, str):
+        source_read_cursor_position = None
         try:
-            source = source.read()
+            source_read_cursor_position = source.tell()
         except AttributeError:
             # Source is `bytes`, just return its hash
-            pass
+            content = source
+        else:
+            source.seek(0)
+            content = source.read()
 
-        return _finalize_hash(source)
+        value = _finalize_hash(content)
+
+        if source_read_cursor_position:
+            source.seek(source_read_cursor_position)
+
+        return value
 
     # If `source` is a string, it can be a URL or real string
     if not source.startswith('http'):

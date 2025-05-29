@@ -14,6 +14,11 @@ class BuildDbQueriesNoConfirmationProvidedError(Exception):
     pass
 
 
+class ConflictingAttachmentBasenameError(Exception):
+    def __init__(self, message='Attachment with same name already exists'):
+        super().__init__(message)
+
+
 class ConflictingSubmissionUUIDError(Exception):
     def __init__(self, message='Submission with this instance ID already exists'):
         super().__init__(message)
