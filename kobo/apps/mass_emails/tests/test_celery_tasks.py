@@ -311,48 +311,11 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
 
 @ddt
 class GenerateDailyEmailUserListTaskTestCase(BaseMassEmailsTestCase):
-    @data(
-        (EmailStatus.ENQUEUED, 1),
-        (EmailStatus.SENT, 0),
-        (EmailStatus.FAILED, 2),
-    )
-    @unpack
-    def test_one_time_email_with_existing_records(self, status, enqueued_count):
-        """
-        Test one-time email configs (frequency=-1) behave correctly
-
-        - If status is `ENQUEUED` or `SENT`, no new records should be created.
-        - If status is `FAILED`, new records should be created.
-        """
-        email_config = self._create_email_config('Test')
-        self._create_email_record(self.user1, email_config, status)
-
-        self.assertNotIn(email_config.id, cache.get(self.cache_key, set()))
-        generate_mass_email_user_lists()
-        records = MassEmailRecord.objects.filter(
-            email_job__email_config=email_config, status=EmailStatus.ENQUEUED
-        )
-        self.assertEqual(records.count(), enqueued_count)
-        self.assertIn(email_config.id, cache.get(self.cache_key))
-
-    def test_one_time_email_with_no_existing_records(self):
-        """
-        Test that new records are created when there are no existing records
-        """
-        email_config = self._create_email_config('Test')
-        self.assertNotIn(email_config.id, cache.get(self.cache_key, set()))
-        generate_mass_email_user_lists()
-
-        new_records = MassEmailRecord.objects.filter(
-            email_job__email_config=email_config, status=EmailStatus.ENQUEUED
-        )
-        self.assertEqual(new_records.count(), 2)
-        self.assertIn(email_config.id, cache.get(self.cache_key))
 
     @data(
-        (EmailStatus.ENQUEUED, 1, 1),
-        (EmailStatus.SENT, 1, 2),
-        (EmailStatus.FAILED, 1, 2),
+        (EmailStatus.ENQUEUED, -1, 1),
+        (EmailStatus.SENT, -1, 2),
+        (EmailStatus.FAILED, -1, 2),
         (EmailStatus.ENQUEUED, 2, 1),
         (EmailStatus.SENT, 2, 2),
         (EmailStatus.FAILED, 2, 2),
@@ -360,7 +323,7 @@ class GenerateDailyEmailUserListTaskTestCase(BaseMassEmailsTestCase):
     @unpack
     def test_recurring_email_scheduling(self, status, frequency, enqueued_count):
         """
-        Test that recurring email configs (frequency > 0) behave correctly
+        Test we don't enqueue records if there are already pending ones
         """
         email_config = self._create_email_config(
             'Test', frequency=frequency

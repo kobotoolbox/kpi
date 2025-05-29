@@ -316,6 +316,17 @@ def send_emails():
         return
     sender = MassEmailSender()
     sender.send_day_emails()
+    finished_one_offs = (
+        MassEmailConfig.objects.filter(frequency=-1, live=True)
+        .values('id')
+        .annotate(
+            enqueued_count=Count(
+                'pk', filter=Q(jobs__records__status=EmailStatus.ENQUEUED)
+            )
+        )
+        .filter(enqueued_count=0)
+    ).values_list('pk', flat=True)
+    MassEmailConfig.objects.filter(pk__in=finished_one_offs).update(live=False)
 
 
 def get_users_for_config(email_config):
@@ -374,14 +385,8 @@ def generate_mass_email_user_lists():
             email_job__email_config=email_config,
         )
 
-        # Skip processing for one time emails that have been sent or enqueued
-        if email_config.frequency == -1 and email_records.filter(
-            status__in=[EmailStatus.ENQUEUED, EmailStatus.SENT]
-        ).exists():
-            processed_configs.add(email_config.id)
-
-        # Skip processing if there are pending enqueued records
-        elif email_records.filter(status=EmailStatus.ENQUEUED).exists():
+        # Skip processing emails that have already been enqueued
+        if email_records.filter(status=EmailStatus.ENQUEUED).exists():
             logging.info(
                 f'Skipping email config {email_config.id} as it already has '
                 f'enqueued records.'
