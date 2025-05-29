@@ -314,7 +314,7 @@ class DeployedVersionsFieldExtension(OpenApiSerializerFieldExtension):
                         properties={
                             'uid': build_basic_type(OpenApiTypes.STR),
                             'url': build_url_type(
-                                'asset-version-detail',
+                                'api_v2:asset-version-detail',
                                 parent_lookup_asset='aBeA23YCYjkGTFvYVHuAyU',
                                 uid='vBeA23YCYjkGTFvYVHuAyU',
                             ),
@@ -507,7 +507,7 @@ class ReportURLFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
-            viewname='api_v2:asset-detail', uid='a5owyo85mHyFazzgsZK45c'
+            viewname='api_v2:asset-reports', uid='a5owyo85mHyFazzgsZK45c'
         )
 
 
@@ -558,7 +558,7 @@ class AssetHyperlinkedURLFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AssetHyperlinkedURLField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type('asset-detail', uid='aBeA23YCYjkGTFvYVHuAyU')
+        return build_url_type('api_v2:asset-detail', uid='aBeA23YCYjkGTFvYVHuAyU')
 
 
 class ValidContentDataFieldExtension(OpenApiSerializerFieldExtension):
