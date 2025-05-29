@@ -330,7 +330,8 @@ class TestDataViewSet(TestBase):
                                'filename': self.attachment.media_file.name,
                                'id': self.attachment.pk,
                                'uid': self.attachment.uid,
-                               'xform': self.xform.id}
+                               'xform': self.xform.id,
+                               'is_deleted': False}
                               ],
             '_geolocation': [None, None],
             '_xform_id_string': 'transportation_2011_07_25',

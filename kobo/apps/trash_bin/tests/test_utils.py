@@ -1,4 +1,3 @@
-import uuid
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -13,11 +12,11 @@ from freezegun import freeze_time
 
 from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 
 from kpi.models import Asset
+from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
 from ..models import TrashStatus
 from ..models.account import AccountTrash
@@ -276,55 +275,9 @@ class AccountTrashTestCase(TestCase):
 
 
 @ddt
-class ProjectTrashTestCase(TestCase):
+class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
 
     fixtures = ['test_data']
-
-    def _create_asset_and_submission(self):
-        """
-        Helper method to create an asset and its associated submission
-        with attachments
-        """
-        user = User.objects.get(username='someuser')
-        asset = Asset.objects.create(
-            asset_type='survey',
-            content={
-                'survey': [
-                    {'type': 'audio', 'label': 'q1', 'name': 'q1'},
-                    {'type': 'file', 'label': 'q2', 'name': 'q2'}
-                ]
-            },
-            owner=user
-        )
-        asset.save()
-        asset.deploy(backend='mock')
-
-        username = user.username
-        submission = {
-            'q1': 'audio_conversion_test_clip.3gp',
-            'q2': 'audio_conversion_test_image.jpg',
-            '_uuid': str(uuid.uuid4()),
-            '_attachments': [
-                {
-                    'download_url': f'http://testserver/{username}/audio_conversion_test_clip.3gp',  # noqa: E501
-                    'filename': f'{username}/audio_conversion_test_clip.3gp',
-                    'mimetype': 'video/3gpp',
-                },
-                {
-                    'download_url': f'http://testserver/{username}/audio_conversion_test_image.jpg',  # noqa: E501
-                    'filename': f'{username}/audio_conversion_test_image.jpg',
-                    'mimetype': 'image/jpeg',
-                },
-            ],
-            '_submitted_by': username,
-        }
-        asset.deployment.mock_submissions([submission])
-        asset.deployment.xform.refresh_from_db()
-
-        # Fetch references to the XForm and UserProfile
-        xform = asset.deployment.xform
-        user_profile = UserProfile.objects.get(user=user)
-        return asset, xform, user_profile
 
     def test_move_to_trash(self):
         asset = Asset.objects.get(pk=1)
@@ -522,7 +475,11 @@ class ProjectTrashTestCase(TestCase):
         Test that attachment storage counters in XForm and UserProfile are
         cleared on trash, and restored properly on untrash
         """
-        asset, xform, user_profile = self._create_asset_and_submission()
+        asset, xform, instance, user_profile, attachment = (
+            self._create_test_asset_and_submission(
+                user=User.objects.get(username='someuser')
+            )
+        )
 
         xform_storage_init = xform.attachment_storage_bytes
         user_storage_init = user_profile.attachment_storage_bytes
@@ -571,7 +528,12 @@ class ProjectTrashTestCase(TestCase):
         Test that attachment storage counters in XForm and UserProfile remain
         unchanged when a project is archived or unarchived
         """
-        asset, xform, user_profile = self._create_asset_and_submission()
+        asset, xform, instance, user_profile, attachment = (
+            self._create_test_asset_and_submission(
+                user=User.objects.get(username='someuser')
+            )
+        )
+
         xform_storage_init = xform.attachment_storage_bytes
         user_storage_init = user_profile.attachment_storage_bytes
         self.assertGreater(xform_storage_init, 0)
@@ -597,10 +559,12 @@ class ProjectTrashTestCase(TestCase):
 
 
 @ddt
-class AttachmentTrashTestCase(TestCase):
+class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
     def setUp(self):
         self.user = User.objects.create(username='user', password='password')
-        self._create_asset_and_submission()
+        self.asset, self.xform, self.instance, self.user_profile, self.attachment = (
+            self._create_test_asset_and_submission(user=self.user)
+        )
 
     def test_move_to_trash(self):
         assert self.xform.attachment_storage_bytes > 0
@@ -740,43 +704,6 @@ class AttachmentTrashTestCase(TestCase):
                 task_restarter()
 
                 assert patched_spawned_task.call_count == restart_count
-
-    def _create_asset_and_submission(self):
-        """
-        Helper method to create an asset and its associated submission
-        with an attachment
-        """
-        self.asset = Asset.objects.create(
-            asset_type='survey',
-            content={
-                'survey': [
-                    {'type': 'audio', 'label': 'q1', 'name': 'q1'},
-                ]
-            },
-            owner=self.user
-        )
-        self.asset.deploy(backend='mock', active=True)
-        self.asset.save()
-
-        username = self.user.username
-        instance_id = uuid.uuid4()
-        submission = {
-            'q1': 'audio_conversion_test_clip.3gp',
-            '_uuid': instance_id,
-            '_attachments': [
-                {
-                    'download_url': f'http://testserver/{username}/audio_conversion_test_clip.3gp',  # noqa: E501
-                    'filename': f'{username}/audio_conversion_test_clip.3gp',
-                    'mimetype': 'video/3gpp',
-                },
-            ],
-            '_submitted_by': username,
-        }
-        self.asset.deployment.mock_submissions([submission])
-        self.xform = self.asset.deployment.xform
-        self.user_profile = UserProfile.objects.get(user=self.xform.user)
-        self.attachment = self.xform.attachments.first()
-        self._refresh_all()
 
     def _move_attachment_to_trash(self, attachment, user):
         move_to_trash(
