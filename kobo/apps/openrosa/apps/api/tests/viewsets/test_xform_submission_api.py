@@ -610,7 +610,7 @@ class ConcurrentSubmissionTestCase(RequestMixin, LiveServerTestCase):
                 results[result] += 1
 
         assert results[status.HTTP_201_CREATED] == 1
-        assert results[status.HTTP_202_ACCEPTED] == DUPLICATE_SUBMISSIONS_COUNT - 1
+        assert results[status.HTTP_423_LOCKED] == DUPLICATE_SUBMISSIONS_COUNT - 1
 
 
 def submit_data(identifier, survey_, username_, live_server_url, token_):

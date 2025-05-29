@@ -202,9 +202,8 @@ class Instance(AbstractTimeStampedModel):
 
     def _populate_root_uuid(self):
         if self.xml and not self.root_uuid:
-            assert (
-                root_uuid := get_root_uuid_from_xml(self.xml)
-            ), 'root_uuid should not be empty'
+            root_uuid, _ = get_root_uuid_from_xml(self.xml)
+            assert root_uuid, 'root_uuid should not be empty'
             self.root_uuid = root_uuid
 
     def _populate_xml_hash(self):
