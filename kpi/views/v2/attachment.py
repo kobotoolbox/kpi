@@ -62,6 +62,21 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'asset_attachments/retrieve.md'),
+        parameters=[
+            OpenApiParameter(
+                name='format',
+                required=False,
+                type=OpenApiTypes.STR,
+                enum=['mp3'],
+                location=OpenApiParameter.QUERY
+            )
+        ],
+        responses=open_api_200_ok_response(
+            description='Will return a content type with the type of the attachment as well as the attachment itself.',  # noqa
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
     ),
     thumb=extend_schema(
         description=read_md('kpi', 'asset_attachments/suffix.md')
