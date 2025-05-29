@@ -18,6 +18,7 @@ from kobo.apps.audit_log.models import (
     AuditType,
     ProjectHistoryLog,
 )
+from kobo.apps.audit_log.utils import SubmissionUpdate
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
@@ -366,6 +367,18 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         self.assertEqual(log.user_uid, user.extra_details.uid)
         self.assertEqual(log.log_type, AuditType.PROJECT_HISTORY)
 
+    def _create_request(self, asset_uid_key=None, url_name=None):
+        factory = RequestFactory()
+        request = factory.post('/')
+        request.user = User.objects.get(username='someuser')
+        if asset_uid_key or url_name:
+            request.resolver_match = Mock()
+            if asset_uid_key:
+                request.resolver_match.kwargs = {asset_uid_key: 'a12345'}
+            if url_name:
+                request.resolver_match.url_name = url_name
+        return request
+
     def test_create_project_history_log_sets_standard_fields(self):
         user = User.objects.get(username='someuser')
         asset = Asset.objects.get(pk=1)
@@ -455,11 +468,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             )
 
     def test_create_from_related_request_object_created(self):
-        factory = RequestFactory()
-        request = factory.post('/')
-        request.user = User.objects.get(username='someuser')
-        request.resolver_match = Mock()
-        request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
+        request = self._create_request(asset_uid_key='parent_lookup_asset')
         # if an object has been created, only `updated_data` will be set
         request.updated_data = {
             'object_id': 1,
@@ -485,11 +494,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         self.assertEqual(log.metadata['asset_uid'], 'a12345')
 
     def test_create_from_related_request_object_deleted(self):
-        factory = RequestFactory()
-        request = factory.post('/')
-        request.user = User.objects.get(username='someuser')
-        request.resolver_match = Mock()
-        request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
+        request = self._create_request(asset_uid_key='parent_lookup_asset')
         # if an object has been created, only `initial_data` will be set
         request.initial_data = {
             'object_id': 1,
@@ -513,11 +518,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         self.assertEqual(log.metadata['asset_uid'], 'a12345')
 
     def test_create_from_related_request_object_modified(self):
-        factory = RequestFactory()
-        request = factory.post('/')
-        request.user = User.objects.get(username='someuser')
-        request.resolver_match = Mock()
-        request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
+        request = self._create_request(asset_uid_key='parent_lookup_asset')
         # if an object has been modified, both `initial_data`
         # and `updated_data` should be filled
         request.initial_data = {
@@ -549,11 +550,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         self.assertEqual(log.metadata['asset_uid'], 'a12345')
 
     def test_create_from_related_request_no_log_created_if_no_data(self):
-        factory = RequestFactory()
-        request = factory.post('/')
-        request.user = User.objects.get(username='someuser')
-        request.resolver_match = Mock()
-        request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
+        request = self._create_request(asset_uid_key='parent_lookup_asset')
         # no `initial_data` or `updated_data` present
         ProjectHistoryLog._related_request_base(
             request,
@@ -659,11 +656,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
     def test_create_from_unexpected_anonymous_permissions(self):
         # Normal anonymous permissions tested elsewhere
         # This test is for if somehow other permissions are assigned
-        factory = RequestFactory()
-        request = factory.post('/')
-        request.user = User.objects.get(username='someuser')
-        request.resolver_match = Mock()
-        request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
+        request = self._create_request(asset_uid_key='parent_lookup_asset')
         request.updated_data = {'asset.id': 1, 'asset.owner.username': 'fred'}
         request.permissions_added = {
             # these permissions are not allowed for anonymous users,
@@ -687,3 +680,130 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             sorted(permissions[PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED]),
             ['discover_asset', 'validate_submissions'],
         )
+
+    @data(
+        # only active changed, is_active, has_deployment, expected action
+        (True, True, True, AuditAction.UNARCHIVE),
+        (True, False, True, AuditAction.ARCHIVE),
+        # we shouldn't be able to un/archive an undeployed asset,
+        # but test for thoroughness
+        (True, True, False, AuditAction.UNARCHIVE),
+        (True, False, False, AuditAction.ARCHIVE),
+        (False, True, True, AuditAction.REDEPLOY),
+        (False, True, False, AuditAction.DEPLOY),
+        (False, False, True, AuditAction.REDEPLOY),
+        (False, False, False, AuditAction.DEPLOY),
+    )
+    @unpack
+    def test_create_from_deployment_request(
+        self, only_active_changed, is_active, has_deployment, expected_log_action
+    ):
+        request = self._create_request(asset_uid_key='uid')
+
+        request.initial_data = {
+            'id': 1,
+            'has_deployment': has_deployment,
+        }
+        request.additional_audit_log_info = {
+            'only_active_changed': only_active_changed,
+            'active': is_active,
+            'latest_version_uid': 'v12345',
+            'latest_deployed_version_uid': 'v12345',
+            'owner_username': 'someuser',
+        }
+        ProjectHistoryLog._create_from_deployment_request(request)
+        log = ProjectHistoryLog.objects.first()
+        self.assertEqual(log.action, expected_log_action)
+
+    @data(
+        # action, number of assets, expected number of logs
+        (AuditAction.ARCHIVE, 2, 2),
+        (AuditAction.UNARCHIVE, 2, 2),
+        ('', 2, 0),
+        (AuditAction.ARCHIVE, 0, 0),
+        (AuditAction.UNARCHIVE, 0, 0),
+        ('', 0, 0),
+    )
+    @unpack
+    def test_create_from_bulk_request(self, action, asset_count, expected_log_count):
+        assets = Asset.objects.all()[0:asset_count]
+        for asset in assets:
+            # save to create a version
+            asset.save()
+        request = self._create_request()
+        request._data = {
+            'payload': {
+                'action': action,
+                'asset_uids': [asset.uid for asset in assets],
+            }
+        }
+        ProjectHistoryLog._create_from_bulk_request(request)
+        logs = ProjectHistoryLog.objects.all()
+        self.assertEqual(logs.count(), expected_log_count)
+        for log in logs:
+            self.assertEqual(log.action, action)
+
+    def test_create_from_bulk_requests_exits_on_malformed_request(self):
+        request = self._create_request()
+        request._data = {}
+        ProjectHistoryLog._create_from_bulk_request(request)
+        self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+
+    @data(
+        ('name', '_handle_name_change'),
+        ('settings', '_handle_settings_change'),
+        ('data_sharing', '_handle_sharing_change'),
+        ('content', '_handle_content_change'),
+        ('advanced_features.qual.qual_survey', '_handle_qa_change'),
+    )
+    @unpack
+    def test_create_from_detail_request_plumbing(self, field, expected_method):
+        request = self._create_request('uid')
+        request.initial_data = {
+            'id': 1,
+            'name': 'name',
+            'settings': 'settings',
+            'data_sharing': 'sharing',
+            'content': 'content',
+            'advanced_features.qual.qual_survey': 'survey',
+            'latest_version.uid': 'v12345',
+        }
+        request.updated_data = {**request.initial_data, field: 'new'}
+        with patch(
+            f'kobo.apps.audit_log.models.ProjectHistoryLog.{expected_method}',
+            return_value=(AuditAction.UPDATE, {}),
+        ) as patched:
+            ProjectHistoryLog._create_from_detail_request(request)
+        patched.assert_called_once()
+
+    def test_unexpected_fields_ignored_in_detail_request(self):
+        request = self._create_request('uid')
+        request.initial_data = {
+            'id': 1,
+            'name': 'name',
+            'settings': 'settings',
+            'data_sharing': 'sharing',
+            'content': 'content',
+            'advanced_features.qual.qual_survey': 'survey',
+            'latest_version.uid': 'v12345',
+            'something_new': 'new',
+        }
+        request.updated_data = {**request.initial_data, 'something_new': 'i am new'}
+        # no log should be created even though 'something_new' changed
+        ProjectHistoryLog._create_from_detail_request(request)
+        self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+
+    def test_submissions_with_unknown_action(self):
+        request = self._create_request(url_name='submissions')
+        request.asset = Asset.objects.get(id=1)
+        update1 = SubmissionUpdate(
+            id=1,
+            action='weird action',
+            root_uuid='s12345',
+            username='username',
+            status='',
+        )
+        request.instances = {1: update1}
+        ProjectHistoryLog._create_from_submission_request(request)
+        log = ProjectHistoryLog.objects.first()
+        self.assertEqual(log.action, AuditAction.MODIFY_SUBMISSION)
