@@ -44,6 +44,17 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 class AttachmentDeleteViewSet(
     NestedViewSetMixin, AssetNestedObjectViewsetMixin, viewsets.ViewSet
 ):
+    """
+    ViewSet for managing the current user's asset attachment
+
+    Available actions:
+    - delete      → DELETE /api/v2/assets/{uid}/attachments/{id}/
+    - bulk        → DELETE /api/v2/assets/{uid}/attachments/bulk/
+
+    Documentation:
+    - docs/api/v2/asset_attachments/bulk.md
+    - docs/api/v2/asset_attachments/delete.md
+    """
     # FIXME: Future refactoring is needed for permissions in openrosa_backend.py to
     # avoid checking validating partial permissions in both the permission class
     # here and in the backend
