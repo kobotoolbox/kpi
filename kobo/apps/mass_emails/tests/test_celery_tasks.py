@@ -19,10 +19,11 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
 from ..models import EmailStatus, MassEmailConfig, MassEmailJob, MassEmailRecord
 from ..tasks import (
+    PROCESSED_EMAILS_CACHE_KEY,
     MassEmailSender,
-    _send_emails,
     generate_mass_email_user_lists,
     render_template,
+    send_emails,
 )
 
 
@@ -60,7 +61,9 @@ class BaseMassEmailsTestCase(BaseTestCase):
             last_login=timezone.now() - timedelta(days=7),
             email='user3@test.com',
         )
-        self.cache_key = f'mass_emails_{timezone.now().date()}_emails'
+        self.cache_key = PROCESSED_EMAILS_CACHE_KEY.format(
+            key_date=timezone.now().date()
+        )
         cache.delete(self.cache_key)
 
     def _create_email_config(self, name, template=None, frequency=-1):
@@ -236,25 +239,26 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
     def test_cache_key_date_condensed_send_interval(
         self, current_minute, expected_minute
     ):
-        sender = MassEmailSender()
         current_time = datetime(
             year=2025, month=1, day=1, hour=1, minute=current_minute
         )
         expected_time = datetime(
             year=2025, month=1, day=1, hour=1, minute=expected_minute
         )
-        assert sender.get_cache_key_date(send_date=current_time) == expected_time
+        assert (
+            MassEmailSender.get_cache_key_date(send_date=current_time) == expected_time
+        )
 
     def test_send_recurring_emails_exits_when_incomplete_init(self):
         self._setup_common_test_data()
-        _send_emails()
+        send_emails()
         assert len(mail.outbox) == 0
 
     @override_settings(MAX_MASS_EMAILS_PER_DAY=100)
     def test_send_recurring_emails_when_initialized(self):
         self._setup_common_test_data()
         generate_mass_email_user_lists()
-        _send_emails()
+        send_emails()
         assert len(mail.outbox) == 100
 
     @data(
