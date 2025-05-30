@@ -141,7 +141,7 @@ class MetadataSectorField(serializers.ListField):
     pass
 
 
-class OwnerURLRelativeHyperlinkedRelatedField(RelativePrefixHyperlinkedRelatedField):
+class UserURLRelativeHyperlinkedRelatedField(RelativePrefixHyperlinkedRelatedField):
     pass
 
 

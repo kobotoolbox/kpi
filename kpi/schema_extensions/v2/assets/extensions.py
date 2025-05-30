@@ -424,8 +424,8 @@ class MetadataSectorFieldExtension(OpenApiSerializerFieldExtension):
         )
 
 
-class OwnerURLRelativeHyperlinkedRelatedFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.assets.fields.OwnerURLRelativeHyperlinkedRelatedField'  # noqa
+class UserURLRelativeHyperlinkedRelatedFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.fields.UserURLRelativeHyperlinkedRelatedField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type('api_v2:user-kpi-detail', username='bob')

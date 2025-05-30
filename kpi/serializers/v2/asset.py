@@ -77,7 +77,7 @@ from ...schema_extensions.v2.assets.fields import (
     HooksUrlField,
     MapCustomField,
     MapStylesField,
-    OwnerURLRelativeHyperlinkedRelatedField,
+    UserURLRelativeHyperlinkedRelatedField,
     PairedDataURLField,
     ParentURLField,
     PermissionsField,
@@ -313,7 +313,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
-    owner = OwnerURLRelativeHyperlinkedRelatedField(
+    owner = UserURLRelativeHyperlinkedRelatedField(
         view_name='user-kpi-detail', lookup_field='username', read_only=True)
     owner__username = serializers.ReadOnlyField(source='owner.username')
     owner_label = serializers.SerializerMethodField()
