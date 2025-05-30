@@ -138,6 +138,7 @@ django==4.2.15
     #   django-taggit
     #   django-timezone-field
     #   djangorestframework
+    #   drf-spectacular
     #   jsonfield
 django-allauth==65.1.0
     # via -r dependencies/pip/requirements.in
@@ -212,6 +213,7 @@ djangorestframework==3.15.1
     #   -r dependencies/pip/requirements.in
     #   djangorestframework-csv
     #   drf-extensions
+    #   drf-spectacular
 djangorestframework-csv==3.0.2
     # via -r dependencies/pip/requirements.in
 djangorestframework-jsonp==1.0.2
@@ -223,6 +225,8 @@ dnspython==2.6.1
 docutils==0.20.1
     # via statistics
 drf-extensions==0.7.1
+    # via -r dependencies/pip/requirements.in
+drf-spectacular==0.28.0
     # via -r dependencies/pip/requirements.in
 et-xmlfile==1.1.0
     # via openpyxl
@@ -296,6 +300,8 @@ idna==3.6
     # via
     #   requests
     #   yarl
+inflection==0.5.1
+    # via drf-spectacular
 isodate==0.6.1
     # via azure-storage-blob
 jmespath==1.0.1
@@ -307,6 +313,7 @@ jsonfield==3.1.0
 jsonschema==4.21.1
     # via
     #   -r dependencies/pip/requirements.in
+    #   drf-spectacular
     #   formpack
 jsonschema-specifications==2023.12.1
     # via jsonschema
@@ -416,7 +423,9 @@ pyxform==3.0.0
     #   -r dependencies/pip/requirements.in
     #   formpack
 pyyaml==6.0.1
-    # via responses
+    # via
+    #   drf-spectacular
+    #   responses
 redis==5.0.3
     # via
     #   celery
@@ -499,7 +508,9 @@ tzdata==2024.1
 ua-parser==0.18.0
     # via -r dependencies/pip/requirements.in
 uritemplate==4.1.1
-    # via google-api-python-client
+    # via
+    #   drf-spectacular
+    #   google-api-python-client
 urllib3==1.26.18
     # via
     #   botocore

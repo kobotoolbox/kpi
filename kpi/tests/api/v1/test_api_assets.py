@@ -4,10 +4,10 @@ import unittest
 from urllib.parse import unquote_plus
 
 from django.urls import reverse
+from formpack.utils.expand_content import SCHEMA_VERSION
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
-from formpack.utils.expand_content import SCHEMA_VERSION
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_COLLECTION
 from kpi.models import Asset, SubmissionExportTask
@@ -57,13 +57,13 @@ class AssetListApiTests(test_api_assets.AssetListApiTests):
         # expected query counts are different in v1 and v2 so override the test here
         self.create_asset()
 
-        with self.assertNumQueries(FuzzyInt(31, 32)):
+        with self.assertNumQueries(FuzzyInt(28, 29)):
             self.client.get(self.list_url)
         # test query count does not increase with more assets
         self.create_asset()
         self.create_asset()
         self.create_asset()
-        with self.assertNumQueries(FuzzyInt(31, 32)):
+        with self.assertNumQueries(FuzzyInt(28, 29)):
             self.client.get(self.list_url)
 
 

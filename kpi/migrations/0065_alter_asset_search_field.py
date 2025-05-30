@@ -17,6 +17,7 @@ class Migration(migrations.Migration):
     This change was necessary because PostgreSQL rewrites the entire table when applying
     a default, which is not sustainable for large tables like `kpi_asset`.
     """
+
     dependencies = [
         ('kpi', '0064_create_projecthistorylogexporttask'),
     ]

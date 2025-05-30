@@ -1,6 +1,7 @@
 # coding: utf-8
 import base64
 
+from drf_spectacular.utils import extend_schema
 from rest_framework import exceptions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -18,6 +19,9 @@ from kpi.tasks import import_in_background
 from kpi.utils.strings import to_str
 
 
+@extend_schema(
+    tags=['imports'],
+)
 class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ## List of imported files
