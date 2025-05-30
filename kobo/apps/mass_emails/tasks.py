@@ -324,6 +324,7 @@ def send_emails():
     sender = MassEmailSender()
     sender.send_day_emails()
 
+
 def get_users_for_config(email_config):
     """
     Get users based on query, excluding recent recipients
