@@ -79,7 +79,7 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
     thumb=extend_schema(
         description=read_md('kpi', 'asset_attachments/suffix.md'),
         responses=open_api_200_ok_response(
-            description='Will return a content type with the type of the attachment as well as the attachment itself in the demanded format.',
+            description='Will return a content type with the type of the attachment as well as the attachment itself in the demanded format.',  # noqa
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
@@ -104,7 +104,7 @@ class AttachmentViewSet(
     Available actions:
     - list            → GET /api/v2/assets/{uid}/data/{id}/attachments/
     - retrieve        → GET /api/v2/assets/{uid}/data/{data_id}/attachments/{id}
-    - thumb (suffix)  → GET /api/v2/assets/{uid}/data/{data_id}/attachments/{id}/{suffix}/
+    - thumb (suffix)  → GET /api/v2/assets/{uid}/data/{data_id}/attachments/{id}/{suffix}/  # noqa
 
     Documentation:
     - docs/api/v2/asset_attachments/list.md
