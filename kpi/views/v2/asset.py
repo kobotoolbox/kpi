@@ -176,7 +176,7 @@ class AssetSchema(AutoSchema):
 
 
 @extend_schema(
-    tags=['Asset'],
+    tags=['Assets'],
 )
 @extend_schema_view(
     bulk=extend_schema(

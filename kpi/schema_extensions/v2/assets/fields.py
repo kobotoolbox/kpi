@@ -141,7 +141,7 @@ class MetadataSectorField(serializers.ListField):
     pass
 
 
-class OwnerURLField(RelativePrefixHyperlinkedRelatedField):
+class OwnerURLRelativeHyperlinkedRelatedField(RelativePrefixHyperlinkedRelatedField):
     pass
 
 
@@ -189,6 +189,10 @@ class AssetHyperlinkedURLField(HyperlinkedIdentityField):
     pass
 
 
+class UIDField(serializers.CharField):
+    pass
+
+
 class ValidContentDataField(serializers.JSONField):
     pass
 
@@ -203,7 +207,3 @@ class XFormLinkField(serializers.SerializerMethodField):
 
 class XLSLinkField(serializers.SerializerMethodField):
     pass
-
-
-def generic_uid_field(uid: str):
-    return serializers.CharField(default=uid)
