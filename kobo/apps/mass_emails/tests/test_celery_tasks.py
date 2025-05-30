@@ -66,10 +66,13 @@ class BaseMassEmailsTestCase(BaseTestCase):
         )
         cache.delete(self.cache_key)
 
-    def _create_email_config(self, name, template=None, frequency=-1):
+    def _create_email_config(
+        self, name, template=None, frequency=-1, date_created=None
+    ):
         """
         Helper function to create a MassEmailConfig
         """
+        date_created = date_created or timezone.now() - timedelta(days=1)
         return MassEmailConfig.objects.create(
             name=name,
             subject='Test Subject',
@@ -77,7 +80,7 @@ class BaseMassEmailsTestCase(BaseTestCase):
             live=True,
             query='users_inactive_for_365_days',
             frequency=frequency,
-            date_created=timezone.now() - timedelta(days=1),
+            date_created=date_created,
         )
 
     def _create_email_record(self, user, email_config, status, days_ago=0, job=None):
@@ -258,6 +261,28 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
     def test_send_recurring_emails_when_initialized(self):
         self._setup_common_test_data()
         generate_mass_email_user_lists()
+        send_emails()
+        assert len(mail.outbox) == 100
+
+    @override_settings(MAX_MASS_EMAILS_PER_DAY=100)
+    def test_send_recurring_emails_after_config_is_canceled(self):
+        self._setup_common_test_data()
+        generate_mass_email_user_lists()
+        # pretend a user set one of the configs to be no longer live
+        email_config = MassEmailConfig.objects.first()
+        email_config.live = False
+        email_config.save()
+        send_emails()
+        assert len(mail.outbox) == 100
+
+    @override_settings(MAX_MASS_EMAILS_PER_DAY=100)
+    def test_send_recurring_emails_after_config_is_added(self):
+        self._setup_common_test_data()
+        generate_mass_email_user_lists()
+        # pretend a user set one of the configs to be no longer live
+        self._create_email_config(
+            name='new config', template=self.template, date_created=timezone.now()
+        )
         send_emails()
         assert len(mail.outbox) == 100
 
