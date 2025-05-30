@@ -1,4 +1,3 @@
-# coding: utf-8
 from hashlib import sha256
 
 import reversion
@@ -7,7 +6,6 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import GeometryCollection, Point
 from django.db.models import UniqueConstraint
 from django.utils import timezone
-from django.utils.encoding import smart_str
 from jsonfield import JSONField
 from taggit.managers import TaggableManager
 
@@ -41,6 +39,7 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
 from kobo.apps.openrosa.libs.utils.model_tools import set_uuid
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kpi.models.abstract_models import AbstractTimeStampedModel
+from kpi.utils.hash import calculate_hash
 
 
 # need to establish id_string of the xform before we run get_dict since
@@ -309,16 +308,11 @@ class Instance(AbstractTimeStampedModel):
         return self._parser.get_root_node_name()
 
     @staticmethod
-    def get_hash(input_string):
+    def get_hash(input_string:str) -> str:
         """
         Compute the SHA256 hash of the given string. A wrapper to standardize hash computation.
-
-        :param str input_string: The string to be hashed.
-        :return: The resulting hash.
-        :rtype: str
         """
-        input_string = smart_str(input_string)
-        return sha256(input_string.encode()).hexdigest()
+        return calculate_hash(input_string, 'sha256')
 
     @property
     def point(self):

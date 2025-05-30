@@ -214,7 +214,7 @@ def create_instance(
         # Check for an existing instance
         existing_instance = Instance.objects.filter(
             xml_hash=xml_hash,
-            xform__user=xform.user,
+            xform__user_id=xform.user_id,
         ).first()
 
         if existing_instance:
@@ -229,8 +229,8 @@ def create_instance(
                 # Update Mongo via the related ParsedInstance
                 existing_instance.parsed_instance.save(asynchronous=False)
                 update_storage_counters(
-                    existing_instance.xform,
-                    existing_instance.xform.user_id,
+                    xform.pk,
+                    xform.user_id,
                     total_bytes,
                 )
                 return existing_instance
@@ -906,7 +906,6 @@ def _get_instance(
             xml=instance.xml, xform_instance=instance, uuid=old_uuid
         )
         instance.xml = xml
-        instance._populate_xml_hash()  # noqa
         instance.uuid = new_uuid
     else:
         submitted_by = (
