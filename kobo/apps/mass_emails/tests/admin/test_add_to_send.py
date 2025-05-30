@@ -69,33 +69,23 @@ class AdminTestCase(TestCase):
 
         messages_list = [m.message for m in get_messages(request)]
         assert expected_message in messages_list
-        assert email_config.live == True
+        assert email_config.live
 
-    def test_admin_action_ignores_failed_records_for_one_time_sends(self):
-        """
-        Test that selecting 'Add to daily send queue' allows re-adding a one-time send
-        if previous records all failed
-        """
+    def test_live_disabled_when_oneoff_is_enqueued(self):
         email_config = MassEmailConfig.objects.create(
             name='Test Config',
             subject='Test Subject',
             template='Test Template',
             query='users_inactive_for_365_days',
             frequency=-1,
-            live=False,
+            live=True,
         )
-
-        user = User.objects.get(username='someuser')
+        admin_instance = MassEmailConfigAdmin(MassEmailConfig, site)
+        request = self.client.request().wsgi_request
         job = MassEmailJob.objects.create(email_config=email_config)
         MassEmailRecord.objects.create(
-            email_job=job, user=user, status=EmailStatus.FAILED
+            email_job=job, user=User.objects.get(pk=1), status=EmailStatus.ENQUEUED
         )
-        request = self._add_to_send(email_config)
-
-        messages_list = [m.message for m in get_messages(request)]
-
-        expected_message = (
-            f'Emails for {email_config.name} have been scheduled for tomorrow'
-        )
-        assert expected_message in messages_list
-        assert email_config.live
+        readonly_fields = admin_instance.get_readonly_fields(request, email_config)
+        assert len(readonly_fields) == 1
+        assert readonly_fields[0] == 'live'
