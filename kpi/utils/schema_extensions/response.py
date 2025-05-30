@@ -121,7 +121,6 @@ def open_api_302_found(
     )
 
 
-
 def open_api_error_responses(
     response,
     require_auth: bool = True,
