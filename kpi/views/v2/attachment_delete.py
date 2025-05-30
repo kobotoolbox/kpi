@@ -6,16 +6,19 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.permissions import AttachmentDeletionPermission
-from kpi.schema_extensions.v2.asset_attachments.serializers import AssetAttachmentBulkRequest
+from kpi.schema_extensions.v2.asset_attachments.serializers import (
+    AssetAttachmentBulkRequest,
+)
 from kpi.serializers.v2.attachment_delete import AttachmentDeleteSerializer
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import open_api_204_empty_response, \
-     open_api_202_accepted_response
+from kpi.utils.schema_extensions.response import (
+    open_api_202_accepted_response,
+    open_api_204_empty_response,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
-@extend_schema(
-    tags=['Attachments']
-)
+
+@extend_schema(tags=['Attachments'])
 @extend_schema_view(
     # Due to limitations in drf-spectacular support of OAS 3.1, DELETE actions
     # cannot yet show and generate a request body or response body. Will need
@@ -35,7 +38,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             media_type='application/json',
             raise_access_forbidden=False,
             require_auth=False,
-        )
+        ),
     ),
 )
 class AttachmentDeleteViewSet(

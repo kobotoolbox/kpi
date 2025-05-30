@@ -4,9 +4,8 @@ from typing import Optional, Union
 from django.conf import settings
 from django.shortcuts import Http404
 from django.utils.translation import gettext as t
-from drf_spectacular.plumbing import build_array_type
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -31,7 +30,6 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
 )
 
 
-
 @extend_schema(
     tags=['Attachments'],
 )
@@ -43,15 +41,15 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
                 name='xpath',
                 required=True,
                 type=OpenApiTypes.STR,
-                location=OpenApiParameter.QUERY
+                location=OpenApiParameter.QUERY,
             ),
             OpenApiParameter(
                 name='format',
                 required=False,
                 type=OpenApiTypes.STR,
                 enum=['mp3'],
-                location=OpenApiParameter.QUERY
-            )
+                location=OpenApiParameter.QUERY,
+            ),
         ],
         responses=open_api_200_ok_response(
             description='Will return a content type with the type of the attachment as well as the attachment itself.',  # noqa
@@ -68,7 +66,7 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
                 required=False,
                 type=OpenApiTypes.STR,
                 enum=['mp3'],
-                location=OpenApiParameter.QUERY
+                location=OpenApiParameter.QUERY,
             )
         ],
         responses=open_api_200_ok_response(
@@ -88,7 +86,6 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
         ),
     ),
 )
-
 class AttachmentViewSet(
     NestedViewSetMixin,
     AssetNestedObjectViewsetMixin,
