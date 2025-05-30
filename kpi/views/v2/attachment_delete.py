@@ -61,7 +61,6 @@ class AttachmentDeleteViewSet(
     renderer_classes = [JSONRenderer]
     permission_classes = [AttachmentDeletionPermission]
     http_method_names = ['delete']
-    lookup_field = 'uid'
 
     def _perform_attachment_deletion(self, request, data, success_status):
         serializer = AttachmentDeleteSerializer(
