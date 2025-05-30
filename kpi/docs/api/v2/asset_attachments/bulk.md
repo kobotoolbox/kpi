@@ -1,7 +1,7 @@
-## DELETE all attachments from a list of submissions
+## Delete all attachments from a list of submissions
 
 ```curl
-  curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/attachments/bulk/
+  curl -X DELETE https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/attachments/bulk/
 ```
 
 > **Payload**

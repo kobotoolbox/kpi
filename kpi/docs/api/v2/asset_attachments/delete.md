@@ -1,1 +1,1 @@
-## DELETE a specific attachment of an Asset
+## Delete a specific attachment of an Asset
