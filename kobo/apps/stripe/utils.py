@@ -618,7 +618,13 @@ def get_plan_name(org_user: OrganizationUser, **kwargs) -> str | None:
     for subscription in subscriptions:
         unique_plans.add(subscription.plan)
 
-    plan_name = ' and '.join([plan.product.name for plan in unique_plans])
+    # Make sure plans come before addons
+    plan_list = sorted(
+        unique_plans,
+        key=lambda plan: plan.product.metadata.get('product_type', '') == 'plan',
+        reverse=True,
+    )
+    plan_name = ' and '.join([plan.product.name for plan in plan_list])
     if plan_name is None or plan_name == '':
         plan_name = get_default_plan_name()
     return plan_name
