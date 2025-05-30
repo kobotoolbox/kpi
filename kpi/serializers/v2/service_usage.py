@@ -86,6 +86,7 @@ class ServiceUsageSerializer(serializers.Serializer):
     total_nlp_usage = serializers.SerializerMethodField()
     total_storage_bytes = serializers.SerializerMethodField()
     total_submission_count = serializers.SerializerMethodField()
+    balances = serializers.SerializerMethodField()
     current_period_start = serializers.SerializerMethodField()
     current_period_end = serializers.SerializerMethodField()
     last_updated = serializers.SerializerMethodField()
@@ -111,3 +112,6 @@ class ServiceUsageSerializer(serializers.Serializer):
 
     def get_total_storage_bytes(self, user):
         return self.calculator.get_storage_usage()
+
+    def get_balances(self, user):
+        return self.calculator.get_usage_balances()
