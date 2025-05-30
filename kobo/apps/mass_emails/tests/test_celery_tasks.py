@@ -279,7 +279,7 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
     def test_send_recurring_emails_after_config_is_added(self):
         self._setup_common_test_data()
         generate_mass_email_user_lists()
-        # pretend a user set one of the configs to be no longer live
+        # pretend a user created a new config
         self._create_email_config(
             name='new config', template=self.template, date_created=timezone.now()
         )
