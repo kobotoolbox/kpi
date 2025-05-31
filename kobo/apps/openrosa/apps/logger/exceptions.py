@@ -1,3 +1,6 @@
+from django.utils.translation import gettext_lazy as t
+
+
 class AccountInactiveError(Exception):
     pass
 
@@ -15,17 +18,17 @@ class BuildDbQueriesNoConfirmationProvidedError(Exception):
 
 
 class ConflictingAttachmentBasenameError(Exception):
-    def __init__(self, message='Attachment with same name already exists'):
+    def __init__(self, message=t('Attachment with same name already exists')):
         super().__init__(message)
 
 
 class ConflictingSubmissionUUIDError(Exception):
-    def __init__(self, message='Submission with this instance ID already exists'):
+    def __init__(self, message=t('Submission with this instance ID already exists')):
         super().__init__(message)
 
 
 class DuplicateInstanceError(Exception):
-    def __init__(self, message='Duplicate Instance'):
+    def __init__(self, message=t('Duplicate Instance')):
         super().__init__(message)
 
 
@@ -38,17 +41,17 @@ class FormInactiveError(Exception):
 
 
 class InstanceEmptyError(Exception):
-    def __init__(self, message='Empty instance'):
+    def __init__(self, message=t('Empty instance')):
         super().__init__(message)
 
 
 class InstanceInvalidUserError(Exception):
-    def __init__(self, message='Could not determine the user'):
+    def __init__(self, message=t('Could not determine the user')):
         super().__init__(message)
 
 
 class InstanceIdMissingError(Exception):
-    def __init__(self, message='Could not determine the instance ID'):
+    def __init__(self, message=t('Could not determine the instance ID')):
         super().__init__(message)
 
 
@@ -57,7 +60,12 @@ class InstanceMultipleNodeError(Exception):
 
 
 class InstanceParseError(Exception):
-    def __init__(self, message='The instance could not be parsed'):
+    def __init__(self, message=t('The instance could not be parsed')):
+        super().__init__(message)
+
+
+class LockedSubmissionError(Exception):
+    def __init__(self, message=t('Submission is currently being processed.')):
         super().__init__(message)
 
 
