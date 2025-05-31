@@ -253,9 +253,6 @@ class TestBriefcaseAPI(TestAbstractViewSet):
         self.assertEqual(response.status_code, 401)
         request.META.update(auth(request.META, response))
         response = view(request)
-        download_submission_path = os.path.join(
-            self.main_directory, 'fixtures', 'transportation',
-            'view', 'downloadSubmission.xml')
         response.render()
         self.assertContains(response, instance_id, status_code=200)
         self.assertNotIn(

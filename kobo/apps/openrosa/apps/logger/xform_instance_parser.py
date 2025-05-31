@@ -107,11 +107,9 @@ def get_submission_date_from_xml(xml) -> Optional[datetime]:
 
 def get_deprecated_uuid_from_xml(xml):
     uuid = get_meta_from_xml(xml, 'deprecatedID')
-    regex = re.compile(r'uuid:(.*)')
     if uuid:
-        matches = regex.match(uuid)
-        if matches and len(matches.groups()) > 0:
-            return matches.groups()[0]
+        return remove_uuid_prefix(uuid)
+
     return None
 
 

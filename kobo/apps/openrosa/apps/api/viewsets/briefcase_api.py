@@ -1,4 +1,3 @@
-# coding: utf-8
 from xml.dom import NotFoundErr
 
 from django.conf import settings
@@ -240,9 +239,10 @@ class BriefcaseApi(
 
         data = {
             'submission_data': submission_xml_root_node.toxml(),
-            'media_files': Attachment.objects.filter(instance=instance),
+            'media_files': self._get_attachments_with_md5hash(instance),
             'host': request.build_absolute_uri().replace(
-                request.get_full_path(), '')
+                request.get_full_path(), ''
+            )
         }
         return Response(
             data,
@@ -282,3 +282,12 @@ class BriefcaseApi(
         )
 
         return get_media_file_response(meta_obj, request)
+
+    def _get_attachments_with_md5hash(self, instance):
+        """
+        Return a list of attachment with md5 hash for retro compatibility with Briefcase
+        Attachment.hash is sha1 by default.
+        """
+        for att in Attachment.objects.filter(instance=instance):
+            att.md5hash = att.get_hash(algorithm='md5')
+            yield att

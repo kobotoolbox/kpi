@@ -863,6 +863,34 @@ class BaseDeploymentBackend(abc.ABC):
 
             # Retrieve XPath and add it to attachment dictionary
             basename = os.path.basename(attachment['filename'])
-            attachment['question_xpath'] = filenames_and_xpaths.get(basename, '')
+            attachment['question_xpath'] = filenames_and_xpaths.get(
+                basename,
+                filenames_and_xpaths.get(self._without_suffix(basename), ''),
+            )
 
         return submission
+
+    @staticmethod
+    def _without_suffix(filename: str) -> str:
+        """
+        Django does not overwrite files on the storage backend; instead, it appends a
+        suffix to the filename (e.g., `_MtYT6pg` etc.) to avoid collisions.
+
+        This helper returns the original filename by removing any such suffix.
+
+        :warning: A file with a suffixed name may legitimately exist, even if it wasn't
+        created by Django's auto-renaming mechanism.
+        """
+        if '_' not in filename:
+            return filename
+
+        basename, ext = os.path.splitext(filename)
+        *filename_parts, suffix = basename.split('_')
+
+        # Django uses a 7-character random string as a suffix when avoiding filename
+        # collisions.
+        # See: https://github.com/django/django/blob/4.2/django/core/files/storage/base.py#L52-L58 # noqa
+        if len(suffix) != 7:
+            return filename
+
+        return '_'.join(filename_parts) + ext
