@@ -64,6 +64,11 @@ class InstanceParseError(Exception):
         super().__init__(message)
 
 
+class LockedSubmissionError(Exception):
+    def __init__(self, message=t('Submission is currently being processed.')):
+        super().__init__(message)
+
+
 class MissingValidationStatusPayloadError(Exception):
     pass
 

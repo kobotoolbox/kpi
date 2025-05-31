@@ -49,6 +49,7 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
     InstanceIdMissingError,
     InstanceInvalidUserError,
     InstanceMultipleNodeError,
+    LockedSubmissionError,
     TemporarilyUnavailableError,
 )
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
@@ -205,7 +206,7 @@ def create_instance(
 
     with get_instance_lock(root_uuid, xform.id) as lock_acquired:
         if not lock_acquired:
-            raise ConflictingSubmissionUUIDError(
+            raise LockedSubmissionError(
                 f'Submission {root_uuid} is currently being processed. '
                 f'Try again later.'
             )
