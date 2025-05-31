@@ -1,4 +1,4 @@
-from contextlib import ContextDecorator
+from contextlib import ContextDecorator, contextmanager
 from typing import Union
 
 from django.conf import settings
@@ -332,6 +332,15 @@ def delete_kc_user(username: str):
         # Collector.
         User.objects.filter(username=username).delete()
 
+
+@contextmanager
+def conditional_kc_transaction_atomic(using=settings.OPENROSA_DB_ALIAS, *args, **kwargs):
+    connection = transaction.get_connection(using=using)
+    if connection.in_atomic_block:
+        yield
+    else:
+        with kc_transaction_atomic(using=using):
+            yield
 
 def kc_transaction_atomic(using=settings.OPENROSA_DB_ALIAS, *args, **kwargs):
     """
