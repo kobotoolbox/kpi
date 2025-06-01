@@ -110,7 +110,8 @@ class TestAttachment(TestBase):
         )
         with open(media_file, 'rb') as f:
             attachment = Attachment.objects.create(
-                instance=instance, media_file=ContentFile(f.read(), name=media_file)
+                instance=instance,
+                media_file=ContentFile(f.read(), name=self.media_file),
             )
 
         attachment.refresh_from_db()
