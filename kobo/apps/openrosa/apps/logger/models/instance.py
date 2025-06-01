@@ -174,9 +174,7 @@ class Instance(AbstractTimeStampedModel):
 
         doc[SUBMISSION_TIME] = self.date_created.strftime(MONGO_STRFTIME)
         doc[XFORM_ID_STRING] = self._parser.get_xform_id_string()
-        doc[SUBMITTED_BY] = (
-            self.user.username if self.user is not None else None
-        )
+        doc[SUBMITTED_BY] = self.user.username if self.user is not None else None
         self.json = doc
 
     def _set_parser(self):
@@ -308,7 +306,7 @@ class Instance(AbstractTimeStampedModel):
         return self._parser.get_root_node_name()
 
     @staticmethod
-    def get_hash(input_string:str) -> str:
+    def get_hash(input_string: str) -> str:
         """
         Compute the SHA256 hash of the given string. A wrapper to standardize hash computation.
         """

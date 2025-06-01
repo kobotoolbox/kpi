@@ -46,6 +46,7 @@ def create_instance_from_xml(username, request):
 
     if request.query_params.get('simulate_delay') == '1':
         import time
+
         time.sleep(3)
 
     return safe_create_instance(username, xml_file, media_files, None, request=request)

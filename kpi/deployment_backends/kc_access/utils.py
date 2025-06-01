@@ -334,13 +334,16 @@ def delete_kc_user(username: str):
 
 
 @contextmanager
-def conditional_kc_transaction_atomic(using=settings.OPENROSA_DB_ALIAS, *args, **kwargs):
+def conditional_kc_transaction_atomic(
+    using=settings.OPENROSA_DB_ALIAS, *args, **kwargs
+):
     connection = transaction.get_connection(using=using)
     if connection.in_atomic_block:
         yield
     else:
         with kc_transaction_atomic(using=using):
             yield
+
 
 def kc_transaction_atomic(using=settings.OPENROSA_DB_ALIAS, *args, **kwargs):
     """

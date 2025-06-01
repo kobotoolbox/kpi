@@ -4,6 +4,7 @@ from kpi.deployment_backends.kc_access.utils import conditional_kc_transaction_a
 from ...main.models import UserProfile
 from ..models import XForm
 
+
 def delete_null_user_daily_counters(apps, *args):
     """
     Find any DailyXFormCounters without a user, assign them to a user if we can,
