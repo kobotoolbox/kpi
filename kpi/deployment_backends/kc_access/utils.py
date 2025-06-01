@@ -1,4 +1,4 @@
-from contextlib import ContextDecorator, contextmanager
+from contextlib import contextmanager
 from typing import Union
 
 from django.conf import settings
@@ -347,37 +347,32 @@ def conditional_kc_transaction_atomic(
 
 def kc_transaction_atomic(using=settings.OPENROSA_DB_ALIAS, *args, **kwargs):
     """
-    KoboCAT database does not exist in testing environment.
-    `transaction.atomic(using='kobocat') cannot be called without raising errors.
+    Context manager that wraps code in a database transaction for the KoboCAT database,
+    with special handling in testing environments.
 
-    This utility returns a context manager which does nothing if environment
-    is set to `TESTING`. Otherwise, it returns a real context manager which
-    provides transactions support.
+    In normal usage, this behaves like `transaction.atomic(using='kobocat')`.
+
+    However, when `settings.TESTING` is True, the database alias is forcibly overridden
+    to use the default database instead of 'kobocat'. This avoids errors during testing
+    when the KoboCAT database is not available.
+
+    Note: Only allowed with the 'kobocat' alias; using any other alias will raise an
+    error.
     """
-    class DummyAtomic(ContextDecorator):
-        def __init__(self, *args, **kwargs):
-            pass
-
-        def __enter__(self):
-            pass
-
-        def __exit__(self, exc_type, exc_value, traceback):
-            pass
 
     assert (
         callable(using) or using == settings.OPENROSA_DB_ALIAS
     ), "`kc_transaction_atomic` may only be used with the 'kobocat' database"
 
-    if settings.TESTING:
-        # Bare decorator: @atomic -- although the first argument is called
-        # `using`, it's actually the function being decorated.
-        if callable(using):
-            return DummyAtomic()(using)
-        else:
-            return DummyAtomic()
+    db_alias = (
+        settings.DEFAULT_DB_ALIAS
+        if settings.TESTING
+        else settings.OPENROSA_DB_ALIAS
+    )
 
-    # Not in a testing environment; use the real `atomic`
+    # Bare decorator: @atomic -- although the first argument is called
+    # `using`, it's actually the function being decorated.
     if callable(using):
-        return transaction.atomic(settings.OPENROSA_DB_ALIAS, *args, **kwargs)(using)
+        return transaction.atomic(db_alias, *args, **kwargs)(using)
     else:
-        return transaction.atomic(settings.OPENROSA_DB_ALIAS, *args, **kwargs)
+        return transaction.atomic(db_alias, *args, **kwargs)
