@@ -1,18 +1,18 @@
 # coding: utf-8
 import os
 
-from django.urls import reverse
 from django.test import override_settings
+from django.urls import reverse
 from django_digest.test import DigestAuth
 from rest_framework.test import APIRequestFactory
 
-from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import TestAbstractViewSet
+from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
+    TestAbstractViewSet,
+)
 from kobo.apps.openrosa.apps.api.viewsets.briefcase_api import BriefcaseApi
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
-from kobo.apps.openrosa.apps.logger.models import Instance
-from kobo.apps.openrosa.apps.logger.models import XForm
+from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 from kobo.apps.openrosa.libs.utils.storage import rmdir
-
 
 NUM_INSTANCES = 4
 
@@ -173,7 +173,7 @@ class TestBriefcaseAPI(TestAbstractViewSet):
         self.assertEqual(instances.count(), NUM_INSTANCES)
 
         last_index = instances[:2][1].pk
-        last_expected_submission_list = ""
+        last_expected_submission_list = ''
         for index in range(1, 5):
             auth = DigestAuth(self.login_username, self.login_password)
             request = self.factory.get(
@@ -354,8 +354,7 @@ class TestBriefcaseAPI(TestAbstractViewSet):
             request.META.update(auth(request.META, response))
             response = view(request)
             self.assertEqual(XForm.objects.count(), count + 1)
-            self.assertContains(
-                response, "successfully published.", status_code=201)
+            self.assertContains(response, 'successfully published.', status_code=201)
 
     def _publish_xml_form(self, auth=None):
         view = BriefcaseApi.as_view({'post': 'create'})
@@ -376,8 +375,7 @@ class TestBriefcaseAPI(TestAbstractViewSet):
             request.META.update(auth(request.META, response))
             response = view(request)
             self.assertEqual(XForm.objects.count(), count + 1)
-            self.assertContains(
-                response, "successfully published.", status_code=201)
+            self.assertContains(response, 'successfully published.', status_code=201)
         self.xform = XForm.objects.order_by('pk').reverse()[0]
 
     def test_form_upload(self):
@@ -424,7 +422,7 @@ class TestBriefcaseAPI(TestAbstractViewSet):
     def test_submission_with_instance_id_on_root_node(self):
         view = XFormSubmissionApi.as_view({'post': 'create'})
         self._publish_xml_form()
-        message = "Successful submission."
+        message = 'Successful submission.'
         instanceId = '5b2cc313-fc09-437e-8149-fcd32f695d41'
         self.assertRaises(
             Instance.DoesNotExist, Instance.objects.get, uuid=instanceId)

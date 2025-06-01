@@ -10,7 +10,7 @@ import kpi.fields.kpi_uid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('logger', '0041_add_root_uuid_field_to_instance'),
+        ('logger', '0042_add_field_hash_to_attachment'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

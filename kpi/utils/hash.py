@@ -1,6 +1,6 @@
-import time
 import hashlib
-from typing import Union, BinaryIO, Optional
+import time
+from typing import BinaryIO, Optional, Union
 
 import requests
 from django.conf import settings

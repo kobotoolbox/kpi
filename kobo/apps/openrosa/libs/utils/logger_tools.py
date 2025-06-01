@@ -34,6 +34,8 @@ from django.utils import timezone as dj_timezone
 from django.utils.encoding import DjangoUnicodeDecodeError, smart_str
 from django.utils.translation import gettext as t
 from modilabs.utils.subprocess_timeout import ProcessTimedOut
+from pyxform.errors import PyXFormError
+from pyxform.xform2json import create_survey_element_from_xml
 from rest_framework.exceptions import NotAuthenticated
 
 from kobo.apps.openrosa.apps.logger.exceptions import (
@@ -84,8 +86,6 @@ from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
-from pyxform.errors import PyXFormError
-from pyxform.xform2json import create_survey_element_from_xml
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'

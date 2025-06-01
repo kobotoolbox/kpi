@@ -108,10 +108,10 @@ class TestAttachment(TestBase):
             self.surveys[0],
             self.media_file,
         )
-        attachment = Attachment.objects.create(
-            instance=instance,
-            media_file=File(open(media_file, 'rb'), media_file),
-        )
+        with open(media_file, 'rb') as f:
+            attachment = Attachment.objects.create(
+                instance=instance, media_file=ContentFile(f.read(), name=media_file)
+            )
 
         attachment.refresh_from_db()
         self.assertEqual(attachment.user_id, user.id)
