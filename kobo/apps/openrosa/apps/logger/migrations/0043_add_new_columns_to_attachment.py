@@ -6,6 +6,7 @@ from django.db import migrations, models
 
 import kpi.fields.kpi_uid
 
+
 def manually_create_indexes_instructions(apps, schema_editor):
     print(
         """
@@ -161,7 +162,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='attachment',
             name='uid',
-            field=models.CharField(blank=True, null=True, max_length=24)
+            field=models.CharField(blank=True, null=True, max_length=24),
         ),
         migrations.AddField(
             model_name='attachment',
