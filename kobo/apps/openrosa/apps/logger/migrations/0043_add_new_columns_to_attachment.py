@@ -23,12 +23,14 @@ def manually_create_indexes_instructions(apps, schema_editor):
             -- Add index on field delete_status on attachment
             --
             CREATE INDEX CONCURRENTLY "logger_attachment_delete_status_19ec7f2f" ON "logger_attachment" ("delete_status");
+            CREATE INDEX CONCURRENTLY "logger_attachment_delete_status_19ec7f2f_like" ON "logger_attachment" ("delete_status" varchar_pattern_ops);
 
             --
             -- Add unique index on field uid on attachment
             --
             CREATE UNIQUE INDEX CONCURRENTLY "unique_att_uid" ON "logger_attachment" ("uid");
             ALTER TABLE "logger_attachment" ADD CONSTRAINT "logger_attachment_uid_99ff28ae_uniq" UNIQUE USING INDEX "unique_att_uid";
+            CREATE INDEX CONCURRENTLY "logger_attachment_uid_99ff28ae_like" ON "logger_attachment" ("uid" varchar_pattern_ops);
 
             --
             -- Add foreign key on field user_id on attachment
@@ -60,6 +62,8 @@ def manually_drop_indexes_instructions(apps, schema_editor):
             DROP INDEX CONCURRENTLY IF EXISTS "logger_attachment_user_id_4fde878d";
             DROP INDEX CONCURRENTLY IF EXISTS "logger_attachment_xform_id_22b4fd1f";
             DROP INDEX CONCURRENTLY IF EXISTS "logger_attachment_delete_status_19ec7f2f";
+            DROP INDEX CONCURRENTLY IF EXISTS "logger_attachment_delete_status_19ec7f2f_like";
+            DROP INDEX CONCURRENTLY IF EXISTS "logger_attachment_uid_99ff28ae_like";
             ALTER TABLE "logger_attachment" RENAME COLUMN "xform_id" TO "xform";
             ALTER TABLE "logger_attachment" RENAME COLUMN "user_id" TO "user";
             ```
