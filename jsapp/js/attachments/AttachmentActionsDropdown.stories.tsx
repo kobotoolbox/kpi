@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { queryClientDecorator } from '#/query/queryClient.mock'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import { queryClientDecorator } from '#/query/queryClient.mocks'
 import AttachmentActionsDropdown from './AttachmentActionsDropdown'
 import { assetWithImage, assetWithImageSubmission } from './AttachmentActionsDropdown.mocks'
 
@@ -28,6 +28,7 @@ const meta: Meta<typeof AttachmentActionsDropdown> = {
     </div>
   ),
   decorators: [queryClientDecorator],
+  parameters: { a11y: { test: 'todo' } },
 }
 
 export default meta

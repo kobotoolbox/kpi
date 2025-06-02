@@ -1,4 +1,5 @@
 import json
+from collections import defaultdict
 from typing import Optional
 
 from bson import json_util
@@ -6,10 +7,12 @@ from dateutil import parser
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext as t
+from pymongo import UpdateOne
 from pymongo.errors import PyMongoError
 
 from kobo.apps.hook.utils.services import call_services
-from kobo.apps.openrosa.apps.logger.models import Instance, Note, XForm
+from kobo.apps.openrosa.apps.logger.models import Instance, Note, XForm, Attachment
+from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.openrosa.libs.utils.common_tags import (
     ATTACHMENTS,
@@ -78,6 +81,14 @@ class ParsedInstance(models.Model):
     # TODO: decide if decimal field is better than float field.
     lat = models.FloatField(null=True)
     lng = models.FloatField(null=True)
+
+    @property
+    def mongo_dict_override(self):
+        return None
+
+    @mongo_dict_override.setter
+    def mongo_dict_override(self, mongo_dict_override):
+        self._mongo_dict_override = mongo_dict_override
 
     class Meta:
         app_label = 'viewer'
@@ -286,7 +297,7 @@ class ParsedInstance(models.Model):
             UUID: self.instance.uuid,
             META_ROOT_UUID: add_uuid_prefix(root_uuid),
             ID: self.instance.id,
-            ATTACHMENTS: _get_attachments_from_instance(self.instance),
+            ATTACHMENTS: _get_attachments_from_instance(self.instance.pk),
             self.STATUS: self.instance.status,
             GEOLOCATION: [self.lat, self.lng],
             SUBMISSION_TIME: self.instance.date_created.strftime(
@@ -345,6 +356,8 @@ class ParsedInstance(models.Model):
         return MongoHelper.delete_many(query)
 
     def to_dict(self):
+        if hasattr(self, '_mongo_dict_override'):
+            return self._mongo_dict_override
         if not hasattr(self, '_dict_cache'):
             self._dict_cache = self.instance.get_dict()
         return self._dict_cache
@@ -433,20 +446,58 @@ class ParsedInstance(models.Model):
             notes.append(note)
         return notes
 
+    @staticmethod
+    def bulk_update_attachments(instance_ids: list[int]):
+        """
+        Bulk update attachments for given instances. Mostly used to set/update
+        the `is_deleted` flag in Mongo's `_attachments`.
+        """
+        if not instance_ids:
+            return
 
-def _get_attachments_from_instance(instance):
-    attachments = []
-    for a in instance.attachments.all():
-        attachment = dict()
-        attachment['download_url'] = a.secure_url()
+        grouped_attachments = _get_grouped_attachments_for_instances(instance_ids)
+
+        attachments_to_update = []
+        for inst_id in instance_ids:
+            attachments_to_update.append(
+                UpdateOne(
+                    {'_id': inst_id},
+                    {'$set': {'_attachments': grouped_attachments.get(inst_id, [])}},
+                )
+            )
+
+        if attachments_to_update:
+            xform_instances.bulk_write(attachments_to_update)
+
+
+def _get_attachments_from_instance(instance_id) -> list[dict]:
+    return _get_grouped_attachments_for_instances([instance_id]).get(instance_id, [])
+
+
+def _get_grouped_attachments_for_instances(
+    instance_ids: list[int]
+) -> dict[int, list[dict]]:
+    grouped_attachments = defaultdict(list)
+    attachments = Attachment.all_objects.filter(
+        instance_id__in=instance_ids
+    ).exclude(delete_status=AttachmentDeleteStatus.SOFT_DELETED)
+
+    for a in attachments:
+        attachment = {
+            'download_url': a.secure_url(),
+            'mimetype': a.mimetype,
+            'filename': a.media_file.name,
+            'instance': a.instance.pk,
+            'xform': a.xform.id,
+            'id': a.id,
+            'uid': a.uid,
+            'is_deleted': a.delete_status in [
+                AttachmentDeleteStatus.PENDING_DELETE, AttachmentDeleteStatus.DELETED
+            ],
+        }
         for suffix in settings.THUMB_CONF.keys():
-            attachment['download_{}_url'.format(suffix)] = a.secure_url(suffix)
-        attachment['mimetype'] = a.mimetype
-        attachment['filename'] = a.media_file.name
-        attachment['instance'] = a.instance.pk
-        attachment['xform'] = instance.xform.id
-        attachment['id'] = a.id
-        attachment['uid'] = a.uid
-        attachments.append(attachment)
+            attachment[f'download_{suffix}_url'] = a.secure_url(suffix)
 
-    return attachments
+        grouped_attachments[a.instance_id].append(attachment)
+
+    return grouped_attachments

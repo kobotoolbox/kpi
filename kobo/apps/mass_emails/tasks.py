@@ -1,4 +1,5 @@
 from datetime import date, datetime, time, timedelta
+from enum import Enum
 from math import ceil
 from time import sleep
 from typing import Optional
@@ -14,6 +15,7 @@ from django.utils.translation import gettext
 from kobo.apps.mass_emails.models import (
     USER_QUERIES,
     EmailStatus,
+    EmailType,
     MassEmailConfig,
     MassEmailJob,
     MassEmailRecord,
@@ -33,7 +35,7 @@ templates_placeholders = {
     '##date_created##': 'date_created',
 }
 
-PROCESSED_EMAILS_CACHE_KEY = 'mass_emails_{today}_emails'
+PROCESSED_EMAILS_CACHE_KEY = 'mass_emails_{key_date}_emails'
 
 
 def enqueue_mass_email_records(email_config):
@@ -103,8 +105,8 @@ class MassEmailSender:
         logging.info(f'Found {self.total_records} enqueued records')
         self.get_day_limits()
 
-    # separated for easier testing
-    def get_cache_key_date(self, send_date: datetime) -> datetime | date:
+    @staticmethod
+    def get_cache_key_date(send_date: datetime) -> datetime | date:
         if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', False):
             minute_boundary = (send_date.minute // 15) * 15
             return send_date.replace(minute=minute_boundary, second=0, microsecond=0)
@@ -128,6 +130,32 @@ class MassEmailSender:
 
         cache.set(cache_key, limit, TTL)
 
+    def get_config_limit(
+        self,
+        email_config: MassEmailConfig,
+        current_total: int,
+        total_records_by_type: dict[Enum, int],
+        limit_by_type: dict[Enum, int],
+    ) -> int:
+        """
+        Determine the number of emails to be sent for the given config
+
+        :param email_config: MassEmailConfig
+        :param current_total: Total limits already calculated (for both types)
+        :param total_records_by_type: Total enqueued records for all sends
+        :param limit_by_type: Send limits for recurring and one-time sends
+        """
+        email_type = email_config.type
+        total_records = total_records_by_type[email_type]
+        limit = limit_by_type[email_type]
+        if total_records_by_type[email_type] < limit_by_type[email_type]:
+            return email_config.enqueued_records_count
+        config_limit = ceil(email_config.enqueued_records_count / total_records * limit)
+
+        if current_total + config_limit > settings.MAX_MASS_EMAILS_PER_DAY:
+            config_limit = settings.MAX_MASS_EMAILS_PER_DAY - current_total
+        return config_limit
+
     def get_day_limits(self):
         MAX_EMAILS = settings.MAX_MASS_EMAILS_PER_DAY
         self.limits = {}
@@ -139,6 +167,8 @@ class MassEmailSender:
                 self.limits[email_config.id] = stored_limit
         else:
             logging.info('Setting up MassEmailConfig limits for the current day')
+            # if the total number of emails to be sent is < MAX allowed, just
+            # send all emails
             if self.total_records < MAX_EMAILS:
                 for email_config in self.configs:
                     self.cache_limit_value(
@@ -146,19 +176,62 @@ class MassEmailSender:
                     )
                 self.cache_limit_value(None, self.total_records)
             else:
+                # divide configs into daily sends and one-time sends
+                recurring_emails = [
+                    email_config
+                    for email_config in self.configs
+                    if email_config.frequency > -1
+                ]
+                total_recurring_records = sum(
+                    email_config.enqueued_records_count
+                    for email_config in recurring_emails
+                )
+                one_time_sends = [
+                    email_config
+                    for email_config in self.configs
+                    if email_config.frequency == -1
+                ]
+                total_one_time_records = sum(
+                    email_config.enqueued_records_count
+                    for email_config in one_time_sends
+                )
+                total_records_by_type = {
+                    EmailType.RECURRING: total_recurring_records,
+                    EmailType.ONE_TIME: total_one_time_records,
+                }
+                max_available_by_type = {
+                    EmailType.RECURRING: MAX_EMAILS,
+                    EmailType.ONE_TIME: max(MAX_EMAILS - total_recurring_records, 0),
+                }
+
                 day_limit = 0
-                for email_config in self.configs:
+                # recurring sends get priority. limits are allotted proportionally
+                # with the total number of recurring emails to be sent
+                for email_config in recurring_emails:
                     if day_limit >= MAX_EMAILS:
                         break
-                    config_limit = ceil(
-                        email_config.enqueued_records_count
-                        / self.total_records
-                        * MAX_EMAILS
+                    config_limit = self.get_config_limit(
+                        email_config,
+                        day_limit,
+                        total_records_by_type,
+                        max_available_by_type,
                     )
-                    if day_limit + config_limit > MAX_EMAILS:
-                        config_limit = MAX_EMAILS - day_limit
                     self.cache_limit_value(email_config, config_limit)
                     day_limit += config_limit
+                # if there is still capacity, divide the remaining number of emails
+                # allowed among the one-time sends using the same system
+                if day_limit < MAX_EMAILS:
+                    for email_config in one_time_sends:
+                        if day_limit >= MAX_EMAILS:
+                            break
+                        config_limit = self.get_config_limit(
+                            email_config,
+                            day_limit,
+                            total_records_by_type,
+                            max_available_by_type,
+                        )
+                        self.cache_limit_value(email_config, config_limit)
+                        day_limit += config_limit
                 self.cache_limit_value(None, MAX_EMAILS)
 
     def get_plan_name(self, org_user: OrganizationUser) -> str:
@@ -221,35 +294,27 @@ class MassEmailSender:
         record.save()
 
 
-# Default 1 hour limit
-@celery_app.task(
-    time_limit=(getattr(settings, 'MASS_EMAIL_CUSTOM_INTERVAL', None) or 60) * 60
-)
-def send_emails():
-    sender = MassEmailSender()
-    sender.send_day_emails()
-
-
 @celery_app.task(time_limit=3300)  # 55 minutes
-def _send_emails():
-    """Send the emails for the current day. It schedules the emails if they have not
-    been scheduled yet.
-
-    NOTE: This function will replace the function called send_emails in the near future.
+def send_emails():
     """
-    today = timezone.now().date()
-    sender = MassEmailSender()
-    cache_key = PROCESSED_EMAILS_CACHE_KEY.format(today=today)
+    Send the emails for the current day. It schedules the emails if they have not
+    been scheduled yet.
+    """
+    today = timezone.now()
+    cache_key_date = MassEmailSender.get_cache_key_date(today)
+    cache_key = PROCESSED_EMAILS_CACHE_KEY.format(key_date=cache_key_date)
     cached_data = cache.get(cache_key, [])
     processed_configs = set(cached_data)
-    config_ids = {email_config.id for email_config in sender.configs}
-    if config_ids != processed_configs:
+    all_active_email_ids = MassEmailConfig.objects.filter(live=True).values_list(
+        'id', flat=True
+    )
+
+    if set(all_active_email_ids) != processed_configs:
         logging.info(
-            "Skipping send emails task because enqueued configurations don't "
-            'match the cached list of processed configurations for today'
+            'Skipping send emails task because we have not yet generated send lists'
         )
         return
-
+    sender = MassEmailSender()
     sender.send_day_emails()
 
 
@@ -261,14 +326,20 @@ def get_users_for_config(email_config):
     frequency = 1: Daily emails
     frequency > 1: Recurring emails
     """
+    now = timezone.now()
     users = USER_QUERIES.get(email_config.query, lambda: [])()
     if email_config.frequency == -1:
         return users
 
-    today_midnight = timezone.now().replace(
+    today_midnight = now.replace(
         hour=0, minute=0, second=0, microsecond=0
     )
     cutoff_date = today_midnight - timedelta(days=email_config.frequency-1)
+    if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', False):
+        # if we're condensing sends, pretend 15 minutes is a day
+        date_boundary = MassEmailSender.get_cache_key_date(now)
+        delta = (email_config.frequency-1)*15
+        cutoff_date = date_boundary - timedelta(minutes=delta)
 
     recent_recipients = set(
         MassEmailRecord.objects.filter(
@@ -279,23 +350,20 @@ def get_users_for_config(email_config):
     return [user for user in users if user.id not in recent_recipients]
 
 
-# @celery_app.task(time_limit=3600)
+@celery_app.task(time_limit=3600)
 def generate_mass_email_user_lists():
     """
     Generates daily user lists for MassEmailConfigs, skipping already processed
     configs and users
     """
-    # ToDo: Scheduling the Celery task for this implementation is postponed for
-    #       future development, as outlined in the project requirements. It has
-    #       been intentionally left out to avoid interference with the existing
-    #       email sending tasks.
 
-    today = timezone.now().date()
-    cache_key = PROCESSED_EMAILS_CACHE_KEY.format(today=today)
+    today = timezone.now()
+    cache_key_date = MassEmailSender.get_cache_key_date(today)
+    cache_key = PROCESSED_EMAILS_CACHE_KEY.format(key_date=cache_key_date)
     cached_data = cache.get(cache_key, [])
     processed_configs = set(cached_data)
     email_configs = MassEmailConfig.objects.filter(
-        date_created__lt=today, live=True
+        date_created__lt=cache_key_date, live=True
     )
 
     for email_config in email_configs:

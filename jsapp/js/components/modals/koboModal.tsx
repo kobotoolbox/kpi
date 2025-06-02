@@ -24,7 +24,6 @@ interface KoboModalProps {
    * NOTE: disabling Esc key may introduce an accessibility issue.
    */
   isDismissableByDefaultMeans?: boolean
-  'data-cy'?: string
 }
 
 /**
@@ -42,7 +41,6 @@ export default function KoboModal(props: KoboModalProps) {
       overlayClassName='kobo-modal-overlay'
       shouldCloseOnOverlayClick={props.isDismissableByDefaultMeans}
       shouldCloseOnEsc={props.isDismissableByDefaultMeans}
-      data={{ cy: props['data-cy'] }}
       preventScroll
     >
       {props.children}

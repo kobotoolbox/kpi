@@ -18,7 +18,7 @@ from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
-class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
+class AttachmentDeleteApiTests(BaseAssetTestCase):
     fixtures = ['test_data']
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
@@ -125,16 +125,26 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         ]
         self.asset.deployment.mock_submissions(submissions, create_uuids=False)
 
-        first_instance = Instance.objects.get(root_uuid='test_uuid1')
-        second_instance = Instance.objects.get(root_uuid='test_uuid2')
-        third_instance = Instance.objects.get(root_uuid='test_uuid3')
+        self.first_instance = Instance.objects.get(root_uuid='test_uuid1')
+        self.second_instance = Instance.objects.get(root_uuid='test_uuid2')
+        self.third_instance = Instance.objects.get(root_uuid='test_uuid3')
 
-        self.attachment_uid_1 = first_instance.attachments.all()[0].uid
-        self.attachment_uid_2 = first_instance.attachments.all()[1].uid
-        self.attachment_uid_3 = second_instance.attachments.all()[0].uid
-        self.attachment_uid_4 = second_instance.attachments.all()[1].uid
-        self.attachment_uid_5 = third_instance.attachments.all()[0].uid
-        self.attachment_uid_6 = third_instance.attachments.all()[1].uid
+        self.submission_root_uuid_1 = self.first_instance.root_uuid
+        self.submission_root_uuid_2 = self.second_instance.root_uuid
+        self.submission_root_uuid_3 = self.third_instance.root_uuid
+
+        self.submission_root_uuids = [
+            self.submission_root_uuid_1,
+            self.submission_root_uuid_2,
+            self.submission_root_uuid_3,
+        ]
+
+        self.attachment_uid_1 = self.first_instance.attachments.all()[0].uid
+        self.attachment_uid_2 = self.first_instance.attachments.all()[1].uid
+        self.attachment_uid_3 = self.second_instance.attachments.all()[0].uid
+        self.attachment_uid_4 = self.second_instance.attachments.all()[1].uid
+        self.attachment_uid_5 = self.third_instance.attachments.all()[0].uid
+        self.attachment_uid_6 = self.third_instance.attachments.all()[1].uid
 
         self.attachment_uids = [
             self.attachment_uid_1,
@@ -145,11 +155,127 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
             self.attachment_uid_6,
         ]
 
+    def test_delete_single_attachment_success(self):
+        initial_trash_count = AttachmentTrash.objects.count()
+        url = reverse(
+            self._get_endpoint('asset-attachments-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.attachment_uid_1,
+            },
+        )
+        response = self.client.delete(url)
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert response.data == {'message': '1 attachments deleted'}
+        assert AttachmentTrash.objects.count() == initial_trash_count + 1
+        assert not Attachment.objects.filter(uid=self.attachment_uid_1).exists()
+
+    def test_delete_single_attachment_invalid_uid(self):
+        url = reverse(
+            self._get_endpoint('asset-attachments-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': 'invalid',
+            },
+        )
+        response = self.client.delete(url)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data == [
+            ErrorDetail(
+                string='One or more of the attachment UIDs are invalid', code='invalid'
+            )
+        ]
+
+    def test_delete_single_attachment_updates_is_deleted_flag_in_mongo(self):
+        """
+        Test that when an attachment is deleted (moved to trash),
+        the `is_deleted` flag is correctly set in MongoDB
+        """
+        # Check the initial submission details
+        submission_detail_url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.first_instance.pk,
+            },
+        )
+        response = self.client.get(submission_detail_url)
+        assert response.status_code == status.HTTP_200_OK
+
+        for attachment in response.data['_attachments']:
+            assert attachment['is_deleted'] is False
+
+        # Delete the attachment
+        delete_url = reverse(
+            self._get_endpoint('asset-attachments-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.attachment_uid_1,
+            },
+        )
+        delete_response = self.client.delete(delete_url)
+
+        assert delete_response.status_code == status.HTTP_204_NO_CONTENT
+        assert AttachmentTrash.objects.count() == 1
+
+        # Check the updated submission details
+        updated_response = self.client.get(submission_detail_url)
+        assert updated_response.status_code == status.HTTP_200_OK
+
+        for attachment in updated_response.data['_attachments']:
+            if attachment['uid'] == self.attachment_uid_1:
+                assert attachment['is_deleted'] is True
+            else:
+                assert attachment['is_deleted'] is False
+
+    def test_delete_bulk_attachments_updates_is_deleted_flag_in_mongo(self):
+        """
+        Test that when attachments are deleted (moved to trash),
+        the `is_deleted` flag is correctly set in MongoDB
+        """
+        # Check the initial submission details
+        submission_detail_url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.first_instance.pk,
+            },
+        )
+        response = self.client.get(submission_detail_url)
+        assert response.status_code == status.HTTP_200_OK
+
+        for attachment in response.data['_attachments']:
+            assert attachment['is_deleted'] is False
+
+        # Delete the attachment
+        delete_response = self.client.delete(
+            self.bulk_delete_url,
+            data=json.dumps(
+                {
+                    'submission_root_uuids': [self.first_instance.root_uuid]
+                }
+            ),
+            content_type='application/json',
+        )
+
+        assert delete_response.status_code == status.HTTP_202_ACCEPTED
+        assert delete_response.data == {'message': '2 attachments deleted'}
+        assert AttachmentTrash.objects.count() == 2
+
+        # Check the updated submission details
+        updated_response = self.client.get(submission_detail_url)
+        assert updated_response.status_code == status.HTTP_200_OK
+
+        for attachment in updated_response.data['_attachments']:
+            assert attachment['is_deleted'] is True
+
     def test_bulk_delete_attachments_success(self):
         initial_trash_count = AttachmentTrash.objects.count()
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps({'attachment_uids': self.attachment_uids}),
+            data=json.dumps({'submission_root_uuids': self.submission_root_uuids}),
             content_type='application/json',
         )
 
@@ -163,19 +289,18 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         initial_trash_count = AttachmentTrash.objects.count()
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps({'attachment_uids': []}),
+            data=json.dumps({'submission_root_uuids': []}),
             content_type='application/json',
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.data,
-            [
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data == {
+            'submission_root_uuids': [
                 ErrorDetail(
-                    string='The list of attachment UIDs cannot be empty', code='invalid'
+                    string='Submission root UUIDs list cannot be empty', code='invalid'
                 )
-            ],
-        )
+            ]
+        }
         assert AttachmentTrash.objects.count() == initial_trash_count
         for uid in self.attachment_uids:
             assert not AttachmentTrash.objects.filter(uid=uid).exists()
@@ -203,7 +328,7 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         self.client.logout()
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps({'attachment_uids': self.attachment_uids}),
+            data=json.dumps({'submission_root_uuids': self.submission_root_uuids}),
             content_type='application/json',
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -221,7 +346,7 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         self.client.force_login(another_user)
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps({'attachment_uids': self.attachment_uids}),
+            data=json.dumps({'submission_root_uuids': self.submission_root_uuids}),
             content_type='application/json',
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -242,11 +367,13 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         self.client.force_login(user_edit_perms)
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps({'attachment_uids': self.attachment_uids}),
+            data=json.dumps({'submission_root_uuids': self.submission_root_uuids}),
             content_type='application/json',
         )
         assert response.status_code == status.HTTP_202_ACCEPTED
         assert response.data == {'message': '6 attachments deleted'}
+        for uid in self.attachment_uids:
+            assert not Attachment.objects.filter(uid=uid).exists()
 
     def test_bulk_delete_attachments_with_partial_perms_accepted(self):
         user_partial_perms = User.objects.create_user(
@@ -263,9 +390,7 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         initial_trash_count = AttachmentTrash.objects.count()
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps(
-                {'attachment_uids': [self.attachment_uid_5, self.attachment_uid_6]}
-            ),
+            data=json.dumps({'submission_root_uuids': [self.submission_root_uuid_3]}),
             content_type='application/json',
         )
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -288,11 +413,9 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
             self.bulk_delete_url,
             data=json.dumps(
                 {
-                    'attachment_uids': [
-                        self.attachment_uid_1,
-                        self.attachment_uid_2,
-                        self.attachment_uid_3,
-                        self.attachment_uid_4,
+                    'submission_root_uuids': [
+                        self.submission_root_uuid_1,
+                        self.submission_root_uuid_3,
                     ]
                 }
             ),
@@ -305,34 +428,3 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
                 code='permission_denied',
             )
         }
-
-    def test_bulk_delete_attachments_uid_mismatch(self):
-        response = self.client.delete(
-            self.bulk_delete_url,
-            data=json.dumps(
-                {
-                    'attachment_uids': [
-                        self.attachment_uid_1,
-                        self.attachment_uid_2,
-                        'nonexistent_uid',
-                    ]
-                }
-            ),
-            content_type='application/json',
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.data,
-            [
-                ErrorDetail(
-                    string='One or more of the provided attachment UIDs are invalid',
-                    code='invalid',
-                )
-            ],
-        )
-
-        assert Attachment.objects.filter(uid=self.attachment_uid_1).exists()
-        assert Attachment.objects.filter(uid=self.attachment_uid_2).exists()
-        assert not Attachment.objects.filter(uid='nonexistent_uid').exists()
-        assert AttachmentTrash.objects.count() == 0

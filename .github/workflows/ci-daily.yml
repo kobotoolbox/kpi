@@ -1,0 +1,98 @@
+name: Daily Chromatic test
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+
+jobs:
+  get-commit-title:
+    name: Get latest 'main' commit info
+    runs-on: ubuntu-22.04
+    outputs:
+      title: ${{ steps.get-head-commit-title.outputs.title }}
+      sha: ${{ steps.get-head-commit-sha.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: "main"
+      - id: get-head-commit-title
+        run: echo "title=$(git log --format=%B -n 1 HEAD | head -n 1)" >> $GITHUB_OUTPUT
+      - name: Print head commit title
+        run: echo "${{ steps.get-head-commit-title.outputs.title }}"
+      - id: get-head-commit-sha
+        run: echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+      - name: Print head commit sha
+        run: echo "${{ steps.get-head-commit-sha.outputs.sha }}"
+
+  check-date:
+    name: Check latest 'main' commit date
+    runs-on: ubuntu-22.04
+    outputs:
+      should-run: ${{ steps.should-run.outputs.should-run }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: "main"
+      - name: Print latest commit
+        run: echo ${{ github.sha }}
+      - id: should-run
+        continue-on-error: true
+        name: Check if latest commit is less than a day
+        if: ${{ github.event_name == 'schedule' }}
+        run: test -z $(git rev-list  --after="24 hours"  ${{ github.sha }}) && echo "::set-output name=should-run::false"
+
+  chromatic:
+    name: Run Chromatic test
+    runs-on: ubuntu-22.04
+    needs: check-date
+    if: ${{ needs.check-date.outputs.should-run != 'false' }}
+    outputs:
+      chromatic-code: ${{ steps.run-chromatic.outputs.code }}
+      chromatic-url: ${{ steps.run-chromatic.outputs.url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: "main"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.17.0
+      - name: Install dependencies
+        run: npm ci
+      - name: Run Chromatic
+        id: run-chromatic
+        uses: chromaui/action@latest
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          # Enable TurboSnap™
+          onlyChanged: true
+          # Builds that contain visual changes need to be verified. The task
+          # will fail if there are any. Once you accept all the changes (on the
+          # chromatic website), re-run the workflow, and the chromatic job will
+          # pass.
+          exitZeroOnChanges: false
+          # Chromatic action works by adding some CLI params to the npm script
+          # we provide here. This means we need to ensure the script ends with
+          # `storybook build` being executed.
+          buildScriptName: build:storybook
+
+  on-failure:
+    runs-on: ubuntu-22.04
+    needs:
+      - chromatic
+      - get-commit-title
+    # Any code that isn't 0 means some error happening, see https://www.chromatic.com/docs/cli/#exit-codes
+    if: ${{ always() && (needs.chromatic.outputs.chromatic-code != 0) }}
+    steps:
+      - name: Send a stream message
+        uses: zulip/github-actions-zulip/send-message@v1
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY_GITHUB_ACTIONS_BOT }}
+          email: "github-actions-bot@chat.kobotoolbox.org"
+          organization-url: "https://chat.kobotoolbox.org"
+          type: "stream"
+          to: "Kobo Dev"
+          topic: "Github Actions (chromatic)"
+          content: ":framed_picture: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(needs.get-commit-title.outputs.title) }}](https://github.com/kobotoolbox/kpi/commit/${{ needs.get-commit-title.outputs.sha }}). View Chromatic build details at ${{needs.chromatic.outputs.chromatic-url}}. If you accept all the changes, please re-run the failed job."

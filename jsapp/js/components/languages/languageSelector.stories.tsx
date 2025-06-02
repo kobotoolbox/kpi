@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
-import environmentMock from '#/endpoints/environment.mock'
-import languagesMock from '#/endpoints/languages.mock'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
+import environmentMock from '#/endpoints/environment.mocks'
+import languagesMock from '#/endpoints/languages.mocks'
 import LanguageSelector from './languageSelector'
 
 const meta: Meta<typeof LanguageSelector> = {
@@ -12,6 +12,7 @@ const meta: Meta<typeof LanguageSelector> = {
     msw: {
       handlers: [languagesMock, environmentMock],
     },
+    a11y: { test: 'todo' },
   },
 }
 

@@ -2,7 +2,7 @@ import calendar
 import functools
 from datetime import datetime
 from math import ceil, floor, inf
-from typing import Optional, get_args
+from typing import Optional
 from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
@@ -12,9 +12,10 @@ from django.db.models import F, Max, Q, QuerySet, Window
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization, OrganizationUser
-from kobo.apps.organizations.types import BillingDates, UsageLimits, UsageType
-from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, USAGE_LIMIT_MAP
+from kobo.apps.organizations.types import BillingDates, UsageLimits
+from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 
 
 def requires_stripe(func):
@@ -56,11 +57,11 @@ def requires_stripe(func):
 
 
 def _get_default_usage_limits():
-    return {f'{usage_type}_limit': inf for usage_type in get_args(UsageType)}
+    return {f'{usage_type}_limit': inf for usage_type, _ in UsageType.choices}
 
 
 def _get_limit_key(usage_type: UsageType):
-    return f'{USAGE_LIMIT_MAP[usage_type]}_limit'
+    return f'{usage_type}_limit'
 
 
 def _get_subscription_metadata_fields_for_usage_type(usage_type: UsageType):
@@ -75,8 +76,7 @@ def _get_subscription_metadata_fields_for_usage_type(usage_type: UsageType):
 def get_default_plan_name(**kwargs) -> Optional[str]:
     Product = kwargs['product_model']
     default_plan = (
-        Product
-        .objects.filter(metadata__default_free_plan='true')
+        Product.objects.filter(metadata__default_free_plan='true')
         .values('name')
         .first()
     )
@@ -310,9 +310,9 @@ def get_current_billing_period_dates_for_active_plans(
 
 def get_default_add_on_limits():
     return {
-        'submission_limit': 0,
-        'asr_seconds_limit': 0,
-        'mt_characters_limit': 0,
+        f'{UsageType.SUBMISSION}_limit': 0,
+        f'{UsageType.ASR_SECONDS}_limit': 0,
+        f'{UsageType.MT_CHARACTERS}_limit': 0,
     }
 
 
@@ -325,7 +325,7 @@ def get_organization_subscription_limit(
     will fall back to infinite value if no subscription or
     default free tier plan found.
     """
-    include_storage_addons = usage_type == 'storage'
+    include_storage_addons = usage_type == UsageType.STORAGE_BYTES
     return (
         get_organizations_subscription_limits([organization], include_storage_addons)
         .get(organization.id, {})
@@ -353,10 +353,10 @@ def get_organizations_subscription_limits(
     Example result:
     { 'org1':
         {
-            'storage_limit': inf,
+            'storage_bytes_limit': inf,
             'submission_limit': 5000,
-            'characters_limit': 72000,
-            'seconds_limit': 6000,
+            'mt_characters_limit': 72000,
+            'asr_seconds_limit': 6000,
         },
         ...
     }
@@ -381,30 +381,29 @@ def get_organizations_subscription_limits(
         if row['product_type'] == 'plan':
             row_limits = {
                 f'{usage_type}_limit': row[f'{usage_type}_limit']
-                for usage_type in get_args(UsageType)
+                for usage_type, _ in UsageType.choices
             }
         elif row['product_type'] == 'addon':
-            row_limits['addon_storage_limit'] = row['storage_limit']
+            row_limits['addon_storage_limit'] = row[f'{UsageType.STORAGE_BYTES}_limit']
         subscription_limits_by_org_id[row['org_id']] = row_limits
 
-    storage_limit = _get_limit_key('storage')
-    submission_limit = _get_limit_key('submission')
-    characters_limit = _get_limit_key('characters')
-    seconds_limit = _get_limit_key('seconds')
+    storage_limit = _get_limit_key(UsageType.STORAGE_BYTES)
+    submission_limit = _get_limit_key(UsageType.SUBMISSION)
+    characters_limit = _get_limit_key(UsageType.MT_CHARACTERS)
+    seconds_limit = _get_limit_key(UsageType.ASR_SECONDS)
     # Anyone who does not have a subscription is on the free tier plan by default
     default_plan = (
-        Product
-        .objects.filter(metadata__default_free_plan='true')
+        Product.objects.filter(metadata__default_free_plan='true')
         .values(
-            storage_limit=F(f'metadata__{storage_limit}'),
+            storage_bytes_limit=F(f'metadata__{storage_limit}'),
             submission_limit=F(f'metadata__{submission_limit}'),
-            characters_limit=F(f'metadata__{characters_limit}'),
-            seconds_limit=F(f'metadata__{seconds_limit}'),
+            mt_characters_limit=F(f'metadata__{characters_limit}'),
+            asr_seconds_limit=F(f'metadata__{seconds_limit}'),
         )
         .first()
     ) or {}
     default_plan_limits = {}
-    for usage_type in get_args(UsageType):
+    for usage_type, _ in UsageType.choices:
         limit_key = f'{usage_type}_limit'
         default_limit = default_plan.get(limit_key)
         if default_limit is None:
@@ -415,7 +414,7 @@ def get_organizations_subscription_limits(
     results = {}
     for org_id in all_org_ids:
         all_org_limits = {}
-        for usage_type in get_args(UsageType):
+        for usage_type, _ in UsageType.choices:
             plan_limit = subscription_limits_by_org_id.get(org_id, {}).get(
                 f'{usage_type}_limit'
             )
@@ -473,7 +472,7 @@ def get_organizations_effective_limits(
         PlanAddOn = apps.get_model('stripe', 'PlanAddOn')  # noqa
         addon_limits = PlanAddOn.get_organizations_totals(organizations=organizations)
         for org_id, limits in effective_limits.items():
-            for usage_type in get_args(UsageType):
+            for usage_type, _ in UsageType.choices:
                 addon = addon_limits.get(org_id, {}).get(f'total_{usage_type}_limit', 0)
                 limits[f'{usage_type}_limit'] += addon
     return effective_limits
@@ -492,16 +491,16 @@ def get_paid_subscription_limits(organization_ids: list[str], **kwargs) -> Query
     Subscription = kwargs['subscription_model']
 
     price_storage_key, product_storage_key = (
-        _get_subscription_metadata_fields_for_usage_type('storage')
+        _get_subscription_metadata_fields_for_usage_type(UsageType.STORAGE_BYTES)
     )
     price_submission_key, product_submission_key = (
-        _get_subscription_metadata_fields_for_usage_type('submission')
+        _get_subscription_metadata_fields_for_usage_type(UsageType.SUBMISSION)
     )
     price_characters_key, product_characters_key = (
-        _get_subscription_metadata_fields_for_usage_type('characters')
+        _get_subscription_metadata_fields_for_usage_type(UsageType.MT_CHARACTERS)
     )
     price_seconds_key, product_seconds_key = (
-        _get_subscription_metadata_fields_for_usage_type('seconds')
+        _get_subscription_metadata_fields_for_usage_type(UsageType.ASR_SECONDS)
     )
 
     # Get organizations we care about (either those in the 'organizations' param or all)
@@ -516,12 +515,12 @@ def get_paid_subscription_limits(organization_ids: list[str], **kwargs) -> Query
     most_recent_subs = (
         active_subscriptions.values(
             org_id=F('customer__subscriber_id'),
-            storage_limit=Coalesce(F(price_storage_key), F(product_storage_key)),
+            storage_bytes_limit=Coalesce(F(price_storage_key), F(product_storage_key)),
             submission_limit=Coalesce(
                 F(price_submission_key), F(product_submission_key)
             ),
-            seconds_limit=Coalesce(F(price_seconds_key), F(product_seconds_key)),
-            characters_limit=Coalesce(
+            asr_seconds_limit=Coalesce(F(price_seconds_key), F(product_seconds_key)),
+            mt_characters_limit=Coalesce(
                 F(price_characters_key), F(product_characters_key)
             ),
             sub_start_date=F('start_date'),
@@ -538,7 +537,7 @@ def get_paid_subscription_limits(organization_ids: list[str], **kwargs) -> Query
                 expression=Max('sub_start_date', filter=Q(product_type='addon')),
                 partition_by=F('org_id'),
                 order_by='org_id',
-            )
+            ),
         )
         .filter(
             # most recent full plan
@@ -578,7 +577,7 @@ def determine_limit(
         limit = float(limit)
 
     # for storage, factor in addons if specified
-    if usage_type == 'storage' and include_storage_addons:
+    if usage_type == UsageType.STORAGE_BYTES and include_storage_addons:
         if addon_limit == 'unlimited':
             addon_limit = inf
         else:
@@ -619,7 +618,13 @@ def get_plan_name(org_user: OrganizationUser, **kwargs) -> str | None:
     for subscription in subscriptions:
         unique_plans.add(subscription.plan)
 
-    plan_name = ' and '.join([plan.product.name for plan in unique_plans])
+    # Make sure plans come before addons
+    plan_list = sorted(
+        unique_plans,
+        key=lambda plan: plan.product.metadata.get('product_type', '') == 'plan',
+        reverse=True,
+    )
+    plan_name = ' and '.join([plan.product.name for plan in plan_list])
     if plan_name is None or plan_name == '':
         plan_name = get_default_plan_name()
     return plan_name

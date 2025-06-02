@@ -56,7 +56,6 @@ class FormSummary extends React.Component {
             key='edit'
             data-path={`/forms/${this.state.uid}/edit`}
             onClick={this.triggerRefresh}
-            data-cy='edit'
           >
             <i className='k-icon k-icon-edit' />
             {t('Edit form')}

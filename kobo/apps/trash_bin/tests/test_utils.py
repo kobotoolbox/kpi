@@ -11,14 +11,18 @@ from django_celery_beat.models import PeriodicTask
 from freezegun import freeze_time
 
 from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
-from kobo.apps.openrosa.apps.logger.models import Instance, XForm
+from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
+from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 
 from kpi.models import Asset
+from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
 from ..models import TrashStatus
 from ..models.account import AccountTrash
+from ..models.attachment import AttachmentTrash
 from ..models.project import ProjectTrash
-from ..tasks import empty_account, empty_project, task_restarter
+from ..tasks import empty_account, empty_attachment, empty_project, task_restarter
 from ..utils import move_to_trash, put_back
 
 
@@ -48,7 +52,6 @@ class AccountTrashTestCase(TestCase):
         grace_period = 0
         assert someuser.assets.count() == 2
         assert not AccountTrash.objects.filter(user=someuser).exists()
-        AccountTrash.toggle_statuses([someuser.pk], active=False)
         move_to_trash(
             request_author=admin,
             objects_list=[
@@ -80,13 +83,6 @@ class AccountTrashTestCase(TestCase):
         assert not AccountTrash.objects.filter(user=someuser).exists()
 
         before = timezone.now()
-        AccountTrash.toggle_statuses([someuser.pk], active=False)
-        someuser.refresh_from_db()
-        assert not someuser.is_active
-        after = timezone.now()
-        assert before <= someuser.extra_details.date_removal_requested <= after
-
-        before = timezone.now() + timedelta(days=grace_period)
         move_to_trash(
             request_author=someuser,
             objects_list=[
@@ -98,11 +94,19 @@ class AccountTrashTestCase(TestCase):
             grace_period=grace_period,
             trash_type='user',
         )
-        after = timezone.now() + timedelta(days=grace_period)
+        after = timezone.now()
+
+        someuser.refresh_from_db()
+        assert not someuser.is_active
+        assert before <= someuser.extra_details.date_removal_requested <= after
 
         # Ensure someuser is in trash and a periodic task exists and is ready to run
         account_trash = AccountTrash.objects.get(user=someuser)
-        assert before <= account_trash.periodic_task.clocked.clocked_time <= after
+        assert (
+            before + timedelta(days=grace_period)
+            <= account_trash.periodic_task.clocked.clocked_time
+            <= after + timedelta(days=grace_period)
+        )
         assert account_trash.periodic_task.name.startswith(DELETE_USER_STR_PREFIX)
 
         # Ensure action is logged
@@ -134,7 +138,6 @@ class AccountTrashTestCase(TestCase):
             trash_type='user',
         )
 
-        AccountTrash.toggle_statuses([someuser.pk], active=True)
         someuser.refresh_from_db()
         assert someuser.is_active
 
@@ -167,10 +170,6 @@ class AccountTrashTestCase(TestCase):
         assert not AccountTrash.objects.filter(user=someuser).exists()
 
         before = timezone.now() + timedelta(days=grace_period)
-        AccountTrash.toggle_statuses([someuser.pk], active=False)
-        someuser.refresh_from_db()
-        assert not someuser.is_active
-
         move_to_trash(
             request_author=admin,
             objects_list=[
@@ -188,6 +187,7 @@ class AccountTrashTestCase(TestCase):
         after = timezone.now() + timedelta(days=grace_period)
 
         someuser.refresh_from_db()
+        assert not someuser.is_active
         assert someuser.assets.count() == 0
         assert someuser.email == ''
         assert someuser.extra_details.data.get('name') == ''
@@ -275,7 +275,7 @@ class AccountTrashTestCase(TestCase):
 
 
 @ddt
-class ProjectTrashTestCase(TestCase):
+class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
 
     fixtures = ['test_data']
 
@@ -296,14 +296,6 @@ class ProjectTrashTestCase(TestCase):
         assert not ProjectTrash.objects.filter(asset=asset).exists()
         assert not asset.pending_delete
         assert not asset.deployment.xform.pending_delete
-        ProjectTrash.toggle_statuses(
-            [asset.uid], active=False, toggle_delete=True
-        )
-
-        asset.refresh_from_db()
-        asset.deployment.xform.refresh_from_db()
-        assert asset.pending_delete
-        assert asset.deployment.xform.pending_delete
 
         before = timezone.now() + timedelta(days=grace_period)
         move_to_trash(
@@ -319,6 +311,11 @@ class ProjectTrashTestCase(TestCase):
             trash_type='asset',
         )
         after = timezone.now() + timedelta(days=grace_period)
+
+        asset.refresh_from_db()
+        asset.deployment.xform.refresh_from_db()
+        assert asset.pending_delete
+        assert asset.deployment.xform.pending_delete
 
         # Ensure project is in trash and a periodic task exists and is ready to run
         project_trash = ProjectTrash.objects.get(asset=asset)
@@ -358,9 +355,7 @@ class ProjectTrashTestCase(TestCase):
             ],
             trash_type='asset',
         )
-        ProjectTrash.toggle_statuses(
-            [asset.uid], active=True, toggle_delete=True
-        )
+
         asset.refresh_from_db()
         asset.deployment.xform.refresh_from_db()
         assert not asset.pending_delete
@@ -474,3 +469,274 @@ class ProjectTrashTestCase(TestCase):
                 task_restarter()
 
                 assert patched_spawned_task.call_count == restart_count
+
+    def test_storage_updates_on_project_trash_and_restore(self):
+        """
+        Test that attachment storage counters in XForm and UserProfile are
+        cleared on trash, and restored properly on untrash
+        """
+        asset, xform, instance, user_profile, attachment = (
+            self._create_test_asset_and_submission(
+                user=User.objects.get(username='someuser')
+            )
+        )
+
+        xform_storage_init = xform.attachment_storage_bytes
+        user_storage_init = user_profile.attachment_storage_bytes
+        self.assertGreater(xform_storage_init, 0)
+        self.assertGreater(user_storage_init, 0)
+
+        # Move the project to trash
+        move_to_trash(
+            request_author=asset.owner,
+            objects_list=[
+                {
+                    'pk': asset.pk,
+                    'asset_uid': asset.uid,
+                    'asset_name': asset.name,
+                }
+            ],
+            grace_period=1,
+            trash_type='asset',
+        )
+        xform.refresh_from_db()
+        user_profile.refresh_from_db()
+        self.assertEqual(xform.attachment_storage_bytes, 0)
+        self.assertEqual(user_profile.attachment_storage_bytes, 0)
+
+        # Restore the project
+        put_back(
+            request_author=asset.owner,
+            objects_list=[
+                {
+                    'pk': asset.pk,
+                    'asset_uid': asset.uid,
+                    'asset_name': asset.name,
+                }
+            ],
+            trash_type='asset',
+        )
+        xform.refresh_from_db()
+        user_profile.refresh_from_db()
+        self.assertGreater(xform.attachment_storage_bytes, 0)
+        self.assertGreater(user_profile.attachment_storage_bytes, 0)
+        self.assertEqual(xform_storage_init, xform.attachment_storage_bytes)
+        self.assertEqual(user_storage_init, user_profile.attachment_storage_bytes)
+
+    def test_storage_does_not_change_on_archive_unarchive(self):
+        """
+        Test that attachment storage counters in XForm and UserProfile remain
+        unchanged when a project is archived or unarchived
+        """
+        asset, xform, instance, user_profile, attachment = (
+            self._create_test_asset_and_submission(
+                user=User.objects.get(username='someuser')
+            )
+        )
+
+        xform_storage_init = xform.attachment_storage_bytes
+        user_storage_init = user_profile.attachment_storage_bytes
+        self.assertGreater(xform_storage_init, 0)
+        self.assertGreater(user_storage_init, 0)
+
+        # Simulate archiving the project by updating the status
+        ProjectTrash.toggle_statuses(
+            [asset.uid], active=False, toggle_delete=False
+        )
+        xform.refresh_from_db()
+        user_profile.refresh_from_db()
+        self.assertEqual(xform_storage_init, xform.attachment_storage_bytes)
+        self.assertEqual(user_storage_init, user_profile.attachment_storage_bytes)
+
+        # Simulate unarchiving the project by updating the status
+        ProjectTrash.toggle_statuses(
+            [asset.uid], active=True, toggle_delete=False
+        )
+        xform.refresh_from_db()
+        user_profile.refresh_from_db()
+        self.assertEqual(xform_storage_init, xform.attachment_storage_bytes)
+        self.assertEqual(user_storage_init, user_profile.attachment_storage_bytes)
+
+
+@ddt
+class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
+    def setUp(self):
+        self.user = User.objects.create(username='user', password='password')
+        self.asset, self.xform, self.instance, self.user_profile, self.attachment = (
+            self._create_test_asset_and_submission(user=self.user)
+        )
+
+    def test_move_to_trash(self):
+        assert self.xform.attachment_storage_bytes > 0
+        assert self.user_profile.attachment_storage_bytes > 0
+        assert not self.attachment.delete_status
+        assert not AttachmentTrash.objects.filter(
+            attachment_id=self.attachment.id
+        ).exists()
+
+        self._move_attachment_to_trash(self.attachment, self.user)
+
+        assert self.xform.attachment_storage_bytes == 0
+        assert self.user_profile.attachment_storage_bytes == 0
+        assert self.attachment.delete_status == AttachmentDeleteStatus.PENDING_DELETE
+        assert AttachmentTrash.objects.filter(
+            attachment_id=self.attachment.id
+        ).exists()
+
+        assert AuditLog.objects.filter(
+            app_label='logger',
+            model_name='attachment',
+            object_id=self.attachment.pk,
+            user=self.user,
+            action=AuditAction.IN_TRASH,
+            log_type=AuditType.ATTACHMENT_MANAGEMENT,
+        ).exists()
+
+    def test_put_back(self):
+        trash_obj = self._move_attachment_to_trash(self.attachment, self.user)
+        self._put_back_attachment_from_trash(self.attachment, self.user)
+
+        assert not self.attachment.delete_status
+        assert self.xform.attachment_storage_bytes > 0
+        assert self.user_profile.attachment_storage_bytes > 0
+        assert not AttachmentTrash.objects.filter(
+            attachment_id=self.attachment.id
+        ).exists()
+        assert not PeriodicTask.objects.filter(
+            pk=trash_obj.periodic_task_id
+        ).exists()
+
+        assert AuditLog.objects.filter(
+            app_label='logger',
+            model_name='attachment',
+            object_id=self.attachment.pk,
+            user=self.user,
+            action=AuditAction.PUT_BACK,
+            log_type=AuditType.ATTACHMENT_MANAGEMENT,
+        ).exists()
+
+    def test_trashing_attachment_deletes_file_but_preserves_db_object(self):
+        """
+        Test that moving an attachment to trash removes the file from storage
+        but not the attachment object itself
+        """
+        media_file = self.attachment.media_file
+        assert self.attachment.media_file.storage.exists(str(media_file))
+
+        trash_obj = self._move_attachment_to_trash(self.attachment, self.user)
+        empty_attachment(trash_obj.pk)
+
+        assert Attachment.all_objects.filter(pk=self.attachment.pk).exists()
+        assert not self.attachment.media_file.storage.exists(str(media_file))
+        assert not AttachmentTrash.objects.filter(
+            attachment_id=self.attachment.pk
+        ).exists()
+
+        assert AuditLog.objects.filter(
+            app_label='logger',
+            model_name='attachment',
+            object_id=self.attachment.pk,
+            user=self.user,
+            action=AuditAction.DELETE,
+            log_type=AuditType.ATTACHMENT_MANAGEMENT,
+            metadata={
+                'attachment_uid': self.attachment.uid,
+                'attachment_name': self.attachment.media_file_basename,
+                'instance__root_uuid': self.attachment.instance.root_uuid,
+            },
+        ).exists()
+
+    @data(
+        # Format: (task status, is time frozen, is stuck, expected restart count)
+        # `is_time_frozen=True` simulates a past time (grace period expired)
+        # `is_time_frozen=False` uses current time (still within grace period)
+
+        # Trivial case: Task is pending and still within the grace period
+        (TrashStatus.PENDING, False, False, 0),
+        # Task is pending but the grace period has expired — it should be restarted
+        (TrashStatus.PENDING, True, False, 1),
+        # Task has started and is still running normally
+        (TrashStatus.IN_PROGRESS, True, False, 0),
+        # Task has started but is now stuck — it should be restarted
+        (TrashStatus.IN_PROGRESS, True, True, 1),
+        # Task failed but is not considered stuck — no restart needed
+        (TrashStatus.FAILED, True, False, 0),
+        # Task failed and is considered stuck — still no restart (handled differently)
+        (TrashStatus.FAILED, True, True, 0),
+    )
+    @unpack
+    def test_task_restarter(self, status, is_time_frozen, is_stuck, restart_count):
+        """
+        A freshly created task should not be restarted if it is in grace period.
+        """
+        if is_time_frozen:
+            # Freeze time to simulate that the grace period has passed.
+            # This allows us to test behavior after grace period expiration.
+            frozen_time = '2024-12-10'
+        else:
+            # Use the current time, meaning the task is still within its grace period.
+            frozen_time = str(timezone.now())
+
+        with freeze_time(frozen_time):
+            self._move_attachment_to_trash(self.attachment, self.user)
+
+        if status != TrashStatus.PENDING:
+            # Only tasks that are not pending can be considered as stuck
+            if is_stuck:
+                # Simulate a stuck task by setting its last run time far beyond
+                # the allowed execution window: Add a buffer of 5 mins + 10 secs
+                # to the CELERY time limit to ensure it's well overdue.
+                last_run = timezone.now() - timedelta(
+                    seconds=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5 + 10
+                )
+            else:
+                last_run = timezone.now()
+
+            AttachmentTrash.objects.filter(attachment_id=self.attachment.id).update(
+                status=status,
+                date_modified=last_run,
+            )
+
+        with patch('kobo.apps.trash_bin.tasks.empty_attachment', return_value=True):
+            with patch(
+                'kobo.apps.trash_bin.tasks.empty_attachment.delay'
+            ) as patched_spawned_task:
+                task_restarter()
+
+                assert patched_spawned_task.call_count == restart_count
+
+    def _move_attachment_to_trash(self, attachment, user):
+        move_to_trash(
+            request_author=user,
+            objects_list=[{
+                'pk': attachment.pk,
+                'attachment_uid': attachment.uid,
+                'attachment_basename': attachment.media_file_basename,
+            }],
+            grace_period=config.ATTACHMENT_TRASH_GRACE_PERIOD,
+            trash_type='attachment',
+            retain_placeholder=False,
+        )
+        self._refresh_all()
+        return AttachmentTrash.objects.get(attachment_id=attachment.pk)
+
+    def _put_back_attachment_from_trash(self, attachment, user):
+        put_back(
+            request_author=user,
+            objects_list=[{
+                'pk': attachment.pk,
+                'attachment_uid': attachment.uid,
+                'attachment_basename': attachment.media_file_basename,
+            }],
+            trash_type='attachment',
+        )
+        self._refresh_all()
+
+    def _refresh_all(self):
+        """
+        Refresh all test objects from the database to get updated values
+        """
+        self.asset.refresh_from_db()
+        self.xform.refresh_from_db()
+        self.user_profile.refresh_from_db()
+        self.attachment.refresh_from_db()

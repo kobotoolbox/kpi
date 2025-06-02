@@ -1,7 +1,5 @@
 from datetime import datetime
-from typing import Literal, TypedDict
-
-UsageType = Literal['characters', 'seconds', 'submission', 'storage']
+from typing import TypedDict
 
 
 class BillingDates(TypedDict):
@@ -10,12 +8,26 @@ class BillingDates(TypedDict):
 
 
 class UsageLimits(TypedDict):
-    storage_limit: float
+    storage_bytes_limit: float
     submission_limit: float
-    seconds_limit: float
-    characters_limit: float
+    asr_seconds_limit: float
+    mt_characters_limit: float
 
 
 class NLPUsage(TypedDict):
-    seconds: int
-    characters: int
+    asr_seconds: int
+    mt_characters: int
+
+
+class UsageBalance(TypedDict):
+    effective_limit: int
+    balance_value: int
+    balance_percent: int
+    exceeded: bool
+
+
+class UsageBalances(TypedDict):
+    storage_bytes: UsageBalance | None
+    submission: UsageBalance | None
+    asr_seconds: UsageBalance | None
+    mt_characters: UsageBalance | None

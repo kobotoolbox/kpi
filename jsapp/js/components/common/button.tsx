@@ -88,12 +88,10 @@ export interface ButtonProps {
   className?: string
   /** You don't need to pass the callback for `isSubmit` option. */
   onClick?: (event: any) => void
-  'data-cy'?: string
 }
 
 interface AdditionalButtonAttributes {
   'data-tip'?: string
-  'data-cy'?: string
 }
 
 /**
@@ -117,9 +115,6 @@ const Button = (props: ButtonProps) => {
 
   // For the attributes that don't have a falsy value.
   const additionalButtonAttributes: AdditionalButtonAttributes = {}
-  if (props['data-cy']) {
-    additionalButtonAttributes['data-cy'] = props['data-cy']
-  }
 
   const handleClick = (event: React.BaseSyntheticEvent) => {
     if (!props.isDisabled && props.onClick) {
