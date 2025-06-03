@@ -38,7 +38,7 @@ templates_placeholders = {
 PROCESSED_EMAILS_CACHE_KEY = 'mass_emails_{key_date}_emails'
 TASK_TIMEOUT = (
     5 * 60 if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', False) else 60 * 60
-) # 5 minutes if condense send, otherwise 1h
+)  # 5 minutes if condense send, otherwise 1h
 
 
 def enqueue_mass_email_records(email_config):
