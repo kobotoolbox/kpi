@@ -939,8 +939,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'xls_types_as_text': False,
             'include_media_url': True,
         }
-        self.asset.assign_perm(perm=PERM_VIEW_SUBMISSIONS, user_obj=AnonymousUser())
         if anonymous_user:
+            self.asset.assign_perm(perm=PERM_VIEW_SUBMISSIONS, user_obj=AnonymousUser())
             self.client.logout()
         self._base_project_history_log_test(
             method=self.client.post,
