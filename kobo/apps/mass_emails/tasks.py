@@ -38,7 +38,7 @@ templates_placeholders = {
 PROCESSED_EMAILS_CACHE_KEY = 'mass_emails_{key_date}_emails'
 TASK_TIMEOUT = (
     5 * 60 if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', False) else 60 * 60
-)
+) # 5 minutes if condense send, otherwise 1h
 
 
 def enqueue_mass_email_records(email_config):
@@ -299,8 +299,8 @@ class MassEmailSender:
 
 
 @celery_app.task(
-    time_limit=TASK_TIMEOUT - 1, soft_time_limit=TASK_TIMEOUT - 1
-)  # 55 minutes
+    time_limit=TASK_TIMEOUT - 2, soft_time_limit=TASK_TIMEOUT - 2
+)  # subtract 2 so we don't run in to the generate_send task
 def send_emails():
     """
     Send the emails for the current day. It schedules the emails if they have not
