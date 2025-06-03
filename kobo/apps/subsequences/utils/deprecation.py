@@ -79,6 +79,14 @@ def qpath_to_xpath(qpath: str, asset: 'Asset') -> str:
         if '$qpath' in row and '$xpath' in row and row['$qpath'] == qpath:
             return row['$xpath']
 
+    # If the `qpath` refers to a question that was renamed or deleted, it may
+    # no longer match any XPath in the form. In such cases, where it's still
+    # present in known_cols, skip this field by returning an empty string
+    dashed_qpath = qpath.replace('/', '-')
+    for known_col in asset.known_cols:
+        if known_col.startswith(dashed_qpath):
+            return ''
+
     # Could not find it from the survey, let's try to detect it automatically
     xpaths = asset.get_attachment_xpaths(deployed=True)
     for xpath in xpaths:
