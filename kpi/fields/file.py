@@ -46,6 +46,12 @@ class ExtendedFieldFile(FieldFile):
 
         return success
 
+    def save(self, *args, **kwargs):
+        import time
+        print('ON WAIT 10s', flush=True)
+        time.sleep(10)
+        return super().save(*args, **kwargs)
+
 
 class ExtendedFileField(FileField):
 
