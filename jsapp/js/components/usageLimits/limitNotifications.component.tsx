@@ -65,20 +65,10 @@ const LimitNotifications = ({ useModal = false, accountPage = false }: LimitNoti
         <LimitBanner interval={trackingPeriod} limits={limits.exceedList} accountPage={Boolean(accountPage)} />
       )}
       {!limits.exceedList.length && (
-        <LimitBanner
-          warning
-          interval={trackingPeriod}
-          limits={limits.warningList}
-          accountPage={Boolean(accountPage)}
-        />
+        <LimitBanner warning interval={trackingPeriod} limits={limits.warningList} accountPage={Boolean(accountPage)} />
       )}
       {useModal && (
-        <LimitModal
-          show={showModal}
-          limits={limits.exceedList}
-          interval={trackingPeriod}
-          dismissed={modalDismissed}
-        />
+        <LimitModal show={showModal} limits={limits.exceedList} interval={trackingPeriod} dismissed={modalDismissed} />
       )}
     </>
   )
