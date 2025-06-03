@@ -36,6 +36,7 @@ templates_placeholders = {
 }
 
 PROCESSED_EMAILS_CACHE_KEY = 'mass_emails_{key_date}_emails'
+TASK_TIMEOUT = 60*60 if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', False) else 5*60
 
 
 def enqueue_mass_email_records(email_config):
@@ -258,6 +259,7 @@ class MassEmailSender:
             batch_size = settings.MASS_EMAIL_THROTTLE_PER_SECOND
             for record in records:
                 if emails_sent > 0 and emails_sent % batch_size == 0:
+                    logging.info(f'sleeping for {settings.MASS_EMAIL_SLEEP_SECONDS}')
                     sleep(settings.MASS_EMAIL_SLEEP_SECONDS)
                 self.cache_limit_value(email_config, self.limits[email_config.id] - 1)
                 self.cache_limit_value(None, self.total_limit - 1)
@@ -294,7 +296,7 @@ class MassEmailSender:
         record.save()
 
 
-@celery_app.task(time_limit=3300)  # 55 minutes
+@celery_app.task(soft_time_limit=TASK_TIMEOUT-1,time_limit=TASK_TIMEOUT-1)  # 55 minutes
 def send_emails():
     """
     Send the emails for the current day. It schedules the emails if they have not
@@ -350,7 +352,7 @@ def get_users_for_config(email_config):
     return [user for user in users if user.id not in recent_recipients]
 
 
-@celery_app.task(time_limit=3600)
+@celery_app.task(soft_time_limit=TASK_TIMEOUT, time_limit=TASK_TIMEOUT)
 def generate_mass_email_user_lists():
     """
     Generates daily user lists for MassEmailConfigs, skipping already processed
