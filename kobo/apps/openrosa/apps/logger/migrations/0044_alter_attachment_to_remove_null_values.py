@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('logger', '0042_add_new_columns_to_attachment'),
+        ('logger', '0043_add_new_columns_to_attachment'),
     ]
 
     operations = [

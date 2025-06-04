@@ -329,6 +329,7 @@ class TestDataViewSet(TestBase):
                     'download_large_url': self.attachment.secure_url('large'),
                     'mimetype': self.attachment.mimetype,
                     'instance': self.attachment.instance.pk,
+                    'is_deleted': False,
                     'filename': self.attachment.media_file.name,
                     'media_file_basename': self.attachment.media_file_basename,
                     'id': self.attachment.pk,

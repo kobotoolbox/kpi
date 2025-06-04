@@ -5,13 +5,8 @@ import type { Organization } from '#/account/organization/organizationQuery'
 import { useDisplayPrice } from '#/account/plans/useDisplayPrice.hook'
 import { postCheckout, postCustomerPortal } from '#/account/stripe.api'
 import type { Product, SubscriptionInfo } from '#/account/stripe.types'
-// <<<<<<< HEAD:jsapp/js/account/addOns/oneTimeAddOnRow.component.tsx
-// import { isChangeScheduled } from '#/account/stripe.utils'
-import Select from '#/components/common/Select'
-// =======
-// import KoboSelect3 from '#/components/special/koboAccessibleSelect'
 import Button from '#/components/common/ButtonNew'
-//>>>>>>> @{-1}:jsapp/js/account/addOns/addOnProductRow.component.tsx
+import Select from '#/components/common/Select'
 
 interface AddOnProductRowProps {
   products: Product[]
@@ -28,12 +23,8 @@ export const AddOnProductRow = ({
   setIsBusy,
   subscribedAddOns,
   organization,
-<<<<<<< HEAD:jsapp/js/account/addOns/oneTimeAddOnRow.component.tsx
   isRecurring,
-}: OneTimeAddOnRowProps) => {
-=======
 }: AddOnProductRowProps) => {
->>>>>>> @{-1}:jsapp/js/account/addOns/addOnProductRow.component.tsx
   const [selectedProduct, setSelectedProduct] = useState(products[0])
   const [selectedPrice, setSelectedPrice] = useState<Product['prices'][0]>(selectedProduct.prices[0])
   const displayPrice = useDisplayPrice(selectedPrice)

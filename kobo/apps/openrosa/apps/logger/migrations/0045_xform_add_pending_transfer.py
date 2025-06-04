@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('logger', '0043_alter_attachment_to_remove_null_values'),
+        ('logger', '0044_alter_attachment_to_remove_null_values'),
     ]
 
     operations = [
