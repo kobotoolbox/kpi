@@ -1,7 +1,7 @@
 import os
 
 from django.conf import settings
-from django.core.files.base import File
+from django.core.files.base import ContentFile
 from django.core.management import call_command
 
 from kobo.apps.kobo_auth.models import User
@@ -29,10 +29,11 @@ class TestAttachment(TestBase):
             self.media_file,
         )
         self.instance = Instance.objects.all()[0]
-        self.attachment = Attachment.objects.create(
-            instance=self.instance,
-            media_file=File(open(media_file, 'rb'), media_file),
-        )
+        with open(media_file, 'rb') as f:
+            self.attachment = Attachment.objects.create(
+                instance=self.instance,
+                media_file=ContentFile(f.read(), name=self.media_file),
+            )
 
     def test_mimetype(self):
         self.assertEqual(self.attachment.mimetype, 'image/jpeg')
@@ -102,10 +103,11 @@ class TestAttachment(TestBase):
             self.surveys[0],
             self.media_file,
         )
-        attachment = Attachment.objects.create(
-            instance=instance,
-            media_file=File(open(media_file, 'rb'), media_file),
-        )
+        with open(media_file, 'rb') as f:
+            attachment = Attachment.objects.create(
+                instance=instance,
+                media_file=ContentFile(f.read(), name=self.media_file),
+            )
 
         attachment.refresh_from_db()
         self.assertEqual(attachment.user_id, user.id)

@@ -12,22 +12,21 @@ from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.test.testcases import LiveServerTestCase
 from django_digest.test import DigestAuth
+from rest_framework import status
 from rest_framework.authtoken.models import Token
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.main.models import UserProfile
-from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
-from rest_framework import status
-
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
     TestAbstractViewSet,
 )
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.apps.main import tests as main_tests
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.libs.constants import CAN_ADD_SUBMISSIONS
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm
+from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils import logger_tools
+from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 from kobo.apps.openrosa.libs.utils.logger_tools import (
     OpenRosaResponseNotAllowed,
     OpenRosaTemporarilyUnavailable,
@@ -644,7 +643,7 @@ class ConcurrentSubmissionTestCase(RequestMixin, LiveServerTestCase):
                 results[result] += 1
 
         assert results[status.HTTP_201_CREATED] == 1
-        assert results[status.HTTP_202_ACCEPTED] == DUPLICATE_SUBMISSIONS_COUNT - 1
+        assert results[status.HTTP_423_LOCKED] == DUPLICATE_SUBMISSIONS_COUNT - 1
 
 
 def submit_data(identifier, survey_, username_, live_server_url, token_):

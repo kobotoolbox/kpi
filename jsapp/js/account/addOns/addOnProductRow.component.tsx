@@ -2,32 +2,38 @@ import React, { useMemo, useState } from 'react'
 
 import styles from '#/account/addOns/addOnList.module.scss'
 import type { Organization } from '#/account/organization/organizationQuery'
-import BillingButton from '#/account/plans/billingButton.component'
 import { useDisplayPrice } from '#/account/plans/useDisplayPrice.hook'
 import { postCheckout, postCustomerPortal } from '#/account/stripe.api'
 import type { Product, SubscriptionInfo } from '#/account/stripe.types'
-import { isChangeScheduled } from '#/account/stripe.utils'
+// <<<<<<< HEAD:jsapp/js/account/addOns/oneTimeAddOnRow.component.tsx
+// import { isChangeScheduled } from '#/account/stripe.utils'
 import Select from '#/components/common/Select'
+// =======
+// import KoboSelect3 from '#/components/special/koboAccessibleSelect'
+import Button from '#/components/common/ButtonNew'
+//>>>>>>> @{-1}:jsapp/js/account/addOns/addOnProductRow.component.tsx
 
-interface OneTimeAddOnRowProps {
+interface AddOnProductRowProps {
   products: Product[]
   isBusy: boolean
   setIsBusy: (value: boolean) => void
-  activeSubscriptions: SubscriptionInfo[]
   subscribedAddOns: SubscriptionInfo[]
   organization: Organization
   isRecurring?: boolean
 }
 
-export const OneTimeAddOnRow = ({
+export const AddOnProductRow = ({
   products,
   isBusy,
   setIsBusy,
-  activeSubscriptions,
   subscribedAddOns,
   organization,
+<<<<<<< HEAD:jsapp/js/account/addOns/oneTimeAddOnRow.component.tsx
   isRecurring,
 }: OneTimeAddOnRowProps) => {
+=======
+}: AddOnProductRowProps) => {
+>>>>>>> @{-1}:jsapp/js/account/addOns/addOnProductRow.component.tsx
   const [selectedProduct, setSelectedProduct] = useState(products[0])
   const [selectedPrice, setSelectedPrice] = useState<Product['prices'][0]>(selectedProduct.prices[0])
   const displayPrice = useDisplayPrice(selectedPrice)
@@ -50,10 +56,13 @@ export const OneTimeAddOnRow = ({
     description = t('Get up to 50GB of media storage on a KoboToolbox public server.')
   }
 
-  const isSubscribedAddOnPrice = useMemo(
+  // In practice, this variable and related onSubmit behavior
+  // will only end up being true/relevant for recurring addons
+  const userAlreadyHasCategoryProduct = useMemo(
     () =>
-      isChangeScheduled(selectedPrice, activeSubscriptions) ||
-      subscribedAddOns.some((subscription) => subscription.items[0].price.id === selectedPrice.id),
+      subscribedAddOns.some((subscription) =>
+        products.map((product) => product.id).includes(subscription.items[0].price.product.id),
+      ),
     [subscribedAddOns, selectedPrice],
   )
 
@@ -74,28 +83,20 @@ export const OneTimeAddOnRow = ({
     }
   }
 
-  // TODO: Merge functionality of onClickBuy and onClickManage so we can unduplicate
-  // the billing button in priceTableCells
-  const onClickBuy = () => {
+  const onSubmit = () => {
     if (isBusy || !selectedPrice) {
       return
     }
     setIsBusy(true)
-    if (selectedPrice) {
+    if (userAlreadyHasCategoryProduct) {
+      postCustomerPortal(organization.id)
+        .then((response) => window.location.assign(response.url))
+        .catch(() => setIsBusy(false))
+    } else {
       postCheckout(selectedPrice.id, organization.id)
         .then((response) => window.location.assign(response.url))
         .catch(() => setIsBusy(false))
     }
-  }
-
-  const onClickManage = () => {
-    if (isBusy || !selectedPrice) {
-      return
-    }
-    setIsBusy(true)
-    postCustomerPortal(organization.id)
-      .then((response) => window.location.assign(response.url))
-      .catch(() => setIsBusy(false))
   }
 
   const priceTableCells = (
@@ -105,24 +106,9 @@ export const OneTimeAddOnRow = ({
       </div>
       <div className={styles.buyContainer}>
         <div className={styles.buy}>
-          {isSubscribedAddOnPrice && (
-            <BillingButton
-              size={'m'}
-              label={t('Manage')}
-              isDisabled={Boolean(selectedPrice) && isBusy}
-              onClick={onClickManage}
-              isFullWidth
-            />
-          )}
-          {!isSubscribedAddOnPrice && (
-            <BillingButton
-              size={'m'}
-              label={t('Buy now')}
-              isDisabled={Boolean(selectedPrice) && isBusy}
-              onClick={onClickBuy}
-              isFullWidth
-            />
-          )}
+          <Button size={'lg'} disabled={Boolean(selectedPrice) && isBusy} onClick={onSubmit}>
+            {userAlreadyHasCategoryProduct ? t('Manage') : t('Buy now')}
+          </Button>
         </div>
       </div>
     </div>
