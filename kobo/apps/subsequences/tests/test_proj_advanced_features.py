@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.test import TestCase
+from django.urls import reverse
 from django.utils import timezone
 from model_bakery import baker
 from rest_framework import status
@@ -115,5 +116,6 @@ class ProjectAdvancedFeaturesTestCase(TestCase):
         asset.save()
 
         self.client.force_login(asset.owner)
-        resp = self.client.get(f'/api/v2/assets/{asset.uid}/')
-        assert resp.status_code == status.HTTP_200_OK
+        asset_detail_url = reverse('asset-detail', kwargs={'uid': asset.uid})
+        response = self.client.get(asset_detail_url)
+        assert response.status_code == status.HTTP_200_OK
