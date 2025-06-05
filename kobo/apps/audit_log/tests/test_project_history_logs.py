@@ -1312,17 +1312,23 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # inherited partial permissions
         self.assertIn(
             {
-                'code': PERM_CHANGE_SUBMISSIONS,
+                'codename': PERM_CHANGE_SUBMISSIONS,
                 'filters': [{'_submitted_by': 'someuser'}],
             },
             added,
         )
         self.assertIn(
-            {'code': PERM_VIEW_SUBMISSIONS, 'filters': [{'_submitted_by': 'someuser'}]},
+            {
+                'codename': PERM_VIEW_SUBMISSIONS,
+                'filters': [{'_submitted_by': 'someuser'}],
+            },
             added,
         )
         self.assertIn(
-            {'code': PERM_ADD_SUBMISSIONS, 'filters': [{'_submitted_by': 'someuser'}]},
+            {
+                'codename': PERM_ADD_SUBMISSIONS,
+                'filters': [{'_submitted_by': 'someuser'}],
+            },
             added,
         )
 
