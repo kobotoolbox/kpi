@@ -306,7 +306,6 @@ def send_emails():
     Send the emails for the current day. It schedules the emails if they have not
     been scheduled yet.
     """
-
     today = timezone.now()
     cache_key_date = MassEmailSender.get_cache_key_date(today)
     cache_key = PROCESSED_EMAILS_CACHE_KEY.format(key_date=cache_key_date)
