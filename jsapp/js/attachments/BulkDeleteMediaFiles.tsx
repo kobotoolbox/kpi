@@ -6,7 +6,6 @@ import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userHasPermForSubmission } from '#/components/permissions/utils'
 import { getMediaCount } from '#/components/submissions/submissionUtils'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
-import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { notify, removeDefaultUuidPrefix } from '#/utils'
 import { useRemoveBulkAttachments } from './attachmentsQuery'
 
@@ -18,17 +17,11 @@ interface BulkDeleteMediaFilesProps {
 }
 
 export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
-  const isFeatureEnabled = useFeatureFlag(FeatureFlag.removingAttachmentsEnabled)
-
   const [opened, { open, close }] = useDisclosure(false)
   const [isDeletePending, setIsDeletePending] = useState(false)
   const [warningAcknowledged, setWarningAcknowledged] = useState(false)
 
   const removeBulkAttachments = useRemoveBulkAttachments(props.asset.uid)
-
-  if (!isFeatureEnabled) {
-    return null
-  }
 
   // Filter submissions based on partial permissions
   const filteredSubmissions = props.selectedSubmissions.filter((submission) =>
