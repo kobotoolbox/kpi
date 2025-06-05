@@ -1,11 +1,13 @@
 import { Anchor, Box, Button, Checkbox, FocusTrap, Group, Modal, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useState } from 'react'
+import { actions } from '#/actions'
+import { handleApiFail } from '#/api'
 import Alert from '#/components/common/alert'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userHasPermForSubmission } from '#/components/permissions/utils'
 import { getMediaCount } from '#/components/submissions/submissionUtils'
-import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
+import type { AssetResponse, FailResponse, SubmissionResponse } from '#/dataInterface'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { notify, removeDefaultUuidPrefix } from '#/utils'
 import { useRemoveBulkAttachments } from './attachmentsQuery'
@@ -43,6 +45,8 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
 
     try {
       await removeBulkAttachments.mutateAsync(selectedRootUuids)
+      // Prompt table to refresh submission list
+      actions.resources.refreshTableSubmissions()
       handleCloseModal()
       notify(
         t('Media files from ##number_of_selected_submissions## submission(s) have been deleted').replace(
@@ -51,7 +55,7 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
         ),
       )
     } catch (error) {
-      notify(t('An error occurred while removing the attachments'), 'error')
+      handleApiFail(error as FailResponse)
     } finally {
       setIsDeletePending(false)
     }
