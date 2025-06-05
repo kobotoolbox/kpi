@@ -930,7 +930,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         form_replace_log = log_query.filter(action=AuditAction.REPLACE_FORM).first()
         self.assertEqual(form_replace_log.object_id, self.asset.id)
         self._check_common_metadata(
-            form_replace_log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE
+            form_replace_log.metadata,
+            PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         self.assertEqual(
             form_replace_log.metadata['latest_version_uid'],
@@ -1009,7 +1011,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(log_query.count(), 1)
         log = log_query.first()
-        self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log.object_id, self.asset.id)
 
     @data(

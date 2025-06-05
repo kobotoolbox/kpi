@@ -1,32 +1,76 @@
+from ddt import data, ddt, unpack
+from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models import Asset
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
 
-class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
+@ddt
+class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
+    def setUp(self):
+        self.client.login(username='someuser', password='someuser')
+        cache.clear()
+        self.url = reverse(
+            self._get_endpoint('organizations-service-usage'),
+            kwargs={'id': self.organization.id}
+        )
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = cls.anotheruser.organization
+        cls.organization.mmo_override = True
+        cls.organization.save(update_fields=['mmo_override'])
+        cls.organization.add_user(cls.someuser, is_admin=True)
+
+        # Alice is a non-admin member of anotheruser's organization
+        alice = User.objects.create_user(
+            username='alice', password='alice', email='alice@alice.com'
+        )
+        cls.organization.add_user(alice, is_admin=False)
+
+        # bob is external to anotheruser's organization
+        User.objects.create_user(
+            username='bob', password='bob', email='bob@bob.com'
+        )
+
     def test_anonymous_user(self):
         """
         Test that the endpoint is forbidden to anonymous user
         """
         self.client.logout()
-        url = reverse(self._get_endpoint('service-usage-list'))
-        response = self.client.get(url)
+        response = self.client.get(self.url)
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
+    @data(
+        ('someuser', status.HTTP_200_OK),
+        ('anotheruser', status.HTTP_200_OK),
+        ('alice', status.HTTP_200_OK),
+        ('bob', status.HTTP_404_NOT_FOUND),
+    )
+    @unpack
+    def test_permissions(self, username, expected_status_code):
+        user = User.objects.get(username=username)
+        self.client.force_login(user)
+
+        response = self.client.get(self.url)
+        assert response.status_code == expected_status_code
+
     def test_check_api_response(self):
         """
-        Test the endpoint aggregates all data correctly
+        Test endpoint returns accurate data for all org members
         """
+
         self._create_and_set_asset()
         self.add_nlp_trackers()
         self.add_submissions(count=1)
 
-        url = reverse(self._get_endpoint('service-usage-list'))
-        response = self.client.get(url)
+        response = self.client.get(self.url)
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data['total_submission_count']['current_period'] == 1
@@ -48,8 +92,7 @@ class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
         self._create_and_set_asset()
         self.add_submissions()
 
-        url = reverse(self._get_endpoint('service-usage-list'))
-        response = self.client.get(url)
+        response = self.client.get(self.url)
         assert response.data['total_submission_count']['current_period'] == 3
         assert response.data['total_submission_count']['all_time'] == 3
         assert response.data['total_storage_bytes'] == (
@@ -73,9 +116,7 @@ class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
                 asset.deployment.xform.pending_delete = True
                 asset.deployment.xform.save(update_fields=['pending_delete'])
 
-        # Retry endpoint
-        url = reverse(self._get_endpoint('service-usage-list'))
-        response = self.client.get(url)
+        response = self.client.get(self.url)
 
         assert response.data['total_submission_count']['current_period'] == 3
         assert response.data['total_submission_count']['all_time'] == 3
@@ -85,9 +126,7 @@ class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
         """
         Test the endpoint functions when assets have no data
         """
-        self.client.login(username='anotheruser', password='anotheruser')
-        url = reverse(self._get_endpoint('service-usage-list'))
-        response = self.client.get(url)
+        response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data['total_submission_count']['current_period'] == 0
         assert response.data['total_submission_count']['all_time'] == 0
@@ -118,9 +157,7 @@ class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
             owner=self.anotheruser,
             asset_type='survey',
         )
-        self.client.login(username='anotheruser', password='anotheruser')
-        url = reverse(self._get_endpoint('service-usage-list'))
-        response = self.client.get(url)
+        response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data['total_submission_count']['current_period'] == 0
         assert response.data['total_submission_count']['all_time'] == 0

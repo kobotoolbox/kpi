@@ -1313,9 +1313,14 @@ CELERY_BEAT_SCHEDULE = {
     },
     'mass-emails-send': {
         'task': 'kobo.apps.mass_emails.tasks.send_emails',
-        'schedule': crontab(minute=0),
+        'schedule': crontab(minute=1),
         'options': {'queue': 'kpi_queue'},
     },
+    'mass-emails-enqueue-records': {
+        'task': 'kobo.apps.mass_emails.tasks.generate_mass_email_user_lists',
+        'schedule': crontab(minute=0),
+        'options': {'queue': 'kpi_queue'},
+    }
 }
 
 
@@ -1424,6 +1429,11 @@ MASS_EMAILS_CONDENSE_SEND = env.bool('MASS_EMAILS_CONDENSE_SEND', False)
 if MASS_EMAILS_CONDENSE_SEND:
     CELERY_BEAT_SCHEDULE['mass-emails-send'] = {
         'task': 'kobo.apps.mass_emails.tasks.send_emails',
+        'schedule': crontab(minute='1-59/5'),
+        'options': {'queue': 'kpi_queue'},
+    }
+    CELERY_BEAT_SCHEDULE['mass-emails-enqueue-records'] = {
+        'task': 'kobo.apps.mass_emails.tasks.generate_mass_email_user_lists',
         'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_queue'},
     }

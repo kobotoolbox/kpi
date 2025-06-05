@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react'
 
-import { OneTimeAddOnRow } from '#/account/addOns/oneTimeAddOnRow.component'
+import { AddOnProductRow } from '#/account/addOns/addOnProductRow.component'
 import type { Organization } from '#/account/organization/organizationQuery'
 import type { OneTimeAddOn, Price, Product, SubscriptionInfo } from '#/account/stripe.types'
 import { isAddonProduct } from '#/account/stripe.utils'
@@ -24,7 +24,6 @@ const AddOnList = (props: {
 }) => {
   const [subscribedAddOns, setSubscribedAddOns] = useState<SubscriptionInfo[]>([])
   const [subscribedPlans, setSubscribedPlans] = useState<SubscriptionInfo[]>([])
-  const [activeSubscriptions, setActiveSubscriptions] = useState<SubscriptionInfo[]>([])
   const [addOnProducts, setAddOnProducts] = useState<Product[]>([])
   const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext)
   const oneTimeAddOnSubscriptions = oneTimeAddOnsContext.oneTimeAddOns
@@ -55,7 +54,6 @@ const AddOnList = (props: {
     () => {
       setSubscribedAddOns(subscriptionStore.addOnsResponse)
       setSubscribedPlans(subscriptionStore.planResponse)
-      setActiveSubscriptions(subscriptionStore.activeSubscriptions)
     },
     [],
   )
@@ -147,24 +145,23 @@ const AddOnList = (props: {
         </caption>
         <tbody>
           {showRecurringAddons && (
-            <OneTimeAddOnRow
+            <AddOnProductRow
               key={recurringAddOnProducts.map((product) => product.id).join('-')}
               products={recurringAddOnProducts}
               isBusy={props.isBusy}
               setIsBusy={props.setIsBusy}
               subscribedAddOns={subscribedAddOns}
-              activeSubscriptions={activeSubscriptions}
               organization={props.organization}
+              isRecurring
             />
           )}
           {!!oneTimeAddOnProducts.length && (
-            <OneTimeAddOnRow
+            <AddOnProductRow
               key={oneTimeAddOnProducts.map((product) => product.id).join('-')}
               products={oneTimeAddOnProducts}
               isBusy={props.isBusy}
               setIsBusy={props.setIsBusy}
               subscribedAddOns={subscribedAddOns}
-              activeSubscriptions={activeSubscriptions}
               organization={props.organization}
             />
           )}

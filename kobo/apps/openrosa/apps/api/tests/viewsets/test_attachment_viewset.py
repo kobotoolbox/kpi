@@ -352,7 +352,9 @@ class TestAttachmentViewSet(TestAbstractViewSet):
             'instance': instance.pk,
             'mimetype': attachment.mimetype,
             'filename': attachment.media_file.name,
+            'media_file_basename': attachment.media_file_basename,
             'uid': attachment.uid,
+            'is_deleted': False,
         }
         request = self.factory.get('/', **self.extra)
         response = self.list_view(request, pk=attachment.pk)
@@ -372,7 +374,9 @@ class TestAttachmentViewSet(TestAbstractViewSet):
             'instance': expected['instance'],
             'mimetype': expected['mimetype'],
             'filename': expected['filename'],
+            'media_file_basename': attachment.media_file_basename,
             'uid': attachment.uid,
+            'is_deleted': expected['is_deleted'],
         }
 
         instance_response = self.client.get(
