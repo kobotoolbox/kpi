@@ -16,6 +16,7 @@ import SortableProjectColumnHeader from '#/projects/projectsTable/sortableProjec
 import { ROUTES } from '#/router/routerConstants'
 import { convertSecondsToMinutes } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
+import { useTrackingPeriod } from './useTrackingPeriod'
 import { UsageContext } from './useUsage.hook'
 
 type ButtonType = 'back' | 'forward'
@@ -33,6 +34,7 @@ const ProjectBreakdown = () => {
   const [loading, setLoading] = useState(true)
   const [usage] = useContext(UsageContext)
   const orgQuery = useOrganizationQuery()
+  const trackingPeriod = useTrackingPeriod()
 
   useEffect(() => {
     async function fetchData(orgId: string) {
@@ -151,7 +153,7 @@ const ProjectBreakdown = () => {
             <div className={styles.intervalBannerText}>
               {t(
                 'Submissions, transcription minutes, and translation characters reflect usage for the current ##INTERVAL## based on your plan settings.',
-              ).replace('##INTERVAL##', usage.trackingPeriod)}
+              ).replace('##INTERVAL##', trackingPeriod)}
             </div>
           </div>
           <Button size='s' type='text' startIcon='close' onClick={dismissIntervalBanner} />

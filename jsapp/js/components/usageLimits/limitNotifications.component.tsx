@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react'
 
 import { Cookies } from 'react-cookie'
 import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
+import { useTrackingPeriod } from '#/account/usage/useTrackingPeriod'
 import { UsageContext } from '#/account/usage/useUsage.hook'
 import LimitBanner from '#/components/usageLimits/overLimitBanner.component'
 import LimitModal from '#/components/usageLimits/overLimitModal.component'
@@ -21,6 +22,7 @@ const LimitNotifications = ({ useModal = false, accountPage = false }: LimitNoti
   const [stripeEnabled, setStripeEnabled] = useState(false)
 
   const [usage] = useContext(UsageContext)
+  const trackingPeriod = useTrackingPeriod()
   const limits = useExceedingLimits()
 
   const orgQuery = useOrganizationQuery()
@@ -60,23 +62,13 @@ const LimitNotifications = ({ useModal = false, accountPage = false }: LimitNoti
   return (
     <>
       {dismissed && (
-        <LimitBanner interval={usage.trackingPeriod} limits={limits.exceedList} accountPage={Boolean(accountPage)} />
+        <LimitBanner interval={trackingPeriod} limits={limits.exceedList} accountPage={Boolean(accountPage)} />
       )}
       {!limits.exceedList.length && (
-        <LimitBanner
-          warning
-          interval={usage.trackingPeriod}
-          limits={limits.warningList}
-          accountPage={Boolean(accountPage)}
-        />
+        <LimitBanner warning interval={trackingPeriod} limits={limits.warningList} accountPage={Boolean(accountPage)} />
       )}
       {useModal && (
-        <LimitModal
-          show={showModal}
-          limits={limits.exceedList}
-          interval={usage.trackingPeriod}
-          dismissed={modalDismissed}
-        />
+        <LimitModal show={showModal} limits={limits.exceedList} interval={trackingPeriod} dismissed={modalDismissed} />
       )}
     </>
   )

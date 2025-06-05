@@ -3,6 +3,7 @@ import React, { useContext, useMemo, useState } from 'react'
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
 import { UsageLimitTypes } from '#/account/stripe.types'
+import { useTrackingPeriod } from '#/account/usage/useTrackingPeriod'
 import { UsageContext } from '#/account/usage/useUsage.hook'
 import Button from '#/components/common/button'
 import LanguageSelector, { resetAllLanguageSelectors } from '#/components/languages/languageSelector'
@@ -20,6 +21,7 @@ export default function StepConfig() {
   const limits = useExceedingLimits()
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
   const isOverLimit = useMemo(() => limits.exceedList.includes(UsageLimitTypes.TRANSCRIPTION), [limits.exceedList])
+  const trackingPeriod = useTrackingPeriod()
 
   function dismissLimitBlockModal() {
     setIsLimitBlockModalOpen(false)
@@ -117,7 +119,7 @@ export default function StepConfig() {
             isModalOpen={isLimitBlockModalOpen}
             usageType={UsageLimitTypes.TRANSCRIPTION}
             dismissed={dismissLimitBlockModal}
-            interval={usage.trackingPeriod}
+            interval={trackingPeriod}
           />
         </div>
       </footer>
