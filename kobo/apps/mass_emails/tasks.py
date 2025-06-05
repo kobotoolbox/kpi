@@ -310,17 +310,13 @@ def send_emails():
     today = timezone.now()
     cache_key_date = MassEmailSender.get_cache_key_date(today)
     cache_key = PROCESSED_EMAILS_CACHE_KEY.format(key_date=cache_key_date)
-    cached_data = cache.get(cache_key, [])
-    processed_configs = set(cached_data)
-    all_active_email_ids = MassEmailConfig.objects.filter(
-        live=True, date_created__lt=cache_key_date
-    ).values_list('id', flat=True)
-
-    if not set(all_active_email_ids) <= processed_configs:
+    cached_data = cache.get(cache_key, None)
+    if cached_data is None:
         logging.info(
             'Skipping send emails task because we have not yet generated send lists'
         )
         return
+
     sender = MassEmailSender()
     sender.send_day_emails()
 
@@ -369,11 +365,11 @@ def generate_mass_email_user_lists():
     email_configs = MassEmailConfig.objects.filter(
         date_created__lt=cache_key_date, live=True
     )
+    if len(cached_data) > 0:
+        logging.info('Already enqueued records for today.')
+        return
 
     for email_config in email_configs:
-        if email_config.id in processed_configs:
-            continue
-
         email_records = MassEmailRecord.objects.filter(
             email_job__email_config=email_config,
         )
