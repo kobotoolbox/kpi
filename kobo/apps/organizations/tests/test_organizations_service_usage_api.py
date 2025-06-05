@@ -1,10 +1,13 @@
+import pytest
 from ddt import data, ddt, unpack
+from django.conf import settings
 from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.constants import UsageType
 from kpi.models import Asset
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
@@ -34,9 +37,7 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         cls.organization.add_user(alice, is_admin=False)
 
         # bob is external to anotheruser's organization
-        User.objects.create_user(
-            username='bob', password='bob', email='bob@bob.com'
-        )
+        User.objects.create_user(username='bob', password='bob', email='bob@bob.com')
 
     def test_anonymous_user(self):
         """
@@ -61,7 +62,10 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         response = self.client.get(self.url)
         assert response.status_code == expected_status_code
 
-    def test_check_api_response(self):
+    @override_settings(
+        STRIPE_ENABLED=False,
+    )
+    def test_check_api_response_without_stripe(self):
         """
         Test endpoint returns accurate data for all org members
         """
@@ -80,6 +84,72 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         assert response.data['total_nlp_usage']['mt_characters_current_period'] == 5473
         assert response.data['total_nlp_usage']['mt_characters_all_time'] == 6726
         assert response.data['total_storage_bytes'] == self.expected_file_size()
+
+        # Without stripe, there are no usage limits and
+        # therefore balances should all be empty
+        for usage_type, _ in UsageType.choices:
+            assert response.data['balances'][usage_type] is None
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_check_api_response_with_stripe(self):
+        """
+        Test the endpoint aggregates usage balances correctly when stripe is enabled
+        """
+        from kobo.apps.stripe.tests.utils import generate_plan_subscription
+
+        standard_limit = 5
+        storage_limit = 1
+        standard_usage = 1
+        product_metadata = {
+            'mmo_enabled': 'true',
+            'plan_type': 'enterprise',
+            'asr_seconds_limit': standard_limit,
+            'mt_characters_limit': standard_limit,
+            'submission_limit': standard_limit,
+            'storage_bytes_limit': storage_limit,
+        }
+        generate_plan_subscription(self.organization, product_metadata)
+
+        self._create_and_set_asset()
+        self.add_nlp_trackers(standard_usage, standard_usage, 0, 0)
+        self.add_submissions(count=1)
+
+        url = reverse(self._get_endpoint('service-usage-list'))
+        response = self.client.get(url)
+
+        for usage_type in [
+            UsageType.SUBMISSION,
+            UsageType.ASR_SECONDS,
+            UsageType.MT_CHARACTERS,
+        ]:
+            assert (
+                response.data['balances'][usage_type]['effective_limit']
+                == standard_limit
+            )
+            assert (
+                response.data['balances'][usage_type]['balance_value']
+                == standard_limit - standard_usage
+            )
+            assert (
+                response.data['balances'][usage_type]['balance_percent']
+                == standard_usage / standard_limit * 100
+            )
+            assert not response.data['balances'][usage_type]['exceeded']
+        assert (
+            response.data['balances'][UsageType.STORAGE_BYTES]['effective_limit']
+            == storage_limit
+        )
+        assert (
+            response.data['balances'][UsageType.STORAGE_BYTES]['balance_value']
+            == storage_limit - self.expected_file_size()
+        )
+        assert (
+            response.data['balances'][UsageType.STORAGE_BYTES]['balance_percent']
+            == int(self.expected_file_size() / storage_limit) * 100
+        )
+        assert response.data['balances'][UsageType.STORAGE_BYTES]['exceeded']
 
     def test_multiple_forms(self):
         """
