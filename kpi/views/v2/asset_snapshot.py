@@ -3,8 +3,11 @@ import copy
 import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
+from drf_spectacular.openapi import AutoSchema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
@@ -22,30 +25,252 @@ from kpi.renderers import (
     OpenRosaManifestRenderer,
     XMLRenderer,
 )
+from kpi.schema_extensions.v2.asset_snapshots.schema import (
+    ASSET_SNAPSHOT_DETAILS_SCHEMA,
+    ASSET_SNAPSHOT_SOURCE_SCHEMA,
+)
+from kpi.schema_extensions.v2.asset_snapshots.serializers import (
+    AssetSnapshotCreateRequest,
+    AssetSnapshotResponse,
+)
+from kpi.schema_extensions.v2.openrosa.serializers import (
+    OpenRosaFormListResponse,
+    OpenRosaManifestResponse,
+    OpenRosaSubmissionRequest,
+    OpenRosaSubmissionResponse,
+    OpenRosaXFormResponse,
+)
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
 from kpi.tasks import enketo_flush_cached_preview
+from kpi.utils.schema_extensions.examples import generate_example_from_schema
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_201_created_response,
+    open_api_204_empty_response,
+    open_api_302_found,
+)
 from kpi.utils.xml import XMLFormWithDisclaimer
-from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
 
+class AssetSnapshotSchema(AutoSchema):
+    """
+    Custom schema used to inject OpenAPI examples for AssetSnapshotViewSet at runtime.
+
+    We cannot use `@extend_schema(..., examples=...)` or `@extend_schema_view(...)`
+    directly for these examples because the values rely on variables
+    (e.g., `ASSET_URL_SCHEMA`) that trigger Django's URL resolver via `reverse()`.
+    Since those decorators are evaluated at module import time—before the full Django
+    application and URL config are guaranteed to be loaded—this leads to circular
+    import errors.
+
+    By overriding `get_operation()` here, we defer the evaluation of those dynamic
+    values until the OpenAPI schema is being generated (e.g., via `/api/v2/schema/`),
+    when all apps and routes are fully initialized. This ensures a clean, safe injection
+    of complex or reverse-dependent examples.
+
+    This class matches the `operationId` for the `POST /asset_snapshots/` endpoint
+    to inject multiple request examples, such as referencing an asset or a source.
+    """
+
+    def get_operation(self, *args, **kwargs):
+
+        from kpi.schema_extensions.v2.assets.schema import ASSET_URL_SCHEMA
+
+        operation = super().get_operation(*args, **kwargs)
+
+        if not operation:
+            return None
+
+        if operation.get('operationId') == 'api_v2_asset_snapshots_create':
+
+            operation['requestBody']['content']['application/json']['examples'] = {
+                'UsingAsset': {
+                    'value': {
+                        'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
+                        'details': generate_example_from_schema(
+                            ASSET_SNAPSHOT_DETAILS_SCHEMA
+                        ),
+                    },
+                    'summary': 'Using asset',
+                },
+                'UsingSource': {
+                    'value': {
+                        'source': generate_example_from_schema(
+                            ASSET_SNAPSHOT_SOURCE_SCHEMA
+                        ),
+                        'details': generate_example_from_schema(
+                            ASSET_SNAPSHOT_DETAILS_SCHEMA
+                        ),
+                    },
+                    'summary': 'Using source',
+                },
+            }
+        return operation
+
+
+@extend_schema_view(
+    # description for list
+    list=extend_schema(
+        description=read_md('kpi', 'asset_snapshots/list.md'),
+        request=None,
+        responses=open_api_200_ok_response(
+            AssetSnapshotResponse,
+            validate_payload=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+        ),
+        tags=['Asset Snapshots'],
+    ),
+    # description for get item
+    retrieve=extend_schema(
+        description=read_md('kpi', 'asset_snapshots/retrieve.md'),
+        responses=open_api_200_ok_response(
+            AssetSnapshotResponse,
+            validate_payload=False,
+            raise_access_forbidden=False,
+        ),
+        tags=['Asset Snapshots'],
+    ),
+    # description for post
+    create=extend_schema(
+        description=read_md('kpi', 'asset_snapshots/create.md'),
+        request={'application/json': AssetSnapshotCreateRequest},
+        responses=open_api_201_created_response(
+            AssetSnapshotResponse,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+        ),
+        tags=['Asset Snapshots'],
+    ),
+    # description for delete
+    destroy=extend_schema(
+        description=read_md('kpi', 'asset_snapshots/delete.md'),
+        responses=open_api_204_empty_response(
+            validate_payload=False,
+            raise_access_forbidden=False,
+        ),
+        tags=['Asset Snapshots'],
+    ),
+    update=extend_schema(
+        exclude=True,
+    ),
+    partial_update=extend_schema(
+        exclude=True,
+    ),
+    form_list=extend_schema(
+        description=read_md('kpi', 'openrosa/form_list.md'),
+        responses=open_api_200_ok_response(
+            OpenRosaFormListResponse,
+            media_type='application/xml',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+        ),
+        tags=['OpenRosa'],
+    ),
+    manifest=extend_schema(
+        description=read_md('kpi', 'openrosa/manifest.md'),
+        responses=open_api_200_ok_response(
+            OpenRosaManifestResponse,
+            media_type='application/xml',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+        ),
+        tags=['OpenRosa'],
+    ),
+    submission=extend_schema(
+        description=read_md('kpi', 'openrosa/submission.md'),
+        request={'multipart/form-data': OpenRosaSubmissionRequest},
+        responses=open_api_201_created_response(
+            OpenRosaSubmissionResponse,
+            media_type='text/xml',
+            validate_payload=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+        ),
+        tags=['OpenRosa'],
+    ),
+    preview=extend_schema(
+        description=read_md('kpi', 'asset_snapshots/preview.md'),
+        responses=open_api_302_found(
+            media_type='text/html',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+        ),
+        tags=['Asset Snapshots'],
+    ),
+    xform=extend_schema(
+        description=read_md('kpi', 'asset_snapshots/xform.md'),
+        responses=open_api_200_ok_response(
+            OpenRosaXFormResponse,
+            media_type='application/xml',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+        ),
+        tags=['Asset Snapshots'],
+    ),
+    xml_with_disclaimer=extend_schema(
+        description=read_md('kpi', 'asset_snapshots/xml_with_disclaimer.md'),
+        responses=open_api_200_ok_response(
+            OpenRosaXFormResponse,
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+        ),
+        tags=['Asset Snapshots'],
+    ),
+)
 class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet):
 
     """
-    <span class='label label-danger'>TODO Documentation for this endpoint</span>
+    ViewSet for managing the current user's asset snapshots
 
-    ### CURRENT ENDPOINT
+    Available actions:
+    - list          → GET /api/v2/asset_snapshots/
+    - create        → POST /api/v2/asset_snapshots/
+    - retrieve      → GET /api/v2/asset_snapshots/{uid}/
+    - patch         → PATCH /api/v2/asset_snapshots/{uid}/
+    - delete        → DELETE /api/v2/asset_snapshots/{uid}/
+    - xform         → GET /api/v2/asset_snapshots/{uid}/xform/
+    - xml_with_disclaimer       → GET /api/v2/asset_snapshots/{uid}/xml_with_disclaimer/
+    - preview       → GET /api/v2/asset_snapshots/{uid}/preview/
+
+    Documentation:
+    - docs/api/v2/asset_snapshots/list.md
+    - docs/api/v2/asset_snapshots/create.md
+    - docs/api/v2/asset_snapshots/retrieve.md
+    - docs/api/v2/asset_snapshots/patch.md
+    - docs/api/v2/asset_snapshots/delete.md
+    - docs/api/v2/asset_snapshots/xform.md
+    - docs/api/v2/asset_snapshots/xml_with_disclaimer.md
+    - docs/api/v2/asset_snapshots/preview.md
+
+
+
+    OpenRosa Endpoints Documentation
+    - formlist       → GET /api/v2/asset_snapshots/{uid}/formList
+    - docs/api/v2/openrosa/form_list.md
+
+    - manifest       → GET /api/v2/asset_snapshots/{uid}/manifest
+    - docs/api/v2/openrosa/manifest.md
+
+    - submission     → GET /api/v2/asset_snapshots/{uid}/submission
+    - docs/api/v2/openrosa/submission.md
     """
 
+    schema = AssetSnapshotSchema()
     serializer_class = AssetSnapshotSerializer
     lookup_field = 'uid'
     queryset = AssetSnapshot.objects.all()
     permission_classes = [AssetSnapshotPermission]
 
-    renderer_classes = NoUpdateModelViewSet.renderer_classes + [
-        XMLRenderer,
-    ]
+    renderer_classes = [JSONRenderer]
     log_type = AuditType.PROJECT_HISTORY
 
     @property
@@ -116,6 +341,11 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
         self.check_object_permissions(self.request, snapshot)
 
         return self._add_disclaimer(snapshot)
+
+    def get_renderers(self):
+        if self.action == 'retrieve':
+            return [JSONRenderer(), XMLRenderer()]
+        return super().get_renderers()
 
     @action(
         detail=True,
@@ -211,7 +441,6 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
 
         asset_snapshot = self.get_object()
         xml_submission_file = request.data['xml_submission_file']
-
         # Remove 'xml_submission_file' since it is already handled
         request.FILES.pop('xml_submission_file')
         try:
@@ -253,7 +482,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
                                                                  **options)
         return Response(response_data, template_name='highlighted_xform.html')
 
-    @action(detail=True)
+    @action(detail=True, renderer_classes=[XMLRenderer])
     def xml_with_disclaimer(self, request, *args, **kwargs):
         """
         Same behaviour as `retrieve()` from DRF, but makes it easier to target

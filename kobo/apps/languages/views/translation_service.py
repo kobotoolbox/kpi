@@ -1,9 +1,14 @@
 # coding: utf-8
-from .base import BaseViewSet
+from drf_spectacular.utils import extend_schema
+
 from ..models.translation import TranslationService
 from ..serializers import TranslationServiceSerializer
+from .base import BaseViewSet
 
 
+@extend_schema(
+    tags=['translation-services'],
+)
 class TranslationServiceViewSet(BaseViewSet):
     """
         Lists the translation services accessible to requesting (authenticated) user.

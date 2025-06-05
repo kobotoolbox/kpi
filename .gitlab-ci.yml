@@ -48,6 +48,8 @@ deploy-staging:
       if [ "$CI_COMMIT_BRANCH" = "main" ]; then
         helm -n kobo-dev upgrade staging-main kobo/kobo --atomic --set-string kpi.image.tag=${CI_COMMIT_SHORT_SHA} --reuse-values
         helm -n kobo-dev upgrade staging-nobill kobo/kobo --atomic --set-string kpi.image.tag=${CI_COMMIT_SHORT_SHA} --reuse-values
+      elif [ "$CI_COMMIT_BRANCH" = "feature/api-documentation" ]; then
+        helm -n kobo-dev upgrade docs kobo/kobo --atomic --set-string kpi.image.tag=${CI_COMMIT_SHORT_SHA} --reuse-values        
       else
         helm -n kobo-dev upgrade --install $BRANCH_TITLE kobo/kobo --atomic --set-string kpi.image.tag=${CI_COMMIT_SHORT_SHA} --reuse-values
       fi
