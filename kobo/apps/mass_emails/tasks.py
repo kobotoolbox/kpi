@@ -373,10 +373,11 @@ def generate_mass_email_user_lists():
         date_created__lt=cache_key_date, live=True
     )
 
-    for email_config in email_configs:
-        if email_config.id in processed_configs:
-            continue
+    if len(processed_configs) > 1:
+        logging.info('Already generated sends lists for today.')
+        return
 
+    for email_config in email_configs:
         email_records = MassEmailRecord.objects.filter(
             email_job__email_config=email_config,
         )
