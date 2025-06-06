@@ -306,21 +306,16 @@ def send_emails():
     Send the emails for the current day. It schedules the emails if they have not
     been scheduled yet.
     """
-
     today = timezone.now()
     cache_key_date = MassEmailSender.get_cache_key_date(today)
     cache_key = PROCESSED_EMAILS_CACHE_KEY.format(key_date=cache_key_date)
-    cached_data = cache.get(cache_key, [])
-    processed_configs = set(cached_data)
-    all_active_email_ids = MassEmailConfig.objects.filter(live=True).values_list(
-        'id', flat=True
-    )
-
-    if set(all_active_email_ids) != processed_configs:
+    cached_data = cache.get(cache_key, None)
+    if cached_data is None:
         logging.info(
             'Skipping send emails task because we have not yet generated send lists'
         )
         return
+
     sender = MassEmailSender()
     sender.send_day_emails()
 
@@ -337,16 +332,13 @@ def get_users_for_config(email_config):
     users = USER_QUERIES.get(email_config.query, lambda: [])()
     if email_config.frequency == -1:
         return users
+    day_boundary = MassEmailSender.get_cache_key_date(now)
 
-    today_midnight = now.replace(
-        hour=0, minute=0, second=0, microsecond=0
-    )
-    cutoff_date = today_midnight - timedelta(days=email_config.frequency-1)
+    cutoff_date = day_boundary - timedelta(days=email_config.frequency - 1)
     if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', False):
         # if we're condensing sends, pretend 15 minutes is a day
-        date_boundary = MassEmailSender.get_cache_key_date(now)
         delta = (email_config.frequency-1)*15
-        cutoff_date = date_boundary - timedelta(minutes=delta)
+        cutoff_date = day_boundary - timedelta(minutes=delta)
 
     recent_recipients = set(
         MassEmailRecord.objects.filter(
@@ -372,11 +364,11 @@ def generate_mass_email_user_lists():
     email_configs = MassEmailConfig.objects.filter(
         date_created__lt=cache_key_date, live=True
     )
+    if len(cached_data) > 0:
+        logging.info('Already enqueued records for today.')
+        return
 
     for email_config in email_configs:
-        if email_config.id in processed_configs:
-            continue
-
         email_records = MassEmailRecord.objects.filter(
             email_job__email_config=email_config,
         )
