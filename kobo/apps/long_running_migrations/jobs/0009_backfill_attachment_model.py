@@ -112,6 +112,12 @@ def update_mongo(attachment_ids_per_instance: dict):
 
         for attachment in doc['_attachments']:
 
+            try:
+                attachment['id']
+            except (TypeError, KeyError):
+                # Ignore attachments that don't conform to the expected structure
+                continue
+
             if (
                 'uid' not in attachment
                 and attachment['id'] in attachment_ids_per_instance[doc['_id']]
