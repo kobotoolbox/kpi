@@ -6,7 +6,6 @@ import Icon from '#/components/common/icon'
 import { userHasPermForSubmission } from '#/components/permissions/utils'
 import { QuestionTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
-import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { notify } from '#/utils'
 import styles from './AttachmentActionsDropdown.module.scss'
 import { useRemoveAttachment } from './attachmentsQuery'
@@ -31,7 +30,6 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
   const [isDeletePending, setIsDeletePending] = useState<boolean>(false)
   const removeAttachmentMutation = useRemoveAttachment(props.asset.uid)
-  const isFeatureEnabled = useFeatureFlag(FeatureFlag.removingAttachmentsEnabled)
 
   const attachment = props.submissionData._attachments.find((item) => item.uid === props.attachmentUid)
   if (!attachment) {
@@ -87,7 +85,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
           <Menu.Item component='a' href={attachment!.download_url} leftSection={<Icon name='download' />}>
             {t('Download')}
           </Menu.Item>
-          {isFeatureEnabled && userCanChangeSubmission && (
+          {userCanChangeSubmission && (
             <>
               <Menu.Divider />
               <Menu.Item
