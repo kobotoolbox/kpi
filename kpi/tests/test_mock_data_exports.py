@@ -1195,15 +1195,9 @@ class MockDataExports(MockDataExportsBase):
         media_url = submission['_attachments'][0]['download_url']
         expected_data = {
             asset_name: [
-                [
-                    'Submit an image',
-                    'Submit an image_is_deleted',
-                    'Submit an image_URL',
-                    '_uuid'
-                ],
+                ['Submit an image', 'Submit an image_URL', '_uuid'],
                 [
                     'audio_conversion_test_image.jpg',
-                    False,
                     media_url,
                     'f80be949-89b5-4af1-a42d-7d292b2bc0cd',
                 ],
