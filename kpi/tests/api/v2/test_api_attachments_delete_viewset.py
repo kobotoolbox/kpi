@@ -298,8 +298,7 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
         assert response.status_code == status.HTTP_202_ACCEPTED
         assert response.data == {'message': '6 attachments deleted'}
         assert AttachmentTrash.objects.count() == initial_trash_count + 6
-        for uid in self.attachment_uids:
-            assert not Attachment.objects.filter(uid=uid).exists()
+        assert not Attachment.objects.filter(uid__in=self.attachment_uids).exists()
 
     def test_bulk_delete_attachments_from_other_project_are_ignored(self):
         initial_trash_count = AttachmentTrash.objects.count()
@@ -391,8 +390,9 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
             ]
         }
         assert AttachmentTrash.objects.count() == initial_trash_count
-        for uid in self.attachment_uids:
-            assert not AttachmentTrash.objects.filter(uid=uid).exists()
+        assert not AttachmentTrash.objects.filter(
+            attachment_id__in=self.attachment_ids
+        ).exists()
 
     def test_bulk_delete_attachments_no_payload(self):
         response = self.client.delete(
@@ -411,7 +411,10 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
 
         for uid in self.attachment_uids:
             assert Attachment.objects.filter(uid=uid).exists()
-            assert not AttachmentTrash.objects.filter(uid=uid).exists()
+
+        assert not AttachmentTrash.objects.filter(
+            attachment_id__in=self.attachment_ids
+        ).exists()
 
     def test_bulk_delete_attachments_unauthenticated(self):
         self.client.logout()
@@ -459,8 +462,7 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
         )
         assert response.status_code == status.HTTP_202_ACCEPTED
         assert response.data == {'message': '6 attachments deleted'}
-        for uid in self.attachment_uids:
-            assert not Attachment.objects.filter(uid=uid).exists()
+        assert not Attachment.objects.filter(uid__in=self.attachment_uids).exists()
 
     def test_bulk_delete_attachments_with_partial_perms_accepted(self):
         user_partial_perms = User.objects.create_user(
