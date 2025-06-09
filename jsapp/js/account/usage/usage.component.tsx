@@ -149,6 +149,7 @@ export default function Usage() {
   }, [location])
 
   if (
+    !subscriptionData ||
     usageStatus.pending ||
     usageStatus.error ||
     !limits.isLoaded ||
