@@ -3,6 +3,7 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
+from drf_spectacular.utils import extend_schema
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import (
@@ -33,6 +34,9 @@ from kpi.utils.object_permission import get_user_permission_assignments_queryset
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
+@extend_schema(
+    tags=['permission-assignments'],
+)
 class AssetPermissionAssignmentViewSet(
     AuditLoggedViewSet,
     AssetNestedObjectViewsetMixin,

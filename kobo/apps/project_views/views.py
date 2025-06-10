@@ -4,6 +4,7 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models.query import QuerySet
 from django.http import Http404
+from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -25,6 +26,9 @@ from .models.project_view import ProjectView
 from .serializers import ProjectViewSerializer
 
 
+@extend_schema(
+    tags=['project-views'],
+)
 class ProjectViewViewSet(
     AssetViewSetListMixin, ObjectPermissionViewSetMixin, viewsets.ReadOnlyModelViewSet
 ):
