@@ -925,7 +925,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 },
             )
 
-    def test_export_creates_log(self):
+    @data(True, False)
+    def test_export_creates_log(self, anonymous_user):
         self.asset.deploy(backend='mock', active=True)
         request_data = {
             'fields_from_all_versions': True,
@@ -938,6 +939,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'xls_types_as_text': False,
             'include_media_url': True,
         }
+        if anonymous_user:
+            self.asset.assign_perm(perm=PERM_VIEW_SUBMISSIONS, user_obj=AnonymousUser())
+            self.client.logout()
         self._base_project_history_log_test(
             method=self.client.post,
             url=reverse(
@@ -1308,17 +1312,23 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # inherited partial permissions
         self.assertIn(
             {
-                'code': PERM_CHANGE_SUBMISSIONS,
+                'codename': PERM_CHANGE_SUBMISSIONS,
                 'filters': [{'_submitted_by': 'someuser'}],
             },
             added,
         )
         self.assertIn(
-            {'code': PERM_VIEW_SUBMISSIONS, 'filters': [{'_submitted_by': 'someuser'}]},
+            {
+                'codename': PERM_VIEW_SUBMISSIONS,
+                'filters': [{'_submitted_by': 'someuser'}],
+            },
             added,
         )
         self.assertIn(
-            {'code': PERM_ADD_SUBMISSIONS, 'filters': [{'_submitted_by': 'someuser'}]},
+            {
+                'codename': PERM_ADD_SUBMISSIONS,
+                'filters': [{'_submitted_by': 'someuser'}],
+            },
             added,
         )
 

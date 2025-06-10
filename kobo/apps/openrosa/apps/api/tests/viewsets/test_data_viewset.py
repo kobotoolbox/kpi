@@ -321,22 +321,26 @@ class TestDataViewSet(TestBase):
         dataid = self.xform.instances.all().order_by('id')[0].pk
 
         data = {
-            '_attachments': [{'download_url': self.attachment.secure_url(),
-                               'download_small_url': self.attachment.secure_url('small'),
-                               'download_medium_url': self.attachment.secure_url('medium'),
-                               'download_large_url': self.attachment.secure_url('large'),
-                               'mimetype': self.attachment.mimetype,
-                               'instance': self.attachment.instance.pk,
-                               'filename': self.attachment.media_file.name,
-                               'id': self.attachment.pk,
-                               'xform': self.xform.id}
-                              ],
+            '_attachments': [
+                {
+                    'download_url': self.attachment.secure_url(),
+                    'download_small_url': self.attachment.secure_url('small'),
+                    'download_medium_url': self.attachment.secure_url('medium'),
+                    'download_large_url': self.attachment.secure_url('large'),
+                    'mimetype': self.attachment.mimetype,
+                    'instance': self.attachment.instance.pk,
+                    'filename': self.attachment.media_file.name,
+                    'media_file_basename': self.attachment.media_file_basename,
+                    'id': self.attachment.pk,
+                    'uid': self.attachment.uid,
+                    'xform': self.xform.id,
+                }
+            ],
             '_geolocation': [None, None],
             '_xform_id_string': 'transportation_2011_07_25',
-            'transport/available_transportation_types_to_referral_facility':
-            'none',
+            'transport/available_transportation_types_to_referral_facility': 'none',
             '_status': 'submitted_via_web',
-            '_id': dataid
+            '_id': dataid,
         }
         response_first_element = sorted(response.data, key=lambda x: x['_id'])[0]
         self.assertEqual(dict(response_first_element, **data),

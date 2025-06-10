@@ -303,7 +303,7 @@ class TestAttachmentViewSet(TestAbstractViewSet):
             'IMG_2235.JPG'
         )
 
-        # Edit are only allowed with service account
+        # Edits are only allowed with service account
         with open(media_file_path, 'rb') as media_file:
             self._make_submission(
                 xml_path,
@@ -323,10 +323,10 @@ class TestAttachmentViewSet(TestAbstractViewSet):
         instance = self.xform.instances.first()
         attachment = instance.attachments.first()
 
-        # Validate previous attachment has been replaced but file still exists
+        # Validate previous attachment has been replaced but the file still exists
         soft_deleted_attachment_qs = Attachment.all_objects.filter(
             instance=instance,
-            deleted_at__isnull=False
+            delete_status__isnull=False
         )
         self.assertEqual(soft_deleted_attachment_qs.count(), 1)
         soft_deleted_attachment = soft_deleted_attachment_qs.first()
@@ -351,7 +351,9 @@ class TestAttachmentViewSet(TestAbstractViewSet):
             'xform': self.xform.pk,
             'instance': instance.pk,
             'mimetype': attachment.mimetype,
-            'filename': attachment.media_file.name
+            'filename': attachment.media_file.name,
+            'media_file_basename': attachment.media_file_basename,
+            'uid': attachment.uid,
         }
         request = self.factory.get('/', **self.extra)
         response = self.list_view(request, pk=attachment.pk)
@@ -370,7 +372,9 @@ class TestAttachmentViewSet(TestAbstractViewSet):
             'xform': expected['xform'],
             'instance': expected['instance'],
             'mimetype': expected['mimetype'],
-            'filename': expected['filename']
+            'filename': expected['filename'],
+            'media_file_basename': attachment.media_file_basename,
+            'uid': attachment.uid,
         }
 
         instance_response = self.client.get(

@@ -48,7 +48,7 @@ def pre_delete_attachment(instance, **kwargs):
     xform = attachment.instance.xform
     user_id = xform.user_id
 
-    if file_size and attachment.deleted_at is None:
+    if file_size and attachment.delete_status is None:
         update_storage_counters(xform.pk, user_id, -file_size)
 
     if only_update_counters or not (media_file_name := str(attachment.media_file)):

@@ -951,6 +951,7 @@ class ProjectHistoryLog(AuditLog):
         if action:
             # some actions on related objects do not need to be logged,
             # eg deleting a SubmissionExportTask
+            user = get_database_user(request.user)
             ProjectHistoryLog.objects.create(
-                user=request.user, object_id=object_id, action=action, metadata=metadata
+                user=user, object_id=object_id, action=action, metadata=metadata
             )

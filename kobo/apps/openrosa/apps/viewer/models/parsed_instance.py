@@ -453,9 +453,11 @@ def _get_attachments_from_instance(instance):
             attachment['download_{}_url'.format(suffix)] = a.secure_url(suffix)
         attachment['mimetype'] = a.mimetype
         attachment['filename'] = a.media_file.name
+        attachment['media_file_basename'] = a.media_file_basename
         attachment['instance'] = a.instance.pk
         attachment['xform'] = instance.xform.id
         attachment['id'] = a.id
+        attachment['uid'] = a.uid
         attachments.append(attachment)
 
     return attachments

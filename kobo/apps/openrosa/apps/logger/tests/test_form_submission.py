@@ -3,18 +3,18 @@ import re
 from unittest.mock import patch
 
 from django.http import Http404
-from django_digest.test import DigestAuth
 from django_digest.test import Client as DigestClient
+from django_digest.test import DigestAuth
 from rest_framework import status
 
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm
-from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
-from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
-from kobo.apps.openrosa.apps.logger.models import Instance, Attachment
+from kobo.apps.openrosa.apps.logger.models import Attachment, Instance
 from kobo.apps.openrosa.apps.logger.models.instance import InstanceHistory
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import clean_and_parse_xml
+from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
+from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.libs.utils.common_tags import GEOLOCATION
+from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 
 
 class TestFormSubmission(TestBase):
@@ -26,7 +26,7 @@ class TestFormSubmission(TestBase):
         TestBase.setUp(self)
         xls_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "../fixtures/tutorial/tutorial.xls"
+            '../fixtures/tutorial/tutorial.xls',
         )
         self._publish_xls_file_and_set_xform(xls_file_path)
 
@@ -51,7 +51,7 @@ class TestFormSubmission(TestBase):
 
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53.xml"
+            '../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53.xml',
         )
         with self.assertRaises(OSError):
             self._make_submission(xml_submission_file_path)
@@ -72,7 +72,7 @@ class TestFormSubmission(TestBase):
 
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53.xml"
+            '../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53.xml',
         )
         with self.assertRaises(OSError):
             self._make_submission(xml_submission_file_path)
@@ -90,7 +90,7 @@ class TestFormSubmission(TestBase):
         """
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53.xml"
+            '../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53.xml',
         )
 
         # Anonymous should authenticate when submit data to `/<username>/submission`
@@ -162,8 +162,8 @@ class TestFormSubmission(TestBase):
     def test_form_post_to_missing_form(self):
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "../fixtures/tutorial/instances/"
-            "tutorial_invalid_id_string_2012-06-27_11-27-53.xml"
+            '../fixtures/tutorial/instances/'
+            'tutorial_invalid_id_string_2012-06-27_11-27-53.xml',
         )
         self._make_submission(
             path=xml_submission_file_path, assert_success=False
@@ -176,13 +176,13 @@ class TestFormSubmission(TestBase):
         """
         xls_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "../fixtures/test_forms/survey_names/survey_names.xls"
+            '../fixtures/test_forms/survey_names/survey_names.xls',
         )
         self._publish_xls_file(xls_file_path)
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "../fixtures/test_forms/survey_names/instances/"
-            "survey_names_2012-08-17_11-24-53.xml"
+            '../fixtures/test_forms/survey_names/instances/'
+            'survey_names_2012-08-17_11-24-53.xml',
         )
 
         self._make_submission(xml_submission_file_path)
@@ -195,8 +195,11 @@ class TestFormSubmission(TestBase):
         """
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_unicode_submission.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_unicode_submission.xml',
         )
 
         # create a new user
@@ -215,8 +218,11 @@ class TestFormSubmission(TestBase):
         """
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_2012-06-27_11-27-53_w_uuid.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid.xml',
         )
 
         self._make_submission(xml_submission_file_path)
@@ -230,13 +236,19 @@ class TestFormSubmission(TestBase):
         """
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_2012-06-27_11-27-53_w_uuid.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid.xml',
         )
         duplicate_xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_2012-06-27_11-27-53_w_uuid_same_instanceID.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid_same_instanceID.xml',
         )
 
         pre_count = Instance.objects.count()
@@ -339,9 +351,7 @@ class TestFormSubmission(TestBase):
 
         # Test duplicate submission with the same attachment. No attachments added
         with open(media_file_path1, 'rb') as media_file:
-            self._make_submission(
-                xml_submission_file_path, media_file=media_file
-            )
+            self._make_submission(xml_submission_file_path, media_file=media_file)
         self.assertEqual(self.response.status_code, status.HTTP_202_ACCEPTED)
         self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
         # Validate the attachment is still the same
@@ -449,8 +459,11 @@ class TestFormSubmission(TestBase):
     def test_owner_can_edit_submissions(self):
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_2012-06-27_11-27-53_w_uuid.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid.xml',
         )
         num_instances_history = InstanceHistory.objects.count()
         num_instances = Instance.objects.count()
@@ -478,8 +491,11 @@ class TestFormSubmission(TestBase):
         # edited submission
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_2012-06-27_11-27-53_w_uuid_edited.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid_edited.xml',
         )
         self._make_submission(xml_submission_file_path)
         self.assertEqual(self.response.status_code, 201)
@@ -494,10 +510,10 @@ class TestFormSubmission(TestBase):
         query_args['count'] = False
         cursor = ParsedInstance.query_mongo(**query_args)
         record = cursor[0]
-        with open(xml_submission_file_path, "r") as f:
+        with open(xml_submission_file_path, 'r') as f:
             xml_str = f.read()
         xml_str = clean_and_parse_xml(xml_str).toxml()
-        edited_name = re.match(r"^.+?<name>(.+?)</name>", xml_str).groups()[0]
+        edited_name = re.match(r'^.+?<name>(.+?)</name>', xml_str).groups()[0]
         self.assertEqual(record['name'], edited_name)
 
     def test_submission_w_mismatched_uuid(self):
@@ -508,8 +524,11 @@ class TestFormSubmission(TestBase):
         # submit instance with uuid that would not match the forms
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_2012-06-27_11-27-53_w_xform_uuid.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_xform_uuid.xml',
         )
 
         self._make_submission(xml_submission_file_path)
@@ -522,8 +541,11 @@ class TestFormSubmission(TestBase):
         """
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_2012-06-27_11-27-53_w_xform_uuid.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_xform_uuid.xml',
         )
         with self.assertRaises(Http404):
             self._make_submission(path=xml_submission_file_path, username='')
@@ -533,8 +555,11 @@ class TestFormSubmission(TestBase):
         """
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_2012-06-27_11-27-53_bad_id_string.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_bad_id_string.xml',
         )
         self._make_submission(
             path=xml_submission_file_path, assert_success=False
@@ -552,8 +577,11 @@ class TestFormSubmission(TestBase):
         }
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_2012-06-27_11-27-53_w_uuid.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid.xml',
         )
 
         self._make_submission(xml_submission_file_path)
@@ -565,8 +593,11 @@ class TestFormSubmission(TestBase):
         # submit the edited instance
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_2012-06-27_11-27-53_w_uuid_edited.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid_edited.xml',
         )
         self._make_submission(xml_submission_file_path)
         self.assertEqual(self.response.status_code, 201)
@@ -574,7 +605,7 @@ class TestFormSubmission(TestBase):
         self.assertEqual(len(records), 1)
         cached_geopoint = records[0][GEOLOCATION]
         # the cached geopoint should equal the gps field
-        gps = records[0]['gps'].split(" ")
+        gps = records[0]['gps'].split(' ')
         self.assertEqual(float(gps[0]), float(cached_geopoint[0]))
         self.assertEqual(float(gps[1]), float(cached_geopoint[1]))
 
@@ -616,8 +647,11 @@ class TestFormSubmission(TestBase):
     def test_anonymous_cannot_edit_submissions(self):
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_2012-06-27_11-27-53_w_uuid.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid.xml',
         )
         # make first submission
         self._make_submission(xml_submission_file_path)
@@ -630,8 +664,11 @@ class TestFormSubmission(TestBase):
         # attempt an edit
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_2012-06-27_11-27-53_w_uuid_edited.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid_edited.xml',
         )
         # …without "Require authentication to see form and submit data"
         self.xform.require_auth = False
@@ -672,8 +709,11 @@ class TestFormSubmission(TestBase):
 
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_2012-06-27_11-27-53_w_uuid.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid.xml',
         )
         # make first submission
         self._make_submission(xml_submission_file_path)
@@ -692,8 +732,11 @@ class TestFormSubmission(TestBase):
         # attempt an edit
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_2012-06-27_11-27-53_w_uuid_edited.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid_edited.xml',
         )
         self._make_submission(xml_submission_file_path, auth=auth)
         self.assertEqual(self.response.status_code, 201)
@@ -709,8 +752,11 @@ class TestFormSubmission(TestBase):
 
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_2012-06-27_11-27-53_w_uuid.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid.xml',
         )
         # make first submission
         self._make_submission(xml_submission_file_path)
@@ -729,8 +775,11 @@ class TestFormSubmission(TestBase):
         # attempt an edit
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_2012-06-27_11-27-53_w_uuid_edited.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid_edited.xml',
         )
         self._make_submission(xml_submission_file_path, auth=auth)
         self.assertEqual(self.response.status_code, 201)
@@ -745,8 +794,11 @@ class TestFormSubmission(TestBase):
     def test_unauthorized_cannot_edit_submissions(self):
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_2012-06-27_11-27-53_w_uuid.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid.xml',
         )
         # make first submission
         self._make_submission(xml_submission_file_path)
@@ -765,8 +817,11 @@ class TestFormSubmission(TestBase):
         # attempt an edit
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "..", "fixtures", "tutorial", "instances",
-            "tutorial_2012-06-27_11-27-53_w_uuid_edited.xml"
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid_edited.xml',
         )
         # …without "Require authentication to see form and submit data"
         self.xform.require_auth = False
