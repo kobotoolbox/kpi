@@ -140,51 +140,30 @@ export default class ReportStyleSettings extends React.Component<ReportStyleSett
     const translations = this.props.parentState.asset?.content?.translations || []
     const reportStyle = this.state.reportStyle
 
-    const groupByOptions = []
-    groupByOptions.push({
-      value: '',
-      label: t('No grouping'),
-    })
+    const groupByOptions = [
+      {
+        value: '',
+        label: t('No grouping'),
+      },
+      ...Object.values(rows)
+        .filter((row) => row.type === 'select_one')
+        .map((row) => ({
+          value: row.name || row.$autoname || '', // Safeguard for TS reasons, either of names should always exist.
+          label: row.label?.[(translations.length > 1 && reportStyle.translationIndex) || 0] ?? row.label?.[0] ?? '',
+        })),
+    ]
 
-    for (const key in rows) {
-      if (key in rows && 'type' in rows[key] && rows[key].type === 'select_one') {
-        const row = rows[key]
-        const val = row.name || row.$autoname
-        let label = row.label?.[0] || ''
-        if (
-          translations.length > 1 &&
-          typeof reportStyle.translationIndex === 'number' &&
-          row.label?.[reportStyle.translationIndex]
-        ) {
-          label = row.label?.[reportStyle.translationIndex]
-        }
+    const tabs: ReportsModalTabNames[] = [
+      ReportsModalTabNames['chart-type'],
+      ReportsModalTabNames.colors,
+      groupByOptions.length > 1 ? ReportsModalTabNames['group-by'] : null,
+      translations.length > 1 ? ReportsModalTabNames.translation : null,
+    ].filter((v) => !!v)
 
-        // Safeguard for TS reasons
-        if (val !== undefined) {
-          groupByOptions.push({
-            value: val,
-            label: label,
-          })
-        }
-      }
-    }
-
-    const tabs: ReportsModalTabNames[] = [ReportsModalTabNames['chart-type'], ReportsModalTabNames.colors]
-
-    if (groupByOptions.length > 1) {
-      tabs.push(ReportsModalTabNames['group-by'])
-    }
-
-    const selectedTranslationOptions: LabelValuePair[] = []
-    if (translations.length > 1) {
-      tabs.push(ReportsModalTabNames.translation)
-      translations?.map((row, i) => {
-        selectedTranslationOptions.push({
-          value: String(i),
-          label: row || t('Unnamed language'),
-        })
-      })
-    }
+    const selectedTranslationOptions: LabelValuePair[] = translations?.map((row, i) => ({
+      value: String(i),
+      label: row || t('Unnamed language'),
+    }))
 
     return (
       <bem.GraphSettings>
@@ -208,7 +187,7 @@ export default class ReportStyleSettings extends React.Component<ReportStyleSett
                 <ReportColorsEditor style={reportStyle} onChange={this.onReportColorsChange.bind(this)} />
               </div>
             )}
-            {this.state.activeModalTab === ReportsModalTabNames['group-by'] && groupByOptions.length > 1 && (
+            {this.state.activeModalTab === ReportsModalTabNames['group-by'] && (
               <div className='graph-tab__groupby' id='graph-labels' dir='auto'>
                 <Radio
                   name='reports-groupby'
@@ -218,17 +197,16 @@ export default class ReportStyleSettings extends React.Component<ReportStyleSett
                 />
               </div>
             )}
-            {this.state.activeModalTab === ReportsModalTabNames.translation &&
-              selectedTranslationOptions.length > 1 && (
-                <div className='graph-tab__translation' id='graph-labels'>
-                  <Radio
-                    name='reports-selected-translation'
-                    options={selectedTranslationOptions}
-                    onChange={this.onTranslationIndexChange.bind(this)}
-                    selected={String(reportStyle.translationIndex)}
-                  />
-                </div>
-              )}
+            {this.state.activeModalTab === ReportsModalTabNames.translation && (
+              <div className='graph-tab__translation' id='graph-labels'>
+                <Radio
+                  name='reports-selected-translation'
+                  options={selectedTranslationOptions}
+                  onChange={this.onTranslationIndexChange.bind(this)}
+                  selected={String(reportStyle.translationIndex)}
+                />
+              </div>
+            )}
           </div>
 
           <Modal.Footer>
