@@ -320,7 +320,7 @@ def send_emails():
     sender.send_day_emails()
 
 
-def get_users_for_config(email_config):
+def get_users_for_config(email_config, force_date:datetime = None):
     """
     Get users based on query, excluding recent recipients
 
@@ -329,10 +329,11 @@ def get_users_for_config(email_config):
     frequency > 1: Recurring emails
     """
     now = timezone.now()
+    run_date = force_date or now
     users = USER_QUERIES.get(email_config.query, lambda: [])()
     if email_config.frequency == -1:
         return users
-    day_boundary = MassEmailSender.get_cache_key_date(now)
+    day_boundary = MassEmailSender.get_cache_key_date(run_date)
 
     cutoff_date = day_boundary - timedelta(days=email_config.frequency - 1)
     if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', False):

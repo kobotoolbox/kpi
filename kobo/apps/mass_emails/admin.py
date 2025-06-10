@@ -1,4 +1,6 @@
 from django.contrib import admin, messages
+from import_export import resources, fields
+from import_export_celery.admin_actions import create_export_job_action
 
 from .models import EmailStatus, EmailType, MassEmailConfig, MassEmailRecord
 
@@ -8,7 +10,7 @@ class MassEmailConfigAdmin(admin.ModelAdmin):
 
     list_display = ('name', 'date_modified', 'frequency', 'live')
     fields = ('name', 'subject', 'template', 'query', 'frequency', 'live')
-    actions = ['enqueue_mass_emails']
+    actions = ['enqueue_mass_emails', create_export_job_action]
 
     @admin.action(description='Add to daily send queue')
     def enqueue_mass_emails(self, request, queryset):

@@ -2,6 +2,9 @@ from collections.abc import Callable
 from enum import Enum
 
 from django.db import models
+from import_export import resources, fields
+from celery.contrib import rdb
+
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import (
@@ -19,6 +22,7 @@ from kobo.apps.mass_emails.user_queries import (
 )
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
+from kpi.utils.log import logging
 
 USER_QUERIES: dict[str, Callable] = {
     'users_above_80_percent_storage': get_users_over_80_percent_of_storage_limit,
@@ -69,6 +73,35 @@ class MassEmailConfig(AbstractTimeStampedModel):
         if self.frequency == -1:
             return EmailType.ONE_TIME
         return EmailType.RECURRING
+
+    @classmethod
+    def export_resource_classes(cls):
+        return {
+            'mass_email_config_recipients': ('Expected recipients resource', MassEmailConfigExpectedRecipientsResource),
+        }
+
+
+class MassEmailConfigExpectedRecipientsResource(resources.ModelResource):
+    recipients = fields.Field(dehydrate_method='get_recips')
+    class Meta:
+        model = MassEmailConfig
+        fields = ('name', 'recipients',)
+
+    def get_recips(self, email_config):
+        users = USER_QUERIES.get(email_config.query, lambda: [])()
+        thing = [user for user in users.values('username', 'email','extra_details__uid')]
+        logging.info(f'{thing=}')
+        return thing
+
+    def after_export(self, queryset, dataset, **kwargs):
+        preformatted = dataset._data
+        reformatted = []
+        for config_row in preformatted:
+            for user in config_row[1]:
+                reformatted.append([config_row[0], user['username'], user['email'], user['extra_details__uid']])
+        dataset.headers = ['MassEmailConfig name', 'username', 'email', 'uid']
+        dataset._data = reformatted
+
 
 
 class MassEmailJob(AbstractTimeStampedModel):
