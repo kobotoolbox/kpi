@@ -11,6 +11,7 @@ from kobo.apps.openrosa.apps.logger.models.attachment import (
 from kobo.apps.openrosa.apps.logger.utils.attachment import (
     bulk_update_attachment_storage_counters
 )
+from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import KpiUidField
 from . import BaseTrash
 from ..type_aliases import UpdatedQuerySetAndCount
@@ -76,7 +77,7 @@ class AttachmentTrash(BaseTrash):
             delete_status=current_delete_status
         )
 
-        with transaction.atomic():
+        with kc_transaction_atomic():
             bulk_update_attachment_storage_counters(queryset, subtract=subtract)
             updated = queryset.update(
                 delete_status=new_delete_status,

@@ -1,10 +1,11 @@
-from django.db import transaction
 from django.db.models import F, OuterRef, Sum, Subquery
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 
 from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
+from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.main.models import UserProfile
+from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 
 
 def bulk_update_attachment_storage_counters(
@@ -17,14 +18,20 @@ def bulk_update_attachment_storage_counters(
         attachments: QuerySet of Attachment objects to process.
         subtract: If True, subtract file size. If False, add file size.
     """
-    sign = -1 if subtract else 1
-    attachment_ids = list(attachments.values_list('pk', flat=True).distinct())
-    user_ids = list(attachments.values_list('user_id', flat=True).distinct())
-    xform_ids = list(attachments.values_list('xform_id', flat=True).distinct())
+    if subtract:
+        sign = -1
+        criteria = {'delete_status': None}
+    else:
+        sign = 1
+        criteria = {'delete_status': AttachmentDeleteStatus.PENDING_DELETE}
+
+    attachment_ids = attachments.values_list('pk', flat=True).distinct()
+    user_ids = attachments.values_list('user_id', flat=True).distinct()
+    xform_ids = attachments.values_list('xform_id', flat=True).distinct()
 
     user_profile_subquery = (
         Attachment.all_objects
-        .filter(user_id=OuterRef('user_id'), pk__in=attachment_ids)
+        .filter(user_id=OuterRef('user_id'), pk__in=attachment_ids, **criteria)
         .values('user_id')
         .annotate(total_size=Sum('media_file_size'))
         .values('total_size')
@@ -32,13 +39,13 @@ def bulk_update_attachment_storage_counters(
 
     xform_subquery = (
         Attachment.all_objects
-        .filter(xform_id=OuterRef('pk'), pk__in=attachment_ids)
+        .filter(xform_id=OuterRef('pk'), pk__in=attachment_ids, **criteria)
         .values('xform_id')
         .annotate(total_size=Sum('media_file_size'))
         .values('total_size')
     )
 
-    with transaction.atomic():
+    with kc_transaction_atomic():
         UserProfile.objects.filter(user_id__in=user_ids).update(
             attachment_storage_bytes=(
                 F('attachment_storage_bytes') +
@@ -52,3 +59,35 @@ def bulk_update_attachment_storage_counters(
                 sign * Coalesce(Subquery(xform_subquery), 0)
             )
         )
+
+
+def update_user_attachment_storage_counters(
+    xform_identifiers: list[str], subtract: bool
+):
+    """
+    Update user attachment storage counters based on xform identifiers.
+
+    This function does not update storage counters on the XForm itself.
+    Trashed/restored projects retain their attachments, but only UserProfile
+    storage is updated to keep global usage reporting accurate. Since trashed
+    XForms are excluded from the queries, updating only UserProfile ensures
+    consistency without affecting form-level data.
+    """
+    sign = -1 if subtract else 1
+    user_ids = XForm.all_objects.filter(
+        kpi_asset_uid__in=xform_identifiers
+    ).values_list('user_id', flat=True).distinct()
+
+    user_storage_subquery = (
+        XForm.all_objects
+        .filter(user_id=OuterRef('user_id'), kpi_asset_uid__in=xform_identifiers)
+        .values('user_id')
+        .annotate(total=Sum('attachment_storage_bytes'))
+        .values('total')
+    )
+
+    UserProfile.objects.filter(user_id__in=user_ids).update(
+        attachment_storage_bytes=(
+            F('attachment_storage_bytes') +
+            sign * Coalesce(Subquery(user_storage_subquery), 0))
+    )
