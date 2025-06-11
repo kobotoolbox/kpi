@@ -78,9 +78,16 @@ class AttachmentTrash(BaseTrash):
         )
 
         with kc_transaction_atomic():
-            bulk_update_attachment_storage_counters(queryset, subtract=subtract)
             updated = queryset.update(
                 delete_status=new_delete_status,
                 date_modified=timezone.now(),
+            )
+            # We defer storage counter updates to run at the end of the
+            # transaction block to avoid holding row-level locks for the
+            # full duration of the transaction. This helps reduce contention
+            # when multiple attachments are being trashed or restored
+            # concurrently by different users.
+            bulk_update_attachment_storage_counters(
+                object_identifiers, subtract=subtract
             )
         return queryset, updated

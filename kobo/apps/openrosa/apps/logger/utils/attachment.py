@@ -1,6 +1,5 @@
 from django.db.models import F, OuterRef, Sum, Subquery
 from django.db.models.functions import Coalesce
-from django.db.models.query import QuerySet
 
 from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
@@ -9,21 +8,27 @@ from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 
 
 def bulk_update_attachment_storage_counters(
-    attachments: QuerySet[Attachment], subtract: bool
+    attachment_identifiers: list[str], subtract: bool
 ):
     """
-    Update storage counters in bulk based on a queryset of attachments
+    Update storage counters in bulk based on a queryset of attachments.
 
     Args:
-        attachments: QuerySet of Attachment objects to process.
-        subtract: If True, subtract file size. If False, add file size.
+        attachment_identifiers (list[str]): List of attachment UIDs to update.
+        subtract (bool): If True, subtract the size from the counters.
+                         If False, add the size to the counters.
     """
-    if subtract:
-        sign = -1
-        criteria = {'delete_status': None}
-    else:
-        sign = 1
-        criteria = {'delete_status': AttachmentDeleteStatus.PENDING_DELETE}
+    sign = -1 if subtract else 1
+    target_delete_status = (
+        AttachmentDeleteStatus.PENDING_DELETE if subtract else None
+    )
+
+    attachments = Attachment.all_objects.filter(
+        uid__in=attachment_identifiers,
+        delete_status=target_delete_status
+    )
+    if not attachments.exists():
+        return
 
     attachment_ids = attachments.values_list('pk', flat=True).distinct()
     user_ids = attachments.values_list('user_id', flat=True).distinct()
@@ -31,7 +36,7 @@ def bulk_update_attachment_storage_counters(
 
     user_profile_subquery = (
         Attachment.all_objects
-        .filter(user_id=OuterRef('user_id'), pk__in=attachment_ids, **criteria)
+        .filter(user_id=OuterRef('user_id'), pk__in=attachment_ids)
         .values('user_id')
         .annotate(total_size=Sum('media_file_size'))
         .values('total_size')
@@ -39,7 +44,7 @@ def bulk_update_attachment_storage_counters(
 
     xform_subquery = (
         Attachment.all_objects
-        .filter(xform_id=OuterRef('pk'), pk__in=attachment_ids, **criteria)
+        .filter(xform_id=OuterRef('pk'), pk__in=attachment_ids)
         .values('xform_id')
         .annotate(total_size=Sum('media_file_size'))
         .values('total_size')
@@ -82,8 +87,8 @@ def update_user_attachment_storage_counters(
         XForm.all_objects
         .filter(user_id=OuterRef('user_id'), kpi_asset_uid__in=xform_identifiers)
         .values('user_id')
-        .annotate(total=Sum('attachment_storage_bytes'))
-        .values('total')
+        .annotate(storage_bytes=Sum('attachment_storage_bytes'))
+        .values('storage_bytes')
     )
 
     UserProfile.objects.filter(user_id__in=user_ids).update(
