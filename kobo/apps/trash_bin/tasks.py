@@ -1,6 +1,7 @@
 import logging
 from datetime import timedelta
 
+from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from celery.signals import task_failure, task_retry
 from constance import config
 from django.conf import settings
@@ -35,6 +36,8 @@ from .utils import (
     autoretry_for=(
         TrashTaskInProgressError,
         KobocatCommunicationError,
+        SoftTimeLimitExceeded,
+        TimeLimitExceeded,
     ),
     retry_backoff=60,
     retry_backoff_max=600,
@@ -174,6 +177,8 @@ def empty_account(account_trash_id: int, force: bool = False):
     autoretry_for=(
         TrashTaskInProgressError,
         KobocatCommunicationError,
+        SoftTimeLimitExceeded,
+        TimeLimitExceeded,
     ),
     retry_backoff=60,
     retry_backoff_max=600,
@@ -215,8 +220,14 @@ def empty_account_failure(sender=None, **kwargs):
         account_trash = AccountTrash.objects.select_for_update().get(
             pk=account_trash_id
         )
-        account_trash.metadata['failure_error'] = str(exception)
-        account_trash.status = TrashStatus.FAILED
+
+        error = str(exception)
+        if error == 'Worker exited prematurely':
+            account_trash.status = TrashStatus.IN_PROGRESS
+        else:
+            account_trash.status = TrashStatus.FAILED
+
+        account_trash.metadata['failure_error'] = error
         account_trash.save(update_fields=['status', 'metadata', 'date_modified'])
 
 
