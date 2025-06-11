@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 import { Cookies } from 'react-cookie'
 import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
-import { useSubscriptionQuery } from '#/account/usage/subscriptionQuery'
+import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import LimitBanner from '#/components/usageLimits/overLimitBanner.component'
 import LimitModal from '#/components/usageLimits/overLimitModal.component'
 import { useExceedingLimits } from '#/components/usageLimits/useExceedingLimits.hook'
@@ -20,7 +20,7 @@ const LimitNotifications = ({ useModal = false, accountPage = false }: LimitNoti
   const [dismissed, setDismissed] = useState(!useModal)
   const [stripeEnabled, setStripeEnabled] = useState(false)
 
-  const { data: subscriptionData } = useSubscriptionQuery()
+  const { billingPeriod } = useBillingPeriod()
 
   const limits = useExceedingLimits()
 
@@ -54,34 +54,20 @@ const LimitNotifications = ({ useModal = false, accountPage = false }: LimitNoti
     })
   }
 
-  if (!stripeEnabled || !subscriptionData) {
+  if (!stripeEnabled) {
     return null
   }
 
   return (
     <>
       {dismissed && (
-        <LimitBanner
-          interval={subscriptionData.billingPeriod}
-          limits={limits.exceedList}
-          accountPage={Boolean(accountPage)}
-        />
+        <LimitBanner interval={billingPeriod} limits={limits.exceedList} accountPage={Boolean(accountPage)} />
       )}
       {!limits.exceedList.length && (
-        <LimitBanner
-          warning
-          interval={subscriptionData.billingPeriod}
-          limits={limits.warningList}
-          accountPage={Boolean(accountPage)}
-        />
+        <LimitBanner warning interval={billingPeriod} limits={limits.warningList} accountPage={Boolean(accountPage)} />
       )}
       {useModal && (
-        <LimitModal
-          show={showModal}
-          limits={limits.exceedList}
-          interval={subscriptionData.billingPeriod}
-          dismissed={modalDismissed}
-        />
+        <LimitModal show={showModal} limits={limits.exceedList} interval={billingPeriod} dismissed={modalDismissed} />
       )}
     </>
   )

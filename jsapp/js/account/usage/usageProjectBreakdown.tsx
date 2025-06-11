@@ -3,7 +3,6 @@ import React, { useContext, useEffect, useState } from 'react'
 import prettyBytes from 'pretty-bytes'
 import { Link } from 'react-router-dom'
 import { useOrganizationQuery } from '#/account/organization/organizationQuery'
-import { useSubscriptionQuery } from '#/account/usage/subscriptionQuery'
 import type { AssetUsage, AssetWithUsage } from '#/account/usage/usage.api'
 import { getOrgAssetUsage } from '#/account/usage/usage.api'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
@@ -17,6 +16,7 @@ import SortableProjectColumnHeader from '#/projects/projectsTable/sortableProjec
 import { ROUTES } from '#/router/routerConstants'
 import { convertSecondsToMinutes } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
+import { useBillingPeriod } from './useBillingPeriod'
 import { UsageContext } from './useUsage.hook'
 
 type ButtonType = 'back' | 'forward'
@@ -34,7 +34,7 @@ const ProjectBreakdown = () => {
   const [loading, setLoading] = useState(true)
   const [usage] = useContext(UsageContext)
   const orgQuery = useOrganizationQuery()
-  const { data: subscriptionData } = useSubscriptionQuery()
+  const { billingPeriod } = useBillingPeriod()
 
   useEffect(() => {
     async function fetchData(orgId: string) {
@@ -153,7 +153,7 @@ const ProjectBreakdown = () => {
             <div className={styles.intervalBannerText}>
               {t(
                 'Submissions, transcription minutes, and translation characters reflect usage for the current ##INTERVAL## based on your plan settings.',
-              ).replace('##INTERVAL##', subscriptionData?.billingPeriod === 'year' ? t('year') : t('month'))}
+              ).replace('##INTERVAL##', billingPeriod === 'year' ? t('year') : t('month'))}
             </div>
           </div>
           <Button size='s' type='text' startIcon='close' onClick={dismissIntervalBanner} />

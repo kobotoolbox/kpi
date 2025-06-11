@@ -7,7 +7,6 @@ import { getAccountLimits } from '#/account/stripe.api'
 import type { AccountLimitDetail, LimitAmount } from '#/account/stripe.types'
 import { Limits, USAGE_TYPE } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
-import { useSubscriptionQuery } from '#/account/usage/subscriptionQuery'
 import UsageContainer from '#/account/usage/usageContainer'
 import { UsageContext } from '#/account/usage/useUsage.hook'
 import { YourPlan } from '#/account/usage/yourPlan.component'
@@ -20,6 +19,7 @@ import { convertSecondsToMinutes, formatDate } from '#/utils'
 import { OneTimeAddOnsContext } from '../useOneTimeAddonList.hook'
 import { ProductsContext } from '../useProducts.hook'
 import styles from './usage.module.scss'
+import { useBillingPeriod } from './useBillingPeriod'
 
 interface LimitState {
   storageByteRemainingLimit: LimitAmount
@@ -53,7 +53,7 @@ export default function Usage() {
     stripeEnabled: false,
   })
 
-  const { data: subscriptionData } = useSubscriptionQuery()
+  const { billingPeriod } = useBillingPeriod()
 
   const location = useLocation()
 
@@ -149,7 +149,6 @@ export default function Usage() {
   }, [location])
 
   if (
-    !subscriptionData ||
     usageStatus.pending ||
     usageStatus.error ||
     !limits.isLoaded ||
@@ -183,7 +182,7 @@ export default function Usage() {
               recurringLimit={limits.submissionsRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.SUBMISSIONS)}
               hasAddOnsLayout={hasAddOnsLayout}
-              period={subscriptionData.billingPeriod}
+              period={billingPeriod}
               type={USAGE_TYPE.SUBMISSIONS}
             />
           </div>
@@ -198,7 +197,7 @@ export default function Usage() {
               recurringLimit={limits.storageByteRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.STORAGE)}
               hasAddOnsLayout={hasAddOnsLayout}
-              period={subscriptionData.billingPeriod}
+              period={billingPeriod}
               label={t('Total')}
               type={USAGE_TYPE.STORAGE}
             />
@@ -216,7 +215,7 @@ export default function Usage() {
               recurringLimit={limits.nlpMinuteRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSCRIPTION)}
               hasAddOnsLayout={hasAddOnsLayout}
-              period={subscriptionData.billingPeriod}
+              period={billingPeriod}
               type={USAGE_TYPE.TRANSCRIPTION}
             />
           </div>
@@ -231,7 +230,7 @@ export default function Usage() {
               recurringLimit={limits.nlpCharacterRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSLATION)}
               hasAddOnsLayout={hasAddOnsLayout}
-              period={subscriptionData.billingPeriod}
+              period={billingPeriod}
               type={USAGE_TYPE.TRANSLATION}
             />
           </div>
