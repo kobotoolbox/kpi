@@ -1,13 +1,13 @@
 ### 🗒️ Checklist
 
 1. [ ] run linter locally
-2. [ ] update all related docs (API, README, inline, etc.), if any
-3. [ ] draft PR with a title `<type>(<scope>)<!>: <title> TASK-1234`
-4. [ ] tag PR: at least `frontend` or `backend` unless it's global
-5. [ ] fill in the template below and delete template comments
-6. [ ] review thyself: read the diff and repro the preview as written
-7. [ ] open PR & confirm that CI passes
-8. [ ] request reviewers, if needed
+2. [ ] update developer docs (API, README, inline, etc.), if any
+3. [ ] for user-facing doc changes create a Zulip thread at #Kobo support docs, if any
+4. [ ] draft PR with a title `<type>(<scope>)<!>: <title> DEV-1234`
+5. [ ] assign yourself, tag PR: at least `Front end` or `Back end` or both
+6. [ ] fill in the template below and delete template comments
+7. [ ] review thyself: read the diff and repro the preview as written
+8. [ ] open PR & confirm that CI passes & request reviewers, if needed
 9. [ ] delete this section before merging
 
 ### 📣 Summary
@@ -44,17 +44,10 @@ reviewers, testers, and future git archaeologist collegues. Examples:
 <!-- Delete this section if behavior can't change. -->
 <!-- If behavior changes or merely may change, add a preview of a minimal happy path. -->
 
-Bug template:
 1. ℹ️ have an account and a project
 2. do this
 3. do that
 4. 🔴 [on main] notice that this isn't anywhere BUT it should be here
 5. 🟢 [on PR] notice that this is here
-
-Feature/no-change template:
-1. ℹ️ have account and a project
-2. do this
-3. do that
-4. 🟢 notice that this is there
-5. do that another thing
-6. 🟢 notice that this changed like that
+6. do that another thing
+7. 🟢 notice that this changed like that
