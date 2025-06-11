@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from django.db import models, transaction
+from django.db import models
 from django.db.utils import IntegrityError
 from django.utils import timezone
 
