@@ -61,7 +61,6 @@ class OrgAdmin(BaseOrganizationAdmin):
                         transaction.on_commit(
                             lambda: self._transfer_user_ownership(request, new_members)
                         )
-                        self._transfer_user_ownership(request, new_members)
                         self._delete_previous_organizations(
                             new_members, organization_id
                         )
