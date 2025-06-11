@@ -222,7 +222,11 @@ def empty_account_failure(sender=None, **kwargs):
         )
 
         error = str(exception)
-        if error == 'Worker exited prematurely':
+        # The task may be stopped abruptly without any traceback or clear exception.
+        # This can happen if the kernel kills it due to an OOM condition,
+        # or if Kubernetes terminates the pod (e.g., OOMKilled, failed  probes, etc.).
+        # In such cases, the exact error type is unknown.
+        if 'Worker exited prematurely' in error:
             account_trash.status = TrashStatus.IN_PROGRESS
         else:
             account_trash.status = TrashStatus.FAILED
@@ -253,8 +257,17 @@ def empty_project_failure(sender=None, **kwargs):
         project_trash = ProjectTrash.objects.select_for_update().get(
             pk=project_trash_id
         )
-        project_trash.metadata['failure_error'] = str(exception)
-        project_trash.status = TrashStatus.FAILED
+        error = str(exception)
+        # The task may be stopped abruptly without any traceback or clear exception.
+        # This can happen if the kernel kills it due to an OOM condition,
+        # or if Kubernetes terminates the pod (e.g., OOMKilled, failed  probes, etc.).
+        # In such cases, the exact error type is unknown.
+        if 'Worker exited prematurely' in error:
+            project_trash.status = TrashStatus.IN_PROGRESS
+        else:
+            project_trash.status = TrashStatus.FAILED
+
+        project_trash.metadata['failure_error'] = error
         project_trash.save(update_fields=['status', 'metadata', 'date_modified'])
 
 
