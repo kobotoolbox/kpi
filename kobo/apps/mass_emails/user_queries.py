@@ -201,4 +201,6 @@ def get_users_over_100_percent_of_nlp_limits() -> QuerySet:
 def get_all_test_users() -> QuerySet:
     # for testing only
     test_emails = config.MASS_EMAIL_TEST_EMAILS.split('\n')
+    # remove empty strings
+    test_emails = [email for email in test_emails if len(email) > 0]
     return User.objects.filter(email__in=test_emails)

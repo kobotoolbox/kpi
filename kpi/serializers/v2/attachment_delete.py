@@ -20,41 +20,30 @@ class AttachmentDeleteSerializer(serializers.Serializer):
         has_attachment_uid = 'attachment_uid' in data
         has_submission_root_uuids = 'submission_root_uuids' in data
 
-        if has_attachment_uid:
-            attachment_uid = data['attachment_uid']
-            if not isinstance(attachment_uid, str) or not attachment_uid:
-                raise serializers.ValidationError(
-                    {'attachment_uid': [t('Attachment UID must be a non-empty string')]}
-                )
-        elif has_submission_root_uuids:
-            submission_root_uuids = data['submission_root_uuids']
-            if not isinstance(submission_root_uuids, list):
-                raise serializers.ValidationError(
-                    {
-                        'submission_root_uuids': [
-                            t('Submission root UUIDs must be a list')
-                        ]
-                    }
-                )
-            if not submission_root_uuids:
-                raise serializers.ValidationError(
-                    {
-                        'submission_root_uuids': [
-                            t('Submission root UUIDs list cannot be empty')
-                        ]
-                    }
-                )
-            if not all(isinstance(uid, str) and uid for uid in submission_root_uuids):
-                raise serializers.ValidationError(
-                    {
-                        'submission_root_uuids': [
-                            t(
-                                'All submission root UUIDs in the list must'
-                                ' be non-empty strings'
-                            )
-                        ]
-                    }
-                )
+        if has_attachment_uid and has_submission_root_uuids:
+            raise serializers.ValidationError(
+                {
+                    'detail': t(
+                        '`attachment_uid` and `submission_root_uuids` cannot be '
+                        'used together'
+                    ),
+                }
+            )
+
+        if not (has_attachment_uid or has_submission_root_uuids):
+            raise serializers.ValidationError(
+                {
+                    'detail': t(
+                        '`attachment_uid` or `submission_root_uuids` must be '
+                        'provided'
+                    ),
+                }
+            )
+
+        if has_submission_root_uuids and not data.get('submission_root_uuids'):
+            raise serializers.ValidationError(
+                {'submission_root_uuids': [t('List cannot be empty')]}
+            )
 
         return data
 
@@ -63,24 +52,30 @@ class AttachmentDeleteSerializer(serializers.Serializer):
 
         if self.validated_data.get('attachment_uid'):
             attachment_uids = [self.validated_data['attachment_uid']]
-        elif self.validated_data.get('submission_root_uuids'):
+            field = 'attachment_uid'
+        else:
             attachments = Attachment.objects.filter(
                 xform_id=deployment.xform_id,
                 instance__uuid__in=self.validated_data['submission_root_uuids'],
             )
             attachment_uids = list(attachments.values_list('uid', flat=True))
+            field = 'submission_root_uuids'
 
+        attachment_mismatch = False
         try:
             attachment_count = deployment.delete_attachments(
                 request.user, attachment_uids
             )
         except AttachmentUidMismatchException:
-            raise serializers.ValidationError(
-                t('One or more of the attachment UIDs are invalid')
-            )
+            attachment_mismatch = True
 
-        if attachment_count is None:
-            raise serializers.ValidationError(t('No attachments found to delete'))
+        if attachment_mismatch or attachment_count is None:
+            message = (
+                t('Invalid attachment UID')
+                if field == 'attachment_uid'
+                else t('One or more of the root UUIDs are invalid')
+            )
+            raise serializers.ValidationError({field: [message]})
 
         return {'message': f'{attachment_count} attachments deleted'}
 
