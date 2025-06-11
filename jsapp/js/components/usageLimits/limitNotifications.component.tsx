@@ -54,7 +54,7 @@ const LimitNotifications = ({ useModal = false, accountPage = false }: LimitNoti
     })
   }
 
-  if (!stripeEnabled || !subscriptionData) {
+  if (!stripeEnabled) {
     return null
   }
 
