@@ -1,5 +1,4 @@
 from django.contrib import admin, messages
-from import_export import resources, fields
 from import_export_celery.admin_actions import create_export_job_action
 
 from .models import EmailStatus, EmailType, MassEmailConfig, MassEmailRecord
