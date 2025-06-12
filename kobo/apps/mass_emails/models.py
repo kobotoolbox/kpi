@@ -74,9 +74,13 @@ class MassEmailConfig(AbstractTimeStampedModel):
     @classmethod
     def export_resource_classes(cls):
         return {
-            'mass_email_config_recipients': (
+            'mass_email_config_expected_recipients': (
                 'Expected recipients resource',
                 MassEmailConfigExpectedRecipientsResource,
+            ),
+            'mass_email_config_recipients': (
+                'Actual recipients resource',
+                MassEmailConfigRecipientsResource,
             ),
         }
 
@@ -119,6 +123,52 @@ class MassEmailConfigExpectedRecipientsResource(resources.ModelResource):
         dataset.headers = ['MassEmailConfig name', 'username', 'email', 'uid']
         dataset._data = reformatted
 
+
+class MassEmailConfigRecipientsResource(resources.ModelResource):
+    recipients = fields.Field(dehydrate_method='get_recipients')
+
+    class Meta:
+        model = MassEmailConfig
+        fields = (
+            'name',
+            'uid',
+            'recipients',
+        )
+
+    def get_recipients(self, email_config):
+        records = MassEmailRecord.objects.filter(email_job__email_config=email_config).exclude(status=EmailStatus.ENQUEUED).values(
+            'email_job__pk',
+            'email_job__date_created',
+            'date_modified',
+            'user__username',
+            'user__email',
+            'user__extra_details__uid',
+            'status'
+        )
+        return list(records)
+
+    def after_export(self, queryset, dataset, **kwargs):
+        # change from 1 row per config to 1 row per record
+        super().after_export(queryset, dataset, **kwargs)
+        preformatted = dataset._data
+        reformatted = []
+        for [config_name, uid, records] in preformatted:
+            for record in records:
+                reformatted.append(
+                    [
+                        config_name,
+                        uid,
+                        record['email_job__pk'],
+                        record['email_job__date_created'],
+                        record['date_modified'],
+                        record['user__username'],
+                        record['user__email'],
+                        record['user__extra_details__uid'],
+                        record['status'],
+                    ]
+                )
+        dataset._data = reformatted
+        dataset.headers = ['MassEmailConfig name', 'MassEmailConfig uid', 'batch id', 'batch date', 'record date', 'username', 'email', 'uid', 'status']
 
 class MassEmailJob(AbstractTimeStampedModel):
     email_config = models.ForeignKey(
