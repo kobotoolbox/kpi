@@ -113,8 +113,11 @@ class MassEmailConfigExpectedRecipientsResource(resources.ModelResource):
                         user['extra_details__uid'],
                     ]
                 )
-        dataset._data = reformatted
+        # empty the old dataset so we can set the new headers without an
+        # "InvalidDimensions" error
+        dataset.wipe()
         dataset.headers = ['MassEmailConfig name', 'username', 'email', 'uid']
+        dataset._data = reformatted
 
 
 class MassEmailJob(AbstractTimeStampedModel):
