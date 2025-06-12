@@ -1920,7 +1920,7 @@ IMPORT_EXPORT_CELERY_MODELS = {
     'OrganizationUser': {
         'app_label': 'organization',
         'model_name': 'OrganizationUser',
-    }
+    },
 }
 
 IMPORT_EXPORT_CELERY_STORAGE_ALIAS = 'import_export_celery'
