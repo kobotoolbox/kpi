@@ -22,8 +22,13 @@ from ..models import TrashStatus
 from ..models.account import AccountTrash
 from ..models.attachment import AttachmentTrash
 from ..models.project import ProjectTrash
-from ..tasks import empty_account, empty_attachment, empty_project, task_restarter
-from ..utils import move_to_trash, put_back
+from ..tasks import (
+    empty_account,
+    empty_attachment,
+    empty_project,
+    task_restarter,
+)
+from ..utils import move_to_trash, put_back, trash_bin_task_failure
 
 
 @ddt
@@ -272,6 +277,37 @@ class AccountTrashTestCase(TestCase):
                 task_restarter()
 
                 assert patched_spawned_task.call_count == restart_count
+
+    def test_status_on_error_when_killed(self):
+        someuser = get_user_model().objects.get(username='someuser')
+        admin = get_user_model().objects.get(username='adminuser')
+        assert someuser.assets.count() == 2
+        move_to_trash(
+            request_author=admin,
+            objects_list=[
+                {
+                    'pk': someuser.pk,
+                    'username': someuser.username,
+                }
+            ],
+            grace_period=1,
+            trash_type='user',
+            retain_placeholder=False,
+        )
+        account_trash = AccountTrash.objects.get(user=someuser)
+        assert account_trash.status == TrashStatus.PENDING
+        trash_bin_task_failure(
+            AccountTrash,
+            args=[account_trash.pk],
+            exception='Worker exited prematurely',
+        )
+        account_trash.refresh_from_db()
+        assert account_trash.status == TrashStatus.IN_PROGRESS
+        trash_bin_task_failure(
+            AccountTrash, args=[account_trash.pk], exception='Random error'
+        )
+        account_trash.refresh_from_db()
+        assert account_trash.status == TrashStatus.FAILED
 
 
 @ddt
@@ -556,6 +592,36 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
         user_profile.refresh_from_db()
         self.assertEqual(xform_storage_init, xform.attachment_storage_bytes)
         self.assertEqual(user_storage_init, user_profile.attachment_storage_bytes)
+
+    def test_status_on_error_when_killed(self):
+        someuser = get_user_model().objects.get(username='someuser')
+        asset = someuser.assets.first()
+        move_to_trash(
+            request_author=asset.owner,
+            objects_list=[
+                {
+                    'pk': asset.pk,
+                    'asset_uid': asset.uid,
+                    'asset_name': asset.name,
+                }
+            ],
+            grace_period=1,
+            trash_type='asset',
+        )
+        project_trash = ProjectTrash.objects.get(asset=asset)
+        assert project_trash.status == TrashStatus.PENDING
+        trash_bin_task_failure(
+            ProjectTrash,
+            args=[project_trash.pk],
+            exception='Worker exited prematurely',
+        )
+        project_trash.refresh_from_db()
+        assert project_trash.status == TrashStatus.IN_PROGRESS
+        trash_bin_task_failure(
+            ProjectTrash, args=[project_trash.pk], exception='Random error'
+        )
+        project_trash.refresh_from_db()
+        assert project_trash.status == TrashStatus.FAILED
 
 
 @ddt

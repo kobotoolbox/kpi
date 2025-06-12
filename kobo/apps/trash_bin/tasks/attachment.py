@@ -1,5 +1,6 @@
 import logging
 
+from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from celery.signals import task_failure, task_retry
 from django.conf import settings
 
@@ -11,7 +12,11 @@ from ..utils.attachment import delete_attachment
 
 
 @celery_app.task(
-    autoretry_for=(TrashTaskInProgressError,),
+    autoretry_for=(
+        TrashTaskInProgressError,
+        SoftTimeLimitExceeded,
+        TimeLimitExceeded,
+    ),
     retry_backoff=60,
     retry_backoff_max=600,
     max_retries=5,

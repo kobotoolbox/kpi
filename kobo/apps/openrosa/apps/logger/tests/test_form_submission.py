@@ -440,6 +440,7 @@ class TestFormSubmission(TestBase):
             )
 
         assert self.response.status_code == status.HTTP_409_CONFLICT
+
         edited_instance = Instance.objects.get(
             xform_id=initial_instance.xform_id,
             root_uuid=initial_instance.root_uuid,

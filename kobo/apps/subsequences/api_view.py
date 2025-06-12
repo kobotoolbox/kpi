@@ -1,18 +1,16 @@
 from copy import deepcopy
 
-from django.shortcuts import get_object_or_404
+from django.db.models import Q
+from django.shortcuts import Http404
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError as SchemaValidationError
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError as APIValidationError
 from rest_framework.response import Response
 
-
 from kobo.apps.openrosa.apps.logger.models import Instance
-
 from kobo.apps.audit_log.base_views import AuditLoggedApiView
 from kobo.apps.audit_log.models import AuditType
-
 from kobo.apps.subsequences.models import SubmissionExtras
 from kobo.apps.subsequences.utils.deprecation import get_sanitized_dict_keys
 from kpi.models import Asset
@@ -88,8 +86,8 @@ class AdvancedSubmissionView(AuditLoggedApiView):
             s_uuid = request.data.get('submission')
         else:
             s_uuid = request.query_params.get('submission')
-        if s_uuid is not None:
-            get_object_or_404(Instance, uuid=s_uuid)
+
+        self._validate_submission_or_404(s_uuid)
         return get_submission_processing(self.asset, s_uuid)
 
     def post(self, request, asset_uid, format=None):
@@ -99,13 +97,21 @@ class AdvancedSubmissionView(AuditLoggedApiView):
             validate(posted_data, schema)
         except SchemaValidationError as err:
             raise APIValidationError({'error': err})
+
         # ensure the submission exists
-        get_object_or_404(Instance, uuid=posted_data['submission'])
+        self._validate_submission_or_404(posted_data['submission'])
 
         _check_asr_mt_access_if_applicable(request.user, posted_data)
 
         submission = self.asset.update_submission_extra(posted_data)
         return Response(submission.content)
+
+    @staticmethod
+    def _validate_submission_or_404(s_uuid: str):
+        if not Instance.objects.filter(
+            Q(root_uuid=s_uuid) | Q(uuid=s_uuid, root_uuid__isnull=True)
+        ).exists():
+            raise Http404
 
 
 def get_submission_processing(asset, s_uuid):

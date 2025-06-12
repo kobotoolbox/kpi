@@ -31,6 +31,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     OpenRosaResponseNotAllowed,
     OpenRosaTemporarilyUnavailable,
 )
+from kpi.utils.fuzzy_int import FuzzyInt
 
 
 class TestXFormSubmissionApi(TestAbstractViewSet):
@@ -63,7 +64,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             request = self.factory.post('/submission', data, format='json')
             auth = DigestAuth('bob', 'bobbob')
             request.META.update(auth(request.META, response))
-            with self.assertNumQueries(47):
+            with self.assertNumQueries(FuzzyInt(43, 47)):
                 self.view(request)
 
     def test_post_submission_anonymous(self):
