@@ -2,6 +2,7 @@ from collections.abc import Callable
 from enum import Enum
 
 from django.db import models
+from import_export import fields, resources
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import (
@@ -69,6 +70,54 @@ class MassEmailConfig(AbstractTimeStampedModel):
         if self.frequency == -1:
             return EmailType.ONE_TIME
         return EmailType.RECURRING
+
+    @classmethod
+    def export_resource_classes(cls):
+        return {
+            'mass_email_config_recipients': (
+                'Expected recipients resource',
+                MassEmailConfigExpectedRecipientsResource,
+            ),
+        }
+
+
+class MassEmailConfigExpectedRecipientsResource(resources.ModelResource):
+    recipients = fields.Field(dehydrate_method='get_recipients')
+
+    class Meta:
+        model = MassEmailConfig
+        fields = (
+            'name',
+            'recipients',
+        )
+
+    def get_recipients(self, email_config):
+        user_queryset = USER_QUERIES.get(email_config.query, lambda: [])()
+        return [
+            user
+            for user in user_queryset.values('username', 'email', 'extra_details__uid')
+        ]
+
+    def after_export(self, queryset, dataset, **kwargs):
+        # change from 1 row per config to 1 row per user
+        super().after_export(queryset, dataset, **kwargs)
+        preformatted = dataset._data
+        reformatted = []
+        for [config_name, users] in preformatted:
+            for user in users:
+                reformatted.append(
+                    [
+                        config_name,
+                        user['username'],
+                        user['email'],
+                        user['extra_details__uid'],
+                    ]
+                )
+        # empty the old dataset so we can set the new headers without an
+        # "InvalidDimensions" error
+        dataset.wipe()
+        dataset.headers = ['MassEmailConfig name', 'username', 'email', 'uid']
+        dataset._data = reformatted
 
 
 class MassEmailJob(AbstractTimeStampedModel):
