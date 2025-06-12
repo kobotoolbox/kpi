@@ -167,8 +167,8 @@ class MassEmailConfigRecipientsResource(resources.ModelResource):
                         record['status'],
                     ]
                 )
-        dataset._data = reformatted
         dataset.headers = ['MassEmailConfig name', 'MassEmailConfig uid', 'batch id', 'batch date', 'record date', 'username', 'email', 'uid', 'status']
+        dataset._data = reformatted
 
 class MassEmailJob(AbstractTimeStampedModel):
     email_config = models.ForeignKey(
