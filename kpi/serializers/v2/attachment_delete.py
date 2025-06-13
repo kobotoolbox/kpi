@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.utils.translation import gettext as t
 from rest_framework import serializers
 
@@ -54,9 +55,12 @@ class AttachmentDeleteSerializer(serializers.Serializer):
             attachment_uids = [self.validated_data['attachment_uid']]
             field = 'attachment_uid'
         else:
+            uuids = self.validated_data['submission_root_uuids']
             attachments = Attachment.objects.filter(
-                xform_id=deployment.xform_id,
-                instance__uuid__in=self.validated_data['submission_root_uuids'],
+                Q(xform_id=deployment.xform_id) & (
+                    Q(instance__root_uuid__in=uuids) |
+                    (Q(instance__uuid__in=uuids) & Q(instance__root_uuid__isnull=True))
+                )
             )
             attachment_uids = list(attachments.values_list('uid', flat=True))
             field = 'submission_root_uuids'
