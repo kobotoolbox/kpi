@@ -202,6 +202,7 @@ class MassEmailConfigRecipientsResource(resources.ModelResource):
         ]
         dataset._data = reformatted
 
+
 class MassEmailJob(AbstractTimeStampedModel):
     email_config = models.ForeignKey(
         MassEmailConfig, on_delete=models.PROTECT, related_name='jobs'
