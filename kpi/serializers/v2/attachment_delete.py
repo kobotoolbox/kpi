@@ -55,6 +55,8 @@ class AttachmentDeleteSerializer(serializers.Serializer):
             attachment_uids = [self.validated_data['attachment_uid']]
             field = 'attachment_uid'
         else:
+            # TODO: Remove fallback check for `root_uuid=None` once
+            #  0005 long-running migration is complete
             uuids = self.validated_data['submission_root_uuids']
             attachments = Attachment.objects.filter(
                 Q(xform_id=deployment.xform_id) & (
