@@ -1,7 +1,9 @@
 from collections.abc import Callable
+from datetime import timedelta
 from enum import Enum
 
 from django.db import models
+from django.utils import timezone
 from import_export import fields, resources
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -74,9 +76,13 @@ class MassEmailConfig(AbstractTimeStampedModel):
     @classmethod
     def export_resource_classes(cls):
         return {
-            'mass_email_config_recipients': (
+            'mass_email_config_expected_recipients': (
                 'Expected recipients resource',
                 MassEmailConfigExpectedRecipientsResource,
+            ),
+            'mass_email_config_recipients': (
+                'Last 30 days recipients resource',
+                MassEmailConfigRecipientsResource,
             ),
         }
 
@@ -88,6 +94,7 @@ class MassEmailConfigExpectedRecipientsResource(resources.ModelResource):
         model = MassEmailConfig
         fields = (
             'name',
+            'uid',
             'recipients',
         )
 
@@ -103,11 +110,12 @@ class MassEmailConfigExpectedRecipientsResource(resources.ModelResource):
         super().after_export(queryset, dataset, **kwargs)
         preformatted = dataset._data
         reformatted = []
-        for [config_name, users] in preformatted:
+        for [config_name, uid, users] in preformatted:
             for user in users:
                 reformatted.append(
                     [
                         config_name,
+                        uid,
                         user['username'],
                         user['email'],
                         user['extra_details__uid'],
@@ -116,7 +124,83 @@ class MassEmailConfigExpectedRecipientsResource(resources.ModelResource):
         # empty the old dataset so we can set the new headers without an
         # "InvalidDimensions" error
         dataset.wipe()
-        dataset.headers = ['MassEmailConfig name', 'username', 'email', 'uid']
+        dataset.headers = [
+            'MassEmailConfig name',
+            'MassEmailConfig uid',
+            'username',
+            'email',
+            'uid',
+        ]
+        dataset._data = reformatted
+
+
+class MassEmailConfigRecipientsResource(resources.ModelResource):
+    recipients = fields.Field(dehydrate_method='get_recipients')
+
+    class Meta:
+        model = MassEmailConfig
+        fields = (
+            'name',
+            'uid',
+            'recipients',
+        )
+
+    def get_recipients(self, email_config):
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+        records = (
+            MassEmailRecord.objects.filter(
+                email_job__email_config=email_config, date_created__gt=thirty_days_ago
+            )
+            .exclude(status=EmailStatus.ENQUEUED)
+            .values(
+                'email_job__pk',
+                'email_job__date_created',
+                'date_created',
+                'date_modified',
+                'user__username',
+                'user__email',
+                'user__extra_details__uid',
+                'status',
+            )
+        )
+        return list(records)
+
+    def after_export(self, queryset, dataset, **kwargs):
+        # change from 1 row per config to 1 row per record
+        super().after_export(queryset, dataset, **kwargs)
+        preformatted = dataset._data
+        reformatted = []
+        for [config_name, uid, records] in preformatted:
+            for record in records:
+                reformatted.append(
+                    [
+                        config_name,
+                        uid,
+                        record['email_job__pk'],
+                        record['email_job__date_created'],
+                        record['date_created'],
+                        record['date_modified'],
+                        record['user__username'],
+                        record['user__email'],
+                        record['user__extra_details__uid'],
+                        record['status'],
+                    ]
+                )
+        # empty the old dataset so we can set the new headers without an
+        # "InvalidDimensions" error
+        dataset.wipe()
+        dataset.headers = [
+            'MassEmailConfig name',
+            'MassEmailConfig uid',
+            'MassEmailJob id',
+            'MassEmailJob created',
+            'MassEmailRecord created',
+            'MassEmailRecord last updated',
+            'username',
+            'email',
+            'uid',
+            'status',
+        ]
         dataset._data = reformatted
 
 
