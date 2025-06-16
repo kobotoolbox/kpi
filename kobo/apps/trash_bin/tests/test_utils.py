@@ -537,7 +537,7 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
         )
         xform.refresh_from_db()
         user_profile.refresh_from_db()
-        self.assertGreater(xform.attachment_storage_bytes, 0)
+        self.assertEqual(xform.attachment_storage_bytes, xform_storage_init)
         self.assertEqual(user_profile.attachment_storage_bytes, 0)
 
         # Restore the project
@@ -554,7 +554,7 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
         )
         xform.refresh_from_db()
         user_profile.refresh_from_db()
-        self.assertGreater(xform.attachment_storage_bytes, 0)
+        self.assertEqual(xform.attachment_storage_bytes, xform_storage_init)
         self.assertGreater(user_profile.attachment_storage_bytes, 0)
         self.assertEqual(xform_storage_init, xform.attachment_storage_bytes)
         self.assertEqual(user_storage_init, user_profile.attachment_storage_bytes)

@@ -4,7 +4,7 @@ from django.db.models.functions import Coalesce
 from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
+from kpi.deployment_backends.kc_access.utils import conditional_kc_transaction_atomic
 
 
 def bulk_update_attachment_storage_counters(
@@ -30,9 +30,9 @@ def bulk_update_attachment_storage_counters(
     if not attachments.exists():
         return
 
-    attachment_ids = attachments.values_list('pk', flat=True).distinct()
-    user_ids = attachments.values_list('user_id', flat=True).distinct()
-    xform_ids = attachments.values_list('xform_id', flat=True).distinct()
+    attachment_ids = attachments.values_list('pk', flat=True)
+    user_ids = attachments.values_list('user_id', flat=True)
+    xform_ids = attachments.values_list('xform_id', flat=True)
 
     user_profile_subquery = (
         Attachment.all_objects
@@ -50,7 +50,7 @@ def bulk_update_attachment_storage_counters(
         .values('total_size')
     )
 
-    with kc_transaction_atomic():
+    with conditional_kc_transaction_atomic():
         UserProfile.objects.filter(user_id__in=user_ids).update(
             attachment_storage_bytes=(
                 F('attachment_storage_bytes') +
