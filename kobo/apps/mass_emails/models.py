@@ -155,6 +155,7 @@ class MassEmailConfigRecipientsResource(resources.ModelResource):
             .values(
                 'email_job__pk',
                 'email_job__date_created',
+                'date_created',
                 'date_modified',
                 'user__username',
                 'user__email',
