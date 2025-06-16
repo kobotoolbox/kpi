@@ -1,4 +1,3 @@
-# coding: utf-8
 import logging
 
 from django.conf import settings
@@ -18,12 +17,12 @@ from kobo.apps.openrosa.apps.logger.models.monthly_xform_submission_counter impo
     MonthlyXFormSubmissionCounter,
 )
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
-from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.libs.utils.guardian import assign_perm, get_perms_for_model
 from kobo.apps.openrosa.libs.utils.image_tools import get_optimized_image_path
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.deployment_backends.kc_access.utils import conditional_kc_transaction_atomic
 
 
 @receiver(pre_delete, sender=Attachment)
@@ -38,25 +37,19 @@ def pre_delete_attachment(instance, **kwargs):
     # Otherwise, with a `post_delete`, they would be gone before reaching the rest
     # of code below.
 
+    from kobo.apps.openrosa.apps.logger.utils.counters import update_storage_counters
+
     # `instance` here means "model instance", and no, it is not allowed to
     # change the name of the parameter
     attachment = instance
     file_size = attachment.media_file_size
     only_update_counters = kwargs.pop('only_update_counters', False)
+    # TODO use deserialized XForm from Attachment model
     xform = attachment.instance.xform
+    user_id = xform.user_id
 
     if file_size and attachment.delete_status is None:
-        with transaction.atomic():
-            # Update both counters simultaneously within a transaction to minimize
-            # the risk of desynchronization.
-            UserProfile.objects.filter(
-                user_id=xform.user_id
-            ).update(
-                attachment_storage_bytes=F('attachment_storage_bytes') - file_size
-            )
-            XForm.all_objects.filter(pk=xform.pk).update(
-                attachment_storage_bytes=F('attachment_storage_bytes') - file_size
-            )
+        update_storage_counters(xform.pk, user_id, -file_size)
 
     if only_update_counters or not (media_file_name := str(attachment.media_file)):
         return
@@ -81,8 +74,11 @@ def post_save_attachment(instance, created, **kwargs):
     Update the attachment_storage_bytes field in the UserProfile model
     when an attachment is added
     """
+    from kobo.apps.openrosa.apps.logger.utils.counters import update_storage_counters
+
     if not created:
         return
+
     attachment = instance
     if getattr(attachment, 'defer_counting', False):
         return
@@ -91,15 +87,11 @@ def post_save_attachment(instance, created, **kwargs):
     if not file_size:
         return
 
+    # TODO use deserialized XForm from Attachment model
     xform = attachment.instance.xform
+    user_id = xform.user_id
 
-    with transaction.atomic():
-        UserProfile.objects.filter(user_id=xform.user_id).update(
-            attachment_storage_bytes=F('attachment_storage_bytes') + file_size
-        )
-        XForm.objects.filter(pk=xform.pk).update(
-            attachment_storage_bytes=F('attachment_storage_bytes') + file_size
-        )
+    update_storage_counters(xform.pk, user_id, file_size)
 
 
 @receiver(post_save, sender=XForm, dispatch_uid='xform_object_permissions')
@@ -142,7 +134,9 @@ def nullify_exports_time_of_last_submission(sender, instance, **kwargs):
     """
     if isinstance(instance, Instance):
         try:
-            xform = instance.xform
+            xform = XForm.objects.only('pk', 'id_string', 'kpi_asset_uid').get(
+                pk=instance.pk
+            )
         except XForm.DoesNotExist:  # In case of XForm.delete()
             return
     else:
@@ -161,13 +155,18 @@ def nullify_exports_time_of_last_submission(sender, instance, **kwargs):
     post_save, sender=Instance, dispatch_uid='update_xform_submission_count'
 )
 def update_xform_submission_count(sender, instance, created, **kwargs):
+
     if not created:
         return
+
     # `defer_counting` is a Python-only attribute
     if getattr(instance, 'defer_counting', False):
         return
-    with transaction.atomic():
-        xform = XForm.objects.only('user_id').get(pk=instance.xform_id)
+
+    if not (xform := kwargs.get('xform')):
+        xform = XForm.objects.only('pk', 'user_id').get(pk=instance.xform_id)
+
+    with conditional_kc_transaction_atomic():
         # Update with `F` expression instead of `select_for_update` to avoid
         # locks, which were mysteriously piling up during periods of high
         # traffic
@@ -187,25 +186,32 @@ def update_xform_submission_count(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Instance, dispatch_uid='update_xform_daily_counter')
 def update_xform_daily_counter(sender, instance, created, **kwargs):
+
     if not created:
         return
+
+    # `defer_counting` is a Python-only attribute
     if getattr(instance, 'defer_counting', False):
         return
 
     # get the date submitted
     date_created = instance.date_created.date()
 
+    # get the user_id for the xform the instance was submitted for
+    if not (xform := kwargs.get('xform')):
+        xform = XForm.objects.only('pk', 'user_id').get(pk=instance.xform_id)
+
     # make sure the counter exists
     DailyXFormSubmissionCounter.objects.get_or_create(
         date=date_created,
-        xform=instance.xform,
-        user=instance.xform.user,
+        xform_id=xform.pk,
+        user_id=xform.user_id,
     )
 
     # update the count for the current submission
     DailyXFormSubmissionCounter.objects.filter(
         date=date_created,
-        xform=instance.xform,
+        xform_id=xform.pk,
     ).update(counter=F('counter') + 1)
 
 
@@ -213,13 +219,18 @@ def update_xform_daily_counter(sender, instance, created, **kwargs):
     post_save, sender=Instance, dispatch_uid='update_xform_monthly_counter'
 )
 def update_xform_monthly_counter(sender, instance, created, **kwargs):
+
     if not created:
         return
+
+    # `defer_counting` is a Python-only attribute
     if getattr(instance, 'defer_counting', False):
         return
 
     # get the user_id for the xform the instance was submitted for
-    xform = XForm.objects.only('pk', 'user_id').get(pk=instance.xform_id)
+    # get the user_id for the xform the instance was submitted for
+    if not (xform := kwargs.get('xform')):
+        xform = XForm.objects.only('pk', 'user_id').get(pk=instance.xform_id)
 
     # get the date the instance was created
     date_created = instance.date_created.date()
@@ -227,14 +238,14 @@ def update_xform_monthly_counter(sender, instance, created, **kwargs):
     # make sure the counter exists
     MonthlyXFormSubmissionCounter.objects.get_or_create(
         user_id=xform.user_id,
-        xform=instance.xform,
+        xform_id=xform.pk,
         year=date_created.year,
         month=date_created.month,
     )
 
     # update the counter for the current submission
     MonthlyXFormSubmissionCounter.objects.filter(
-        xform=instance.xform,
+        xform_id=xform.pk,
         year=date_created.year,
         month=date_created.month,
     ).update(counter=F('counter') + 1)
