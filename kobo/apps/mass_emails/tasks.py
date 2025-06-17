@@ -26,7 +26,7 @@ from kpi.utils.log import logging
 from kpi.utils.mailer import EmailMessage, Mailer
 
 if settings.STRIPE_ENABLED:
-    from kobo.apps.stripe.utils import get_plan_name
+    from kobo.apps.stripe.utils.misc import get_plan_name
 
 templates_placeholders = {
     '##username##': 'username',
