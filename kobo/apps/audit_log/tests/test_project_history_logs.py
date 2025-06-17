@@ -23,7 +23,10 @@ from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
 from kobo.apps.hook.models import Hook
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    add_uuid_prefix,
+    remove_uuid_prefix,
+)
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kpi.constants import (
     ASSET_TYPE_TEMPLATE,
@@ -1869,4 +1872,47 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self._check_submission_log_metadata(
             log_metadata, expected_username, instance.root_uuid
+        )
+
+    def test_update_qa_data_on_modified_instance(self):
+        instance, submission = self._add_submission('adminuser')
+        deployment = self.asset.deployment
+        new_uuid = str(uuid.uuid4())
+        xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
+        edit_submission_xml(
+            xml_parsed,
+            deployment.SUBMISSION_DEPRECATED_UUID_XPATH,
+            add_uuid_prefix(instance.uuid),
+        )
+        edit_submission_xml(
+            xml_parsed,
+            deployment.SUBMISSION_CURRENT_UUID_XPATH,
+            add_uuid_prefix(new_uuid),
+        )
+        instance.xml = xml_tostring(xml_parsed)
+        instance.uuid = new_uuid
+        instance.save()
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.post,
+            url=reverse(
+                'advanced-submission-post',
+                kwargs={'asset_uid': self.asset.uid},
+            ),
+            request_data={
+                'submission': submission['_uuid'],
+                'q1': {
+                    'qual': [
+                        {
+                            'type': 'qual_text',
+                            'uuid': '12345',
+                            'val': 'someval',
+                        }
+                    ]
+                },
+            },
+            expected_action=AuditAction.MODIFY_QA_DATA,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+        )
+        self._check_submission_log_metadata(
+            log_metadata, 'adminuser', instance.root_uuid
         )
