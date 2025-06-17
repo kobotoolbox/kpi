@@ -1,4 +1,3 @@
-# coding: utf-8
 import glob
 import os
 
@@ -88,6 +87,15 @@ class TestInstanceCreation(TestCase):
             postdata = create_post_data(path)
             response = self.client.post('/bob/submission', postdata)
             self.assertEqual(response.status_code, 201)
+
+        instance = Instance.objects.get(root_uuid='435f173c688e482486a48661700467gh')
+        attachment = instance.attachments.first()
+        assert attachment.media_file_basename == '1300375832136.jpg'
+        assert attachment.xform_id == instance.xform_id
+        assert attachment.user_id == instance.xform.user_id
+        assert attachment.date_created is not None
+        assert attachment.date_modified is not None
+
 
     def test_submission_for_missing_form(self):
         xml_file = open(os.path.join(
