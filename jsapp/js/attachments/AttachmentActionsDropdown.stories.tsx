@@ -23,7 +23,24 @@ const meta: Meta<typeof AttachmentActionsDropdown> = {
   args: {},
   render: (args) => (
     <div>
-      <img src='https://fakeimg.pl/300/' alt='some attachment' />
+      <div
+        style={{
+          width: '300px',
+          height: '300px',
+          padding: '20px',
+          lineHeight: '50px',
+          textAlign: 'justify',
+          fontSize: '32px',
+          color: 'lightcoral',
+          background: 'radial-gradient(circle, pink, blanchedalmond, thistle, pink, lavender, lavenderblush)',
+          display: 'inline-block',
+          verticalAlign: 'middle',
+          fontStyle: 'italic',
+          fontWeight: 900,
+        }}
+      >
+        If you fight fire with fire, fire is guaranteed to win
+      </div>
       <AttachmentActionsDropdown {...args} />
     </div>
   ),
