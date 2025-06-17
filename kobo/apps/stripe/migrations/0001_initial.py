@@ -4,7 +4,7 @@ import django.core.validators
 import django.db.models.deletion
 from django.db import migrations, models
 
-import kobo.apps.stripe.utils.subscription_limits
+from kobo.apps.stripe.utils.subscription_limits import get_default_add_on_limits
 import kpi.fields.kpi_uid
 
 
@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
                 (
                     'usage_limits',
                     models.JSONField(
-                        default=kobo.apps.stripe.utils.subscription_limits.get_default_add_on_limits,
+                        default=get_default_add_on_limits,
                         help_text='The historical usage limits when the add-on was '
                         'purchased.\n        Multiply this value by `quantity` to get '
                         'the total limits for this add-on. Possible keys:\n'
@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
                 (
                     'limits_remaining',
                     models.JSONField(
-                        default=kobo.apps.stripe.utils.subscription_limits.get_default_add_on_limits,
+                        default=get_default_add_on_limits,
                         help_text="The amount of each of the add-on's individual "
                         'limits left to use."',
                     ),
