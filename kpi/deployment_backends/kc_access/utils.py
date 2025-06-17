@@ -365,9 +365,7 @@ def kc_transaction_atomic(using=settings.OPENROSA_DB_ALIAS, *args, **kwargs):
     ), "`kc_transaction_atomic` may only be used with the 'kobocat' database"
 
     db_alias = (
-        settings.DEFAULT_DB_ALIAS
-        if settings.TESTING
-        else settings.OPENROSA_DB_ALIAS
+        settings.DEFAULT_DB_ALIAS if settings.TESTING else settings.OPENROSA_DB_ALIAS
     )
 
     # Bare decorator: @atomic -- although the first argument is called
