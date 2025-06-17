@@ -1,7 +1,4 @@
 import { createContext } from 'react'
-
-import { getSubscriptionInterval } from '#/account/stripe.api'
-import type { RecurringInterval } from '#/account/stripe.types'
 import { getOrgServiceUsage } from '#/account/usage/usage.api'
 import { useApiFetcher, withApiFetcher } from '#/hooks/useApiFetcher.hook'
 import { convertSecondsToMinutes, formatRelativeTime } from '#/utils'
@@ -13,7 +10,6 @@ export interface UsageState {
   translationChars: number
   currentPeriodStart: string
   currentPeriodEnd: string
-  trackingPeriod: RecurringInterval
   lastUpdated?: String | null
 }
 
@@ -24,7 +20,6 @@ const INITIAL_USAGE_STATE: UsageState = Object.freeze({
   translationChars: 0,
   currentPeriodStart: '',
   currentPeriodEnd: '',
-  trackingPeriod: 'month',
   lastUpdated: '',
 })
 
@@ -32,7 +27,7 @@ const loadUsage = async (organizationId: string | null): Promise<UsageState | un
   if (!organizationId) {
     throw Error(t('No organization found'))
   }
-  const trackingPeriod = await getSubscriptionInterval()
+
   const usage = await getOrgServiceUsage(organizationId)
   if (!usage) {
     throw Error(t("Couldn't get usage data"))
@@ -51,7 +46,6 @@ const loadUsage = async (organizationId: string | null): Promise<UsageState | un
     translationChars: usage.total_nlp_usage.mt_characters_current_period,
     currentPeriodStart: usage.current_period_start,
     currentPeriodEnd: usage.current_period_end,
-    trackingPeriod,
     lastUpdated,
   }
 }

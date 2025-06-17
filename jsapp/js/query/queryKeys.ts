@@ -14,4 +14,5 @@ export enum QueryKeys {
   organizationMembers = 'organizationMembers',
   organizationMemberDetail = 'organizationMemberDetail',
   organizationMemberInviteDetail = 'organizationMemberInviteDetail',
+  billingPeriod = 'billingPeriod',
 }

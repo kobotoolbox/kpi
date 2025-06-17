@@ -1,8 +1,8 @@
-import React, { useContext, useState } from 'react'
+import React, { useState } from 'react'
 
 import { Cookies } from 'react-cookie'
 import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
-import { UsageContext } from '#/account/usage/useUsage.hook'
+import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import LimitBanner from '#/components/usageLimits/overLimitBanner.component'
 import LimitModal from '#/components/usageLimits/overLimitModal.component'
 import { useExceedingLimits } from '#/components/usageLimits/useExceedingLimits.hook'
@@ -20,7 +20,8 @@ const LimitNotifications = ({ useModal = false, accountPage = false }: LimitNoti
   const [dismissed, setDismissed] = useState(!useModal)
   const [stripeEnabled, setStripeEnabled] = useState(false)
 
-  const [usage] = useContext(UsageContext)
+  const { billingPeriod } = useBillingPeriod()
+
   const limits = useExceedingLimits()
 
   const orgQuery = useOrganizationQuery()
@@ -60,23 +61,13 @@ const LimitNotifications = ({ useModal = false, accountPage = false }: LimitNoti
   return (
     <>
       {dismissed && (
-        <LimitBanner interval={usage.trackingPeriod} limits={limits.exceedList} accountPage={Boolean(accountPage)} />
+        <LimitBanner interval={billingPeriod} limits={limits.exceedList} accountPage={Boolean(accountPage)} />
       )}
       {!limits.exceedList.length && (
-        <LimitBanner
-          warning
-          interval={usage.trackingPeriod}
-          limits={limits.warningList}
-          accountPage={Boolean(accountPage)}
-        />
+        <LimitBanner warning interval={billingPeriod} limits={limits.warningList} accountPage={Boolean(accountPage)} />
       )}
       {useModal && (
-        <LimitModal
-          show={showModal}
-          limits={limits.exceedList}
-          interval={usage.trackingPeriod}
-          dismissed={modalDismissed}
-        />
+        <LimitModal show={showModal} limits={limits.exceedList} interval={billingPeriod} dismissed={modalDismissed} />
       )}
     </>
   )
