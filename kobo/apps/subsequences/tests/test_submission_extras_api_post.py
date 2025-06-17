@@ -97,6 +97,11 @@ class ValidateSubmissionTest(BaseSubsequenceTestCase):
         )
         edit_submission_xml(
             xml_parsed,
+            deployment.SUBMISSION_ROOT_UUID_XPATH,
+            add_uuid_prefix(instance.root_uuid),
+        )
+        edit_submission_xml(
+            xml_parsed,
             deployment.SUBMISSION_CURRENT_UUID_XPATH,
             add_uuid_prefix(new_uuid),
         )

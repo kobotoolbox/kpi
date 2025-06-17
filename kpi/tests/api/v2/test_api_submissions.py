@@ -1714,14 +1714,28 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         # Use Digest authentication; testing SessionAuth is not required.
         # The purpose of this test is to validate partial permissions.
         submission = self.submissions_submitted_by_anotheruser[0]
+        submission_json = self.asset.deployment.get_submission(
+            submission['_id'], self.asset.owner, format_type='json'
+        )
         instance_xml = self.asset.deployment.get_submission(
             submission['_id'], self.asset.owner, format_type='xml'
         )
         xml_parsed = fromstring_preserve_root_xmlns(instance_xml)
         edit_submission_xml(
-            xml_parsed, 'meta/deprecatedID', submission['meta/instanceID']
+            xml_parsed,
+            self.asset.deployment.SUBMISSION_DEPRECATED_UUID_XPATH,
+            submission_json['meta/instanceID'],
         )
-        edit_submission_xml(xml_parsed, 'meta/instanceID', 'foo')
+        edit_submission_xml(
+            xml_parsed,
+            self.asset.deployment.SUBMISSION_ROOT_UUID_XPATH,
+            submission_json['meta/rootUuid'],
+        )
+        edit_submission_xml(
+            xml_parsed,
+            self.asset.deployment.SUBMISSION_CURRENT_UUID_XPATH,
+            'foo',
+        )
         edited_submission = xml_tostring(xml_parsed)
 
         url = reverse(
@@ -1861,6 +1875,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
                     if idx == 0
                     else status.HTTP_202_ACCEPTED
                 )
+
 
 class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):
 
