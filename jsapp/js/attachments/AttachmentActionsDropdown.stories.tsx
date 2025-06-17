@@ -30,7 +30,7 @@ const meta: Meta<typeof AttachmentActionsDropdown> = {
           padding: '20px',
           lineHeight: '50px',
           textAlign: 'justify',
-          fontSize: '50px',
+          fontSize: '32px',
           color: 'lightcoral',
           background: 'radial-gradient(circle, pink, blanchedalmond, thistle, pink, lavender, lavenderblush)',
           display: 'inline-block',
