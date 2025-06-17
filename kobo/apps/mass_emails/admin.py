@@ -9,7 +9,7 @@ class MassEmailConfigAdmin(admin.ModelAdmin):
 
     list_display = ('name', 'date_modified', 'frequency', 'live')
     fields = ('name', 'subject', 'template', 'query', 'frequency', 'live')
-    actions = ['enqueue_mass_emails', create_export_job_action]
+    actions = ['enqueue_mass_emails', 'export_recipient_lists']
 
     def get_readonly_fields(self, request, obj=None):
         if obj and obj.type == EmailType.ONE_TIME:
@@ -52,3 +52,8 @@ class MassEmailConfigAdmin(admin.ModelAdmin):
                         f'Emails for {config.name} have been added to the daily send',
                         level=messages.SUCCESS,
                     )
+
+    # wrap the original method so we can give it a clearer name
+    @admin.action(description='Export recipient list')
+    def export_recipient_lists(self, request, queryset):
+        return create_export_job_action(self, request, queryset)
