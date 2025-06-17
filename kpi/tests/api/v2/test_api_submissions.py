@@ -21,7 +21,8 @@ from rest_framework import status
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix, \
+    add_uuid_prefix
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
@@ -1139,7 +1140,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
 
 class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase):
     """
-    Tests for editin submissions.
+    Tests for editing submissions.
 
     WARNING: Tests in this class must work in v1 as well, or else be added to the
     skipped tests in kpi/tests/api/v1/test_api_submissions.py
@@ -1774,6 +1775,92 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         response = client.post(url, data)
         assert response.status_code == status.HTTP_201_CREATED
 
+    def test_edit_submission_with_large_uploads(self):
+        # Create a project with two optional media questions: one audio and one file
+        asset = Asset.objects.create(
+            content={
+                'survey': [
+                    {'type': 'audio', 'label': 'q1', 'required': 'false'},
+                    {'type': 'file', 'label': 'q2', 'required': 'false'},
+                ]
+            },
+            owner=self.someuser,
+            asset_type='survey',
+        )
+        asset.deploy(backend='mock', active=True)
+        asset.save()
+
+        submission_uuid = str(uuid.uuid4())
+        version_uid = asset.latest_deployed_version.uid
+
+        # Simulate one initial submission (without actual media files yet)
+        submission = {
+            '__version__': version_uid,
+            'meta/instanceID': add_uuid_prefix(submission_uuid),
+            'q1': 'audio_conversion_test_clip.3gp',
+            'q2': 'audio_conversion_test_image.jpg',
+            '_submitted_by': 'someuser',
+        }
+        asset.deployment.mock_submissions([submission])
+
+        # Simulate editing the submission:
+        # - fetch the original XML
+        # - generate a new snapshot
+        # - inject rootUuid and deprecatedID in XML
+        instance = Instance.objects.get(root_uuid=remove_uuid_prefix(submission_uuid))
+        submission_xml = instance.xml
+        submission_json = asset.deployment.get_submission(
+            instance.pk, asset.owner, format_type='json'
+        )
+        xml_parsed = fromstring_preserve_root_xmlns(submission_xml)
+        xml_root_node_name = xml_parsed.tag
+
+        snapshot = asset.snapshot(
+            regenerate=True,
+            root_node_name=xml_root_node_name,
+            version_uid=version_uid,
+            submission_uuid=remove_uuid_prefix(submission_json['meta/rootUuid']),
+        )
+
+        edit_submission_xml(
+            xml_parsed, 'meta/deprecatedID', submission_json['meta/instanceID']
+        )
+        edit_submission_xml(
+            xml_parsed, 'meta/rootUuid', submission_json['meta/rootUuid']
+        )
+        new_submission_uuid = str(uuid.uuid4())
+        edit_submission_xml(xml_parsed, 'meta/instanceID', new_submission_uuid)
+        edited_submission = xml_tostring(xml_parsed)
+
+        # Submit the edited XML in multiple POSTs, simulating Enketo behavior.
+        # Enketo splits large submissions into chunks (max 10 MB per request).
+        # Here we simulate that by sending one attachment per request.
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=(snapshot.uid,),
+        )
+
+        attachments = [
+            'audio_conversion_test_clip.3gp',
+            'audio_conversion_test_image.jpg'
+        ]
+
+        for idx, attachment in enumerate(attachments):
+            attachment_path = os.path.join(
+                settings.BASE_DIR, 'kpi', 'fixtures', 'attachments', attachment
+            )
+            with open(attachment_path, 'rb') as f:
+                data = {'xml_submission_file': ContentFile(edited_submission)}
+                files = {attachment: f.read()}
+                response = self.client.post(url, data, files=files)
+
+                # The first POST creates the edited submission (201) with one
+                # attachment, the second attaches the file to the submission (202).
+                assert (
+                    response.status_code == status.HTTP_201_CREATED
+                    if idx == 0
+                    else status.HTTP_202_ACCEPTED
+                )
 
 class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):
 
