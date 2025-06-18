@@ -7,7 +7,7 @@ from io import StringIO
 from dict2xml import dict2xml
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers, status
-from rest_framework.exceptions import ErrorDetail
+from rest_framework.exceptions import ErrorDetail, ParseError
 from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
 import formpack
@@ -264,13 +264,12 @@ class XMLRenderer(DRFXMLRenderer):
 class XFormRenderer(XMLRenderer):
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
-        return super().render(
-            data=data,
-            accepted_media_type=accepted_media_type,
-            renderer_context=renderer_context,
-            relationship='snapshot',
-            relationship_kwargs={'regenerate': 'True'},
-        )
+        asset = renderer_context['view'].get_object()
+        snapshot = asset.snapshot(regenerate=True)
+
+        if snapshot.details.get('status') == 'failure':
+            raise ParseError(snapshot.details.get('error'))
+        return snapshot.xml
 
 
 class XlsRenderer(renderers.BaseRenderer):
