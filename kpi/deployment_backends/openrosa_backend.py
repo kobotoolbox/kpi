@@ -36,7 +36,10 @@ from kobo.apps.openrosa.apps.logger.utils.instance import (
     remove_validation_status_from_instance,
     set_instance_validation_statuses,
 )
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    add_uuid_prefix,
+    remove_uuid_prefix,
+)
 from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, publish_xls_form
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
@@ -331,18 +334,16 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         except DET.ParseError:
             raise SubmissionIntegrityError(t('Your submission XML is malformed.'))
         try:
-            deprecated_uuid = xml_root.find(self.SUBMISSION_DEPRECATED_UUID_XPATH).text
             xform_uuid = xml_root.find(self.FORM_UUID_XPATH).text
+            root_uuid = xml_root.find(self.SUBMISSION_ROOT_UUID_XPATH).text
         except AttributeError:
             raise SubmissionIntegrityError(
                 t('Your submission XML is missing critical elements.')
             )
-        # Remove UUID prefix
-        deprecated_uuid = deprecated_uuid[len('uuid:'):]
 
         try:
             instance = Instance.objects.get(
-                uuid=deprecated_uuid,
+                root_uuid=remove_uuid_prefix(root_uuid),
                 xform__uuid=xform_uuid,
                 xform__kpi_asset_uid=self.asset.uid,
             )

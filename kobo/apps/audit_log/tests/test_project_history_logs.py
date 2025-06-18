@@ -1544,9 +1544,20 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         xml_parsed = fromstring_preserve_root_xmlns(submission_xml)
         edit_submission_xml(
-            xml_parsed, 'meta/deprecatedID', submission_json['meta/instanceID']
+            xml_parsed,
+            self.asset.deployment.SUBMISSION_DEPRECATED_UUID_XPATH,
+            submission_json['meta/instanceID'],
         )
-        edit_submission_xml(xml_parsed, 'meta/instanceID', 'foo')
+        edit_submission_xml(
+            xml_parsed,
+            self.asset.deployment.SUBMISSION_ROOT_UUID_XPATH,
+            submission_json['meta/rootUuid'],
+        )
+        edit_submission_xml(
+            xml_parsed,
+            self.asset.deployment.SUBMISSION_CURRENT_UUID_XPATH,
+            'foo',
+        )
         edit_submission_xml(xml_parsed, 'Q1', 'new answer')
         edited_submission = xml_tostring(xml_parsed)
         url = reverse(
@@ -1883,6 +1894,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             xml_parsed,
             deployment.SUBMISSION_DEPRECATED_UUID_XPATH,
             add_uuid_prefix(instance.uuid),
+        )
+        edit_submission_xml(
+            xml_parsed,
+            deployment.SUBMISSION_ROOT_UUID_XPATH,
+            add_uuid_prefix(instance.root_uuid),
         )
         edit_submission_xml(
             xml_parsed,
