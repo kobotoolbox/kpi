@@ -24,8 +24,6 @@ from kobo.apps.stripe.utils.billing_dates import (
     get_current_billing_period_dates_by_org,
     get_current_billing_period_dates_for_active_plans,
 )
-from kobo.apps.stripe.utils.view_utils import (
-)
 from kobo.apps.stripe.utils.subscription_limits import (
     determine_limit,
     get_default_plan_name,
