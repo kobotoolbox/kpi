@@ -11,7 +11,7 @@ from kobo.apps.languages.urls import router as language_router
 from kobo.apps.organizations.views import (
     OrganizationMemberViewSet,
     OrganizationViewSet,
-    OrgMembershipInviteViewSet
+    OrgMembershipInviteViewSet,
 )
 from kobo.apps.project_ownership.urls import router as project_ownership_router
 from kobo.apps.project_views.views import ProjectViewViewSet

@@ -1,20 +1,20 @@
 from datetime import timedelta
 
-from ddt import ddt, data, unpack
 from constance.test import override_config
+from ddt import data, ddt, unpack
 from django.conf import settings
 from django.core import mail
-from django.urls import reverse
 from django.db.models import Q
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as t
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.constants import (
-    INVITE_OWNER_ERROR,
-    INVITE_MEMBER_ERROR,
     INVITE_ALREADY_ACCEPTED_ERROR,
+    INVITE_MEMBER_ERROR,
+    INVITE_OWNER_ERROR,
     ORG_ADMIN_ROLE,
     ORG_MEMBER_ROLE,
 )
@@ -25,7 +25,7 @@ from kobo.apps.organizations.models import (
 )
 from kobo.apps.organizations.tasks import mark_organization_invite_as_expired
 from kobo.apps.organizations.tests.test_organizations_api import (
-    BaseOrganizationAssetApiTestCase
+    BaseOrganizationAssetApiTestCase,
 )
 from kpi.models import Asset
 from kpi.tests.utils.transaction import immediate_on_commit
@@ -51,14 +51,9 @@ class BaseOrganizationInviteTestCase(BaseOrganizationAssetApiTestCase):
         )
         self.detail_url = lambda guid: reverse(
             self._get_endpoint('organization-invites-detail'),
-            kwargs={
-                'organization_id': self.organization.id,
-                'guid': guid
-            },
+            kwargs={'organization_id': self.organization.id, 'guid': guid},
         )
-        self.invitation_data = {
-            'invitees': ['bob', 'unregistereduser@example.com']
-        }
+        self.invitation_data = {'invitees': ['bob', 'unregistereduser@example.com']}
 
     def _create_invite(self, invited_by):
         """
@@ -82,7 +77,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         ('owner', status.HTTP_201_CREATED),
         ('admin', status.HTTP_201_CREATED),
         ('member', status.HTTP_403_FORBIDDEN),
-        ('external', status.HTTP_404_NOT_FOUND)
+        ('external', status.HTTP_404_NOT_FOUND),
     )
     @unpack
     def test_user_can_send_invitation(self, user_role, expected_status):
@@ -93,28 +88,23 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         response = self._create_invite(user)
         self.assertEqual(response.status_code, expected_status)
         if response.status_code == status.HTTP_201_CREATED:
-            self.assertEqual(
-                len(response.data), len(self.invitation_data['invitees'])
-            )
+            self.assertEqual(len(response.data), len(self.invitation_data['invitees']))
             for index, invitation in enumerate(response.data):
-                self.assertIn(
-                    invitation['invitee'], self.invitation_data['invitees']
-                )
+                self.assertIn(invitation['invitee'], self.invitation_data['invitees'])
                 # Check that the email was sent
                 invite = User.objects.filter(
-                    Q(username=invitation['invitee']) |
-                    Q(email=invitation['invitee'])
+                    Q(username=invitation['invitee']) | Q(email=invitation['invitee'])
                 ).first()
                 self.assertEqual(
                     mail.outbox[index].to[0],
-                    invite.email if invite else invitation['invitee']
+                    invite.email if invite else invitation['invitee'],
                 )
 
     @data(
         ('owner', status.HTTP_200_OK),
         ('admin', status.HTTP_200_OK),
         ('member', status.HTTP_403_FORBIDDEN),
-        ('external', status.HTTP_400_BAD_REQUEST)
+        ('external', status.HTTP_400_BAD_REQUEST),
     )
     @unpack
     def test_user_can_resend_invitation(self, user_role, expected_status):
@@ -128,9 +118,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         initial_mail_count = len(mail.outbox)
 
         self.client.force_login(user)
-        invitation = OrganizationInvitation.objects.get(
-            invitee=self.external_user
-        )
+        invitation = OrganizationInvitation.objects.get(invitee=self.external_user)
         # Update invitation like it was created 10 minutes ago to test
         # two resent PATCH requests in a row.
         fake_date_created = timezone.now() - timedelta(
@@ -156,7 +144,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
             self.assertEqual(resent_email.to[0], invitation.invitee.email)
             self.assertIn(
                 f"You're invited to join {self.organization.name} organization",
-                resent_email.subject
+                resent_email.subject,
             )
 
     def test_admin_cannot_resend_invitation_several_times_in_a_row(self):
@@ -166,9 +154,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         self._create_invite(self.owner_user)
         user = self.admin_user
         self.client.force_login(user)
-        invitation = OrganizationInvitation.objects.get(
-            invitee=self.external_user
-        )
+        invitation = OrganizationInvitation.objects.get(invitee=self.external_user)
 
         # Update invitation like it was created 10 minutes ago to test
         # two resent PATCH requests in a row.
@@ -205,9 +191,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         self._create_invite(self.owner_user)
         user = self.admin_user
         self.client.force_login(user)
-        invitation = OrganizationInvitation.objects.get(
-            invitee=self.external_user
-        )
+        invitation = OrganizationInvitation.objects.get(invitee=self.external_user)
 
         # First cancel the invitation
         response = self.client.patch(
@@ -231,7 +215,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         ('owner', status.HTTP_200_OK),
         ('admin', status.HTTP_200_OK),
         ('member', status.HTTP_403_FORBIDDEN),
-        ('external', status.HTTP_400_BAD_REQUEST)
+        ('external', status.HTTP_400_BAD_REQUEST),
     )
     @unpack
     def test_user_can_cancel_invitation(self, user_role, expected_status):
@@ -241,9 +225,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         self._create_invite(self.owner_user)
         user = getattr(self, f'{user_role}_user')
         self.client.force_login(user)
-        invitation = OrganizationInvitation.objects.get(
-            invitee=self.external_user
-        )
+        invitation = OrganizationInvitation.objects.get(invitee=self.external_user)
         response = self.client.patch(
             self.detail_url(invitation.guid),
             data={'status': OrganizationInviteStatusChoices.CANCELLED},
@@ -257,9 +239,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
 
             # Ensure the admin can re-invite the same user after canceling
             self.client.force_login(self.owner_user)
-            response = self.client.post(
-                self.list_url, data={'invitees': ['bob']}
-            )
+            response = self.client.post(self.list_url, data={'invitees': ['bob']})
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_list_invitations(self):
@@ -278,7 +258,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         self.another_owner_user = User.objects.create_user(
             username='another_owner_user',
             email='another_owner_user@example.com',
-            password='password'
+            password='password',
         )
         self.another_organization = Organization.objects.create(
             id='org1234', name='Another Organization', mmo_override=True
@@ -292,9 +272,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         self._create_invite(self.owner_user)
         self.client.force_login(self.external_user)
         create_asset_response = self._create_asset_by_bob()
-        invitation = OrganizationInvitation.objects.get(
-            invitee=self.external_user
-        )
+        invitation = OrganizationInvitation.objects.get(invitee=self.external_user)
         with immediate_on_commit():
             response = self._update_invite(
                 self.external_user,
@@ -317,9 +295,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         self._create_invite(self.owner_user)
         create_asset_response = self._create_asset_by_bob()
         self.client.force_login(self.external_user)
-        invitation = OrganizationInvitation.objects.get(
-            invitee=self.external_user
-        )
+        invitation = OrganizationInvitation.objects.get(invitee=self.external_user)
         response = self._update_invite(
             self.external_user,
             invitation.guid,
@@ -347,7 +323,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         self.new_user = User.objects.create_user(
             username='new_user',
             email='unregistereduser@example.com',
-            password='new_user'
+            password='new_user',
         )
         self.client.force_login(self.new_user)
         invitation = OrganizationInvitation.objects.get(
@@ -362,10 +338,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         )
         self.assertEqual(mail.outbox[2].to[0], invitation.invited_by.email)
 
-    @data(
-        ('admin', status.HTTP_201_CREATED),
-        ('member', status.HTTP_201_CREATED)
-    )
+    @data(('admin', status.HTTP_201_CREATED), ('member', status.HTTP_201_CREATED))
     @unpack
     def test_user_invitation_by_role(self, role, expected_status):
         """
@@ -374,13 +347,9 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         self.invitation_data['role'] = role
         response = self._create_invite(self.owner_user)
         self.assertEqual(response.status_code, expected_status)
-        self.assertEqual(
-            response.data[0]['invitee_role'], role
-        )
+        self.assertEqual(response.data[0]['invitee_role'], role)
         self.client.force_login(self.external_user)
-        invitation = OrganizationInvitation.objects.get(
-            invitee=self.external_user
-        )
+        invitation = OrganizationInvitation.objects.get(invitee=self.external_user)
         response = self._update_invite(
             self.external_user,
             invitation.guid,
@@ -391,15 +360,13 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
             response.data['status'], OrganizationInviteStatusChoices.ACCEPTED
         )
         self.assertEqual(response.data['invitee_role'], role)
-        self.assertEqual(
-            self.organization.get_user_role(self.external_user), role
-        )
+        self.assertEqual(self.organization.get_user_role(self.external_user), role)
 
     @data(
         ('owner', status.HTTP_204_NO_CONTENT),
         ('admin', status.HTTP_204_NO_CONTENT),
         ('member', status.HTTP_403_FORBIDDEN),
-        ('external', status.HTTP_404_NOT_FOUND)
+        ('external', status.HTTP_404_NOT_FOUND),
     )
     @unpack
     def test_owner_or_admin_can_delete_invitation(self, user_role, expected_status):
@@ -409,9 +376,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         self._create_invite(self.owner_user)
         user = getattr(self, f'{user_role}_user')
         self.client.force_login(user)
-        invitation = OrganizationInvitation.objects.get(
-            invitee=self.external_user
-        )
+        invitation = OrganizationInvitation.objects.get(invitee=self.external_user)
         response = self.client.delete(self.detail_url(invitation.guid))
         self.assertEqual(response.status_code, expected_status)
 
@@ -419,19 +384,15 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         ('owner', status.HTTP_200_OK),
         ('admin', status.HTTP_200_OK),
         ('member', status.HTTP_403_FORBIDDEN),
-        ('external', status.HTTP_400_BAD_REQUEST)
+        ('external', status.HTTP_400_BAD_REQUEST),
     )
     @unpack
-    def test_user_can_update_invitee_role(
-        self, user_role, expected_status
-    ):
+    def test_user_can_update_invitee_role(self, user_role, expected_status):
         """
         Test that the organization owner or admin can update the role of an invitee
         """
         self._create_invite(self.owner_user)
-        invitation = OrganizationInvitation.objects.get(
-            invitee=self.external_user
-        )
+        invitation = OrganizationInvitation.objects.get(invitee=self.external_user)
         self.assertTrue(invitation.invitee_role, ORG_MEMBER_ROLE)
         user = getattr(self, f'{user_role}_user')
         self.client.force_login(user)
@@ -473,15 +434,13 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         OrganizationInvitation.objects.create(
             invited_by=self.someuser,
             invitee=self.external_user,
-            organization=self.organization
+            organization=self.organization,
         )
 
         mark_organization_invite_as_expired()
 
         self.assertEqual(mail.outbox[0].to[0], self.someuser.email)
-        self.assertEqual(
-            mail.outbox[0].subject, 'Organization invite has expired'
-        )
+        self.assertEqual(mail.outbox[0].subject, 'Organization invite has expired')
 
     @override_config(ORGANIZATION_INVITE_EXPIRY=0)
     def test_admin_can_reinvite_user_after_expired_invitation(self):
@@ -503,9 +462,7 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
         """
         self._create_invite(self.owner_user)
         self.client.force_login(self.external_user)
-        invitation = OrganizationInvitation.objects.get(
-            invitee=self.external_user
-        )
+        invitation = OrganizationInvitation.objects.get(invitee=self.external_user)
         response = self._update_invite(
             self.external_user,
             invitation.guid,
@@ -523,9 +480,7 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
             OrganizationInviteStatusChoices.ACCEPTED,
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(
-            response.data['detail'], INVITE_ALREADY_ACCEPTED_ERROR
-        )
+        self.assertEqual(response.data['detail'], INVITE_ALREADY_ACCEPTED_ERROR)
 
     def test_invitee_cannot_accept_if_already_member_of_organization(self):
         """
@@ -535,30 +490,24 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
         self.another_owner_user = User.objects.create_user(
             username='another_owner_user',
             email='another_owner_user@example.com',
-            password='password'
+            password='password',
         )
         self.another_admin_user = User.objects.create_user(
             username='another_admin_user',
             email='another_admin_user@example.com',
-            password='password'
+            password='password',
         )
         self.another_organization = Organization.objects.create(
             id='org1234', name='Another Organization', mmo_override=True
         )
         self.another_organization.add_user(self.another_owner_user)
-        self.another_organization.add_user(
-            self.another_admin_user, is_admin=True
-        )
-        self.invitation_data['invitees'] = [
-            'another_owner_user', 'another_admin_user'
-        ]
+        self.another_organization.add_user(self.another_admin_user, is_admin=True)
+        self.invitation_data['invitees'] = ['another_owner_user', 'another_admin_user']
         self._create_invite(self.owner_user)
 
         # Attempt to accept the invitation as the owner of another organization
         self.client.force_login(self.another_owner_user)
-        invitation = OrganizationInvitation.objects.get(
-            invitee=self.another_owner_user
-        )
+        invitation = OrganizationInvitation.objects.get(invitee=self.another_owner_user)
         response = self._update_invite(
             self.another_owner_user,
             invitation.guid,
@@ -568,16 +517,13 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
         self.assertEqual(
             response.data['detail'],
             replace_placeholders(
-                t(INVITE_OWNER_ERROR),
-                organization_name=self.another_organization.name
-            )
+                t(INVITE_OWNER_ERROR), organization_name=self.another_organization.name
+            ),
         )
 
         # Attempt to accept the invitation as an admin of another organization
         self.client.force_login(self.another_admin_user)
-        invitation = OrganizationInvitation.objects.get(
-            invitee=self.another_admin_user
-        )
+        invitation = OrganizationInvitation.objects.get(invitee=self.another_admin_user)
         response = self._update_invite(
             self.another_admin_user,
             invitation.guid,
@@ -587,9 +533,8 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
         self.assertEqual(
             response.data['detail'],
             replace_placeholders(
-                t(INVITE_MEMBER_ERROR),
-                organization_name=self.another_organization.name
-            )
+                t(INVITE_MEMBER_ERROR), organization_name=self.another_organization.name
+            ),
         )
 
     def test_invitee_with_different_username_cannot_accept_invitation(self):
@@ -598,14 +543,10 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
         """
         self._create_invite(self.owner_user)
         self.new_user = User.objects.create_user(
-            username='new_user',
-            email='new_user@example.com',
-            password='password'
+            username='new_user', email='new_user@example.com', password='password'
         )
         self.client.force_login(self.new_user)
-        invitation = OrganizationInvitation.objects.get(
-            invitee=self.external_user
-        )
+        invitation = OrganizationInvitation.objects.get(invitee=self.external_user)
         response = self._update_invite(
             self.new_user,
             invitation.guid,
@@ -620,9 +561,7 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
         self._create_invite(self.owner_user)
         # Create a new user with a different email
         self.new_user = User.objects.create_user(
-            username='new_user',
-            email='new_user@example.com',
-            password='password'
+            username='new_user', email='new_user@example.com', password='password'
         )
 
         # Attempt to accept the invitation
@@ -654,14 +593,12 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
         self.assertContains(
             response,
             'An active invitation already exists',
-            status_code=status.HTTP_400_BAD_REQUEST
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
         # Accept the invitation
         self.client.force_login(self.external_user)
-        invitation = OrganizationInvitation.objects.get(
-            invitee=self.external_user
-        )
+        invitation = OrganizationInvitation.objects.get(invitee=self.external_user)
         response = self._update_invite(
             self.external_user,
             invitation.guid,
@@ -676,7 +613,7 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
         self.assertContains(
             response,
             'User is already a member of this organization.',
-            status_code=status.HTTP_400_BAD_REQUEST
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
         # Ensure that a new invitation is not sent if the user is already
@@ -686,7 +623,7 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
         self.assertContains(
             response,
             'User is already a member of this organization.',
-            status_code=status.HTTP_400_BAD_REQUEST
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     def test_admin_can_reinvite_accepted_email(self):
@@ -698,20 +635,16 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
 
         # Send first invitation
         email_invitee = 'unregistereduser@example.com'
-        response = self.client.post(
-            self.list_url, data={'invitees': [email_invitee]}
-        )
+        response = self.client.post(self.list_url, data={'invitees': [email_invitee]})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Attempt to send a duplicate invitation
-        response = self.client.post(
-            self.list_url, data={'invitees': [email_invitee]}
-        )
+        response = self.client.post(self.list_url, data={'invitees': [email_invitee]})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertContains(
             response,
             'An active invitation already exists',
-            status_code=status.HTTP_400_BAD_REQUEST
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
         # Accept the invitation
@@ -723,17 +656,13 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
             invitee_identifier=self.new_user.email
         )
         response = self._update_invite(
-            self.new_user,
-            invitation.guid,
-            OrganizationInviteStatusChoices.ACCEPTED
+            self.new_user, invitation.guid, OrganizationInviteStatusChoices.ACCEPTED
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Attempt to send a new invitation after acceptance
         self.client.force_login(self.owner_user)
-        response = self.client.post(
-            self.list_url, data={'invitees': [email_invitee]}
-        )
+        response = self.client.post(self.list_url, data={'invitees': [email_invitee]})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Ensure that the new invitation is sent to the same email address if
@@ -760,9 +689,7 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
 
         # Send the first invitation
         self.client.force_login(self.owner_user)
-        response = self.client.post(
-            self.list_url, data={'invitees': [email_invitee]}
-        )
+        response = self.client.post(self.list_url, data={'invitees': [email_invitee]})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # First user accepts the invitation
@@ -771,18 +698,14 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
             invitee_identifier=first_account.email
         )
         response = self._update_invite(
-            first_account,
-            invitation.guid,
-            OrganizationInviteStatusChoices.ACCEPTED
+            first_account, invitation.guid, OrganizationInviteStatusChoices.ACCEPTED
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['invitee'], first_account.username)
 
         # Send a new invitation for the same email
         self.client.force_login(self.owner_user)
-        response = self.client.post(
-            self.list_url, data={'invitees': [email_invitee]}
-        )
+        response = self.client.post(self.list_url, data={'invitees': [email_invitee]})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Second user accepts the invitation
@@ -791,9 +714,7 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
             invitee_identifier=second_account.email
         ).last()
         response = self._update_invite(
-            second_account,
-            invitation.guid,
-            OrganizationInviteStatusChoices.ACCEPTED
+            second_account, invitation.guid, OrganizationInviteStatusChoices.ACCEPTED
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['invitee'], second_account.username)

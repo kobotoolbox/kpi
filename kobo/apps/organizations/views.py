@@ -1,14 +1,5 @@
 from django.db import transaction
-from django.db.models import (
-    Case,
-    CharField,
-    F,
-    OuterRef,
-    Q,
-    QuerySet,
-    Value,
-    When,
-)
+from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
 from rest_framework import status, viewsets
@@ -27,25 +18,28 @@ from kpi.serializers.v2.service_usage import (
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
-from .models import Organization, OrganizationOwner, OrganizationUser
+from ..accounts.mfa.models import MfaMethod
 from .models import (
+    Organization,
     OrganizationInvitation,
     OrganizationInviteStatusChoices,
+    OrganizationOwner,
+    OrganizationUser,
 )
 from .permissions import (
     HasOrgRolePermission,
     IsOrgAdminPermission,
     OrganizationNestedHasOrgRolePermission,
-    OrgMembershipInvitePermission,
     OrgMembershipCreateOrDeleteInvitePermission,
+    OrgMembershipInvitePermission,
 )
 from .renderers import OnlyGetBrowsableAPIRenderer
 from .serializers import (
-    OrgMembershipInviteSerializer
+    OrganizationSerializer,
+    OrganizationUserSerializer,
+    OrgMembershipInviteSerializer,
 )
-from .serializers import OrganizationSerializer, OrganizationUserSerializer
 from .utils import revoke_org_asset_perms
-from ..accounts.mfa.models import MfaMethod
 
 
 class OrganizationAssetViewSet(AssetViewSet):
@@ -459,7 +453,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         self._invites_queryset = OrganizationInvitation.objects.filter(  # noqa
             status=OrganizationInviteStatusChoices.ACCEPTED,
             invitee_id__in=members_user_ids,
-            organization_id=organization_id
+            organization_id=organization_id,
         ).order_by('invitee_id', 'created')
         return page
 
@@ -515,9 +509,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 model_type=Value('1_organization_invitation', output_field=CharField()),
             )
             queryset = list(queryset) + list(invitees)
-            queryset = sorted(
-                queryset, key=lambda x: (x.model_type, x.ordering_date)
-            )
+            queryset = sorted(queryset, key=lambda x: (x.model_type, x.ordering_date))
 
         return queryset
 
@@ -692,10 +684,14 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     > Response 204
 
     """
+
     serializer_class = OrgMembershipInviteSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     lookup_field = 'guid'
-    renderer_classes = [JSONRenderer, OnlyGetBrowsableAPIRenderer, ]
+    renderer_classes = [
+        JSONRenderer,
+        OnlyGetBrowsableAPIRenderer,
+    ]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

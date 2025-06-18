@@ -21,8 +21,10 @@ from rest_framework import status
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix, \
-    add_uuid_prefix
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    add_uuid_prefix,
+    remove_uuid_prefix,
+)
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
@@ -1856,7 +1858,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
 
         attachments = [
             'audio_conversion_test_clip.3gp',
-            'audio_conversion_test_image.jpg'
+            'audio_conversion_test_image.jpg',
         ]
 
         for idx, attachment in enumerate(attachments):
