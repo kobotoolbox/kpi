@@ -21,7 +21,7 @@ from kobo.apps.accounts.models import SocialAppCustomData
 from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
+from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.object_permission import get_database_user
@@ -72,8 +72,8 @@ class EnvironmentTests(BaseTestCase):
             'sector_choices': lambda x: self.assertGreater(len(x), 10)
             and self.assertIn(
                 (
-                    "Humanitarian - Sanitation, Water & Hygiene",
-                    "Humanitarian - Sanitation, Water & Hygiene",
+                    'Humanitarian - Sanitation, Water & Hygiene',
+                    'Humanitarian - Sanitation, Water & Hygiene',
                 ),
                 x,
             ),

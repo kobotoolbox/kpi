@@ -3,9 +3,9 @@ from rest_framework import permissions
 from rest_framework.permissions import IsAuthenticated
 
 from kobo.apps.organizations.constants import (
+    ORG_ADMIN_ROLE,
     ORG_EXTERNAL_ROLE,
     ORG_OWNER_ROLE,
-    ORG_ADMIN_ROLE
 )
 from kobo.apps.organizations.models import Organization
 from kpi.mixins.validation_password_permission import ValidationPasswordPermissionMixin
@@ -64,11 +64,12 @@ class OrganizationNestedHasOrgRolePermission(HasOrgRolePermission):
         return True
 
 
-class OrgMembershipInvitePermission(
-    ValidationPasswordPermissionMixin, IsAuthenticated
-):
+class OrgMembershipInvitePermission(ValidationPasswordPermissionMixin, IsAuthenticated):
 
-    ALLOWED_ROLES = (ORG_OWNER_ROLE, ORG_ADMIN_ROLE,)
+    ALLOWED_ROLES = (
+        ORG_OWNER_ROLE,
+        ORG_ADMIN_ROLE,
+    )
 
     def has_permission(self, request, view):
 

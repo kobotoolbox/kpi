@@ -179,9 +179,7 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         assert total_limit == limit * 3
         assert remaining == limit * 3
 
-        PlanAddOn.deduct_add_ons_for_organization(
-            self.organization, usage_type, limit
-        )
+        PlanAddOn.deduct_add_ons_for_organization(self.organization, usage_type, limit)
         total_limit, remaining = PlanAddOn.get_organization_totals(
             self.organization, usage_type
         )

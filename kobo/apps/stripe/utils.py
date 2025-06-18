@@ -79,9 +79,7 @@ def get_organization_plan_limits(
 
     # Anyone who does not have a subscription is on the free tier plan by default
     default_plan = (
-        Product.objects.filter(
-            metadata__default_free_plan='true'
-        )
+        Product.objects.filter(metadata__default_free_plan='true')
         .values(limit=F(f'metadata__{limit_key}'))
         .first()
     )
