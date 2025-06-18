@@ -8,32 +8,28 @@ from urllib.parse import quote as urlquote
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import FileSystemStorage
-from django.urls import reverse
 from django.db.models import Q
 from django.http import (
-    HttpResponseForbidden,
-    HttpResponseRedirect,
-    HttpResponseNotFound,
-    HttpResponseBadRequest,
     HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseForbidden,
+    HttpResponseNotFound,
+    HttpResponseRedirect,
 )
-from django.shortcuts import get_object_or_404
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.utils.translation import gettext as t
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.http import require_POST
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import XForm, Attachment
+from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
 from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.apps.viewer.tasks import create_async_export
 from kobo.apps.openrosa.libs.authentication import digest_authentication
 from kobo.apps.openrosa.libs.utils.image_tools import image_url
 from kobo.apps.openrosa.libs.utils.logger_tools import response_with_mimetype_and_name
-from kobo.apps.openrosa.libs.utils.user_auth import (
-    has_permission,
-    helper_auth_helper,
-)
+from kobo.apps.openrosa.libs.utils.user_auth import has_permission, helper_auth_helper
 from kobo.apps.openrosa.libs.utils.viewer_tools import export_def_from_filename
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
@@ -51,19 +47,21 @@ def create_export(request, username, id_string, export_type):
     if not has_permission(xform, owner, request):
         return HttpResponseForbidden(t('Not shared.'))
 
-    query = request.POST.get("query")
+    query = request.POST.get('query')
     force_xlsx = request.POST.get('xls') != 'true'
 
     # export options
-    group_delimiter = request.POST.get("options[group_delimiter]", '/')
+    group_delimiter = request.POST.get('options[group_delimiter]', '/')
     if group_delimiter not in ['.', '/']:
         return HttpResponseBadRequest(
-            t("%s is not a valid delimiter" % group_delimiter))
+            t('%s is not a valid delimiter' % group_delimiter)
+        )
 
     # default is True, so when dont_.. is yes
     # split_select_multiples becomes False
-    split_select_multiples = request.POST.get(
-        "options[dont_split_select_multiples]", "no") == "no"
+    split_select_multiples = (
+        request.POST.get('options[dont_split_select_multiples]', 'no') == 'no'
+    )
 
     binary_select_multiples = getattr(settings, 'BINARY_SELECT_MULTIPLES',
                                       False)
@@ -76,16 +74,17 @@ def create_export(request, username, id_string, export_type):
     try:
         create_async_export(xform, export_type, query, force_xlsx, options)
     except Export.ExportTypeError:
-        return HttpResponseBadRequest(
-            t("%s is not a valid export type" % export_type))
+        return HttpResponseBadRequest(t('%s is not a valid export type' % export_type))
     else:
-        return HttpResponseRedirect(reverse(
-            export_list,
-            kwargs={
-                "username": username,
-                "id_string": id_string,
-                "export_type": export_type
-            })
+        return HttpResponseRedirect(
+            reverse(
+                export_list,
+                kwargs={
+                    'username': username,
+                    'id_string': id_string,
+                    'export_type': export_type,
+                },
+            )
         )
 
 
@@ -195,13 +194,16 @@ def delete_export(request, username, id_string, export_type):
     export = get_object_or_404(Export, id=export_id)
     export.delete()
 
-    return HttpResponseRedirect(reverse(
-        export_list,
-        kwargs={
-            "username": username,
-            "id_string": id_string,
-            "export_type": export_type
-        }))
+    return HttpResponseRedirect(
+        reverse(
+            export_list,
+            kwargs={
+                'username': username,
+                'id_string': id_string,
+                'export_type': export_type,
+            },
+        )
+    )
 
 
 def attachment_url(request, size='medium'):
@@ -291,11 +293,11 @@ def attachment_url(request, size='medium'):
                 # otherwise troublesome automatic decoding
                 protected_url = '/protected-s3/{}'.format(urlquote(media_url))
             else:
-                protected_url = media_url.replace(settings.MEDIA_URL, "/protected/")
+                protected_url = media_url.replace(settings.MEDIA_URL, '/protected/')
 
             # Let nginx determine the correct content type
-            response["Content-Type"] = ""
-            response["X-Accel-Redirect"] = protected_url
+            response['Content-Type'] = ''
+            response['X-Accel-Redirect'] = protected_url
             return response
 
     return HttpResponseNotFound(t('Error: Attachment not found'))

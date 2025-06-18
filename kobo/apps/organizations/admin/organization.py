@@ -4,6 +4,7 @@ from django.db import transaction
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from organizations.base_admin import BaseOrganizationAdmin
+
 if settings.STRIPE_ENABLED:
     from djstripe.models import Price
 
