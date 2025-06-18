@@ -3,25 +3,22 @@ import re
 
 from django.http import FileResponse, HttpResponse, HttpResponseRedirect
 from django.utils.translation import gettext as t
-from rest_framework import (
-    renderers,
-    serializers,
-    viewsets,
-)
-from rest_framework import status
+from drf_spectacular.utils import extend_schema
+from rest_framework import renderers, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.models import AssetExportSettings, SubmissionSynchronousExport
 from kpi.permissions import AssetExportSettingsPermission
 from kpi.renderers import SubmissionCSVRenderer, SubmissionXLSXRenderer
-from kpi.serializers.v2.asset_export_settings import (
-    AssetExportSettingsSerializer,
-)
+from kpi.serializers.v2.asset_export_settings import AssetExportSettingsSerializer
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
+@extend_schema(
+    tags=['export-settings'],
+)
 class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
                           NestedViewSetMixin, viewsets.ModelViewSet):
     """

@@ -3,6 +3,7 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.http import Http404
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema
 from rest_framework import renderers
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -21,6 +22,9 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.utils.xml import add_xml_declaration, strip_nodes
 
 
+@extend_schema(
+    tags=['paired-data'],
+)
 class PairedDataViewset(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedModelViewSet
 ):
