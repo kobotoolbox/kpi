@@ -41,7 +41,7 @@ def _extract_uuid(text):
             raise ValidationError(t('Invalid formId %s.' % text))
 
         text = form_id_parts[1]
-        text = text[text.find('@key='): -1].replace('@key=', '')
+        text = text[text.find('@key='):-1].replace('@key=', '')
 
         if text.startswith('uuid:'):
             text = text.replace('uuid:', '')

@@ -793,6 +793,10 @@ def save_attachments(
             hash=uploaded_file_hash,
             media_file_basename=media_file_basename,
             media_file_size=f.size,
+            xform_id=instance.xform_id,
+            user_id=instance.xform.user_id,
+            date_created=dj_timezone.now(),
+            date_modified=dj_timezone.now(),
         )
         total_bytes += f.size
         new_attachments.append(new_attachment)
