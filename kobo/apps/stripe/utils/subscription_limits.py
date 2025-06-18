@@ -1,4 +1,5 @@
 from math import inf
+from typing import Optional
 
 from django.apps import apps
 from django.conf import settings
@@ -6,7 +7,7 @@ from django.db.models import F, Max, Q, QuerySet, Window
 from django.db.models.functions import Coalesce
 
 from kobo.apps.organizations.constants import UsageType
-from kobo.apps.organizations.models import Organization
+from kobo.apps.organizations.models import Organization, OrganizationUser
 from kobo.apps.organizations.types import UsageLimits
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.stripe.utils.import_management import requires_stripe
@@ -34,6 +35,18 @@ def get_default_add_on_limits():
         f'{UsageType.ASR_SECONDS}_limit': 0,
         f'{UsageType.MT_CHARACTERS}_limit': 0,
     }
+
+
+@requires_stripe
+def get_default_plan_name(**kwargs) -> Optional[str]:
+    Product = kwargs['product_model']
+    default_plan = (
+        Product.objects.filter(metadata__default_free_plan='true')
+        .values('name')
+        .first()
+    )
+    if default_plan is not None:
+        return default_plan['name']
 
 
 @requires_stripe
@@ -278,6 +291,30 @@ def get_paid_subscription_limits(organization_ids: list[str], **kwargs) -> Query
         )
     )
     return most_recent_subs
+
+
+@requires_stripe
+def get_plan_name(org_user: OrganizationUser, **kwargs) -> str | None:
+    Subscription = kwargs['subscription_model']
+    subscriptions = Subscription.objects.filter(
+        customer__subscriber_id=org_user.organization.id,
+        status__in=ACTIVE_STRIPE_STATUSES,
+    )
+
+    unique_plans = set()
+    for subscription in subscriptions:
+        unique_plans.add(subscription.plan)
+
+    # Make sure plans come before addons
+    plan_list = sorted(
+        unique_plans,
+        key=lambda plan: plan.product.metadata.get('product_type', '') == 'plan',
+        reverse=True,
+    )
+    plan_name = ' and '.join([plan.product.name for plan in plan_list])
+    if plan_name is None or plan_name == '':
+        plan_name = get_default_plan_name()
+    return plan_name
 
 
 def determine_limit(

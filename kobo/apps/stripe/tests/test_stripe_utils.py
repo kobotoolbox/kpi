@@ -24,16 +24,16 @@ from kobo.apps.stripe.utils.billing_dates import (
     get_current_billing_period_dates_by_org,
     get_current_billing_period_dates_for_active_plans,
 )
-from kobo.apps.stripe.utils.misc import (
-    get_default_plan_name,
-    get_plan_name,
+from kobo.apps.stripe.utils.view_utils import (
 )
 from kobo.apps.stripe.utils.subscription_limits import (
     determine_limit,
+    get_default_plan_name,
     get_organization_subscription_limit,
     get_organizations_effective_limits,
     get_organizations_subscription_limits,
     get_paid_subscription_limits,
+    get_plan_name,
 )
 from kpi.tests.kpi_test_case import BaseTestCase
 

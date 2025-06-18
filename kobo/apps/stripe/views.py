@@ -31,7 +31,7 @@ from kobo.apps.stripe.serializers import (
     ProductSerializer,
     SubscriptionSerializer,
 )
-from kobo.apps.stripe.utils.misc import (
+from kobo.apps.stripe.utils.view_utils import (
     generate_return_url,
     get_total_price_for_quantity,
 )
