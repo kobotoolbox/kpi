@@ -13,11 +13,11 @@ from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import NLPUsage, UsageBalance, UsageBalances
 from kobo.apps.organizations.utils import get_billing_dates
-from kobo.apps.stripe.utils import (
-    get_current_billing_period_dates_by_org,
+from kobo.apps.stripe.utils.import_management import requires_stripe
+from kobo.apps.stripe.utils.subscription_limits import (
     get_organizations_effective_limits,
-    requires_stripe,
 )
+from kobo.apps.stripe.utils.billing_dates import get_current_billing_period_dates_by_org
 from kpi.utils.cache import CachedClass, cached_class_property
 
 

@@ -10,7 +10,9 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
-from kobo.apps.stripe.utils import get_organizations_effective_limits
+from kobo.apps.stripe.utils.subscription_limits import (
+    get_organizations_effective_limits,
+)
 from kpi.models import Asset
 from kpi.utils.usage_calculator import (
     get_nlp_usage_for_current_billing_period_by_user_id,
