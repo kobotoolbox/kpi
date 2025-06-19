@@ -139,6 +139,11 @@ class OrgUserResource(resources.ModelResource):
             for row in result.rows:
                 if row.import_type == 'new':
                     new_organization_user_ids.append(row.object_id)
+                elif row.import_type == 'update':
+                    original_org = row.original.organization.id
+                    new_org = row.instance.organization.id
+                    if original_org != new_org:
+                        new_organization_user_ids.append(row.object_id)
 
             if new_organization_user_ids:
                 user_ids = OrganizationUser.objects.values_list(
