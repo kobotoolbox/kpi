@@ -149,7 +149,7 @@ class OrgUserResource(resources.ModelResource):
 
     def before_import_row(self, row, **kwargs):
 
-        if not (organization := self._get_organization(row.get('organization'))):
+        if not (organization := self._get_organization(row.get('organization_id'))):
             raise ValueError(f"Organization {row.get('organization')} does not exist")
         if not organization.is_mmo:
             raise ValueError(
