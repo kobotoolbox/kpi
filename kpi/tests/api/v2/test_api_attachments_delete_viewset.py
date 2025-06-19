@@ -300,6 +300,73 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
         assert AttachmentTrash.objects.count() == initial_trash_count + 6
         assert not Attachment.objects.filter(uid__in=self.attachment_uids).exists()
 
+    def test_bulk_delete_attachments_when_submission_is_edited(self):
+        """
+        Test bulk deletion of attachments for a submission that has been edited
+        """
+        self.client.login(username='someuser', password='someuser')
+        edited_submission = {
+            '__version__': self.asset.latest_deployed_version.uid,
+            'meta': {
+                'instanceID': 'uuid:test_edited_uuid',
+                'rootUuid': 'uuid:test_uuid1',
+                'deprecatedID': 'uuid:test_uuid1',
+            },
+            'q1': 'audio_conversion_test_clip.3gp',
+            'q2': 'audio_conversion_test_image.jpg',
+            '_attachments': [
+                {
+                    'filename': (
+                        f'{self.asset.owner.username}'
+                        '/audio_conversion_test_clip.3gp'
+                    ),
+                    'mimetype': 'video/3gpp',
+                },
+                {
+                    'filename': (
+                        f'{self.asset.owner.username}'
+                        '/audio_conversion_test_image.jpg'
+                    ),
+                    'mimetype': 'image/jpeg',
+                },
+            ],
+            '_submitted_by': self.asset.owner.username,
+        }
+        self.asset.deployment.mock_submissions([edited_submission], create_uuids=False)
+
+        initial_trash_count = AttachmentTrash.objects.count()
+        response = self.client.delete(
+            self.bulk_delete_url,
+            data=json.dumps({'submission_root_uuids': [self.submission_root_uuid_1]}),
+            content_type='application/json',
+        )
+        assert response.status_code == status.HTTP_202_ACCEPTED
+        assert response.data == {'message': '2 attachments deleted'}
+        assert AttachmentTrash.objects.count() == initial_trash_count + 2
+        assert not Attachment.objects.filter(
+            uid__in=[self.attachment_uid_1, self.attachment_uid_2]
+        ).exists()
+
+    def test_bulk_delete_attachments_with_missing_root_uuid_fallback(self):
+        """
+        Test bulk deletion of attachments for old submissions where root_uuid
+        is missing. The fallback should match meta/rootUuid against the
+        instance's uuid
+        """
+        Instance.objects.filter(uuid='test_uuid1').update(root_uuid=None)
+        initial_trash_count = AttachmentTrash.objects.count()
+        response = self.client.delete(
+            self.bulk_delete_url,
+            data=json.dumps({'submission_root_uuids': [self.submission_root_uuid_1]}),
+            content_type='application/json',
+        )
+        assert response.status_code == status.HTTP_202_ACCEPTED
+        assert response.data == {'message': '2 attachments deleted'}
+        assert AttachmentTrash.objects.count() == initial_trash_count + 2
+        assert not Attachment.objects.filter(
+            uid__in=[self.attachment_uid_1, self.attachment_uid_2]
+        ).exists()
+
     def test_bulk_delete_attachments_from_other_project_are_ignored(self):
         initial_trash_count = AttachmentTrash.objects.count()
         submission_root_uuids = list(self.submission_root_uuids)
