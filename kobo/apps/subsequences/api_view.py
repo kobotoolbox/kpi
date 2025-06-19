@@ -108,6 +108,8 @@ class AdvancedSubmissionView(AuditLoggedApiView):
 
     @staticmethod
     def _validate_submission_or_404(s_uuid: str):
+        # TODO: Remove fallback check for `root_uuid=None` once
+        #  0005 long-running migration is complete
         if not Instance.objects.filter(
             Q(root_uuid=s_uuid) | Q(uuid=s_uuid, root_uuid__isnull=True)
         ).exists():
