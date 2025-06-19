@@ -325,8 +325,7 @@ class TestAttachmentViewSet(TestAbstractViewSet):
 
         # Validate previous attachment has been replaced but the file still exists
         soft_deleted_attachment_qs = Attachment.all_objects.filter(
-            instance=instance,
-            delete_status__isnull=False
+            instance=instance, delete_status__isnull=False
         )
         self.assertEqual(soft_deleted_attachment_qs.count(), 1)
         soft_deleted_attachment = soft_deleted_attachment_qs.first()

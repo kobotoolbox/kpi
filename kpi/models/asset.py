@@ -263,9 +263,7 @@ class Asset(
         blank=True,
         db_index=True
     )
-    created_by = models.CharField(
-        max_length=150, null=True, blank=True, db_index=True
-    )
+    created_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
     last_modified_by = models.CharField(
         max_length=150, null=True, blank=True, db_index=True
     )

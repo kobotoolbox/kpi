@@ -101,17 +101,16 @@ class ProjectAdvancedFeaturesTestCase(TestCase):
         This ensures that the asset endpoint does not return a 500 error when
         processing legacy qpaths that no longer exist in the survey definition.
         """
-        asset = self.sample_asset(advanced_features={
-            'translation': {
-                'values': ['q1'],
-                'languages': ['en', 'fr']
-            },
-        })
+        asset = self.sample_asset(
+            advanced_features={
+                'translation': {'values': ['q1'], 'languages': ['en', 'fr']},
+            }
+        )
 
         # Simulate known_cols with a legacy (renamed or deleted) question
         asset.known_cols = [
             'group_ia0id17-q1:translation:en',
-            'group_ia0id17-q1:translation:fr'
+            'group_ia0id17-q1:translation:fr',
         ]
         asset.save()
 

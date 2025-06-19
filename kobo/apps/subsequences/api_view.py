@@ -8,9 +8,9 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError as APIValidationError
 from rest_framework.response import Response
 
-from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.audit_log.base_views import AuditLoggedApiView
 from kobo.apps.audit_log.models import AuditType
+from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.subsequences.models import SubmissionExtras
 from kobo.apps.subsequences.utils.deprecation import get_sanitized_dict_keys
 from kpi.models import Asset

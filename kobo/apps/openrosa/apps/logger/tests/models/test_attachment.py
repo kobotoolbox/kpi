@@ -82,9 +82,7 @@ class TestAttachment(TestBase):
         user = User.objects.create_user(username='testuser', password='testpassword')
         f = open(
             os.path.join(
-                os.path.dirname(
-                    os.path.dirname(os.path.abspath(__file__))
-                ),
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                 'Water_Translated_2011_03_10.xml',
             )
         )

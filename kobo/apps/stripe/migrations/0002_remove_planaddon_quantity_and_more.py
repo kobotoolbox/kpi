@@ -34,10 +34,9 @@ class Migration(migrations.Migration):
                 help_text=(
                     'The historical usage limits when the add-on was purchased.\n'
                     'Possible keys:\n'
-                    '\"submission_limit\", \"asr_seconds_limit\", '
-                    'and/or \"mt_characters_limit\"'
+                    '"submission_limit", "asr_seconds_limit", '
+                    'and/or "mt_characters_limit"'
                 ),
-
             ),
         ),
     ]

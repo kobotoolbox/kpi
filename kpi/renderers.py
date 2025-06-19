@@ -4,7 +4,6 @@ import re
 from collections.abc import Callable
 from io import StringIO
 
-
 from dict2xml import dict2xml
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers, status
@@ -250,7 +249,7 @@ class XMLRenderer(DRFXMLRenderer):
                 if isinstance(var_or_callable, Callable):
                     return var_or_callable(
                         *(relationship_args or tuple()),
-                        **(relationship_kwargs or dict())
+                        **(relationship_kwargs or dict()),
                     ).xml
                 return var_or_callable.xml
             return add_xml_declaration(obj.xml)

@@ -60,6 +60,7 @@ class BaseDeploymentBackend(abc.ABC):
     # XPaths are relative to the root node
     SUBMISSION_CURRENT_UUID_XPATH = 'meta/instanceID'
     SUBMISSION_DEPRECATED_UUID_XPATH = 'meta/deprecatedID'
+    SUBMISSION_ROOT_UUID_XPATH = 'meta/rootUuid'
     FORM_UUID_XPATH = 'formhub/uuid'
 
     def __init__(self, asset):
