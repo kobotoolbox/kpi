@@ -14,7 +14,6 @@ def check_exceeded_limit(user, usage_type: UsageType, **kwargs):
         user = org.owner_user_object
 
     cache_key = f'{user.id}_checked_exceeded_{usage_type}_limit'
-    print(cache_key)
 
     if cache.get(cache_key, None):
         return
@@ -24,12 +23,11 @@ def check_exceeded_limit(user, usage_type: UsageType, **kwargs):
     balances = calculator.get_usage_balances()
 
     balance = balances[usage_type]
-    # import pdb;pdb.set_trace()
     if balance and balance['exceeded']:
         counter, created = ExceededLimitCounter.objects.get_or_create(
             user=user,
             limit_type=usage_type,
-            defaults={'days': 1},  # Default value if a new counter is created
+            defaults={'days': 1},
         )
 
         if not created and counter.date_modified.date() < timezone.now().date():
