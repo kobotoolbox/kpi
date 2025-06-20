@@ -3,6 +3,7 @@ import time
 from typing import Literal, Optional, Union
 
 from django.apps import apps
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
@@ -101,6 +102,7 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
     # Moving files is pretty slow, thus it should run in a celery task.
     errors = False
     for attachment in attachments.iterator():
+        media_file_path = attachment.media_file.path
         if not (
             target_folder := get_target_folder(
                 transfer.invite.sender.username,
@@ -114,6 +116,7 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
             # object to the database. Fingers crossed that the process doesn't get
             # interrupted between these two operations.
             if attachment.media_file.move(target_folder):
+                _delete_thumbnails(media_file_path)
                 attachment.save(update_fields=['media_file'])
             else:
                 errors = True
@@ -238,6 +241,31 @@ def _mark_task_as_successful(
     TransferStatus.update_status(
         transfer.pk, TransferStatusChoices.SUCCESS, async_task_type
     )
+
+
+def _delete_thumbnails(media_file_path: str):
+    """
+    Delete generated thumbnail files (large, medium, small) that correspond to
+    an original attachment.
+
+    Thumbnails are not stored in the database and are generated on the fly
+    when a user previews an image. Since they will be regenerated for the new
+    owner after transfer, we safely delete them from the old owner's folder
+    after moving the original attachment.
+    """
+    if not media_file_path:
+        return
+
+    dir_name = os.path.dirname(media_file_path)
+    base, ext = os.path.splitext(os.path.basename(media_file_path))
+
+    for size_key in settings.THUMB_CONF.keys():
+        thumb_path = os.path.join(dir_name, f'{base}-{size_key}{ext}')
+        if os.path.exists(thumb_path):
+            try:
+                os.remove(thumb_path)
+            except Exception as e:
+                logging.warning(f'Could not delete thumbnail: {thumb_path} ({e})')
 
 
 def _update_heartbeat(
