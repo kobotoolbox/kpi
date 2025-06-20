@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
@@ -15,7 +17,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from ..forms import OrgUserAdminForm
 from ..models import Organization, OrganizationUser
 from ..tasks import transfer_member_data_ownership_to_org
-from ..utils import revoke_org_asset_perms
+from ..utils import delete_previous_organizations, revoke_org_asset_perms
 
 
 def max_users_for_edit_mode():
@@ -135,20 +137,20 @@ class OrgUserResource(resources.ModelResource):
         dry_run = kwargs.get('dry_run', False)
 
         if not dry_run:
-            new_organization_user_ids = []
+            new_organization_user_ids = defaultdict(list)
             for row in result.rows:
+                new_org_id = row.instance.organization.id
                 if row.import_type == 'new':
-                    new_organization_user_ids.append(row.object_id)
+                    new_organization_user_ids[new_org_id].append(row.object_id)
                 elif row.import_type == 'update':
-                    original_org = row.original.organization.id
-                    new_org = row.instance.organization.id
-                    if original_org != new_org:
-                        new_organization_user_ids.append(row.object_id)
-
-            if new_organization_user_ids:
+                    original_org_id = row.original.organization.id
+                    if original_org_id != new_org_id:
+                        new_organization_user_ids[new_org_id].append(row.object_id)
+            for org_id, new_member_ids in new_organization_user_ids.items():
+                delete_previous_organizations(new_member_ids, org_id)
                 user_ids = OrganizationUser.objects.values_list(
                     'user_id', flat=True
-                ).filter(pk__in=new_organization_user_ids)
+                ).filter(pk__in=new_member_ids)
                 for user_id in user_ids:
                     transfer_member_data_ownership_to_org.delay(user_id)
 
