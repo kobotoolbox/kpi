@@ -40,6 +40,9 @@ from kobo.apps.stripe.utils.subscription_limits import (
     get_paid_subscription_limits,
     get_plan_name,
 )
+from kobo.apps.openrosa.apps.logger.tests.test_simple_submission import (
+    TestSimpleSubmission,
+)
 from kpi.tests.kpi_test_case import BaseTestCase
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
@@ -645,7 +648,11 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
         # We want to test this function directly here, so we patch it out when
         # is called on submission to avoid cache restrictions
         with patch(
+<<<<<<< HEAD
             'kobo.apps.stripe.utils.limit_enforcement.check_exceeded_limit',
+=======
+            'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limit',
+>>>>>>> 2da67ace9 (Initial draft of work)
             return_value=None,
         ):
             self.add_submissions(count=2, asset=self.asset, username='someuser')
