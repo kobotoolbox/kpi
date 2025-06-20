@@ -98,9 +98,8 @@ OPEN_ROSA_VERSION = '1.0'
 DEFAULT_CONTENT_TYPE = 'text/xml; charset=utf-8'
 DEFAULT_CONTENT_LENGTH = settings.OPENROSA_DEFAULT_CONTENT_LENGTH
 
-uuid_regex = re.compile(
-    r'<formhub>\s*<uuid>\s*([^<]+)\s*</uuid>\s*</formhub>', re.DOTALL
-)
+uuid_regex = re.compile(r'<formhub>\s*<uuid>\s*([^<]+)\s*</uuid>\s*</formhub>',
+                        re.DOTALL)
 
 mongo_instances = settings.MONGO_DB.instances
 
@@ -140,12 +139,10 @@ def check_edit_submission_permissions(
     if request.user.is_anonymous:
         raise UnauthenticatedEditAttempt
     if not _has_edit_xform_permission(request, xform):
-        raise PermissionDenied(
-            t(
-                'Forbidden attempt to edit a submission. To make a new submission, '
-                'Remove `deprecatedID` from the submission XML and try again.'
-            )
-        )
+        raise PermissionDenied(t(
+            'Forbidden attempt to edit a submission. To make a new submission, '
+            'Remove `deprecatedID` from the submission XML and try again.'
+        ))
 
 
 def create_instance(
@@ -1117,7 +1114,6 @@ class UnauthenticatedEditAttempt(Exception):
     which passes through unmolested to `XFormSubmissionApi.create()`, which
     then returns the appropriate 401 response.
     """
-
     pass
 
 
