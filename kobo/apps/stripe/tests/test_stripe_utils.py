@@ -39,9 +39,6 @@ from kobo.apps.stripe.utils.subscription_limits import (
     get_paid_subscription_limits,
     get_plan_name,
 )
-from kobo.apps.openrosa.apps.logger.tests.test_simple_submission import (
-    TestSimpleSubmission,
-)
 from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limit
 from kpi.tests.kpi_test_case import BaseTestCase
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase

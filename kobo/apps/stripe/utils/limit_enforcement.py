@@ -17,7 +17,6 @@ def check_exceeded_limit(user, usage_type: UsageType, **kwargs):
     print(cache_key)
 
     if cache.get(cache_key, None):
-        print("cached?")
         return
 
     ExceededLimitCounter = kwargs['exceeded_limit_counter_model']
