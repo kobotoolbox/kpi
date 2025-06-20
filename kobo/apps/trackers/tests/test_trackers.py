@@ -4,6 +4,10 @@ from unittest.mock import patch
 import pytest
 from django.conf import settings
 
+import pytest
+from django.conf import settings
+from unittest.mock import patch
+
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.trackers.models import NLPUsageCounter
