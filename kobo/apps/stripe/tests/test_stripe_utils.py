@@ -1,9 +1,14 @@
 from datetime import datetime, timedelta
 from math import inf
+from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
+from fakeredis import FakeConnection
+from freezegun import freeze_time
 from dateutil.relativedelta import relativedelta
 from ddt import data, ddt, unpack
+from django.conf import settings
+from django.test import override_settings
 from django.utils import timezone
 from djstripe.models import Customer, Price, Product
 from model_bakery import baker
@@ -12,6 +17,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.utils import get_billing_dates
+from kobo.apps.stripe.models import ExceededLimitCounter
 from kobo.apps.stripe.tests.utils import (
     _create_one_time_addon_product,
     _create_payment,
@@ -33,7 +39,12 @@ from kobo.apps.stripe.utils.subscription_limits import (
     get_paid_subscription_limits,
     get_plan_name,
 )
+from kobo.apps.openrosa.apps.logger.tests.test_simple_submission import (
+    TestSimpleSubmission,
+)
+from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limit
 from kpi.tests.kpi_test_case import BaseTestCase
+from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
 
 @ddt
@@ -581,3 +592,108 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         )
 
         assert get_default_plan_name() == product.name
+
+
+class ExceededLimitsTestCase(BaseServiceUsageTestCase):
+    def setUp(self):
+        super().setUp()
+        self._create_and_set_asset()
+        product_metadata = {
+            f'{UsageType.MT_CHARACTERS}_limit': '1',
+            f'{UsageType.ASR_SECONDS}_limit': '1',
+            f'{UsageType.SUBMISSION}_limit': '1',
+            f'{UsageType.STORAGE_BYTES}_limit': '1',
+            'product_type': 'plan',
+            'plan_type': 'enterprise',
+        }
+        generate_plan_subscription(self.organization, metadata=product_metadata)
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = cls.anotheruser.organization
+        cls.organization.mmo_override = True
+        cls.organization.save(update_fields=['mmo_override'])
+        cls.organization.add_user(user=cls.someuser, is_admin=True)
+
+    def test_check_exceeded_limit_adds_counters(self):
+        # We want to test this function directly here, so we patch it out when
+        # it is called on submission to avoid cache restrictions
+        with patch(
+            'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limit',
+            return_value=None,
+        ):
+            self.add_submissions(count=2, asset=self.asset, username='someuser')
+        self.add_nlp_trackers()
+        for usage_type, _ in UsageType.choices:
+            check_exceeded_limit(self.someuser, usage_type)
+            assert (
+                ExceededLimitCounter.objects.filter(
+                    user_id=self.anotheruser.id, limit_type=usage_type
+                ).count()
+                == 1
+            )
+
+    def test_check_exceeded_limit_updates_counters(self):
+        today = timezone.now()
+        for usage_type, _ in UsageType.choices:
+            baker.make(
+                ExceededLimitCounter,
+                user=self.anotheruser,
+                days=1,
+                date_created=today - relativedelta(days=1),
+                date_modified=today - relativedelta(days=1),
+                limit_type=usage_type,
+            )
+        # We want to test this function directly here, so we patch it out when
+        # is called on submission to avoid cache restrictions
+        with patch(
+            'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limit',
+            return_value=None,
+        ):
+            self.add_submissions(count=2, asset=self.asset, username='someuser')
+        self.add_nlp_trackers()
+        for usage_type, _ in UsageType.choices:
+            check_exceeded_limit(self.someuser, usage_type)
+            counter = ExceededLimitCounter.objects.get(
+                user_id=self.anotheruser.id, limit_type=usage_type
+            )
+            assert counter.days == 2
+
+    # Use fakeredis for testing cache expiration with freezegun
+    @override_settings(
+        CACHES={
+            'default': {
+                'BACKEND': 'django_redis.cache.RedisCache',
+                'LOCATION': 'redis://',
+                'OPTIONS': {
+                    'CONNECTION_POOL_KWARGS': {'connection_class': FakeConnection},
+                },
+            }
+        }
+    )
+    def test_check_exceeded_limit_cache_restriction(self):
+        mock_balances = {
+            UsageType.ASR_SECONDS: None,
+            UsageType.MT_CHARACTERS: None,
+            UsageType.STORAGE_BYTES: None,
+            UsageType.SUBMISSION: None,
+        }
+        with freeze_time(timezone.now()) as frozen_time:
+            with patch(
+                'kpi.utils.usage_calculator.ServiceUsageCalculator.get_usage_balances',
+                return_value=mock_balances,
+            ) as patched:
+                check_exceeded_limit(self.someuser, UsageType.SUBMISSION)
+                # Second call within cache_ttl should not check balances
+                check_exceeded_limit(self.someuser, UsageType.SUBMISSION)
+                patched.assert_called_once()
+
+            # Subsequent call after cache_ttl should check balances
+            frozen_time.tick(timedelta(seconds=settings.ENDPOINT_CACHE_DURATION + 1))
+            with patch(
+                'kpi.utils.usage_calculator.ServiceUsageCalculator.get_usage_balances',
+                return_value=mock_balances,
+            ) as patched:
+                check_exceeded_limit(self.someuser, UsageType.SUBMISSION)
+                patched.assert_called_once()
