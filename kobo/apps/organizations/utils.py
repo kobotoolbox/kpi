@@ -122,9 +122,3 @@ def revoke_org_asset_perms(organization: Organization, user_ids: list[int]):
     ObjectPermission.objects.filter(
         asset_id__in=subquery, user_id__in=user_ids
     ).delete()
-
-
-def delete_previous_organizations(new_member_ids: list[int], organization_id: int):
-    Organization.objects.filter(organization_users__user_id__in=new_member_ids).exclude(
-        pk=organization_id
-    ).delete()

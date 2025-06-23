@@ -12,7 +12,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 
 from ..models import Organization
 from ..tasks import transfer_member_data_ownership_to_org
-from ..utils import delete_previous_organizations, revoke_org_asset_perms
+from ..utils import revoke_org_asset_perms
 from .organization_owner import OwnerInline
 from .organization_user import OrgUserInline, max_users_for_edit_mode
 
@@ -85,7 +85,9 @@ class OrgAdmin(BaseOrganizationAdmin):
         self, new_members: 'QuerySet', organization_id: int
     ):
         new_member_ids = (new_member['pk'] for new_member in new_members)
-        delete_previous_organizations(new_member_ids, organization_id)
+        Organization.objects.filter(
+            organization_users__user_id__in=new_member_ids
+        ).exclude(pk=organization_id).delete()
 
     def _get_new_members_queryset(self, request: 'HttpRequest') -> 'QuerySet':
         member_ids = []

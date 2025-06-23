@@ -17,7 +17,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from ..forms import OrgUserAdminForm
 from ..models import Organization, OrganizationUser
 from ..tasks import transfer_member_data_ownership_to_org
-from ..utils import delete_previous_organizations, revoke_org_asset_perms
+from ..utils import revoke_org_asset_perms
 
 
 def max_users_for_edit_mode():
@@ -147,7 +147,12 @@ class OrgUserResource(resources.ModelResource):
                     if original_org_id != new_org_id:
                         new_organization_user_ids[new_org_id].append(row.object_id)
             for org_id, new_member_ids in new_organization_user_ids.items():
-                delete_previous_organizations(new_member_ids, org_id)
+                old_orgs = Organization.objects.filter(
+                    owner__organization_user__id__in=new_member_ids
+                ).exclude(pk=org_id)
+                mmos = [org.id for org in old_orgs if org.is_mmo]
+                old_orgs = old_orgs.exclude(pk__in=mmos)
+                old_orgs.delete()
                 user_ids = OrganizationUser.objects.values_list(
                     'user_id', flat=True
                 ).filter(pk__in=new_member_ids)
@@ -155,7 +160,9 @@ class OrgUserResource(resources.ModelResource):
                     transfer_member_data_ownership_to_org.delay(user_id)
 
     def before_import_row(self, row, **kwargs):
-
+        user = User.objects.get(username=row.get('user'))
+        if user.organization.is_mmo:
+            raise ValueError(f'User {user} is already a member of an mmo')
         if not (organization := self._get_organization(row.get('organization_id'))):
             raise ValueError(f"Organization {row.get('organization')} does not exist")
         if not organization.is_mmo:
