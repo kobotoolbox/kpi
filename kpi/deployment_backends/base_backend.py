@@ -810,7 +810,7 @@ class BaseDeploymentBackend(abc.ABC):
         if not request or '_attachments' not in submission:
             return submission
 
-        attachment_xpaths = self.asset.get_attachment_xpaths(deployed=True)
+        attachment_xpaths = self.asset.get_all_attachment_xpaths()
         filenames_and_xpaths = get_attachment_filenames_and_xpaths(
             submission, attachment_xpaths
         )

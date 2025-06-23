@@ -77,6 +77,7 @@ from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
+from kpi.utils.log import logging
 from kpi.utils.object_permission import (
     get_cached_code_names,
     post_assign_partial_perm,
@@ -663,11 +664,25 @@ class Asset(
             content, self.advanced_features, url=url
         )
 
-    @cache_for_request
-    def get_attachment_xpaths(self, deployed: bool = True) -> Optional[list]:
+    def get_all_attachment_xpaths(self):
+        versions = self.asset_versions.all()
+        xpaths = set()
+        for version in versions:
+            insert_xpath=False
+            if version == self.latest_deployed_version:
+                insert_xpath = True
+
+            xpaths.update(self.get_attachment_xpaths_from_version(version, insert_xpath=insert_xpath))
+        return list(xpaths)
+
+    def get_attachment_xpaths(self, deployed: bool = True):
         version = (
             self.latest_deployed_version if deployed else self.latest_version
         )
+        return self.get_attachment_xpaths_from_version(version, insert_xpath=True)
+
+    @cache_for_request
+    def get_attachment_xpaths_from_version(self, version = None, insert_xpath=False) -> Optional[list]:
 
         if version:
             content = version.to_formpack_schema()['content']
@@ -679,7 +694,7 @@ class Asset(
         def _get_xpaths(survey_: dict) -> Optional[list]:
             """
             Returns an empty list if no questions that take attachments are
-            present. Returns `None` if XPath are missing from the survey
+            present. Returns `None` if XPaths are missing from the survey
             content
             """
             xpaths = []
@@ -692,11 +707,10 @@ class Asset(
                     return None
                 xpaths.append(xpath)
             return xpaths
-
         if xpaths := _get_xpaths(survey):
             return xpaths
-
-        self._insert_xpath(content)
+        if insert_xpath:
+            self._insert_xpath(content)
         return _get_xpaths(survey)
 
     def get_filters_for_partial_perm(
