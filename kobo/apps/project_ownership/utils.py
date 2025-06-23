@@ -10,6 +10,7 @@ from django.utils import timezone
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.main.models import MetaData
 from kobo.apps.project_ownership.models import InviteStatusChoices
+from kpi.deployment_backends.kc_access.storage import default_kobocat_storage
 from kpi.models.asset import Asset, AssetFile
 from kpi.utils.log import logging
 from .constants import ASYNC_TASK_HEARTBEAT
@@ -102,7 +103,7 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
     # Moving files is pretty slow, thus it should run in a celery task.
     errors = False
     for attachment in attachments.iterator():
-        media_file_path = attachment.media_file.path
+        media_file_path = attachment.media_file.name
         if not (
             target_folder := get_target_folder(
                 transfer.invite.sender.username,
@@ -261,9 +262,9 @@ def _delete_thumbnails(media_file_path: str):
 
     for size_key in settings.THUMB_CONF.keys():
         thumb_path = os.path.join(dir_name, f'{base}-{size_key}{ext}')
-        if os.path.exists(thumb_path):
+        if default_kobocat_storage.exists(thumb_path):
             try:
-                os.remove(thumb_path)
+                default_kobocat_storage.delete(thumb_path)
             except Exception as e:
                 logging.warning(f'Could not delete thumbnail: {thumb_path} ({e})')
 
