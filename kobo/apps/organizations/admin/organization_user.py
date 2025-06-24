@@ -166,7 +166,8 @@ class OrgUserResource(resources.ModelResource):
 
     def before_import_row(self, row, **kwargs):
         user = User.objects.get(username=row.get('user'))
-        if user.organization.is_mmo:
+        organization_id = row.get('organization_id')
+        if user.organization.is_mmo and user.organization.id != organization_id:
             raise ValueError(f'User {user} is already a member of an mmo')
         if not (organization := self._get_organization(row.get('organization_id'))):
             raise ValueError(f"Organization {row.get('organization')} does not exist")
