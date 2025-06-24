@@ -139,6 +139,8 @@ class OrgUserResource(resources.ModelResource):
         if not dry_run:
             new_organization_user_ids = defaultdict(list)
             for row in result.rows:
+                if row.import_type == 'error':
+                    continue
                 new_org_id = row.instance.organization.id
                 if row.import_type == 'new':
                     new_organization_user_ids[new_org_id].append(row.object_id)
