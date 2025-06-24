@@ -142,6 +142,7 @@ class OrgUserResource(resources.ModelResource):
                 if row.import_type == 'error':
                     continue
                 new_org_id = row.instance.organization.id
+                # collect all organization users who were moved to a new org
                 if row.import_type == 'new':
                     new_organization_user_ids[new_org_id].append(row.object_id)
                 elif row.import_type == 'update':
@@ -149,12 +150,14 @@ class OrgUserResource(resources.ModelResource):
                     if original_org_id != new_org_id:
                         new_organization_user_ids[new_org_id].append(row.object_id)
             for org_id, new_member_ids in new_organization_user_ids.items():
+                # remove old single-user orgs
                 old_orgs = Organization.objects.filter(
                     owner__organization_user__id__in=new_member_ids
                 ).exclude(pk=org_id)
                 mmos = [org.id for org in old_orgs if org.is_mmo]
                 old_orgs = old_orgs.exclude(pk__in=mmos)
                 old_orgs.delete()
+                # begin the asset transfer processes
                 user_ids = OrganizationUser.objects.values_list(
                     'user_id', flat=True
                 ).filter(pk__in=new_member_ids)
