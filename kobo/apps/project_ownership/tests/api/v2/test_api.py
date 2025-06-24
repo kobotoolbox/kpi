@@ -9,9 +9,13 @@ from django.test import override_settings
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from kobo.apps.openrosa.apps.logger.models import XForm
+from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
+from kobo.apps.openrosa.libs.utils.image_tools import image_url
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kobo.apps.trackers.utils import update_nlp_counter
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage
+)
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
@@ -536,6 +540,44 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
                 {'_userform_id': mongo_uuid}
             ) == 1
         )
+
+    @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
+    def test_thumbnails_are_deleted_after_transfer(self):
+        """
+        Test that image thumbnails are deleted from the original owner's storage
+        directory after a project is transferred to another user
+        """
+        self.client.login(username='someuser', password='someuser')
+
+        attachment = Attachment.objects.filter(
+            user__username='someuser',
+            mimetype='image/jpeg'
+        ).first()
+        filename = attachment.media_file.name.replace('.jpg', '')
+
+        # Trigger thumbnail creation
+        image_url(attachment, 'small')
+        for size in settings.THUMB_CONF.keys():
+            thumbnail = f'{filename}-{size}.jpg'
+            self.assertTrue(default_storage.exists(thumbnail))
+
+        payload = {
+            'recipient': self.absolute_reverse(
+                self._get_endpoint('user-kpi-detail'),
+                args=[self.anotheruser.username]
+            ),
+            'assets': [self.asset.uid]
+        }
+
+        with immediate_on_commit():
+            response = self.client.post(
+                self.invite_url, data=payload, format='json'
+            )
+        assert response.status_code == status.HTTP_201_CREATED
+
+        for size in settings.THUMB_CONF.keys():
+            thumbnail = f'{filename}-{size}.jpg'
+            self.assertFalse(default_storage.exists(thumbnail))
 
     @patch(
         'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
