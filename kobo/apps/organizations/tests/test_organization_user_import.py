@@ -105,10 +105,10 @@ class TestOrganizationUserImportTestCase(TestCase):
         assert results.has_errors()
         error = results.error_rows[0].errors[0].error
         assert isinstance(error, ValueError)
-        assert str(error) == f'Organization Non-existent does not exist'
+        assert str(error) == 'Organization Non-existent does not exist'
 
     @patch(
-        'kobo.apps.organizations.admin.organization_user.transfer_member_data_ownership_to_org.delay'
+        'kobo.apps.organizations.admin.organization_user.transfer_member_data_ownership_to_org.delay'  # noqa: E501
     )
     def test_assets_are_transferred(self, mock_task):
         results = self._import_organization_user(self.org_user, self.mmo)
