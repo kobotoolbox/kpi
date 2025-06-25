@@ -65,7 +65,7 @@ class User(AbstractUser):
             return organization
 
         return create_organization(
-            self, f'{self.username}’s organization'
+            self, f'{self.username}\'s organization'
         )
 
     def sync_to_openrosa_db(self):
