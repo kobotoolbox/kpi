@@ -534,19 +534,14 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                         '$match': query,
                     },
                     {
-                        '$group': {
-                            '_id': {
-                                '$dateToString': {
-                                    'format': '%Y-%m-%d',
-                                    'date': {
-                                        '$dateFromString': {
-                                            'format': '%Y-%m-%dT%H:%M:%S',
-                                            'dateString': '$_submission_time',
-                                        }
-                                    },
-                                }
-                            },
-                            'count': {'$sum': 1},
+                        "$project": {
+                            "date_parts": { "$split": ["$_submission_time", "T"] }
+                        }
+                    },
+                    {
+                        "$group": {
+                            "_id": { "$arrayElemAt": [ "$date_parts", 0]},
+                            "count": { "$sum": 1 }
                         }
                     },
                 ],
