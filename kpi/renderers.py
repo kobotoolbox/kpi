@@ -247,10 +247,17 @@ class XMLRenderer(DRFXMLRenderer):
             if relationship is not None and hasattr(obj, relationship):
                 var_or_callable = getattr(obj, relationship)
                 if isinstance(var_or_callable, Callable):
-                    return var_or_callable(
+                    xml_source = var_or_callable(
                         *(relationship_args or tuple()),
                         **(relationship_kwargs or dict()),
-                    ).xml
+                    )
+                    if (
+                        hasattr(xml_source, 'details')
+                        and xml_source.details.get('status') == 'failure'
+                    ):
+                        # raise error if XML generation failed
+                        raise ParseError(xml_source.details.get('error'))
+                    return xml_source.xml
                 return var_or_callable.xml
             return add_xml_declaration(obj.xml)
         else:
@@ -264,12 +271,13 @@ class XMLRenderer(DRFXMLRenderer):
 class XFormRenderer(XMLRenderer):
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
-        asset = renderer_context['view'].get_object()
-        snapshot = asset.snapshot(regenerate=True)
-
-        if snapshot.details.get('status') == 'failure':
-            raise ParseError(snapshot.details.get('error'))
-        return snapshot.xml
+        return super().render(
+            data=data,
+            accepted_media_type=accepted_media_type,
+            renderer_context=renderer_context,
+            relationship='snapshot',
+            relationship_kwargs={'regenerate': 'True'},
+        )
 
 
 class XlsRenderer(renderers.BaseRenderer):
