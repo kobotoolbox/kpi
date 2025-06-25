@@ -51,6 +51,7 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
     InstanceMultipleNodeError,
     LockedSubmissionError,
     TemporarilyUnavailableError,
+    ExceededUsageLimitError,
 )
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
@@ -88,6 +89,7 @@ from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.usage_calculator import ServiceUsageCalculator
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
@@ -199,6 +201,13 @@ def create_instance(
     xml_hash = Instance.get_hash(xml)
     xform = get_xform_from_submission(xml, username, uuid)
     check_submission_permissions(request, xform)
+    if settings.STRIPE_ENABLED:
+        calculator = ServiceUsageCalculator(xform.user)
+        balances = calculator.get_usage_balances()
+        for usage_type in [UsageType.STORAGE_BYTES, UsageType.SUBMISSION]:
+            balance = balances[usage_type]
+            if balance and balance['exceeded']:
+                raise ExceededUsageLimitError()
 
     # get root uuid
     root_uuid, fallback_on_uuid = get_root_uuid_from_xml(xml)
@@ -441,6 +450,9 @@ def http_open_rosa_error_handler(func, request):
     except TemporarilyUnavailableError:
         result.error = t('Temporarily unavailable')
         result.http_error_response = OpenRosaTemporarilyUnavailable(result.error)
+    except ExceededUsageLimitError:
+        result.error = t('Account over usage limit')
+        result.http_error_response = OpenRosaResponseForbidden(result.error)
     except AccountInactiveError:
         result.error = t('Account is not active')
         result.http_error_response = OpenRosaResponseNotAllowed(result.error)
