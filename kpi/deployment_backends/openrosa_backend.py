@@ -14,7 +14,7 @@ from django.conf import settings
 from django.core.cache.backends.base import InvalidCacheBackendError
 from django.core.files import File
 from django.core.files.base import ContentFile
-from django.db.models import F, Sum
+from django.db.models import F, Q, Sum
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.utils import timezone
@@ -341,9 +341,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 t('Your submission XML is missing critical elements.')
             )
 
+        sanitized_root_uuid = remove_uuid_prefix(root_uuid)
         try:
             instance = Instance.objects.get(
-                root_uuid=remove_uuid_prefix(root_uuid),
+                Q(root_uuid=sanitized_root_uuid)
+                | Q(uuid=sanitized_root_uuid, root_uuid__isnull=True),
                 xform__uuid=xform_uuid,
                 xform__kpi_asset_uid=self.asset.uid,
             )
