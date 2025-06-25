@@ -8,6 +8,7 @@ from django.utils import timezone
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.admin.organization_user import OrgUserResource
 from kobo.apps.organizations.models import OrganizationOwner, OrganizationUser
+from kpi.tests.utils.transaction import immediate_on_commit
 
 
 class TestOrganizationUserImportTestCase(TestCase):
@@ -62,7 +63,8 @@ class TestOrganizationUserImportTestCase(TestCase):
     def test_add_user_to_mmo(self):
         # org_user should have a corresponding owner object
         assert self.org_user.organizationowner
-        results = self._import_organization_user(self.org_user, self.mmo)
+        with immediate_on_commit():
+            results = self._import_organization_user(self.org_user, self.mmo)
 
         assert not results.has_errors()
         assert self.org_user.user.organization == self.mmo
@@ -111,6 +113,8 @@ class TestOrganizationUserImportTestCase(TestCase):
         'kobo.apps.organizations.admin.organization_user.transfer_member_data_ownership_to_org.delay'  # noqa: E501
     )
     def test_assets_are_transferred(self, mock_task):
-        results = self._import_organization_user(self.org_user, self.mmo)
+        with immediate_on_commit():
+            results = self._import_organization_user(self.org_user, self.mmo)
+
         assert not results.has_errors()
         mock_task.assert_called_with(self.org_user.user.id)
