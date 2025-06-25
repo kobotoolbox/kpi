@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
@@ -135,20 +137,38 @@ class OrgUserResource(resources.ModelResource):
         dry_run = kwargs.get('dry_run', False)
 
         if not dry_run:
-            new_organization_user_ids = []
+            new_organization_user_ids = defaultdict(list)
             for row in result.rows:
+                if row.import_type == 'error':
+                    continue
+                new_org_id = row.instance.organization.id
+                # collect all organization users who were moved to a new org
                 if row.import_type == 'new':
-                    new_organization_user_ids.append(row.object_id)
-
-            if new_organization_user_ids:
+                    new_organization_user_ids[new_org_id].append(row.object_id)
+                elif row.import_type == 'update':
+                    original_org_id = row.original.organization.id
+                    if original_org_id != new_org_id:
+                        new_organization_user_ids[new_org_id].append(row.object_id)
+            for org_id, new_member_ids in new_organization_user_ids.items():
+                # remove old single-user orgs
+                old_orgs = Organization.objects.filter(
+                    owner__organization_user__id__in=new_member_ids
+                ).exclude(pk=org_id)
+                mmos = [org.id for org in old_orgs if org.is_mmo]
+                old_orgs = old_orgs.exclude(pk__in=mmos)
+                old_orgs.delete()
+                # begin the asset transfer processes
                 user_ids = OrganizationUser.objects.values_list(
                     'user_id', flat=True
-                ).filter(pk__in=new_organization_user_ids)
+                ).filter(pk__in=new_member_ids)
                 for user_id in user_ids:
                     transfer_member_data_ownership_to_org.delay(user_id)
 
     def before_import_row(self, row, **kwargs):
-
+        user = User.objects.get(username=row.get('user'))
+        organization_id = row.get('organization_id')
+        if user.organization.is_mmo and user.organization.id != organization_id:
+            raise ValueError(f'User {user} is already a member of an mmo')
         if not (organization := self._get_organization(row.get('organization_id'))):
             raise ValueError(f"Organization {row.get('organization')} does not exist")
         if not organization.is_mmo:

@@ -186,6 +186,10 @@ class SubmissionEditApiTests(test_api_submissions.SubmissionEditApiTests):
     def test_edit_submission_with_large_uploads(self):
         pass
 
+    @pytest.mark.skip(reason='Only usable in v2')
+    def test_edit_submission_without_root_uuid(self):
+        pass
+
 
 class SubmissionValidationStatusApiTests(test_api_submissions.SubmissionValidationStatusApiTests):  # noqa: E501
 
