@@ -188,6 +188,8 @@ class DataViewSet(
         responses=open_api_200_ok_response(
             DataBulkUpdateResponse,
             validate_payload=False,
+            require_auth=False,
+            raise_access_forbidden=False
         ),
     )
     @extend_schema(
@@ -196,6 +198,8 @@ class DataViewSet(
         request={'application/json': DataBulkDelete},
         responses=open_api_200_ok_response(
             validate_payload=False,
+            require_auth=False,
+            raise_access_forbidden=False
         ),
     )
     @action(detail=False, methods=['PATCH', 'DELETE'],
