@@ -8,7 +8,7 @@ from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
-from kobo.apps.stripe.utils import requires_stripe
+from kobo.apps.stripe.utils.import_management import requires_stripe
 from kobo.apps.trackers.utils import (
     get_organization_remaining_usage,
     update_nlp_counter,

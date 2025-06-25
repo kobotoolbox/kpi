@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import Union
 from smtplib import SMTPException
+from typing import Union
 
 from django.conf import settings
-from django.core.mail import send_mail, EmailMultiAlternatives, get_connection
+from django.core.mail import EmailMultiAlternatives, get_connection, send_mail
 from django.template.loader import get_template
-from django.utils.translation import activate, gettext as t
+from django.utils.translation import activate
+from django.utils.translation import gettext as t
 
 from kpi.utils.log import logging
 

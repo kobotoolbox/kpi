@@ -6,8 +6,9 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import F
+from django.utils.translation import gettext_lazy as t
+from django.utils.translation import override
 from django_request_cache import cache_for_request
-from django.utils.translation import gettext_lazy as t, override
 
 if settings.STRIPE_ENABLED:
     from djstripe.models import Customer, Subscription
@@ -27,7 +28,6 @@ from organizations.utils import create_organization as create_organization_base
 from kpi.fields import KpiUidField
 from kpi.utils.mailer import EmailMessage, Mailer
 from kpi.utils.placeholders import replace_placeholders
-
 from .constants import (
     ORG_ADMIN_ROLE,
     ORG_EXTERNAL_ROLE,
@@ -60,15 +60,24 @@ class OrganizationInviteStatusChoices(models.TextChoices):
 
     @classmethod
     def get_admin_choices(cls) -> tuple:
-        return cls.CANCELLED, cls.RESENT,
+        return (
+            cls.CANCELLED,
+            cls.RESENT,
+        )
 
     @classmethod
     def get_calculated_choices(cls) -> tuple:
-        return cls.EXPIRED, cls.PENDING,
+        return (
+            cls.EXPIRED,
+            cls.PENDING,
+        )
 
     @classmethod
     def get_member_choices(cls) -> tuple:
-        return cls.ACCEPTED, cls.DECLINED,
+        return (
+            cls.ACCEPTED,
+            cls.DECLINED,
+        )
 
 
 class Organization(AbstractOrganization):
@@ -350,18 +359,14 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             plain_text_content_or_template='emails/accepted_org_invite.txt',
             template_variables=template_variables,
             html_content_or_template='emails/accepted_org_invite.html',
-            language=sender_language
+            language=sender_language,
         )
 
         Mailer.send(email_message)
 
     def send_invite_email(self):
         is_registered_user = bool(self.invitee)
-        to_email = (
-            self.invitee.email
-            if is_registered_user
-            else self.invitee_identifier
-        )
+        to_email = self.invitee.email if is_registered_user else self.invitee_identifier
 
         # Get recipient role with an article
         recipient_role = (
@@ -373,9 +378,7 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
         organization = self.invited_by.organization
         current_language = settings.LANGUAGE_CODE
         invitee_language = (
-            self.invitee.extra_details.data.get(
-                'last_ui_language', current_language
-            )
+            self.invitee.extra_details.data.get('last_ui_language', current_language)
             if is_registered_user
             else current_language
         )
@@ -385,9 +388,7 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             'sender_username': self.invited_by.username,
             'sender_email': self.invited_by.email,
             'recipient_username': (
-                self.invitee.username
-                if is_registered_user
-                else self.invitee_identifier
+                self.invitee.username if is_registered_user else self.invitee_identifier
             ),
             'recipient_email': to_email,
             'recipient_role': recipient_role,
@@ -438,9 +439,7 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             'sender_username': self.invited_by.username,
             'sender_email': self.invited_by.email,
             'recipient': (
-                self.invitee.username
-                if self.invitee
-                else self.invitee_identifier
+                self.invitee.username if self.invitee else self.invitee_identifier
             ),
             'organization_name': self.invited_by.organization.name,
             'base_url': settings.KOBOFORM_URL,

@@ -460,7 +460,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         self._invites_queryset = OrganizationInvitation.objects.filter(  # noqa
             status=OrganizationInviteStatusChoices.ACCEPTED,
             invitee_id__in=members_user_ids,
-            organization_id=organization_id
+            organization_id=organization_id,
         ).order_by('invitee_id', 'created')
         return page
 
@@ -516,9 +516,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 model_type=Value('1_organization_invitation', output_field=CharField()),
             )
             queryset = list(queryset) + list(invitees)
-            queryset = sorted(
-                queryset, key=lambda x: (x.model_type, x.ordering_date)
-            )
+            queryset = sorted(queryset, key=lambda x: (x.model_type, x.ordering_date))
 
         return queryset
 
@@ -696,10 +694,14 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     > Response 204
 
     """
+
     serializer_class = OrgMembershipInviteSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     lookup_field = 'guid'
-    renderer_classes = [JSONRenderer, OnlyGetBrowsableAPIRenderer, ]
+    renderer_classes = [
+        JSONRenderer,
+        OnlyGetBrowsableAPIRenderer,
+    ]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

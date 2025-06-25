@@ -1,4 +1,5 @@
 from django.test import TestCase
+
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import set_meta
 
 
@@ -15,9 +16,7 @@ class TestSetMetaFunction(TestCase):
             <question1>Answer1</question1>
         </data>
         """
-        updated_xml = set_meta(
-            xml_input, 'instanceID', 'uuid:new-id'
-        )
+        updated_xml = set_meta(xml_input, 'instanceID', 'uuid:new-id')
 
         # Ensure XML declaration is not added
         self.assertNotIn("<?xml version='1.0' ?>", updated_xml)

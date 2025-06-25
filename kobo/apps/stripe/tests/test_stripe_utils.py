@@ -18,12 +18,14 @@ from kobo.apps.stripe.tests.utils import (
     generate_free_plan,
     generate_plan_subscription,
 )
-from kobo.apps.stripe.utils import (
-    determine_limit,
+from kobo.apps.stripe.utils.billing_dates import (
     get_billing_dates_after_canceled_subscription,
     get_current_billing_period_dates_based_on_canceled_plans,
     get_current_billing_period_dates_by_org,
     get_current_billing_period_dates_for_active_plans,
+)
+from kobo.apps.stripe.utils.subscription_limits import (
+    determine_limit,
     get_default_plan_name,
     get_organization_subscription_limit,
     get_organizations_effective_limits,

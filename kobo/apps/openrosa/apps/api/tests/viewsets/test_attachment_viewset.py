@@ -325,8 +325,7 @@ class TestAttachmentViewSet(TestAbstractViewSet):
 
         # Validate previous attachment has been replaced but the file still exists
         soft_deleted_attachment_qs = Attachment.all_objects.filter(
-            instance=instance,
-            delete_status__isnull=False
+            instance=instance, delete_status__isnull=False
         )
         self.assertEqual(soft_deleted_attachment_qs.count(), 1)
         soft_deleted_attachment = soft_deleted_attachment_qs.first()
@@ -352,6 +351,7 @@ class TestAttachmentViewSet(TestAbstractViewSet):
             'instance': instance.pk,
             'mimetype': attachment.mimetype,
             'filename': attachment.media_file.name,
+            'media_file_basename': attachment.media_file_basename,
             'uid': attachment.uid,
             'is_deleted': False,
         }
@@ -373,6 +373,7 @@ class TestAttachmentViewSet(TestAbstractViewSet):
             'instance': expected['instance'],
             'mimetype': expected['mimetype'],
             'filename': expected['filename'],
+            'media_file_basename': attachment.media_file_basename,
             'uid': attachment.uid,
             'is_deleted': expected['is_deleted'],
         }

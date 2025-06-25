@@ -251,7 +251,7 @@ class XMLRenderer(DRFXMLRenderer):
                 if isinstance(var_or_callable, Callable):
                     return var_or_callable(
                         *(relationship_args or tuple()),
-                        **(relationship_kwargs or dict())
+                        **(relationship_kwargs or dict()),
                     ).xml
                 return var_or_callable.xml
             return add_xml_declaration(obj.xml)

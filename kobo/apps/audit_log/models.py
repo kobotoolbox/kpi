@@ -4,7 +4,7 @@ import jsonschema
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import models
-from django.db.models import Case, Count, F, Min, Value, When
+from django.db.models import Case, Count, F, Min, Q, Value, When
 from django.db.models.functions import Cast, Concat, Trunc
 from django.utils import timezone
 
@@ -657,7 +657,9 @@ class ProjectHistoryLog(AuditLog):
         s_uuid = request._data['submission']
         # have to fetch the instance here because we don't have access to it
         # anywhere else in the request
-        instance = Instance.objects.get(uuid=s_uuid)
+        instance = Instance.objects.filter(
+            Q(root_uuid=s_uuid) | Q(uuid=s_uuid, root_uuid__isnull=True)
+        ).first()
         username = (
             instance.user.username if instance.user is not None else 'AnonymousUser'
         )
@@ -962,6 +964,7 @@ class ProjectHistoryLog(AuditLog):
         if action:
             # some actions on related objects do not need to be logged,
             # eg deleting a SubmissionExportTask
+            user = get_database_user(request.user)
             ProjectHistoryLog.objects.create(
-                user=request.user, object_id=object_id, action=action, metadata=metadata
+                user=user, object_id=object_id, action=action, metadata=metadata
             )

@@ -7,6 +7,7 @@ from django.test import override_settings
 from django.urls import reverse
 from google.cloud import translate_v3
 from jsonschema import validate
+from rest_framework import status
 from rest_framework.test import APITestCase
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -19,6 +20,8 @@ from kobo.apps.languages.models.translation import (
     TranslationService,
     TranslationServiceLanguageM2M,
 )
+from kobo.apps.openrosa.apps.logger.models import Instance
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
@@ -29,11 +32,17 @@ from kpi.constants import (
 from kpi.models.asset import Asset
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.utils.fuzzy_int import FuzzyInt
+from kpi.utils.xml import (
+    edit_submission_xml,
+    fromstring_preserve_root_xmlns,
+    xml_tostring,
+)
 from ..constants import GOOGLETS, GOOGLETX
 from ..models import SubmissionExtras
 
 
-class ValidateSubmissionTest(APITestCase):
+class BaseSubsequenceTestCase(APITestCase):
+
     def setUp(self):
         user = User.objects.create_user(username='someuser', email='user@example.com')
         self.asset = Asset(
@@ -64,6 +73,9 @@ class ValidateSubmissionTest(APITestCase):
         self.asset.advanced_features = features
         self.asset.save()
 
+
+class ValidateSubmissionTest(BaseSubsequenceTestCase):
+
     def test_get_submission_with_nonexistent_instance_404s(self):
         self.set_asset_advanced_features({'transcript': {'values': ['q1']}})
         resp = self.client.get(self.asset_url)
@@ -71,6 +83,51 @@ class ValidateSubmissionTest(APITestCase):
         url = f'{base_url}?submission=bad-uuid'
         rr = self.client.get(url)
         assert rr.status_code == 404
+
+    def test_get_submission_after_edit(self):
+        # Simulate edit
+        instance = Instance.objects.only('pk').get(root_uuid=self.submission_uuid)
+        deployment = self.asset.deployment
+        new_uuid = str(uuid.uuid4())
+        xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
+        edit_submission_xml(
+            xml_parsed,
+            deployment.SUBMISSION_DEPRECATED_UUID_XPATH,
+            add_uuid_prefix(self.submission_uuid),
+        )
+        edit_submission_xml(
+            xml_parsed,
+            deployment.SUBMISSION_ROOT_UUID_XPATH,
+            add_uuid_prefix(instance.root_uuid),
+        )
+        edit_submission_xml(
+            xml_parsed,
+            deployment.SUBMISSION_CURRENT_UUID_XPATH,
+            add_uuid_prefix(new_uuid),
+        )
+        instance.xml = xml_tostring(xml_parsed)
+        instance.uuid = new_uuid
+        instance.save()
+        assert instance.root_uuid == self.submission_uuid
+
+        # Retrieve advanced submission schema for edited submission
+        self.set_asset_advanced_features({'transcript': {'values': ['q1']}})
+        resp = self.client.get(self.asset_url)
+        base_url = resp.json()['advanced_submission_schema']['url']
+        url = f'{base_url}?submission={self.submission_uuid}'
+        rr = self.client.get(url)
+        assert rr.status_code == status.HTTP_200_OK
+
+    def test_get_submission_with_null_root_uuid(self):
+        # Simulate an old submission (never edited) where `root_uuid` was not yet set
+        Instance.objects.filter(root_uuid=self.submission_uuid).update(root_uuid=None)
+
+        self.set_asset_advanced_features({'transcript': {'values': ['q1']}})
+        resp = self.client.get(self.asset_url)
+        base_url = resp.json()['advanced_submission_schema']['url']
+        url = f'{base_url}?submission={self.submission_uuid}'
+        rr = self.client.get(url)
+        assert rr.status_code == status.HTTP_200_OK
 
     def test_post_submission_extra_with_nonexistent_instance_404s(self):
         self.set_asset_advanced_features({'transcript': {'values': ['q1']}})
@@ -258,9 +315,10 @@ class ValidateSubmissionTest(APITestCase):
         )
 
 
-class TranscriptFieldRevisionsOnlyTests(ValidateSubmissionTest):
+class TranscriptFieldRevisionsOnlyTests(BaseSubsequenceTestCase):
+
     def setUp(self):
-        ValidateSubmissionTest.setUp(self)
+        super().setUp()
         self.set_asset_advanced_features({
             'transcript': {
                 'values': ['q1'],
@@ -291,9 +349,10 @@ class TranscriptFieldRevisionsOnlyTests(ValidateSubmissionTest):
         assert field == {}
 
 
-class TranslatedFieldRevisionsOnlyTests(ValidateSubmissionTest):
+class TranslatedFieldRevisionsOnlyTests(BaseSubsequenceTestCase):
+
     def setUp(self):
-        ValidateSubmissionTest.setUp(self)
+        super().setUp()
         self.set_asset_advanced_features({
             'translation': {
                 'values': ['q1'],
