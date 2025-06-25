@@ -3,6 +3,7 @@ import re
 
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.exceptions import ParseError
 
 from kobo.apps.form_disclaimer.models import FormDisclaimer
 from kobo.apps.kobo_auth.shortcuts import User
@@ -205,6 +206,38 @@ class TestAssetSnapshotList(AssetSnapshotBase):
             self.assertTrue(
                 kludgy_is_xml_equal(xml_response.content, snapshot_orm_xml)
             )
+
+    def test_xml_renderer_with_invalid_asset(self):
+        form_source = """
+            {
+                "survey": [
+                    {"name":"start","type":"start"},
+                    {"name":"end","type":"end"},
+                    {"name":"present_in_v2","type":"integer", "label": "present in v2"},
+                    {"name":"${fail}","type":"text"}],
+                "settings": [
+                    {}
+                ]
+            }
+         """
+        self.client.login(username='someuser', password='someuser')
+        asset = self.create_asset(
+            'Take my snapshot!', form_source, format='json'
+        )
+        asset_url = reverse(self._get_endpoint('asset-detail'), args=(asset.uid,))
+        asset_detail_response = self.client.get(asset_url)
+        downloads = asset_detail_response.data.get('downloads', [])
+        xml_url = next(
+            (entry['url'] for entry in downloads if entry.get('format') == 'xml'), None
+        )
+        assert xml_url, 'XML download URL not found in asset detail response.'
+
+        # Make sure the XML renderer raises a ParseError
+        with self.assertRaises(ParseError) as context:
+            self.client.get(xml_url)
+
+        # Check that the error message contains the expected substring
+        self.assertIn('_fail', str(context.exception))
 
 
 class TestAssetSnapshotDetail(AssetSnapshotBase):
