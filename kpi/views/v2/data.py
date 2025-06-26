@@ -51,7 +51,9 @@ from kpi.schema_extensions.v2.data.serializers import (
     DataValidationStatusesUpdatePayload,
     DataStatusesUpdate,
     DataBulkUpdateResponse,
-    DataValidationStatusUpdatePayload, DataValidationStatusUpdateResponse
+    DataResponse,
+    DataValidationStatusUpdatePayload,
+    DataValidationStatusUpdateResponse,
 )
 from kpi.serializers.v2.data import DataBulkActionsValidator
 from kpi.utils.log import logging
@@ -92,7 +94,7 @@ from kpi.utils.xml import (
         description=read_md('kpi', 'data/list.md'),
         request=None,
         responses=open_api_200_ok_response(
-            None,
+            DataResponse,
             validate_payload=False,
             require_auth=False,
             raise_access_forbidden=False
@@ -102,7 +104,7 @@ from kpi.utils.xml import (
         description=read_md('kpi', 'data/retrieve.md'),
         request=None,
         responses=open_api_200_ok_response(
-            None,
+            DataResponse,
             validate_payload=False,
             require_auth=False,
             raise_access_forbidden=False
