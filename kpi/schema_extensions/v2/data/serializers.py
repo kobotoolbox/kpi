@@ -5,12 +5,11 @@ from .fields import (
     DataAttachmentField,
     DataBulkDeleteField,
     DataBulkUpdateField,
-    DataValidationStatusesPayloadField,
     DataBulkUpdateResultField,
+    DataValidationStatusesPayloadField,
     EmptyListField,
-    EmptyObjectField
+    EmptyObjectField,
 )
-
 
 DataBulkDelete = inline_serializer(
     name='DataBulkDelete',
@@ -28,20 +27,20 @@ DataBulkUpdate = inline_serializer(
 )
 
 DataBulkUpdateResponse = inline_serializer(
-    name="DataBulkUpdateResponse",
+    name='DataBulkUpdateResponse',
     fields={
         'count': serializers.IntegerField(),
         'successes': serializers.IntegerField(),
         'failures': serializers.IntegerField(),
-        'results': DataBulkUpdateResultField()
-    }
+        'results': DataBulkUpdateResultField(),
+    },
 )
 
 DataStatusesUpdate = inline_serializer(
     name='DataStatusesUpdate',
     fields={
         'detail': serializers.CharField(),
-    }
+    },
 )
 
 DataValidationStatusUpdatePayload = inline_serializer(
@@ -52,13 +51,13 @@ DataValidationStatusUpdatePayload = inline_serializer(
 )
 
 DataValidationStatusUpdateResponse = inline_serializer(
-    name= "DataValidationStatusUpdateResponse",
+    name='DataValidationStatusUpdateResponse',
     fields={
         'timestamp': serializers.TimeField(),
         'uid': serializers.CharField(),
         'by_whom': serializers.CharField(),
-        'label': serializers.CharField()
-    }
+        'label': serializers.CharField(),
+    },
 )
 
 DataValidationStatusesUpdatePayload = inline_serializer(
@@ -91,5 +90,5 @@ DataResponse = inline_serializer(
         'Notes': EmptyListField(),
         '_validation_status': EmptyObjectField(),
         '_submitted_by': serializers.CharField(),
-    }
+    },
 )

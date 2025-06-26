@@ -48,24 +48,27 @@ from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
 from kpi.schema_extensions.v2.data.serializers import (
     DataBulkDelete,
     DataBulkUpdate,
-    DataValidationStatusesUpdatePayload,
-    DataStatusesUpdate,
     DataBulkUpdateResponse,
     DataResponse,
+    DataStatusesUpdate,
+    DataValidationStatusesUpdatePayload,
     DataValidationStatusUpdatePayload,
-    DataValidationStatusUpdateResponse
+    DataValidationStatusUpdateResponse,
 )
 from kpi.serializers.v2.data import DataBulkActionsValidator
 from kpi.utils.log import logging
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
-    open_api_204_empty_response
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_204_empty_response,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.utils.xml import (
     fromstring_preserve_root_xmlns,
     get_or_create_element,
     xml_tostring,
 )
+
 
 @extend_schema(
     tags=['Data'],
@@ -75,9 +78,7 @@ from kpi.utils.xml import (
         description=read_md('kpi', 'data/delete.md'),
         request=None,
         responses=open_api_204_empty_response(
-            validate_payload=False,
-            require_auth=False,
-            raise_access_forbidden=False
+            validate_payload=False, require_auth=False, raise_access_forbidden=False
         ),
     ),
     duplicate=extend_schema(
@@ -87,7 +88,7 @@ from kpi.utils.xml import (
             DataResponse,
             validate_payload=False,
             require_auth=False,
-            raise_access_forbidden=False
+            raise_access_forbidden=False,
         ),
     ),
     list=extend_schema(
@@ -97,7 +98,7 @@ from kpi.utils.xml import (
             DataResponse,
             validate_payload=False,
             require_auth=False,
-            raise_access_forbidden=False
+            raise_access_forbidden=False,
         ),
     ),
     retrieve=extend_schema(
@@ -107,9 +108,9 @@ from kpi.utils.xml import (
             DataResponse,
             validate_payload=False,
             require_auth=False,
-            raise_access_forbidden=False
+            raise_access_forbidden=False,
         ),
-    )
+    ),
 )
 class DataViewSet(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedViewSet
@@ -197,24 +198,22 @@ class DataViewSet(
     logged_fields = []
 
     @extend_schema(
-        methods=["PATCH"],
+        methods=['PATCH'],
         description=read_md('kpi', 'data/bulk_update.md'),
         request={'application/json': DataBulkUpdate},
         responses=open_api_200_ok_response(
             DataBulkUpdateResponse,
             validate_payload=False,
             require_auth=False,
-            raise_access_forbidden=False
+            raise_access_forbidden=False,
         ),
     )
     @extend_schema(
-        methods=["DELETE"],
+        methods=['DELETE'],
         description=read_md('kpi', 'data/bulk_delete.md'),
         request={'application/json': DataBulkDelete},
         responses=open_api_200_ok_response(
-            validate_payload=False,
-            require_auth=False,
-            raise_access_forbidden=False
+            validate_payload=False, require_auth=False, raise_access_forbidden=False
         ),
     )
     @action(detail=False, methods=['PATCH', 'DELETE'],
@@ -418,35 +417,33 @@ class DataViewSet(
         return Response(submission)
 
     @extend_schema(
-        methods=["PATCH"],
+        methods=['PATCH'],
         description=read_md('kpi', 'data/validation_status_update.md'),
         request={'application/json': DataValidationStatusUpdatePayload},
         responses=open_api_200_ok_response(
             DataValidationStatusUpdateResponse,
             validate_payload=False,
             require_auth=False,
-            raise_access_forbidden=False
+            raise_access_forbidden=False,
         ),
     )
     @extend_schema(
-        methods=["DELETE"],
+        methods=['DELETE'],
         description=read_md('kpi', 'data/validation_status_delete.md'),
         request=None,
         responses=open_api_204_empty_response(
-            validate_payload=False,
-            require_auth=False,
-            raise_access_forbidden=False
+            validate_payload=False, require_auth=False, raise_access_forbidden=False
         ),
     )
     @extend_schema(
-        methods=["GET"],
+        methods=['GET'],
         description=read_md('kpi', 'data/validation_status_retrieve.md'),
         request=None,
         responses=open_api_200_ok_response(
             DataValidationStatusUpdateResponse,
             validate_payload=False,
             require_auth=False,
-            raise_access_forbidden=False
+            raise_access_forbidden=False,
         ),
     )
     @action(detail=True, methods=['GET', 'PATCH', 'DELETE'],
@@ -472,25 +469,23 @@ class DataViewSet(
         return Response(**json_response)
 
     @extend_schema(
-        methods=["DELETE"],
+        methods=['DELETE'],
         description=read_md('kpi', 'data/validation_statuses_delete.md'),
         request=None,
         responses=open_api_204_empty_response(
-            validate_payload=False,
-            require_auth=False,
-            raise_access_forbidden=False
+            validate_payload=False, require_auth=False, raise_access_forbidden=False
         ),
     )
     @extend_schema(
-        methods=["PATCH"],
+        methods=['PATCH'],
         description=read_md('kpi', 'data/validation_statuses_update.md'),
         request={'application/json': DataValidationStatusesUpdatePayload},
         responses=open_api_200_ok_response(
             DataStatusesUpdate,
             validate_payload=False,
             require_auth=False,
-            raise_access_forbidden=False
-        )
+            raise_access_forbidden=False,
+        ),
     )
     @action(detail=False, methods=['PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer],
