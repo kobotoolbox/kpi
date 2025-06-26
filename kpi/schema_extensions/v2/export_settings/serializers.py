@@ -2,12 +2,20 @@ from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
+    CreatePayloadField,
     ExportSettingsField,
     DataUrlCSVField,
     DataUrlXLSXField,
     UrlField
 )
 
+ExportSettingCreatePayload = inline_serializer_class(
+    name='ExportSettingCreatePayload',
+    fields={
+        'name': serializers.CharField(),
+        'export_settings': CreatePayloadField(),
+    }
+)
 
 ExportSettingResponse = inline_serializer_class(
     name='ExportSettingResponse',

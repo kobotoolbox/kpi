@@ -1,6 +1,9 @@
 from rest_framework import serializers
 
 
+class CreatePayloadField(serializers.JSONField):
+    pass
+
 class ExportSettingsField(serializers.JSONField):
     pass
 
