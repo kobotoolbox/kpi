@@ -40,8 +40,35 @@ class ServiceUsageViewSet(viewsets.GenericViewSet):
     >               "current_period": {integer},
     >               "all_time": {integer},
     >           },
+    >           "balances": {
+    >               "asr_seconds": {
+    >                   "effective_limit": {integer},
+    >                   "balance_value": {integer},
+    >                   "balance_percent": {integer},
+    >                   "exceeded": {boolean},
+    >               } | {None},
+    >               "mt_characters": {
+    >                   "effective_limit": {integer},
+    >                   "balance_value": {integer},
+    >                   "balance_percent": {integer},
+    >                   "exceeded": {boolean},
+    >               } | {None},
+    >               "storage_bytes": {
+    >                   "effective_limit": {integer},
+    >                   "balance_value": {integer},
+    >                   "balance_percent": {integer},
+    >                   "exceeded": {boolean},
+    >               } | {None},
+    >               "submission": {
+    >                   "effective_limit": {integer},
+    >                   "balance_value": {integer},
+    >                   "balance_percent": {integer},
+    >                   "exceeded": {boolean},
+    >               } | {None},
+    >           },
     >           "current_period_start": {string (date), ISO format},
-    >           "current_period_end": {string (date), ISO format},
+    >           "current_period_end": {string (date), ISO format}|{None},
+    >           "last_updated": {string (date), ISO format},
     >       }
 
 
