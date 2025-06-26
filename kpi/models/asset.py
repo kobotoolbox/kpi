@@ -77,7 +77,6 @@ from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
-from kpi.utils.log import logging
 from kpi.utils.object_permission import (
     get_cached_code_names,
     post_assign_partial_perm,
@@ -668,11 +667,15 @@ class Asset(
         versions = self.asset_versions.all()
         xpaths = set()
         for version in versions:
-            insert_xpath=False
+            insert_xpath = False
             if version == self.latest_deployed_version:
                 insert_xpath = True
 
-            xpaths.update(self.get_attachment_xpaths_from_version(version, insert_xpath=insert_xpath))
+            xpaths.update(
+                self.get_attachment_xpaths_from_version(
+                    version, insert_xpath=insert_xpath
+                )
+            )
         return list(xpaths)
 
     def get_attachment_xpaths(self, deployed: bool = True):
@@ -682,7 +685,9 @@ class Asset(
         return self.get_attachment_xpaths_from_version(version, insert_xpath=True)
 
     @cache_for_request
-    def get_attachment_xpaths_from_version(self, version = None, insert_xpath=False) -> Optional[list]:
+    def get_attachment_xpaths_from_version(
+        self, version=None, insert_xpath=False
+    ) -> Optional[list]:
 
         if version:
             content = version.to_formpack_schema()['content']
