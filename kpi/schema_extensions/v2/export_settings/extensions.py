@@ -7,7 +7,7 @@ from kpi.utils.schema_extensions.url_builder import build_url_type
 
 class ExportSettingsFieldExtensions(OpenApiSerializerFieldExtension):
     target_class = (
-        'kpi.schema_extensions.v2.asset_subscriptions.fields.ExportSettingsField'
+        'kpi.schema_extensions.v2.export_settings.fields.ExportSettingsField'
     )
 
     def map_serializer_field(self, auto_schema, direction):
@@ -45,7 +45,7 @@ class ExportSettingsFieldExtensions(OpenApiSerializerFieldExtension):
 
 class DataUrlCSVFieldExtensions(OpenApiSerializerFieldExtension):
     target_class = (
-        'kpi.schema_extensions.v2.asset_subscriptions.fields.DataUrlCSVField'
+        'kpi.schema_extensions.v2.export_settings.fields.DataUrlCSVField'
     )
 
     def map_serializer_field(self, auto_schema, direction):
@@ -59,7 +59,7 @@ class DataUrlCSVFieldExtensions(OpenApiSerializerFieldExtension):
 
 class DataUrlXLSXFieldExtensions(OpenApiSerializerFieldExtension):
     target_class = (
-        'kpi.schema_extensions.v2.asset_subscriptions.fields.DataUrlXLSXField'
+        'kpi.schema_extensions.v2.export_settings.fields.DataUrlXLSXField'
     )
 
     def map_serializer_field(self, auto_schema, direction):
@@ -73,7 +73,7 @@ class DataUrlXLSXFieldExtensions(OpenApiSerializerFieldExtension):
 
 class UrlFieldFieldExtension(OpenApiSerializerFieldExtension):
     target_class = (
-        'kpi.schema_extensions.v2.asset_subscriptions.fields.UrlField'
+        'kpi.schema_extensions.v2.export_settings.fields.UrlField'
     )
 
     def map_serializer_field(self, auto_schema, direction):

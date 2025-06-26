@@ -15,6 +15,3 @@ class DataUrlXLSXField(serializers.URLField):
 
 class UrlField(serializers.URLField):
     pass
-
-class TestFields(serializers.URLField):
-    serializers.IntegerField()
