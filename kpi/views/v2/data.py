@@ -115,60 +115,73 @@ class DataViewSet(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedViewSet
 ):
     """
+    Viewset for managing the current user's data
+
+    Available actions:
+    - bulk                  → DELETE /api/v2/assets/
+    - bulk                  → PATCH /api/v2/asset_usage/
+    - delete                → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}
+    - duplicate             → POST /api/v2/asset_usage/{parent_lookup_asset}/data/duplicate
+    - list                  → GET /api/v2/asset_usage/{parent_lookup_asset}/data
+    - retrieve              → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}
+    - validation_status     → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status
+    - validation_status     → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status
+    - validation_status     → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status
+    - validation_statuses   → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses
+    - validation_statuses   → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses
+
+    Documentation:
+    - docs/api/v2/data/bulk_delete.md
+    - docs/api/v2/data/bulk_update.md
+    - docs/api/v2/data/delete.md
+    - docs/api/v2/data/duplicate.md
+    - docs/api/v2/data/list.md
+    - docs/api/v2/data/retrieve.md
+    - docs/api/v2/data/validation_status_delete.md
+    - docs/api/v2/data/validation_status_retrieve.md
+    - docs/api/v2/data/validation_status_update.md
+    - docs/api/v2/data/validation_statuses_delete.md
+    - docs/api/v2/data/validation_statuses_update.md
+
+
     ## CRUD
-
-    * `uid` - is the unique identifier of a specific asset
-    * `id` - is the unique identifier of a specific submission
-
     **It is not allowed to create submissions with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint**
 
-    Update current submission
 
-    _It is not possible to update a submission directly with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint.
+    **It is not possible to update a submission directly with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint.
     Instead, it returns the URL where the instance can be opened in Enketo for editing in the UI._
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/edit/?return_url=false
     </pre>
-
     > Example
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/edit/?return_url=false
-
     To redirect (HTTP 302) to the Enketo editing URL, use the `…/enketo/redirect/edit/` endpoint:
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/redirect/edit/?return_url=false
     </pre>
-
     > Example
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/redirect/edit/?return_url=false
-
     View-only version of current submission
 
     Return a URL to display the filled submission in view-only mode in the Enketo UI.
-
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/view/
     </pre>
-
     > Example
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/view/
-
     To redirect (HTTP 302) to the Enketo viewing URL, use the `…/enketo/redirect/view/` endpoint:
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/redirect/view/?return_url=false
     </pre>
-
     > Example
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/redirect/view/?return_url=false
-
-
-    ### CURRENT ENDPOINT
     """
 
     parent_model = Asset
@@ -309,6 +322,13 @@ class DataViewSet(
         # `BrowsableAPIRenderer`. Because data comes from Mongo, `list()` and
         # `retrieve()` don't need Django Queryset, we only need return `None`.
         return None
+
+    def get_renderers(self):
+        if self.action == 'destroy':
+            return [
+                renderers.JSONRenderer(),
+            ]
+        return super().get_renderers()
 
     def list(self, request, *args, **kwargs):
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
