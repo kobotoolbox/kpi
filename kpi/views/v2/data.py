@@ -122,14 +122,14 @@ class DataViewSet(
     - bulk                  → DELETE /api/v2/assets/
     - bulk                  → PATCH /api/v2/asset_usage/
     - delete                → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}
-    - duplicate             → POST /api/v2/asset_usage/{parent_lookup_asset}/data/duplicate
+    - duplicate             → POST /api/v2/asset_usage/{parent_lookup_asset}/data/duplicate  # noqa
     - list                  → GET /api/v2/asset_usage/{parent_lookup_asset}/data
     - retrieve              → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}
-    - validation_status     → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status
-    - validation_status     → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status
-    - validation_status     → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status
-    - validation_statuses   → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses
-    - validation_statuses   → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses
+    - validation_status     → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
+    - validation_status     → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
+    - validation_status     → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
+    - validation_statuses   → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
+    - validation_statuses   → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
 
     Documentation:
     - docs/api/v2/data/bulk_delete.md
@@ -149,7 +149,7 @@ class DataViewSet(
     **It is not allowed to create submissions with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint**
 
 
-    **It is not possible to update a submission directly with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint.
+    **It is not possible to update a submission directly with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint.  # noqa
     Instead, it returns the URL where the instance can be opened in Enketo for editing in the UI._
 
     <pre class="prettyprint">
