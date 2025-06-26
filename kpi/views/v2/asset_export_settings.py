@@ -3,7 +3,7 @@ import re
 
 from django.http import FileResponse, HttpResponse, HttpResponseRedirect
 from django.utils.translation import gettext as t
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import renderers, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -17,7 +17,18 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 @extend_schema(
-    tags=['export-settings'],
+    tags=['Export Settings'],
+)
+@extend_schema_view(
+    create=extend_schema(),
+    data=extend_schema(),
+    delete=extend_schema(),
+    list=extend_schema(),
+    retrieve=extend_schema(),
+    partial_update=extend_schema(),
+    update=extend_schema(
+        exclude=True
+    )
 )
 class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
                           NestedViewSetMixin, viewsets.ModelViewSet):
