@@ -29,9 +29,6 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         responses=open_api_200_ok_response(
             ExportSettingResponse,
             require_auth=False,
-            raise_not_found=False,
-            raise_access_forbidden=False,
-            validate_payload=False,
         ),
     ),
     data=extend_schema(
@@ -39,7 +36,6 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         responses=open_api_200_ok_response(
             None,
             require_auth=False,
-            raise_not_found=False,
             raise_access_forbidden=False,
             validate_payload=False,
         ),
@@ -48,7 +44,6 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         description=read_md('kpi', 'export_settings/delete.md'),
         responses=open_api_204_empty_response(
             require_auth=False,
-            raise_not_found=False,
             raise_access_forbidden=False,
             validate_payload=False,
         ),
@@ -58,8 +53,6 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         responses=open_api_200_ok_response(
             ExportSettingResponse(),
             require_auth=False,
-            raise_not_found=False,
-            raise_access_forbidden=False,
             validate_payload=False,
         ),
     ),
@@ -68,8 +61,6 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         responses=open_api_200_ok_response(
             ExportSettingResponse(),
             require_auth=False,
-            raise_not_found=False,
-            raise_access_forbidden=False,
             validate_payload=False,
         ),
     ),
@@ -78,9 +69,6 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         responses=open_api_200_ok_response(
             ExportSettingResponse,
             require_auth=False,
-            raise_not_found=False,
-            raise_access_forbidden=False,
-            validate_payload=False,
         ),
     ),
     update=extend_schema(
