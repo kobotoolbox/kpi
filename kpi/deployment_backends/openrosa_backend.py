@@ -534,14 +534,14 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                         '$match': query,
                     },
                     {
-                        "$project": {
-                            "date_parts": { "$split": ["$_submission_time", "T"] }
+                        '$project': {
+                            'date_parts': {'$split': ['$_submission_time', 'T']}
                         }
                     },
                     {
-                        "$group": {
-                            "_id": { "$arrayElemAt": [ "$date_parts", 0]},
-                            "count": { "$sum": 1 }
+                        '$group': {
+                            '_id': {'$arrayElemAt': ['$date_parts', 0]},
+                            'count': {'$sum': 1},
                         }
                     },
                 ],
