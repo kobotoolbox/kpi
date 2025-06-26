@@ -89,6 +89,8 @@ from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 
+if settings.STRIPE_ENABLED:
+    from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limit
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
@@ -300,10 +302,6 @@ def create_instance(
                 )
 
             if settings.STRIPE_ENABLED:
-                from kobo.apps.stripe.utils.limit_enforcement import (
-                    check_exceeded_limit,
-                )
-
                 check_exceeded_limit(xform.user, UsageType.SUBMISSION)
                 check_exceeded_limit(xform.user, UsageType.STORAGE_BYTES)
 
