@@ -135,7 +135,7 @@ class XForm(AbstractTimeStampedModel):
         See kpi.utils.xml.XMLFormWithDisclaimer for more details.
         """
         Asset = apps.get_model('kpi', 'Asset')  # noqa
-        if not getattr(self, '_cache_asset', None):
+        if not getattr(self, '_cached_asset', None):
             # We only need to load some fields when fetching the related Asset object
             # with XMLFormWithDisclaimer
             try:
