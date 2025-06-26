@@ -11,12 +11,12 @@ class DefaultContentNegotiation(UpstreamDefaultContentNegociation):
         no renderers, we give the default for the app which is a JSONRenderer.
         """
 
-        accepts = self.get_accept_list(request)
+        format_query_param = self.settings.URL_FORMAT_OVERRIDE
+        format_ = format_suffix or request.query_params.get(format_query_param)
 
-        if format_suffix is not None:
+        if format_ is not None:
             for r in renderers:
-                if r.format == format_suffix:
+                if r.format == format_:
                     return r, r.media_type
 
-        return renderers[0], renderers[0].media_type
-
+        return super().select_renderer(request, renderers, format_suffix)
