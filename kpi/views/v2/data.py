@@ -53,7 +53,7 @@ from kpi.schema_extensions.v2.data.serializers import (
     DataBulkUpdateResponse,
     DataResponse,
     DataValidationStatusUpdatePayload,
-    DataValidationStatusUpdateResponse,
+    DataValidationStatusUpdateResponse
 )
 from kpi.serializers.v2.data import DataBulkActionsValidator
 from kpi.utils.log import logging
@@ -84,7 +84,7 @@ from kpi.utils.xml import (
         description=read_md('kpi', 'data/duplicate.md'),
         request={'application/json': DataBulkDelete},
         responses=open_api_200_ok_response(
-            None,
+            DataResponse,
             validate_payload=False,
             require_auth=False,
             raise_access_forbidden=False
@@ -422,7 +422,8 @@ class DataViewSet(
         methods=["GET"],
         description=read_md('kpi', 'data/validation_status_retrieve.md'),
         request=None,
-        responses=open_api_204_empty_response(
+        responses=open_api_200_ok_response(
+            DataValidationStatusUpdateResponse,
             validate_payload=False,
             require_auth=False,
             raise_access_forbidden=False
