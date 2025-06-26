@@ -299,10 +299,6 @@ def create_instance(
                 )
 
             if settings.STRIPE_ENABLED:
-                from kobo.apps.stripe.utils.limit_enforcement import (
-                    check_exceeded_limit,
-                )
-
                 check_exceeded_limit(xform.user, UsageType.SUBMISSION)
                 check_exceeded_limit(xform.user, UsageType.STORAGE_BYTES)
 
