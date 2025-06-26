@@ -1,6 +1,6 @@
-from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers
 
+from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
     DataAttachmentField,
     DataBulkDeleteField,
@@ -11,14 +11,14 @@ from .fields import (
     EmptyObjectField,
 )
 
-DataBulkDelete = inline_serializer(
+DataBulkDelete = inline_serializer_class(
     name='DataBulkDelete',
     fields={
         'payload': DataBulkDeleteField(),
     },
 )
 
-DataBulkUpdate = inline_serializer(
+DataBulkUpdate = inline_serializer_class(
     name='DataBulkUpdate',
     fields={
         'submission_ids': DataBulkDeleteField(),
@@ -26,7 +26,7 @@ DataBulkUpdate = inline_serializer(
     },
 )
 
-DataBulkUpdateResponse = inline_serializer(
+DataBulkUpdateResponse = inline_serializer_class(
     name='DataBulkUpdateResponse',
     fields={
         'count': serializers.IntegerField(),
@@ -36,7 +36,7 @@ DataBulkUpdateResponse = inline_serializer(
     },
 )
 
-DataResponse = inline_serializer(
+DataResponse = inline_serializer_class(
     name='DataResponse',
     fields={
         '_id': serializers.IntegerField(),
@@ -61,21 +61,21 @@ DataResponse = inline_serializer(
     },
 )
 
-DataStatusesUpdate = inline_serializer(
+DataStatusesUpdate = inline_serializer_class(
     name='DataStatusesUpdate',
     fields={
         'detail': serializers.CharField(),
     },
 )
 
-DataValidationStatusUpdatePayload = inline_serializer(
+DataValidationStatusUpdatePayload = inline_serializer_class(
     name='DataValidationStatusUpdatePayload',
     fields={
         'validation_status.uid': serializers.CharField(),
     },
 )
 
-DataValidationStatusUpdateResponse = inline_serializer(
+DataValidationStatusUpdateResponse = inline_serializer_class(
     name='DataValidationStatusUpdateResponse',
     fields={
         'timestamp': serializers.TimeField(),
@@ -85,7 +85,7 @@ DataValidationStatusUpdateResponse = inline_serializer(
     },
 )
 
-DataValidationStatusesUpdatePayload = inline_serializer(
+DataValidationStatusesUpdatePayload = inline_serializer_class(
     name='DataValidationStatusesUpdatePayload',
     fields={
         'submission_ids': DataValidationStatusesPayloadField(),
