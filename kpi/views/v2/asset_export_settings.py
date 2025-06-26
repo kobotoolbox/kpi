@@ -27,7 +27,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     create=extend_schema(
         description=read_md('kpi', 'export_settings/create.md'),
         responses=open_api_200_ok_response(
-            None,
+            ExportSettingResponse,
             require_auth=False,
             raise_not_found=False,
             raise_access_forbidden=False,
@@ -76,7 +76,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     partial_update=extend_schema(
         description=read_md('kpi', 'export_settings/update.md'),
         responses=open_api_200_ok_response(
-            None,
+            ExportSettingResponse,
             require_auth=False,
             raise_not_found=False,
             raise_access_forbidden=False,
