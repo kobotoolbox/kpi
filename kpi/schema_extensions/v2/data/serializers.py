@@ -92,4 +92,3 @@ DataValidationStatusesUpdatePayload = inline_serializer(
         'validation_status.uid': serializers.CharField(),
     },
 )
-
