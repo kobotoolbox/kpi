@@ -49,22 +49,11 @@ class DataAttachmentFieldExtension(OpenApiSerializerFieldExtension):
             }
         )
 
-
 class DataBulkDeleteFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.data.fields.DataBulkDeleteField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_array_type(schema=build_basic_type(OpenApiTypes.INT))
-
-
-class DataValidationStatusesPayloadFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.data.fields.DataValidationStatusesPayloadField'
-    )
-
-    def map_serializer_field(self, auto_schema, direction):
-        return build_array_type(schema=build_basic_type(OpenApiTypes.INT))
-
 
 class DataBulkUpdateFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.data.fields.DataBulkUpdateField'  # noqa
@@ -75,7 +64,6 @@ class DataBulkUpdateFieldExtension(OpenApiSerializerFieldExtension):
                 'field_to_update': build_basic_type(OpenApiTypes.STR),
             }
         )
-
 
 class DataBulkUpdateResultFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.data.fields.DataBulkUpdateResultField'
@@ -90,3 +78,12 @@ class DataBulkUpdateResultFieldExtension(OpenApiSerializerFieldExtension):
                 }
             )
         )
+
+class DataValidationStatusesPayloadFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = (
+        'kpi.schema_extensions.v2.data.fields.DataValidationStatusesPayloadField'
+    )
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_array_type(schema=build_basic_type(OpenApiTypes.INT))
+

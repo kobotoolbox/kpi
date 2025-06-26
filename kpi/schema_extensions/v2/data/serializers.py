@@ -36,6 +36,31 @@ DataBulkUpdateResponse = inline_serializer(
     },
 )
 
+DataResponse = inline_serializer(
+    name='DataResponse',
+    fields={
+        '_id': serializers.IntegerField(),
+        'formhub/uuid': serializers.CharField(),
+        'start': serializers.DateTimeField(),
+        'end': serializers.DateTimeField(),
+        'Question_A/Enter_your_question': serializers.CharField(),
+        'Question_B': serializers.CharField(),
+        '__version__': serializers.CharField(),
+        'meta/instanceID': serializers.CharField(),
+        '_xform_id_string': serializers.CharField(),
+        '_uuid': serializers.CharField(),
+        'meta/rootUuid': serializers.CharField(),
+        '_attachments': DataAttachmentField(),
+        '_status': serializers.CharField(),
+        '_geolocation': EmptyListField(),
+        '_submission_time': serializers.TimeField(),
+        '_tags': EmptyListField(),
+        'Notes': EmptyListField(),
+        '_validation_status': EmptyObjectField(),
+        '_submitted_by': serializers.CharField(),
+    },
+)
+
 DataStatusesUpdate = inline_serializer(
     name='DataStatusesUpdate',
     fields={
@@ -68,27 +93,3 @@ DataValidationStatusesUpdatePayload = inline_serializer(
     },
 )
 
-DataResponse = inline_serializer(
-    name='DataResponse',
-    fields={
-        '_id': serializers.IntegerField(),
-        'formhub/uuid': serializers.CharField(),
-        'start': serializers.DateTimeField(),
-        'end': serializers.DateTimeField(),
-        'Question_A/Enter_your_question': serializers.CharField(),
-        'Question_B': serializers.CharField(),
-        '__version__': serializers.CharField(),
-        'meta/instanceID': serializers.CharField(),
-        '_xform_id_string': serializers.CharField(),
-        '_uuid': serializers.CharField(),
-        'meta/rootUuid': serializers.CharField(),
-        '_attachments': DataAttachmentField(),
-        '_status': serializers.CharField(),
-        '_geolocation': EmptyListField(),
-        '_submission_time': serializers.TimeField(),
-        '_tags': EmptyListField(),
-        'Notes': EmptyListField(),
-        '_validation_status': EmptyObjectField(),
-        '_submitted_by': serializers.CharField(),
-    },
-)
