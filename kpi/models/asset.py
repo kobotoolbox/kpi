@@ -665,12 +665,13 @@ class Asset(
 
     @cache_for_request
     def get_all_attachment_xpaths(self):
-        versions = self.asset_versions.all()
+        # return deployed versions first
+        versions = self.asset_versions.all().order_by('-deployed', '-date_modified')
         xpaths = set()
-        for version in versions:
-            insert_xpath = False
-            if version == self.latest_deployed_version:
-                insert_xpath = True
+        for i, version in enumerate(versions):
+            # insert the xpaths if this is the latest deployed version, or, if
+            # not deployed, the latest version
+            insert_xpath = i == 0
 
             xpaths.update(
                 self.get_attachment_xpaths_from_version(
