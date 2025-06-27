@@ -1,5 +1,5 @@
 # coding: utf-8
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import filters, renderers
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -14,7 +14,17 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 @extend_schema(
-    tags=['exports'],
+    tags=['Exports'],
+)
+@extend_schema_view(
+    create=extend_schema(),
+    destroy=extend_schema(),
+    list=extend_schema(),
+    partial_update=extend_schema(),
+    retrieve=extend_schema(),
+    update=extend_schema(
+        exclude=True,
+    ),
 )
 class ExportTaskViewSet(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedNoUpdateModelViewSet
