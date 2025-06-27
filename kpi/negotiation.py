@@ -1,4 +1,6 @@
-from rest_framework.negotiation import DefaultContentNegotiation as UpstreamDefaultContentNegociation
+from rest_framework.negotiation import (
+    DefaultContentNegotiation as UpstreamDefaultContentNegociation,
+)
 
 
 class DefaultContentNegotiation(UpstreamDefaultContentNegociation):
