@@ -34,6 +34,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         responses=open_api_200_ok_response(
             ExportSettingResponse,
             require_auth=False,
+            raise_access_forbidden=False,
         ),
     ),
     data=extend_schema(
@@ -59,6 +60,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             ExportSettingResponse(),
             require_auth=False,
             validate_payload=False,
+            raise_access_forbidden=False,
         ),
     ),
     retrieve=extend_schema(
@@ -67,6 +69,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             ExportSettingResponse(),
             require_auth=False,
             validate_payload=False,
+            raise_access_forbidden=False,
         ),
     ),
     partial_update=extend_schema(
