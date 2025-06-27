@@ -11,7 +11,8 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kpi.models import AssetExportSettings, SubmissionSynchronousExport
 from kpi.permissions import AssetExportSettingsPermission
 from kpi.renderers import SubmissionCSVRenderer, SubmissionXLSXRenderer
-from kpi.schema_extensions.v2.export_settings.serializers import ExportSettingResponse
+from kpi.schema_extensions.v2.export_settings.serializers import ExportSettingResponse, \
+    ExportSettingCreatePayload
 from kpi.serializers.v2.asset_export_settings import AssetExportSettingsSerializer
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
@@ -26,6 +27,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 @extend_schema_view(
     create=extend_schema(
         description=read_md('kpi', 'export_settings/create.md'),
+        request={'application/json': ExportSettingCreatePayload},
         responses=open_api_200_ok_response(
             ExportSettingResponse,
             require_auth=False,

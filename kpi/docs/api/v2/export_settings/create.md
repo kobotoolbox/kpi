@@ -2,31 +2,6 @@
 
 > Required permissions: `manage_asset` (Manage project)
 
-    > **Payload**
-    >
-    >        {
-    >           "name": "foo",
-    >           "export_settings": {
-    >               "fields_from_all_versions": "true",
-    >               "group_sep": "/",
-    >               "hierarchy_in_labels": "true",
-    >               "lang": "English (en)",
-    >               "multiple_select": "both",
-    >               "type": "csv",
-    >               "fields": ["field_1", "field_2"],
-    >               "flatten": "true",
-    >               "xls_types_as_text": "false",
-    >               "include_media_url": "false",
-    >               "submission_ids": [1, 2, 3, 4],
-    >               "query": {
-    >                   "$and": [
-    >                       {"_submission_time": {"$gte": "2021-08-31"}},
-    >                       {"_submission_time": {"$lte": "2021-10-13"}}
-    >                   ]
-    >               }
-    >           }
-    >        }
-
 Where:
 
 * "name" (required) is the name of the export setting displayed in the UI

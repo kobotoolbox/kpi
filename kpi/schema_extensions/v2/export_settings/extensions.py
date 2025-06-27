@@ -23,24 +23,21 @@ class CreatePayloadFieldExtensions(OpenApiSerializerFieldExtension):
                 'flatten': build_basic_type(OpenApiTypes.BOOL),
                 'xls_types_as_text': build_basic_type(OpenApiTypes.BOOL),
                 'include_media_url': build_basic_type(OpenApiTypes.BOOL),
-                'submission_ids': build_array_type(schema={int}),
+                'submission_ids': build_array_type(schema=build_basic_type(OpenApiTypes.INT)),
                 'query': build_object_type(
-                    properties=build_array_type(
-                        schema=build_object_type(
-                            properties={
-                                '_submission_time': build_object_type(
-                                    properties={
-                                        '$gte': OpenApiTypes.DATE
-                                    }
-                                ),
-                                '_submission_time': build_object_type(
-                                    properties={
-                                        '$lte': OpenApiTypes.DATE
-                                    }
-                                ),
-                            }
+                    properties={
+                        '$and': build_array_type(
+                            schema=build_object_type(
+                                properties={
+                                    '_submission_time': build_object_type(
+                                        properties={
+                                            '$gte/$lte': build_basic_type(OpenApiTypes.DATE)
+                                        }
+                                    )
+                                }
+                            )
                         )
-                    )
+                    }
                 )
             }
         )
