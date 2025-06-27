@@ -34,7 +34,6 @@ from .permissions import (
     OrgMembershipCreateOrDeleteInvitePermission,
     OrgMembershipInvitePermission,
 )
-from .renderers import OnlyGetBrowsableAPIRenderer
 from .serializers import (
     OrganizationSerializer,
     OrganizationUserSerializer,
@@ -699,7 +698,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     serializer_class = OrgMembershipInviteSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     lookup_field = 'guid'
-    renderer_classes = [JSONRenderer, OnlyGetBrowsableAPIRenderer, ]
+    renderer_classes = (JSONRenderer,)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

@@ -168,7 +168,8 @@ Accept: image/png </pre>
     renderer_classes = (
         renderers.JSONRenderer,
         renderers.BrowsableAPIRenderer,
-        MediaFileRenderer)
+        MediaFileRenderer,
+    )
     serializer_class = MetaDataSerializer
 
     def retrieve(self, request, *args, **kwargs):

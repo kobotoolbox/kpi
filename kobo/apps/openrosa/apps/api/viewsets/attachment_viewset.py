@@ -152,8 +152,8 @@ class AttachmentViewSet(OpenRosaReadOnlyModelViewSet):
     serializer_class = AttachmentSerializer
     renderer_classes = (
         renderers.JSONRenderer,
-        renderers.BrowsableAPIRenderer,
-        MediaFileRenderer)
+        MediaFileRenderer,
+    )
 
     def retrieve(self, request, *args, **kwargs):
         self.object = self.get_object()

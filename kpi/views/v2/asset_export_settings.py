@@ -19,8 +19,9 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 @extend_schema(
     tags=['export-settings'],
 )
-class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
-                          NestedViewSetMixin, viewsets.ModelViewSet):
+class AssetExportSettingsViewSet(
+    AssetNestedObjectViewsetMixin, NestedViewSetMixin, viewsets.ModelViewSet
+):
     """
     ## List of export settings for a specific asset
 
@@ -188,7 +189,6 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
     lookup_field = 'uid'
     serializer_class = AssetExportSettingsSerializer
     renderer_classes = (
-        renderers.BrowsableAPIRenderer,
         renderers.JSONRenderer,
     )
     permission_classes = (AssetExportSettingsPermission,)

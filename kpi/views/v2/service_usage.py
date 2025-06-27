@@ -48,10 +48,7 @@ class ServiceUsageViewSet(viewsets.GenericViewSet):
     ### CURRENT ENDPOINT
     """
 
-    renderer_classes = (
-        renderers.BrowsableAPIRenderer,
-        renderers.JSONRenderer,
-    )
+    renderer_classes = (renderers.JSONRenderer,)
     pagination_class = None
     permission_classes = (IsAuthenticated,)
 

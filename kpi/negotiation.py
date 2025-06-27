@@ -5,18 +5,25 @@ class DefaultContentNegotiation(UpstreamDefaultContentNegociation):
 
     def select_renderer(self, request, renderers, format_suffix=None):
         """
-        This override the default rest framework select renderer in favor of supporting
-        the received suffix first- so if we have it in our available renderer this one
-        gets chosen, then the default serializer if there are no suffix and, if there are
-        no renderers, we give the default for the app which is a JSONRenderer.
-        """
+        Overrides the default DRF `select_renderer` to handle cases where the client
+        does not specify a compatible `Accept` header nor a format suffix.
 
+        If the first available renderer is not included in the accepted media types
+        and no explicit format suffix is given, this override will forcibly return
+        the first renderer in the list.
+
+        Otherwise, the default DRF negotiation logic is applied.
+        """
         format_query_param = self.settings.URL_FORMAT_OVERRIDE
         format_ = format_suffix or request.query_params.get(format_query_param)
+        accepts = self.get_accept_list(request)
 
-        if format_ is not None:
-            for r in renderers:
-                if r.format == format_:
-                    return r, r.media_type
+        first_renderer = renderers[0]
+        first_renderer_format_allowed = first_renderer.format in accepts
 
+        if not first_renderer_format_allowed and not format_:
+            # force fallback to first renderer
+            return first_renderer, first_renderer.media_type
+
+        # otherwise fallback to DRF's default content negotiation
         return super().select_renderer(request, renderers, format_suffix)
