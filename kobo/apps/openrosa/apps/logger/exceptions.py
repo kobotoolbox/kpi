@@ -87,3 +87,7 @@ class TemporarilyUnavailableError(Exception):
 
 class XLSFormError(Exception):
     pass
+
+
+class ExceededUsageLimitError(Exception):
+    pass

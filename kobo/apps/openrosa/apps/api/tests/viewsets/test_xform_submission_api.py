@@ -14,6 +14,7 @@ from django.test.testcases import LiveServerTestCase
 from django_digest.test import DigestAuth
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+from unittest.mock import patch
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
@@ -31,6 +32,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     OpenRosaResponseNotAllowed,
     OpenRosaTemporarilyUnavailable,
 )
+from kobo.apps.organizations.constants import UsageType
 from kpi.utils.fuzzy_int import FuzzyInt
 
 
@@ -64,8 +66,62 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             request = self.factory.post('/submission', data, format='json')
             auth = DigestAuth('bob', 'bobbob')
             request.META.update(auth(request.META, response))
-            with self.assertNumQueries(FuzzyInt(43, 47)):
+            expected_queries = FuzzyInt(43, 47)
+            # In stripe-enabled environments usage limit enforcement
+            # requires additional queries
+            if settings.STRIPE_ENABLED:
+                expected_queries = FuzzyInt(79, 83)
+            with self.assertNumQueries(expected_queries):
                 self.view(request)
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_over_limit_submission_rejection(self):
+        """
+        Ensure submissions are rejected if a user is over their storage or submission
+        limit
+        """
+        path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'transport_submission.json',
+        )
+        with open(path, 'rb') as f:
+            self.xform.require_auth = False
+            self.xform.save(update_fields=['require_auth'])
+            data = json.loads(f.read())
+
+            mock_balances = {
+                UsageType.STORAGE_BYTES: None,
+                UsageType.SUBMISSION: {
+                    'exceeded': True,
+                },
+            }
+            with patch(
+                'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
+                return_value=mock_balances,
+            ):
+                request = self.factory.post('/submission', data, format='json')
+                request.user = AnonymousUser()
+                response = self.view(request, username=self.user.username)
+                self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
+
+            mock_balances = {
+                UsageType.STORAGE_BYTES: {
+                    'exceeded': True,
+                },
+                UsageType.SUBMISSION: None,
+            }
+            with patch(
+                'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
+                return_value=mock_balances,
+            ):
+                request = self.factory.post('/submission', data, format='json')
+                request.user = AnonymousUser()
+                response = self.view(request, username=self.user.username)
+                self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
 
     def test_post_submission_anonymous(self):
 
