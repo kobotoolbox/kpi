@@ -835,8 +835,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
               let mediaAttachment = null
 
-              if (q.type !== QUESTION_TYPES.text.id && q.$xpath !== undefined) {
-                mediaAttachment = getMediaAttachment(row.original, row.value, q.$xpath)
+              if (q.type !== QUESTION_TYPES.text.id && row.original._attachments[0]) {
+                mediaAttachment = getMediaAttachment(
+                  row.original,
+                  row.value,
+                  row.original._attachments[0].question_xpath,
+                )
               }
 
               if (q.type === QUESTION_TYPES.audio.id || q.type === QUESTION_TYPES['background-audio'].id) {
