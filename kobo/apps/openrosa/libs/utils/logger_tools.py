@@ -34,10 +34,13 @@ from django.utils import timezone as dj_timezone
 from django.utils.encoding import DjangoUnicodeDecodeError, smart_str
 from django.utils.translation import gettext as t
 from modilabs.utils.subprocess_timeout import ProcessTimedOut
+from pyxform.errors import PyXFormError
+from pyxform.xform2json import create_survey_element_from_xml
 from rest_framework.exceptions import NotAuthenticated
 
 from kobo.apps.openrosa.apps.logger.exceptions import (
     AccountInactiveError,
+    ConflictingAttachmentBasenameError,
     ConflictingSubmissionUUIDError,
     DuplicateInstanceError,
     DuplicateUUIDError,
@@ -46,30 +49,28 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
     InstanceIdMissingError,
     InstanceInvalidUserError,
     InstanceMultipleNodeError,
+    LockedSubmissionError,
     TemporarilyUnavailableError,
 )
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
-from kobo.apps.openrosa.apps.logger.models.attachment import (
-    AttachmentDeleteStatus,
-    generate_attachment_filename,
-)
+from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.logger.models.instance import (
     InstanceHistory,
     get_id_string_from_xml_str,
 )
 from kobo.apps.openrosa.apps.logger.models.xform import XLSFormError
 from kobo.apps.openrosa.apps.logger.signals import (
-    post_save_attachment,
-    pre_delete_attachment,
     update_xform_daily_counter,
     update_xform_monthly_counter,
     update_xform_submission_count,
 )
+from kobo.apps.openrosa.apps.logger.utils.counters import update_storage_counters
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     XFormInstanceParser,
     clean_and_parse_xml,
     get_abbreviated_xpath,
     get_deprecated_uuid_from_xml,
+    get_root_uuid_from_xml,
     get_submission_date_from_xml,
     get_uuid_from_xml,
     get_xform_media_question_xpaths,
@@ -83,10 +84,9 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
+from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
-from pyxform.errors import PyXFormError
-from pyxform.xform2json import create_survey_element_from_xml
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
@@ -184,11 +184,10 @@ def create_instance(
 
     Raises:
         InstanceIdMissingError: If no valid UUID is found in the XML submission.
-        DuplicateInstanceError: If an advisory lock is not acquired, or if there
-                                is a submission with the same XML hash and user
+        DuplicateInstanceError: If there is a submission with the same XML hash and user
                                 without any new attachments.
-        ConflictingSubmissionUUIDError: If the same UUID is submitted with
-                                        differing content.
+        ConflictingSubmissionUUIDError: If the same UUID already exists or being
+                                        processed.
         PermissionDenied: If the submission fails permission checks.
     """
 
@@ -200,43 +199,105 @@ def create_instance(
     xform = get_xform_from_submission(xml, username, uuid)
     check_submission_permissions(request, xform)
 
-    # get new and deprecated uuid's
-    new_uuid = get_uuid_from_xml(xml)
+    # get root uuid
+    root_uuid, fallback_on_uuid = get_root_uuid_from_xml(xml)
+    new_uuid = root_uuid if fallback_on_uuid else get_uuid_from_xml(xml)
     if not new_uuid:
         raise InstanceIdMissingError
 
-    with kc_transaction_atomic():
-        with get_instance_lock(xml_hash, new_uuid, xform.id) as lock_acquired:
-            if not lock_acquired:
+    with get_instance_lock(root_uuid, xform.id) as lock_acquired:
+        if not lock_acquired:
+            raise LockedSubmissionError(
+                f'Submission {root_uuid} is currently being processed. '
+                f'Try again later.'
+            )
+
+        # Check for an existing instance
+        existing_instance = Instance.objects.filter(
+            xml_hash=xml_hash,
+            xform__user_id=xform.user_id,
+        ).first()
+
+        if existing_instance:
+            existing_instance.check_active(force=False)
+            # ensure we have saved the extra attachments
+            total_bytes, has_new_attachments = save_attachments(
+                existing_instance, media_files
+            )
+            if not has_new_attachments:
                 raise DuplicateInstanceError
-
-            # Check for an existing instance
-            existing_instance = Instance.objects.filter(
-                xml_hash=xml_hash,
-                xform__user=xform.user,
-            ).first()
-
-            if existing_instance:
-                existing_instance.check_active(force=False)
-                # ensure we have saved the extra attachments
-                new_attachments, _ = save_attachments(existing_instance, media_files)
-                if not new_attachments:
-                    raise DuplicateInstanceError
-                else:
-                    # Update Mongo via the related ParsedInstance
-                    existing_instance.parsed_instance.save(asynchronous=False)
-                    return existing_instance
             else:
-                instance = save_submission(
-                    request,
-                    xform,
-                    xml,
-                    media_files,
-                    new_uuid,
-                    status,
-                    date_created_override,
+                # Update Mongo via the related ParsedInstance
+                existing_instance.parsed_instance.save(asynchronous=False)
+                update_storage_counters(
+                    xform.pk,
+                    xform.user_id,
+                    total_bytes,
                 )
-                return instance
+                return existing_instance
+        else:
+            # We have to save the `Instance` to the database before we can associate
+            # any `Attachment`s with it, but we are inside a transaction and saving
+            # attachments is slow! Usually creating an `Instance` updates the
+            # submission count of the parent `XForm` automatically via a `post_save`
+            # signal, but that takes a lock on `logger_xform` that persists until the
+            # end of the transaction.  We must avoid doing that until all attachments
+            # are saved, and we are as close as possible to the end of the transaction.
+            # See https://github.com/kobotoolbox/kobocat/issues/490.
+            #
+            # `_get_instance(..., defer_counting=True)` skips incrementing the
+            # submission counters and returns an `Instance` with a `defer_counting`
+            # attribute set to `True` *if* a new instance was created. We are
+            # responsible for manually calling all counter-update methods if the
+            # returned `Instance` has `defer_counting = True`.
+
+            instance = _get_instance(
+                request,
+                xml,
+                new_uuid,
+                status,
+                xform,
+                date_created_override,
+                defer_counting=True,
+            )
+
+            total_bytes, _ = save_attachments(instance, media_files)
+
+            pi, created = ParsedInstance.objects.get_or_create(instance=instance)
+
+            if not created:
+                pi.save(asynchronous=False)
+
+            # Now that the slow tasks are complete, and we are (hopefully!) close to the
+            # end of the transaction, update the counters
+            update_storage_counters(
+                instance.xform_id, instance.xform.user_id, total_bytes
+            )
+
+            if getattr(instance, 'defer_counting', False):
+                # Remove the Python-only attribute
+                del instance.defer_counting
+
+                update_xform_daily_counter(
+                    sender=Instance,
+                    instance=instance,
+                    created=True,
+                    xform=instance.xform,
+                )
+                update_xform_monthly_counter(
+                    sender=Instance,
+                    instance=instance,
+                    created=True,
+                    xform=instance.xform,
+                )
+                update_xform_submission_count(
+                    sender=Instance,
+                    instance=instance,
+                    created=True,
+                    xform=instance.xform,
+                )
+
+            return instance
 
 
 def disposition_ext_and_date(name, extension, show_date=True):
@@ -258,11 +319,11 @@ def dict2xform(submission: dict, xform_id_string: str) -> str:
 
 
 @contextlib.contextmanager
-def get_instance_lock(xml_hash: str, submission_uuid: str, xform_id: int) -> bool:
+def get_instance_lock(submission_uuid: str, xform_id: int) -> bool:
     """
     Acquires a PostgreSQL advisory lock to prevent race conditions when
     processing form submissions. This ensures that submissions with the same
-    unique identifiers (xform_id, submission_uuid, and xml_hash) are handled
+    unique identifiers (xform_id, submission_uuid) are handled
     sequentially, preventing duplicate records in the database.
 
     A unique integer lock key (int_lock) is generated by creating a SHAKE-128
@@ -270,14 +331,12 @@ def get_instance_lock(xml_hash: str, submission_uuid: str, xform_id: int) -> boo
     to an integer.
     """
     int_lock = int.from_bytes(
-        hashlib.shake_128(
-            f'{xform_id}!!{submission_uuid}!!{xml_hash}'.encode()
-        ).digest(7), 'little'
+        hashlib.shake_128(f'{xform_id}!!{submission_uuid}'.encode()).digest(7), 'little'
     )
     acquired = False
 
     try:
-        with transaction.atomic():
+        with kc_transaction_atomic():
             cur = connection.cursor()
             cur.execute('SELECT pg_try_advisory_lock(%s::bigint);', (int_lock,))
             acquired = cur.fetchone()[0]
@@ -386,15 +445,18 @@ def http_open_rosa_error_handler(func, request):
     except ExpatError:
         result.error = t('Improperly formatted XML.')
         result.http_error_response = OpenRosaResponseBadRequest(result.error)
-    except ConflictingSubmissionUUIDError:
-        result.error = t('Submission with this instance ID already exists')
-        response = OpenRosaResponse(result.error)
+    except (ConflictingSubmissionUUIDError, ConflictingAttachmentBasenameError) as e:
+        response = OpenRosaResponse(str(e))
         response.status_code = 409
         response['Location'] = request.build_absolute_uri(request.path)
         result.http_error_response = response
-    except DuplicateInstanceError:
-        result.error = t('Duplicate submission')
-        response = OpenRosaResponse(result.error)
+    except LockedSubmissionError as e:
+        response = OpenRosaResponse(str(e))
+        response.status_code = 423
+        response['Location'] = request.build_absolute_uri(request.path)
+        result.http_error_response = response
+    except DuplicateInstanceError as e:
+        response = OpenRosaResponse(str(e))
         response.status_code = 202
         response['Location'] = request.build_absolute_uri(request.path)
         result.http_error_response = response
@@ -685,7 +747,6 @@ def safe_create_instance(
 def save_attachments(
     instance: Instance,
     media_files: Generator[File],
-    defer_counting: bool = False,
 ) -> tuple[list[Attachment], list[Attachment]]:
     """
     Return a tuple of two lists.
@@ -698,115 +759,56 @@ def save_attachments(
     which avoids locking any rows in `logger_xform` or `main_userprofile`.
     """
     new_attachments = []
+    total_bytes = 0
+    has_new_attachments = False
 
     for f in media_files:
-        attachment_filename = generate_attachment_filename(
-            instance, os.path.basename(f.name)
-        )
+        media_file_basename = os.path.basename(f.name)
+
+        # The basename of a (non-deleted) attachment must be unique per instance.
         existing_attachment = Attachment.objects.filter(
             instance=instance,
-            media_file=attachment_filename,
-            mimetype=f.content_type,
+            media_file_basename=media_file_basename,
         ).first()
+
+        uploaded_file_hash = calculate_hash(f, 'sha1')
+
         if existing_attachment:
-            # We already have this attachment!
-            continue
-        f.seek(0)
+            # We only accept the exact same uploaded file. The submission should be
+            # rejected if the file differs in any way.
+            # Validation is done by comparing the SHA-1 hash.
+            existing_attachment_hash = (
+                existing_attachment.hash or existing_attachment.get_hash()
+            )
+            if uploaded_file_hash == existing_attachment_hash:
+                # We already have this attachment!
+                continue
+            raise ConflictingAttachmentBasenameError
+
         # This is a new attachment; save it!
         new_attachment = Attachment(
-            instance=instance, media_file=f, mimetype=f.content_type
+            instance=instance,
+            media_file=f,
+            mimetype=f.content_type,
+            hash=uploaded_file_hash,
+            xform_id=instance.xform_id,
+            user_id=instance.xform.user_id,
+            media_file_basename=media_file_basename,
+            media_file_size=f.size,
+            date_created=dj_timezone.now(),
+            date_modified=dj_timezone.now(),
         )
-        if defer_counting:
-            # Only set the attribute if requested, i.e. don't bother ever
-            # setting it to `False`
-            new_attachment.defer_counting = True
-        new_attachment.save()
+        total_bytes += f.size
         new_attachments.append(new_attachment)
 
-    soft_deleted_attachments = get_soft_deleted_attachments(instance)
+    if new_attachments:
+        has_new_attachments = True
+        Attachment.objects.bulk_create(new_attachments)
 
-    return new_attachments, soft_deleted_attachments
+    for soft_deleted_att in get_soft_deleted_attachments(instance):
+        total_bytes -= soft_deleted_att.media_file_size
 
-
-def save_submission(
-    request: 'rest_framework.request.Request',
-    xform: XForm,
-    xml: str,
-    media_files: Union[list, Generator[File]],
-    new_uuid: str,
-    status: str,
-    date_created_override: datetime,
-) -> Instance:
-
-    if not date_created_override:
-        date_created_override = get_submission_date_from_xml(xml)
-
-    # We have to save the `Instance` to the database before we can associate
-    # any `Attachment`s with it, but we are inside a transaction and saving
-    # attachments is slow! Usually creating an `Instance` updates the
-    # submission count of the parent `XForm` automatically via a `post_save`
-    # signal, but that takes a lock on `logger_xform` that persists until the
-    # end of the transaction.  We must avoid doing that until all attachments
-    # are saved, and we are as close as possible to the end of the transaction.
-    # See https://github.com/kobotoolbox/kobocat/issues/490.
-    #
-    # `_get_instance(..., defer_counting=True)` skips incrementing the
-    # submission counters and returns an `Instance` with a `defer_counting`
-    # attribute set to `True` *if* a new instance was created. We are
-    # responsible for calling `update_xform_submission_count()` if the returned
-    # `Instance` has `defer_counting = True`.
-    instance = _get_instance(
-        request, xml, new_uuid, status, xform, defer_counting=True
-    )
-
-    new_attachments, soft_deleted_attachments = save_attachments(
-        instance, media_files, defer_counting=True
-    )
-
-    # override date created if required
-    if date_created_override:
-        if not dj_timezone.is_aware(date_created_override):
-            # default to utc?
-            date_created_override = dj_timezone.make_aware(
-                date_created_override, timezone.utc
-            )
-        instance.date_created = date_created_override
-        instance.save(update_fields=['date_created'])
-
-    if instance.xform is not None:
-        pi, created = ParsedInstance.objects.get_or_create(instance=instance)
-
-    if not created:
-        pi.save(asynchronous=False)
-
-    # Now that the slow tasks are complete and we are (hopefully!) close to the
-    # end of the transaction, update the submission count if the `Instance` was
-    # newly created
-    if getattr(instance, 'defer_counting', False):
-        # Remove the Python-only attribute
-        del instance.defer_counting
-        update_xform_daily_counter(
-            sender=Instance, instance=instance, created=True
-        )
-        update_xform_monthly_counter(
-            sender=Instance, instance=instance, created=True
-        )
-        update_xform_submission_count(
-            sender=Instance, instance=instance, created=True
-        )
-
-    # Update the storage totals for new attachments as well, which were
-    # deferred for the same performance reasons
-    for new_attachment in new_attachments:
-        if getattr(new_attachment, 'defer_counting', False):
-            # Remove the Python-only attribute
-            del new_attachment.defer_counting
-            post_save_attachment(new_attachment, created=True)
-
-    for soft_deleted_attachment in soft_deleted_attachments:
-        pre_delete_attachment(soft_deleted_attachment, only_update_counters=True)
-
-    return instance
+    return total_bytes, has_new_attachments
 
 
 def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
@@ -880,6 +882,7 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     # storage.
     remaining_attachments.update(
         date_modified=dj_timezone.now(),
+        deleted_at=dj_timezone.now(),
         delete_status=AttachmentDeleteStatus.SOFT_DELETED,
     )
 
@@ -892,37 +895,44 @@ def _get_instance(
     new_uuid: str,
     status: str,
     xform: XForm,
+    date_created_override: Optional[datetime] = None,
     defer_counting: bool = False,
 ) -> Instance:
     """
     `defer_counting=False` will set a Python-only attribute of the same name on
-    the *new* `Instance` if one is created. This will prevent
-    `update_xform_submission_count()` from doing anything, which avoids locking
-    any rows in `logger_xform` or `main_userprofile`.
+    the *new* `Instance` if one is created. This will prevent post-save signals
+    (when `defer_counting` is True) from doing anything, which avoids locking
+    any rows in `logger_xform`, `main_userprofile`, `logger_dailyxformsubmissioncounter`
+    or `logger_monthlyxformsubmissioncounter`.
     """
+
     # check if it is an edit submission
     old_uuid = get_deprecated_uuid_from_xml(xml)
     if old_uuid and (instance := Instance.objects.filter(uuid=old_uuid).first()):
         # edits
         check_edit_submission_permissions(request, xform)
         InstanceHistory.objects.create(
-            xml=instance.xml, xform_instance=instance, uuid=old_uuid)
+            xml=instance.xml, xform_instance=instance, uuid=old_uuid
+        )
         instance.xml = xml
-        instance._populate_xml_hash()
         instance.uuid = new_uuid
-        try:
-            instance.save()
-        except IntegrityError as e:
-            if 'root_uuid' in str(e):
-                raise ConflictingSubmissionUUIDError
-            raise
     else:
         submitted_by = (
             get_database_user(request.user)
             if request and request.user.is_authenticated
             else None
         )
-        # new submission
+
+        if not date_created_override:
+            date_created_override = get_submission_date_from_xml(xml)
+
+        # Override date created if required
+        if date_created_override and not dj_timezone.is_aware(date_created_override):
+            # default to utc?
+            date_created_override = dj_timezone.make_aware(
+                date_created_override, timezone.utc
+            )
+
         # Avoid `Instance.objects.create()` so that we can set a Python-only
         # attribute, `defer_counting`, before saving
         instance = Instance()
@@ -930,16 +940,16 @@ def _get_instance(
         instance.user = submitted_by
         instance.status = status
         instance.xform = xform
-        if defer_counting:
-            # Only set the attribute if requested, i.e. don't bother ever
-            # setting it to `False`
-            instance.defer_counting = True
-        try:
-            instance.save()
-        except IntegrityError as e:
-            if 'root_uuid' in str(e):
-                raise ConflictingSubmissionUUIDError
-            raise
+        instance.date_created = date_created_override
+        instance.defer_counting = defer_counting
+
+    try:
+        instance.save()
+    except IntegrityError as e:
+        if 'root_uuid' in str(e):
+            raise ConflictingSubmissionUUIDError
+        raise
+
     return instance
 
 

@@ -1,4 +1,3 @@
-# coding: utf-8
 from xml.dom import NotFoundErr
 
 from django.conf import settings
@@ -6,14 +5,14 @@ from django.core.files import File
 from django.core.validators import ValidationError
 from django.http import Http404
 from django.utils.translation import gettext as t
-from rest_framework import exceptions, mixins, status, permissions
+from rest_framework import exceptions, mixins, permissions, status
+from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
-from rest_framework.decorators import action
 
-from kobo.apps.openrosa.apps.api.tools import get_media_file_response
 from kobo.apps.openrosa.apps.api.permissions import ViewDjangoObjectPermissions
+from kobo.apps.openrosa.apps.api.tools import get_media_file_response
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
@@ -21,12 +20,14 @@ from kobo.apps.openrosa.apps.main.models.meta_data import MetaData
 from kobo.apps.openrosa.libs import filters
 from kobo.apps.openrosa.libs.mixins.openrosa_headers_mixin import OpenRosaHeadersMixin
 from kobo.apps.openrosa.libs.renderers.renderers import TemplateXMLRenderer
-from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormListSerializer
-from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormManifestSerializer
+from kobo.apps.openrosa.libs.serializers.xform_serializer import (
+    XFormListSerializer,
+    XFormManifestSerializer,
+)
 from kobo.apps.openrosa.libs.utils.logger_tools import (
+    get_instance_or_404,
     publish_form,
     publish_xml_form,
-    get_instance_or_404,
 )
 from kpi.authentication import DigestAuthentication
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
@@ -37,13 +38,14 @@ def _extract_uuid(text):
         form_id_parts = text.split('/')
 
         if form_id_parts.__len__() < 2:
-            raise ValidationError(t("Invalid formId %s." % text))
+            raise ValidationError(t('Invalid formId %s.' % text))
 
         text = form_id_parts[1]
-        text = text[text.find("@key="):-1].replace("@key=", "")
+        at_key_position = text.find('@key=')
+        text = text[at_key_position:-1].replace('@key=', '')
 
-        if text.startswith("uuid:"):
-            text = text.replace("uuid:", "")
+        if text.startswith('uuid:'):
+            text = text.replace('uuid:', '')
 
     return text
 
@@ -191,13 +193,12 @@ class BriefcaseApi(
             dd = publish_form(do_form_upload.publish)
 
             if isinstance(dd, XForm):
-                data['message'] = t(
-                    "%s successfully published." % dd.id_string)
+                data['message'] = t('%s successfully published.' % dd.id_string)
             else:
                 data['message'] = dd['text']
                 response_status = status.HTTP_400_BAD_REQUEST
         else:
-            data['message'] = t("Missing xml file.")
+            data['message'] = t('Missing xml file.')
             response_status = status.HTTP_400_BAD_REQUEST
 
         return Response(data, status=response_status,
@@ -240,9 +241,8 @@ class BriefcaseApi(
 
         data = {
             'submission_data': submission_xml_root_node.toxml(),
-            'media_files': Attachment.objects.filter(instance=instance),
-            'host': request.build_absolute_uri().replace(
-                request.get_full_path(), '')
+            'media_files': self._get_attachments_with_md5hash(instance),
+            'host': request.build_absolute_uri().replace(request.get_full_path(), ''),
         }
         return Response(
             data,
@@ -282,3 +282,12 @@ class BriefcaseApi(
         )
 
         return get_media_file_response(meta_obj, request)
+
+    def _get_attachments_with_md5hash(self, instance):
+        """
+        Return a list of attachment with md5 hash for retro compatibility with Briefcase
+        Attachment.hash is sha1 by default.
+        """
+        for att in Attachment.objects.filter(instance=instance):
+            att.md5hash = att.get_hash(algorithm='md5')
+            yield att

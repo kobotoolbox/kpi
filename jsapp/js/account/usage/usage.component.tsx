@@ -19,6 +19,7 @@ import { convertSecondsToMinutes, formatDate } from '#/utils'
 import { OneTimeAddOnsContext } from '../useOneTimeAddonList.hook'
 import { ProductsContext } from '../useProducts.hook'
 import styles from './usage.module.scss'
+import { useBillingPeriod } from './useBillingPeriod'
 
 interface LimitState {
   storageByteRemainingLimit: LimitAmount
@@ -52,13 +53,15 @@ export default function Usage() {
     stripeEnabled: false,
   })
 
+  const { billingPeriod } = useBillingPeriod()
+
   const location = useLocation()
 
   const dateRange = useMemo(() => {
     const startDate = formatDate(usage.currentPeriodStart)
     const endDate = formatDate(usage.currentPeriodEnd)
     return t('##start_date## to ##end_date##').replace('##start_date##', startDate).replace('##end_date##', endDate)
-  }, [usage.currentPeriodStart, usage.currentPeriodEnd, usage.trackingPeriod])
+  }, [usage.currentPeriodStart, usage.currentPeriodEnd])
 
   // check if stripe is enabled - if so, get limit data
   useEffect(() => {
@@ -179,7 +182,7 @@ export default function Usage() {
               recurringLimit={limits.submissionsRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.SUBMISSIONS)}
               hasAddOnsLayout={hasAddOnsLayout}
-              period={usage.trackingPeriod}
+              period={billingPeriod}
               type={USAGE_TYPE.SUBMISSIONS}
             />
           </div>
@@ -194,7 +197,7 @@ export default function Usage() {
               recurringLimit={limits.storageByteRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.STORAGE)}
               hasAddOnsLayout={hasAddOnsLayout}
-              period={usage.trackingPeriod}
+              period={billingPeriod}
               label={t('Total')}
               type={USAGE_TYPE.STORAGE}
             />
@@ -212,7 +215,7 @@ export default function Usage() {
               recurringLimit={limits.nlpMinuteRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSCRIPTION)}
               hasAddOnsLayout={hasAddOnsLayout}
-              period={usage.trackingPeriod}
+              period={billingPeriod}
               type={USAGE_TYPE.TRANSCRIPTION}
             />
           </div>
@@ -227,7 +230,7 @@ export default function Usage() {
               recurringLimit={limits.nlpCharacterRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSLATION)}
               hasAddOnsLayout={hasAddOnsLayout}
-              period={usage.trackingPeriod}
+              period={billingPeriod}
               type={USAGE_TYPE.TRANSLATION}
             />
           </div>

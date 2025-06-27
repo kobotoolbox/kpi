@@ -10,6 +10,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.utils.dateparse import parse_datetime
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, dict2xform
 from kpi.constants import PERM_ADD_SUBMISSIONS, SUBMISSION_FORMAT_TYPE_JSON
 from kpi.tests.utils.dicts import convert_hierarchical_keys_to_nested_dict
@@ -88,7 +89,7 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
                     except KeyError:
                         uuid_ = str(uuid4())
                 else:
-                    uuid_ = submission['meta/instanceID'].replace('uuid:', '')
+                    uuid_ = remove_uuid_prefix(submission['meta/instanceID'])
 
                 sub_copy['meta'] = {'instanceID': f'uuid:{uuid_}'}
                 submission['_uuid'] = uuid_

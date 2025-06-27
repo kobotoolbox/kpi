@@ -220,9 +220,7 @@ CONSTANCE_CONFIG = {
         'URL for "KoboToolbox Help Center"',
     ),
     'ACADEMY_URL': (
-        env.str(
-            'KOBO_ACADEMY_URL', 'https://academy.kobotoolbox.org/'
-        ),
+        env.str('KOBO_ACADEMY_URL', 'https://academy.kobotoolbox.org/'),
         'URL for "KoboToolbox Community Forum"',
     ),
     'COMMUNITY_URL': (
@@ -1281,7 +1279,7 @@ CELERY_BEAT_SCHEDULE = {
     'organization-invite-mark-as-expired': {
         'task': 'kobo.apps.organizations.tasks.mark_organization_invite_as_expired',
         'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
     # Schedule every 10 minutes
     'project-ownership-task-restarter': {
@@ -1449,7 +1447,7 @@ MASS_EMAILS_CONDENSE_SEND = env.bool('MASS_EMAILS_CONDENSE_SEND', False)
 if MASS_EMAILS_CONDENSE_SEND:
     CELERY_BEAT_SCHEDULE['mass-emails-send'] = {
         'task': 'kobo.apps.mass_emails.tasks.send_emails',
-        'schedule': crontab(minute='2-59/5'),
+        'schedule': crontab(minute='1-59/5'),
         'options': {'queue': 'kpi_queue'},
     }
     CELERY_BEAT_SCHEDULE['mass-emails-enqueue-records'] = {

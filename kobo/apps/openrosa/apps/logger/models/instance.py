@@ -1,4 +1,3 @@
-# coding: utf-8
 from hashlib import sha256
 
 import reversion
@@ -7,7 +6,6 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import GeometryCollection, Point
 from django.db.models import UniqueConstraint
 from django.utils import timezone
-from django.utils.encoding import smart_str
 from jsonfield import JSONField
 from taggit.managers import TaggableManager
 
@@ -41,6 +39,7 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
 from kobo.apps.openrosa.libs.utils.model_tools import set_uuid
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kpi.models.abstract_models import AbstractTimeStampedModel
+from kpi.utils.hash import calculate_hash
 
 
 # need to establish id_string of the xform before we run get_dict since
@@ -65,10 +64,6 @@ def get_id_string_from_xml_str(xml_str):
                 break
 
     return id_string
-
-
-def submission_time():
-    return timezone.now()
 
 
 @reversion.register
@@ -171,8 +166,7 @@ class Instance(AbstractTimeStampedModel):
         doc = self.get_dict()
 
         if not self.date_created:
-            now = submission_time()
-            self.date_created = now
+            self.date_created = timezone.now()
 
         point = self.point
         if point:
@@ -180,8 +174,7 @@ class Instance(AbstractTimeStampedModel):
 
         doc[SUBMISSION_TIME] = self.date_created.strftime(MONGO_STRFTIME)
         doc[XFORM_ID_STRING] = self._parser.get_xform_id_string()
-        doc[SUBMITTED_BY] = self.user.username\
-            if self.user is not None else None
+        doc[SUBMITTED_BY] = self.user.username if self.user is not None else None
         self.json = doc
 
     def _set_parser(self):
@@ -202,9 +195,8 @@ class Instance(AbstractTimeStampedModel):
 
     def _populate_root_uuid(self):
         if self.xml and not self.root_uuid:
-            assert (
-                root_uuid := get_root_uuid_from_xml(self.xml)
-            ), 'root_uuid should not be empty'
+            root_uuid, _ = get_root_uuid_from_xml(self.xml)
+            assert root_uuid, 'root_uuid should not be empty'
             self.root_uuid = root_uuid
 
     def _populate_xml_hash(self):
@@ -314,16 +306,11 @@ class Instance(AbstractTimeStampedModel):
         return self._parser.get_root_node_name()
 
     @staticmethod
-    def get_hash(input_string):
+    def get_hash(input_string: str) -> str:
         """
         Compute the SHA256 hash of the given string. A wrapper to standardize hash computation.
-
-        :param str input_string: The string to be hashed.
-        :return: The resulting hash.
-        :rtype: str
         """
-        input_string = smart_str(input_string)
-        return sha256(input_string.encode()).hexdigest()
+        return calculate_hash(input_string, 'sha256')
 
     @property
     def point(self):

@@ -2,41 +2,41 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as t
 from rest_framework import serializers
-from rest_framework.exceptions import PermissionDenied, NotFound
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import (
-    create_organization,
     Organization,
-    OrganizationOwner,
-    OrganizationUser,
     OrganizationInvitation,
     OrganizationInviteStatusChoices,
+    OrganizationOwner,
+    OrganizationUser,
+    create_organization,
 )
-from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_ownership.models import InviteStatusChoices
 from kpi.exceptions import RetryAfterAPIException
 from kpi.utils.cache import void_cache_for_request
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.placeholders import replace_placeholders
 from .constants import (
-    ORG_ADMIN_ROLE,
-    ORG_MEMBER_ROLE,
-    ORG_EXTERNAL_ROLE,
-    INVITE_OWNER_ERROR,
-    INVITE_MEMBER_ERROR,
-    USER_DOES_NOT_EXIST_ERROR,
     INVITE_ALREADY_ACCEPTED_ERROR,
-    INVITE_NOT_FOUND_ERROR,
     INVITE_ALREADY_EXISTS_ERROR,
-    INVITEE_ALREADY_MEMBER_ERROR
+    INVITE_MEMBER_ERROR,
+    INVITE_NOT_FOUND_ERROR,
+    INVITE_OWNER_ERROR,
+    INVITEE_ALREADY_MEMBER_ERROR,
+    ORG_ADMIN_ROLE,
+    ORG_EXTERNAL_ROLE,
+    ORG_MEMBER_ROLE,
+    USER_DOES_NOT_EXIST_ERROR,
 )
 from .tasks import transfer_member_data_ownership_to_org
 
@@ -75,7 +75,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             'user__has_mfa_enabled',
             'date_joined',
             'user__is_active',
-            'invite'
+            'invite',
         ]
 
     def get_url(self, obj):
@@ -97,17 +97,18 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         try:
             invites_per_member = self.context['invites_per_member']
         except KeyError:
-            invite = OrganizationInvitation.objects.filter(
-                organization=obj.organization,
-                invitee=obj.user
-            ).order_by('-created').first()
+            invite = (
+                OrganizationInvitation.objects.filter(
+                    organization=obj.organization, invitee=obj.user
+                )
+                .order_by('-created')
+                .first()
+            )
         else:
             invite = invites_per_member.get(obj.user_id)
 
         if invite:
-            return OrgMembershipInviteSerializer(
-                invite, context=self.context
-            ).data
+            return OrgMembershipInviteSerializer(invite, context=self.context).data
 
         return {}
 
@@ -123,9 +124,11 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
                 instance, context=self.context
             )
             response = {field: None for field in self.Meta.fields}
-            response.update({
-                'invite': invite_serializer.data,
-            })
+            response.update(
+                {
+                    'invite': invite_serializer.data,
+                }
+            )
             return response
         else:
             representation = super().to_representation(instance)
@@ -236,16 +239,10 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
 
 class OrgMembershipInviteSerializer(serializers.ModelSerializer):
-    created = serializers.DateTimeField(
-        format='%Y-%m-%dT%H:%M:%SZ', read_only=True
-    )
-    modified = serializers.DateTimeField(
-        format='%Y-%m-%dT%H:%M:%SZ', read_only=True
-    )
+    created = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ', read_only=True)
+    modified = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ', read_only=True)
     invitees = serializers.ListField(
-        child=serializers.CharField(),
-        write_only=True,
-        required=True
+        child=serializers.CharField(), write_only=True, required=True
     )
     invited_by = serializers.SerializerMethodField()
     organization_name = serializers.ReadOnlyField(source='organization.name')
@@ -267,7 +264,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             'invitee_role',
             'organization_name',
             'created',
-            'modified'
+            'modified',
         ]
 
     def create(self, validated_data):
@@ -322,7 +319,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         return reverse(
             'user-kpi-detail',
             args=[invite.invited_by.username],
-            request=self.context['request']
+            request=self.context['request'],
         )
 
     def get_url(self, obj):
@@ -333,9 +330,9 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             'organization-invites-detail',
             kwargs={
                 'organization_id': obj.invited_by.organization.id,
-                'guid': obj.guid
+                'guid': obj.guid,
             },
-            request=self.context.get('request')
+            request=self.context.get('request'),
         )
 
     def to_representation(self, instance):
@@ -360,17 +357,12 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
 
         # Check if the invitation has already been accepted
         if instance.status == InviteStatusChoices.ACCEPTED:
-            raise PermissionDenied(
-                {
-                    'detail': t(INVITE_ALREADY_ACCEPTED_ERROR)
-                }
-            )
+            raise PermissionDenied({'detail': t(INVITE_ALREADY_ACCEPTED_ERROR)})
 
         # Validate email or username
         is_email_match = request_user.email == instance.invitee_identifier
         is_username_match = (
-            instance.invitee and
-            request_user.username == instance.invitee.username
+            instance.invitee and request_user.username == instance.invitee.username
         )
         if not (is_email_match or is_username_match):
             raise NotFound({'detail': t(INVITE_NOT_FOUND_ERROR)})
@@ -382,7 +374,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                     {
                         'detail': replace_placeholders(
                             t(INVITE_OWNER_ERROR),
-                            organization_name=instance.invitee.organization.name
+                            organization_name=instance.invitee.organization.name,
                         )
                     }
                 )
@@ -391,7 +383,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                     {
                         'detail': replace_placeholders(
                             t(INVITE_MEMBER_ERROR),
-                            organization_name=instance.invitee.organization.name
+                            organization_name=instance.invitee.organization.name,
                         )
                     }
                 )
@@ -472,9 +464,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             # performed to ensure, only an admin can call this.
             if value == OrganizationInviteStatusChoices.RESENT:
                 if self.instance.status != OrganizationInviteStatusChoices.PENDING:
-                    raise serializers.ValidationError(
-                        'Invitation cannot be resent'
-                    )
+                    raise serializers.ValidationError('Invitation cannot be resent')
 
                 retry_after = self.instance.modified + timedelta(
                     seconds=settings.ORG_INVITATION_RESENT_RESET_AFTER
@@ -514,9 +504,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         if transfer_data:
             # Transfer ownership of invitee's assets to the organization
             transaction.on_commit(
-                lambda: transfer_member_data_ownership_to_org.delay(
-                    instance.invitee.id
-                )
+                lambda: transfer_member_data_ownership_to_org.delay(instance.invitee.id)
             )
 
         return instance
@@ -529,9 +517,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             organization=organization, user=user
         ).exists():
             raise serializers.ValidationError(
-                replace_placeholders(
-                    t(INVITEE_ALREADY_MEMBER_ERROR), invitee=invitee
-                )
+                replace_placeholders(t(INVITEE_ALREADY_MEMBER_ERROR), invitee=invitee)
             )
 
     def _check_existing_invites(self, organization, search_filter, invitee):
@@ -541,12 +527,10 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         if OrganizationInvitation.objects.filter(
             **search_filter,
             organization=organization,
-            status=OrganizationInviteStatusChoices.PENDING
+            status=OrganizationInviteStatusChoices.PENDING,
         ).exists():
             raise serializers.ValidationError(
-                replace_placeholders(
-                    t(INVITE_ALREADY_EXISTS_ERROR), invitee=invitee
-                )
+                replace_placeholders(t(INVITE_ALREADY_EXISTS_ERROR), invitee=invitee)
             )
 
     def _get_valid_user(self, username):
@@ -556,9 +540,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         user = User.objects.filter(username=username, is_active=True).first()
         if not user:
             raise serializers.ValidationError(
-                replace_placeholders(
-                    t(USER_DOES_NOT_EXIST_ERROR), invitee=username
-                )
+                replace_placeholders(t(USER_DOES_NOT_EXIST_ERROR), invitee=username)
             )
         return user
 
@@ -595,12 +577,9 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
 
     def _send_status_email(self, instance, status):
         status_map = {
-            OrganizationInviteStatusChoices.ACCEPTED:
-                instance.send_acceptance_email,
-            OrganizationInviteStatusChoices.DECLINED:
-                instance.send_refusal_email,
-            OrganizationInviteStatusChoices.RESENT:
-                instance.send_invite_email,
+            OrganizationInviteStatusChoices.ACCEPTED: instance.send_acceptance_email,
+            OrganizationInviteStatusChoices.DECLINED: instance.send_refusal_email,
+            OrganizationInviteStatusChoices.RESENT: instance.send_invite_email,
         }
 
         email_func = status_map.get(status)

@@ -35,7 +35,10 @@ def run():
 
                 if not attachment.uid:
                     attachment.uid = KpiUidField.generate_unique_id('att')
-                attachment_ids_per_instance[instance.pk][attachment.pk] = attachment.uid
+                attachment_ids_per_instance[instance.pk][attachment.pk] = {
+                    'uid': attachment.uid,
+                    'media_file_basename': attachment.media_file_basename,
+                }
 
                 if not attachment.date_created:
                     attachment.date_created = instance.date_created
@@ -109,13 +112,22 @@ def update_mongo(attachment_ids_per_instance: dict):
 
         for attachment in doc['_attachments']:
 
+            try:
+                attachment['id']
+            except (TypeError, KeyError):
+                # Ignore attachments that don't conform to the expected structure
+                continue
+
             if (
                 'uid' not in attachment
                 and attachment['id'] in attachment_ids_per_instance[doc['_id']]
             ):
                 attachment['uid'] = attachment_ids_per_instance[doc['_id']][
                     attachment['id']
-                ]
+                ]['uid']
+                attachment['media_file_basename'] = attachment_ids_per_instance[
+                    doc['_id']
+                ][attachment['id']]['media_file_basename']
                 updated_attachments.append(attachment)
 
         if updated_attachments:
