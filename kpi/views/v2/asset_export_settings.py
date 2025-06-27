@@ -3,7 +3,8 @@ import re
 
 from django.http import FileResponse, HttpResponse, HttpResponseRedirect
 from django.utils.translation import gettext as t
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from rest_framework import renderers, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -39,8 +40,17 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     ),
     data=extend_schema(
         description=read_md('kpi', 'export_settings/data.md'),
+        parameters=[
+            OpenApiParameter(
+                name='format',
+                required=True,
+                type=OpenApiTypes.STR,
+                enum=['csv', 'xlsx'],
+                location=OpenApiParameter.QUERY,
+            ),
+        ],
         responses=open_api_200_ok_response(
-            None,
+            description='Will return a content type with the type of the attachment as well as the attachment itself.',  # noqa
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
