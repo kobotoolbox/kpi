@@ -46,7 +46,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             validate_payload=False,
         ),
     ),
-    delete=extend_schema(
+    destroy=extend_schema(
         description=read_md('kpi', 'export_settings/delete.md'),
         responses=open_api_204_empty_response(
             require_auth=False,
