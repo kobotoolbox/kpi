@@ -88,7 +88,23 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
                           NestedViewSetMixin, viewsets.ModelViewSet):
     """
+    ViewSet for managing the current user's assets
 
+    Available actions:
+    - list           → GET /api/v2/export_settings/
+    - create         → POST /api/v2/export_settings/
+    - retrieve       → GET /api/v2/export_settings/{uid}/
+    - patch          → PATCH /api/v2/export_settings/{uid}/
+    - delete         → DELETE /api/v2/export_settings/{uid}/
+    - data        → GET /api/v2/export_settings/{uid}/data/
+
+    Documentation:
+    - docs/api/v2/export_settings/list.md
+    - docs/api/v2/export_settings/create.md
+    - docs/api/v2/export_settings/retrieve.md
+    - docs/api/v2/export_settings/patch.md
+    - docs/api/v2/export_settings/delete.md
+    - docs/api/v2/export_settings/data.md
     """
 
     model = AssetExportSettings
