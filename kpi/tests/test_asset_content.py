@@ -5,10 +5,9 @@ import string
 from collections import OrderedDict
 from copy import deepcopy
 from functools import reduce
-from unittest.mock import Mock, patch
 
 from django.conf import settings
-from django.test import RequestFactory, TestCase
+from django.test import TestCase
 from model_bakery import baker
 
 from kpi.models import Asset

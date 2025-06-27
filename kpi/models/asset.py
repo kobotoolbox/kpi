@@ -11,7 +11,6 @@ from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import models, transaction
 from django.db.models import F, Prefetch, Q
 from django.utils.translation import gettext_lazy as t
-from django_request_cache import cache_for_request
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
