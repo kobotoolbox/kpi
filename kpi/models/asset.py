@@ -663,6 +663,7 @@ class Asset(
             content, self.advanced_features, url=url
         )
 
+    @cache_for_request
     def get_all_attachment_xpaths(self):
         versions = self.asset_versions.all()
         xpaths = set()
@@ -678,13 +679,6 @@ class Asset(
             )
         return list(xpaths)
 
-    def get_attachment_xpaths(self, deployed: bool = True):
-        version = (
-            self.latest_deployed_version if deployed else self.latest_version
-        )
-        return self.get_attachment_xpaths_from_version(version, insert_xpath=True)
-
-    @cache_for_request
     def get_attachment_xpaths_from_version(
         self, version=None, insert_xpath=False
     ) -> Optional[list]:
