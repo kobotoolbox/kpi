@@ -152,6 +152,7 @@ def create_instance(
     uuid: str = None,
     date_created_override: datetime = None,
     request: Optional['rest_framework.request.Request'] = None,
+    check_usage_limits: bool = True
 ) -> Instance:
     """
     Processes form submissions by creating or updating an Instance in an atomic
@@ -181,6 +182,10 @@ def create_instance(
         date_created_override (datetime, optional): Override for the submission's
                                                     creation date.
         request (Optional[Request]): Request object used for permission checks.
+        check_usage_limits (bool, optional): For testing purposes, bypasses
+                                             checking whether asset owner
+                                             is over allowed submission/storage
+                                             limit.
 
     Returns:
         Instance: The updated or newly created submission instance
@@ -201,7 +206,7 @@ def create_instance(
     xml_hash = Instance.get_hash(xml)
     xform = get_xform_from_submission(xml, username, uuid)
     check_submission_permissions(request, xform)
-    if settings.STRIPE_ENABLED:
+    if settings.STRIPE_ENABLED and check_usage_limits:
         calculator = ServiceUsageCalculator(xform.user)
         balances = calculator.get_usage_balances()
         for usage_type in [UsageType.STORAGE_BYTES, UsageType.SUBMISSION]:
@@ -451,8 +456,10 @@ def http_open_rosa_error_handler(func, request):
         result.error = t('Temporarily unavailable')
         result.http_error_response = OpenRosaTemporarilyUnavailable(result.error)
     except ExceededUsageLimitError:
-        result.error = t('Account over usage limit')
-        result.http_error_response = OpenRosaResponseForbidden(result.error)
+        result.error = t(
+            'The owner of this survey has exceeded their submission limit.'
+        )
+        result.http_error_response = OpenRosaResponsePaymentRequired(result.error)
     except AccountInactiveError:
         result.error = t('Account is not active')
         result.http_error_response = OpenRosaResponseNotAllowed(result.error)
@@ -1099,6 +1106,10 @@ class OpenRosaResponseBadRequest(OpenRosaResponse):
 
 class OpenRosaResponseNotAllowed(OpenRosaResponse):
     status_code = 405
+
+
+class OpenRosaResponsePaymentRequired(OpenRosaResponse):
+    status_code = 402
 
 
 class OpenRosaResponseForbidden(OpenRosaResponse):
