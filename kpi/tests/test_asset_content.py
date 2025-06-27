@@ -917,7 +917,11 @@ class TestAssetContent(TestCase):
         assert sorted(xpaths) == ['Image', 'group_kq1rd43/Image']
 
     @override_settings(DEFAULT_DEPLOYMENT_BACKEND='mock')
-    def test_list_submissions_only_fetches_versions_once(self):
+    def test_get_attachment_xpaths_only_fetches_versions_once(self):
+        # this is sort of just testing that the method has the
+        # cache_for_request decorator, but the important part is that
+        # we only call asset_versions.all() once, so test that specifically
+
         user = baker.make(settings.AUTH_USER_MODEL, username='johndoe')
         request = RequestFactory().get('/')
         # we use getattr and setattr to determine whether something is cached
