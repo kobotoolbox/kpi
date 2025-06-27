@@ -18,3 +18,7 @@ class DataUrlXLSXField(serializers.URLField):
 
 class UrlField(serializers.URLField):
     pass
+
+
+class UpdatePayloadField(serializers.JSONField):
+    pass

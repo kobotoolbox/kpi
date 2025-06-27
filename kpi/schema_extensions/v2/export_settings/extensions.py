@@ -121,3 +121,19 @@ class UrlFieldFieldExtension(OpenApiSerializerFieldExtension):
             uid='esMxJfzPhnWn6r2c3EKkuaV',
         )
 
+
+class UpdatePayloadFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.export_settings.fields.UpdatePayloadField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'fields_from_all_versions': build_basic_type(OpenApiTypes.BOOL),
+                'group_sep': build_basic_type(OpenApiTypes.STR),
+                'hierarchy_in_labels': build_basic_type(OpenApiTypes.BOOL),
+                'lang': build_basic_type(OpenApiTypes.STR),
+                'multiple_select': build_basic_type(OpenApiTypes.STR),
+                'type': build_basic_type(OpenApiTypes.STR),
+                'fields': build_array_type(schema={})
+            }
+        )

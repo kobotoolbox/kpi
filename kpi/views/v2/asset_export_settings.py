@@ -11,8 +11,11 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kpi.models import AssetExportSettings, SubmissionSynchronousExport
 from kpi.permissions import AssetExportSettingsPermission
 from kpi.renderers import SubmissionCSVRenderer, SubmissionXLSXRenderer
-from kpi.schema_extensions.v2.export_settings.serializers import ExportSettingResponse, \
-    ExportSettingCreatePayload
+from kpi.schema_extensions.v2.export_settings.serializers import (
+    ExportSettingResponse,
+    ExportSettingCreatePayload,
+    ExportSettingUpdatePayload
+)
 from kpi.serializers.v2.asset_export_settings import AssetExportSettingsSerializer
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
@@ -68,9 +71,11 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     ),
     partial_update=extend_schema(
         description=read_md('kpi', 'export_settings/update.md'),
+        request={'application/json': ExportSettingUpdatePayload},
         responses=open_api_200_ok_response(
             ExportSettingResponse,
             require_auth=False,
+            raise_access_forbidden=False,
         ),
     ),
     update=extend_schema(

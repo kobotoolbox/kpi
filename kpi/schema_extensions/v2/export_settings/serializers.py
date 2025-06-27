@@ -6,7 +6,8 @@ from .fields import (
     ExportSettingsField,
     DataUrlCSVField,
     DataUrlXLSXField,
-    UrlField
+    UrlField,
+    UpdatePayloadField
 )
 
 ExportSettingCreatePayload = inline_serializer_class(
@@ -28,4 +29,12 @@ ExportSettingResponse = inline_serializer_class(
         'date_modified': serializers.TimeField(),
         'export_settings': ExportSettingsField(),
     },
+)
+
+ExportSettingUpdatePayload = inline_serializer_class(
+    name='ExportSettingUpdatePayload',
+    fields={
+        'name': serializers.CharField(),
+        'export_settings': UpdatePayloadField()
+    }
 )
