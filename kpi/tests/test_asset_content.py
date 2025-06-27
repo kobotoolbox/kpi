@@ -8,7 +8,7 @@ from functools import reduce
 from unittest.mock import Mock, patch
 
 from django.conf import settings
-from django.test import RequestFactory, TestCase, override_settings
+from django.test import RequestFactory, TestCase
 from model_bakery import baker
 
 from kpi.models import Asset
@@ -871,7 +871,6 @@ def test_populates_xpath_correctly():
 
 class TestAssetContent(TestCase):
 
-    @override_settings(DEFAULT_DEPLOYMENT_BACKEND='mock')
     def test_get_attachment_xpaths_from_all_versions(self):
         user = baker.make(settings.AUTH_USER_MODEL, username='johndoe')
         # survey with 1 attachment question
@@ -916,7 +915,6 @@ class TestAssetContent(TestCase):
         xpaths = asset.get_all_attachment_xpaths()
         assert sorted(xpaths) == ['Image', 'group_kq1rd43/Image']
 
-    @override_settings(DEFAULT_DEPLOYMENT_BACKEND='mock')
     def test_get_attachment_xpaths_only_fetches_versions_once(self):
         # this is sort of just testing that the method has the
         # cache_for_request decorator, but the important part is that
