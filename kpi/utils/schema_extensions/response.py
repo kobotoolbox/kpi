@@ -20,6 +20,7 @@ def open_api_200_ok_response(
     validate_payload: bool = True,
     raise_access_forbidden: bool = True,
     raise_not_found: bool = True,
+    error_media_type: Optional[str] = 'application/json',
     **kwargs,
 ) -> OpenApiGenericResponse:
     return open_api_generic_response(
@@ -30,6 +31,7 @@ def open_api_200_ok_response(
         validate_payload=validate_payload,
         raise_access_forbidden=raise_access_forbidden,
         raise_not_found=raise_not_found,
+        error_media_type=error_media_type,
         **kwargs,
     )
 
@@ -42,6 +44,7 @@ def open_api_201_created_response(
     validate_payload: bool = True,
     raise_access_forbidden: bool = True,
     raise_not_found: bool = True,
+    error_media_type: Optional[str] = 'application/json',
     **kwargs,
 ) -> OpenApiGenericResponse:
     return open_api_generic_response(
@@ -52,6 +55,7 @@ def open_api_201_created_response(
         validate_payload=validate_payload,
         raise_access_forbidden=raise_access_forbidden,
         raise_not_found=raise_not_found,
+        error_media_type=error_media_type,
         **kwargs,
     )
 
@@ -64,6 +68,7 @@ def open_api_202_accepted_response(
     validate_payload: bool = True,
     raise_access_forbidden: bool = True,
     raise_not_found: bool = True,
+    error_media_type: Optional[str] = 'application/json',
     **kwargs,
 ) -> OpenApiGenericResponse:
     return open_api_generic_response(
@@ -74,6 +79,7 @@ def open_api_202_accepted_response(
         validate_payload=validate_payload,
         raise_access_forbidden=raise_access_forbidden,
         raise_not_found=raise_not_found,
+        error_media_type=error_media_type,
         **kwargs,
     )
 
@@ -85,6 +91,7 @@ def open_api_204_empty_response(
     validate_payload: bool = True,
     raise_access_forbidden: bool = True,
     raise_not_found: bool = True,
+    error_media_type: Optional[str] = 'application/json',
     **kwargs,
 ) -> OpenApiGenericResponse:
     return open_api_generic_response(
@@ -95,6 +102,7 @@ def open_api_204_empty_response(
         validate_payload=validate_payload,
         raise_access_forbidden=raise_access_forbidden,
         raise_not_found=raise_not_found,
+        error_media_type=error_media_type,
         **kwargs,
     )
 
@@ -106,6 +114,7 @@ def open_api_302_found(
     validate_payload: bool = True,
     raise_access_forbidden: bool = True,
     raise_not_found: bool = True,
+    error_media_type: Optional[str] = 'application/json',
     **kwargs,
 ) -> OpenApiGenericResponse:
 
@@ -117,6 +126,7 @@ def open_api_302_found(
         validate_payload=validate_payload,
         raise_access_forbidden=raise_access_forbidden,
         raise_not_found=raise_not_found,
+        error_media_type=error_media_type,
         **kwargs,
     )
 
@@ -127,24 +137,25 @@ def open_api_error_responses(
     validate_payload: bool = True,
     raise_access_forbidden: bool = True,
     raise_not_found: bool = True,
-    media_type: str = 'application/json',
+    error_media_type: str = 'application/json',
     **kwargs,
 ):
     if require_auth:
 
-        response[status.HTTP_401_UNAUTHORIZED] = OpenApiResponse(
+        response[(status.HTTP_401_UNAUTHORIZED, error_media_type)] = OpenApiResponse(
             response=ErrorDetailSerializer(),
             examples=[
                 OpenApiExample(
                     name='Not authenticated',
                     value={'detail': 'Authentication credentials were not provided.'},
                     response_only=True,
+                    media_type=error_media_type,
                 )
             ],
         )
 
     if raise_access_forbidden:
-        response[status.HTTP_403_FORBIDDEN] = OpenApiResponse(
+        response[(status.HTTP_403_FORBIDDEN, error_media_type)] = OpenApiResponse(
             response=ErrorDetailSerializer(),
             examples=[
                 OpenApiExample(
@@ -153,12 +164,13 @@ def open_api_error_responses(
                         'detail': 'You do not have permission to perform this action.'
                     },
                     response_only=True,
+                    media_type=error_media_type,
                 )
             ],
         )
 
     if raise_not_found:
-        if media_type == 'text/html':
+        if error_media_type == 'text/html':
             response[status.HTTP_404_NOT_FOUND] = OpenApiResponse(
                 response=ErrorDetailSerializer(),
                 examples=[
@@ -170,13 +182,14 @@ def open_api_error_responses(
                 ],
             )
         else:
-            response[status.HTTP_404_NOT_FOUND] = OpenApiResponse(
+            response[(status.HTTP_404_NOT_FOUND, error_media_type)] = OpenApiResponse(
                 response=ErrorDetailSerializer(),
                 examples=[
                     OpenApiExample(
                         name='Not Found',
                         value={'detail': 'Not found.'},
                         response_only=True,
+                        media_type=error_media_type,
                     )
                 ],
             )
@@ -185,13 +198,14 @@ def open_api_error_responses(
         validation_errors = kwargs.get(
             'validations_errors', {'field_name': ['Error message']}
         )
-        response[status.HTTP_400_BAD_REQUEST] = OpenApiResponse(
+        response[(status.HTTP_400_BAD_REQUEST, error_media_type)] = OpenApiResponse(
             response=ErrorDetailSerializer(),
             examples=[
                 OpenApiExample(
                     name='Bad request',
                     value=validation_errors,
                     response_only=True,
+                    media_type=error_media_type,
                 )
             ],
         )
@@ -209,13 +223,14 @@ def open_api_generic_response(
     validate_payload: bool = True,
     raise_access_forbidden: bool = True,
     raise_not_found: bool = True,
+    error_media_type: Optional[str] = 'application/json',
     **kwargs,
 ) -> OpenApiGenericResponse:
     success_key = http_code
     if media_type:
         success_key = (http_code, media_type)
 
-    response = {success_key: OpenApiResponse(response=given_serializer)}
+    response = {success_key: OpenApiResponse(response=given_serializer, **kwargs)}
 
     return open_api_error_responses(
         response=response,
@@ -223,6 +238,7 @@ def open_api_generic_response(
         validate_payload=validate_payload,
         raise_access_forbidden=raise_access_forbidden,
         raise_not_found=raise_not_found,
+        error_media_type=error_media_type,
         **kwargs,
     )
 
@@ -256,6 +272,6 @@ def open_api_http_example_response(
         validate_payload=validate_payload,
         raise_access_forbidden=raise_access_forbidden,
         raise_not_found=raise_not_found,
-        media_type='text/html',
+        error_media_type='text/html',
         **kwargs,
     )
