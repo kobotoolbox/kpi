@@ -4,7 +4,7 @@ import re
 from django.http import FileResponse, HttpResponse, HttpResponseRedirect
 from django.utils.translation import gettext as t
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import renderers, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -13,8 +13,8 @@ from kpi.models import AssetExportSettings, SubmissionSynchronousExport
 from kpi.permissions import AssetExportSettingsPermission
 from kpi.renderers import SubmissionCSVRenderer, SubmissionXLSXRenderer
 from kpi.schema_extensions.v2.export_settings.serializers import (
-    ExportSettingResponse,
     ExportSettingCreatePayload,
+    ExportSettingResponse,
     ExportSettingUpdatePayload,
 )
 from kpi.serializers.v2.asset_export_settings import AssetExportSettingsSerializer
@@ -94,7 +94,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     ),
     update=extend_schema(
         exclude=True,
-    )
+    ),
 )
 class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
                           NestedViewSetMixin, viewsets.ModelViewSet):

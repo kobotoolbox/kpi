@@ -10,13 +10,12 @@ from .fields import (
     UrlField,
 )
 
-
 ExportSettingCreatePayload = inline_serializer_class(
     name='ExportSettingCreatePayload',
     fields={
         'name': serializers.CharField(),
         'export_settings': CreatePayloadField(),
-    }
+    },
 )
 
 ExportSettingResponse = inline_serializer_class(
@@ -34,8 +33,5 @@ ExportSettingResponse = inline_serializer_class(
 
 ExportSettingUpdatePayload = inline_serializer_class(
     name='ExportSettingUpdatePayload',
-    fields={
-        'name': serializers.CharField(),
-        'export_settings': UpdatePayloadField()
-    }
+    fields={'name': serializers.CharField(), 'export_settings': UpdatePayloadField()},
 )

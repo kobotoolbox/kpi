@@ -1,14 +1,16 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
-from drf_spectacular.plumbing import build_object_type, build_basic_type, build_array_type
+from drf_spectacular.plumbing import (
+    build_array_type,
+    build_basic_type,
+    build_object_type,
+)
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
 class CreatePayloadFieldExtensions(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.export_settings.fields.CreatePayloadField'
-    )
+    target_class = 'kpi.schema_extensions.v2.export_settings.fields.CreatePayloadField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
@@ -23,7 +25,9 @@ class CreatePayloadFieldExtensions(OpenApiSerializerFieldExtension):
                 'flatten': build_basic_type(OpenApiTypes.BOOL),
                 'xls_types_as_text': build_basic_type(OpenApiTypes.BOOL),
                 'include_media_url': build_basic_type(OpenApiTypes.BOOL),
-                'submission_ids': build_array_type(schema=build_basic_type(OpenApiTypes.INT)),
+                'submission_ids': build_array_type(
+                    schema=build_basic_type(OpenApiTypes.INT)
+                ),
                 'query': build_object_type(
                     properties={
                         '$and': build_array_type(
@@ -31,50 +35,46 @@ class CreatePayloadFieldExtensions(OpenApiSerializerFieldExtension):
                                 properties={
                                     '_submission_time': build_object_type(
                                         properties={
-                                            '$gte/$lte': build_basic_type(OpenApiTypes.DATE)
+                                            '$gte/$lte': build_basic_type(
+                                                OpenApiTypes.DATE
+                                            )
                                         }
                                     )
                                 }
                             )
                         )
                     }
-                )
+                ),
             }
         )
 
 
 class DataUrlCSVFieldExtensions(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.export_settings.fields.DataUrlCSVField'
-    )
+    target_class = 'kpi.schema_extensions.v2.export_settings.fields.DataUrlCSVField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:asset-export-settings-detail',
             parent_lookup_asset='a3C9wWefqZVkChNLKqqXVZ',
             uid='esMxJfzPhnWn6r2c3EKkuaV',
-            format='csv'
+            format='csv',
         )
 
 
 class DataUrlXLSXFieldExtensions(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.export_settings.fields.DataUrlXLSXField'
-    )
+    target_class = 'kpi.schema_extensions.v2.export_settings.fields.DataUrlXLSXField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:asset-export-settings-detail',
             parent_lookup_asset='a3C9wWefqZVkChNLKqqXVZ',
             uid='esMxJfzPhnWn6r2c3EKkuaV',
-            format='xlsx'
+            format='xlsx',
         )
 
 
 class ExportSettingsFieldExtensions(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.export_settings.fields.ExportSettingsField'
-    )
+    target_class = 'kpi.schema_extensions.v2.export_settings.fields.ExportSettingsField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
@@ -121,15 +121,13 @@ class UpdatePayloadFieldExtension(OpenApiSerializerFieldExtension):
                 'lang': build_basic_type(OpenApiTypes.STR),
                 'multiple_select': build_basic_type(OpenApiTypes.STR),
                 'type': build_basic_type(OpenApiTypes.STR),
-                'fields': build_array_type(schema={})
+                'fields': build_array_type(schema={}),
             }
         )
 
 
 class UrlFieldFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.export_settings.fields.UrlField'
-    )
+    target_class = 'kpi.schema_extensions.v2.export_settings.fields.UrlField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
