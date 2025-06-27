@@ -912,40 +912,6 @@ class TestAssetContent(TestCase):
             ],
         }
         asset.save()
+        asset.deploy(backend='mock')
         xpaths = asset.get_all_attachment_xpaths()
         assert sorted(xpaths) == ['Image', 'group_kq1rd43/Image']
-
-    def test_get_attachment_xpaths_only_fetches_versions_once(self):
-        # this is sort of just testing that the method has the
-        # cache_for_request decorator, but the important part is that
-        # we only call asset_versions.all() once, so test that specifically
-
-        user = baker.make(settings.AUTH_USER_MODEL, username='johndoe')
-        request = RequestFactory().get('/')
-        # we use getattr and setattr to determine whether something is cached
-        # so give the mock an effectively blank spec
-        request.cache = Mock(spec=object)
-
-        asset = Asset.objects.create(
-            owner=user,
-            content={
-                'survey': [
-                    {
-                        'type': 'image',
-                        '$kuid': 'ff2tv42',
-                        'label': ['Image'],
-                        '$xpath': 'Image',
-                        'required': False,
-                        'name': 'Image',
-                    }
-                ]
-            },
-        )
-        asset.deploy(backend='mock')
-        with patch(
-            'django_userforeignkey.request.get_current_request', return_value=request
-        ):
-            with patch.object(type(asset.asset_versions), 'all') as patched_db_call:
-                asset.get_all_attachment_xpaths()
-                asset.get_all_attachment_xpaths()
-        patched_db_call.assert_called_once()

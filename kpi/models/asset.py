@@ -663,14 +663,12 @@ class Asset(
             content, self.advanced_features, url=url
         )
 
-    @cache_for_request
     def get_all_attachment_xpaths(self):
         # return deployed versions first
-        versions = self.asset_versions.all().order_by('-deployed', '-date_modified')
+        versions = self.asset_versions.filter(deployed=True).order_by('-date_modified')
         xpaths = set()
         for i, version in enumerate(versions):
-            # insert the xpaths if this is the latest deployed version, or, if
-            # not deployed, the latest version
+            # insert the xpaths if this is the latest deployed version
             insert_xpath = i == 0
 
             xpaths.update(
