@@ -48,7 +48,9 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
             )
         )
 
-    def mock_submissions(self, submissions, create_uuids: bool = True):
+    def mock_submissions(
+        self, submissions, create_uuids: bool = True, check_usage_limts: bool = True
+    ):
         """
         Simulate client (i.e.: Enketo or Collect) data submission.
 
@@ -129,6 +131,7 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
                     submission.get('_submission_time', '')  # Returns None if empty
                 ),
                 request=request,
+                check_usage_limits=False,
             )
 
             # Inject (or update) real PKs in submission…

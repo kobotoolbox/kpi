@@ -70,7 +70,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             # In stripe-enabled environments usage limit enforcement
             # requires additional queries
             if settings.STRIPE_ENABLED:
-                expected_queries = FuzzyInt(69, 73)
+                expected_queries = FuzzyInt(79, 83)
             with self.assertNumQueries(expected_queries):
                 self.view(request)
 
@@ -100,13 +100,13 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 },
             }
             with patch(
-                'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',
+                'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
                 return_value=mock_balances,
             ):
                 request = self.factory.post('/submission', data, format='json')
                 request.user = AnonymousUser()
                 response = self.view(request, username=self.user.username)
-                self.assertEqual(response.status_code, 403)
+                self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
 
             mock_balances = {
                 UsageType.STORAGE_BYTES: {
@@ -115,13 +115,13 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 UsageType.SUBMISSION: None,
             }
             with patch(
-                'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',
+                'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
                 return_value=mock_balances,
             ):
                 request = self.factory.post('/submission', data, format='json')
                 request.user = AnonymousUser()
                 response = self.view(request, username=self.user.username)
-                self.assertEqual(response.status_code, 403)
+                self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
 
     def test_post_submission_anonymous(self):
 
