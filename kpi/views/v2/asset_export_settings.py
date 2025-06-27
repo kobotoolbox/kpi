@@ -15,13 +15,15 @@ from kpi.renderers import SubmissionCSVRenderer, SubmissionXLSXRenderer
 from kpi.schema_extensions.v2.export_settings.serializers import (
     ExportSettingResponse,
     ExportSettingCreatePayload,
-    ExportSettingUpdatePayload
+    ExportSettingUpdatePayload,
 )
 from kpi.serializers.v2.asset_export_settings import AssetExportSettingsSerializer
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
-    open_api_204_empty_response
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_204_empty_response,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -53,7 +55,6 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             description='Will return a content type with the type of the attachment as well as the attachment itself.',  # noqa
             require_auth=False,
             raise_access_forbidden=False,
-            validate_payload=False,
         ),
     ),
     destroy=extend_schema(
@@ -92,7 +93,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
     ),
     update=extend_schema(
-        exclude=True
+        exclude=True,
     )
 )
 class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,

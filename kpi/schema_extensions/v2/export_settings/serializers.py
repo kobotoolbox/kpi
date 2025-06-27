@@ -3,11 +3,11 @@ from rest_framework import serializers
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
     CreatePayloadField,
-    ExportSettingsField,
     DataUrlCSVField,
     DataUrlXLSXField,
+    ExportSettingsField,
+    UpdatePayloadField,
     UrlField,
-    UpdatePayloadField
 )
 
 
