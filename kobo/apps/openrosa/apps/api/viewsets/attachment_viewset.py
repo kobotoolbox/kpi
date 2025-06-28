@@ -9,11 +9,11 @@ from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.libs import filters
 from kobo.apps.openrosa.libs.renderers.renderers import (
     MediaFileContentNegotiation,
-    MediaFileRenderer,
 )
 from kobo.apps.openrosa.libs.serializers.attachment_serializer import (
     AttachmentSerializer,
 )
+from kpi.renderers import MediaFileRenderer
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
 
 
@@ -157,8 +157,10 @@ class AttachmentViewSet(OpenRosaReadOnlyModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         self.object = self.get_object()
 
-        if isinstance(request.accepted_renderer, MediaFileRenderer) \
-                and self.object.media_file is not None:
+        if (
+            isinstance(request.accepted_renderer, MediaFileRenderer)
+            and self.object.media_file is not None
+        ):
             data = self.object.media_file.read()
 
             return Response(data, content_type=self.object.mimetype)
