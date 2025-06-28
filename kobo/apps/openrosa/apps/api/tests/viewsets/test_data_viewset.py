@@ -11,7 +11,7 @@ from kobo.apps.openrosa.libs.constants import (
     CAN_DELETE_DATA_XFORM,
     CAN_VIEW_XFORM,
 )
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm, remove_perm
+from kobo.apps.openrosa.libs.permissions import assign_perm, remove_perm
 
 
 def _data_list(formid):

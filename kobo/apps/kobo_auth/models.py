@@ -5,7 +5,10 @@ from django_request_cache import cache_for_request
 from kobo.apps.openrosa.libs.constants import (
     OPENROSA_APP_LABELS,
 )
-from kobo.apps.openrosa.libs.permissions import get_model_permission_codenames
+from kobo.apps.openrosa.libs.permissions import (
+    KPI_PERMISSIONS_MAP,
+    get_model_permission_codenames,
+)
 from kobo.apps.organizations.models import Organization, create_organization
 from kpi.utils.database import update_autofield_sequence, use_db
 from kpi.utils.permissions import is_user_anonymous
@@ -24,6 +27,10 @@ class User(AbstractUser):
         # - `perm` format is <app_label>.<perm>, we check the app label
         # - `perm` belongs to KoboCAT permission codenames
         if obj:
+            # Deprecating kobocat permissions. For now we redirect to asset permissions
+            if obj._meta.model_name == 'xform':
+                asset_perm = KPI_PERMISSIONS_MAP[perm.replace('logger.', '')]
+                return self.has_perm(asset_perm, obj.asset)
             if obj._meta.app_label in OPENROSA_APP_LABELS:
                 with use_db(settings.OPENROSA_DB_ALIAS):
                     return super().has_perm(perm, obj)

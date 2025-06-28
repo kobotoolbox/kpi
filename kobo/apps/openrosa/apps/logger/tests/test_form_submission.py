@@ -13,8 +13,8 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import clean_and_parse
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
+from kobo.apps.openrosa.libs.permissions import assign_perm
 from kobo.apps.openrosa.libs.utils.common_tags import GEOLOCATION
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 
 
 class TestFormSubmission(TestBase):
