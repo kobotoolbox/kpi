@@ -4,13 +4,13 @@ import re
 from collections.abc import Callable
 from io import StringIO
 
-import formpack
 from dict2xml import dict2xml
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers, status
 from rest_framework.exceptions import ErrorDetail
 from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
+import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
 from kpi.utils.xml import add_xml_declaration
