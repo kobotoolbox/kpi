@@ -146,7 +146,7 @@ class XForm(AbstractTimeStampedModel):
                 # An `Asset` object needs to be returned to avoid 500 while
                 # Enketo is fetching for project XML (e.g: /formList, /manifest)
                 asset = Asset(
-                    uid=self.id_string,
+                    uid=None,  # auto-generate
                     name=self.title,
                     owner_id=self.user.id,
                 )

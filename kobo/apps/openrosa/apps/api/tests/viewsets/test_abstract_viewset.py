@@ -106,6 +106,11 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
                 xls_file = ContentFile(f.read(), name='transportation.xls')
 
             self.xform = logger_tools.publish_xls_form(xls_file, self.user)
+            # The permissions are based on the asset, so we need the asset to be saved
+            asset = self.xform.asset
+            asset.save()
+            self.xform.kpi_asset_uid = asset.uid
+            self.xform.save()
             response = self.client.get(
                 reverse('xform-detail', kwargs={'pk': self.xform.pk})
             )

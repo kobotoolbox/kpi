@@ -4,13 +4,9 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from kobo.apps.openrosa.apps.api.permissions import NoteObjectPermissions
-from kobo.apps.openrosa.apps.logger.models import Note, XForm
-from kobo.apps.openrosa.libs.constants import CAN_VIEW_XFORM
+from kobo.apps.openrosa.apps.logger.models import Note
+from kobo.apps.openrosa.libs.permissions import assign_perm, get_xform_ids_for_user
 from kobo.apps.openrosa.libs.serializers.note_serializer import NoteSerializer
-from kobo.apps.openrosa.libs.utils.guardian import (
-    assign_perm,
-    get_objects_for_user,
-)
 from ..utils.rest_framework.viewsets import OpenRosaModelViewSet
 
 
@@ -65,12 +61,10 @@ class NoteViewSet(OpenRosaModelViewSet):
     permission_classes = [NoteObjectPermissions]
 
     def get_queryset(self):
-        viewable_xforms = get_objects_for_user(self.request.user,
-                                               CAN_VIEW_XFORM,
-                                               XForm,
-                                               accept_global_perms=False)
+        viewable_xform_ids = get_xform_ids_for_user(self.request.user)
         viewable_notes = Note.objects.filter(
-            Q(instance__xform__in=viewable_xforms) | Q(instance__xform__shared_data=True)
+            Q(instance__xform_id__in=viewable_xform_ids)
+            | Q(instance__xform__shared_data=True)
         )
         return viewable_notes
 

@@ -12,8 +12,8 @@ from kobo.apps.openrosa.apps.api.viewsets.metadata_viewset import MetaDataViewSe
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
 from kobo.apps.openrosa.apps.main.models.meta_data import MetaData
 from kobo.apps.openrosa.libs.constants import CAN_CHANGE_XFORM, CAN_VIEW_XFORM
+from kobo.apps.openrosa.libs.permissions import assign_perm
 from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormSerializer
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 
 
 class TestMetaDataViewSet(TestAbstractViewSet):

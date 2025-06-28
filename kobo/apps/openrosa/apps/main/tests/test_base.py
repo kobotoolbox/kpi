@@ -110,6 +110,10 @@ class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
         self.assertEqual(XForm.objects.count(), count + 1)
         self.xform = XForm.objects.order_by('pk').reverse()[0]
         assert self.xform.pk == xform.pk
+        # uid can be repeated, so we use the xform's pk
+        self.xform.asset.save()
+        self.xform.kpi_asset_uid = self.xform.asset.uid
+        self.xform.save()
 
     def _share_form_data(self, id_string='transportation_2011_07_25'):
         xform = XForm.objects.get(id_string=id_string)
@@ -123,10 +127,7 @@ class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
             'transportation',
             'transportation.xls',
         )
-        count = XForm.objects.count()
-        TestBase._publish_xls_file(self, xls_path)
-        self.assertEqual(XForm.objects.count(), count + 1)
-        self.xform = XForm.objects.order_by('pk').reverse()[0]
+        self._publish_xls_file_and_set_xform(xls_path)
 
     def _submit_transport_instance(self, survey_at=0):
         s = self.surveys[survey_at]
