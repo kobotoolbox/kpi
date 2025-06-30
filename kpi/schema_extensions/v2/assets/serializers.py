@@ -88,7 +88,7 @@ AssetMetadataResponse = inline_serializer_class(
     name='AssetMetadataResponse',
     fields={
         'languages': MetadataListField(),
-        'countries': MetadataListField(),
+        'countries': MetadataSectorField(),
         'sectors': MetadataSectorField(),
         'organizations': MetadataListField(),
     },

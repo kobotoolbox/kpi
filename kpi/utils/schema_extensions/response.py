@@ -12,6 +12,10 @@ class ErrorDetailSerializer(serializers.Serializer):
     detail = serializers.CharField()
 
 
+class ErrorObjectSerializer(serializers.Serializer):
+    detail = serializers.JSONField()
+
+
 # Returns an OpenApiResponse with the given serializer and a 200 http code
 def open_api_200_ok_response(
     given_serializer: Optional[Serializer] = None,
@@ -160,7 +164,6 @@ def open_api_error_responses(
     if raise_not_found:
         if media_type == 'text/html':
             response[status.HTTP_404_NOT_FOUND] = OpenApiResponse(
-                response=ErrorDetailSerializer(),
                 examples=[
                     OpenApiExample(
                         name='Not Found',
@@ -186,11 +189,11 @@ def open_api_error_responses(
             'validations_errors', {'field_name': ['Error message']}
         )
         response[status.HTTP_400_BAD_REQUEST] = OpenApiResponse(
-            response=ErrorDetailSerializer(),
+            response=ErrorObjectSerializer(),
             examples=[
                 OpenApiExample(
                     name='Bad request',
-                    value=validation_errors,
+                    value={'detail': validation_errors},
                     response_only=True,
                 )
             ],
