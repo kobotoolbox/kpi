@@ -1,3 +1,3 @@
 ## List of export settings for a specific asset
 
-> Required permissions: `view_submissions` (View submissions)
+<sup>*</sup> _Required permissions: `view_submissions` (View submissions)_

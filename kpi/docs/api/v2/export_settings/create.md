@@ -1,6 +1,6 @@
 ## Create an export setting for an asset
 
-> Required permissions: `manage_asset` (Manage project)
+<sup>*</sup> _Required permissions: `manage_asset` (Manage project)_
 
 Where:
 

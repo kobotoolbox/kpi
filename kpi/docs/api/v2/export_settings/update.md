@@ -1,3 +1,3 @@
 ## Update the current export setting
 
-> Required permissions: `manage_asset` (Manage project)
+<sup>*</sup> _Required permissions: `manage_asset` (Manage project)_

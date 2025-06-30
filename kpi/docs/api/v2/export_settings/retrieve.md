@@ -1,6 +1,6 @@
 ## Retrieve a specific export setting
 
-> Required permissions: `view_submissions` (View submissions)
+<sup>*</sup> _Required permissions: `view_submissions` (View submissions)_
 
 ### Synchronous data export
 
