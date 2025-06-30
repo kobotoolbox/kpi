@@ -274,6 +274,15 @@ class CountDailySubmissionResponseFieldExtension(OpenApiSerializerFieldExtension
         )
 
 
+class CountriesFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.fields.CountriesField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_array_type(
+            schema=build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
+        )
+
+
 class DataFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.DataURLField'
 
