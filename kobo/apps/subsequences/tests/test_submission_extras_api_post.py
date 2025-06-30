@@ -579,18 +579,20 @@ class GoogleNLPSubmissionTest(BaseTestCase):
                     'mimetype': 'video/3gpp',
                 },
             ],
-            '_submitted_by': self.user.username
+            '_submitted_by': self.user.username,
         }
         self.asset.deployment.mock_submissions([submission])
         mock_translation_client = Mock()
-        mock_translation_client.translate_text = Mock(return_value='Test translated text')
+        mock_translation_client.translate_text = Mock(
+            return_value='Test translated text'
+        )
         translate.TranslationServiceClient = Mock(return_value=mock_translation_client)
         # Avoid error on isinstance call with this:
         translate.types = translate_v3.types
 
         data = {
             'submission': submission_id,
-            'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
+            'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}},
         }
 
         mock_balances = {
@@ -603,7 +605,7 @@ class GoogleNLPSubmissionTest(BaseTestCase):
         ):
             data = {
                 'submission': submission_id,
-                'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
+                'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}},
             }
             res = self.client.post(url, data, format='json')
             assert res.status_code == status.HTTP_402_PAYMENT_REQUIRED
@@ -611,9 +613,9 @@ class GoogleNLPSubmissionTest(BaseTestCase):
             data = {
                 'submission': submission_id,
                 'q1': {
-                    'transcript': {'value': 'test transcription',  'languageCode': ''},
+                    'transcript': {'value': 'test transcription', 'languageCode': ''},
                     GOOGLETX: {'status': 'requested', 'languageCode': ''},
-                }
+                },
             }
             res = self.client.post(url, data, format='json')
             assert res.status_code == status.HTTP_402_PAYMENT_REQUIRED
@@ -628,7 +630,7 @@ class GoogleNLPSubmissionTest(BaseTestCase):
         ):
             data = {
                 'submission': submission_id,
-                'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
+                'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}},
             }
             res = self.client.post(url, data, format='json')
             self.assertContains(res, 'complete')
@@ -636,9 +638,9 @@ class GoogleNLPSubmissionTest(BaseTestCase):
             data = {
                 'submission': submission_id,
                 'q1': {
-                    'transcript': {'value': 'test transcription',  'languageCode': ''},
+                    'transcript': {'value': 'test transcription', 'languageCode': ''},
                     GOOGLETX: {'status': 'requested', 'languageCode': ''},
-                }
+                },
             }
             res = self.client.post(url, data, format='json')
             self.assertContains(res, 'complete')
