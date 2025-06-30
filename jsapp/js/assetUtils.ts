@@ -37,7 +37,7 @@ import envStore from '#/envStore'
 import type { IconName } from '#/k-icons'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME_URL } from '#/users/utils'
-
+import { isRtlLanguage, currentLang } from '#/utils'
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
  * NOTE: Behavior should match KpiTaggableManager.add()
@@ -143,9 +143,15 @@ export function getCountryDisplayString(asset: AssetResponse | ProjectViewAsset)
       return '-'
     }
 
-    // TODO: improve for RTL?
-    // See: https://github.com/kobotoolbox/kpi/issues/3903
-    return countries.join(', ')
+    // RTL handling
+    const isRtl = isRtlLanguage(currentLang())
+
+    if (isRtl) {
+      countries.reverse()
+    }
+
+    const separator = isRtl ? '، ' : ', '
+    return countries.join(separator)
   } else {
     return '-'
   }

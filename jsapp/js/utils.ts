@@ -17,6 +17,7 @@ import type { Json } from './components/common/common.interfaces'
 import type { MongoQuery } from './dataInterface'
 
 export const LANGUAGE_COOKIE_NAME = 'django_language'
+export const RTL_LANGUAGES = ['ar', 'he', 'fa', 'ur']
 
 const cookies = new Cookies()
 
