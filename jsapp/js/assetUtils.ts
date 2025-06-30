@@ -37,7 +37,8 @@ import envStore from '#/envStore'
 import type { IconName } from '#/k-icons'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME_URL } from '#/users/utils'
-import { isRtlLanguage, currentLang } from '#/utils'
+import { currentLang, isRtlLanguage } from '#/utils'
+
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
  * NOTE: Behavior should match KpiTaggableManager.add()
