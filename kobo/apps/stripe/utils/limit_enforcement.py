@@ -9,6 +9,12 @@ from kpi.utils.usage_calculator import ServiceUsageCalculator
 
 @requires_stripe
 def check_exceeded_limit(user, usage_type: UsageType, **kwargs):
+    """
+    Checks whether user's org has exceeded its limits for a given
+    usage type and updates ExceededLimitCounters accordingly. Uses
+    cached key to avoid running checks more than once within
+    the ENDPOINT_CACHE_DURATION
+    """
     org = user.organization
     if org.is_mmo:
         user = org.owner_user_object
@@ -19,7 +25,11 @@ def check_exceeded_limit(user, usage_type: UsageType, **kwargs):
         return
 
     ExceededLimitCounter = kwargs['exceeded_limit_counter_model']
-    calculator = ServiceUsageCalculator(user, True)
+
+    # We disable usage calculator cache so we can get the most recent
+    # usage when this function is called after submissions or NLP
+    # actions
+    calculator = ServiceUsageCalculator(user, disable_cache=True)
     balances = calculator.get_usage_balances()
 
     balance = balances[usage_type]
