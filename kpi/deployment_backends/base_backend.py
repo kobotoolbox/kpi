@@ -787,9 +787,14 @@ class BaseDeploymentBackend(abc.ABC):
             return queryset
 
     def _inject_properties(
-        self, submission: dict, request: 'rest_framework.request.Request'
+        self,
+        submission: dict,
+        request: 'rest_framework.request.Request',
+        all_attachment_xpaths: list[str],
     ) -> dict:
-        submission = self._rewrite_json_attachment_urls(submission, request)
+        submission = self._rewrite_json_attachment_urls(
+            submission, request, all_attachment_xpaths
+        )
         submission = self._inject_root_uuid(submission)
         return submission
 
@@ -805,14 +810,16 @@ class BaseDeploymentBackend(abc.ABC):
         return submission
 
     def _rewrite_json_attachment_urls(
-        self, submission: dict, request: 'rest_framework.request.Request'
+        self,
+        submission: dict,
+        request: 'rest_framework.request.Request',
+        all_attachment_xpaths: list[str],
     ) -> dict:
         if not request or '_attachments' not in submission:
             return submission
 
-        attachment_xpaths = self.asset.get_all_attachment_xpaths()
         filenames_and_xpaths = get_attachment_filenames_and_xpaths(
-            submission, attachment_xpaths
+            submission, all_attachment_xpaths
         )
 
         for attachment in submission['_attachments']:

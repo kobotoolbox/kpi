@@ -6,9 +6,8 @@ from collections import OrderedDict
 from copy import deepcopy
 from functools import reduce
 
-import pytest
 from django.conf import settings
-from django.test import override_settings
+from django.test import TestCase
 from model_bakery import baker
 
 from kpi.models import Asset
@@ -869,72 +868,49 @@ def test_populates_xpath_correctly():
     assert [rr['$xpath'] for rr in rs] == ['g1', 'g1/r1', 'g1/g2', 'g1/g2/r2']
 
 
-@pytest.mark.django_db()
-def test_return_xpaths_even_if_missing():
-    user = baker.make(
-        settings.AUTH_USER_MODEL, username='johndoe'
-    )
-    asset = Asset.objects.create(owner=user, content={
-        'survey': [
-            {'type': 'begin_group', 'name': 'g1'},
-            {'type': 'audio', 'name': 'r1', '$kuid': 'k1'},
-            {'type': 'begin_group', 'name': 'g2'},
-            {'type': 'image', 'name': 'r2', '$kuid': 'k2'},
-            {'type': 'end_group'},
-            {'type': 'end_group'},
-        ],
-    })
+class TestAssetContent(TestCase):
 
-    expected = ['g1/r1', 'g1/g2/r2']
-    # 'xpath' is not injected until an Asset object is saved with
-    # `adjust_content=True` or `adjust_content_on_save()` is called directly.
-    # No matter what, `get_attachment_xpaths()` should be able to return
-    # attachment xpaths.
-    assert asset.get_attachment_xpaths(deployed=False) == expected
-
-
-@override_settings(DEFAULT_DEPLOYMENT_BACKEND='mock')
-@pytest.mark.django_db()
-def test_get_attachment_xpaths_from_all_versions():
-    user = baker.make(settings.AUTH_USER_MODEL, username='johndoe')
-    # survey with 1 attachment question
-    asset = Asset.objects.create(
-        owner=user,
-        content={
+    def test_get_attachment_xpaths_from_all_versions(self):
+        user = baker.make(settings.AUTH_USER_MODEL, username='johndoe')
+        # survey with 1 attachment question
+        asset = Asset.objects.create(
+            owner=user,
+            content={
+                'survey': [
+                    {
+                        'type': 'image',
+                        '$kuid': 'ff2tv42',
+                        'label': ['Image'],
+                        '$xpath': 'Image',
+                        'required': False,
+                        'name': 'Image',
+                    }
+                ]
+            },
+        )
+        asset.deploy(backend='mock')
+        # move the attachment question to a group
+        asset.content = {
             'survey': [
+                {
+                    'name': 'group_kq1rd43',
+                    'type': 'begin_group',
+                    '$kuid': 'wu8pl89',
+                    'label': ['Group'],
+                    '$xpath': 'group_kq1rd43',
+                },
                 {
                     'type': 'image',
                     '$kuid': 'ff2tv42',
                     'label': ['Image'],
-                    '$xpath': 'Image',
+                    '$xpath': 'group_kq1rd43/Image',
                     'required': False,
                     'name': 'Image',
-                }
-            ]
-        },
-    )
-    asset.deploy(backend='mock')
-    # move the attachment question to a group
-    asset.content = {
-        'survey': [
-            {
-                'name': 'group_kq1rd43',
-                'type': 'begin_group',
-                '$kuid': 'wu8pl89',
-                'label': ['Group'],
-                '$xpath': 'group_kq1rd43',
-            },
-            {
-                'type': 'image',
-                '$kuid': 'ff2tv42',
-                'label': ['Image'],
-                '$xpath': 'group_kq1rd43/Image',
-                'required': False,
-                'name': 'Image',
-            },
-            {'type': 'end_group', '$kuid': '/wu8pl89'},
-        ],
-    }
-    asset.save()
-    xpaths = asset.get_all_attachment_xpaths()
-    assert sorted(xpaths) == ['Image', 'group_kq1rd43/Image']
+                },
+                {'type': 'end_group', '$kuid': '/wu8pl89'},
+            ],
+        }
+        asset.save()
+        asset.deploy(backend='mock')
+        xpaths = asset.get_all_attachment_xpaths()
+        assert sorted(xpaths) == ['Image', 'group_kq1rd43/Image']

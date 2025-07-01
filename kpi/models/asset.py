@@ -11,7 +11,6 @@ from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import models, transaction
 from django.db.models import F, Prefetch, Q
 from django.utils.translation import gettext_lazy as t
-from django_request_cache import cache_for_request
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
@@ -664,12 +663,12 @@ class Asset(
         )
 
     def get_all_attachment_xpaths(self):
-        versions = self.asset_versions.all()
+        # return deployed versions first
+        versions = self.asset_versions.filter(deployed=True).order_by('-date_modified')
         xpaths = set()
-        for version in versions:
-            insert_xpath = False
-            if version == self.latest_deployed_version:
-                insert_xpath = True
+        for i, version in enumerate(versions):
+            # insert the xpaths if this is the latest deployed version
+            insert_xpath = i == 0
 
             xpaths.update(
                 self.get_attachment_xpaths_from_version(
@@ -678,13 +677,6 @@ class Asset(
             )
         return list(xpaths)
 
-    def get_attachment_xpaths(self, deployed: bool = True):
-        version = (
-            self.latest_deployed_version if deployed else self.latest_version
-        )
-        return self.get_attachment_xpaths_from_version(version, insert_xpath=True)
-
-    @cache_for_request
     def get_attachment_xpaths_from_version(
         self, version=None, insert_xpath=False
     ) -> Optional[list]:

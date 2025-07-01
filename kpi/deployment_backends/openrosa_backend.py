@@ -20,7 +20,6 @@ from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
-from pyxform.builder import create_survey_from_xls
 from rest_framework import status
 
 from kobo.apps.openrosa.apps.logger.models import (
@@ -74,6 +73,7 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
+from pyxform.builder import create_survey_from_xls
 from ..exceptions import BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import assign_applicable_kc_permissions, kc_transaction_atomic
@@ -310,9 +310,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             uuid=_uuid,
             request=request,
         )
-
+        all_attachment_xpaths = self.asset.get_all_attachment_xpaths()
         return self._rewrite_json_attachment_urls(
-            self.get_submission(submission_id=instance.pk, user=user), request
+            self.get_submission(submission_id=instance.pk, user=user),
+            request,
+            all_attachment_xpaths,
         )
 
     def edit_submission(
@@ -1458,10 +1460,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         if add_supplemental_details_to_query:
             mongo_cursor = stream_with_extras(mongo_cursor, self.asset)
 
+        all_attachment_xpaths = self.asset.get_all_attachment_xpaths()
+
         return (
             self._inject_properties(
                 MongoHelper.to_readable_dict(submission),
                 request,
+                all_attachment_xpaths,
             )
             for submission in mongo_cursor
         )
