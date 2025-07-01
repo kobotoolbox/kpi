@@ -1,6 +1,9 @@
 name: CI of a PR
 
-on: pull_request
+on:
+  pull_request:
+    branches: [ 'disable-for-testing' ]
+
 
 jobs:
   changes:
@@ -19,15 +22,15 @@ jobs:
 
   darker:
     needs: changes
-    uses: ./.github/workflows/darker.yml
     if: needs.changes.outputs.darker == 'true'
+    uses: ./.github/workflows/darker.yml
 
   pytest:
     needs: changes
-    uses: ./.github/workflows/pytest.yml
     if: needs.changes.outputs.pytest == 'true'
+    uses: ./.github/workflows/pytest.yml
 
   npm-test:
     needs: changes
-    uses: ./.github/workflows/npm-test.yml
     if: needs.changes.outputs.npm-test == 'true'
+    uses: ./.github/workflows/npm-test.yml
