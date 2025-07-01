@@ -25,7 +25,7 @@ deploy-beta:
     name: alpine/helm:3.12.0
     entrypoint: [""]
   script:
-    - helm -n kobo-dev upgrade beta oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.image.tag=${CI_COMMIT_SHORT_SHA} --reuse-values
+    - helm -n kobo-dev upgrade beta oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${CI_COMMIT_SHORT_SHA} --reuse-values
   environment:
     name: beta
     url: https://kf.beta.kobotoolbox.org
@@ -44,10 +44,10 @@ deploy-staging:
     - BRANCH_TITLE=${CI_COMMIT_BRANCH#feature/}
     - |
       if [ "$CI_COMMIT_BRANCH" = "main" ]; then
-        helm -n kobo-dev upgrade staging-main oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.image.tag=${CI_COMMIT_SHORT_SHA} --reuse-values
-        helm -n kobo-dev upgrade staging-nobill oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.image.tag=${CI_COMMIT_SHORT_SHA} --reuse-values
+        helm -n kobo-dev upgrade staging-main oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${CI_COMMIT_SHORT_SHA} --reuse-values
+        helm -n kobo-dev upgrade staging-nobill oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${CI_COMMIT_SHORT_SHA} --reuse-values
       else
-        helm -n kobo-dev upgrade --install $BRANCH_TITLE oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.image.tag=${CI_COMMIT_SHORT_SHA} --reuse-values
+        helm -n kobo-dev upgrade --install $BRANCH_TITLE oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${CI_COMMIT_SHORT_SHA} --reuse-values
       fi
   rules:
     - if: $CI_COMMIT_BRANCH =~ /^(feature\/)/ && $CI_COMMIT_REF_PROTECTED
