@@ -81,6 +81,7 @@ import type {
   FailResponse,
   GetSubmissionsOptions,
   PaginatedResponse,
+  SubmissionAttachment,
   SubmissionResponse,
   SurveyChoice,
   SurveyRow,
@@ -835,11 +836,17 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
               let mediaAttachment = null
 
-              if (q.type !== QUESTION_TYPES.text.id && row.original._attachments[0]) {
+              let attachmentIndex: number = row.original._attachments.findIndex((attachment: SubmissionAttachment) => {
+                const attachmentFileNameEnd = attachment.filename.split('/').pop()
+                const normalizedRowValue = row.value.replace(/ /g, '_')
+                return attachmentFileNameEnd === normalizedRowValue
+              })
+
+              if (q.type !== QUESTION_TYPES.text.id && row.original._attachments[attachmentIndex]) {
                 mediaAttachment = getMediaAttachment(
                   row.original,
                   row.value,
-                  row.original._attachments[0].question_xpath,
+                  row.original._attachments[attachmentIndex].question_xpath,
                 )
               }
 
