@@ -26,7 +26,7 @@ ExportSettingResponse = inline_serializer_class(
         'data_url_csv': DataUrlCSVField(),
         'data_url_xlsx': DataUrlXLSXField(),
         'name': serializers.CharField(),
-        'date_modified': serializers.TimeField(),
+        'date_modified': serializers.DateTimeField(),
         'export_settings': ExportSettingsField(),
     },
 )
