@@ -5,8 +5,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import IntegerField, Q, Sum
 from django.db.models.functions import Cast, Coalesce
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from djstripe.enums import PaymentIntentStatus
 from djstripe.models import Charge, Price, Subscription
 
@@ -306,11 +304,6 @@ class PlanAddOn(models.Model):
         return self.product.metadata.get('valid_tags', '').split(',')
 
 
-@receiver(post_save, sender=Charge)
-def make_add_on_for_charge(sender, instance, created, **kwargs):
-    PlanAddOn.create_or_update_one_time_add_on(instance)
-
-
 class ExceededLimitCounter(models.Model):
     user = models.ForeignKey(
         User,
@@ -321,3 +314,19 @@ class ExceededLimitCounter(models.Model):
     limit_type = models.CharField(choices=UsageType.choices, max_length=20)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
+
+    def update_or_remove_counter(self):
+        """
+        Checks whether user is still over their limit for a given usage
+        type and updates or removes counter accordingly.
+        """
+        if limit_type in self.usage_limits.keys():
+            limit_available = self.limits_remaining.get(limit_type)
+            amount_to_use = min(amount_used, limit_available)
+            PlanAddOn.objects.filter(pk=self.id).update(
+                limits_remaining=DeductUsageValue(
+                    'limits_remaining', keyname=limit_type, amount=amount_used
+                )
+            )
+            return amount_to_use
+        return 0
