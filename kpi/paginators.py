@@ -93,7 +93,7 @@ class AssetPagination(Paginated):
                                 'type': 'array',
                                 'items': {
                                     'type': 'string',
-                                }
+                                },
                             },
                             'example': [['FRA', 'France']]
                         },
@@ -103,7 +103,7 @@ class AssetPagination(Paginated):
                                 'type': 'array',
                                 'items': {
                                     'type': 'string',
-                                }
+                                },
                             },
                             'example': [['Public Administration', 'Public Administration']]
                         },

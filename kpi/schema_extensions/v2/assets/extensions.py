@@ -62,7 +62,7 @@ class AnalysisFormJsonExtension(OpenApiSerializerFieldExtension):
                 'engines': build_object_type(properties={}),
                 'additional_fields': build_array_type(
                     schema=build_basic_type(OpenApiTypes.STR)
-                ),  # noqa
+                ),
             }
         )
 
@@ -556,7 +556,7 @@ class SettingsFieldExtension(OpenApiSerializerFieldExtension):
                 'organization': build_basic_type(OpenApiTypes.STR),
                 'country_codes': build_array_type(
                     schema=build_basic_type(OpenApiTypes.STR)
-                ),  # noqa
+                ),
                 'operational_purpose': build_basic_type(OpenApiTypes.STR),
             }
         )
