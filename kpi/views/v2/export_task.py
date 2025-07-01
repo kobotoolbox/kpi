@@ -24,7 +24,9 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     create=extend_schema(
         description=read_md('kpi', 'export_tasks/create.md'),
         responses=open_api_201_created_response(
-
+            ExportResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
         ),
     ),
     destroy=extend_schema(
@@ -40,18 +42,24 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         responses=open_api_200_ok_response(
             ExportResponse,
             validate_payload=False,
+            require_auth=False,
         ),
     ),
     partial_update=extend_schema(
         description=read_md('kpi', 'export_tasks/update.md'),
         responses=open_api_200_ok_response(
-
+            ExportResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
         ),
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'export_tasks/retrieve.md'),
         responses=open_api_200_ok_response(
-
+            ExportResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         ),
     ),
     update=extend_schema(
