@@ -5,22 +5,41 @@ on:
     branches: [ 'release/**' ]
 
 jobs:
+
+
   darker:
     uses: ./.github/workflows/darker.yml
+
 
   pytest:
     uses: ./.github/workflows/pytest.yml
 
+
   npm-test:
     uses: ./.github/workflows/npm-test.yml
 
-  on-failure:
+
+  deploy-to-beta:
     runs-on: ubuntu-22.04
-    if: ${{ always() && (needs.darker.result == 'failure' || needs.darker.result == 'timed_out' || needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' || needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out') }}
     needs:
       - darker
       - pytest
       - npm-test
+    steps:
+    - uses: actions/checkout@v4
+    - name: deploy to beta
+      run: |
+        echo 'TODO, for now deploy manually on kf.beta.kbtdev'
+
+
+  on-failure:
+    runs-on: ubuntu-22.04
+    if: ${{ always() && (needs.darker.result == 'failure' || needs.darker.result == 'timed_out' || needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' || needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out' || needs.deploy-to-beta.result == 'failure' || needs.deploy-to-beta.result == 'timed_out') }}
+    needs:
+      - darker
+      - pytest
+      - npm-test
+      - deploy-to-beta
     steps:
 
     # References:
@@ -41,4 +60,4 @@ jobs:
         type: "stream"
         to: "Kobo Dev"
         topic: "Github Actions (releases)"
-        content: ":warning: @*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `${{ github.head_ref || github.ref_name }}` at [${{ toJson(steps.title.outputs.fragment) }}](${{ github.event.compare }})"
+        content: ":warning: @_TODO_*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `${{ github.head_ref || github.ref_name }}` at [${{ toJson(steps.title.outputs.fragment) }}](${{ github.event.compare }})"
