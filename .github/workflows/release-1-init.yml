@@ -1,0 +1,64 @@
+name: 'CD of a release creation'
+
+# For testing
+# on: pull_request
+on:
+  schedule:
+    - cron: '17 0 * * 2'
+
+jobs:
+
+
+  create-branch:
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - name: check if week number is even
+      id: week
+      run: |
+        set -xe
+        # if (( $(date +%U) % 2 == 0 )); then
+          echo "even=true" >> $GITHUB_OUTPUT
+          echo $GITHUB_OUTPUT
+        # else
+        #   echo "even=false" >> $GITHUB_OUTPUT
+        # fi
+
+    - name: create next RC branch
+      if: ${{ steps.week.outputs.even == 'true' }}
+      run: |
+        set -xe
+        NEW_BRANCH="release/2.$(date +"%Y" | tail -c4).$(date +"%U")"
+        git config user.name "GitHub Actions Bot"
+        git config user.email "github-actions-bot@kobotoolbox.org"
+        git checkout -b $NEW_BRANCH
+        git push origin $NEW_BRANCH
+
+    - name: delete previous RC branch if it hasn't a correspond tag
+      run: |
+        echo 'TODO, for now do it manually'
+
+    - name: squash migrations, if any
+      run: |
+        echo 'TODO, for now do it manually'
+
+
+  on-failure:
+    runs-on: ubuntu-22.04
+    if: ${{ always() && (needs.create-branch.result == 'failure' || needs.create-branch.result == 'timed_out') }}
+    needs:
+      - create-branch
+    steps:
+
+    - name: Send a stream message
+      uses: zulip/github-actions-zulip/send-message@v1
+      with:
+        api-key: ${{ secrets.ZULIP_API_KEY_GITHUB_ACTIONS_BOT }}
+        email: "github-actions-bot@chat.kobotoolbox.org"
+        organization-url: "https://chat.kobotoolbox.org"
+        type: "stream"
+        to: "Kobo Dev"
+        topic: "Github Actions (CD)"
+        content: ":warning: release candidate creation failed."
