@@ -9,7 +9,7 @@ from drf_spectacular.types import OpenApiTypes
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 class DataFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.export_settings.fields.DataField'
+    target_class = 'kpi.schema_extensions.v2.export_tasks.fields.DataField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(

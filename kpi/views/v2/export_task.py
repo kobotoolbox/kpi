@@ -8,6 +8,7 @@ from kobo.apps.audit_log.models import AuditType
 from kpi.filters import SearchFilter
 from kpi.models import SubmissionExportTask
 from kpi.permissions import ExportTaskPermission
+from kpi.schema_extensions.v2.export_tasks.serializers import ExportResponse
 from kpi.serializers.v2.export_task import ExportTaskSerializer
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
@@ -36,19 +37,20 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     ),
     list=extend_schema(
         description=read_md('kpi', 'export_tasks/list.md'),
-        responses=open_api_204_empty_response(
-
+        responses=open_api_200_ok_response(
+            ExportResponse,
+            validate_payload=False,
         ),
     ),
     partial_update=extend_schema(
         description=read_md('kpi', 'export_tasks/update.md'),
-        responses=open_api_204_empty_response(
+        responses=open_api_200_ok_response(
 
         ),
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'export_tasks/retrieve.md'),
-        responses=open_api_204_empty_response(
+        responses=open_api_200_ok_response(
 
         ),
     ),
