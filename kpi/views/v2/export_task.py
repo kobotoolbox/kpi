@@ -11,6 +11,8 @@ from kpi.permissions import ExportTaskPermission
 from kpi.serializers.v2.export_task import ExportTaskSerializer
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_204_empty_response, \
+    open_api_200_ok_response, open_api_201_created_response
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -19,22 +21,39 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 )
 @extend_schema_view(
     create=extend_schema(
-        description=read_md('kpi', 'export_tasks/create.md')
+        description=read_md('kpi', 'export_tasks/create.md'),
+        responses=open_api_201_created_response(
+
+        ),
     ),
     destroy=extend_schema(
-        description=read_md('kpi', 'export_tasks/delete.md')
+        description=read_md('kpi', 'export_tasks/delete.md'),
+        responses=open_api_204_empty_response(
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
     ),
     list=extend_schema(
-        description=read_md('kpi', 'export_tasks/list.md')
+        description=read_md('kpi', 'export_tasks/list.md'),
+        responses=open_api_204_empty_response(
+
+        ),
     ),
     partial_update=extend_schema(
-        description=read_md('kpi', 'export_tasks/update.md')
+        description=read_md('kpi', 'export_tasks/update.md'),
+        responses=open_api_204_empty_response(
+
+        ),
     ),
     retrieve=extend_schema(
-        description=read_md('kpi', 'export_tasks/retrieve.md')
+        description=read_md('kpi', 'export_tasks/retrieve.md'),
+        responses=open_api_204_empty_response(
+
+        ),
     ),
     update=extend_schema(
-        exclude=True
+        exclude=True,
     ),
 )
 class ExportTaskViewSet(
