@@ -107,7 +107,7 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
     - retrieve       → GET /api/v2/export_settings/{uid}/
     - patch          → PATCH /api/v2/export_settings/{uid}/
     - delete         → DELETE /api/v2/export_settings/{uid}/
-    - data        → GET /api/v2/export_settings/{uid}/data/
+    - data           → GET /api/v2/export_settings/{uid}/data/
 
     Documentation:
     - docs/api/v2/export_settings/list.md
