@@ -1107,7 +1107,7 @@ STRIPE_TEST_PUBLIC_KEY = env.str(
 )
 STRIPE_LIVE_PUBLIC_KEY = 'pk_live_7JRQ5elvhnmz4YuWdlSRNmMj00lhvqZz8P'
 if STRIPE_ENABLED:
-    INSTALLED_APPS += ('djstripe', 'kobo.apps.stripe')
+    INSTALLED_APPS += ('djstripe', 'kobo.apps.stripe.StripeAppConfig')
     STRIPE_LIVE_SECRET_KEY = env.str('STRIPE_LIVE_SECRET_KEY', None)
     STRIPE_TEST_SECRET_KEY = env.str('STRIPE_TEST_SECRET_KEY', None)
     DJSTRIPE_WEBHOOK_SECRET = env.str('DJSTRIPE_WEBHOOK_SECRET', None)

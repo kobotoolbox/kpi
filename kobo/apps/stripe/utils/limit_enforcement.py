@@ -3,6 +3,7 @@ from django.core.cache import cache
 from django.utils import timezone
 
 from kobo.apps.organizations.constants import UsageType
+from kobo.apps.stripe.models import ExceededLimitCounter
 from kobo.apps.stripe.utils.import_management import requires_stripe
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 
@@ -46,3 +47,16 @@ def check_exceeded_limit(user, usage_type: UsageType, **kwargs):
             counter.save()
 
     cache.set(cache_key, True, settings.ENDPOINT_CACHE_DURATION)
+
+
+def update_or_remove_limit_counter(counter: ExceededLimitCounter):
+    calculator = ServiceUsageCalculator(counter.user)
+    balances = calculator.get_usage_balances()
+    balance = balances[counter.limit_type]
+    if not balance or not balance['exceeded']:
+        counter.delete()
+
+    if counter.date_modified.date() < timezone.now().date():
+        delta = timezone.now().date() - counter.date_modified.date()
+        counter.days += delta.days
+        counter.save()
