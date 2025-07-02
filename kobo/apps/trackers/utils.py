@@ -13,6 +13,7 @@ from kobo.apps.stripe.utils.import_management import requires_stripe
 from kobo.apps.stripe.utils.subscription_limits import (
     get_organization_subscription_limit,
 )
+from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limit
 from kpi.utils.django_orm_helper import IncrementValue
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 
@@ -68,6 +69,14 @@ def update_nlp_counter(
         counters=IncrementValue('counters', keyname=service, increment=amount),
         **kwargs,
     )
+
+    if not deduct:
+        return
+
+    if service.endswith(UsageType.ASR_SECONDS):
+        check_exceeded_limit(organization.owner_user_object, UsageType.ASR_SECONDS)
+    if service.endswith(UsageType.MT_CHARACTERS):
+        check_exceeded_limit(organization.owner_user_object, UsageType.MT_CHARACTERS)
 
 
 @cache_for_request
