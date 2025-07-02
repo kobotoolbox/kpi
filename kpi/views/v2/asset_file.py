@@ -36,7 +36,13 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     ),
     content=extend_schema(
         description=read_md('kpi', 'files/content.md'),
-        responses=open_api_200_ok_response(),
+        responses=open_api_200_ok_response(
+            description='Will return a content type with the type of the attachment as well as the attachment itself.',
+            # noqa
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'files/delete.md'),
