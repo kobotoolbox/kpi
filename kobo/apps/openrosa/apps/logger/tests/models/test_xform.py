@@ -54,7 +54,7 @@ class TestXForm(TestBase):
 
         # 2) No asset found, `xform.asset` should still be an asset
         Asset.objects.filter(uid=asset.uid).update(_deployment_data={})
-        setattr(xform, '_cache_asset', None)
+        setattr(xform, '_cached_asset', None)
         assert xform.kpi_asset_uid is None
         assert xform.asset.pk is None
-        assert xform.asset.uid == asset.uid
+        assert xform.asset.uid == None # It'll be auto-generated if asset is saved
