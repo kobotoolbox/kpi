@@ -101,7 +101,7 @@ jobs:
         MESSAGE: ${{ github.event.commits[0].message }}
       run: echo "fragment=`echo "${MESSAGE}" | head -1`" >> $GITHUB_OUTPUT
 
-    - name: Send a stream message
+    - name: Send a Zulip message
       uses: zulip/github-actions-zulip/send-message@v1
       with:
         api-key: ${{ secrets.ZULIP_API_KEY_GITHUB_ACTIONS_BOT }}

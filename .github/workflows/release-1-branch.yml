@@ -30,7 +30,8 @@ jobs:
       if: ${{ steps.week.outputs.even == 'true' }}
       run: |
         set -xe
-        NEW_BRANCH="release/2.$(date +"%Y" | tail -c4).$(date +"%U")"
+        NEW_VERSION="2.$(date +"%Y" | tail -c4).$(date +"%U")"
+        NEW_BRANCH="release/$NEW_VERSION"
         git config user.name "GitHub Actions Bot"
         git config user.email "github-actions-bot@kobotoolbox.org"
         git checkout -b $NEW_BRANCH
@@ -63,4 +64,4 @@ jobs:
         type: "stream"
         to: "Kobo Dev"
         topic: "Github Actions (CD)"
-        content: ":warning: release candidate creation failed."
+        content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release candidate creation failed."
