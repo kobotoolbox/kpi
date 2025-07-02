@@ -621,7 +621,7 @@ class ValidContentDataFieldExtension(OpenApiSerializerFieldExtension):
                 ),
                 'translations': build_array_type(
                     schema=build_basic_type(OpenApiTypes.STR)
-                ),  # noqa
+                ),
             }
         )
 
