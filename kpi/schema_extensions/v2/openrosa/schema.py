@@ -16,13 +16,11 @@ XFORM_SCHEMA = build_object_type(
                             properties={
                                 'instanceUuid': build_object_type(
                                     properties={
-                                        'fieldName': build_basic_type(
-                                            OpenApiTypes.NONE
-                                        ),
+                                        'fieldName': build_basic_type(OpenApiTypes.STR),
                                         'meta': build_object_type(
                                             properties={
                                                 'instanceID': build_basic_type(
-                                                    OpenApiTypes.NONE
+                                                    OpenApiTypes.STR
                                                 ),
                                             }
                                         ),
