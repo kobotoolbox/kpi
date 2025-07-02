@@ -3,7 +3,7 @@ name: Python linter (Darker)
 on: workflow_call
 jobs:
   darker:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
