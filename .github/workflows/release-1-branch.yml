@@ -1,4 +1,4 @@
-name: 'CD of a release creation'
+name: 'CD: branch'
 
 # For testing
 # on: pull_request
