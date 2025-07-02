@@ -509,3 +509,22 @@ $s-data-table-font: 13px;
     margin-bottom: 20px;
   }
 }
+
+@media print {
+  .form-view--table .rt-table {
+    overflow: visible !important;
+  }
+
+  .form-view--table .ReactTable .rt-tr-group {
+    max-height: 100%;
+  }
+
+  .form-view--table .ReactTable .rt-td {
+    overflow: visible;
+  }
+
+  // Avoid trimming data from cells
+  .form-view--table .ReactTable .rt-td .trimmed-text {
+    @include mixins.undoTextEllipsis;
+  }
+}
