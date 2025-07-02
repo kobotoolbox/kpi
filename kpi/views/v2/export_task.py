@@ -8,7 +8,10 @@ from kobo.apps.audit_log.models import AuditType
 from kpi.filters import SearchFilter
 from kpi.models import SubmissionExportTask
 from kpi.permissions import ExportTaskPermission
-from kpi.schema_extensions.v2.export_tasks.serializers import ExportResponse
+from kpi.schema_extensions.v2.export_tasks.serializers import (
+    ExportResponse,
+    ExportCreatePayload,
+)
 from kpi.serializers.v2.export_task import ExportTaskSerializer
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
@@ -23,6 +26,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 @extend_schema_view(
     create=extend_schema(
         description=read_md('kpi', 'export_tasks/create.md'),
+        request={'application/json': ExportCreatePayload},
         responses=open_api_201_created_response(
             ExportResponse,
             require_auth=False,
@@ -46,12 +50,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
     ),
     partial_update=extend_schema(
-        description=read_md('kpi', 'export_tasks/update.md'),
-        responses=open_api_200_ok_response(
-            ExportResponse,
-            require_auth=False,
-            raise_access_forbidden=False,
-        ),
+        exclude=True,
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'export_tasks/retrieve.md'),

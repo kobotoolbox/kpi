@@ -28,3 +28,62 @@ class DataFieldExtension(OpenApiSerializerFieldExtension):
             }
         )
 
+
+class FieldsFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.export_tasks.fields.FieldsField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_array_type(schema=build_basic_type(OpenApiTypes.STR))
+
+
+class SubmissionsFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.export_tasks.fields.SubmissionsField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_array_type(schema=build_basic_type(OpenApiTypes.INT))
+
+
+class ResultFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.export_tasks.fields.ResultField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_url_type('serve_private_file', path='user/export/NEW PROJECT - all versions - False - 2025-01-01-01-01.csv')
+
+
+class UrlExportFieldExtend(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.export_tasks.fields.UrlExportField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_url_type(
+            'api_v2:asset-export-detail',
+            parent_lookup_asset='a3C9wWefqZVkChNLKqqXVZ',
+            uid='eYeXfo2KjbSzXgWuKsJNPY'
+        )
+
+
+class MessageFieldExtend(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.export_tasks.fields.MessageField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(properties={})
+
+
+class QueryFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.export_tasks.fields.QueryField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                '$and': build_array_type(
+                    schema=build_object_type(
+                        properties={
+                            '_submission_time': build_object_type(
+                                properties={
+                                    '$gte': build_basic_type(OpenApiTypes.DATE),
+                                }
+                            )
+                        }
+                    )
+                ),
+            }
+        )

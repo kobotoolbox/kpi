@@ -6,8 +6,9 @@ from .fields import (
     FieldsField,
     MessageField,
     ResultField,
-    UpdatePayloadField,
     UrlExportField,
+    SubmissionsField,
+    QueryField,
 )
 
 ExportCreatePayload = inline_serializer_class(
@@ -20,7 +21,11 @@ ExportCreatePayload = inline_serializer_class(
         'include_media_url': serializers.BooleanField(),
         'lang': serializers.CharField(),
         'multiple_select': serializers.CharField(),
+        'submissions_id': SubmissionsField(),
         'type': serializers.CharField(),
+        'flatten': serializers.BooleanField(),
+        'xls_types_as_text': serializers.BooleanField(),
+        'query': QueryField(),
     },
 )
 
@@ -35,13 +40,5 @@ ExportResponse = inline_serializer_class(
         'last_submission_time': serializers.DateTimeField(),
         'result': ResultField(),
         'data': DataField(),
-    },
-)
-
-ExportUpdatePayload = inline_serializer_class(
-    name='ExportUpdatePayload',
-    fields={
-        'name': serializers.CharField(),
-        'export_settings': UpdatePayloadField()
     },
 )

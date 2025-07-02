@@ -17,9 +17,12 @@ class ResultField(serializers.URLField):
     pass
 
 
-class UpdatePayloadField():
+class UrlExportField(serializers.URLField):
     pass
 
 
-class UrlExportField(serializers.URLField):
+class SubmissionsField(serializers.ListField):
+    pass
+
+class QueryField(serializers.JSONField):
     pass
