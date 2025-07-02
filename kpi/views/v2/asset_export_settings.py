@@ -22,7 +22,7 @@ from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
-    open_api_204_empty_response,
+    open_api_204_empty_response, open_api_201_created_response,
 )
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
@@ -34,7 +34,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     create=extend_schema(
         description=read_md('kpi', 'export_settings/create.md'),
         request={'application/json': ExportSettingCreatePayload},
-        responses=open_api_200_ok_response(
+        responses=open_api_201_created_response(
             ExportSettingResponse,
             require_auth=False,
             raise_access_forbidden=False,
