@@ -29,8 +29,9 @@ class User(AbstractUser):
         if obj:
             # Deprecating kobocat permissions. For now we redirect to asset permissions
             if obj._meta.model_name == 'xform':
-                asset_perm = KPI_PERMISSIONS_MAP[perm.replace('logger.', '')]
-                return self.has_perm(asset_perm, obj.asset)
+                asset_perm = KPI_PERMISSIONS_MAP.get(perm.replace('logger.', ''))
+                if asset_perm is not None:
+                    return self.has_perm(asset_perm, obj.asset)
             if obj._meta.app_label in OPENROSA_APP_LABELS:
                 with use_db(settings.OPENROSA_DB_ALIAS):
                     return super().has_perm(perm, obj)
