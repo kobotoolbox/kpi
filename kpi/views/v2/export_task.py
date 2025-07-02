@@ -69,7 +69,20 @@ class ExportTaskViewSet(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedNoUpdateModelViewSet
 ):
     """
+   ViewSet for managing the current user's exports
 
+
+    Available actions:
+    - list           → GET /api/v2/assets/{parent_lookup_asset}/exports/
+    - create         → POST /api/v2/assets/{parent_lookup_asset}/exports/
+    - retrieve       → GET /api/v2/assets/{parent_lookup_asset}/exports/{uid}/
+    - delete         → DELETE /api/v2/assets/{parent_lookup_asset}/exports/{uid}/
+
+    Documentation:
+    - docs/api/v2/export_tasks/list.md
+    - docs/api/v2/export_tasks/create.md
+    - docs/api/v2/export_tasks/retrieve.md
+    - docs/api/v2/export_tasks/delete.md
     """
 
     model = SubmissionExportTask
