@@ -314,19 +314,3 @@ class ExceededLimitCounter(models.Model):
     limit_type = models.CharField(choices=UsageType.choices, max_length=20)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
-
-    def update_or_remove_counter(self):
-        """
-        Checks whether user is still over their limit for a given usage
-        type and updates or removes counter accordingly.
-        """
-        if limit_type in self.usage_limits.keys():
-            limit_available = self.limits_remaining.get(limit_type)
-            amount_to_use = min(amount_used, limit_available)
-            PlanAddOn.objects.filter(pk=self.id).update(
-                limits_remaining=DeductUsageValue(
-                    'limits_remaining', keyname=limit_type, amount=amount_used
-                )
-            )
-            return amount_to_use
-        return 0
