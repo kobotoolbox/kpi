@@ -1,0 +1,68 @@
+name: 'CD: deploy to production'
+
+
+on:
+  workflow_dispatch:
+    inputs:
+      prod_env:
+        description: 'Select production server'
+        type: choice
+        required: true
+        default: 'global'
+        options:
+        - global
+        - eu
+      tag:
+        description: 'Tag to deploy, e.g. v2.025.26b'
+        type: string
+        required: true
+
+
+jobs:
+
+  deploy-to-master:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: deploy to global
+      if: github.event.inputs.prod_env == 'global'
+      run: |
+        echo 'TODO, for now deploy manually on global'
+
+    - name: deploy to EU
+      if: github.event.inputs.prod_env == 'eu'
+      run: |
+        echo 'TODO, for now deploy manually on eu'
+
+    - name: Send a stream message
+      uses: zulip/github-actions-zulip/send-message@v1
+      with:
+        api-key: ${{ secrets.ZULIP_API_KEY_GITHUB_ACTIONS_BOT }}
+        email: "github-actions-bot@chat.kobotoolbox.org"
+        organization-url: "https://chat.kobotoolbox.org"
+        type: "stream"
+        to: "Kobo Dev"
+        topic: "Github Actions (${{ github.event.inputs.prod_env }})"
+        content: ":rocket: ${{ github.event.inputs.tag }} deployed!"
+
+
+  on-failure:
+    runs-on: ubuntu-22.04
+    needs:
+      - deploy-to-master
+    if: |
+      failure() &&
+      (needs.deploy-to-master.result == 'failure' || needs.deploy-to-master.result == 'timed_out')
+    steps:
+
+    - name: Send a stream message
+      uses: zulip/github-actions-zulip/send-message@v1
+      with:
+        api-key: ${{ secrets.ZULIP_API_KEY_GITHUB_ACTIONS_BOT }}
+        email: "github-actions-bot@chat.kobotoolbox.org"
+        organization-url: "https://chat.kobotoolbox.org"
+        type: "stream"
+        to: "Kobo Dev"
+        topic: "Github Actions (${{ github.event.inputs.prod_env }})"
+        content: ":warning: ${{ github.event.inputs.tag }} failed to deploy, see [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})."
