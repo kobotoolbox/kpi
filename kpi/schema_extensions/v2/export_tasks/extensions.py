@@ -73,7 +73,7 @@ class ResultFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'serve_private_file',
-            path='user/export/NEW PROJECT - all versions - False - 2025-01-01-01-01.csv',
+            path='user/export/NEW PROJECT - all versions - False - 2025-01-01-01-01.csv',  # noqa
         )
 
 
