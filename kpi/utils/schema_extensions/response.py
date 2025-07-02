@@ -176,7 +176,6 @@ def open_api_error_responses(
     if raise_not_found:
         if error_media_type == 'text/html':
             response[status.HTTP_404_NOT_FOUND] = OpenApiResponse(
-                response=ErrorDetailSerializer(),
                 examples=[
                     OpenApiExample(
                         name='Not Found',
@@ -203,11 +202,11 @@ def open_api_error_responses(
             'validations_errors', {'field_name': ['Error message']}
         )
         response[(status.HTTP_400_BAD_REQUEST, error_media_type)] = OpenApiResponse(
-            response=ErrorDetailSerializer(),
+            response=ErrorObjectSerializer(),
             examples=[
                 OpenApiExample(
                     name='Bad request',
-                    value=validation_errors,
+                    value={'detail': validation_errors},
                     response_only=True,
                     media_type=error_media_type,
                 )
