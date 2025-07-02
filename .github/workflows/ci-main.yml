@@ -15,11 +15,15 @@ jobs:
     uses: ./.github/workflows/npm-test.yml
 
   on-failure:
+    if: |
+      failure() &&
+      (needs.darker.result == 'failure' || needs.darker.result == 'timed_out' ||
+      needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' ||
+      needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out')
     needs:
       - darker
       - pytest
       - npm-test
-    if: ${{ always() && (needs.darker.result == 'failure' || needs.darker.result == 'timed_out' || needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' || needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out') }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:

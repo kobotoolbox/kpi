@@ -47,7 +47,9 @@ jobs:
 
   on-failure:
     runs-on: ubuntu-22.04
-    if: ${{ always() && (needs.create-branch.result == 'failure' || needs.create-branch.result == 'timed_out') }}
+    if: |
+      failure() &&
+      (needs.create-branch.result == 'failure' || needs.create-branch.result == 'timed_out')
     needs:
       - create-branch
     steps:

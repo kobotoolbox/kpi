@@ -42,7 +42,7 @@ jobs:
       - pytest
       - npm-test
     if: |
-      always() &&
+      !failure() &&
       (needs.darker.result == 'skipped' || needs.darker.result == 'success') &&
       (needs.pytest.result == 'skipped' || needs.pytest.result == 'success') &&
       (needs.npm-test.result == 'skipped' || needs.npm-test.result == 'success')
@@ -55,7 +55,7 @@ jobs:
 
   on-failure:
     if: |
-      always() &&
+      failure() &&
       (needs.darker.result == 'failure' || needs.darker.result == 'timed_out' ||
       needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' ||
       needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out' ||
