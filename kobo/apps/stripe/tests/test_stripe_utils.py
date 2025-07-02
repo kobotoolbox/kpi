@@ -30,7 +30,10 @@ from kobo.apps.stripe.utils.billing_dates import (
     get_current_billing_period_dates_by_org,
     get_current_billing_period_dates_for_active_plans,
 )
-from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limit
+from kobo.apps.stripe.utils.limit_enforcement import (
+    check_exceeded_limit,
+    update_or_remove_limit_counter,
+)
 from kobo.apps.stripe.utils.subscription_limits import (
     determine_limit,
     get_default_plan_name,
@@ -694,3 +697,30 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
             ) as patched:
                 check_exceeded_limit(self.someuser, UsageType.SUBMISSION)
                 patched.assert_called_once()
+
+    def test_update_or_remove_limit_counter(self):
+        mock_balances = {
+            UsageType.SUBMISSION: {'exceeded': True},
+        }
+        counter = baker.make(
+            ExceededLimitCounter, user=self.someuser, limit_type=UsageType.SUBMISSION
+        )
+        with freeze_time(timedelta(days=2)):
+            with patch(
+                'kobo.apps.stripe.utils.limit_enforcement.ServiceUsageCalculator.get_usage_balances',
+                return_value=mock_balances,
+            ):
+                update_or_remove_limit_counter(counter)
+
+            counter.refresh_from_db()
+            assert counter.days == 2
+
+        mock_balances = {
+            UsageType.SUBMISSION: {'exceeded': False},
+        }
+        with patch(
+            'kobo.apps.stripe.utils.limit_enforcement.ServiceUsageCalculator.get_usage_balances',
+            return_value=mock_balances,
+        ):
+            update_or_remove_limit_counter(counter)
+            assert ExceededLimitCounter.objects.count() == 0
