@@ -13,6 +13,7 @@ from kpi.constants import PERM_VIEW_ASSET
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.models import AssetFile
 from kpi.permissions import AssetEditorPermission
+from kpi.schema_extensions.v2.files.serializers import filesResponse
 from kpi.serializers.v2.asset_file import AssetFileSerializer
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
@@ -39,14 +40,18 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     ),
     list=extend_schema(
         description=read_md('kpi', 'files/list.md'),
-        responses=open_api_200_ok_response(),
+        responses=open_api_200_ok_response(
+            filesResponse,
+        ),
     ),
     partial_update=extend_schema(
       exclude=True,
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'files/retrieve.md'),
-        responses=open_api_200_ok_response(),
+        responses=open_api_200_ok_response(
+            filesResponse,
+        ),
     ),
     update=extend_schema(
         exclude=True,
