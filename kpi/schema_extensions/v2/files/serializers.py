@@ -11,18 +11,21 @@ from .fields import (
 )
 
 
-createFilePayload = inline_serializer_class(
-    name='createFilePayload',
+CreateFilePayload = inline_serializer_class(
+    name='CreateFilePayload',
     fields={
+        'user': UserUrlField(),
+        'asset': AssetUrlField(),
         'description': serializers.CharField(),
         'file_type': serializers.CharField(),
         'metadata': MetadataCreateField(),
         'base64Encoded': serializers.CharField(),
+        'content': serializers.CharField(),
     }
 )
 
-filesResponse = inline_serializer_class(
-    name='filesResponse',
+FilesResponse = inline_serializer_class(
+    name='FilesResponse',
     fields={
         'uid': serializers.CharField(),
         'url': FileUrlField(),
