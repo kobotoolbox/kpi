@@ -5,11 +5,10 @@ from .fields import (
     AssetUrlField,
     ContentURlField,
     FileUrlField,
-    MetadataField,
     MetadataCreateField,
+    MetadataField,
     UserUrlField,
 )
-
 
 CreateFilePayload = inline_serializer_class(
     name='CreateFilePayload',
@@ -21,7 +20,7 @@ CreateFilePayload = inline_serializer_class(
         'metadata': MetadataCreateField(),
         'base64Encoded': serializers.CharField(),
         'content': serializers.CharField(),
-    }
+    },
 )
 
 FilesResponse = inline_serializer_class(

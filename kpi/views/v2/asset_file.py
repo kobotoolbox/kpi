@@ -13,15 +13,15 @@ from kpi.constants import PERM_VIEW_ASSET
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.models import AssetFile
 from kpi.permissions import AssetEditorPermission
-from kpi.schema_extensions.v2.files.serializers import (
-    FilesResponse,
-    CreateFilePayload,
-)
+from kpi.schema_extensions.v2.files.serializers import CreateFilePayload, FilesResponse
 from kpi.serializers.v2.asset_file import AssetFileSerializer
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
-    open_api_204_empty_response, open_api_201_created_response
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_201_created_response,
+    open_api_204_empty_response,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -97,6 +97,7 @@ class FileSchema(AutoSchema):
 
         return operation
 
+
 @extend_schema(
     tags=['Files'],
 )
@@ -137,7 +138,7 @@ class FileSchema(AutoSchema):
         ),
     ),
     partial_update=extend_schema(
-      exclude=True,
+        exclude=True,
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'files/retrieve.md'),
@@ -172,6 +173,7 @@ class AssetFileViewSet(
     - docs/api/v2/files/delete.md
     - docs/api/v2/files/content.md
     """
+
     schema = FileSchema()
     model = AssetFile
     lookup_field = 'uid'
@@ -187,7 +189,9 @@ class AssetFileViewSet(
         ('object_id', 'asset.id'),
         'asset.owner.username',
     ]
-    renderer_classes = [JSONRenderer,]
+    renderer_classes = [
+        JSONRenderer,
+    ]
 
     def get_queryset(self):
         _queryset = self.model.objects.filter(asset__uid=self.asset_uid)

@@ -16,6 +16,7 @@ class FileUrlField(serializers.URLField):
 class MetadataField(serializers.JSONField):
     pass
 
+
 class MetadataCreateField(serializers.JSONField):
     pass
 
