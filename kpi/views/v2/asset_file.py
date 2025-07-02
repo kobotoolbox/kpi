@@ -156,7 +156,21 @@ class AssetFileViewSet(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedNoUpdateModelViewSet
 ):
     """
+    ViewSet for managing the current user's assets
 
+    Available actions:
+    - list           → GET /api/v2/assets/{parent_lookup_asset}/files/
+    - create         → POST /api/v2/assets/{parent_lookup_asset}/files/
+    - retrieve       → GET /api/v2/assets/{parent_lookup_asset}/files/{uid}/
+    - delete         → DELETE /api/v2/assets/{parent_lookup_asset}/files/{uid}/
+    - content        → GET /api/v2/assets/{parent_lookup_asset}/files/{uid}/content/
+
+    Documentation:
+    - docs/api/v2/files/list.md
+    - docs/api/v2/files/create.md
+    - docs/api/v2/files/retrieve.md
+    - docs/api/v2/files/delete.md
+    - docs/api/v2/files/content.md
     """
     schema = FileSchema()
     model = AssetFile
