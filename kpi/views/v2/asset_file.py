@@ -131,6 +131,9 @@ class FileSchema(AutoSchema):
         description=read_md('kpi', 'files/list.md'),
         responses=open_api_200_ok_response(
             FilesResponse,
+            validate_payload=False,
+            require_auth=False,
+            raise_access_forbidden=False,
         ),
     ),
     partial_update=extend_schema(
@@ -140,6 +143,9 @@ class FileSchema(AutoSchema):
         description=read_md('kpi', 'files/retrieve.md'),
         responses=open_api_200_ok_response(
             FilesResponse,
+            validate_payload=False,
+            require_auth=False,
+            raise_access_forbidden=False,
         ),
     ),
     update=extend_schema(
