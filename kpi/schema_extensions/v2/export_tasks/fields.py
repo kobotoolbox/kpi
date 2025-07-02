@@ -13,16 +13,17 @@ class MessageField(serializers.JSONField):
     pass
 
 
-class ResultField(serializers.URLField):
+class QueryField(serializers.JSONField):
     pass
 
 
-class UrlExportField(serializers.URLField):
+class ResultField(serializers.URLField):
     pass
 
 
 class SubmissionsField(serializers.ListField):
     pass
 
-class QueryField(serializers.JSONField):
+
+class UrlExportField(serializers.URLField):
     pass

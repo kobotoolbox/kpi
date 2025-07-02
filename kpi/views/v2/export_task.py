@@ -9,14 +9,17 @@ from kpi.filters import SearchFilter
 from kpi.models import SubmissionExportTask
 from kpi.permissions import ExportTaskPermission
 from kpi.schema_extensions.v2.export_tasks.serializers import (
-    ExportResponse,
     ExportCreatePayload,
+    ExportResponse,
 )
 from kpi.serializers.v2.export_task import ExportTaskSerializer
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import open_api_204_empty_response, \
-    open_api_200_ok_response, open_api_201_created_response
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_201_created_response,
+    open_api_204_empty_response,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -66,20 +69,20 @@ class ExportTaskViewSet(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedNoUpdateModelViewSet
 ):
     """
-   ViewSet for managing the current user's exports
+    ViewSet for managing the current user's exports
 
 
-    Available actions:
-    - list           → GET /api/v2/assets/{parent_lookup_asset}/exports/
-    - create         → POST /api/v2/assets/{parent_lookup_asset}/exports/
-    - retrieve       → GET /api/v2/assets/{parent_lookup_asset}/exports/{uid}/
-    - delete         → DELETE /api/v2/assets/{parent_lookup_asset}/exports/{uid}/
+     Available actions:
+     - list           → GET /api/v2/assets/{parent_lookup_asset}/exports/
+     - create         → POST /api/v2/assets/{parent_lookup_asset}/exports/
+     - retrieve       → GET /api/v2/assets/{parent_lookup_asset}/exports/{uid}/
+     - delete         → DELETE /api/v2/assets/{parent_lookup_asset}/exports/{uid}/
 
-    Documentation:
-    - docs/api/v2/export_tasks/list.md
-    - docs/api/v2/export_tasks/create.md
-    - docs/api/v2/export_tasks/retrieve.md
-    - docs/api/v2/export_tasks/delete.md
+     Documentation:
+     - docs/api/v2/export_tasks/list.md
+     - docs/api/v2/export_tasks/create.md
+     - docs/api/v2/export_tasks/retrieve.md
+     - docs/api/v2/export_tasks/delete.md
     """
 
     model = SubmissionExportTask
