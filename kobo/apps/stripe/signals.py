@@ -14,8 +14,14 @@ def make_add_on_for_charge(sender, instance, created, **kwargs):
 
 
 @receiver(post_save, sender=Subscription)
-def clear_usage_cache_and_counters(sender, subscription, created, **kwargs):
-    user_id = subscription.metadata.get('kpi_owner_user_id', '')
+def clear_usage_cache_and_counters(sender, instance, created, **kwargs):
+    # The only goal here is to update data for the relevant user/org,
+    # so we just return early if we are unable to find one
+    subscription_metadata = instance.metadata
+    if not subscription_metadata:
+        return
+
+    user_id = subscription_metadata.get('kpi_owner_user_id', '')
     if not user_id:
         return
 
@@ -28,4 +34,3 @@ def clear_usage_cache_and_counters(sender, subscription, created, **kwargs):
     counters = ExceededLimitCounter.objects.filter(user=user)
     for counter in counters:
         update_or_remove_limit_counter(counter)
-
