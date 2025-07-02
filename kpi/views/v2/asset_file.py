@@ -1,7 +1,8 @@
 # coding: utf-8
 from django.http import HttpResponseRedirect
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from private_storage.views import PrivateStorageDetailView
+from pyxform.validators.pyxform.iana_subtags.subtags_updater import update
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -16,7 +17,19 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 @extend_schema(
-    tags=['files'],
+    tags=['Files'],
+)
+@extend_schema_view(
+    create=extend_schema(),
+    destroy=extend_schema(),
+    list=extend_schema(),
+    partial_update=extend_schema(
+      exclude=True,
+    ),
+    retrieve=extend_schema(),
+    update=extend_schema(
+        exclude=True,
+    ),
 )
 class AssetFileViewSet(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedNoUpdateModelViewSet
