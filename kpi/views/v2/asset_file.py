@@ -28,7 +28,11 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     create=extend_schema(
         description=read_md('kpi', 'files/create.md'),
         request={},
-        responses=open_api_201_created_response(),
+        responses=open_api_201_created_response(
+            filesResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+        ),
     ),
     content=extend_schema(
         description=read_md('kpi', 'files/content.md'),

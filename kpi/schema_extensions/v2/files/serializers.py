@@ -6,7 +6,19 @@ from .fields import (
     ContentURlField,
     FileUrlField,
     MetadataField,
+    MetadataCreateField,
     UserUrlField,
+)
+
+
+createFilePayload = inline_serializer_class(
+    name='createFilePayload',
+    fields={
+        'description': serializers.CharField(),
+        'file_type': serializers.CharField(),
+        'metadata': MetadataCreateField(),
+        'base64Encoded': serializers.CharField(),
+    }
 )
 
 filesResponse = inline_serializer_class(
