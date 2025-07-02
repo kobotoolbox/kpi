@@ -30,14 +30,12 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         responses=open_api_201_created_response(
             ExportResponse,
             require_auth=False,
-            raise_access_forbidden=False,
         ),
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'export_tasks/delete.md'),
         responses=open_api_204_empty_response(
             require_auth=False,
-            raise_access_forbidden=False,
             validate_payload=False,
         ),
     ),
@@ -57,7 +55,6 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         responses=open_api_200_ok_response(
             ExportResponse,
             require_auth=False,
-            raise_access_forbidden=False,
             validate_payload=False,
         ),
     ),
