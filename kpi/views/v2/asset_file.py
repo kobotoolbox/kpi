@@ -36,7 +36,11 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'files/delete.md'),
-        responses=open_api_204_empty_response(),
+        responses=open_api_204_empty_response(
+            validate_payload=False,
+            require_auth=False,
+            raise_access_forbidden=False,
+        ),
     ),
     list=extend_schema(
         description=read_md('kpi', 'files/list.md'),
