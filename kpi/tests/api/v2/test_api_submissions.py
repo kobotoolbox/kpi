@@ -1872,12 +1872,8 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
 
                 # The first POST creates the edited submission (201) with one
                 # attachment, the second attaches the file to the submission (202).
-                assert (
-                    response.status_code == (
-                        status.HTTP_201_CREATED
-                        if idx == 0
-                        else status.HTTP_202_ACCEPTED
-                    )
+                assert response.status_code == (
+                    status.HTTP_201_CREATED if idx == 0 else status.HTTP_202_ACCEPTED
                 )
 
     def test_edit_submission_without_root_uuid(self):

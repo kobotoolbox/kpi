@@ -2,12 +2,6 @@
 
 from django.conf import settings
 from django.db import migrations, models
-import django.db.models.deletion
-import kobo.apps.openrosa.apps.logger.models.attachment
-import kobo.apps.openrosa.apps.logger.models.xform
-import kpi.deployment_backends.kc_access.storage
-import kpi.fields.file
-
 
 
 def manually_create_indexes_instructions(apps, schema_editor):
@@ -57,9 +51,7 @@ class Migration(migrations.Migration):
             else migrations.AlterField(
                 model_name='instancehistory',
                 name='uuid',
-                field=models.CharField(
-                    db_index=True, default='', max_length=249
-                ),
+                field=models.CharField(db_index=True, default='', max_length=249),
             )
         )
     ]
