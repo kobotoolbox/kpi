@@ -38,10 +38,12 @@ jobs:
         ## see https://github.com/kobotoolbox/kobo-deployments
         ## see https://chat.kobotoolbox.org/#narrow/stream/4-Kobo-Dev/topic/2.2E024.2E33.20Release/near/472818
         ## Note: script does two things - deploys and updates docker-compose - see if can seperate that for easier reruns
+        ## Note: this server has lots of data, run migrations or smtg with a 1 minute timeout to flag if some migrations run too long
         VERSION=$(echo "v2.025.26" | sed 's/v//')
         echo "$GITHUB_REF -> $VERSION"
         # pipenv shell
         # fab update_kpi:$VERSION
+        # fab dev_deploy:master,kpi,$GITHUB_REF
 
   bump:
     runs-on: ubuntu-22.04

@@ -4,6 +4,10 @@ name: 'CD: branch'
 # on: pull_request
 on:
   schedule:
+    # It's good to deploy early in week:
+    # - In the best case, will QA, tag and deploy on the same Tuesday or Wednesday.
+    # - In an ok case, will QA, tag and deploy on the next Monday-Wednesday.
+    # - In the worst case, the last chance is to deploy on after-next Monday.
     - cron: '17 0 * * 2'
 
 jobs:
@@ -38,10 +42,6 @@ jobs:
         git push origin $NEW_BRANCH
 
     - name: delete previous RC branch if it hasn't a correspond tag
-      run: |
-        echo 'TODO, for now do it manually'
-
-    - name: squash migrations, if any
       run: |
         echo 'TODO, for now do it manually'
 
