@@ -52,19 +52,40 @@ jobs:
       run: |
         echo 'TODO, for now deploy manually on kf.beta.kbtdev'
 
-
-  on-failure:
-    if: |
-      failure() &&
-      (needs.darker.result == 'failure' || needs.darker.result == 'timed_out' ||
-      needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' ||
-      needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out' ||
-      needs.deploy-to-beta.result == 'failure' || needs.deploy-to-beta.result == 'timed_out')
+  merge:
+    runs-on: ubuntu-22.04
     needs:
       - darker
       - pytest
       - npm-test
       - deploy-to-beta
+    if: |
+      !failure() &&
+      (needs.darker.result == 'skipped' || needs.darker.result == 'success') &&
+      (needs.pytest.result == 'skipped' || needs.pytest.result == 'success') &&
+      (needs.npm-test.result == 'skipped' || needs.npm-test.result == 'success') &&
+      needs.deploy-to-beta.result == 'success'
+    steps:
+    - uses: actions/checkout@v4
+    - name: merge to main
+      run: |
+        echo 'TODO, lets test this later with a real release branch'
+
+
+  on-failure:
+    needs:
+      - darker
+      - pytest
+      - npm-test
+      - deploy-to-beta
+      - merge
+    if: |
+      failure() &&
+      (needs.darker.result == 'failure' || needs.darker.result == 'timed_out' ||
+      needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' ||
+      needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out' ||
+      needs.deploy-to-beta.result == 'failure' || needs.deploy-to-beta.result == 'timed_out' ||
+      needs.merge.result == 'failure' || needs.merge.result == 'timed_out')
     uses: './.github/workflows/zulip.yml'
     with:
       topic: "Github Actions (releases)"
