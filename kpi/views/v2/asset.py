@@ -43,7 +43,9 @@ from kpi.permissions import (
     get_perm_name,
 )
 from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, XlsRenderer
+from kpi.schema_extensions.v2.assets.schema import ASSET_CLONE_FROM
 from kpi.schema_extensions.v2.assets.serializers import (
+    AssetBulkRequest,
     AssetBulkResponse,
     AssetContentResponse,
     AssetCreateRequest,
@@ -127,7 +129,7 @@ class AssetSchema(AutoSchema):
                 'UsingSource': {
                     'value': {
                         'name': generate_example_from_schema(ASSET_NAME),
-                        'clone_from': 'akJTPb4JLVFqXMqYhKiPXZ',
+                        'clone_from': generate_example_from_schema(ASSET_CLONE_FROM),
                         'asset_type': generate_example_from_schema(ASSET_TYPE),
                     },
                     'summary': 'Cloning an asset',
@@ -181,6 +183,7 @@ class AssetSchema(AutoSchema):
 @extend_schema_view(
     bulk=extend_schema(
         description=read_md('kpi', 'assets/bulk.md'),
+        request={'application/json': AssetBulkRequest},
         responses=open_api_200_ok_response(
             AssetBulkResponse(),
             require_auth=False,
