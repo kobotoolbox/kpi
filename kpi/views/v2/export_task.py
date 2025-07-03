@@ -88,10 +88,8 @@ class ExportTaskViewSet(
     model = SubmissionExportTask
     serializer_class = ExportTaskSerializer
     lookup_field = 'uid'
-    renderer_classes = [
-        renderers.BrowsableAPIRenderer,
-        renderers.JSONRenderer,
-    ]
+    renderer_classes = (renderers.JSONRenderer,)
+
     filter_backends = [
         filters.OrderingFilter,
         SearchFilter,
