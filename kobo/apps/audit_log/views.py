@@ -32,6 +32,7 @@ from .schema_extensions.v2.history.serializers import (
     HistoryActionResponse,
     HistoryExportResponse,
     HistoryExportPayload,
+    HistoryListResponse,
 )
 from .serializers import (
     AccessLogSerializer,
@@ -564,7 +565,9 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     ),
     list=extend_schema(
         description=read_md('audit_log', 'history/list.md'),
-        responses=open_api_200_ok_response(),
+        responses=open_api_200_ok_response(
+            HistoryListResponse,
+        ),
     ),
 )
 class ProjectHistoryLogViewSet(
