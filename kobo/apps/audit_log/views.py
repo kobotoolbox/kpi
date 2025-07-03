@@ -544,45 +544,22 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     tags=['History'],
 )
 @extend_schema_view(
-    action=extend_schema(),
-    create=extend_schema(),
-    export=extend_schema(),
+    actions=extend_schema(
+        description=read_md('kpi', 'history/action.md'),
+    ),
+    export=extend_schema(
+        description=read_md('kpi', 'history/export.md'),
+    ),
+    list=extend_schema(
+        description=read_md('kpi', 'history/list.md'),
+    ),
 )
 class ProjectHistoryLogViewSet(
     AuditLogViewSet, AssetNestedObjectViewsetMixin, NestedViewSetMixin
 ):
-    __doc__ = (
-        generate_ph_view_set_logstring(
-            'Lists all project history logs for a single project. Only available to'
-            " those with 'manage_asset' permissions.",
-            '/api/v2/assets/<code>{asset_uid}</code>/history/',
-            '/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/history/',
-            False,
-        )
-        + """
-    ### Actions
-
-    Retrieves distinct actions performed on the asset.
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/history/actions
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/axpCMM5zWS6kWpHv9Vg/history/actions
-
-    > Response 200
-
-    >       {
-    >           "actions": [
-    >               "update-name",
-    >               "update-content",
-    >               "deploy",
-    >               ...
-    >           ]
-    >       }
     """
-    )
+
+    """
 
     serializer_class = ProjectHistoryLogSerializer
     model = ProjectHistoryLog
