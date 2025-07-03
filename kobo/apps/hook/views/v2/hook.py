@@ -8,6 +8,7 @@ from django.utils.translation import gettext as t
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -18,6 +19,7 @@ from kobo.apps.hook.models import Hook, HookLog
 from kobo.apps.hook.serializers.v2.hook import HookSerializer
 from kobo.apps.hook.tasks import retry_all_task
 from kpi.permissions import AssetEditorSubmissionViewerPermission
+from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -25,14 +27,24 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     tags=['Hooks'],
 )
 @extend_schema_view(
-    create=extend_schema(),
-    destroy=extend_schema(),
-    list=extend_schema(),
-    partial_update=extend_schema(
-        exclude=True,
+    create=extend_schema(
+        description=read_md('hook', 'hooks/create.md')
     ),
-    retrieve=extend_schema(),
-    retry=extend_schema(),
+    destroy=extend_schema(
+        description=read_md('hook', 'hooks/delete.md')
+    ),
+    list=extend_schema(
+        description=read_md('hook', 'hooks/list.md')
+    ),
+    partial_update=extend_schema(
+        description=read_md('hook', 'hooks/update.md')
+    ),
+    retrieve=extend_schema(
+        description=read_md('hook', 'hooks/retrieve.md')
+    ),
+    retry=extend_schema(
+        description=read_md('hook', 'hooks/retry.md')
+    ),
     update=extend_schema(
         exclude=True,
     )
@@ -42,133 +54,6 @@ class HookViewSet(
 ):
     """
 
-    ## External services
-
-    Lists the external services endpoints accessible to requesting user
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/{asset_uid}/hooks/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/api/v2/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/
-
-    ## CRUD
-
-    * `asset_uid` - is the unique identifier of a specific asset
-    * `uid` - is the unique identifier of a specific external service
-
-    #### Retrieves an external service
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/hooks/<code>{uid}</code>
-    </pre>
-
-
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/api/v2/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb
-
-    #### Add an external service to asset.
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/assets/<code>{asset_uid}</code>/hooks/
-    </pre>
-
-
-    > Example
-    >
-    >       curl -X POST https://[kpi-url]/api/v2/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/
-
-
-    > **Payload to create a new external service**
-    >
-    >        {
-    >           "name": {string},
-    >           "endpoint": {string},
-    >           "active": {boolean},
-    >           "email_notification": {boolean},
-    >           "export_type": {string},
-    >           "subset_fields": [{string}],
-    >           "auth_level": {string},
-    >           "settings": {
-    >               "username": {string},
-    >               "password": {string},
-    >               "custom_headers": {
-    >                   {string}: {string}
-    >                   ...
-    >                   {string}: {string}
-    >               }
-    >           },
-    >           "payload_template": {string}
-    >        }
-
-    where
-
-    * `name` and `endpoint` are required
-    * `active` is True by default
-    * `export_type` must be one these values:
-
-        1. `json` (_default_)
-        2. `xml`
-
-    * `email_notification` is a boolean. If true, User will be notified when request to remote server has failed.
-    * `auth_level` must be one these values:
-
-        1. `no_auth` (_default_)
-        2. `basic_auth`
-
-    * `subset_fields` is the list of fields of the form definition. Only these fields should be present in data sent to remote server
-    * `settings`.`custom_headers` is dictionary of `custom header`: `value`
-
-    For example:
-    >           "settings": {
-    >               "customer_headers": {
-    >                   "Authorization" : "Token 1af538baa9045a84c0e889f672baf83ff24"
-    >               }
-
-    * `payload_template` is a custom wrapper around `%SUBMISSION%` when sending data to remote server.
-       It can be used only with JSON submission format.
-
-    For example:
-    >           "payload_template": '{"fields": %SUBMISSION%}'
-
-    #### Update an external service.
-    <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/assets/<code>{asset_uid}</code>/hooks/{uid}
-    </pre>
-
-
-    > Example
-    >
-    >       curl -X PATCH https://[kpi-url]/api/v2/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb
-
-
-    Only specify properties to update in the payload. See above for payload structure
-
-    #### Delete an external service.
-    <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/assets/<code>{asset_uid}</code>/hooks/{uid}
-    </pre>
-
-
-    > Example
-    >
-    >       curl -X DELETE https://[kpi-url]/api/v2/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb
-
-    #### Retries all failed attempts
-    <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/assets/<code>{asset_uid}</code>/hooks/<code>{hook_uid}</code>/retry/
-    </pre>
-
-    **This call is asynchronous. Job is sent to Celery to be run in background**
-
-    > Example
-    >
-    >       curl -X PATCH https://[kpi-url]/api/v2/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb/retry/
-
-    It returns all logs `uid`s that are being retried.
-
-    ### CURRENT ENDPOINT
     """
 
     model = Hook
@@ -183,6 +68,7 @@ class HookViewSet(
         ('object_id', 'asset.id'),
         'asset.owner.username',
     ]
+    renderer_classes = [JSONRenderer,]
 
     def get_queryset(self):
         queryset = self.model.objects.filter(asset__uid=self.asset.uid)
