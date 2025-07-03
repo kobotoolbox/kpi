@@ -1872,10 +1872,8 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
 
                 # The first POST creates the edited submission (201) with one
                 # attachment, the second attaches the file to the submission (202).
-                assert (
-                    response.status_code == status.HTTP_201_CREATED
-                    if idx == 0
-                    else status.HTTP_202_ACCEPTED
+                assert response.status_code == (
+                    status.HTTP_201_CREATED if idx == 0 else status.HTTP_202_ACCEPTED
                 )
 
     def test_edit_submission_without_root_uuid(self):
@@ -1892,6 +1890,18 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         # Simulate a legacy submission by clearing the root_uuid
         Instance.objects.filter(pk=instance.pk).update(root_uuid=None)
 
+        self._simulate_edit_submission(instance)
+
+    def test_edit_submission_twice(self):
+        # Ensure that double edit still work if we use `root_uuid` to identify
+        # the edited submission
+        self.test_edit_submission_without_root_uuid()
+        root_uuid = remove_uuid_prefix(self.submission['_uuid'])
+        instance = Instance.objects.get(root_uuid=root_uuid)
+        assert 'deprecatedID' in instance.xml
+        self._simulate_edit_submission(instance)
+
+    def _simulate_edit_submission(self, instance: Instance):
         # Simulate editing the submission:
         # - fetch the original XML
         # - generate a new snapshot
