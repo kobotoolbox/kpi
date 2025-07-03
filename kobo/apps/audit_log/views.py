@@ -28,6 +28,11 @@ from .schema_extensions.v2.access_logs.serializers import (
     ExportCreateResponse,
     ExportListResponse,
 )
+from .schema_extensions.v2.history.serializers import (
+    HistoryActionResponse,
+    HistoryExportResponse,
+    HistoryExportPayload,
+)
 from .serializers import (
     AccessLogSerializer,
     AuditLogSerializer,
@@ -545,13 +550,21 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 )
 @extend_schema_view(
     actions=extend_schema(
-        description=read_md('kpi', 'history/action.md'),
+        description=read_md('audit_log', 'history/action.md'),
+        responses=open_api_200_ok_response(
+            HistoryActionResponse,
+        ),
     ),
     export=extend_schema(
-        description=read_md('kpi', 'history/export.md'),
+        description=read_md('audit_log', 'history/export.md'),
+        request={'application/json': HistoryExportPayload},
+        responses=open_api_202_accepted_response(
+            HistoryExportResponse,
+        ),
     ),
     list=extend_schema(
-        description=read_md('kpi', 'history/list.md'),
+        description=read_md('audit_log', 'history/list.md'),
+        responses=open_api_200_ok_response(),
     ),
 )
 class ProjectHistoryLogViewSet(
