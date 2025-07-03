@@ -1,8 +1,10 @@
 # coding: utf-8
 from django.http import HttpResponseRedirect
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.openapi import AutoSchema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from private_storage.views import PrivateStorageDetailView
 from rest_framework.decorators import action
+from rest_framework.renderers import JSONRenderer
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
@@ -11,124 +13,168 @@ from kpi.constants import PERM_VIEW_ASSET
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.models import AssetFile
 from kpi.permissions import AssetEditorPermission
+from kpi.schema_extensions.v2.files.serializers import CreateFilePayload, FilesResponse
 from kpi.serializers.v2.asset_file import AssetFileSerializer
+from kpi.utils.schema_extensions.examples import generate_example_from_schema
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_201_created_response,
+    open_api_204_empty_response,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
+class FileSchema(AutoSchema):
+    """
+    Custom schema used to inject OpenAPI examples for AssetViewSet at runtime.
+
+    We cannot use `@extend_schema(..., examples=...)` or `@extend_schema_view(...)`
+    directly for these examples because the values rely on variables
+    (e.g., `ASSET_URL_SCHEMA`) that trigger Django's URL resolver via `reverse()`.
+    Since those decorators are evaluated at module import time—before the full Django
+    application and URL config are guaranteed to be loaded—this leads to circular
+    import errors.
+
+    By overriding `get_operation()` here, we defer the evaluation of those dynamic
+    values until the OpenAPI schema is being generated (e.g., via `/api/v2/schema/`),
+    when all apps and routes are fully initialized. This ensures a clean, safe injection
+    of complex or reverse-dependent examples.
+
+    This class matches the `operationId` for the `POST /assets/` endpoint
+    to inject multiple request examples, such as referencing an asset or a source.
+    """
+
+    def get_operation(self, *args, **kwargs):
+
+        from kpi.schema_extensions.v2.files.schema import (
+            ASSET_URL,
+            BASE64_METADATA,
+            URL_METADATA,
+            USER_URL,
+        )
+
+        operation = super().get_operation(*args, **kwargs)
+
+        if not operation:
+            return None
+
+        if operation.get('operationId') == 'api_v2_assets_files_create':
+
+            operation['requestBody']['content']['application/json']['examples'] = {
+                'Binary': {
+                    'value': {
+                        'user': generate_example_from_schema(USER_URL),
+                        'asset': generate_example_from_schema(ASSET_URL),
+                        'description': 'Description of the file',
+                        'file_type': 'image/png',
+                        'content': '<binary>',
+                    },
+                    'summary': 'Creating a file with binary content',
+                },
+                'Base64': {
+                    'value': {
+                        'user': generate_example_from_schema(USER_URL),
+                        'asset': generate_example_from_schema(ASSET_URL),
+                        'description': 'Description of the file',
+                        'file_type': 'image/png',
+                        'base64Encoded': '<base64-encoded-string>',
+                        'metadata': generate_example_from_schema(BASE64_METADATA),
+                    },
+                    'summary': 'Creating a file with Base64 content',
+                },
+                'RemoteUrl': {
+                    'value': {
+                        'user': generate_example_from_schema(USER_URL),
+                        'asset': generate_example_from_schema(ASSET_URL),
+                        'description': 'Description of the file',
+                        'file_type': 'image/png',
+                        'metadata': generate_example_from_schema(URL_METADATA),
+                    },
+                    'summary': 'Creating a file with a remote url',
+                },
+            }
+
+        return operation
+
+
 @extend_schema(
-    tags=['files'],
+    tags=['Files'],
+)
+@extend_schema_view(
+    create=extend_schema(
+        description=read_md('kpi', 'files/create.md'),
+        request={'application/json': CreateFilePayload},
+        responses=open_api_201_created_response(
+            FilesResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+        ),
+    ),
+    content=extend_schema(
+        description=read_md('kpi', 'files/content.md'),
+        responses=open_api_200_ok_response(
+            description='Will return a content type with the type of the attachment as well as the attachment itself.',  # noqa
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    destroy=extend_schema(
+        description=read_md('kpi', 'files/delete.md'),
+        responses=open_api_204_empty_response(
+            validate_payload=False,
+            require_auth=False,
+            raise_access_forbidden=False,
+        ),
+    ),
+    list=extend_schema(
+        description=read_md('kpi', 'files/list.md'),
+        responses=open_api_200_ok_response(
+            FilesResponse,
+            validate_payload=False,
+            require_auth=False,
+            raise_access_forbidden=False,
+        ),
+    ),
+    partial_update=extend_schema(
+        exclude=True,
+    ),
+    retrieve=extend_schema(
+        description=read_md('kpi', 'files/retrieve.md'),
+        responses=open_api_200_ok_response(
+            FilesResponse,
+            validate_payload=False,
+            require_auth=False,
+            raise_access_forbidden=False,
+        ),
+    ),
+    update=extend_schema(
+        exclude=True,
+    ),
 )
 class AssetFileViewSet(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedNoUpdateModelViewSet
 ):
     """
-    This endpoint shows uploaded files related to an asset.
+    ViewSet for managing the current user's assets
 
-    `uid` - is the unique identifier of a specific asset
+    Available actions:
+    - list           → GET /api/v2/assets/{parent_lookup_asset}/files/
+    - create         → POST /api/v2/assets/{parent_lookup_asset}/files/
+    - retrieve       → GET /api/v2/assets/{parent_lookup_asset}/files/{uid}/
+    - delete         → DELETE /api/v2/assets/{parent_lookup_asset}/files/{uid}/
+    - content        → GET /api/v2/assets/{parent_lookup_asset}/files/{uid}/content/
 
-    **Retrieve files**
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/files/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/files/
-
-    Results can be narrowed down with a filter by type
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/assets/aSAvYreNzVEkrWg5Gdcvg/files/?file_type=map_layer
-
-
-    **Retrieve a file**
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/files/{file_uid}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/files/afQoJxA4kmKEXVpkH6SYbhb/"
-
-
-    **Create a new file**
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/assets/<code>{uid}</code>/files/
-    </pre>
-
-    > Example
-    >
-    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/files/ \\
-    >            -H 'Content-Type: application/json' \\
-    >            -d '<payload>'  # Payload is sent as a string
-
-    Fields:
-
-    - `asset` (required)
-    - `user` (required)
-    - `description` (required)
-    - `file_type` (required)
-    - `content` (as binary) (optional)
-    - `metadata` JSON (optional)
-
-    _Notes:_
-
-    1. Files can have different types:
-        - `map_layer`
-        - `form_media`
-    2. Files can be created with three different ways
-        - `POST` a file with `content` parameter
-        - `POST` a base64 encoded string with `base64Encoded` parameter<sup>1</sup>
-        - `POST` an URL with `metadata` parameter<sup>2</sup>
-
-    <sup>1)</sup> `metadata` becomes mandatory and must contain `filename` property<br>
-    <sup>2)</sup> `metadata` becomes mandatory and must contain `redirect_url` property
-
-    **Files with `form_media` type must have unique `filename` per asset**
-
-    > _Payload to create a file with binary content_
-    >
-    >        {
-    >           "user": "https://[kpi]/api/v2/users/{username}/",
-    >           "asset": "https://[kpi]/api/v2/asset/{asset_uid}/",
-    >           "description": "Description of the file",
-    >           "content": <binary>
-    >        }
-
-    > _Payload to create a file with base64 encoded content_
-    >
-    >        {
-    >           "user": "https://[kpi]/api/v2/users/{username}/",
-    >           "asset": "https://[kpi]/api/v2/asset/{asset_uid}/",
-    >           "description": "Description of the file",
-    >           "base64Encoded": "<base64-encoded-string>"
-    >           "metadata": {"filename": "filename.ext"}
-    >        }
-
-    > _Payload to create a file with a remote URL_
-    >
-    >        {
-    >           "user": "https://[kpi]/api/v2/users/{username}/",
-    >           "asset": "https://[kpi]/api/v2/asset/{asset_uid}/",
-    >           "description": "Description of the file",
-    >           "metadata": {"redirect_url": "https://domain.tld/image.jpg"}
-    >        }
-
-
-    **Delete a file**
-
-    <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/files/{file_uid}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/files/pG6AeSjCwNtpWazQAX76Ap/
-
-    ### CURRENT ENDPOINT
+    Documentation:
+    - docs/api/v2/files/list.md
+    - docs/api/v2/files/create.md
+    - docs/api/v2/files/retrieve.md
+    - docs/api/v2/files/delete.md
+    - docs/api/v2/files/content.md
     """
 
+    schema = FileSchema()
     model = AssetFile
     lookup_field = 'uid'
     filter_backends = (RelatedAssetPermissionsFilter,)
@@ -142,6 +188,9 @@ class AssetFileViewSet(
         'download_url',
         ('object_id', 'asset.id'),
         'asset.owner.username',
+    ]
+    renderer_classes = [
+        JSONRenderer,
     ]
 
     def get_queryset(self):
