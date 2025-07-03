@@ -571,7 +571,17 @@ class ProjectHistoryLogViewSet(
     AuditLogViewSet, AssetNestedObjectViewsetMixin, NestedViewSetMixin
 ):
     """
+    ViewSet for managing the current project's history
 
+    Available actions:
+    - action        → GET   /api/v2/asset/{parent_lookup_asset}/history/action/
+    - export        → POST  /api/v2/asset/{parent_lookup_asset}/history/
+    - list          → GET   /api/v2/asset/{parent_lookup_asset}/history/
+
+    Documentation:
+    - docs/api/v2/history/action.md
+    - docs/api/v2/history/export.md
+    - docs/api/v2/history/list.md
     """
 
     serializer_class = ProjectHistoryLogSerializer
