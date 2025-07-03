@@ -5,7 +5,7 @@ import constance
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext as t
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -22,7 +22,19 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 @extend_schema(
-    tags=['hooks'],
+    tags=['Hooks'],
+)
+@extend_schema_view(
+    create=extend_schema(),
+    destroy=extend_schema(),
+    list=extend_schema(),
+    partial_update=extend_schema(
+        exclude=True,
+    ),
+    retrieve=extend_schema(),
+    update=extend_schema(
+        exclude=True,
+    )
 )
 class HookViewSet(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedModelViewSet
