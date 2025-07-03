@@ -32,6 +32,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         exclude=True,
     ),
     retrieve=extend_schema(),
+    retry=extend_schema(),
     update=extend_schema(
         exclude=True,
     )
