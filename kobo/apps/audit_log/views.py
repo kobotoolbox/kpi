@@ -554,6 +554,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
         description=read_md('audit_log', 'history/action.md'),
         responses=open_api_200_ok_response(
             HistoryActionResponse,
+            require_auth=False,
         ),
     ),
     export=extend_schema(
@@ -561,12 +562,16 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
         request={'application/json': HistoryExportPayload},
         responses=open_api_202_accepted_response(
             HistoryExportResponse,
+            require_auth=False,
+            validate_payload=False,
         ),
     ),
     list=extend_schema(
         description=read_md('audit_log', 'history/list.md'),
         responses=open_api_200_ok_response(
             HistoryListResponse,
+            require_auth=False,
+            validate_payload=False,
         ),
     ),
 )
