@@ -1,10 +1,10 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import prettyBytes from 'pretty-bytes'
 import { Link } from 'react-router-dom'
 import { useOrganizationQuery } from '#/account/organization/organizationQuery'
-import type { AssetUsage, AssetWithUsage } from '#/account/usage/usage.api'
-import { getOrgAssetUsage } from '#/account/usage/usage.api'
+import type { AssetUsage, AssetWithUsage } from '#/account/usage/assetUsage.api'
+import { getOrgAssetUsage } from '#/account/usage/assetUsage.api'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
@@ -17,7 +17,6 @@ import { ROUTES } from '#/router/routerConstants'
 import { convertSecondsToMinutes } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
-import { UsageContext } from './useUsage.hook'
 
 type ButtonType = 'back' | 'forward'
 
@@ -32,7 +31,6 @@ const ProjectBreakdown = () => {
   const [order, setOrder] = useState({})
   const [showIntervalBanner, setShowIntervalBanner] = useState(true)
   const [loading, setLoading] = useState(true)
-  const [usage] = useContext(UsageContext)
   const orgQuery = useOrganizationQuery()
   const { billingPeriod } = useBillingPeriod()
 

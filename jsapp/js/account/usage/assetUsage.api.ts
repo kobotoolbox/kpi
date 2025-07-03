@@ -28,31 +28,7 @@ export interface AssetWithUsage {
   deployment_status: string
 }
 
-export interface UsageResponse {
-  current_period_start: string
-  current_period_end: string
-  total_submission_count: {
-    current_period: number
-    all_time: number
-  }
-  total_storage_bytes: number
-  total_nlp_usage: {
-    asr_seconds_current_period: number
-    mt_characters_current_period: number
-    asr_seconds_all_time: number
-    mt_characters_all_time: number
-  }
-}
-
-const ORG_SERVICE_USAGE_URL = '/api/v2/organizations/:organization_id/service_usage/'
 const ORG_ASSET_USAGE_URL = '/api/v2/organizations/:organization_id/asset_usage/'
-
-export async function getOrgServiceUsage(organization_id: string) {
-  return fetchGet<UsageResponse>(ORG_SERVICE_USAGE_URL.replace(':organization_id', organization_id), {
-    includeHeaders: true,
-    errorMessageDisplay: t('There was an error fetching usage data.'),
-  })
-}
 
 export async function getOrgAssetUsage(
   pageNumber: number | string,

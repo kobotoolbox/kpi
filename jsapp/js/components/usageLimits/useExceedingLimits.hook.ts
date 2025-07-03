@@ -4,7 +4,7 @@ import { when } from 'mobx'
 import { getAccountLimits } from '#/account/stripe.api'
 import { type SubscriptionInfo, UsageLimitTypes } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
-import { UsageContext } from '#/account/usage/useUsage.hook'
+import { useServiceUsageQuery } from '#/account/usage/useServiceUsageQuery'
 import { OneTimeAddOnsContext } from '#/account/useOneTimeAddonList.hook'
 import { ProductsContext } from '#/account/useProducts.hook'
 import { USAGE_WARNING_RATIO } from '#/constants'
@@ -24,7 +24,7 @@ function subscriptionReducer(state: SubscribedState, action: { prodData: any }) 
 
 export const useExceedingLimits = () => {
   const [state, dispatch] = useReducer(subscriptionReducer, initialState)
-  const [usage, _, usageStatus] = useContext(UsageContext)
+  const { data: usageData, isLoading: isLoadingUsage } = useServiceUsageQuery()
   const [productsContext] = useContext(ProductsContext)
   const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext)
 
@@ -85,7 +85,7 @@ export const useExceedingLimits = () => {
 
   // Check if usage is more than limit
   useEffect(() => {
-    if (usageStatus.error || usageStatus.pending || !areLimitsLoaded) {
+    if (isLoadingUsage || !usageData || !areLimitsLoaded) {
       return
     }
 
@@ -93,11 +93,11 @@ export const useExceedingLimits = () => {
     setExceedList(() => [])
     setWarningList(() => [])
 
-    isOverLimit(subscribedStorageLimit, usage.storage, UsageLimitTypes.STORAGE)
-    isOverLimit(subscribedSubmissionLimit, usage.submissions, UsageLimitTypes.SUBMISSION)
-    isOverLimit(subscribedTranscriptionMinutes, usage.transcriptionMinutes, UsageLimitTypes.TRANSCRIPTION)
-    isOverLimit(subscribedTranslationChars, usage.translationChars, UsageLimitTypes.TRANSLATION)
-  }, [usageStatus, areLimitsLoaded])
+    isOverLimit(subscribedStorageLimit, usageData.storage, UsageLimitTypes.STORAGE)
+    isOverLimit(subscribedSubmissionLimit, usageData.submissions, UsageLimitTypes.SUBMISSION)
+    isOverLimit(subscribedTranscriptionMinutes, usageData.transcriptionMinutes, UsageLimitTypes.TRANSCRIPTION)
+    isOverLimit(subscribedTranslationChars, usageData.translationChars, UsageLimitTypes.TRANSLATION)
+  }, [isLoadingUsage, usageData, areLimitsLoaded])
 
   return { exceedList, warningList }
 }
