@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react'
 
+import { LoadingOverlay } from '@mantine/core'
 import cx from 'classnames'
 import { when } from 'mobx'
 import { useLocation } from 'react-router-dom'
@@ -9,7 +10,6 @@ import { Limits, USAGE_TYPE } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
 import UsageContainer from '#/account/usage/usageContainer'
 import { YourPlan } from '#/account/usage/yourPlan.component'
-import LoadingSpinner from '#/components/common/loadingSpinner'
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
 import envStore from '#/envStore'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
@@ -50,7 +50,11 @@ export default function Usage() {
     stripeEnabled: false,
   })
 
-  const { data: usageData, isLoading: isUsageLoading } = useServiceUsageQuery()
+  const {
+    data: usageData,
+    isLoading: isUsageLoading,
+    isFetchedAfterMount: isUsageFetchedAfterMount,
+  } = useServiceUsageQuery()
   const { billingPeriod } = useBillingPeriod()
 
   const location = useLocation()
@@ -149,11 +153,12 @@ export default function Usage() {
 
   if (
     isUsageLoading ||
+    !isUsageFetchedAfterMount ||
     !usageData ||
     !limits.isLoaded ||
     (limits.stripeEnabled && (!products.isLoaded || !oneTimeAddOnsContext.isLoaded))
   ) {
-    return <LoadingSpinner />
+    return <LoadingOverlay visible={true} />
   }
 
   return (
