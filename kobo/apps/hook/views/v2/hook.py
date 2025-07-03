@@ -20,6 +20,8 @@ from kobo.apps.hook.serializers.v2.hook import HookSerializer
 from kobo.apps.hook.tasks import retry_all_task
 from kpi.permissions import AssetEditorSubmissionViewerPermission
 from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_201_created_response, \
+    open_api_200_ok_response
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -28,22 +30,32 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 )
 @extend_schema_view(
     create=extend_schema(
-        description=read_md('hook', 'hooks/create.md')
+        description=read_md('hook', 'hooks/create.md'),
+        responses=open_api_201_created_response(
+            HookSerializer,
+        )
     ),
     destroy=extend_schema(
         description=read_md('hook', 'hooks/delete.md')
     ),
     list=extend_schema(
-        description=read_md('hook', 'hooks/list.md')
+        description=read_md('hook', 'hooks/list.md'),
+        responses=open_api_200_ok_response(
+            HookSerializer,
+        )
     ),
     partial_update=extend_schema(
         description=read_md('hook', 'hooks/update.md')
     ),
     retrieve=extend_schema(
-        description=read_md('hook', 'hooks/retrieve.md')
+        description=read_md('hook', 'hooks/retrieve.md'),
+        responses=open_api_200_ok_response(
+            HookSerializer,
+        )
     ),
     retry=extend_schema(
-        description=read_md('hook', 'hooks/retry.md')
+        description=read_md('hook', 'hooks/retry.md'),
+        responses=open_api_200_ok_response()
     ),
     update=extend_schema(
         exclude=True,

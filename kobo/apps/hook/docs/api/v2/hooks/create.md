@@ -1,29 +1,6 @@
 ## Add an external service to asset.
 
-
-    > **Payload to create a new external service**
-    >
-    >        {
-    >           "name": {string},
-    >           "endpoint": {string},
-    >           "active": {boolean},
-    >           "email_notification": {boolean},
-    >           "export_type": {string},
-    >           "subset_fields": [{string}],
-    >           "auth_level": {string},
-    >           "settings": {
-    >               "username": {string},
-    >               "password": {string},
-    >               "custom_headers": {
-    >                   {string}: {string}
-    >                   ...
-    >                   {string}: {string}
-    >               }
-    >           },
-    >           "payload_template": {string}
-    >        }
-
-Where
+Where:
 
 * `name` and `endpoint` are required
 * `active` is True by default

@@ -4,6 +4,8 @@ from importlib import import_module
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
@@ -63,18 +65,21 @@ class Hook(AbstractTimeStampedModel):
         return getattr(mod, "ServiceDefinition")
 
     @property
+    @extend_schema_field(OpenApiTypes.INT)
     def success_count(self):
         if not self.__totals:
             self._get_totals()
         return self.__totals.get(HOOK_LOG_SUCCESS)
 
     @property
+    @extend_schema_field(OpenApiTypes.INT)
     def failed_count(self):
         if not self.__totals:
             self._get_totals()
         return self.__totals.get(HOOK_LOG_FAILED)
 
     @property
+    @extend_schema_field(OpenApiTypes.INT)
     def pending_count(self):
         if not self.__totals:
             self._get_totals()
