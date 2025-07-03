@@ -541,7 +541,12 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
 
 @extend_schema(
-    tags=['history'],
+    tags=['History'],
+)
+@extend_schema_view(
+    action=extend_schema(),
+    create=extend_schema(),
+    export=extend_schema(),
 )
 class ProjectHistoryLogViewSet(
     AuditLogViewSet, AssetNestedObjectViewsetMixin, NestedViewSetMixin
