@@ -9,7 +9,7 @@ class UrlField(serializers.SerializerMethodField):
     pass
 
 
-class SubsetFieldsField(serializers.ListField):
+class PendingUidsField(serializers.ListField):
     pass
 
 
@@ -17,5 +17,5 @@ class SettingsField(serializers.JSONField):
     pass
 
 
-class PendingUidsField(serializers.ListField):
+class SubsetFieldsField(serializers.ListField):
     pass

@@ -3,39 +3,34 @@ from importlib import import_module
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
-from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS
+from ..constants import HOOK_LOG_FAILED, HOOK_LOG_PENDING, HOOK_LOG_SUCCESS
 
 
 class Hook(AbstractTimeStampedModel):
 
     # Export types
-    XML = "xml"
-    JSON = "json"
+    XML = 'xml'
+    JSON = 'json'
 
     # Authentication levels
-    NO_AUTH = "no_auth"
-    BASIC_AUTH = "basic_auth"
+    NO_AUTH = 'no_auth'
+    BASIC_AUTH = 'basic_auth'
 
     # Export types list
-    EXPORT_TYPE_CHOICES = (
-        (XML, XML),
-        (JSON, JSON)
-    )
+    EXPORT_TYPE_CHOICES = ((XML, XML), (JSON, JSON))
 
     # Authentication levels list
-    AUTHENTICATION_LEVEL_CHOICES = (
-        (NO_AUTH, NO_AUTH),
-        (BASIC_AUTH, BASIC_AUTH)
-    )
+    AUTHENTICATION_LEVEL_CHOICES = ((NO_AUTH, NO_AUTH), (BASIC_AUTH, BASIC_AUTH))
 
-    asset = models.ForeignKey("kpi.Asset", related_name="hooks", on_delete=models.CASCADE)
-    uid = KpiUidField(uid_prefix="h")
+    asset = models.ForeignKey(
+        'kpi.Asset', related_name='hooks', on_delete=models.CASCADE
+    )
+    uid = KpiUidField(uid_prefix='h')
     name = models.CharField(max_length=255, blank=False)
     endpoint = models.CharField(max_length=500, blank=False)
     active = models.BooleanField(default=True)
@@ -51,18 +46,20 @@ class Hook(AbstractTimeStampedModel):
     payload_template = models.TextField(null=True, blank=True)
 
     class Meta:
-        ordering = ["name"]
+        ordering = ['name']
 
     def __init__(self, *args, **kwargs):
         self.__totals = {}
         super().__init__(*args, **kwargs)
 
     def __str__(self):
-        return "%s:%s - %s" % (self.asset, self.name, self.endpoint)
+        return '%s:%s - %s' % (self.asset, self.name, self.endpoint)
 
     def get_service_definition(self):
-        mod = import_module("kobo.apps.hook.services.service_{}".format(self.export_type))
-        return getattr(mod, "ServiceDefinition")
+        mod = import_module(
+            'kobo.apps.hook.services.service_{}'.format(self.export_type)
+        )
+        return getattr(mod, 'ServiceDefinition')
 
     @property
     @extend_schema_field(OpenApiTypes.INT)
@@ -87,17 +84,15 @@ class Hook(AbstractTimeStampedModel):
 
     def _get_totals(self):
         # TODO add some cache
-        queryset = self.logs.values("status").annotate(values_count=models.Count("status"))
+        queryset = self.logs.values('status').annotate(
+            values_count=models.Count('status')
+        )
         queryset.query.clear_ordering(True)
 
         # Initialize totals
-        self.__totals = {
-            HOOK_LOG_SUCCESS: 0,
-            HOOK_LOG_FAILED: 0,
-            HOOK_LOG_PENDING: 0
-        }
+        self.__totals = {HOOK_LOG_SUCCESS: 0, HOOK_LOG_FAILED: 0, HOOK_LOG_PENDING: 0}
         for record in queryset:
-            self.__totals[record.get("status")] = record.get("values_count")
+            self.__totals[record.get('status')] = record.get('values_count')
 
     def reset_totals(self):
         # TODO remove cache when it's enabled

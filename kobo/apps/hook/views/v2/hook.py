@@ -21,8 +21,11 @@ from kobo.apps.hook.serializers.v2.hook import HookSerializer
 from kobo.apps.hook.tasks import retry_all_task
 from kpi.permissions import AssetEditorSubmissionViewerPermission
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import open_api_201_created_response, \
-    open_api_200_ok_response, open_api_204_empty_response
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_201_created_response,
+    open_api_204_empty_response,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -36,7 +39,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             HookSerializer,
             require_auth=False,
             raise_access_forbidden=False,
-        )
+        ),
     ),
     destroy=extend_schema(
         description=read_md('hook', 'hooks/delete.md'),
@@ -44,7 +47,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     list=extend_schema(
         description=read_md('hook', 'hooks/list.md'),
@@ -53,7 +56,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     partial_update=extend_schema(
         description=read_md('hook', 'hooks/update.md'),
@@ -61,7 +64,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             HookSerializer,
             require_auth=False,
             raise_access_forbidden=False,
-        )
+        ),
     ),
     retrieve=extend_schema(
         description=read_md('hook', 'hooks/retrieve.md'),
@@ -70,7 +73,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     retry=extend_schema(
         description=read_md('hook', 'hooks/retry.md'),
@@ -80,11 +83,11 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     update=extend_schema(
         exclude=True,
-    )
+    ),
 )
 class HookViewSet(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedModelViewSet
@@ -119,7 +122,9 @@ class HookViewSet(
         ('object_id', 'asset.id'),
         'asset.owner.username',
     ]
-    renderer_classes = [JSONRenderer,]
+    renderer_classes = [
+        JSONRenderer,
+    ]
 
     def get_queryset(self):
         queryset = self.model.objects.filter(asset__uid=self.asset.uid)

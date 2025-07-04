@@ -6,8 +6,5 @@ from .fields import PendingUidsField
 
 HookRetryResponse = inline_serializer_class(
     name='HookRetryResponse',
-    fields={
-        'detail': serializers.CharField(),
-        'pending_uids': PendingUidsField()
-    },
+    fields={'detail': serializers.CharField(), 'pending_uids': PendingUidsField()},
 )

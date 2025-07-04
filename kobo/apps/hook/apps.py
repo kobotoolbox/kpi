@@ -11,4 +11,5 @@ class HookAppConfig(AppConfig):
         # the type was unknown and will return to default (string)) and seen as string
         # in the UI.
         from .schema_extensions.v2.hooks import extensions  # noqa F401
+
         super().ready()
