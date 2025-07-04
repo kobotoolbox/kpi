@@ -505,12 +505,18 @@ class AssetViewSet(
             permission_classes=[PostMappedToChangePermission])
     def deployment(self, request, uid):
         """
-        A GET request retrieves the existing deployment, if any.
-        A POST request creates a new deployment, but only if a deployment does
-            not exist already.
-        A PATCH request updates the `active` field of the existing deployment.
-        A PUT request overwrites the entire deployment, including the form
-            contents, but does not change the deployment's identifier
+            ViewSet for managing the current project's deployment
+
+            Available actions:
+            - list           → GET /api/v2/assets/{uid}/deployment/
+            - create         → POST /api/v2/assets/{uid}/deployment/
+            - patch          → PATCH /api/v2/assets/{uid}/deployment/
+
+        
+            Documentation:
+            - docs/api/v2/deployments/list.md
+            - docs/api/v2/deployments/create.md
+            - docs/api/v2/deployments/patch.md
         """
         asset = self.get_object()
         serializer_context = self.get_serializer_context()
