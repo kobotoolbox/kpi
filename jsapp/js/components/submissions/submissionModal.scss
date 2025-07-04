@@ -88,3 +88,29 @@
     color: colors.$kobo-blue;
   }
 }
+
+@media print {
+  .submission-modal-dropdowns,
+  .submission-modal-buttons,
+  .modal__x {
+    display: none;
+  }
+
+  .modal__body,
+  .modal__title {
+    padding: 10px;
+  }
+
+  .modal__header {
+    min-height: auto;
+  }
+
+  .modal,
+  .modal__content {
+    overflow: visible;
+  }
+
+  .submission-data-table__row.submission-data-table__row--column-names {
+    border: colors.$kobo-gray-300 1px solid;
+  }
+}

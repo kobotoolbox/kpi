@@ -54,3 +54,10 @@
 .detailsModalContent pre {
   margin: 0;
 }
+
+@media print {
+  .mainContainer,
+  .tableContainer {
+    overflow: visible;
+  }
+}

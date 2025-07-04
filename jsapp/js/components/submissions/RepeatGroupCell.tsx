@@ -17,10 +17,10 @@ export default function RepeatGroupCell(props: RepeatGroupCellProps) {
   return (
     <div className={styles.repeatGroupCell} dir='auto'>
       {repeatGroupAnswers.map((answer, i) => (
-        <>
+        <span key={i}>
           {i > 0 && ', '}
           {answer}
-        </>
+        </span>
       ))}
     </div>
   )
