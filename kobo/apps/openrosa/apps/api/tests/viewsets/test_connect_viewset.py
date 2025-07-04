@@ -1,9 +1,10 @@
 # coding: utf-8
-from django_digest.test import DigestAuth, BasicAuth
+from django_digest.test import BasicAuth, DigestAuth
 from rest_framework import authentication
 
-from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import \
-    TestAbstractViewSet
+from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
+    TestAbstractViewSet,
+)
 from kobo.apps.openrosa.apps.api.viewsets.connect_viewset import ConnectViewSet
 from kpi.authentication import DigestAuthentication
 
@@ -11,9 +12,11 @@ from kpi.authentication import DigestAuthentication
 class TestConnectViewSet(TestAbstractViewSet):
     def setUp(self):
         super().setUp()
-        self.view = ConnectViewSet.as_view({
-            "get": "list",
-        })
+        self.view = ConnectViewSet.as_view(
+            {
+                'get': 'list',
+            }
+        )
 
         # PostgreSQL behaves differently than SQLite. After each test, table is
         # truncated but PostgreSQL does not reset its sequences but SQLite does.
@@ -61,8 +64,7 @@ class TestConnectViewSet(TestAbstractViewSet):
 
         response = view(request)
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.data['detail'],
-                         "Invalid username/password")
+        self.assertEqual(response.data['detail'], 'Invalid username/password')
         auth = DigestAuth('bob', 'bobbob')
         request.META.update(auth(request.META, response))
         request.session = self.client.session
@@ -85,8 +87,7 @@ class TestConnectViewSet(TestAbstractViewSet):
 
         response = view(request)
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.data['detail'],
-                         "Invalid username/password.")
+        self.assertEqual(response.data['detail'], 'Invalid username/password.')
         auth = BasicAuth('bob', 'bobbob')
 
         # redo the request
