@@ -3,16 +3,16 @@ from django.conf import settings
 from django.contrib.auth.models import Permission
 from django_request_cache import cache_for_request
 
+from kobo.apps.openrosa.libs.constants import (
+    CAN_ADD_SUBMISSIONS,
+    CAN_CHANGE_XFORM,
+    CAN_DELETE_DATA_XFORM,
+    CAN_DELETE_XFORM,
+    CAN_VALIDATE_XFORM,
+    CAN_VIEW_XFORM,
+)
 from kobo.apps.openrosa.libs.utils.guardian import (
     get_users_with_perms as guardian_get_users_with_perms,
-)
-from kobo.apps.openrosa.libs.constants import (
-    CAN_VIEW_XFORM,
-    CAN_CHANGE_XFORM,
-    CAN_ADD_SUBMISSIONS,
-    CAN_DELETE_DATA_XFORM,
-    CAN_VALIDATE_XFORM,
-    CAN_DELETE_XFORM,
 )
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
@@ -40,6 +40,7 @@ XFORM_MODELS_NAMES = [
     'datadictionary',
 ]
 
+
 def assign_perm(perm, user, obj):
     if obj._meta.model_name in XFORM_MODELS_NAMES:
         obj = obj.asset  # XForms permissions are based on the asset's
@@ -66,9 +67,7 @@ def get_xform_ids_for_user(user, perm=CAN_VIEW_XFORM):
     XForm = apps.get_model('logger.xform')
     perm = KPI_PERMISSIONS_MAP[perm.replace('logger.', '')]
     # By default kpi.utils.object_permissions.get_objects_for_user works for Asset model
-    qs_assets = kpi_get_objects_for_user(
-        user, [perm]
-    )
+    qs_assets = kpi_get_objects_for_user(user, [perm])
     uids = [row[0] for row in qs_assets.values_list('uid')]
     xform_ids = [
         row[0] for row in XForm.objects.values_list('id').filter(kpi_asset_uid__in=uids)

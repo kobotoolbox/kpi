@@ -1,10 +1,11 @@
 import os
-import reversion
 import unittest
 
+import reversion
+
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.logger.models import XForm
+from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kpi.models.asset import Asset
 
 
@@ -12,7 +13,10 @@ class TestXForm(TestBase):
     def test_set_title_in_xml_unicode_error(self):
         xls_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "../..",  "fixtures", "tutorial", "tutorial_arabic_labels.xls"
+            '../..',
+            'fixtures',
+            'tutorial',
+            'tutorial_arabic_labels.xls',
         )
         self._publish_xls_file_and_set_xform(xls_file_path)
 
@@ -57,4 +61,4 @@ class TestXForm(TestBase):
         setattr(xform, '_cached_asset', None)
         assert xform.kpi_asset_uid is None
         assert xform.asset.pk is None
-        assert xform.asset.uid == None # It'll be auto-generated if asset is saved
+        assert xform.asset.uid == None  # It'll be auto-generated if asset is saved

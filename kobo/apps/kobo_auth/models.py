@@ -6,8 +6,8 @@ from kobo.apps.openrosa.libs.constants import (
     OPENROSA_APP_LABELS,
 )
 from kobo.apps.openrosa.libs.permissions import (
-    XFORM_MODELS_NAMES,
     KPI_PERMISSIONS_MAP,
+    XFORM_MODELS_NAMES,
     get_model_permission_codenames,
 )
 from kobo.apps.organizations.models import Organization, create_organization
