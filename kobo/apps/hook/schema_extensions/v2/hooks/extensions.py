@@ -51,3 +51,12 @@ class SettingsFieldExtension(OpenApiSerializerFieldExtension):
                 )
             }
         )
+
+
+class PendingUidsFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kobo.apps.hook.schema_extensions.v2.hooks.fields.PendingUidsField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_array_type(
+            schema=build_basic_type(OpenApiTypes.STR)
+        )

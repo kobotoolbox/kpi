@@ -16,6 +16,7 @@ from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.hook.constants import HOOK_LOG_FAILED, HOOK_LOG_PENDING
 from kobo.apps.hook.models import Hook, HookLog
+from kobo.apps.hook.schema_extensions.v2.hooks.serializers import HookRetryResponse
 from kobo.apps.hook.serializers.v2.hook import HookSerializer
 from kobo.apps.hook.tasks import retry_all_task
 from kpi.permissions import AssetEditorSubmissionViewerPermission
@@ -45,7 +46,12 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         )
     ),
     partial_update=extend_schema(
-        description=read_md('hook', 'hooks/update.md')
+        description=read_md('hook', 'hooks/update.md'),
+        responses=open_api_200_ok_response(
+            HookSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
+        )
     ),
     retrieve=extend_schema(
         description=read_md('hook', 'hooks/retrieve.md'),
@@ -55,7 +61,10 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     ),
     retry=extend_schema(
         description=read_md('hook', 'hooks/retry.md'),
-        responses=open_api_200_ok_response()
+        request=None,
+        responses=open_api_200_ok_response(
+            HookRetryResponse
+        )
     ),
     update=extend_schema(
         exclude=True,

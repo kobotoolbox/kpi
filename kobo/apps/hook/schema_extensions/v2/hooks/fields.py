@@ -15,3 +15,7 @@ class SubsetFieldsField(serializers.ListField):
 
 class SettingsField(serializers.JSONField):
     pass
+
+
+class PendingUidsField(serializers.ListField):
+    pass
