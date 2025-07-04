@@ -25,7 +25,6 @@ class TestConnectViewSet(TestAbstractViewSet):
             'id': user_profile_data['id'],
             'username': user_profile_data['username'],
             'name': user_profile_data['name'],
-            'email': user_profile_data['email'],
             'city': user_profile_data['city'],
             'country': user_profile_data['country'],
             'organization': user_profile_data['organization'],
