@@ -100,6 +100,11 @@ class XFormPermissions(ObjectPermissionsWithViewRestricted):
         if request.method in SAFE_METHODS and view.action == 'retrieve':
             if obj.shared:
                 return True
+        if request.method == 'POST':
+            post_view = getattr(view, 'post', object)
+            url_name = getattr(post_view, 'url_name', None)
+            if url_name == 'labels':
+                return request.user.has_perm(CAN_CHANGE_XFORM, obj)
 
         return super().has_object_permission(request, view, obj)
 
