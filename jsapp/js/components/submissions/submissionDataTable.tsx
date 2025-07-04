@@ -233,7 +233,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
           <Group>
             <AudioPlayer mediaURL={attachment?.download_url} />
 
-            <span className='print-only'>{ attachmentShortFilename }</span>
+            <span className='print-only'>{attachmentShortFilename}</span>
 
             {shouldProcessingBeAccessible(this.props.submissionData, attachment) && (
               <Button
@@ -253,16 +253,16 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
             <a href={attachment.download_url} target='_blank'>
               <img src={attachment.download_medium_url} />
             </a>
-            <span className='print-only'>{ attachmentShortFilename }</span>
+            <span className='print-only'>{attachmentShortFilename}</span>
           </>
         )}
 
-        {type === QUESTION_TYPES.video.id &&
+        {type === QUESTION_TYPES.video.id && (
           <>
             <video src={attachment.download_url} controls />
-            <span className='print-only'>{ attachmentShortFilename }</span>
+            <span className='print-only'>{attachmentShortFilename}</span>
           </>
-        }
+        )}
 
         {type === QUESTION_TYPES.file.id && (
           <a href={attachment.download_url} target='_blank'>
