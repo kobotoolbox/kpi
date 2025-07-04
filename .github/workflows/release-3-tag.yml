@@ -60,11 +60,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Bump Kobotoolbox version in devops repo
-      run: |
-        echo 'TODO, lets test this later with a real release branch'
-        echo 'see for example https://github.com/kobotoolbox/devops/commit/85b20e38f808257abb9d43ea5b6c8813cf64d504'
-
     - name: Bump Kobotoolbox version in kobo-docker repo and tag it
       run: |
         echo 'TODO, lets test this later with a real release branch'
