@@ -387,35 +387,6 @@ class AssetViewSet(
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/
 
-    ### Deployment
-
-    Retrieves the existing deployment, if any.
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/{uid}/deployment/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/deployment/
-
-    Creates a new deployment, but only if a deployment does not exist already.
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/assets/{uid}/deployment/
-    </pre>
-
-    > Example
-    >
-    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/deployment/
-
-    Updates the `active` field of the existing deployment.
-    <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/assets/{uid}/deployment/
-    </pre>
-
-    > Example
-    >
-    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/deployment/
-
     Overwrites the entire deployment, including the form contents, but does not change the deployment's identifier
     <pre class="prettyprint">
     <b>PUT</b> /api/v2/assets/{uid}/deployment/
@@ -496,6 +467,23 @@ class AssetViewSet(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
 
+    @extend_schema(
+        methods=["GET"],
+        description=read_md('kpi', 'deployments/list.md'),
+        responses=None,
+    )
+    @extend_schema(
+        methods=["POST"],
+        description=read_md('kpi', 'deployments/create.md'),
+        request=None,
+        responses=None,
+    )
+    @extend_schema(
+        methods=["PATCH"],
+        description=read_md('kpi', 'deployments/update.md'),
+        request=None,
+        responses=None
+    )
     @action(detail=True,
             methods=['get', 'post', 'patch'],
             permission_classes=[PostMappedToChangePermission])
