@@ -2,6 +2,7 @@ from django.db import transaction
 from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
+from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -33,7 +34,6 @@ from .permissions import (
     OrgMembershipCreateOrDeleteInvitePermission,
     OrgMembershipInvitePermission,
 )
-from .renderers import OnlyGetBrowsableAPIRenderer
 from .serializers import (
     OrganizationSerializer,
     OrganizationUserSerializer,
@@ -80,6 +80,9 @@ class OrganizationAssetViewSet(AssetViewSet):
             raise NotImplementedError
 
 
+@extend_schema(
+    tags=['organizations'],
+)
 class OrganizationViewSet(viewsets.ModelViewSet):
     """
     Organizations are groups of users with assigned permissions and configurations
@@ -284,6 +287,9 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
 
+@extend_schema(
+    tags=['members'],
+)
 class OrganizationMemberViewSet(viewsets.ModelViewSet):
     """
     The API uses `ModelViewSet` instead of `NestedViewSetMixin` to maintain
@@ -561,6 +567,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             super().perform_destroy(member)
 
 
+@extend_schema(
+    tags=['invites'],
+)
 class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     """
     ### List Organization Invites
@@ -715,10 +724,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     serializer_class = OrgMembershipInviteSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     lookup_field = 'guid'
-    renderer_classes = [
-        JSONRenderer,
-        OnlyGetBrowsableAPIRenderer,
-    ]
+    renderer_classes = (JSONRenderer,)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
