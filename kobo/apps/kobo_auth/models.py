@@ -6,6 +6,7 @@ from kobo.apps.openrosa.libs.constants import (
     OPENROSA_APP_LABELS,
 )
 from kobo.apps.openrosa.libs.permissions import (
+    XFORM_MODELS_NAMES,
     KPI_PERMISSIONS_MAP,
     get_model_permission_codenames,
 )
@@ -28,7 +29,7 @@ class User(AbstractUser):
         # - `perm` belongs to KoboCAT permission codenames
         if obj:
             # Deprecating kobocat permissions. For now we redirect to asset permissions
-            if obj._meta.model_name == 'xform':
+            if obj._meta.model_name in XFORM_MODELS_NAMES:
                 asset_perm = KPI_PERMISSIONS_MAP.get(perm.replace('logger.', ''))
                 if asset_perm is not None:
                     return self.has_perm(asset_perm, obj.asset)
