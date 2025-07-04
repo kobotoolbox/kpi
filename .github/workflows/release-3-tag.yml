@@ -71,6 +71,24 @@ jobs:
         echo 'see for example https://github.com/kobotoolbox/kobo-install/commit/90f63c477480c1f6771c3e9ff2295046b2d99dae'
 
 
+  queue-deploy-to-production:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: create Linear issue to deploy on Global
+      run: |
+        echo 'TODO, for now do it manually'
+
+    - name: create Linear issue to deploy on EU a day later
+      run: |
+        echo 'TODO, for now do it manually'
+
+    - name: create Linear issue to deploy on private servers a week later
+      run: |
+        echo 'TODO, for now do it manually'
+
+
   notify:
     runs-on: ubuntu-24.04
     steps:
