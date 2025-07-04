@@ -47,6 +47,14 @@ jobs:
         content: ":rocket: ${{ github.event.inputs.tag }} deployed!"
 
 
+  notify:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: notify on Zulip
+      run: |
+        echo 'TODO, for now do it manually'
+
+
   on-failure:
     runs-on: ubuntu-22.04
     needs:

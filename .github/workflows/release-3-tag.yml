@@ -71,6 +71,14 @@ jobs:
         echo 'see for example https://github.com/kobotoolbox/kobo-install/commit/90f63c477480c1f6771c3e9ff2295046b2d99dae'
 
 
+  notify:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: notify on Zulip
+      run: |
+        echo 'TODO, for now do it manually'
+
+
   on-failure:
     runs-on: ubuntu-22.04
     needs:

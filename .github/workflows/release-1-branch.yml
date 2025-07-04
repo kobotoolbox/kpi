@@ -45,10 +45,19 @@ jobs:
       run: |
         echo 'TODO, for now do it manually'
 
+
   changelog:
     runs-on: ubuntu-24.04
     steps:
     - name: create Linear ticket to track a draft of changelog
+      run: |
+        echo 'TODO, for now do it manually'
+
+
+  notify:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: notify on Zulip
       run: |
         echo 'TODO, for now do it manually'
 
