@@ -45,7 +45,7 @@ class ObjectPermissionsFilter(BaseFilterBackend):
             return org_admin_queryset
 
         if queryset.model == XForm:
-            xform_ids = get_xform_ids_for_user(user)
+            xform_ids = get_xform_ids_for_user(user, perm=permission)
             return queryset.filter(id__in=xform_ids)
 
         # TODO: Should this fail?
