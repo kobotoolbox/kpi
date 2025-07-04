@@ -22,7 +22,7 @@ from kobo.apps.hook.tasks import retry_all_task
 from kpi.permissions import AssetEditorSubmissionViewerPermission
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_201_created_response, \
-    open_api_200_ok_response
+    open_api_200_ok_response, open_api_204_empty_response
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -34,15 +34,25 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         description=read_md('hook', 'hooks/create.md'),
         responses=open_api_201_created_response(
             HookSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
         )
     ),
     destroy=extend_schema(
-        description=read_md('hook', 'hooks/delete.md')
+        description=read_md('hook', 'hooks/delete.md'),
+        responses=open_api_204_empty_response(
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        )
     ),
     list=extend_schema(
         description=read_md('hook', 'hooks/list.md'),
         responses=open_api_200_ok_response(
             HookSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
     partial_update=extend_schema(
@@ -57,13 +67,19 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         description=read_md('hook', 'hooks/retrieve.md'),
         responses=open_api_200_ok_response(
             HookSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
     retry=extend_schema(
         description=read_md('hook', 'hooks/retry.md'),
         request=None,
         responses=open_api_200_ok_response(
-            HookRetryResponse
+            HookRetryResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
     update=extend_schema(
