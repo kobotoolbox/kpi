@@ -90,7 +90,21 @@ class HookViewSet(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedModelViewSet
 ):
     """
+    Available actions:
+    - create        → POST      /api/v2/asset/{parent_lookup_asset}/hooks/
+    - list          → GET       /api/v2/asset/{parent_lookup_asset}/hooks/
+    - delete        → DELETE    /api/v2/asset/{parent_lookup_asset}/hooks/{uid}/
+    - retrieve      → GET       /api/v2/asset/{parent_lookup_asset}/hooks/{uid}/
+    - update        → POST      /api/v2/asset/{parent_lookup_asset}/hooks/{uid}/
+    - retry         → POST      /api/v2/asset/{parent_lookup_asset}/hooks/{uid}/retry/
 
+    Documentation:
+    - docs/api/v2/hooks/create.md
+    - docs/api/v2/hooks/list.md
+    - docs/api/v2/hooks/delete.md
+    - docs/api/v2/hooks/retrieve.md
+    - docs/api/v2/hooks/update.md
+    - docs/api/v2/hooks/retry.md
     """
 
     model = Hook
