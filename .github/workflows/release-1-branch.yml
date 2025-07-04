@@ -8,7 +8,7 @@ on:
     # - In the best case, will QA, tag and deploy on the same Tuesday or Wednesday.
     # - In an ok case, will QA, tag and deploy on the next Monday-Wednesday.
     # - In the worst case, the last chance is to deploy on after-next Monday.
-    - cron: '17 0 * * 2'
+    - cron: '17 5 * * 2'
 
 jobs:
 
