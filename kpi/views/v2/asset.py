@@ -55,6 +55,11 @@ from kpi.schema_extensions.v2.assets.serializers import (
     AssetReportResponse,
     AssetValidContentResponse,
 )
+from kpi.schema_extensions.v2.deployments.serializers import (
+    DeploymentResponse,
+    DeploymentPatchRequest,
+    DeploymentCreateRequest,
+)
 from kpi.serializers.v2.asset import (
     AssetBulkActionsSerializer,
     AssetListSerializer,
@@ -470,19 +475,25 @@ class AssetViewSet(
     @extend_schema(
         methods=["GET"],
         description=read_md('kpi', 'deployments/list.md'),
-        responses=None,
+        responses=open_api_200_ok_response(
+            DeploymentResponse,
+        ),
     )
     @extend_schema(
         methods=["POST"],
         description=read_md('kpi', 'deployments/create.md'),
-        request=None,
-        responses=None,
+        request={'application/json': DeploymentCreateRequest},
+        responses=open_api_200_ok_response(
+            DeploymentResponse,
+        ),
     )
     @extend_schema(
         methods=["PATCH"],
         description=read_md('kpi', 'deployments/update.md'),
-        request=None,
-        responses=None
+        request={'application/json': DeploymentPatchRequest},
+        responses=open_api_200_ok_response(
+            DeploymentResponse,
+        ),
     )
     @action(detail=True,
             methods=['get', 'post', 'patch'],
