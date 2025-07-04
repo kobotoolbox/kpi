@@ -109,6 +109,12 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
     const uid = this.props.params.assetid || this.props.params.uid
 
     stores.allAssets.whenLoaded(uid, (asset: AssetResponse) => {
+      // TODO: check if current asset version is the latest deployed version.
+      //       See `isCurrentVersionDeployed` at `formLanding.js`.
+      // TODO: if not, fetch the latest deployed version content and work with that content instead.
+      //       See `GET /api/v2/assets/{asset_uid}/versions/{version_uid}/`.
+      //       Note that nowhere in FE we are fetching nor using that endpoint.
+
       const rowsByKuid: { [kuid: string]: SurveyRow } = {}
       const rowsByIdentifier: { [identifier: string]: SurveyRow } = {}
       let groupBy = ''
