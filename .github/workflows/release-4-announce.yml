@@ -58,18 +58,6 @@ jobs:
         echo 'TODO, for now do it manually'
 
 
-  privates:
-    runs-on: ubuntu-22.04
-    needs:
-      - kpi
-      - kobo-docker
-      - kobo-install
-    steps:
-    - name: make a task for deployment to private servers
-      run: |
-        echo 'TODO, for now do it manually'
-
-
   notify:
     runs-on: ubuntu-24.04
     steps:
@@ -86,15 +74,13 @@ jobs:
       - kobo-docker
       - kobo-install
       - forums
-      - privates
     if: |
       failure() &&
       (needs.changelog.result == 'failure' || needs.changelog.result == 'timed_out' ||
       needs.kpi.result == 'failure' || needs.kpi.result == 'timed_out' ||
       needs.kobo-docker.result == 'failure' || needs.kobo-docker.result == 'timed_out' ||
       needs.kobo-install.result == 'failure' || needs.kobo-install.result == 'timed_out' ||
-      needs.forums.result == 'failure' || needs.forums.result == 'timed_out' ||
-      needs.privates.result == 'failure' || needs.privates.result == 'timed_out')
+      needs.forums.result == 'failure' || needs.forums.result == 'timed_out')
     steps:
 
     - name: Send a stream message
