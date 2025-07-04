@@ -121,3 +121,9 @@
     display: none;
   }
 }
+
+@media print {
+  .hide-on-print {
+    display: none !important;
+  }
+}

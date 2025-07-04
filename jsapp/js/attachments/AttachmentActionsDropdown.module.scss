@@ -1,3 +1,9 @@
 .attachmentActionsDropdown {
   align-self: flex-start;
 }
+
+@media print {
+  .attachmentActionsDropdown {
+    display: none;
+  }
+}
