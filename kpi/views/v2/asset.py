@@ -56,9 +56,9 @@ from kpi.schema_extensions.v2.assets.serializers import (
     AssetValidContentResponse,
 )
 from kpi.schema_extensions.v2.deployments.serializers import (
-    DeploymentResponse,
-    DeploymentPatchRequest,
     DeploymentCreateRequest,
+    DeploymentPatchRequest,
+    DeploymentResponse,
 )
 from kpi.serializers.v2.asset import (
     AssetBulkActionsSerializer,
@@ -473,7 +473,7 @@ class AssetViewSet(
         )
 
     @extend_schema(
-        methods=["GET"],
+        methods=['GET'],
         description=read_md('kpi', 'deployments/list.md'),
         responses=open_api_200_ok_response(
             DeploymentResponse,
@@ -483,18 +483,18 @@ class AssetViewSet(
         ),
     )
     @extend_schema(
-        methods=["POST"],
-        description=read_md('kpi', 'deployments/create.md'),
-        request={'application/json': DeploymentCreateRequest},
+        methods=['PATCH'],
+        description=read_md('kpi', 'deployments/update.md'),
+        request={'application/json': DeploymentPatchRequest},
         responses=open_api_200_ok_response(
             DeploymentResponse,
             raise_access_forbidden=False,
         ),
     )
     @extend_schema(
-        methods=["PATCH"],
-        description=read_md('kpi', 'deployments/update.md'),
-        request={'application/json': DeploymentPatchRequest},
+        methods=['POST'],
+        description=read_md('kpi', 'deployments/create.md'),
+        request={'application/json': DeploymentCreateRequest},
         responses=open_api_200_ok_response(
             DeploymentResponse,
             raise_access_forbidden=False,
@@ -505,18 +505,17 @@ class AssetViewSet(
             permission_classes=[PostMappedToChangePermission])
     def deployment(self, request, uid):
         """
-            ViewSet for managing the current project's deployment
+        ViewSet for managing the current project's deployment
 
-            Available actions:
-            - list           → GET /api/v2/assets/{uid}/deployment/
-            - create         → POST /api/v2/assets/{uid}/deployment/
-            - patch          → PATCH /api/v2/assets/{uid}/deployment/
+        Available actions:
+        - list           → GET /api/v2/assets/{uid}/deployment/
+        - create         → POST /api/v2/assets/{uid}/deployment/
+        - patch          → PATCH /api/v2/assets/{uid}/deployment/
 
-        
-            Documentation:
-            - docs/api/v2/deployments/list.md
-            - docs/api/v2/deployments/create.md
-            - docs/api/v2/deployments/patch.md
+        Documentation:
+        - docs/api/v2/deployments/list.md
+        - docs/api/v2/deployments/create.md
+        - docs/api/v2/deployments/patch.md
         """
         asset = self.get_object()
         serializer_context = self.get_serializer_context()
