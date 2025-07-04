@@ -72,10 +72,6 @@ class NoteViewSet(OpenRosaModelViewSet):
     # has been moved to the note serializer
     def perform_create(self, serializer):
         obj = serializer.save(user=self.request.user)
-        assign_perm('add_note', self.request.user, obj)
-        assign_perm('change_note', self.request.user, obj)
-        assign_perm('delete_note', self.request.user, obj)
-        assign_perm('view_note', self.request.user, obj)
         # make sure parsed_instance saves to mongo db
         obj.instance.parsed_instance.save()
 

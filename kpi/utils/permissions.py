@@ -21,8 +21,9 @@ def grant_default_model_level_perms(user):
     object-level permissions are never considered.
     """
     from kpi.models import Asset
+    from kobo.apps.openrosa.apps.logger.models.xform import XForm
 
-    grant_all_model_level_perms(user, models_or_content_types=[Asset])
+    grant_all_model_level_perms(user, models_or_content_types=[Asset, XForm])
 
 
 def grant_all_model_level_perms(
