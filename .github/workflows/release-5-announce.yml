@@ -7,18 +7,19 @@ on: workflow_dispatch
 jobs:
 
 
-  notes:
-    runs-on: ubuntu-22.04
+  changelog:
+    runs-on: ubuntu-24.04
     steps:
-    - name: generate release notes
+    - name: update Linear ticket to track a draft of changelog
       run: |
-        echo 'TODO, for now write release notes manually'
-
+        echo 'TODO, for now find the ticket manually'
+        echo 'TODO, for now generate changelog manually'
+        echo 'TODO, for now update the ticket manually'
 
   kpi:
     runs-on: ubuntu-22.04
     needs:
-      - notes
+      - changelog
     steps:
     - name: make a Github release for kpi
       run: |
@@ -28,7 +29,7 @@ jobs:
   kobo-docker:
     runs-on: ubuntu-22.04
     needs:
-      - notes
+      - changelog
     steps:
     - name: make a Github release for kobo-docker
       run: |
@@ -38,7 +39,7 @@ jobs:
   kobo-install:
     runs-on: ubuntu-22.04
     needs:
-      - notes
+      - changelog
     steps:
     - name: make a Github release for kobo-install
       run: |
@@ -52,7 +53,7 @@ jobs:
       - kobo-docker
       - kobo-install
     steps:
-    - name: undraft releases notes on forums
+    - name: undraft releases changelog on forums
       run: |
         echo 'TODO, for now do it manually'
 
@@ -72,7 +73,7 @@ jobs:
   on-failure:
     runs-on: ubuntu-22.04
     needs:
-      - notes
+      - changelog
       - kpi
       - kobo-docker
       - kobo-install
@@ -80,7 +81,7 @@ jobs:
       - privates
     if: |
       failure() &&
-      (needs.notes.result == 'failure' || needs.notes.result == 'timed_out' ||
+      (needs.changelog.result == 'failure' || needs.changelog.result == 'timed_out' ||
       needs.kpi.result == 'failure' || needs.kpi.result == 'timed_out' ||
       needs.kobo-docker.result == 'failure' || needs.kobo-docker.result == 'timed_out' ||
       needs.kobo-install.result == 'failure' || needs.kobo-install.result == 'timed_out' ||

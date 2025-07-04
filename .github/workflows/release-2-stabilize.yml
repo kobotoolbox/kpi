@@ -35,6 +35,15 @@ jobs:
     if: needs.changes.outputs.npm-test == 'true'
     uses: ./.github/workflows/npm-test.yml
 
+  changelog:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: update Linear ticket to track a draft of changelog
+      run: |
+        echo 'TODO, for now find the ticket manually'
+        echo 'TODO, for now generate changelog manually'
+        echo 'TODO, for now update the ticket manually'
+
   deploy-to-beta:
     runs-on: ubuntu-22.04
     needs:
@@ -61,12 +70,14 @@ jobs:
       - darker
       - pytest
       - npm-test
+      - changelog
       - deploy-to-beta
     if: |
       !failure() &&
       (needs.darker.result == 'skipped' || needs.darker.result == 'success') &&
       (needs.pytest.result == 'skipped' || needs.pytest.result == 'success') &&
       (needs.npm-test.result == 'skipped' || needs.npm-test.result == 'success') &&
+      (needs.changelog.result == 'skipped' || needs.changelog.result == 'success') &&
       needs.deploy-to-beta.result == 'success'
     steps:
     - uses: actions/checkout@v4
