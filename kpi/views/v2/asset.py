@@ -477,6 +477,9 @@ class AssetViewSet(
         description=read_md('kpi', 'deployments/list.md'),
         responses=open_api_200_ok_response(
             DeploymentResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         ),
     )
     @extend_schema(
@@ -485,6 +488,7 @@ class AssetViewSet(
         request={'application/json': DeploymentCreateRequest},
         responses=open_api_200_ok_response(
             DeploymentResponse,
+            raise_access_forbidden=False,
         ),
     )
     @extend_schema(
@@ -493,6 +497,7 @@ class AssetViewSet(
         request={'application/json': DeploymentPatchRequest},
         responses=open_api_200_ok_response(
             DeploymentResponse,
+            raise_access_forbidden=False,
         ),
     )
     @action(detail=True,

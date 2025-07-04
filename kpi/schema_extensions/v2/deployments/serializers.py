@@ -5,7 +5,7 @@ from kpi.utils.schema_extensions.serializers import inline_serializer_class
 
 
 DeploymentCreateRequest = inline_serializer_class(
-    name='DeploymentResponse',
+    name='DeploymentCreateRequest',
     fields={
         'active': serializers.BooleanField(),
     },
@@ -22,7 +22,7 @@ DeploymentResponse = inline_serializer_class(
 )
 
 DeploymentPatchRequest = inline_serializer_class(
-    name='DeploymentResponse',
+    name='DeploymentPatchRequest',
     fields={
         'active': serializers.BooleanField(),
         'version_id': serializers.CharField(),
