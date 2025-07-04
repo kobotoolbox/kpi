@@ -7,7 +7,7 @@ on:
 jobs:
   get-commit-title:
     name: Get latest 'main' commit info
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       title: ${{ steps.get-head-commit-title.outputs.title }}
       sha: ${{ steps.get-head-commit-sha.outputs.sha }}
@@ -27,7 +27,7 @@ jobs:
 
   check-date:
     name: Check latest 'main' commit date
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       should-run: ${{ steps.should-run.outputs.should-run }}
     steps:
@@ -44,7 +44,7 @@ jobs:
 
   chromatic:
     name: Run Chromatic test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: check-date
     if: ${{ needs.check-date.outputs.should-run != 'false' }}
     outputs:
@@ -79,7 +79,7 @@ jobs:
           buildScriptName: build:storybook
 
   on-failure:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - chromatic
       - get-commit-title
