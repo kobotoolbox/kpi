@@ -16,14 +16,10 @@ on:
 jobs:
   linear:
     runs-on: ubuntu-22.04
-    env:
-      TEAM: ea750a9d-5a92-4fe2-a494-55fa114ba0dd
-      TITLE: ${{ inputs.title }}
-      DESCRIPTION: ${{ inputs.description }}
     steps:
 
     - name: create a linear issue
-      uses: seripap/gh-linear-action@v1.0.3
+      uses: Akuukis/gh-linear-action@04dc4023e7ce2a0452e4c12598500cb3daddacc9
       with:
         linear-key: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
         linear-team-id: ea750a9d-5a92-4fe2-a494-55fa114ba0dd
