@@ -3,6 +3,11 @@
 # If any file changed matches any of the filters in a list, the output for that
 # list is set to the string 'true'.
 
+all:
+  - '.github/filters.yml'          # ci
+  - '.github/workflows/ci-*.yml'   # ci
+  - '.github/workflows/zulip.yml'  # ci
+
 darker:
   - '{kpi,kobo,hub}/**/*.py'       # .py
   - 'pyproject.toml'               # rules
@@ -20,4 +25,4 @@ npm-test:
   - '{tsconfig.json,.swcrc,.babelrc*,.browserslistrc}'                        # compilers
   - '{.editorconfig,.stylelint*,.eslint*,coffeelint*,biome.jsonc}'            # linters
   - '.gitignore'                                                              # (can affect tools)
-  - '.github/workflows/npm-test.yml'                                          # ci
+  - '.github/workflows/{npm-test,chromatic}.yml'                              # ci
