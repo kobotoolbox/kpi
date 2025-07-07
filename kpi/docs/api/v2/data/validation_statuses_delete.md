@@ -7,20 +7,22 @@
 **Payload**
 ```json
 {
-  "submission_ids": [
-    1,
-    2
-  ],
-  "validation_status.uid": "validation_status"
+  "payload": {
+    "submission_ids": [
+        1,
+        2
+      ],
+    "validation_status.uid": "validation_status"
+  }
 }
 ```
 * Where: "submissions_ids" (required) is a list of submission root id on the data
 to delete
-* Where: "validation_status.uid" (required)  is a string and can be one of these values:
-  * `validation_status_approved`
-  * `validation_status_not_approved`
-  * `validation_status_on_hold`
 
+The validation status of the submission can be updated. The `validation_status.uid` should be a `string`, and it must be one of the following values:
+- `validation_status_approved`
+- `validation_status_not_approved`
+- `validation_status_on_hold`
 
 **Response**
 ```json
