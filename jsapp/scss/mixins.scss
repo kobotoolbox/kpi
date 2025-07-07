@@ -39,6 +39,12 @@
   text-overflow: ellipsis;
 }
 
+@mixin undoTextEllipsis() {
+  overflow: visible;
+  white-space: wrap;
+  overflow-wrap: break-word;
+}
+
 // Use this for dropdowns and menus
 @mixin floatingRoundedBox() {
   background-color: colors.$kobo-white;
