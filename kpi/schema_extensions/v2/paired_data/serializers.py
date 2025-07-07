@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
+    DataField,
     FieldFields,
     SourceField,
     SourceNameField,
@@ -13,6 +14,15 @@ from kpi.constants import (
 )
 
 from kpi.models import Asset
+
+
+ExternalResponse = inline_serializer_class(
+    name='ExternalResponse',
+    fields={
+        'root': DataField(),
+    },
+)
+
 
 PairedDataResponse = inline_serializer_class(
     name='PairedDataResponse',

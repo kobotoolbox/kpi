@@ -5,6 +5,10 @@ from kpi.fields import (
 )
 
 
+class DataField(serializers.ListField):
+    pass
+
+
 class FieldFields(serializers.ListField):
     pass
 

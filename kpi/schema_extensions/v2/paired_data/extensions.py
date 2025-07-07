@@ -12,6 +12,26 @@ from drf_spectacular.types import OpenApiTypes
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
+class DataFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.paired_data.fields.DataField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'data': build_array_type(
+                    schema=build_object_type(
+                        properties={
+                            'id': build_basic_type(OpenApiTypes.STR),
+                            'version': build_basic_type(OpenApiTypes.STR),
+                            'field_value_1': build_basic_type(OpenApiTypes.STR),
+                            'field_value_2': build_basic_type(OpenApiTypes.STR),
+                        }
+                    )
+                )
+            }
+        )
+
+
 class FieldFieldsExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.paired_data.fields.FieldFields'
 
