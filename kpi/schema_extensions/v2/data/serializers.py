@@ -6,7 +6,7 @@ from .fields import (
     DataBulkDeleteField,
     DataBulkUpdateField,
     DataBulkUpdateResultField,
-    DataValidationStatusesPayloadField,
+    DataValidationPayloadField,
     EmptyListField,
     EmptyObjectField,
 )
@@ -88,7 +88,6 @@ DataValidationStatusUpdateResponse = inline_serializer_class(
 DataValidationStatusesUpdatePayload = inline_serializer_class(
     name='DataValidationStatusesUpdatePayload',
     fields={
-        'submission_ids': DataValidationStatusesPayloadField(),
-        'validation_status.uid': serializers.CharField(),
-    },
+        'payload': DataValidationPayloadField(),
+    }
 )
