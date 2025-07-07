@@ -28,7 +28,7 @@ jobs:
         echo 'TODO, for now generate changelog manually'
 
   kpi:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - changelog
     steps:
@@ -38,7 +38,7 @@ jobs:
 
 
   kobo-docker:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - changelog
     steps:
@@ -48,7 +48,7 @@ jobs:
 
 
   kobo-install:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - changelog
     steps:

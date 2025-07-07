@@ -7,7 +7,7 @@ on:
 jobs:
 
   changes:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions: { pull-requests: read }
     steps:
       - uses: actions/checkout@v4
@@ -58,7 +58,7 @@ jobs:
         echo 'TODO, for now send to Zulip manually'
 
   deploy-to-beta:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - darker
       - pytest
@@ -78,7 +78,7 @@ jobs:
         git push -f
 
   merge:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - darker
       - pytest

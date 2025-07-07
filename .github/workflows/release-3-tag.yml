@@ -33,7 +33,7 @@ jobs:
         echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
   deploy-to-master:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - darker
       - pytest
@@ -60,7 +60,7 @@ jobs:
         # fab dev_deploy:master,kpi,$GITHUB_REF
 
   bump:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - darker
       - pytest
@@ -86,7 +86,7 @@ jobs:
 
 
   queue-deploy-to-production:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
 
