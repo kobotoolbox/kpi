@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.http import Http404
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import renderers
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -18,158 +18,42 @@ from kpi.permissions import AssetEditorPermission, XMLExternalDataPermission
 from kpi.renderers import SubmissionXMLRenderer
 from kpi.serializers.v2.paired_data import PairedDataSerializer
 from kpi.utils.hash import calculate_hash
+from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.utils.xml import add_xml_declaration, strip_nodes
 
 
 @extend_schema(
-    tags=['paired-data'],
+    tags=['Paired Data'],
+)
+@extend_schema_view(
+    create=extend_schema(
+        description=read_md('kpi', 'paired_data/create.md')
+    ),
+    destroy=extend_schema(
+        description=read_md('kpi', 'paired_data/delete.md')
+    ),
+    external=extend_schema(
+        description=read_md('kpi', 'paired_data/external.md')
+    ),
+    list=extend_schema(
+        description=read_md('kpi', 'paired_data/list.md')
+    ),
+    update=extend_schema(
+        exclude=True,
+    ),
+    retrieve=extend_schema(
+        description=read_md('kpi', 'paired_data/retrieve.md')
+    ),
+    partial_update=extend_schema(
+        description=read_md('kpi', 'paired_data/update.md')
+    ),
 )
 class PairedDataViewset(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedModelViewSet
 ):
     """
-    ## List of paired project endpoints
 
-    ### Retrieve all paired projects
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/paired-data/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/
-
-    > Response
-    >
-    >       HTTP 200 OK
-    >       {
-    >           "count": 1,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >               {
-    >                   "source": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
-    >                   "fields": [],
-    >                   "filename": "external-data.xml",
-    >                   "url": "https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/pdFQheFF4cWbtcinRUqc64q/"
-    >               }
-    >           ]
-    >       }
-    >
-
-    This endpoint is paginated and accepts these parameters:
-
-    - `offset`: The initial index from which to return the results
-    - `limit`: Number of results to return per page
-
-    ### Create a connection between two projects
-
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/assets/<code>{asset_uid}</code>/paired-data/
-    </pre>
-
-    > Example
-    >
-    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/
-
-    > **Payload**
-    >
-    >        {
-    >           "source": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
-    >           "filename": "external-data.xml",
-    >           "fields": [],
-    >        }
-    >
-    >
-    > Response
-    >
-    >       HTTP 201 Created
-    >       {
-    >           "source": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
-    >           "fields": [],
-    >           "filename": "external-data.xml",
-    >           "url": "https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/pdFQheFF4cWbtcinRUqc64q/"
-    >       }
-    >
-
-    * `fields`: Optional. List of questions whose responses will be retrieved
-        from the source data. If missing or empty, all responses will be
-        retrieved. Questions must be identified by full group path separated by
-        slashes, e.g. `group/subgroup/question_name`.
-    * `filename`: Must be unique among all asset files. Only accepts letters, numbers and '-'.
-
-    ### Retrieve a connection between two projects
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/paired-data/{paired_data_uid}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/pdFQheFF4cWbtcinRUqc64q/
-    >
-    > Response
-    >
-    >       HTTP 200 Ok
-    >       {
-    >           "source": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
-    >           "fields": [],
-    >           "filename": "external-data.xml",
-    >           "url": "https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/pdFQheFF4cWbtcinRUqc64q/"
-    >       }
-    >
-
-    ### Update a connection between two projects
-
-    <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/assets/<code>{asset_uid}</code>/paired-data/{paired_data_uid}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/pdFQheFF4cWbtcinRUqc64q/
-    >
-    > **Payload**
-    >
-    >        {
-    >           "filename": "data-external.xml",
-    >           "fields": ['group/question_1']",
-    >        }
-    >
-
-    _Notes: `source` cannot be changed_
-
-    > Response
-    >
-    >       HTTP 200 Ok
-    >       {
-    >           "source": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
-    >           "fields": ['group/question_1'],
-    >           "filename": "data-external.xml",
-    >           "url": "https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/pdFQheFF4cWbtcinRUqc64q/"
-    >       }
-    >
-
-    ### Remove a connection between two projects
-
-    <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/assets/<code>{asset_uid}</code>/paired-data/{paired_data_uid}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/pdFQheFF4cWbtcinRUqc64q/
-    >
-    > Response
-    >
-    >       HTTP 204 No Content
-    >
-    >
-
-
-    ### CURRENT ENDPOINT
     """
 
     parent_model = Asset
@@ -197,12 +81,6 @@ class PairedDataViewset(
         filter_backends=[],
     )
     def external(self, request, paired_data_uid, **kwargs):
-        """
-        Returns an XML which contains data submitted to paired asset
-        Creates the endpoints
-        - /api/v2/assets/<parent_lookup_asset>/paired-data/<paired_data_uid>/external/
-        - /api/v2/assets/<parent_lookup_asset>/paired-data/<paired_data_uid>/external.xml/
-        """
         paired_data = self.get_object()
 
         # Retrieve the source if it exists
