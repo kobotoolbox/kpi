@@ -6,6 +6,19 @@ on: workflow_dispatch
 
 jobs:
 
+  version:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Formats the version number
+      id: version
+      run: |
+        set -xe
+        BRANCH=git rev-parse --abbrev-ref HEAD
+        VERSION=`echo $BRANCH | sed -e 's/release\///'`
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
   changelog:
     runs-on: ubuntu-24.04
@@ -45,11 +58,13 @@ jobs:
 
 
   notify:
-    runs-on: ubuntu-24.04
-    steps:
-    - name: notify on Zulip
-      run: |
-        echo 'TODO, for now do it manually'
+    needs:
+      - version
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "${{ needs.version.outputs.version }} release"
+      content: ":rocket: Please create a release on kpi, kobo-docker and kobo-install. (TODO: automate)"
 
 
   on-failure:

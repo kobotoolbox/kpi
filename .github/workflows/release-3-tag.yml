@@ -18,6 +18,20 @@ jobs:
   npm-test:
     uses: ./.github/workflows/npm-test.yml
 
+  version:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Formats the version number
+      id: version
+      run: |
+        set -xe
+        BRANCH=git rev-parse --abbrev-ref HEAD
+        VERSION=`echo $BRANCH | sed -e 's/release\///'`
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
   deploy-to-master:
     runs-on: ubuntu-22.04
     needs:
@@ -90,15 +104,18 @@ jobs:
 
 
   notify:
-    runs-on: ubuntu-24.04
-    steps:
-    - name: notify on Zulip
-      run: |
-        echo 'TODO, for now do it manually'
+    needs:
+      - version
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "${{ needs.version.outputs.version }} release"
+      content: ":label: Release branch tagged and passes CI. Please deploy to master, bump and tag kobo-docker and kobo-install, and deploy to production. (TODO: automate)"
 
 
   on-failure:
     needs:
+      - version
       - darker
       - pytest
       - npm-test
@@ -106,7 +123,8 @@ jobs:
       - bump
     if: |
       failure() &&
-      (needs.darker.result == 'failure' || needs.darker.result == 'timed_out' ||
+      (needs.version.result == 'failure' || needs.version.result == 'timed_out' ||
+      needs.darker.result == 'failure' || needs.darker.result == 'timed_out' ||
       needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' ||
       needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out' ||
       needs.deploy-to-master.result == 'failure' || needs.deploy-to-master.result == 'timed_out' ||
@@ -114,5 +132,5 @@ jobs:
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
-      topic: "Github Actions (CD)"
+      topic: "${{ needs.version.outputs.version }} release"
       content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release candidate tagging failed."
