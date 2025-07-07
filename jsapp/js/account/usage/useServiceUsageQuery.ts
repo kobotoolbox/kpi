@@ -1,6 +1,8 @@
 import { type UseQueryResult, useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import { fetchGet } from '#/api'
 import { endpoints } from '#/api.endpoints'
+import { queryClient } from '#/query/queryClient'
 import { QueryKeys } from '#/query/queryKeys'
 import { convertSecondsToMinutes, formatRelativeTime } from '#/utils'
 import { useOrganizationQuery } from '../organization/organizationQuery'
@@ -65,8 +67,21 @@ const loadUsage = async (organizationId: string | null): Promise<UsageState | un
   }
 }
 
-export const useServiceUsageQuery = (): UseQueryResult<UsageState> => {
+interface ServiceUsageQueryParams {
+  shouldForceInvalidation?: boolean
+}
+
+export const useServiceUsageQuery = (params?: ServiceUsageQueryParams): UseQueryResult<UsageState> => {
   const { data: organizationData } = useOrganizationQuery()
+
+  useEffect(() => {
+    if (params?.shouldForceInvalidation) {
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.serviceUsage, organizationData?.id],
+        refetchType: 'none',
+      })
+    }
+  }, [params?.shouldForceInvalidation])
 
   return useQuery({
     queryKey: [QueryKeys.serviceUsage, organizationData?.id],

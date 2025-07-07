@@ -54,7 +54,7 @@ export default function Usage() {
     data: usageData,
     isLoading: isUsageLoading,
     isFetchedAfterMount: isUsageFetchedAfterMount,
-  } = useServiceUsageQuery()
+  } = useServiceUsageQuery({ shouldForceInvalidation: true })
   const { billingPeriod } = useBillingPeriod()
 
   const location = useLocation()
