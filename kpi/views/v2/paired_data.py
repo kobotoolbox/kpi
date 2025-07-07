@@ -34,12 +34,18 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
     create=extend_schema(
         description=read_md('kpi', 'paired_data/create.md'),
         responses=open_api_201_created_response(
-            PairedDataResponse
+            PairedDataResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
         )
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'paired_data/delete.md'),
-        responses=open_api_204_empty_response()
+        responses=open_api_204_empty_response(
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        )
     ),
     external=extend_schema(
         description=read_md('kpi', 'paired_data/external.md'),
@@ -47,12 +53,18 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
             ExternalResponse,
             media_type='application/xml',
             error_media_type='application/xml',
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
     list=extend_schema(
         description=read_md('kpi', 'paired_data/list.md'),
         responses=open_api_200_ok_response(
-            PairedDataResponse
+            PairedDataResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
     update=extend_schema(
@@ -61,14 +73,19 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
     retrieve=extend_schema(
         description=read_md('kpi', 'paired_data/retrieve.md'),
         responses=open_api_200_ok_response(
-            PairedDataResponse
+            PairedDataResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False
         )
     ),
     partial_update=extend_schema(
         description=read_md('kpi', 'paired_data/update.md'),
         request={'application/json': PairedDataPatchPayload},
         responses=open_api_200_ok_response(
-            PairedDataResponse
+            PairedDataResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
         )
     ),
 )
