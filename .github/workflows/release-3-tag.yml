@@ -98,7 +98,6 @@ jobs:
 
 
   on-failure:
-    runs-on: ubuntu-22.04
     needs:
       - darker
       - pytest
@@ -112,15 +111,8 @@ jobs:
       needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out' ||
       needs.deploy-to-master.result == 'failure' || needs.deploy-to-master.result == 'timed_out' ||
       needs.bump.result == 'failure' || needs.bump.result == 'timed_out')
-    steps:
-
-    - name: Send a stream message
-      uses: zulip/github-actions-zulip/send-message@v1
-      with:
-        api-key: ${{ secrets.ZULIP_API_KEY_GITHUB_ACTIONS_BOT }}
-        email: "github-actions-bot@chat.kobotoolbox.org"
-        organization-url: "https://chat.kobotoolbox.org"
-        type: "stream"
-        to: "Kobo Dev"
-        topic: "Github Actions (CD)"
-        content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release candidate tagging failed."
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "Github Actions (CD)"
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release candidate tagging failed."

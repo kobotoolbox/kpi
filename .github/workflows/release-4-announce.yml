@@ -53,7 +53,6 @@ jobs:
 
 
   on-failure:
-    runs-on: ubuntu-22.04
     needs:
       - changelog
       - kpi
@@ -65,15 +64,8 @@ jobs:
       needs.kpi.result == 'failure' || needs.kpi.result == 'timed_out' ||
       needs.kobo-docker.result == 'failure' || needs.kobo-docker.result == 'timed_out' ||
       needs.kobo-install.result == 'failure' || needs.kobo-install.result == 'timed_out')
-    steps:
-
-    - name: Send a stream message
-      uses: zulip/github-actions-zulip/send-message@v1
-      with:
-        api-key: ${{ secrets.ZULIP_API_KEY_GITHUB_ACTIONS_BOT }}
-        email: "github-actions-bot@chat.kobotoolbox.org"
-        organization-url: "https://chat.kobotoolbox.org"
-        type: "stream"
-        to: "Kobo Dev"
-        topic: "Github Actions (${{ github.event.inputs.prod_env }})"
-        content: ":warning: ${{ github.event.inputs.tag }} failed to create a Github release(s), see [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})."
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "Github Actions (${{ github.event.inputs.prod_env }})"
+      content: ":warning: ${{ github.event.inputs.tag }} failed to create a Github release(s), see [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})."
