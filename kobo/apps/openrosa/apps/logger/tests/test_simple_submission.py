@@ -5,7 +5,6 @@ import pytest
 from django.conf import settings
 from django.test import RequestFactory, TestCase
 from pyxform import SurveyElementBuilder
-from unittest.mock import patch
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import DuplicateInstanceError
