@@ -14,14 +14,12 @@ from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.fields import (
-    RelativePrefixHyperlinkedRelatedField,
-)
 from kpi.models import Asset, AssetFile, PairedData
 from kpi.schema_extensions.v2.paired_data.fields import (
     FieldFields,
     SourceField,
-    SourceNameField, URLField,
+    SourceNameField,
+    URLField,
 )
 
 

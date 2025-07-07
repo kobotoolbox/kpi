@@ -16,13 +16,19 @@ from kpi.constants import SUBMISSION_FORMAT_TYPE_XML
 from kpi.models import Asset, AssetFile, PairedData
 from kpi.permissions import AssetEditorPermission, XMLExternalDataPermission
 from kpi.renderers import SubmissionXMLRenderer
-from kpi.schema_extensions.v2.paired_data.serializers import PairedDataResponse, \
-    PairedDataPatchPayload, ExternalResponse
+from kpi.schema_extensions.v2.paired_data.serializers import (
+    ExternalResponse,
+    PairedDataPatchPayload,
+    PairedDataResponse,
+)
 from kpi.serializers.v2.paired_data import PairedDataSerializer
 from kpi.utils.hash import calculate_hash
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
-    open_api_201_created_response, open_api_204_empty_response
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_201_created_response,
+    open_api_204_empty_response,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.utils.xml import add_xml_declaration, strip_nodes
 
@@ -37,7 +43,7 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
             PairedDataResponse,
             require_auth=False,
             raise_access_forbidden=False,
-        )
+        ),
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'paired_data/delete.md'),
@@ -45,18 +51,18 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     external=extend_schema(
         description=read_md('kpi', 'paired_data/external.md'),
-        responses = open_api_200_ok_response(
+        responses=open_api_200_ok_response(
             ExternalResponse,
             media_type='application/xml',
             error_media_type='application/xml',
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     list=extend_schema(
         description=read_md('kpi', 'paired_data/list.md'),
@@ -65,7 +71,7 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     update=extend_schema(
         exclude=True,
@@ -76,8 +82,8 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
             PairedDataResponse,
             require_auth=False,
             raise_access_forbidden=False,
-            validate_payload=False
-        )
+            validate_payload=False,
+        ),
     ),
     partial_update=extend_schema(
         description=read_md('kpi', 'paired_data/update.md'),
@@ -86,29 +92,29 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
             PairedDataResponse,
             require_auth=False,
             raise_access_forbidden=False,
-        )
+        ),
     ),
 )
 class PairedDataViewset(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedModelViewSet
 ):
     """
-   Available actions:
-    - create        → POST      /api/v2/asset/{parent_lookup_asset}/paired-data/
-    - delete        → DELETE    /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/
-    - external      → GET       /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/external/
-    - list          → GET       /api/v2/asset/{parent_lookup_asset}/paired-data/
-    - retrieve      → GET       /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/
-    - update        → PATCH     /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/
+    Available actions:
+     - create        → POST      /api/v2/asset/{parent_lookup_asset}/paired-data/
+     - delete        → DELETE    /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/
+     - external      → GET       /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/external/  # noqa
+     - list          → GET       /api/v2/asset/{parent_lookup_asset}/paired-data/
+     - retrieve      → GET       /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/
+     - update        → PATCH     /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/
 
 
-    Documentation:
-    - docs/api/v2/paired_data/create.md
-    - docs/api/v2/paired_data/delete.md
-    - docs/api/v2/paired_data/external.md
-    - docs/api/v2/paired_data/list.md
-    - docs/api/v2/paired_data/retrieve.md
-    - docs/api/v2/paired_data/update.md
+     Documentation:
+     - docs/api/v2/paired_data/create.md
+     - docs/api/v2/paired_data/delete.md
+     - docs/api/v2/paired_data/external.md
+     - docs/api/v2/paired_data/list.md
+     - docs/api/v2/paired_data/retrieve.md
+     - docs/api/v2/paired_data/update.md
     """
 
     parent_model = Asset

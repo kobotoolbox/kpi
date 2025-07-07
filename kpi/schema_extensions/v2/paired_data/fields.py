@@ -1,8 +1,6 @@
 from rest_framework import serializers
 
-from kpi.fields import (
-    RelativePrefixHyperlinkedRelatedField,
-)
+from kpi.fields import RelativePrefixHyperlinkedRelatedField
 
 
 class DataField(serializers.ListField):
