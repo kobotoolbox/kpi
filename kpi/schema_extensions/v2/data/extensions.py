@@ -84,9 +84,7 @@ class DataBulkUpdateResultFieldExtension(OpenApiSerializerFieldExtension):
 
 
 class DataValidationPayloadFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.data.fields.DataValidationPayloadField'
-    )
+    target_class = 'kpi.schema_extensions.v2.data.fields.DataValidationPayloadField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
@@ -94,7 +92,6 @@ class DataValidationPayloadFieldExtension(OpenApiSerializerFieldExtension):
                 'submission_ids': build_array_type(
                     schema=build_basic_type(OpenApiTypes.INT)
                 ),
-                'validation_status.uid': build_basic_type(OpenApiTypes.STR)
+                'validation_status.uid': build_basic_type(OpenApiTypes.STR),
             }
         )
-

@@ -89,5 +89,5 @@ DataValidationStatusesUpdatePayload = inline_serializer_class(
     name='DataValidationStatusesUpdatePayload',
     fields={
         'payload': DataValidationPayloadField(),
-    }
+    },
 )
