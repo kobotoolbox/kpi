@@ -3,14 +3,14 @@ from math import inf
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
-from fakeredis import FakeConnection
-from freezegun import freeze_time
 from dateutil.relativedelta import relativedelta
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.test import override_settings
 from django.utils import timezone
 from djstripe.models import Customer, Price, Product
+from fakeredis import FakeConnection
+from freezegun import freeze_time
 from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -30,6 +30,7 @@ from kobo.apps.stripe.utils.billing_dates import (
     get_current_billing_period_dates_by_org,
     get_current_billing_period_dates_for_active_plans,
 )
+from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limit
 from kobo.apps.stripe.utils.subscription_limits import (
     determine_limit,
     get_default_plan_name,
@@ -39,7 +40,6 @@ from kobo.apps.stripe.utils.subscription_limits import (
     get_paid_subscription_limits,
     get_plan_name,
 )
-from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limit
 from kpi.tests.kpi_test_case import BaseTestCase
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 

@@ -1,8 +1,8 @@
 from datetime import datetime
+from unittest.mock import patch
 
 import pytest
 from django.conf import settings
-from unittest.mock import patch
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.constants import UsageType

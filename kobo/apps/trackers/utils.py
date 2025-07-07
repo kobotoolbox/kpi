@@ -10,10 +10,10 @@ from django_request_cache import cache_for_request
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.utils.import_management import requires_stripe
+from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limit
 from kobo.apps.stripe.utils.subscription_limits import (
     get_organization_subscription_limit,
 )
-from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limit
 from kpi.utils.django_orm_helper import IncrementValue
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 

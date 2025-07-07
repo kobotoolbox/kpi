@@ -2,8 +2,8 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 
-from kobo.apps.stripe.utils.import_management import requires_stripe
 from kobo.apps.organizations.constants import UsageType
+from kobo.apps.stripe.utils.import_management import requires_stripe
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 
 
