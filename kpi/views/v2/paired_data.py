@@ -59,7 +59,6 @@ class PairedDataViewset(
     parent_model = Asset
     renderer_classes = (
         renderers.JSONRenderer,
-        SubmissionXMLRenderer,
     )
     lookup_field = 'paired_data_uid'
     permission_classes = (AssetEditorPermission,)
