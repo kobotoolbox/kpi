@@ -40,7 +40,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 )
 @extend_schema_view(
     bulk=extend_schema(
-        description=read_md('kpi', 'permission_assignment/bulk.md')
+        description=read_md('kpi', 'permission_assignment/bulk.md'),
     ),
     clone=extend_schema(
         description=read_md('kpi', 'permission_assignment/clone.md')
