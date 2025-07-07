@@ -30,3 +30,12 @@ PairedDataResponse = inline_serializer_class(
         'url': URLField(),
     },
 )
+
+
+PairedDataPatchPayload = inline_serializer_class(
+    name='PairedDataPatchPayload',
+    fields={
+        'fields': FieldFields(),
+        'filename': serializers.CharField(),
+    },
+)
