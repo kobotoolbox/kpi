@@ -93,7 +93,22 @@ class PairedDataViewset(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedModelViewSet
 ):
     """
+   Available actions:
+    - create        → POST      /api/v2/asset/{parent_lookup_asset}/paired-data/
+    - delete        → DELETE    /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/
+    - external      → GET       /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/external/
+    - list          → GET       /api/v2/asset/{parent_lookup_asset}/paired-data/
+    - retrieve      → GET       /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/
+    - update        → PATCH     /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/
 
+
+    Documentation:
+    - docs/api/v2/paired_data/create.md
+    - docs/api/v2/paired_data/delete.md
+    - docs/api/v2/paired_data/external.md
+    - docs/api/v2/paired_data/list.md
+    - docs/api/v2/paired_data/retrieve.md
+    - docs/api/v2/paired_data/update.md
     """
 
     parent_model = Asset
