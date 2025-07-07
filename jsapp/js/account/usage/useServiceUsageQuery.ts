@@ -73,7 +73,7 @@ export const useServiceUsageQuery = (): UseQueryResult<UsageState> => {
     queryFn: () => loadUsage(organizationData?.id || null),
     // A low stale time is needed to avoid calling the API twice on some situations
     // (e.g. usage component that contains limits banner which also uses this query).
-    staleTime: 1000,
+    staleTime: 1000 * 60, // 1 minute stale time
     enabled: !!organizationData,
   })
 }
