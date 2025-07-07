@@ -23,20 +23,9 @@ jobs:
     steps:
 
     - name: create a linear issue
-      run: |
-        set +xe
-        echo "$TITLE"
-        echo "$DESCRIPTION"
-        DATA='{ "query": "mutation IssueCreate { issueCreate( input: { title: TITLE, description: DESCRIPTION, teamId: TEAM } ) { success issue { id } } }" }'
-        echo "$DATA"
-        DATA=${DATA/TEAM/`echo $TEAM | jq -Ra .`}
-        DATA=${DATA/TITLE/`echo $TITLE | jq -Ra .`}
-        DATA=${DATA/DESCRIPTION/`echo $DESCRIPTION | jq -Rsa .`}
-        echo "$DATA"
-        echo ${DATA@Q}
-        curl \
-          -X POST \
-          -H "Content-Type: application/json" \
-          -H "Authorization: $LINEAR_API_KEY_GITHUB_ACTIONS_BOT" \
-          --data ${DATA@Q} \
-          https://api.linear.app/graphql
+      uses: seripap/gh-linear-action@v1.0.3
+      with:
+        linear-key: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
+        linear-team-id: ea750a9d-5a92-4fe2-a494-55fa114ba0dd
+        title: ${{ inputs.title }}
+        body: ${{ inputs.description }}
