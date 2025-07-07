@@ -707,7 +707,7 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
         )
         with freeze_time(timedelta(days=2)):
             with patch(
-                'kobo.apps.stripe.utils.limit_enforcement.ServiceUsageCalculator.get_usage_balances',
+                'kobo.apps.stripe.utils.limit_enforcement.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
                 return_value=mock_balances,
             ):
                 update_or_remove_limit_counter(counter)
@@ -719,7 +719,7 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
             UsageType.SUBMISSION: {'exceeded': False},
         }
         with patch(
-            'kobo.apps.stripe.utils.limit_enforcement.ServiceUsageCalculator.get_usage_balances',
+            'kobo.apps.stripe.utils.limit_enforcement.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
             return_value=mock_balances,
         ):
             update_or_remove_limit_counter(counter)

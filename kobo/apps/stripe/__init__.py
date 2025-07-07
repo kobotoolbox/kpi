@@ -8,6 +8,6 @@ class StripeAppConfig(AppConfig):
 
     def ready(self):
         # Makes sure all signal handlers are connected
-        from kobo.apps.stripe import signals
+        from kobo.apps.stripe import signals  # noqa
 
         super().ready()

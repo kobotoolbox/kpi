@@ -2,7 +2,6 @@ from model_bakery import baker
 from unittest.mock import patch
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.models import ExceededLimitCounter
 from kobo.apps.stripe.tests.utils import generate_plan_subscription
