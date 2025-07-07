@@ -91,7 +91,6 @@ from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 
-
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
 OPEN_ROSA_VERSION = '1.0'
@@ -318,6 +317,7 @@ def create_instance(
                 from kobo.apps.stripe.utils.limit_enforcement import (
                     check_exceeded_limit,
                 )
+
                 check_exceeded_limit(xform.user, UsageType.SUBMISSION)
                 check_exceeded_limit(xform.user, UsageType.STORAGE_BYTES)
 
