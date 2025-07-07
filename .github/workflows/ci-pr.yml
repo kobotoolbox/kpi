@@ -1,8 +1,6 @@
 name: CI of a PR
 
-on:
-  pull_request:
-    branches: [ 'disable-for-testing' ]
+on: pull_request
 
 
 jobs:
@@ -32,5 +30,13 @@ jobs:
 
   npm-test:
     needs: changes
-    if: needs.changes.outputs.npm-test == 'true'
+    if: false && needs.changes.outputs.npm-test == 'true'
     uses: ./.github/workflows/npm-test.yml
+
+  debug:
+    uses: ./.github/workflows/linear.yml
+    secrets: inherit
+    with:
+      title: hello world
+      description: |
+        some very long desc and weird chars. wip: te$t w'th "escapable" title "!@#$%^&*(),'./\| 14

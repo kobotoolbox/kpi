@@ -1,0 +1,42 @@
+name: Create a Linear Issue
+
+on:
+  workflow_call:
+    inputs:
+      title:
+        required: true
+        type: string
+      description:
+        required: true
+        type: string
+    secrets:
+      LINEAR_API_KEY_GITHUB_ACTIONS_BOT:
+        required: true
+
+jobs:
+  linear:
+    runs-on: ubuntu-22.04
+    env:
+      TEAM: ea750a9d-5a92-4fe2-a494-55fa114ba0dd
+      TITLE: ${{ inputs.title }}
+      DESCRIPTION: ${{ inputs.description }}
+    steps:
+
+    - name: create a linear issue
+      run: |
+        set +xe
+        echo "$TITLE"
+        echo "$DESCRIPTION"
+        DATA='{ "query": "mutation IssueCreate { issueCreate( input: { title: TITLE, description: DESCRIPTION, teamId: TEAM } ) { success issue { id } } }" }'
+        echo "$DATA"
+        DATA=${DATA/TEAM/`echo $TEAM | jq -Ra .`}
+        DATA=${DATA/TITLE/`echo $TITLE | jq -Ra .`}
+        DATA=${DATA/DESCRIPTION/`echo $DESCRIPTION | jq -Rsa .`}
+        echo "$DATA"
+        echo ${DATA@Q}
+        curl \
+          -X POST \
+          -H "Content-Type: application/json" \
+          -H "Authorization: $LINEAR_API_KEY_GITHUB_ACTIONS_BOT" \
+          --data ${DATA@Q} \
+          https://api.linear.app/graphql
