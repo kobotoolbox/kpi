@@ -1,0 +1,47 @@
+name: Send a Zulip Message
+
+on:
+  workflow_call:
+    inputs:
+      topic:
+        required: true
+        type: string
+      content:
+        required: true
+        type: string
+    secrets:
+      ZULIP_API_KEY_GITHUB_ACTIONS_BOT:
+        required: true
+
+jobs:
+  zulip:
+    runs-on: ubuntu-24.04
+    steps:
+
+    # References:
+    # - https://stackoverflow.com/questions/73402042/github-action-expressions-split-string
+    # - https://unix.stackexchange.com/questions/205022/bash-assigning-the-first-line-of-a-variable-to-a-variable#388712
+    - name: Split commit message title
+      id: title
+      env:
+        MESSAGE: ${{ github.event.commits[0].message }}
+        CONTENT: ${{ inputs.content }}
+      run: |
+        echo "$MESSAGE"
+        echo "$CONTENT"
+        COMMIT_TITLE=`echo "$MESSAGE" | head -1`
+        echo "$COMMIT_TITLE"
+        NEW_CONTENT=${CONTENT/\$COMMIT_TITLE/$COMMIT_TITLE}
+        echo "$NEW_CONTENT"
+        echo "CONTENT=$NEW_CONTENT" >> $GITHUB_OUTPUT
+
+    - name: Send a stream message
+      uses: zulip/github-actions-zulip/send-message@v1
+      with:
+        api-key: ${{ secrets.ZULIP_API_KEY_GITHUB_ACTIONS_BOT }}
+        email: "github-actions-bot@chat.kobotoolbox.org"
+        organization-url: "https://chat.kobotoolbox.org"
+        type: "stream"
+        to: "Kobo Dev"
+        topic: ${{ inputs.topic }}
+        content: ${{ steps.title.outputs.CONTENT }}
