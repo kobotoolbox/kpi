@@ -7,7 +7,7 @@ from io import StringIO
 from dict2xml import dict2xml
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers, status
-from rest_framework.exceptions import ErrorDetail
+from rest_framework.exceptions import ErrorDetail, ParseError
 from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
 import formpack
@@ -247,10 +247,17 @@ class XMLRenderer(DRFXMLRenderer):
             if relationship is not None and hasattr(obj, relationship):
                 var_or_callable = getattr(obj, relationship)
                 if isinstance(var_or_callable, Callable):
-                    return var_or_callable(
+                    xml_source = var_or_callable(
                         *(relationship_args or tuple()),
                         **(relationship_kwargs or dict()),
-                    ).xml
+                    )
+                    if (
+                        hasattr(xml_source, 'details')
+                        and xml_source.details.get('status') == 'failure'
+                    ):
+                        # raise error if XML generation failed
+                        raise ParseError(xml_source.details.get('error'))
+                    return xml_source.xml
                 return var_or_callable.xml
             return add_xml_declaration(obj.xml)
         else:

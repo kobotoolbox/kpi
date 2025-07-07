@@ -1918,11 +1918,77 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
 
                 # The first POST creates the edited submission (201) with one
                 # attachment, the second attaches the file to the submission (202).
-                assert (
-                    response.status_code == status.HTTP_201_CREATED
-                    if idx == 0
-                    else status.HTTP_202_ACCEPTED
+                assert response.status_code == (
+                    status.HTTP_201_CREATED if idx == 0 else status.HTTP_202_ACCEPTED
                 )
+
+    def test_edit_submission_without_root_uuid(self):
+        # Old submissions may have `root_uuid = None` because this is a relatively new
+        # feature. Only recent submissions have their `root_uuid` set at the time of
+        # saving.
+        # For legacy data, we must fall back to `uuid` when `root_uuid` is null,
+        # until long-running migration 0005 has completed and populated missing values.
+
+        root_uuid = remove_uuid_prefix(self.submission['_uuid'])
+
+        instance = Instance.objects.get(root_uuid=root_uuid)
+
+        # Simulate a legacy submission by clearing the root_uuid
+        Instance.objects.filter(pk=instance.pk).update(root_uuid=None)
+
+        self._simulate_edit_submission(instance)
+
+    def test_edit_submission_twice(self):
+        # Ensure that double edit still work if we use `root_uuid` to identify
+        # the edited submission
+        self.test_edit_submission_without_root_uuid()
+        root_uuid = remove_uuid_prefix(self.submission['_uuid'])
+        instance = Instance.objects.get(root_uuid=root_uuid)
+        assert 'deprecatedID' in instance.xml
+        self._simulate_edit_submission(instance)
+
+    def _simulate_edit_submission(self, instance: Instance):
+        # Simulate editing the submission:
+        # - fetch the original XML
+        # - generate a new snapshot
+        # - inject rootUuid and deprecatedID in XML
+        submission_xml = instance.xml
+        submission_json = self.asset.deployment.get_submission(
+            instance.pk, self.asset.owner, format_type='json'
+        )
+        xml_parsed = fromstring_preserve_root_xmlns(submission_xml)
+        xml_root_node_name = xml_parsed.tag
+
+        last_deployed_version = self.asset.deployed_versions.first()
+
+        snapshot = self.asset.snapshot(
+            regenerate=True,
+            root_node_name=xml_root_node_name,
+            version_uid=last_deployed_version.uid,
+            submission_uuid=remove_uuid_prefix(submission_json['meta/rootUuid']),
+        )
+
+        edit_submission_xml(
+            xml_parsed, 'meta/deprecatedID', submission_json['meta/instanceID']
+        )
+        edit_submission_xml(
+            xml_parsed, 'meta/rootUuid', submission_json['meta/rootUuid']
+        )
+        new_submission_uuid = str(uuid.uuid4())
+        edit_submission_xml(xml_parsed, 'meta/instanceID', new_submission_uuid)
+        edited_submission = xml_tostring(xml_parsed)
+
+        # Submit the edited XML
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=(snapshot.uid,),
+        )
+
+        data = {'xml_submission_file': ContentFile(edited_submission)}
+        response = self.client.post(url, data)
+
+        # The submission edit should succeed and create a new Instance
+        assert response.status_code == status.HTTP_201_CREATED
 
 
 class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):

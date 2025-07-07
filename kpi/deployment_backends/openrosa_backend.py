@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from contextlib import contextmanager
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Generator, Literal, Optional, Union
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
@@ -31,6 +31,7 @@ from kobo.apps.openrosa.apps.logger.models import (
     MonthlyXFormSubmissionCounter,
     XForm,
 )
+from kobo.apps.openrosa.apps.logger.models.instance import InstanceHistory
 from kobo.apps.openrosa.apps.logger.utils.instance import (
     add_validation_status_to_instance,
     delete_instances,
@@ -392,29 +393,59 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             raise SubmissionIntegrityError(t('Your submission XML is malformed.'))
         try:
             xform_uuid = xml_root.find(self.FORM_UUID_XPATH).text
-            root_uuid = xml_root.find(self.SUBMISSION_ROOT_UUID_XPATH).text
+            deprecated_uuid = xml_root.find(self.SUBMISSION_DEPRECATED_UUID_XPATH).text
         except AttributeError:
             raise SubmissionIntegrityError(
                 t('Your submission XML is missing critical elements.')
             )
 
+        # TODO We are reverting commit "950e8af", which had switched to using
+        #  `root_uuid`, and are temporarily falling back to `deprecatedID` and
+        #  the InstanceHistory `uuid`.
+        #  Re-enable `root_uuid` once the long-running migration 0005 has populated
+        #  this field for all instances.
+
+        sanitized_deprecated_uuid = remove_uuid_prefix(deprecated_uuid)
         try:
-            instance = Instance.objects.get(
-                root_uuid=remove_uuid_prefix(root_uuid),
+            instance = Instance.objects.defer('xml').get(
+                uuid=sanitized_deprecated_uuid,
                 xform__uuid=xform_uuid,
                 xform__kpi_asset_uid=self.asset.uid,
             )
         except Instance.DoesNotExist:
-            raise SubmissionIntegrityError(
-                t(
-                    'The submission you attempted to edit could not be found, '
-                    'or you do not have access to it.'
+            try:
+                # As Enketo does not upload files larger than 10 MB, it can still
+                # take up to 10 minutes to transfer them over a slow DSL
+                # connection (~128kb/s).
+                #
+                # We retrieve the instance PK from history to handle this scenario.
+                # Since Enketo uploads large files sequentially, we assume it should
+                # not take more than 10 minutes to process subsequent POSTs.
+                ten_minutes_ago = timezone.now() - timedelta(minutes=10)
+
+                instance_history = InstanceHistory.objects.only(
+                    'pk', 'xform_instance_id'
+                ).get(
+                    uuid=sanitized_deprecated_uuid,
+                    xform_instance__xform__uuid=xform_uuid,
+                    xform_instance__xform__kpi_asset_uid=self.asset.uid,
+                    date_created__gte=ten_minutes_ago,
                 )
-            )
+            except InstanceHistory.DoesNotExist:
+                raise SubmissionIntegrityError(
+                    t(
+                        'The submission you attempted to edit could not be found, '
+                        'or you do not have access to it.'
+                    )
+                )
+            else:
+                instance_id = instance_history.xform_instance_id
+        else:
+            instance_id = instance.pk
 
         # Validate write access for users with partial permissions
         submission_ids = self.validate_access_with_partial_perms(
-            user=user, perm=PERM_CHANGE_SUBMISSIONS, submission_ids=[instance.pk]
+            user=user, perm=PERM_CHANGE_SUBMISSIONS, submission_ids=[instance_id]
         )
 
         if submission_ids:
@@ -595,18 +626,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                         '$match': query,
                     },
                     {
+                        '$project': {
+                            'date_parts': {'$split': ['$_submission_time', 'T']}
+                        }
+                    },
+                    {
                         '$group': {
-                            '_id': {
-                                '$dateToString': {
-                                    'format': '%Y-%m-%d',
-                                    'date': {
-                                        '$dateFromString': {
-                                            'format': '%Y-%m-%dT%H:%M:%S',
-                                            'dateString': '$_submission_time',
-                                        }
-                                    },
-                                }
-                            },
+                            '_id': {'$arrayElemAt': ['$date_parts', 0]},
                             'count': {'$sum': 1},
                         }
                     },
