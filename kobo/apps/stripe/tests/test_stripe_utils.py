@@ -617,7 +617,7 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
         # We want to test this function directly here, so we patch it out when
         # it is called on submission to avoid cache restrictions
         with patch(
-            'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limit',
+            'kobo.apps.stripe.utils.limit_enforcement.check_exceeded_limit',
             return_value=None,
         ):
             self.add_submissions(count=2, asset=self.asset, username='someuser')
@@ -645,7 +645,7 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
         # We want to test this function directly here, so we patch it out when
         # is called on submission to avoid cache restrictions
         with patch(
-            'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limit',
+            'kobo.apps.stripe.utils.limit_enforcement.check_exceeded_limit',
             return_value=None,
         ):
             self.add_submissions(count=2, asset=self.asset, username='someuser')

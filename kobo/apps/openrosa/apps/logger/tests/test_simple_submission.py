@@ -144,7 +144,7 @@ class TestSimpleSubmission(TestCase):
     )
     def test_check_exceeded_limit_on_submission(self):
         with patch(
-            'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limit',
+            'kobo.apps.stripe.utils.limit_enforcement.check_exceeded_limit',
             return_value=None,
         ) as patched:
             self._submit_simple_yes()
