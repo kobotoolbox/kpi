@@ -3,7 +3,7 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import (
@@ -31,11 +31,38 @@ from kpi.serializers.v2.asset_permission_assignment import (
     AssetPermissionAssignmentSerializer,
 )
 from kpi.utils.object_permission import get_user_permission_assignments_queryset
+from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 @extend_schema(
-    tags=['permission-assignments'],
+    tags=['Permission Assignments'],
+)
+@extend_schema_view(
+    bulk=extend_schema(
+        description=read_md('kpi', 'permission_assignment/bulk.md')
+    ),
+    clone=extend_schema(
+        description=read_md('kpi', 'permission_assignment/clone.md')
+    ),
+    create=extend_schema(
+        description=read_md('kpi', 'permission_assignment/create.md')
+    ),
+    destroy=extend_schema(
+        description=read_md('kpi', 'permission_assignment/delete.md')
+    ),
+    delete_all=extend_schema(
+        description=read_md('kpi', 'permission_assignment/delete_all.md')
+    ),
+    list=extend_schema(
+        description=read_md('kpi', 'permission_assignment/list.md')
+    ),
+    retrieve=extend_schema(
+        description=read_md('kpi', 'permission_assignment/retrieve.md')
+    ),
+    partial_update=extend_schema(
+        description=read_md('kpi', 'permission_assignment/update.md')
+    ),
 )
 class AssetPermissionAssignmentViewSet(
     AuditLoggedViewSet,
@@ -64,129 +91,6 @@ class AssetPermissionAssignmentViewSet(
 
 
     `uid` - is the unique identifier of a specific asset
-
-    **Retrieve assignments**
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/
-
-
-    **Assign a permission**
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/
-    </pre>
-
-    > Example
-    >
-    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/ \\
-    >            -H 'Content-Type: application/json' \\
-    >            -d '<payload>'  # Payload is sent as a string
-
-
-    > _Payload to assign a permission_
-    >
-    >        {
-    >           "user": "https://[kpi]/api/v2/users/{username}/",
-    >           "permission": "https://[kpi]/api/v2/permissions/{codename}/",
-    >        }
-
-    > _Payload to assign partial permissions_
-    >
-    >        {
-    >           "user": "https://[kpi]/api/v2/users/{username}/",
-    >           "permission": "https://[kpi]/api/v2/permissions/{partial_permission_codename}/",
-    >           "partial_permissions": [
-    >               {
-    >                   "url": "https://[kpi]/api/v2/permissions/{codename}/",
-    >                   "filters": [
-    >                       {"_submitted_by": {"$in": ["{username}", "{username}"]}}
-    >                   ]
-    >              },
-    >           ]
-    >        }
-
-    N.B.:
-
-    - Filters use Mongo Query Engine to narrow down results
-    - Filters are joined with `OR` operator
-    - Implied permissions will be also assigned. (e.g. `change_asset` will add `view_asset` too)
-
-    **Remove a permission assignment**
-
-    <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/{permission_uid}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/pG6AeSjCwNtpWazQAX76Ap/  # noqa: E501
-
-    **Remove all permission assignments**
-
-    <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/{permission_uid}/delete-all/
-    </pre>
-
-    > Example
-    >
-    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/pG6AeSjCwNtpWazQAX76Ap/delete-all/  # noqa: E501
-
-    **Remove all permission assignments**
-
-    <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/{permission_uid}/delete-all/
-    </pre>
-
-    > Example
-    >
-    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/pG6AeSjCwNtpWazQAX76Ap/delete-all/
-
-
-    **Assign all permissions at once**
-
-    <span class='label label-danger'>All permissions will erased (except the owner's) before new assignments</span>
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/bulk/
-    </pre>
-
-    > Example
-    >
-    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/bulk/
-
-    > _Payload to assign all permissions at once_
-    >
-    >        [{
-    >           "user": "https://[kpi]/api/v2/users/{username}/",
-    >           "permission": "https://[kpi]/api/v2/permissions/{codename}/",
-    >        },
-    >        {
-    >           "user": "https://[kpi]/api/v2/users/{username}/",
-    >           "permission": "https://[kpi]/api/v2/permissions/{codename}/",
-    >        },...]
-
-
-    **Clone permissions from another asset**
-
-    <span class='label label-danger'>All permissions will erased (except the owner's) before new assignments</span>
-    <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/clone/
-    </pre>
-
-    > Example
-    >
-    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/clone/
-
-    > _Payload to clone permissions from another asset_
-    >
-    >        {
-    >           "clone_from": "{source_asset_uid}"
-    >        }
-
-    ### CURRENT ENDPOINT
     """
 
     model = ObjectPermission
