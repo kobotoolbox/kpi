@@ -368,9 +368,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             uuid=_uuid,
             request=request,
         )
-
+        all_attachment_xpaths = self.asset.get_all_attachment_xpaths()
         return self._rewrite_json_attachment_urls(
-            self.get_submission(submission_id=instance.pk, user=user), request
+            self.get_submission(submission_id=instance.pk, user=user),
+            request,
+            all_attachment_xpaths,
         )
 
     def edit_submission(
@@ -1540,10 +1542,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         if add_supplemental_details_to_query:
             mongo_cursor = stream_with_extras(mongo_cursor, self.asset)
 
+        all_attachment_xpaths = self.asset.get_all_attachment_xpaths()
+
         return (
             self._inject_properties(
                 MongoHelper.to_readable_dict(submission),
                 request,
+                all_attachment_xpaths,
             )
             for submission in mongo_cursor
         )

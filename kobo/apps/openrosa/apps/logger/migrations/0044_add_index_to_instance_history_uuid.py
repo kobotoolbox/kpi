@@ -12,8 +12,8 @@ def manually_create_indexes_instructions(apps, schema_editor):
         Run the SQL queries below in PostgreSQL directly:
 
             ```sql
-            CREATE INDEX "logger_instancehistory_uuid_f8441978" ON "logger_instancehistory" ("uuid");
-            CREATE INDEX "logger_instancehistory_uuid_f8441978_like" ON "logger_instancehistory" ("uuid" varchar_pattern_ops);
+            CREATE INDEX CONCURRENTLY "logger_instancehistory_uuid_f8441978" ON "logger_instancehistory" ("uuid");
+            CREATE INDEX CONCURRENTLY "logger_instancehistory_uuid_f8441978_like" ON "logger_instancehistory" ("uuid" varchar_pattern_ops);
             ```
 
         """

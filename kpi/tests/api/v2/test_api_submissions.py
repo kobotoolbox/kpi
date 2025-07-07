@@ -431,7 +431,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         with self.assertNumQueries(FuzzyInt(16, 17)):
             # regular
             self.client.get(self.submission_list_url, {'format': 'json'})
-        with self.assertNumQueries(16):
+        with self.assertNumQueries(17):
             # with params
             self.client.get(
                 self.submission_list_url,
