@@ -74,23 +74,26 @@ class AssetPermissionAssignmentViewSet(
     ListModelMixin,
 ):
     """
-    ## Permission assignments of an asset
+    Viewset for managing the assignment permission for current project
 
-    **Important**: partial_permissions section of API is not stable and may change without notice.
+    Available actions:
+    - bulk            → DELETE /api/v2/assets/{parent_lookup_asset}/permission-assignments/bulk/  # noqa
+    - clone           → PATCH /api/v2/assets/{parent_lookup_asset}/permission-assignments/clone/  # noqa
+    - create          → DELETE /api/v2/assets/{parent_lookup_asset}/permission-assignments/  # noqa
+    - delete          → POST /api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/  # noqa
+    - delete_all      → GET /api/v2/assets/{parent_lookup_asset}/permission-assignments/delete-all/  # noqa
+    - list            → GET /api/v2/assets/{parent_lookup_asset}/permission-assignments/
+    - retrieve        → GET /api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/  # noqa
 
-    This endpoint shows assignments on an asset. An assignment implies:
-
-    - a `Permission` object
-    - a `User` object
-
-    **Roles' permissions:**
-
-    - Owner sees all permissions
-    - Viewers see owner's permissions and their permissions
-    - Anonymous users see only owner's permissions
-
-
-    `uid` - is the unique identifier of a specific asset
+    Documentation:
+    - docs/api/v2/permission_assignment/bulk.md
+    - docs/api/v2/permission_assignment/clone.md
+    - docs/api/v2/permission_assignment/create.md
+    - docs/api/v2/permission_assignment/delete.md
+    - docs/api/v2/permission_assignment/delete_all.md
+    - docs/api/v2/permission_assignment/list.md
+    - docs/api/v2/permission_assignment/retrieve.md
+    - docs/api/v2/permission_assignment/update.md
     """
 
     model = ObjectPermission
