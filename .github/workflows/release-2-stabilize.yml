@@ -2,7 +2,7 @@ name: 'CD: stabilize'
 
 on:
   push:
-    branches: [ 'release/**', 'kalvis/automated-release' ]
+    branches: [ 'release/**' ]
 
 jobs:
 
@@ -59,9 +59,9 @@ jobs:
     - name: deploy to beta
       run: |
         set -xe
-        ## TODO, lets test deploy to beta later with a real release branch
-        # git checkout -B public-beta
-        # git push -f
+        # TODO, lets test deploy to beta later with a real release branch
+        git checkout -B public-beta
+        git push -f
 
   merge:
     runs-on: ubuntu-22.04

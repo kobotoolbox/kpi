@@ -1,7 +1,5 @@
 name: 'CD: branch'
 
-# For testing
-# on: pull_request
 on:
   schedule:
     # It's good to deploy early in week:
