@@ -79,20 +79,13 @@ jobs:
           buildScriptName: build:storybook
 
   on-failure:
-    runs-on: ubuntu-24.04
     needs:
       - chromatic
       - get-commit-title
     # Any code that isn't 0 means some error happening, see https://www.chromatic.com/docs/cli/#exit-codes
     if: ${{ always() && (needs.chromatic.outputs.chromatic-code != 0) }}
-    steps:
-      - name: Send a stream message
-        uses: zulip/github-actions-zulip/send-message@v1
-        with:
-          api-key: ${{ secrets.ZULIP_API_KEY_GITHUB_ACTIONS_BOT }}
-          email: "github-actions-bot@chat.kobotoolbox.org"
-          organization-url: "https://chat.kobotoolbox.org"
-          type: "stream"
-          to: "Kobo Dev"
-          topic: "Github Actions (chromatic)"
-          content: ":framed_picture: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(needs.get-commit-title.outputs.title) }}](https://github.com/kobotoolbox/kpi/commit/${{ needs.get-commit-title.outputs.sha }}). View Chromatic build details at ${{needs.chromatic.outputs.chromatic-url}}. If you accept all the changes, please re-run the failed job."
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "Github Actions (chromatic)"
+      content: ":framed_picture: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(needs.get-commit-title.outputs.title) }}](https://github.com/kobotoolbox/kpi/commit/${{ needs.get-commit-title.outputs.sha }}). View Chromatic build details at ${{needs.chromatic.outputs.chromatic-url}}. If you accept all the changes, please re-run the failed job."
