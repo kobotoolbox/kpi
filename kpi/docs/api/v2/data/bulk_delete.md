@@ -4,23 +4,25 @@
   curl -X DELETE https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/bulk/
 ```
 
-> **Payload**
->
->        {
->           "submissions_ids": [
->               1,
->               2
->           ]
->        }
+**Payload**
+```json
+{
+           "submissions_ids": [
+               1,
+               2
+           ]
+        }
+```
 * Where: `submissions_ids` (required) is a list of submission root id on the data
 to delete
 
 
-> **Response**
->
->        {
->           "detail": "{number_of_submissions} submissions have been deleted"
->        }
+**Response**
+```json
+{
+           "detail": "{number_of_submissions} submissions have been deleted"
+}
+```
 * Where: `number_of_submissions` is the number of items that was deleted
 
 
