@@ -1,6 +1,10 @@
 do ->
-  $viewTemplates = require './view.templates'
-  $surveyApp = require './view.surveyApp'
+  $viewTemplates = require('./view.templates')
+  $surveyApp = require('./view.surveyApp')
 
-  surveyApp: $surveyApp
-  viewTemplates: $viewTemplates
+  {
+    surveyApp: $surveyApp
+    viewTemplates: $viewTemplates
+  }
+
+  return
