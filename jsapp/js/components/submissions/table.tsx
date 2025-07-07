@@ -824,11 +824,13 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
               let mediaAttachment = null
 
-              let attachmentIndex: number = row.original._attachments.findIndex((attachment: SubmissionAttachment) => {
-                const attachmentFileNameEnd = attachment.filename.split('/').pop()
-                const normalizedRowValue = row.value.replace(/ /g, '_')
-                return attachmentFileNameEnd === normalizedRowValue
-              })
+              const attachmentIndex: number = row.original._attachments.findIndex(
+                (attachment: SubmissionAttachment) => {
+                  const attachmentFileNameEnd = attachment.filename.split('/').pop()
+                  const normalizedRowValue = row.value.replace(/ /g, '_')
+                  return attachmentFileNameEnd === normalizedRowValue
+                },
+              )
 
               if (q.type !== QUESTION_TYPES.text.id && row.original._attachments[attachmentIndex]) {
                 mediaAttachment = getMediaAttachment(
