@@ -1,7 +1,9 @@
-do ->
-  $viewTemplates = require('./view.templates')
-  $surveyApp = require('./view.surveyApp')
+(function() {
+  const $viewTemplates = require('./view.templates');
+  const $surveyApp = require('./view.surveyApp');
 
-  return
-    surveyApp: $surveyApp
+  return{
+    surveyApp: $surveyApp,
     viewTemplates: $viewTemplates
+  };
+})();
