@@ -1,0 +1,27 @@
+name: Create a Linear Issue
+
+on:
+  workflow_call:
+    inputs:
+      title:
+        required: true
+        type: string
+      description:
+        required: true
+        type: string
+    secrets:
+      LINEAR_API_KEY_GITHUB_ACTIONS_BOT:
+        required: true
+
+jobs:
+  linear:
+    runs-on: ubuntu-24.04
+    steps:
+
+    - name: create a linear issue
+      uses: Akuukis/gh-linear-action@04dc4023e7ce2a0452e4c12598500cb3daddacc9
+      with:
+        linear-key: ${{ secrets.LINEAR_API_KEY_GITHUB_ACTIONS_BOT }}
+        linear-team-id: ea750a9d-5a92-4fe2-a494-55fa114ba0dd
+        title: ${{ inputs.title }}
+        body: ${{ inputs.description }}
