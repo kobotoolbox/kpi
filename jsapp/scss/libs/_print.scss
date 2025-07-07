@@ -8,9 +8,13 @@
   body .mdl-wrapper,
   body .mdl-layout,
   body .mdl-layout__content,
-  body .mdl-layout__content > div {
-    height: auto !important;
-    overflow: visible;
+  body .form-view,
+  body .report-view {
+    height: 100% !important;
+    width: 100% !important;
+    overflow: visible !important;
+    background: transparent !important;
+    margin: 0 !important;
   }
 
   body .mdl-layout {
@@ -22,69 +26,66 @@
   body .mdl-layout__content {
     // Fixes Firefox one-page print bug
     display: block;
-    margin-left: 0;
   }
 
-  .k-drawer,
- .mdl-layout__header {
+  // Hide content if modal is open
+  body .modal__backdrop ~ .mdl-layout__content {
     display: none;
   }
 
-  .k-drawer + .mdl-layout__content {
-    margin: 0;
-  }
-
-  .form-view__reportButtons {
+  body .k-drawer,
+  body .mdl-layout__header,
+  body .header-stretch-bg {
     display: none;
   }
 
-  .report-view__chart {
+  body .form-view__reportButtons {
+    display: none;
+  }
+
+  body .report-view__chart {
     padding-left: 0;
     padding-right: 0;
   }
 
-  a[href]::after,
- abbr[title]::after {
+  body a[href]::after,
+  body abbr[title]::after {
     content: '';
   }
 
-  .form-view__row {
+  body .form-view__row {
     display: block;
   }
 
-  .form-view__cell {
+  body .form-view__cell {
     width: auto;
   }
 
-  .report-view__chart {
+  body .report-view__chart {
     page-break-inside: avoid;
   }
 
-  .report-view__itemContent table {
+  body .report-view__itemContent table {
     margin-left: 0%;
     width: 100%;
     page-break-inside: avoid;
   }
 
-  .report-view__item {
+  body .report-view__item {
     break-inside: avoid;
   }
 
   // Fix Chrome printing headers overlap bug
-  thead {
+  body thead {
     display: table-row-group;
   }
 
-  .form-view__sidetabs,
-  .form-view__toptabs {
+  body .form-view__sidetabs,
+  body .form-view__toptabs {
     display: none;
   }
 
-  .form-view__sidetabs + .report-view {
-    width: 100%;
-  }
-
-  .modal__backdrop {
+  body .modal__backdrop {
     position: static;
 
     .modal {
@@ -101,11 +102,11 @@
     }
   }
 
-  .form-view.form-view--fullscreen {
+  body .form-view.form-view--fullscreen {
     position: static;
   }
 
-  .page-wrapper {
+  body .page-wrapper {
     &.page-wrapper--is-modal-visible.page-wrapper--is-modal-submission {
       .form-view.form-view--table {
         // hide table, when displaying submission modal and user is printing
@@ -118,5 +119,11 @@
 @media only screen {
   .print-only {
     display: none;
+  }
+}
+
+@media print {
+  .hide-on-print {
+    display: none !important;
   }
 }

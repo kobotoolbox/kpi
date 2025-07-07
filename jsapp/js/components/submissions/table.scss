@@ -509,3 +509,37 @@ $s-data-table-font: 13px;
     margin-bottom: 20px;
   }
 }
+
+@media print {
+  .form-view.form-view--table {
+    padding: 0;
+  }
+
+  .form-view--table .ReactTable {
+    height: auto;
+  }
+
+  .form-view__group--table-header {
+    display: none !important;
+  }
+
+  .form-view--table .ReactTable .rt-tr-group {
+    max-height: 100%;
+  }
+
+  .form-view--table .rt-table,
+  .form-view--table .ReactTable .rt-tbody,
+  .form-view--table .ReactTable .rt-thead,
+  .form-view--table .ReactTable .rt-td {
+    overflow: visible !important;
+  }
+
+  .form-view.form-view--table .ReactTable .rt-tbody .rt-td {
+    height: auto;
+  }
+
+  // Avoid trimming data from cells
+  .form-view--table .ReactTable .rt-td .trimmed-text {
+    @include mixins.undoTextEllipsis;
+  }
+}
