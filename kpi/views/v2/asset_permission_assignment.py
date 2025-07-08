@@ -28,10 +28,10 @@ from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import AssetPermissionAssignmentPermission
 from kpi.schema_extensions.v2.permission_assignment.serializers import (
-    PermissionCreateRequest,
-    PermissionResponse,
     PermissionBulkRequest,
     PermissionCloneRequest,
+    PermissionCreateRequest,
+    PermissionResponse,
 )
 from kpi.serializers.v2.asset_permission_assignment import (
     AssetBulkInsertPermissionSerializer,
@@ -40,8 +40,10 @@ from kpi.serializers.v2.asset_permission_assignment import (
 from kpi.utils.object_permission import get_user_permission_assignments_queryset
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
-    open_api_204_empty_response
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_204_empty_response,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -68,9 +70,9 @@ class PermissionAssignmentSchema(AutoSchema):
     def get_operation(self, *args, **kwargs):
 
         from kpi.schema_extensions.v2.permission_assignment.schema import (
-            USER_FIELD,
-            PERMISSION,
             PARTIAL_PERMISSION,
+            PERMISSION,
+            USER_FIELD,
         )
 
         operation = super().get_operation(*args, **kwargs)
@@ -78,28 +80,32 @@ class PermissionAssignmentSchema(AutoSchema):
         if not operation:
             return None
 
-        if operation.get('operationId') == 'api_v2_assets_permission_assignments_create':
+        if (
+            operation.get('operationId')
+            == 'api_v2_assets_permission_assignments_create'
+        ):
 
             operation['requestBody']['content']['application/json']['examples'] = {
                 'CreatingPartial': {
                     'value': {
                         'user': generate_example_from_schema(USER_FIELD),
-                        'partial_permission': generate_example_from_schema(PARTIAL_PERMISSION),
-                        'permission': generate_example_from_schema(PERMISSION)
+                        'partial_permission': generate_example_from_schema(
+                            PARTIAL_PERMISSION
+                        ),
+                        'permission': generate_example_from_schema(PERMISSION),
                     },
                     'summary': 'Creating a partial permission',
                 },
                 'CreatingPermission': {
                     'value': {
                         'user': generate_example_from_schema(USER_FIELD),
-                        'permission': generate_example_from_schema(PERMISSION)
+                        'permission': generate_example_from_schema(PERMISSION),
                     },
                     'summary': 'Creating a regular permission',
                 },
             }
 
         return operation
-
 
 
 @extend_schema(
@@ -130,15 +136,15 @@ class PermissionAssignmentSchema(AutoSchema):
             require_auth=False,
         ),
     ),
-    destroy=extend_schema(
-        description=read_md('kpi', 'permission_assignment/delete.md'),
+    delete_all=extend_schema(
+        description=read_md('kpi', 'permission_assignment/delete_all.md'),
         responses=open_api_204_empty_response(
             require_auth=False,
             validate_payload=False,
         ),
     ),
-    delete_all=extend_schema(
-        description=read_md('kpi', 'permission_assignment/delete_all.md'),
+    destroy=extend_schema(
+        description=read_md('kpi', 'permission_assignment/delete.md'),
         responses=open_api_204_empty_response(
             require_auth=False,
             validate_payload=False,

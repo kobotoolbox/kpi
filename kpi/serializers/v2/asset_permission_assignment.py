@@ -19,21 +19,16 @@ from kpi.constants import (
     PREFIX_PARTIAL_PERMS,
     SUFFIX_SUBMISSIONS_PERMS,
 )
-from kpi.fields.relative_prefix_hyperlinked_related import (
-    RelativePrefixHyperlinkedRelatedField,
-)
 from kpi.models.asset import Asset, AssetUserPartialPermission
 from kpi.models.object_permission import ObjectPermission
 from kpi.schema_extensions.v2.permission_assignment.fields import (
     LabelField,
+    PartialPermissionField,
+    PermissionField,
     UrlField,
     UserField,
-    PermissionField,
-    PartialPermissionField,
 )
-from kpi.utils.object_permission import (
-    get_user_permission_assignments_queryset,
-)
+from kpi.utils.object_permission import get_user_permission_assignments_queryset
 from kpi.utils.urls import absolute_resolve
 
 ASSIGN_OWNER_ERROR_MESSAGE = "Owner's permissions cannot be assigned explicitly"

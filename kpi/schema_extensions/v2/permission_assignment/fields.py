@@ -1,19 +1,17 @@
 from rest_framework import serializers
 
-from kpi.fields import (
-    RelativePrefixHyperlinkedRelatedField,
-)
+from kpi.fields import RelativePrefixHyperlinkedRelatedField
 
 
 class LabelField(serializers.SerializerMethodField):
     pass
 
 
-class PartialPermissionField(serializers.SerializerMethodField):
+class PermissionField(RelativePrefixHyperlinkedRelatedField):
     pass
 
 
-class PermissionField(RelativePrefixHyperlinkedRelatedField):
+class PartialPermissionField(serializers.SerializerMethodField):
     pass
 
 

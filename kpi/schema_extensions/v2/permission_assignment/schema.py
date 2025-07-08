@@ -13,6 +13,11 @@ Common schemas to avoid redundancy
 
 LABEL_FIELD = build_basic_type(OpenApiTypes.STR)
 
+PERMISSION = build_url_type(
+    'api_v2:permission-detail',
+    codename='change_assets',
+)
+
 PARTIAL_PERMISSION = build_array_type(
     schema=build_object_type(
         properties={
@@ -22,9 +27,7 @@ PARTIAL_PERMISSION = build_array_type(
                         '_submitted_by': build_object_type(
                             properties={
                                 '$in': build_array_type(
-                                    schema=build_basic_type(
-                                        OpenApiTypes.STR
-                                    )
+                                    schema=build_basic_type(OpenApiTypes.STR)
                                 )
                             }
                         )
@@ -32,16 +35,11 @@ PARTIAL_PERMISSION = build_array_type(
                 )
             ),
             'url': build_url_type(
-            'api_v2:permission-detail',
+                'api_v2:permission-detail',
                 codename='change_assets',
-            )
+            ),
         }
     )
-)
-
-PERMISSION = build_url_type(
-    'api_v2:permission-detail',
-    codename='change_assets',
 )
 
 URL_FIELD = build_url_type(

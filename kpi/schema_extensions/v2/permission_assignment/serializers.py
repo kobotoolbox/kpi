@@ -1,7 +1,7 @@
 from django.contrib.auth.models import Permission
-from kobo.apps.kobo_auth.shortcuts import User
 from rest_framework import serializers
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
     LabelField,
@@ -50,10 +50,7 @@ PermissionBulkRequest = inline_serializer_class(
 )
 
 PermissionCloneRequest = inline_serializer_class(
-    name='PermissionCloneRequest',
-    fields={
-        'clone_from': serializers.CharField()
-    }
+    name='PermissionCloneRequest', fields={'clone_from': serializers.CharField()}
 )
 
 PermissionCreateRequest = inline_serializer_class(
