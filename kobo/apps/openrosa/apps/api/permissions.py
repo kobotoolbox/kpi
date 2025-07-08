@@ -16,6 +16,7 @@ from kobo.apps.openrosa.libs.constants import (
     CAN_VALIDATE_XFORM,
     CAN_VIEW_XFORM,
 )
+from kpi.constants import PERM_CHANGE_ASSET
 
 
 class ViewDjangoObjectPermissions(DjangoObjectPermissions):
@@ -104,7 +105,7 @@ class XFormPermissions(ObjectPermissionsWithViewRestricted):
             post_view = getattr(view, 'post', object)
             url_name = getattr(post_view, 'url_name', None)
             if url_name == 'labels':
-                return request.user.has_perm(CAN_CHANGE_XFORM, obj)
+                return request.user.has_perm(PERM_CHANGE_ASSET, obj.asset)
 
         return super().has_object_permission(request, view, obj)
 

@@ -8,7 +8,7 @@ from rest_framework.filters import BaseFilterBackend
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
-from kobo.apps.openrosa.libs.permissions import get_xform_ids_for_user
+from kobo.apps.openrosa.libs.permissions import get_xform_ids_for_user, XFORM_MODELS_NAMES
 from kpi.utils.object_permission import get_database_user
 
 
@@ -44,12 +44,11 @@ class ObjectPermissionsFilter(BaseFilterBackend):
         ):
             return org_admin_queryset
 
-        if queryset.model == XForm:
+        if queryset.model._meta.model_name in XFORM_MODELS_NAMES:
             xform_ids = get_xform_ids_for_user(user, perm=permission)
             return queryset.filter(id__in=xform_ids)
 
-        # TODO: Should this fail?
-        raise NotImplemented
+        raise NotImplementedError
 
     def _get_objects_for_org_admin(self, request, queryset, view):
         """

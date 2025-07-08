@@ -84,6 +84,7 @@ from kobo.apps.organizations.constants import UsageType
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.constants import PERM_ADD_SUBMISSIONS
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
@@ -970,7 +971,7 @@ def _has_edit_xform_permission(
         if request.user.is_superuser:
             return True
 
-        if request.user.has_perm('logger.change_xform', xform):
+        if request.user.has_perm(PERM_ADD_SUBMISSIONS, xform.asset):
             return True
 
         # User's permissions have been already checked when calling KPI endpoint

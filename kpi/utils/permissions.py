@@ -23,7 +23,7 @@ def grant_default_model_level_perms(user):
     from kobo.apps.openrosa.apps.logger.models.xform import XForm
     from kpi.models import Asset
 
-    grant_all_model_level_perms(user, models_or_content_types=[Asset, XForm])
+    grant_all_model_level_perms(user, models_or_content_types=[Asset])
 
 
 def grant_all_model_level_perms(
