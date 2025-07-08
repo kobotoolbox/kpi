@@ -36,6 +36,10 @@ class DuplicateUUIDError(Exception):
     pass
 
 
+class ExceededUsageLimitError(Exception):
+    pass
+
+
 class FormInactiveError(Exception):
     pass
 
@@ -86,8 +90,4 @@ class TemporarilyUnavailableError(Exception):
 
 
 class XLSFormError(Exception):
-    pass
-
-
-class ExceededUsageLimitError(Exception):
     pass
