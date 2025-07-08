@@ -39,6 +39,42 @@ class PartialPermissionFieldExtension(OpenApiSerializerFieldExtension):
         )
 
 
+class PermissionCreateSerializerExtension(OpenApiSerializerExtension):
+
+    target_class = 'kpi.schema_extensions.v2.permission_assignment.serializers.PermissionCreateRequest'  # noqa
+
+    def map_serializer(self, auto_schema, direction):
+        return {
+            'oneOf': [
+                build_object_type(
+                    required=[
+                        'permission',
+                        'user',
+                    ],
+                    properties={
+                        'permission': PERMISSION,
+                        'user': USER_FIELD,
+                    }
+                ),
+                build_object_type(
+                    required=[
+                        'partial_permission',
+                        'permission',
+                        'user',
+                    ],
+                    properties={
+                        'partial_permission': PARTIAL_PERMISSION,
+                        'permission': PERMISSION,
+                        'user': USER_FIELD,
+                    }
+                ),
+            ]
+        }
+
+
+
+
+
 class PermissionFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.permission_assignment.fields.PermissionField'
 
