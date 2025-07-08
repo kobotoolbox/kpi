@@ -51,17 +51,19 @@ from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 class OrganizationsUtilsTestCase(BaseTestCase):
     fixtures = ['test_data']
 
-    def setUp(self):
-        self.organization = baker.make(
-            Organization, id='123456abcdef', name='test organization'
-        )
-        self.second_organization = baker.make(
-            Organization, id='abcdef123456', name='second test organization'
-        )
-        self.someuser = User.objects.get(username='someuser')
-        self.anotheruser = User.objects.get(username='anotheruser')
-        self.newuser = baker.make(User, username='newuser')
-        self.organization.add_user(self.anotheruser, is_admin=True)
+    @classmethod
+    def setUpTestData(cls):
+        cls.someuser = User.objects.get(username='someuser')
+        cls.anotheruser = User.objects.get(username='anotheruser')
+        cls.organization = cls.someuser.organization
+        cls.organization.mmo_override = True
+        cls.organization.save()
+        cls.organization.add_user(cls.anotheruser, is_admin=True)
+
+        cls.newuser = baker.make(User, username='newuser')
+        cls.second_organization = cls.newuser.organization
+        cls.organization.mmo_override = True
+        cls.organization.save()
 
     def test_get_organization_subscription_limits(self):
         free_plan = generate_free_plan()
