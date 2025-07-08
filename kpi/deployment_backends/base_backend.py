@@ -169,6 +169,16 @@ class BaseDeploymentBackend(abc.ABC):
             deprecated_id = get_or_create_element(
                 xml_parsed, self.SUBMISSION_DEPRECATED_UUID_XPATH
             )
+
+            # If the submission has been edited before, it will already contain
+            # a rootUuid element - otherwise create a new element
+            root_uuid = get_or_create_element(
+                xml_parsed, self.SUBMISSION_ROOT_UUID_XPATH
+            )
+
+            if not root_uuid.text:
+                root_uuid.text = instance_id.text
+
             deprecated_id.text = instance_id.text
             instance_id.text = uuid_formatted
 
