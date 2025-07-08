@@ -41,8 +41,8 @@ ENKETO_INTERNAL_URL = 'http://enketo.mock'
 # cached values
 CONSTANCE_DATABASE_CACHE_BACKEND = None
 
-if 'djstripe' not in INSTALLED_APPS:
-    INSTALLED_APPS += ('djstripe', 'kobo.apps.stripe.StripeAppConfig')
+if 'djstripe' not in INSTALLED_APPS:  # noqa F405
+    INSTALLED_APPS += ('djstripe', 'kobo.apps.stripe.StripeAppConfig') # noqa F405
 STRIPE_ENABLED = True
 
 WEBPACK_LOADER['DEFAULT'][
