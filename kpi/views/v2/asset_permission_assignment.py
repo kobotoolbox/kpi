@@ -28,8 +28,9 @@ from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import AssetPermissionAssignmentPermission
 from kpi.schema_extensions.v2.permission_assignment.serializers import (
-    PermissionResponse,
     PermissionCreateRequest,
+    PermissionResponse,
+    PermissionBulkRequest,
 )
 from kpi.serializers.v2.asset_permission_assignment import (
     AssetBulkInsertPermissionSerializer,
@@ -104,8 +105,9 @@ class PermissionAssignmentSchema(AutoSchema):
     tags=['Permission Assignments'],
 )
 @extend_schema_view(
-    bulk=extend_schema(
+    bulk_assignments=extend_schema(
         description=read_md('kpi', 'permission_assignment/bulk.md'),
+        request={'application/json': PermissionBulkRequest(many=True)},
         responses=open_api_200_ok_response(
             PermissionResponse(many=True)
         ),

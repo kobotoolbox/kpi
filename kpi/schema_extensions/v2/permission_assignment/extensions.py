@@ -72,9 +72,6 @@ class PermissionCreateSerializerExtension(OpenApiSerializerExtension):
         }
 
 
-
-
-
 class PermissionFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.permission_assignment.fields.PermissionField'
 

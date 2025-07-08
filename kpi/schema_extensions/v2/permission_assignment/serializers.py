@@ -31,6 +31,24 @@ PermissionResponse = inline_serializer_class(
     },
 )
 
+PermissionBulkRequest = inline_serializer_class(
+    name='PermissionBulkRequest',
+    fields={
+        'user': UserField(
+            view_name='asset-detail',
+            lookup_field='username',
+            queryset=User.objects.all(),
+            style={'base_template': 'input.html'},
+        ),
+        'permission': PermissionField(
+            view_name='permission-detail',
+            lookup_field='codename',
+            queryset=Permission.objects.all(),
+            style={'base_template': 'input.html'},
+        ),
+    },
+)
+
 
 PermissionCreateRequest = inline_serializer_class(
     name='PermissionCreateRequest',
