@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.shortcuts import Http404
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError as SchemaValidationError
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError as APIValidationError
 from rest_framework.response import Response
 
