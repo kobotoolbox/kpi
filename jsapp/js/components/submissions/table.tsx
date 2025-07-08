@@ -1321,7 +1321,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   render() {
     if (this.state.error && typeof this.state.error === 'string') {
-      const supportMessage = `Please try again later, or [contact the support team](##SUPPORT_URL##) if this happens repeatedly.`
+      const supportMessage = t('Please try again later, or [contact the support team](##SUPPORT_URL##) if this happens repeatedly.')
       return (
         <bem.FormView m='ui-panel'>
           <CenteredMessage
@@ -1330,7 +1330,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 <h2>{t('Oops! Something went wrong on our end.')}</h2>
                   <div>
                     <Markdown>
-                      {t(supportMessage).replace(
+                      {supportMessage.replace(
                       '##SUPPORT_URL##',
                       envStore.data.support_url)}
                     </Markdown>
