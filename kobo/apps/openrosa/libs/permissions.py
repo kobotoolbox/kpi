@@ -32,8 +32,6 @@ KPI_PERMISSIONS_MAP = {  # keys are KPI's codenames, values are KC's
     CAN_DELETE_XFORM: PERM_DELETE_ASSET,  # "Can delete XForm" in KC shell
 }
 
-# Wrapper functions for KPI object permissions system
-
 
 XFORM_MODELS_NAMES = [
     'xform',
@@ -41,8 +39,10 @@ XFORM_MODELS_NAMES = [
 ]
 
 
+# Wrapper functions for KPI object permissions system
+
 def assign_perm(perm, user, obj):
-    if obj._meta.model_name in XFORM_MODELS_NAMES:
+    if hasattr(obj, 'asset'):
         obj = obj.asset  # XForms permissions are based on the asset's
         perm = KPI_PERMISSIONS_MAP[perm.replace('logger.', '')]
     obj.assign_perm(user, perm)
@@ -53,7 +53,7 @@ def get_users_with_perms(obj, attach_perms=False):
 
 
 def remove_perm(perm, user, obj):
-    if obj._meta.model_name in XFORM_MODELS_NAMES:
+    if hasattr(obj, 'asset'):
         obj = obj.asset  # XForms permissions are based on the asset's
         perm = KPI_PERMISSIONS_MAP[perm.replace('logger.', '')]
     obj.remove_perm(user, perm)
@@ -68,10 +68,8 @@ def get_xform_ids_for_user(user, perm=CAN_VIEW_XFORM):
     perm = KPI_PERMISSIONS_MAP[perm.replace('logger.', '')]
     # By default kpi.utils.object_permissions.get_objects_for_user works for Asset model
     qs_assets = kpi_get_objects_for_user(user, [perm])
-    uids = [row[0] for row in qs_assets.values_list('uid')]
-    xform_ids = [
-        row[0] for row in XForm.objects.values_list('id').filter(kpi_asset_uid__in=uids)
-    ]
+    uids = qs_assets.values_list('uid', flat=True)
+    xform_ids = XForm.objects.values_list('id', flat=True).filter(kpi_asset_uid__in=uids)
     return xform_ids
 
 
