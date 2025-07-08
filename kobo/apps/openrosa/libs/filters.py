@@ -8,7 +8,10 @@ from rest_framework.filters import BaseFilterBackend
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
-from kobo.apps.openrosa.libs.permissions import get_xform_ids_for_user, XFORM_MODELS_NAMES
+from kobo.apps.openrosa.libs.permissions import (
+    XFORM_MODELS_NAMES,
+    get_xform_ids_for_user,
+)
 from kpi.utils.object_permission import get_database_user
 
 

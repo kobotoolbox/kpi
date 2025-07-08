@@ -41,6 +41,7 @@ XFORM_MODELS_NAMES = [
 
 # Wrapper functions for KPI object permissions system
 
+
 def assign_perm(perm, user, obj):
     if hasattr(obj, 'asset'):
         obj = obj.asset  # XForms permissions are based on the asset's
@@ -69,7 +70,9 @@ def get_xform_ids_for_user(user, perm=CAN_VIEW_XFORM):
     # By default kpi.utils.object_permissions.get_objects_for_user works for Asset model
     qs_assets = kpi_get_objects_for_user(user, [perm])
     uids = qs_assets.values_list('uid', flat=True)
-    xform_ids = XForm.objects.values_list('id', flat=True).filter(kpi_asset_uid__in=uids)
+    xform_ids = XForm.objects.values_list('id', flat=True).filter(
+        kpi_asset_uid__in=uids
+    )
     return xform_ids
 
 
