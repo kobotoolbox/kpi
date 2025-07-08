@@ -64,7 +64,12 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             request = self.factory.post('/submission', data, format='json')
             auth = DigestAuth('bob', 'bobbob')
             request.META.update(auth(request.META, response))
-            with self.assertNumQueries(FuzzyInt(43, 47)):
+            expected_queries = FuzzyInt(43, 47)
+            # In stripe-enabled environments usage limit enforcement
+            # requires additional queries
+            if settings.STRIPE_ENABLED:
+                expected_queries = FuzzyInt(69, 73)
+            with self.assertNumQueries(expected_queries):
                 self.view(request)
 
     def test_post_submission_anonymous(self):

@@ -1,5 +1,8 @@
 import uuid
+from unittest.mock import patch
 
+import pytest
+from django.conf import settings
 from django.test import RequestFactory, TestCase
 from pyxform import SurveyElementBuilder
 
@@ -11,6 +14,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     create_instance,
     safe_create_instance,
 )
+from kobo.apps.organizations.constants import UsageType
 
 
 class TempFileProxy:
@@ -134,3 +138,15 @@ class TestSimpleSubmission(TestCase):
         # An `ExpatError` is raised instead
         text = 'Improperly formatted XML'
         self.assertContains(error, text, status_code=400)
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_check_exceeded_limit_on_submission(self):
+        with patch(
+            'kobo.apps.stripe.utils.limit_enforcement.check_exceeded_limit',
+            return_value=None,
+        ) as patched:
+            self._submit_simple_yes()
+            patched.assert_any_call(self.user, UsageType.SUBMISSION)
+            patched.assert_any_call(self.user, UsageType.STORAGE_BYTES)
