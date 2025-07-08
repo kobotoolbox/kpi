@@ -1,4 +1,4 @@
-## Update the existing deployment.
+## (un)archive the existing deployment.
 
 Update the `active` field of the existing deployment.
 
