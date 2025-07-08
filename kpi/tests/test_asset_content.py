@@ -10,8 +10,8 @@ from django.test import TestCase
 from model_bakery import baker
 
 from kpi.constants import ATTACHMENT_QUESTION_TYPES
-from kpi.utils.sluggify import sluggify_label
 from kpi.models import Asset
+from kpi.utils.sluggify import sluggify_label
 
 
 def test_expand_twice():
@@ -914,9 +914,7 @@ class TestAssetContent(TestCase):
         # Simulate versions created before the NLP feature, which lack the `$xpath`
         # property
         first_version = (
-            asset.asset_versions.filter(deployed=True)
-            .order_by('date_modified')
-            .first()
+            asset.asset_versions.filter(deployed=True).order_by('date_modified').first()
         )
         first_version_survey = first_version.version_content['survey']
         for question in first_version_survey:
