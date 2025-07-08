@@ -61,4 +61,4 @@ class TestXForm(TestBase):
         setattr(xform, '_cached_asset', None)
         assert xform.kpi_asset_uid is None
         assert xform.asset.pk is None
-        assert xform.asset.uid == None  # It'll be auto-generated if asset is saved
+        assert xform.asset.uid is None  # It'll be auto-generated if asset is saved
