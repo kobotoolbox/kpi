@@ -3,8 +3,6 @@ from math import inf
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
-from fakeredis import FakeConnection
-from freezegun import freeze_time
 from dateutil.relativedelta import relativedelta
 from ddt import data, ddt, unpack
 from django.conf import settings
@@ -42,7 +40,6 @@ from kobo.apps.stripe.utils.subscription_limits import (
     get_paid_subscription_limits,
     get_plan_name,
 )
-from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limit
 from kpi.tests.kpi_test_case import BaseTestCase
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
