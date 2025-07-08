@@ -26,12 +26,15 @@ from kpi.constants import (
 from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import AssetPermissionAssignmentPermission
+from kpi.schema_extensions.v2.permission_assignment.serializers import PermissionResponse
 from kpi.serializers.v2.asset_permission_assignment import (
     AssetBulkInsertPermissionSerializer,
     AssetPermissionAssignmentSerializer,
 )
 from kpi.utils.object_permission import get_user_permission_assignments_queryset
 from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
+    open_api_204_empty_response
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -41,27 +44,41 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 @extend_schema_view(
     bulk=extend_schema(
         description=read_md('kpi', 'permission_assignment/bulk.md'),
+        responses=open_api_200_ok_response(
+            PermissionResponse(many=True)
+        ),
     ),
     clone=extend_schema(
-        description=read_md('kpi', 'permission_assignment/clone.md')
+        description=read_md('kpi', 'permission_assignment/clone.md'),
+        responses=open_api_200_ok_response(
+            PermissionResponse(many=True),
+        ),
     ),
     create=extend_schema(
-        description=read_md('kpi', 'permission_assignment/create.md')
+        description=read_md('kpi', 'permission_assignment/create.md'),
+        responses=open_api_200_ok_response(
+            PermissionResponse
+        ),
     ),
     destroy=extend_schema(
-        description=read_md('kpi', 'permission_assignment/delete.md')
+        description=read_md('kpi', 'permission_assignment/delete.md'),
+        responses=open_api_204_empty_response(),
     ),
     delete_all=extend_schema(
-        description=read_md('kpi', 'permission_assignment/delete_all.md')
+        description=read_md('kpi', 'permission_assignment/delete_all.md'),
+        responses=open_api_204_empty_response(),
     ),
     list=extend_schema(
-        description=read_md('kpi', 'permission_assignment/list.md')
+        description=read_md('kpi', 'permission_assignment/list.md'),
+        responses=open_api_200_ok_response(
+            PermissionResponse
+        ),
     ),
     retrieve=extend_schema(
-        description=read_md('kpi', 'permission_assignment/retrieve.md')
-    ),
-    partial_update=extend_schema(
-        description=read_md('kpi', 'permission_assignment/update.md')
+        description=read_md('kpi', 'permission_assignment/retrieve.md'),
+        responses=open_api_200_ok_response(
+            PermissionResponse
+        ),
     ),
 )
 class AssetPermissionAssignmentViewSet(
@@ -103,6 +120,7 @@ class AssetPermissionAssignmentViewSet(
     pagination_class = None
     log_type = AuditType.PROJECT_HISTORY
     logged_fields = ['asset.id', 'asset.owner.username']
+    renderer_classes = [renderers.JSONRenderer]
     # filter_backends = Just kidding! Look at this instead:
     #     kpi.utils.object_permission.get_user_permission_assignments_queryset
 

@@ -24,6 +24,13 @@ from kpi.fields.relative_prefix_hyperlinked_related import (
 )
 from kpi.models.asset import Asset, AssetUserPartialPermission
 from kpi.models.object_permission import ObjectPermission
+from kpi.schema_extensions.v2.permission_assignment.fields import (
+    LabelField,
+    UrlField,
+    UserField,
+    PermissionField,
+    PartialPermissionField,
+)
 from kpi.utils.object_permission import (
     get_user_permission_assignments_queryset,
 )
@@ -33,21 +40,21 @@ ASSIGN_OWNER_ERROR_MESSAGE = "Owner's permissions cannot be assigned explicitly"
 
 
 class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
-    url = serializers.SerializerMethodField()
-    user = RelativePrefixHyperlinkedRelatedField(
+    url = UrlField()
+    user = UserField(
         view_name='user-kpi-detail',
         lookup_field='username',
         queryset=User.objects.all(),
         style={'base_template': 'input.html'},  # Render as a simple text box
     )
-    permission = RelativePrefixHyperlinkedRelatedField(
+    permission = PermissionField(
         view_name='permission-detail',
         lookup_field='codename',
         queryset=Permission.objects.all(),
         style={'base_template': 'input.html'},  # Render as a simple text box
     )
-    partial_permissions = serializers.SerializerMethodField()
-    label = serializers.SerializerMethodField()
+    partial_permissions = PartialPermissionField()
+    label = LabelField()
 
     class Meta:
         model = ObjectPermission
