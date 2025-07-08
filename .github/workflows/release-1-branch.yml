@@ -36,7 +36,7 @@ jobs:
       if: ${{ steps.week.outputs.even == 'true' }}
       run: |
         set -xe
-        NEW_VERSION="2.$(date +"%Y" | tail -c4).$(date +"%U")"
+        NEW_VERSION="2.$(date +"%Y" | tail -c4).$(date +"%V")"
         echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
         NEW_BRANCH="release/$NEW_VERSION"
         git config user.name "GitHub Actions Bot"
