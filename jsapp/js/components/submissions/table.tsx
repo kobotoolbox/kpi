@@ -5,6 +5,7 @@ import React from 'react'
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
 import { DebounceInput } from 'react-debounce-input'
+import Markdown from 'react-markdown'
 import ReactTable from 'react-table'
 import type { CellInfo } from 'react-table'
 import { actions } from '#/actions'
@@ -96,7 +97,6 @@ import { stores } from '#/stores'
 import { formatTimeDateShort, removeDefaultUuidPrefix } from '#/utils'
 import AudioCell from './audioCell'
 import MediaCell from './mediaCell'
-import Markdown from 'react-markdown'
 
 const DEFAULT_PAGE_SIZE = 30
 
@@ -1321,20 +1321,18 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   render() {
     if (this.state.error && typeof this.state.error === 'string') {
-      const supportMessage = t('Please try again later, or [contact the support team](##SUPPORT_URL##) if this happens repeatedly.')
+      const supportMessage = t(
+        'Please try again later, or [contact the support team](##SUPPORT_URL##) if this happens repeatedly.',
+      ).replace('##SUPPORT_URL##', envStore.data.support_url)
       return (
         <bem.FormView m='ui-panel'>
           <CenteredMessage
             message={
               <div>
                 <h2>{t('Oops! Something went wrong on our end.')}</h2>
-                  <div>
-                    <Markdown>
-                      {supportMessage.replace(
-                      '##SUPPORT_URL##',
-                      envStore.data.support_url)}
-                    </Markdown>
-                  </div>
+                <div>
+                  <Markdown>{supportMessage}</Markdown>
+                </div>
                 <br />
                 <div>
                   {t('Response details:')} {this.state.error}
