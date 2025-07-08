@@ -4,13 +4,23 @@ from io import StringIO
 
 import responses
 from django.conf import settings
+from django.core.files.base import ContentFile
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kpi.models.asset_file import AssetFile
 from kpi.tests.utils.mock import (
     enketo_edit_instance_response,
     enketo_view_instance_response,
+)
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    remove_uuid_prefix,
+)
+from kpi.utils.xml import (
+    edit_submission_xml,
+    fromstring_preserve_root_xmlns,
+    xml_tostring,
 )
 
 
@@ -203,6 +213,49 @@ class SubmissionEditTestCaseMixin:
             'version_uid': self.asset.latest_deployed_version.uid,
         }
         assert response.data == expected_response
+
+    def _simulate_edit_submission(self, instance: Instance):
+        # Simulate editing the submission:
+        # - fetch the original XML
+        # - generate a new snapshot
+        # - inject rootUuid and deprecatedID in XML
+        submission_xml = instance.xml
+        submission_json = self.asset.deployment.get_submission(
+            instance.pk, self.asset.owner, format_type='json'
+        )
+        xml_parsed = fromstring_preserve_root_xmlns(submission_xml)
+        xml_root_node_name = xml_parsed.tag
+
+        last_deployed_version = self.asset.deployed_versions.first()
+
+        snapshot = self.asset.snapshot(
+            regenerate=True,
+            root_node_name=xml_root_node_name,
+            version_uid=last_deployed_version.uid,
+            submission_uuid=remove_uuid_prefix(submission_json['meta/rootUuid']),
+        )
+
+        edit_submission_xml(
+            xml_parsed, 'meta/deprecatedID', submission_json['meta/instanceID']
+        )
+        edit_submission_xml(
+            xml_parsed, 'meta/rootUuid', submission_json['meta/rootUuid']
+        )
+        _, new_submission_uuid = self.asset.deployment.generate_new_instance_id()
+        edit_submission_xml(xml_parsed, 'meta/instanceID', new_submission_uuid)
+        edited_submission = xml_tostring(xml_parsed)
+
+        # Submit the edited XML
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=(snapshot.uid,),
+        )
+
+        data = {'xml_submission_file': ContentFile(edited_submission)}
+        response = self.client.post(url, data)
+
+        # The submission edit should succeed and create a new Instance
+        assert response.status_code == status.HTTP_201_CREATED
 
 
 class SubmissionValidationStatusTestCaseMixin:
