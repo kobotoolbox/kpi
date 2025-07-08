@@ -1,3 +1,3 @@
-## Create a deployment
+## (Re)Deploy a form
 
-Create a new deployment, but only if a deployment does not exist already.
+Deploy a new form or re-deploy an existing one.
