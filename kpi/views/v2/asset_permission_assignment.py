@@ -111,6 +111,7 @@ class PermissionAssignmentSchema(AutoSchema):
         request={'application/json': PermissionBulkRequest(many=True)},
         responses=open_api_200_ok_response(
             PermissionResponse(many=True),
+            require_auth=False,
         ),
     ),
     clone=extend_schema(
@@ -118,6 +119,7 @@ class PermissionAssignmentSchema(AutoSchema):
         request={'application/json': PermissionCloneRequest},
         responses=open_api_200_ok_response(
             PermissionResponse(many=True),
+            require_auth=False,
         ),
     ),
     create=extend_schema(
@@ -125,26 +127,37 @@ class PermissionAssignmentSchema(AutoSchema):
         request={'application/json': PermissionCreateRequest},
         responses=open_api_200_ok_response(
             PermissionResponse,
+            require_auth=False,
         ),
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'permission_assignment/delete.md'),
-        responses=open_api_204_empty_response(),
+        responses=open_api_204_empty_response(
+            require_auth=False,
+            validate_payload=False,
+        ),
     ),
     delete_all=extend_schema(
         description=read_md('kpi', 'permission_assignment/delete_all.md'),
-        responses=open_api_204_empty_response(),
+        responses=open_api_204_empty_response(
+            require_auth=False,
+            validate_payload=False,
+        ),
     ),
     list=extend_schema(
         description=read_md('kpi', 'permission_assignment/list.md'),
         responses=open_api_200_ok_response(
             PermissionResponse,
+            require_auth=False,
+            validate_payload=False,
         ),
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'permission_assignment/retrieve.md'),
         responses=open_api_200_ok_response(
             PermissionResponse,
+            require_auth=False,
+            validate_payload=False,
         ),
     ),
 )
