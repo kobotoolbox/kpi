@@ -93,10 +93,10 @@ import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
 import { stores } from '#/stores'
-import { replaceBracketsWithLink } from '#/textUtils'
 import { formatTimeDateShort, removeDefaultUuidPrefix } from '#/utils'
 import AudioCell from './audioCell'
 import MediaCell from './mediaCell'
+import Markdown from 'react-markdown'
 
 const DEFAULT_PAGE_SIZE = 30
 
@@ -1321,19 +1321,20 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   render() {
     if (this.state.error && typeof this.state.error === 'string') {
+      const supportMessage = `Please try again later, or [contact the support team](##SUPPORT_URL##) if this happens repeatedly.`
       return (
         <bem.FormView m='ui-panel'>
           <CenteredMessage
             message={
               <div>
                 <h2>{t('Oops! Something went wrong on our end.')}</h2>
-                <div>
-                  Please try again later, or{' '}
-                  <a href={envStore.data.support_url} target='_blank'>
-                    contact the support team
-                  </a>{' '}
-                  if this happens repeatedly.
-                </div>
+                  <div>
+                    <Markdown>
+                      {t(supportMessage).replace(
+                      '##SUPPORT_URL##',
+                      envStore.data.support_url)}
+                    </Markdown>
+                  </div>
                 <br />
                 <div>
                   {t('Response details:')} {this.state.error}
