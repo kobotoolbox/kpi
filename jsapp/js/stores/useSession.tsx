@@ -14,7 +14,9 @@ import sessionStore from './session'
  * In the future we should update this hook to use react-query and drop the usage of mob-x
  */
 export const useSession = () => {
-  const [currentLoggedAccount, setCurrentLoggedAccount] = useState<AccountResponse>()
+  const [currentLoggedAccount, setCurrentLoggedAccount] = useState<AccountResponse>(
+    sessionStore.currentAccount as AccountResponse,
+  )
   const [isAnonymous, setIsAnonymous] = useState<boolean>(true)
   const [isPending, setIsPending] = useState<boolean>(false)
 
