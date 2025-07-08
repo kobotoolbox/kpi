@@ -447,7 +447,7 @@ class TestDataViewSet(TestBase):
         # test adding submissions does not increase query count
         self._make_submissions()
         self._make_submissions()
-        with self.assertNumQueries(14):
+        with self.assertNumQueries(10):
             view(request, pk=formid)
 
     def test_query_counts_with_attachments(self):
