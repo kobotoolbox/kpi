@@ -1,4 +1,5 @@
-$base = require './model.base'
+const $base = require('./model.base');
 
-module.exports = do ->
-  return RowDetail: $base.RowDetail
+module.exports = ((() => ({
+  RowDetail: $base.RowDetail
+})))();
