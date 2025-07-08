@@ -15,7 +15,7 @@ class DataBulkDeleteField(serializers.JSONField):
     pass
 
 
-class DataBulkUpdateField(serializers.ListField):
+class DataBulkUpdatePayloadField(serializers.ListField):
     pass
 
 

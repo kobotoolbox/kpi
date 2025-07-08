@@ -4,7 +4,7 @@ from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
     DataAttachmentField,
     DataBulkDeleteField,
-    DataBulkUpdateField,
+    DataBulkUpdatePayloadField,
     DataBulkUpdateResultField,
     DataValidationPayloadField,
     EmptyListField,
@@ -21,8 +21,7 @@ DataBulkDelete = inline_serializer_class(
 DataBulkUpdate = inline_serializer_class(
     name='DataBulkUpdate',
     fields={
-        'submission_ids': DataBulkDeleteField(),
-        'data': DataBulkUpdateField(),
+        'payload': DataBulkUpdatePayloadField(),
     },
 )
 

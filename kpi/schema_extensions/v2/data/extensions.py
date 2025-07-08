@@ -57,13 +57,20 @@ class DataBulkDeleteFieldExtension(OpenApiSerializerFieldExtension):
         return build_array_type(schema=build_basic_type(OpenApiTypes.INT))
 
 
-class DataBulkUpdateFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.data.fields.DataBulkUpdateField'  # noqa
+class DataBulkUpdatePayloadFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.data.fields.DataBulkUpdatePayloadField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'field_to_update': build_basic_type(OpenApiTypes.STR),
+                'submission_ids': build_array_type(
+                    schema=build_basic_type(OpenApiTypes.INT)
+                ),
+                'data': build_object_type(
+                    properties={
+                        'field_to_update': build_basic_type(OpenApiTypes.STR),
+                    }
+                )
             }
         )
 
