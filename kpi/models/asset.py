@@ -11,6 +11,9 @@ from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import models, transaction
 from django.db.models import F, Prefetch, Q
 from django.utils.translation import gettext_lazy as t
+from taggit.managers import TaggableManager, _TaggableManager
+from taggit.utils import require_instance_manager
+
 from django_request_cache import cache_for_request
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
@@ -663,11 +666,24 @@ class Asset(
             content, self.advanced_features, url=url
         )
 
-    @cache_for_request
-    def get_attachment_xpaths(self, deployed: bool = True) -> Optional[list]:
-        version = (
-            self.latest_deployed_version if deployed else self.latest_version
-        )
+    def get_all_attachment_xpaths(self):
+        # return deployed versions first
+        versions = self.asset_versions.filter(deployed=True).order_by('-date_modified')
+        xpaths = set()
+        for i, version in enumerate(versions):
+            # insert the xpaths if this is the latest deployed version
+            insert_xpath = i == 0
+
+            xpaths.update(
+                self.get_attachment_xpaths_from_version(
+                    version, insert_xpath=insert_xpath
+                )
+            )
+        return list(xpaths)
+
+    def get_attachment_xpaths_from_version(
+        self, version=None, insert_xpath=False
+    ) -> Optional[list]:
 
         if version:
             content = version.to_formpack_schema()['content']
@@ -679,7 +695,7 @@ class Asset(
         def _get_xpaths(survey_: dict) -> Optional[list]:
             """
             Returns an empty list if no questions that take attachments are
-            present. Returns `None` if XPath are missing from the survey
+            present. Returns `None` if XPaths are missing from the survey
             content
             """
             xpaths = []
@@ -692,11 +708,10 @@ class Asset(
                     return None
                 xpaths.append(xpath)
             return xpaths
-
         if xpaths := _get_xpaths(survey):
             return xpaths
-
-        self._insert_xpath(content)
+        if insert_xpath:
+            self._insert_xpath(content)
         return _get_xpaths(survey)
 
     def get_filters_for_partial_perm(

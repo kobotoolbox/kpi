@@ -1,0 +1,131 @@
+name: 'CD: stabilize'
+
+on:
+  push:
+    branches: [ 'release/**' ]
+
+jobs:
+
+  changes:
+    runs-on: ubuntu-24.04
+    permissions: { pull-requests: read }
+    steps:
+      - uses: actions/checkout@v4
+      - id:   filter
+        uses: dorny/paths-filter@v3
+        name: Detect changed files
+        with: { filters: .github/filters.yml }
+    outputs:
+      darker:   ${{ steps.filter.outputs.darker   }}
+      pytest:   ${{ steps.filter.outputs.pytest   }}
+      npm-test: ${{ steps.filter.outputs.npm-test }}
+
+  darker:
+    needs: changes
+    if: needs.changes.outputs.darker == 'true'
+    uses: ./.github/workflows/darker.yml
+
+  pytest:
+    needs: changes
+    if: needs.changes.outputs.pytest == 'true'
+    uses: ./.github/workflows/pytest.yml
+
+  npm-test:
+    needs: changes
+    if: needs.changes.outputs.npm-test == 'true'
+    uses: ./.github/workflows/npm-test.yml
+
+  version:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Formats the version number
+      id: version
+      run: |
+        set -xe
+        BRANCH=git rev-parse --abbrev-ref HEAD
+        VERSION=`echo $BRANCH | sed -e 's/release\///'`
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+  changelog:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: post to Zulip Linear updated draft of changelog
+      run: |
+        echo 'TODO, for now generate changelog manually'
+        echo 'TODO, for now send to Zulip manually'
+
+  deploy-to-beta:
+    runs-on: ubuntu-24.04
+    needs:
+      - darker
+      - pytest
+      - npm-test
+    if: |
+      !failure() &&
+      (needs.darker.result == 'skipped' || needs.darker.result == 'success') &&
+      (needs.pytest.result == 'skipped' || needs.pytest.result == 'success') &&
+      (needs.npm-test.result == 'skipped' || needs.npm-test.result == 'success')
+    steps:
+    - uses: actions/checkout@v4
+    - name: deploy to beta
+      run: |
+        set -xe
+        # TODO, lets test deploy to beta later with a real release branch
+        git checkout -B public-beta
+        git push -f
+
+  merge:
+    runs-on: ubuntu-24.04
+    needs:
+      - darker
+      - pytest
+      - npm-test
+      - changelog
+      - deploy-to-beta
+    if: |
+      !failure() &&
+      (needs.darker.result == 'skipped' || needs.darker.result == 'success') &&
+      (needs.pytest.result == 'skipped' || needs.pytest.result == 'success') &&
+      (needs.npm-test.result == 'skipped' || needs.npm-test.result == 'success') &&
+      (needs.changelog.result == 'skipped' || needs.changelog.result == 'success') &&
+      needs.deploy-to-beta.result == 'success'
+    steps:
+    - uses: actions/checkout@v4
+    - name: merge to main
+      run: |
+        echo 'TODO, squash migrations, if any'
+        echo 'TODO, lets test merging later with a real release branch'
+
+  notify:
+    needs:
+      - version
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "${{ needs.version.outputs.version }} release"
+      content: ":working_on_it: Release branch updated, passed CI and deployed to beta. Please merge to main and update release notes (TODO: automate)"
+
+  on-failure:
+    needs:
+      - version
+      - darker
+      - pytest
+      - npm-test
+      - deploy-to-beta
+      - merge
+    if: |
+      failure() &&
+      (needs.version.result == 'failure' || needs.version.result == 'timed_out' ||
+      needs.darker.result == 'failure' || needs.darker.result == 'timed_out' ||
+      needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' ||
+      needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out' ||
+      needs.deploy-to-beta.result == 'failure' || needs.deploy-to-beta.result == 'timed_out' ||
+      needs.merge.result == 'failure' || needs.merge.result == 'timed_out')
+    uses: './.github/workflows/zulip.yml'
+    with:
+      topic: "${{ needs.version.outputs.version }} release"
+      secrets: inherit
+      content: ":warning: @*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `${{ github.head_ref || github.ref_name }}` at [\"$COMMIT_TITLE\"](${{ github.event.compare }})"

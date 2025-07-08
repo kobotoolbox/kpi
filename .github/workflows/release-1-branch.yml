@@ -1,0 +1,79 @@
+name: 'CD: branch'
+
+on:
+  schedule:
+    # It's good to deploy early in week:
+    # - In the best case, will QA, tag and deploy on the same Tuesday or Wednesday.
+    # - In an ok case, will QA, tag and deploy on the next Monday-Wednesday.
+    # - In the worst case, the last chance is to deploy on after-next Monday.
+    - cron: '17 5 * * 2'
+
+jobs:
+
+
+  create-branch:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.branch.outputs.version }}
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - name: check if week number is even
+      id: week
+      run: |
+        set -xe
+        if (( $(date +%U) % 2 == 0 )); then
+          echo "even=true" >> $GITHUB_OUTPUT
+          echo $GITHUB_OUTPUT
+        else
+          echo "even=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: create next RC branch
+      id: branch
+      if: ${{ steps.week.outputs.even == 'true' }}
+      run: |
+        set -xe
+        NEW_VERSION="2.$(date +"%Y" | tail -c4).$(date +"%U")"
+        echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+        NEW_BRANCH="release/$NEW_VERSION"
+        git config user.name "GitHub Actions Bot"
+        git config user.email "github-actions-bot@kobotoolbox.org"
+        git checkout -b $NEW_BRANCH
+        git push origin $NEW_BRANCH
+
+    - name: delete previous RC branch if it hasn't a correspond tag
+      run: |
+        echo 'TODO, for now do it manually'
+
+
+  changelog:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: create Linear ticket to track a draft of changelog
+      run: |
+        echo 'TODO, for now do it manually'
+
+
+  notify:
+    needs:
+      - create-branch
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "${{ needs.create-branch.outputs.version }} release"
+      content: ":seedling: release branch created."
+
+
+  on-failure:
+    needs:
+      - create-branch
+    if: |
+      failure() &&
+      (needs.create-branch.result == 'failure' || needs.create-branch.result == 'timed_out')
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "${{ needs.create-branch.outputs.version }} release"
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release candidate creation failed."

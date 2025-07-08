@@ -3,12 +3,14 @@ import time
 from typing import Literal, Optional, Union
 
 from django.apps import apps
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.main.models import MetaData
 from kobo.apps.project_ownership.models import InviteStatusChoices
+from kpi.deployment_backends.kc_access.storage import default_kobocat_storage
 from kpi.models.asset import Asset, AssetFile
 from kpi.utils.log import logging
 from .constants import ASYNC_TASK_HEARTBEAT
@@ -102,11 +104,12 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
     errors = False
     for attachment in attachments.iterator():
         update_fields = ['user_id']
+        media_file_path = attachment.media_file.name
         if (
             target_folder := get_target_folder(
                 transfer.invite.sender.username,
                 transfer.invite.recipient.username,
-                attachment.media_file.name,
+                media_file_path,
             )
         ):
             # There is no way to ensure atomicity when moving the file and saving the
@@ -114,6 +117,7 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
             # interrupted between these two operations.
             if attachment.media_file.move(target_folder):
                 update_fields.append('media_file')
+                _delete_thumbnails(media_file_path)
             else:
                 errors = True
                 logging.error(
@@ -121,10 +125,11 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
                     f'could not be moved to {target_folder}'
                 )
 
-            heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
-
         attachment.user_id = transfer.invite.recipient.pk
         attachment.save(update_fields=update_fields)
+
+        heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
+
     if errors:
         raise AsyncTaskException('Some attachments could not be moved')
 
@@ -239,6 +244,31 @@ def _mark_task_as_successful(
     TransferStatus.update_status(
         transfer.pk, TransferStatusChoices.SUCCESS, async_task_type
     )
+
+
+def _delete_thumbnails(media_file_path: str):
+    """
+    Delete generated thumbnail files (large, medium, small) that correspond to
+    an original attachment.
+
+    Thumbnails are not stored in the database and are generated on the fly
+    when a user previews an image. Since they will be regenerated for the new
+    owner after transfer, we safely delete them from the old owner's folder
+    after moving the original attachment.
+    """
+    if not media_file_path:
+        return
+
+    dir_name = os.path.dirname(media_file_path)
+    base, ext = os.path.splitext(os.path.basename(media_file_path))
+
+    for size_key in settings.THUMB_CONF.keys():
+        thumb_path = os.path.join(dir_name, f'{base}-{size_key}{ext}')
+        if default_kobocat_storage.exists(thumb_path):
+            try:
+                default_kobocat_storage.delete(thumb_path)
+            except Exception as e:
+                logging.warning(f'Could not delete thumbnail: {thumb_path} ({e})')
 
 
 def _update_heartbeat(

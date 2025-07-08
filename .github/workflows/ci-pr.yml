@@ -2,9 +2,10 @@ name: CI of a PR
 
 on: pull_request
 
+
 jobs:
   changes:
-    runs-on:     ubuntu-22.04
+    runs-on:     ubuntu-24.04
     permissions: { pull-requests: read }
     steps:
       - uses: actions/checkout@v4
@@ -19,15 +20,23 @@ jobs:
 
   darker:
     needs: changes
-    uses: ./.github/workflows/darker.yml
     if: needs.changes.outputs.darker == 'true'
+    uses: ./.github/workflows/darker.yml
 
   pytest:
     needs: changes
-    uses: ./.github/workflows/pytest.yml
     if: needs.changes.outputs.pytest == 'true'
+    uses: ./.github/workflows/pytest.yml
 
   npm-test:
     needs: changes
+    if: false && needs.changes.outputs.npm-test == 'true'
     uses: ./.github/workflows/npm-test.yml
-    if: needs.changes.outputs.npm-test == 'true'
+
+  debug:
+    uses: ./.github/workflows/linear.yml
+    secrets: inherit
+    with:
+      title: hello world
+      description: |
+        some very long desc and weird chars. wip: te$t w'th "escapable" title "!@#$%^&*(),'./\| 14

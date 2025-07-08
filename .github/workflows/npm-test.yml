@@ -4,7 +4,7 @@ on: workflow_call
 jobs:
   read-playwright-version:
     name: 'Read Playwright Version'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       playwright-version: ${{ steps.get_playwright_version.outputs.playwright-version }}
     steps:
@@ -13,7 +13,7 @@ jobs:
         uses: eviden-actions/get-playwright-version@v1
 
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     needs: read-playwright-version
 
