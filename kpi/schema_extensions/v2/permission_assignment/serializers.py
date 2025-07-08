@@ -49,6 +49,12 @@ PermissionBulkRequest = inline_serializer_class(
     },
 )
 
+PermissionCloneRequest = inline_serializer_class(
+    name='PermissionCloneRequest',
+    fields={
+        'clone_from': serializers.CharField()
+    }
+)
 
 PermissionCreateRequest = inline_serializer_class(
     name='PermissionCreateRequest',

@@ -1,1 +1,1 @@
-## Clone permissions from another asset
+## Clone permissions from another asset using uid

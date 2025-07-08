@@ -31,6 +31,7 @@ from kpi.schema_extensions.v2.permission_assignment.serializers import (
     PermissionCreateRequest,
     PermissionResponse,
     PermissionBulkRequest,
+    PermissionCloneRequest,
 )
 from kpi.serializers.v2.asset_permission_assignment import (
     AssetBulkInsertPermissionSerializer,
@@ -109,11 +110,12 @@ class PermissionAssignmentSchema(AutoSchema):
         description=read_md('kpi', 'permission_assignment/bulk.md'),
         request={'application/json': PermissionBulkRequest(many=True)},
         responses=open_api_200_ok_response(
-            PermissionResponse(many=True)
+            PermissionResponse(many=True),
         ),
     ),
     clone=extend_schema(
         description=read_md('kpi', 'permission_assignment/clone.md'),
+        request={'application/json': PermissionCloneRequest},
         responses=open_api_200_ok_response(
             PermissionResponse(many=True),
         ),
@@ -122,7 +124,7 @@ class PermissionAssignmentSchema(AutoSchema):
         description=read_md('kpi', 'permission_assignment/create.md'),
         request={'application/json': PermissionCreateRequest},
         responses=open_api_200_ok_response(
-            PermissionResponse
+            PermissionResponse,
         ),
     ),
     destroy=extend_schema(
@@ -136,13 +138,13 @@ class PermissionAssignmentSchema(AutoSchema):
     list=extend_schema(
         description=read_md('kpi', 'permission_assignment/list.md'),
         responses=open_api_200_ok_response(
-            PermissionResponse
+            PermissionResponse,
         ),
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'permission_assignment/retrieve.md'),
         responses=open_api_200_ok_response(
-            PermissionResponse
+            PermissionResponse,
         ),
     ),
 )
