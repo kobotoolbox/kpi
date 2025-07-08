@@ -3,7 +3,7 @@ from django.dispatch import receiver
 from djstripe.models import Charge, Subscription
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.stripe.models import PlanAddOn, ExceededLimitCounter
+from kobo.apps.stripe.models import ExceededLimitCounter, PlanAddOn
 from kobo.apps.stripe.utils.limit_enforcement import update_or_remove_limit_counter
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 
