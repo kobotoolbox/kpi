@@ -54,15 +54,15 @@ def update_nlp_counter(
         counter_id = counter.pk
 
     # Update the total counters by the usage amount to keep them current
-    deduct = settings.STRIPE_ENABLED
+    stripe_enabled = settings.STRIPE_ENABLED
     kwargs = {}
     if service.endswith(UsageType.ASR_SECONDS):
         kwargs['total_asr_seconds'] = F('total_asr_seconds') + amount
-        if deduct and asset_id is not None:
+        if stripe_enabled and asset_id is not None:
             handle_usage_deduction(organization, UsageType.ASR_SECONDS, amount)
     if service.endswith(UsageType.MT_CHARACTERS):
         kwargs['total_mt_characters'] = F('total_mt_characters') + amount
-        if deduct and asset_id is not None:
+        if stripe_enabled and asset_id is not None:
             handle_usage_deduction(organization, UsageType.MT_CHARACTERS, amount)
 
     NLPUsageCounter.objects.filter(pk=counter_id).update(
@@ -70,7 +70,7 @@ def update_nlp_counter(
         **kwargs,
     )
 
-    if not deduct:
+    if not stripe_enabled:
         return
 
     if service.endswith(UsageType.ASR_SECONDS):
