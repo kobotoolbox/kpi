@@ -2,6 +2,7 @@ import multiprocessing
 import os
 from collections import defaultdict
 from functools import partial
+from unittest.mock import patch
 
 import pytest
 import requests
@@ -14,7 +15,6 @@ from django.test.testcases import LiveServerTestCase
 from django_digest.test import DigestAuth
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from unittest.mock import patch
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (

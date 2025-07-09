@@ -44,6 +44,7 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
     ConflictingSubmissionUUIDError,
     DuplicateInstanceError,
     DuplicateUUIDError,
+    ExceededUsageLimitError,
     FormInactiveError,
     InstanceEmptyError,
     InstanceIdMissingError,
@@ -51,7 +52,6 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
     InstanceMultipleNodeError,
     LockedSubmissionError,
     TemporarilyUnavailableError,
-    ExceededUsageLimitError,
 )
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
@@ -152,7 +152,7 @@ def create_instance(
     uuid: str = None,
     date_created_override: datetime = None,
     request: Optional['rest_framework.request.Request'] = None,
-    check_usage_limits: bool = True
+    check_usage_limits: bool = True,
 ) -> Instance:
     """
     Processes form submissions by creating or updating an Instance in an atomic
