@@ -1151,6 +1151,7 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'asset_type',
             'downloads',
             'owner_label',
+            'last_modified_by',
         )
 
     def get_deployment__submission_count(self, obj: Asset) -> int:
