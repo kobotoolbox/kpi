@@ -11,7 +11,6 @@ from kpi.utils.schema_extensions.url_builder import build_url_type
 
 class ContentFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.versions.fields.ContentField'
-    print('aaaaa')
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
@@ -51,7 +50,6 @@ class ContentFieldExtension(OpenApiSerializerFieldExtension):
 
 class ContentHashFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.versions.fields.ContentHashField'
-    print('aaaaa')
 
     def map_serializer_field(self, auto_schema, direction):
         return build_basic_type(OpenApiTypes.STR)
@@ -59,7 +57,6 @@ class ContentHashFieldExtension(OpenApiSerializerFieldExtension):
 
 class DateDeployedFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.versions.fields.DateDeployedField'
-    print('aaaaa')
 
     def map_serializer_field(self, auto_schema, direction):
         return build_basic_type(OpenApiTypes.DATETIME)
@@ -67,7 +64,6 @@ class DateDeployedFieldExtension(OpenApiSerializerFieldExtension):
 
 class DateModifiedFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.versions.fields.DateModifiedField'
-    print('aaaaa')
 
     def map_serializer_field(self, auto_schema, direction):
         return build_basic_type(OpenApiTypes.DATETIME)
@@ -75,7 +71,6 @@ class DateModifiedFieldExtension(OpenApiSerializerFieldExtension):
 
 class UidFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.versions.fields.UidField'
-    print('aaaaa')
 
     def map_serializer_field(self, auto_schema, direction):
         return build_basic_type(OpenApiTypes.STR)
@@ -83,7 +78,6 @@ class UidFieldExtension(OpenApiSerializerFieldExtension):
 
 class UrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.versions.fields.UrlField'
-    print('aaaaa')
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
