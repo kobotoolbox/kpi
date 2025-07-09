@@ -4,7 +4,6 @@
 # list is set to the string 'true'.
 
 all:
-  - '.github/filters.yml'          # ci
   - '.github/workflows/ci-*.yml'   # ci
   - '.github/workflows/zulip.yml'  # ci
 
