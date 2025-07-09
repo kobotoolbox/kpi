@@ -33,6 +33,9 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         description=read_md('kpi', 'versions/list.md'),
         responses=open_api_200_ok_response(
             VersionListResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
     update=extend_schema(
@@ -42,6 +45,9 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         description=read_md('kpi', 'versions/retrieve.md'),
         responses=open_api_200_ok_response(
             VersionRetrieveResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
     partial_update=extend_schema(
