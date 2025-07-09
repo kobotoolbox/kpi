@@ -1,4 +1,3 @@
-# coding: utf-8
 import inspect
 import json
 import string
@@ -10,6 +9,7 @@ from django.conf import settings
 from django.test import TestCase
 from model_bakery import baker
 
+from kpi.constants import ATTACHMENT_QUESTION_TYPES
 from kpi.models import Asset
 from kpi.utils.sluggify import sluggify_label
 
@@ -879,9 +879,7 @@ class TestAssetContent(TestCase):
                 'survey': [
                     {
                         'type': 'image',
-                        '$kuid': 'ff2tv42',
                         'label': ['Image'],
-                        '$xpath': 'Image',
                         'required': False,
                         'name': 'Image',
                     }
@@ -895,22 +893,41 @@ class TestAssetContent(TestCase):
                 {
                     'name': 'group_kq1rd43',
                     'type': 'begin_group',
-                    '$kuid': 'wu8pl89',
                     'label': ['Group'],
-                    '$xpath': 'group_kq1rd43',
                 },
                 {
                     'type': 'image',
-                    '$kuid': 'ff2tv42',
                     'label': ['Image'],
-                    '$xpath': 'group_kq1rd43/Image',
                     'required': False,
                     'name': 'Image',
                 },
-                {'type': 'end_group', '$kuid': '/wu8pl89'},
+                {'type': 'end_group'},
             ],
         }
         asset.save()
         asset.deploy(backend='mock')
+        xpaths = asset.get_all_attachment_xpaths()
+        assert sorted(xpaths) == ['Image', 'group_kq1rd43/Image']
+
+        assert asset.asset_versions.filter(deployed=True).count() == 2
+
+        # Simulate versions created before the NLP feature, which lack the `$xpath`
+        # property
+        first_version = (
+            asset.asset_versions.filter(deployed=True).order_by('date_modified').first()
+        )
+        first_version_survey = first_version.version_content['survey']
+        for question in first_version_survey:
+            if question['type'] not in ATTACHMENT_QUESTION_TYPES:
+                continue
+            try:
+                del question['$xpath']
+            except KeyError:
+                pass
+
+        first_version.version_content['survey'] = first_version_survey
+        first_version.save(update_fields=['version_content'])
+
+        # Validate XPaths can still be retrieved even on old versions
         xpaths = asset.get_all_attachment_xpaths()
         assert sorted(xpaths) == ['Image', 'group_kq1rd43/Image']
