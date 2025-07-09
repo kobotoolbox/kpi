@@ -94,10 +94,23 @@ jobs:
       needs.deploy-to-beta.result == 'success'
     steps:
     - uses: actions/checkout@v4
-    - name: merge to main
+    - name: TODO squash migrations
       run: |
         echo 'TODO, squash migrations, if any'
-        echo 'TODO, lets test merging later with a real release branch'
+    - name: merge release into main
+      run: |
+        set -xe
+        git config user.name "GitHub Actions Bot"
+        git config user.email "github-actions-bot@kobotoolbox.org"
+        BRANCH=`git rev-parse --abbrev-ref HEAD`
+        git fetch --unshallow
+        git checkout main
+        git pull
+        git merge --no-ff $BRANCH -m "Merge branch '$BRANCH' into main"
+        # If it's not merging, this will error and on-failure below will let us know.
+        # If it's not working, CI for main will let us know a bit later.
+        git push
+
 
   notify:
     needs:
