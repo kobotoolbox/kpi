@@ -77,8 +77,8 @@ jobs:
       needs.kpi.result == 'failure' || needs.kpi.result == 'timed_out' ||
       needs.kobo-docker.result == 'failure' || needs.kobo-docker.result == 'timed_out' ||
       needs.kobo-install.result == 'failure' || needs.kobo-install.result == 'timed_out')
-    uses: './.github/workflows/zulip.yml'
     secrets: inherit
+    uses: './.github/workflows/zulip.yml'
     with:
       topic: "Github Actions (${{ github.event.inputs.prod_env }})"
       content: ":warning: ${{ github.event.inputs.tag }} failed to create a Github release(s), see [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})."

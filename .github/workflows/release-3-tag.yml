@@ -127,8 +127,8 @@ jobs:
       needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out' ||
       needs.deploy-to-master.result == 'failure' || needs.deploy-to-master.result == 'timed_out' ||
       needs.bump.result == 'failure' || needs.bump.result == 'timed_out')
-    uses: './.github/workflows/zulip.yml'
     secrets: inherit
+    uses: './.github/workflows/zulip.yml'
     with:
       topic: "${{ needs.version.outputs.version }} release"
       content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release candidate tagging failed."
