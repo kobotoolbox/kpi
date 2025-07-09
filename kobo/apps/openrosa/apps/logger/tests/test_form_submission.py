@@ -15,7 +15,7 @@ from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.libs.permissions import assign_perm
 from kobo.apps.openrosa.libs.utils.common_tags import GEOLOCATION
-
+from kpi.constants import PERM_CHANGE_SUBMISSIONS, PERM_ADD_SUBMISSIONS
 
 class TestFormSubmission(TestBase):
     """
@@ -726,8 +726,8 @@ class TestFormSubmission(TestBase):
         # create a new user with permission to edit submissions
         alice = self._create_user('alice', 'alice')
         UserProfile.objects.create(user=alice)
-        assign_perm('report_xform', alice, self.xform)
-        assign_perm('logger.change_xform', alice, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice, self.xform.asset)
+        assign_perm(PERM_CHANGE_SUBMISSIONS, alice, self.xform.asset)
         auth = DigestAuth('alice', 'alice')
         # attempt an edit
         xml_submission_file_path = os.path.join(
@@ -769,8 +769,8 @@ class TestFormSubmission(TestBase):
         # create a new user with permission to edit submissions
         alice = self._create_user('alice', 'alice')
         UserProfile.objects.create(user=alice)
-        assign_perm('report_xform', alice, self.xform)
-        assign_perm('logger.change_xform', alice, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice, self.xform.asset)
+        assign_perm(PERM_CHANGE_SUBMISSIONS, alice, self.xform.asset)
         auth = DigestAuth('alice', 'alice')
         # attempt an edit
         xml_submission_file_path = os.path.join(

@@ -81,7 +81,7 @@ from kobo.apps.openrosa.libs.utils import common_tags
 from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uuid
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kobo.apps.organizations.constants import UsageType
-from kpi.constants import PERM_ADD_SUBMISSIONS
+from kpi.constants import PERM_CHANGE_SUBMISSIONS
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
@@ -192,7 +192,6 @@ def create_instance(
                                         processed.
         PermissionDenied: If the submission fails permission checks.
     """
-
     if username:
         username = username.lower()
 
@@ -971,7 +970,7 @@ def _has_edit_xform_permission(
         if request.user.is_superuser:
             return True
 
-        if request.user.has_perm(PERM_ADD_SUBMISSIONS, xform.asset):
+        if request.user.has_perm(PERM_CHANGE_SUBMISSIONS, xform.asset):
             return True
 
         # User's permissions have been already checked when calling KPI endpoint
