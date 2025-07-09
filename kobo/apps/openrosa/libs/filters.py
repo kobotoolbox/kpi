@@ -8,11 +8,14 @@ from rest_framework.filters import BaseFilterBackend
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
-from kobo.apps.openrosa.libs.utils.guardian import get_objects_for_user
+from kobo.apps.openrosa.libs.permissions import (
+    XFORM_MODELS_NAMES,
+    get_xform_ids_for_user,
+)
 from kpi.utils.object_permission import get_database_user
 
 
-class GuardianObjectPermissionsFilter(BaseFilterBackend):
+class ObjectPermissionsFilter(BaseFilterBackend):
     """
     Copy from django-rest-framework-guardian `ObjectPermissionsFilter`
     Avoid importing the library (which does not seem to be maintained anymore)
@@ -44,9 +47,11 @@ class GuardianObjectPermissionsFilter(BaseFilterBackend):
         ):
             return org_admin_queryset
 
-        return get_objects_for_user(
-            user, permission, queryset, **self.shortcut_kwargs
-        )
+        if queryset.model._meta.model_name in XFORM_MODELS_NAMES:
+            xform_ids = get_xform_ids_for_user(user, perm=permission)
+            return queryset.filter(id__in=xform_ids)
+
+        raise NotImplementedError
 
     def _get_objects_for_org_admin(self, request, queryset, view):
         """
@@ -85,7 +90,7 @@ class GuardianObjectPermissionsFilter(BaseFilterBackend):
                     return queryset.filter(user=owner)
 
 
-class AnonDjangoObjectPermissionFilter(GuardianObjectPermissionsFilter):
+class AnonDjangoObjectPermissionFilter(ObjectPermissionsFilter):
     def filter_queryset(self, request, queryset, view):
         """
         Anonymous user has no object permissions, return queryset as it is.
@@ -96,7 +101,7 @@ class AnonDjangoObjectPermissionFilter(GuardianObjectPermissionsFilter):
         return super().filter_queryset(request, queryset, view)
 
 
-class RowLevelObjectPermissionFilter(GuardianObjectPermissionsFilter):
+class RowLevelObjectPermissionFilter(ObjectPermissionsFilter):
     def filter_queryset(self, request, queryset, view):
         """
         Return queryset as-is if user is anonymous or super user. Otherwise,
@@ -210,9 +215,7 @@ class XFormPermissionFilterMixin:
         return queryset.filter(**kwargs)
 
 
-class MetaDataFilter(
-    XFormPermissionFilterMixin, GuardianObjectPermissionsFilter
-):
+class MetaDataFilter(XFormPermissionFilterMixin, ObjectPermissionsFilter):
     def filter_queryset(self, request, queryset, view):
         queryset = self._xform_filter_queryset(request, queryset, view, 'xform')
         data_type = request.query_params.get('data_type')
@@ -221,9 +224,7 @@ class MetaDataFilter(
         return queryset
 
 
-class AttachmentFilter(
-    XFormPermissionFilterMixin, GuardianObjectPermissionsFilter
-):
+class AttachmentFilter(XFormPermissionFilterMixin, ObjectPermissionsFilter):
     def filter_queryset(self, request, queryset, view):
         queryset = self._xform_filter_queryset(
             request, queryset, view, 'instance__xform'
