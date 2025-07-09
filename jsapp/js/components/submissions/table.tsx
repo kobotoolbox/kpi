@@ -5,9 +5,11 @@ import React from 'react'
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
 import { DebounceInput } from 'react-debounce-input'
+import Markdown from 'react-markdown'
 import ReactTable from 'react-table'
 import type { CellInfo } from 'react-table'
 import { actions } from '#/actions'
+import { handleApiFail } from '#/api'
 import type { SurveyFlatPaths } from '#/assetUtils'
 import { getQuestionOrChoiceDisplayName, getRowName, getSurveyFlatPaths, renderQuestionTypeIcon } from '#/assetUtils'
 import bem from '#/bem'
@@ -84,6 +86,7 @@ import type {
   ValidationStatusResponse,
 } from '#/dataInterface'
 import enketoHandler from '#/enketoHandler'
+import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
 import { stores } from '#/stores'
@@ -322,22 +325,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   onGetSubmissionsFailed(error: FailResponse) {
     if (error?.responseText) {
-      let displayedError
-      try {
-        displayedError = JSON.parse(error.responseText)
-      } catch {
-        displayedError = error.responseText
-      }
+      handleApiFail(error)
+    }
 
-      if (displayedError.detail) {
-        this.setState({ error: displayedError.detail, loading: false })
-      } else {
-        this.setState({ error: displayedError, loading: false })
-      }
-    } else if (error?.statusText) {
-      this.setState({ error: error.statusText, loading: false })
-    } else {
-      this.setState({ error: t('Error: could not load data.'), loading: false })
+    if (error?.status && error.statusText) {
+      this.setState({ error: `${error.status} ${error.statusText}` })
     }
   }
 
@@ -1316,9 +1308,25 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   render() {
     if (this.state.error && typeof this.state.error === 'string') {
+      const supportMessage = t(
+        'Please try again later, or [contact the support team](##SUPPORT_URL##) if this happens repeatedly.',
+      ).replace('##SUPPORT_URL##', envStore.data.support_url)
       return (
         <bem.FormView m='ui-panel'>
-          <CenteredMessage message={this.state.error} />
+          <CenteredMessage
+            message={
+              <div>
+                <h2>{t('Oops! Something went wrong on our end.')}</h2>
+                <div>
+                  <Markdown>{supportMessage}</Markdown>
+                </div>
+                <br />
+                <div>
+                  {t('Response details:')} {this.state.error}
+                </div>
+              </div>
+            }
+          />
         </bem.FormView>
       )
     }

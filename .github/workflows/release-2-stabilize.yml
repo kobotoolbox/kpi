@@ -124,8 +124,8 @@ jobs:
       needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out' ||
       needs.deploy-to-beta.result == 'failure' || needs.deploy-to-beta.result == 'timed_out' ||
       needs.merge.result == 'failure' || needs.merge.result == 'timed_out')
+    secrets: inherit
     uses: './.github/workflows/zulip.yml'
     with:
       topic: "${{ needs.version.outputs.version }} release"
-      secrets: inherit
       content: ":warning: @*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `${{ github.head_ref || github.ref_name }}` at [\"$COMMIT_TITLE\"](${{ github.event.compare }})"
