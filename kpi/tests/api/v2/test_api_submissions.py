@@ -2376,6 +2376,26 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_200_OK
         self._check_bulk_update(response)
 
+        # Not really testing the API, but let's validate everything is in place
+        # with the ORM, i.e.: instance.xml contains a <meta/rootUuid> node that matches
+        # with instance.root_uuid
+        instances = Instance.objects.filter(
+            pk__in=self.updated_submission_data['submission_ids']
+        )
+        for instance in instances:
+            for result in response.data['results']:
+                if result['uuid'] == instance.uuid:
+                    assert instance.root_uuid == result['root_uuid']
+                    xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
+                    root_uuid = xml_parsed.find(
+                        self.asset.deployment.SUBMISSION_ROOT_UUID_XPATH
+                    )
+                    assert root_uuid is not None
+                    assert result['root_uuid'] == remove_uuid_prefix(
+                        root_uuid.text
+                    )
+                    break
+
     @pytest.mark.skip(
         reason=(
             'Useless with the current implementation of'
