@@ -12,6 +12,7 @@ from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
+from kpi.serializers.v2.asset import AssetSerializer
 from kpi.serializers.v2.service_usage import (
     CustomAssetUsageSerializer,
     ServiceUsageSerializer,
@@ -60,6 +61,7 @@ class OrganizationAssetViewSet(AssetViewSet):
         SearchFilter,
         AssetOrderingFilter,
     ]
+    serializer_class = AssetSerializer
 
     def get_queryset(self, *args, **kwargs):
         if not getattr(self.request, 'permissions_checked', False):
