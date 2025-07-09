@@ -3,8 +3,14 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from kpi.models import AssetVersion
-from kpi.schema_extensions.v2.versions.fields import UidField, UrlField, ContentHashField, \
-    DateDeployedField, DateModifiedField, ContentField
+from kpi.schema_extensions.v2.versions.fields import (
+    ContentField,
+    ContentHashField,
+    DateDeployedField,
+    DateModifiedField,
+    UidField,
+    UrlField,
+)
 
 
 class AssetVersionListSerializer(serializers.Serializer):

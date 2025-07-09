@@ -8,7 +8,7 @@ from kpi.models import AssetVersion
 from kpi.permissions import AssetVersionReadOnlyPermission
 from kpi.schema_extensions.v2.versions.serializers import (
     VersionListResponse,
-    VersionRetrieveResponse
+    VersionRetrieveResponse,
 )
 from kpi.serializers.v2.asset_version import (
     AssetVersionListSerializer,
@@ -36,7 +36,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     update=extend_schema(
         exclude=True,
@@ -48,7 +48,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     partial_update=extend_schema(
         exclude=True,
@@ -71,7 +71,9 @@ class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
     model = AssetVersion
     lookup_field = 'uid'
     permission_classes = (AssetVersionReadOnlyPermission,)
-    renderer_classes = [JSONRenderer,]
+    renderer_classes = [
+        JSONRenderer,
+    ]
 
     def get_serializer_class(self):
         if self.action == 'list':
