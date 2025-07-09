@@ -51,7 +51,15 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
                           NestedViewSetMixin, viewsets.ModelViewSet):
     """
+    ViewSet for managing the versions of the current asset
 
+    Available actions:
+    - list           → GET /api/v2/assets/{uid}/versions/
+    - retrieve       → GET /api/v2/assets/{parent_lookup_asset}/versions/{uid}/
+
+    Documentation:
+    - docs/api/v2/versions/list.md
+    - docs/api/v2/versions/retrieve.md
     """
 
     model = AssetVersion
