@@ -1,6 +1,7 @@
 name: 'CD: branch'
 
 on:
+  workflow_dispatch:
   schedule:
     # It's good to deploy early in week:
     # - In the best case, will QA, tag and deploy on the same Tuesday or Wednesday.
@@ -23,7 +24,7 @@ jobs:
       id: week
       run: |
         set -xe
-        if (( $(date +%U) % 2 == 0 )); then
+        if (( $(date +%V) % 2 == 0 )); then
           echo "even=true" >> $GITHUB_OUTPUT
           echo $GITHUB_OUTPUT
         else
@@ -35,7 +36,7 @@ jobs:
       if: ${{ steps.week.outputs.even == 'true' }}
       run: |
         set -xe
-        NEW_VERSION="2.$(date +"%Y" | tail -c4).$(date +"%U")"
+        NEW_VERSION="2.$(date +"%Y" | tail -c4).$(date +"%V")"
         echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
         NEW_BRANCH="release/$NEW_VERSION"
         git config user.name "GitHub Actions Bot"
@@ -59,6 +60,7 @@ jobs:
   notify:
     needs:
       - create-branch
+    if: ${{ needs.create-branch.outputs.version }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
