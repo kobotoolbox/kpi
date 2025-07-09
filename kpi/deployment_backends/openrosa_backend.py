@@ -359,6 +359,20 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # silently
         xml_parsed.find(self.SUBMISSION_CURRENT_UUID_XPATH).text = uuid_formatted
 
+        # Remove references to the source
+        meta_node = xml_parsed.find('meta')
+        root_uuid_node = meta_node.find(
+            self.SUBMISSION_ROOT_UUID_XPATH.replace('meta/', '')
+        )
+        if root_uuid_node is not None:
+            meta_node.remove(root_uuid_node)
+
+        deprecated_uuid_node = meta_node.find(
+            self.SUBMISSION_DEPRECATED_UUID_XPATH.replace('meta/', '')
+        )
+        if deprecated_uuid_node is not None:
+            meta_node.remove(deprecated_uuid_node)
+
         # create_instance uses `username` argument to identify the XForm object
         # (when nothing else worked). `_submitted_by` is populated by `request.user`
         instance = create_instance(
@@ -1021,6 +1035,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             results.append(
                 {
                     'uuid': uuid,
+                    'root_uuid': backend_result['result'].root_uuid,
                     'status_code': status_code,
                     'message': message,
                 }
