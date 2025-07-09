@@ -7,7 +7,6 @@ from kobo.apps.openrosa.apps.api.permissions import NoteObjectPermissions
 from kobo.apps.openrosa.apps.logger.models import Note
 from kobo.apps.openrosa.libs.permissions import get_xform_ids_for_user
 from kobo.apps.openrosa.libs.serializers.note_serializer import NoteSerializer
-
 from ..utils.rest_framework.viewsets import OpenRosaModelViewSet
 
 
