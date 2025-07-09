@@ -14,6 +14,7 @@ from wsgiref.util import FileWrapper
 from xml.dom import Node
 from xml.etree import ElementTree as ET
 from xml.parsers.expat import ExpatError
+from zoneinfo import ZoneInfo
 
 from dict2xml import dict2xml
 from django.conf import settings
@@ -36,7 +37,6 @@ from modilabs.utils.subprocess_timeout import ProcessTimedOut
 from pyxform.errors import PyXFormError
 from pyxform.xform2json import create_survey_element_from_xml
 from rest_framework.exceptions import NotAuthenticated
-from zoneinfo import ZoneInfo
 
 from kobo.apps.openrosa.apps.logger.exceptions import (
     AccountInactiveError,

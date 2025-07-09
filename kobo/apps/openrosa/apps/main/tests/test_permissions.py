@@ -3,7 +3,6 @@ import os
 
 from kobo.apps.openrosa.libs.permissions import assign_perm, remove_perm
 from kpi.constants import PERM_CHANGE_ASSET, PERM_VIEW_ASSET
-
 from .test_base import TestBase
 
 
