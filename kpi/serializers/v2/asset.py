@@ -350,6 +350,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     data_sharing = WritableJSONField(required=False)
     paired_data = serializers.SerializerMethodField()
     project_ownership = serializers.SerializerMethodField()
+    last_modified_by = serializers.CharField()
 
     class Meta:
         model = Asset
@@ -408,6 +409,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'paired_data',
                   'project_ownership',
                   'owner_label',
+                  'last_modified_by'
                   )
         extra_kwargs = {
             'parent': {
