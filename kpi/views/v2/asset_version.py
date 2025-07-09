@@ -9,6 +9,7 @@ from kpi.serializers.v2.asset_version import (
     AssetVersionListSerializer,
     AssetVersionSerializer,
 )
+from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -16,13 +17,21 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     tags=['Versions'],
 )
 @extend_schema_view(
-    create=extend_schema(),
-    destroy=extend_schema(),
-    list=extend_schema(),
+    create=extend_schema(
+        exclude=True,
+    ),
+    destroy=extend_schema(
+        exclude=True,
+    ),
+    list=extend_schema(
+        description=read_md('kpi', 'versions/list.md'),
+    ),
     update=extend_schema(
         exclude=True,
     ),
-    retrieve=extend_schema(),
+    retrieve=extend_schema(
+        description=read_md('kpi', 'versions/retrieve.md'),
+    ),
     partial_update=extend_schema(
         exclude=True,
     ),
@@ -30,31 +39,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
                           NestedViewSetMixin, viewsets.ModelViewSet):
     """
-    ## GET asset versions
 
-    ### List
-    Lists the versions of forms
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/versions/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/versions/
-
-    ### Detailed
-    Returns the details of an asset version
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/versions/<code>{version_uid}</code>/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/versions/v74yayoFtERWDeRHPaHVhZ/
-
-    ### CURRENT ENDPOINT
     """
 
     model = AssetVersion
