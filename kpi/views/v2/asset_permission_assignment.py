@@ -113,7 +113,7 @@ class PermissionAssignmentSchema(AutoSchema):
 )
 @extend_schema_view(
     bulk_assignments=extend_schema(
-        description=read_md('kpi', 'permission_assignment/bulk.md'),
+        description=read_md('kpi', 'asset_permission_assignments/bulk.md'),
         request={'application/json': PermissionBulkRequest(many=True)},
         responses=open_api_200_ok_response(
             PermissionResponse(many=True),
@@ -121,7 +121,7 @@ class PermissionAssignmentSchema(AutoSchema):
         ),
     ),
     clone=extend_schema(
-        description=read_md('kpi', 'permission_assignment/clone.md'),
+        description=read_md('kpi', 'asset_permission_assignments/clone.md'),
         request={'application/json': PermissionCloneRequest},
         responses=open_api_200_ok_response(
             PermissionResponse(many=True),
@@ -129,7 +129,7 @@ class PermissionAssignmentSchema(AutoSchema):
         ),
     ),
     create=extend_schema(
-        description=read_md('kpi', 'permission_assignment/create.md'),
+        description=read_md('kpi', 'asset_permission_assignments/create.md'),
         request={'application/json': PermissionCreateRequest},
         responses=open_api_200_ok_response(
             PermissionResponse,
@@ -137,21 +137,21 @@ class PermissionAssignmentSchema(AutoSchema):
         ),
     ),
     delete_all=extend_schema(
-        description=read_md('kpi', 'permission_assignment/delete_all.md'),
+        description=read_md('kpi', 'asset_permission_assignments/delete_all.md'),
         responses=open_api_204_empty_response(
             require_auth=False,
             validate_payload=False,
         ),
     ),
     destroy=extend_schema(
-        description=read_md('kpi', 'permission_assignment/delete.md'),
+        description=read_md('kpi', 'asset_permission_assignments/delete.md'),
         responses=open_api_204_empty_response(
             require_auth=False,
             validate_payload=False,
         ),
     ),
     list=extend_schema(
-        description=read_md('kpi', 'permission_assignment/list.md'),
+        description=read_md('kpi', 'asset_permission_assignments/list.md'),
         responses=open_api_200_ok_response(
             PermissionResponse,
             require_auth=False,
@@ -159,7 +159,7 @@ class PermissionAssignmentSchema(AutoSchema):
         ),
     ),
     retrieve=extend_schema(
-        description=read_md('kpi', 'permission_assignment/retrieve.md'),
+        description=read_md('kpi', 'asset_permission_assignments/retrieve.md'),
         responses=open_api_200_ok_response(
             PermissionResponse,
             require_auth=False,
