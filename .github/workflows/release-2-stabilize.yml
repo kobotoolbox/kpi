@@ -45,7 +45,7 @@ jobs:
       id: version
       run: |
         set -xe
-        BRANCH=git rev-parse --abbrev-ref HEAD
+        BRANCH=`git rev-parse --abbrev-ref HEAD`
         VERSION=`echo $BRANCH | sed -e 's/release\///'`
         echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
