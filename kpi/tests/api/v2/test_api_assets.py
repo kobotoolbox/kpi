@@ -1433,6 +1433,7 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
     def test_cannot_modified_last_modified_by(self):
         assert self.asset.last_modified_by == self.asset.owner.username
         anotheruser = User.objects.get(username='anotheruser')
+        assert self.asset.owner != anotheruser.username
         self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
         payload = {
             'last_modified_by': anotheruser.username
