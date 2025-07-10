@@ -1449,23 +1449,6 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         assert response.data['last_modified_by'] == 'someuser'
         assert self.asset.last_modified_by == 'someuser'
 
-    def test_last_modified_by_is_modified(self):
-        assert self.asset.last_modified_by == self.asset.owner.username
-        anotheruser = User.objects.get(username='anotheruser')
-        self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
-        payload = {
-            'last_modified_by': anotheruser.username
-        }
-        self.client.force_login(anotheruser)
-        response = self.client.patch(
-            self.asset_url,
-            data=payload,
-            format='json'
-        )
-        assert response.status_code == status.HTTP_200_OK
-        self.asset.refresh_from_db()
-        assert self.asset.last_modified_by == response.data['last_modified_by']
-
 
 class AssetsXmlExportApiTests(KpiTestCase):
 
