@@ -78,7 +78,9 @@ class AssetVersionApiTests(test_api_assets.AssetVersionApiTests):
 class AssetDetailApiTests(test_api_assets.AssetDetailApiTests):
     URL_NAMESPACE = None
 
-    @unittest.skip(reason='`assignable_permissions` property only exists in v2 endpoint')
+    @unittest.skip(
+        reason='`assignable_permissions` property only exists in v2 endpoint'
+    )
     def test_assignable_permissions(self):
         pass
 

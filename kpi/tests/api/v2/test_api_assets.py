@@ -1446,7 +1446,6 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert self.asset.last_modified_by == self.asset.owner.username
 
-
     def test_last_modified_by_is_modified(self):
         assert self.asset.last_modified_by == self.asset.owner.username
         anotheruser = User.objects.get(username='anotheruser')
