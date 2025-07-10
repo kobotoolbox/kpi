@@ -102,6 +102,11 @@ jobs:
   notify:
     needs:
       - version
+      - darker
+      - pytest
+      - npm-test
+      - deploy-to-beta
+      - merge
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
