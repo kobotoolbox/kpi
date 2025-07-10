@@ -670,20 +670,13 @@ class Asset(
         # return deployed versions first
         versions = self.asset_versions.filter(deployed=True).order_by('-date_modified')
         xpaths = set()
-        for i, version in enumerate(versions):
-            # insert the xpaths if this is the latest deployed version
-            insert_xpath = i == 0
+        for version in versions:
+            if xpaths_from_version := self.get_attachment_xpaths_from_version(version):
+                xpaths.update(xpaths_from_version)
 
-            xpaths.update(
-                self.get_attachment_xpaths_from_version(
-                    version, insert_xpath=insert_xpath
-                )
-            )
         return list(xpaths)
 
-    def get_attachment_xpaths_from_version(
-        self, version=None, insert_xpath=False
-    ) -> Optional[list]:
+    def get_attachment_xpaths_from_version(self, version=None) -> Optional[list]:
 
         if version:
             content = version.to_formpack_schema()['content']
@@ -707,11 +700,15 @@ class Asset(
                 except KeyError:
                     return None
                 xpaths.append(xpath)
+
             return xpaths
+
         if xpaths := _get_xpaths(survey):
             return xpaths
-        if insert_xpath:
-            self._insert_xpath(content)
+
+        # Inject missing `$xpath` properties
+        self._insert_xpath(content)
+
         return _get_xpaths(survey)
 
     def get_filters_for_partial_perm(
