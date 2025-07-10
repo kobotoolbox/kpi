@@ -1,1 +1,1 @@
-## List permissions
+## List permission assignments
