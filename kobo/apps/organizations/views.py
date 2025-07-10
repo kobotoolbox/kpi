@@ -61,7 +61,6 @@ class OrganizationAssetViewSet(AssetViewSet):
         SearchFilter,
         AssetOrderingFilter,
     ]
-    serializer_class = AssetSerializer
 
     def get_queryset(self, *args, **kwargs):
         if not getattr(self.request, 'permissions_checked', False):
