@@ -64,10 +64,10 @@ class AssetListApiTests(BaseAssetTestCase):
         self.create_asset()
 
     def test_last_modified_by_field_not_assigned(self):
-        anotheruser = User.objects.get(username='anotheruser')
-        extra_data = {'last_modified_by': anotheruser.username}
+        extra_data = {'last_modified_by': 'anotheruser'}
         response = self.create_asset(**extra_data)
         assert response.data['last_modified_by'] == response.data['owner__username']
+        assert response.data['last_modified_by'] != 'anotheruser'
 
     def test_delete_asset(self):
         self.client.logout()
