@@ -34,7 +34,7 @@ PARTIAL_PERMISSION = build_array_type(
                     }
                 )
             ),
-            'url':PERM_CHANGE_ASSET,
+            'url': PERM_CHANGE_ASSET,
         }
     )
 )
