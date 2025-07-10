@@ -4,7 +4,12 @@ from drf_spectacular.extensions import (
 )
 from drf_spectacular.plumbing import build_object_type
 
-from .schema import LABEL_FIELD, PARTIAL_PERMISSION, PERMISSION, URL_FIELD, USER_FIELD
+from .schema import (
+    LABEL_FIELD,
+    PARTIAL_PERMISSION,
+    PERM_CHANGE_ASSET,
+    URL_FIELD, USER_FIELD
+)
 
 
 class LabelFieldExtension(OpenApiSerializerFieldExtension):
@@ -27,7 +32,7 @@ class PermissionCreateSerializerExtension(OpenApiSerializerExtension):
                         'user',
                     ],
                     properties={
-                        'permission': PERMISSION,
+                        'permission': PERM_CHANGE_ASSET,
                         'user': USER_FIELD,
                     },
                 ),
@@ -39,7 +44,7 @@ class PermissionCreateSerializerExtension(OpenApiSerializerExtension):
                     ],
                     properties={
                         'partial_permission': PARTIAL_PERMISSION,
-                        'permission': PERMISSION,
+                        'permission': PERM_CHANGE_ASSET,
                         'user': USER_FIELD,
                     },
                 ),
@@ -54,7 +59,7 @@ class PartialPermissionFieldExtension(OpenApiSerializerFieldExtension):
         return build_object_type(
             properties={
                 'user': USER_FIELD,
-                'permission': PERMISSION,
+                'permission': PERM_CHANGE_ASSET,
                 'partial_permission': PARTIAL_PERMISSION,
             }
         )
@@ -66,7 +71,7 @@ class PermissionFieldExtension(OpenApiSerializerFieldExtension):
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return PERMISSION
+        return PERM_CHANGE_ASSET
 
 
 class UrlFieldExtension(OpenApiSerializerFieldExtension):

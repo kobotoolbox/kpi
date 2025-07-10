@@ -13,7 +13,7 @@ Common schemas to avoid redundancy
 
 LABEL_FIELD = build_basic_type(OpenApiTypes.STR)
 
-PERMISSION = build_url_type(
+PERM_CHANGE_ASSET = build_url_type(
     'api_v2:permission-detail',
     codename='change_assets',
 )
@@ -34,10 +34,7 @@ PARTIAL_PERMISSION = build_array_type(
                     }
                 )
             ),
-            'url': build_url_type(
-                'api_v2:permission-detail',
-                codename='change_assets',
-            ),
+            'url':PERM_CHANGE_ASSET,
         }
     )
 )
