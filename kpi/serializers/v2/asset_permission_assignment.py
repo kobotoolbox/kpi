@@ -21,7 +21,7 @@ from kpi.constants import (
 )
 from kpi.models.asset import Asset, AssetUserPartialPermission
 from kpi.models.object_permission import ObjectPermission
-from kpi.schema_extensions.v2.permission_assignment.fields import (
+from kpi.schema_extensions.v2.asset_permission_assignments.fields import (
     LabelField,
     PartialPermissionField,
     PermissionField,

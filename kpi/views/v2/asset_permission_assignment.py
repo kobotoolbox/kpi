@@ -27,7 +27,7 @@ from kpi.constants import (
 from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import AssetPermissionAssignmentPermission
-from kpi.schema_extensions.v2.permission_assignment.serializers import (
+from kpi.schema_extensions.v2.asset_permission_assignments.serializers import (
     PermissionBulkRequest,
     PermissionCloneRequest,
     PermissionCreateRequest,
@@ -69,7 +69,7 @@ class PermissionAssignmentSchema(AutoSchema):
 
     def get_operation(self, *args, **kwargs):
 
-        from kpi.schema_extensions.v2.permission_assignment.schema import (
+        from kpi.schema_extensions.v2.asset_permission_assignments.schema import (
             PARTIAL_PERMISSION,
             PERMISSION,
             USER_FIELD,
@@ -189,14 +189,14 @@ class AssetPermissionAssignmentViewSet(
     - retrieve        → GET /api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/  # noqa
 
     Documentation:
-    - docs/api/v2/permission_assignment/bulk.md
-    - docs/api/v2/permission_assignment/clone.md
-    - docs/api/v2/permission_assignment/create.md
-    - docs/api/v2/permission_assignment/delete.md
-    - docs/api/v2/permission_assignment/delete_all.md
-    - docs/api/v2/permission_assignment/list.md
-    - docs/api/v2/permission_assignment/retrieve.md
-    - docs/api/v2/permission_assignment/update.md
+    - docs/api/v2/asset_permission_assignments/bulk.md
+    - docs/api/v2/asset_permission_assignments/clone.md
+    - docs/api/v2/asset_permission_assignments/create.md
+    - docs/api/v2/asset_permission_assignments/delete.md
+    - docs/api/v2/asset_permission_assignments/delete_all.md
+    - docs/api/v2/asset_permission_assignments/list.md
+    - docs/api/v2/asset_permission_assignments/retrieve.md
+    - docs/api/v2/asset_permission_assignments/update.md
     """
 
     model = ObjectPermission
