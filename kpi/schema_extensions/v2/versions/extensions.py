@@ -15,7 +15,7 @@ class ContentFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'schema': build_basic_type(OpenApiTypes.INT),
+                'schema': build_basic_type(OpenApiTypes.STR),
                 'survey': build_array_type(
                     schema=build_object_type(
                         properties={
