@@ -109,7 +109,7 @@ class PermissionAssignmentSchema(AutoSchema):
 
 
 @extend_schema(
-    tags=['Permission Assignments'],
+    tags=['Asset Permission Assignments'],
 )
 @extend_schema_view(
     bulk_assignments=extend_schema(
