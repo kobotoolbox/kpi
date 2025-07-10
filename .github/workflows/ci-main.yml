@@ -15,30 +15,17 @@ jobs:
     uses: ./.github/workflows/npm-test.yml
 
   on-failure:
-    runs-on: ubuntu-22.04
-    if: ${{ always() && (needs.darker.result == 'failure' || needs.darker.result == 'timed_out' || needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' || needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out') }}
+    if: |
+      failure() &&
+      (needs.darker.result == 'failure' || needs.darker.result == 'timed_out' ||
+      needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' ||
+      needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out')
     needs:
       - darker
       - pytest
       - npm-test
-    steps:
-
-    # References:
-    # - https://stackoverflow.com/questions/73402042/github-action-expressions-split-string
-    # - https://unix.stackexchange.com/questions/205022/bash-assigning-the-first-line-of-a-variable-to-a-variable#388712
-    - name: Split commit message title
-      id: title
-      env:
-        MESSAGE: ${{ github.event.commits[0].message }}
-      run: echo "fragment=`echo "${MESSAGE}" | head -1`" >> $GITHUB_OUTPUT
-
-    - name: Send a stream message
-      uses: zulip/github-actions-zulip/send-message@v1
-      with:
-        api-key: ${{ secrets.ZULIP_API_KEY_GITHUB_ACTIONS_BOT }}
-        email: "github-actions-bot@chat.kobotoolbox.org"
-        organization-url: "https://chat.kobotoolbox.org"
-        type: "stream"
-        to: "Kobo Dev"
-        topic: "Github Actions (main)"
-        content: ":boom: @*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(steps.title.outputs.fragment) }}](${{ github.event.compare }})"
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "Github Actions (main)"
+      content: ":boom: @*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [\"$COMMIT_TITLE\"](${{ github.event.compare }})"

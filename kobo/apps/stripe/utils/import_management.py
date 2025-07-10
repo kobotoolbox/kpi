@@ -29,12 +29,14 @@ def requires_stripe(func):
             )
 
             PlanAddOn = apps.get_model('stripe', 'PlanAddOn')
+            ExceededLimitCounter = apps.get_model('stripe', 'ExceededLimitCounter')
 
             kwargs['product_model'] = Product
             kwargs['subscription_model'] = Subscription
             kwargs['price_model'] = Price
             kwargs['charge_model'] = Charge
             kwargs['payment_intent_model'] = PaymentIntent
+            kwargs['exceeded_limit_counter_model'] = ExceededLimitCounter
             kwargs['plan_add_on_model'] = PlanAddOn
 
             return func(*args, **kwargs)

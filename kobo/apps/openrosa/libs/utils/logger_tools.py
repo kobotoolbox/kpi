@@ -80,6 +80,7 @@ from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.libs.utils import common_tags
 from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uuid
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
+from kobo.apps.organizations.constants import UsageType
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
@@ -202,6 +203,7 @@ def create_instance(
     # get root uuid
     root_uuid, fallback_on_uuid = get_root_uuid_from_xml(xml)
     new_uuid = root_uuid if fallback_on_uuid else get_uuid_from_xml(xml)
+
     if not new_uuid:
         raise InstanceIdMissingError
 
@@ -296,6 +298,14 @@ def create_instance(
                     created=True,
                     xform=instance.xform,
                 )
+
+            if settings.STRIPE_ENABLED:
+                from kobo.apps.stripe.utils.limit_enforcement import (
+                    check_exceeded_limit,
+                )
+
+                check_exceeded_limit(xform.user, UsageType.SUBMISSION)
+                check_exceeded_limit(xform.user, UsageType.STORAGE_BYTES)
 
             return instance
 

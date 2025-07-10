@@ -431,7 +431,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         with self.assertNumQueries(FuzzyInt(16, 17)):
             # regular
             self.client.get(self.submission_list_url, {'format': 'json'})
-        with self.assertNumQueries(16):
+        with self.assertNumQueries(17):
             # with params
             self.client.get(
                 self.submission_list_url,
@@ -1918,11 +1918,34 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
 
                 # The first POST creates the edited submission (201) with one
                 # attachment, the second attaches the file to the submission (202).
-                assert (
-                    response.status_code == status.HTTP_201_CREATED
-                    if idx == 0
-                    else status.HTTP_202_ACCEPTED
+                assert response.status_code == (
+                    status.HTTP_201_CREATED if idx == 0 else status.HTTP_202_ACCEPTED
                 )
+
+    def test_edit_submission_without_root_uuid(self):
+        # Old submissions may have `root_uuid = None` because this is a relatively new
+        # feature. Only recent submissions have their `root_uuid` set at the time of
+        # saving.
+        # For legacy data, we must fall back to `uuid` when `root_uuid` is null,
+        # until long-running migration 0005 has completed and populated missing values.
+
+        root_uuid = remove_uuid_prefix(self.submission['_uuid'])
+
+        instance = Instance.objects.get(root_uuid=root_uuid)
+
+        # Simulate a legacy submission by clearing the root_uuid
+        Instance.objects.filter(pk=instance.pk).update(root_uuid=None)
+
+        self._simulate_edit_submission(instance)
+
+    def test_edit_submission_twice(self):
+        # Ensure that double edit still work if we use `root_uuid` to identify
+        # the edited submission
+        self.test_edit_submission_without_root_uuid()
+        root_uuid = remove_uuid_prefix(self.submission['_uuid'])
+        instance = Instance.objects.get(root_uuid=root_uuid)
+        assert 'deprecatedID' in instance.xml
+        self._simulate_edit_submission(instance)
 
 
 class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):
@@ -2150,7 +2173,9 @@ class SubmissionDuplicateWithXMLNamespaceApiTests(SubmissionDuplicateBaseApiTest
         self._check_duplicate(response)
 
 
-class SubmissionDuplicateApiTests(SubmissionDuplicateBaseApiTests):
+class SubmissionDuplicateApiTests(
+    SubmissionEditTestCaseMixin, SubmissionDuplicateBaseApiTests
+):
 
     def setUp(self):
         super().setUp()
@@ -2322,6 +2347,39 @@ class SubmissionDuplicateApiTests(SubmissionDuplicateBaseApiTests):
             == dummy_extra['q1']['transcript']['value']
         )
 
+    def test_duplicate_edited_submission(self):
+        """
+        someuser is the owner of the project.
+        someuser is allowed to duplicate their own data
+        """
+        deployment = self.asset.deployment
+        instance = Instance.objects.get(root_uuid=self.submission['_uuid'])
+        self._simulate_edit_submission(instance)
+
+        submission = deployment.get_submission(instance.pk, self.asset.owner)
+        assert deployment.SUBMISSION_DEPRECATED_UUID_XPATH in submission
+
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_201_CREATED
+        self._check_duplicate(response)
+
+        duplicated_instance = Instance.objects.get(
+            root_uuid=remove_uuid_prefix(
+                response.data[deployment.SUBMISSION_ROOT_UUID_XPATH]
+            )
+        )
+        # `rootUuid` should be present in MongoDB but different from the source, but
+        # should not be present in the duplicated submission XML
+        assert (
+            submission[deployment.SUBMISSION_ROOT_UUID_XPATH]
+            != response.data[deployment.SUBMISSION_ROOT_UUID_XPATH]
+        )
+        assert 'rootUuid' not in duplicated_instance.xml
+        # `deprecatedID` should not be present in MongoDB, neither in the duplicated
+        # submission XML
+        assert deployment.SUBMISSION_DEPRECATED_UUID_XPATH not in response.data
+        assert 'deprecatedID' not in duplicated_instance.xml
+
 
 class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
 
@@ -2363,6 +2421,26 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         )
         assert response.status_code == status.HTTP_200_OK
         self._check_bulk_update(response)
+
+        # Not really testing the API, but let's validate everything is in place
+        # with the ORM, i.e.: instance.xml contains a <meta/rootUuid> node that matches
+        # with instance.root_uuid
+        instances = Instance.objects.filter(
+            pk__in=self.updated_submission_data['submission_ids']
+        )
+        for instance in instances:
+            for result in response.data['results']:
+                if result['uuid'] == instance.uuid:
+                    assert instance.root_uuid == result['root_uuid']
+                    xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
+                    root_uuid = xml_parsed.find(
+                        self.asset.deployment.SUBMISSION_ROOT_UUID_XPATH
+                    )
+                    assert root_uuid is not None
+                    assert result['root_uuid'] == remove_uuid_prefix(
+                        root_uuid.text
+                    )
+                    break
 
     @pytest.mark.skip(
         reason=(

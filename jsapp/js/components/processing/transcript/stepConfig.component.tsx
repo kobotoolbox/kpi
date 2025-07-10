@@ -1,10 +1,9 @@
-import React, { useContext, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
 import { UsageLimitTypes } from '#/account/stripe.types'
 import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
-import { UsageContext } from '#/account/usage/useUsage.hook'
 import Button from '#/components/common/button'
 import LanguageSelector, { resetAllLanguageSelectors } from '#/components/languages/languageSelector'
 import type { DetailedLanguage, ListLanguage } from '#/components/languages/languagesStore'
@@ -17,7 +16,6 @@ import NlpUsageLimitBlockModal from '../nlpUsageLimitBlockModal/nlpUsageLimitBlo
 import { getAttachmentForProcessing } from './transcript.utils'
 
 export default function StepConfig() {
-  const [usage] = useContext(UsageContext)
   const limits = useExceedingLimits()
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
   const isOverLimit = useMemo(() => limits.exceedList.includes(UsageLimitTypes.TRANSCRIPTION), [limits.exceedList])

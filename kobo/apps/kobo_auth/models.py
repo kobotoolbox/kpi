@@ -64,13 +64,8 @@ class User(AbstractUser):
         ):
             return organization
 
-        try:
-            organization_name = self.extra_details.data['organization'].strip()
-        except (KeyError, AttributeError):
-            organization_name = None
-
         return create_organization(
-            self, organization_name or f'{self.username}’s organization'
+            self, f"{self.username}'s organization"
         )
 
     def sync_to_openrosa_db(self):
