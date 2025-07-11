@@ -30,7 +30,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             HookLogSerializer,
             require_auth=False,
             validate_payload=False,
-        )
+        ),
     ),
     retrieve=extend_schema(
         description=read_md('hook', 'logs/logs_retrieve.md'),
@@ -38,7 +38,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             HookLogSerializer,
             require_auth=False,
             validate_payload=False,
-        )
+        ),
     ),
     retry=extend_schema(
         description=read_md('hook', 'logs/logs_retry.md'),
@@ -46,7 +46,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             LogsRetryResponse,
             require_auth=False,
             validate_payload=False,
-        )
+        ),
     ),
 )
 class HookLogViewSet(AssetNestedObjectViewsetMixin,
@@ -55,17 +55,17 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
                      mixins.ListModelMixin,
                      viewsets.GenericViewSet):
     """
-       ViewSet for managing the logs of a given service endpoint
+    ViewSet for managing the logs of a given service endpoint
 
-       Available actions:
-       - list           → GET       /api/v2/asset/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/
-       - retrieve       → GET       /api/v2/asset/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/
-       - retry          → PATCH     /api/v2/asset/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/retry
+    Available actions:
+    - list           → GET       /api/v2/asset/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/  # noqa
+    - retrieve       → GET       /api/v2/asset/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/  # noqa
+    - retry          → PATCH     /api/v2/asset/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/retry  # noqa
 
-       Documentation:
-       - docs/api/v2/history/action.md
-       - docs/api/v2/history/export.md
-       - docs/api/v2/history/list.md
+    Documentation:
+    - docs/api/v2/history/action.md
+    - docs/api/v2/history/export.md
+    - docs/api/v2/history/list.md
     """
 
     model = HookLog
@@ -77,6 +77,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     filter_backends = (DjangoFilterBackend,)
     filterset_class = HookLogFilter
     renderer_classes = [JSONRenderer]
+
     def get_queryset(self):
         hook_uid = self.get_parents_query_dict().get('hook')
         queryset = self.model.objects.filter(hook__uid=hook_uid,
