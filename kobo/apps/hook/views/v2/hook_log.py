@@ -4,16 +4,19 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.hook.constants import KOBO_INTERNAL_ERROR_STATUS_CODE
 from kobo.apps.hook.filters import HookLogFilter
 from kobo.apps.hook.models.hook_log import HookLog
+from kobo.apps.hook.schema_extensions.v2.logs.serializers import LogsRetryResponse
 from kobo.apps.hook.serializers.v2.hook_log import HookLogSerializer
 from kpi.paginators import TinyPaginated
 from kpi.permissions import AssetEditorSubmissionViewerPermission
 from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -22,13 +25,22 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 )
 @extend_schema_view(
     list=extend_schema(
-        description=read_md('hook', 'logs/list.md')
+        description=read_md('hook', 'logs/logs_list.md'),
+        responses=open_api_200_ok_response(
+            HookLogSerializer,
+        )
     ),
     retrieve=extend_schema(
-        description=read_md('hook', 'logs/retrieve.md')
+        description=read_md('hook', 'logs/logs_retrieve.md'),
+        responses=open_api_200_ok_response(
+            HookLogSerializer,
+        )
     ),
     retry=extend_schema(
-        description=read_md('hook', 'logs/retry.md')
+        description=read_md('hook', 'logs/logs_retry.md'),
+        responses=open_api_200_ok_response(
+            LogsRetryResponse,
+        )
     ),
 )
 class HookLogViewSet(AssetNestedObjectViewsetMixin,
@@ -48,7 +60,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
        - docs/api/v2/history/action.md
        - docs/api/v2/history/export.md
        - docs/api/v2/history/list.md
-       """
+    """
 
     model = HookLog
 
@@ -58,7 +70,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     pagination_class = TinyPaginated
     filter_backends = (DjangoFilterBackend,)
     filterset_class = HookLogFilter
-
+    renderer_classes = [JSONRenderer]
     def get_queryset(self):
         hook_uid = self.get_parents_query_dict().get('hook')
         queryset = self.model.objects.filter(hook__uid=hook_uid,
