@@ -4,13 +4,13 @@ Where:
 
 * `name` and `endpoint` are required
 * `active` is True by default
-* `export_type` must be one these values:
+* `export_type` must be one of these values:
 
     1. `json` (_default_)
     2. `xml`
 
 * `email_notification` is a boolean. If true, User will be notified when request to remote server has failed.
-* `auth_level` must be one these values:
+* `auth_level` must be one of these values:
 
     1. `no_auth` (_default_)
     2. `basic_auth`
