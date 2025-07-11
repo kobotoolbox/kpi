@@ -13,6 +13,7 @@ from kobo.apps.hook.models.hook_log import HookLog
 from kobo.apps.hook.serializers.v2.hook_log import HookLogSerializer
 from kpi.paginators import TinyPaginated
 from kpi.permissions import AssetEditorSubmissionViewerPermission
+from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -20,9 +21,15 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     tags=['Logs'],
 )
 @extend_schema_view(
-    list=extend_schema(),
-    retrieve=extend_schema(),
-    retry=extend_schema(),
+    list=extend_schema(
+        description=read_md('hook', 'logs/list.md')
+    ),
+    retrieve=extend_schema(
+        description=read_md('hook', 'logs/retrieve.md')
+    ),
+    retry=extend_schema(
+        description=read_md('hook', 'logs/retry.md')
+    ),
 )
 class HookLogViewSet(AssetNestedObjectViewsetMixin,
                      NestedViewSetMixin,
@@ -30,58 +37,18 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
                      mixins.ListModelMixin,
                      viewsets.GenericViewSet):
     """
-    ## Logs of an external service
+       ViewSet for managing the logs of a given service endpoint
 
-    ** Users can't add, update or delete logs with the API. They can only retry failed attempts (see below)**
+       Available actions:
+       - list           → GET       /api/v2/asset/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/
+       - retrieve       → GET       /api/v2/asset/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/
+       - retry          → PATCH     /api/v2/asset/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/retry
 
-    #### Lists logs of an external services endpoints accessible to requesting user
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/{asset_uid}/hooks/{hook_uid}/logs/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/api/v2/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hSBxsiVNa5UxkVAjwu6dFB/logs/
-
-
-
-    * `asset_uid` - is the unique identifier of a specific asset
-    * `hook_uid` - is the unique identifier of a specific external service
-    * `uid` - is the unique identifier of a specific log
-
-    Use the `status` query parameter to filter logs by numeric status:
-
-    * `status=0`: hook has failed after exhausting all retries
-    * `status=1`: hook is still pending
-    * `status=2`: hook has succeeded
-
-    Use the `start` and `end` query parameters to filter logs by date range, providing ISO-8601 date strings (e.g. '2022-01-14', '2022-01-21 06:51:04', '2022-01-21T06:51:08.144004+02:00').
-    Note that `start` is inclusive, while `end` is exclusive.
-    Time zone is assumed to be UTC. If provided, it needs to be in '+00:00' format ('Z' is not supported). Watch out for url encoding for the '+' character (%2B).
-
-    #### Retrieves a log
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/hooks/<code>{hook_uid}</code>/logs/<code>{uid}</code>/
-    </pre>
-
-
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/api/v2/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb/logs/3005940a-6e30-4699-813a-0ee5b2b07395/
-
-
-    #### Retries a failed attempt
-    <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/assets/<code>{asset_uid}</code>/hooks/<code>{hook_uid}</code>/logs/<code>{uid}</code>/retry/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/api/v2/assets/a9PkXcgVgaDXuwayVeAuY5/hooks/hfgha2nxBdoTVcwohdYNzb/logs/3005940a-6e30-4699-813a-0ee5b2b07395/retry/
-
-
-    ### CURRENT ENDPOINT
-    """
+       Documentation:
+       - docs/api/v2/history/action.md
+       - docs/api/v2/history/export.md
+       - docs/api/v2/history/list.md
+       """
 
     model = HookLog
 
