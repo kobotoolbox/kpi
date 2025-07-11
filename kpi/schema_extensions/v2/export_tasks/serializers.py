@@ -15,7 +15,7 @@ ExportCreatePayload = inline_serializer_class(
     name='ExportCreatePayload',
     fields={
         'fields': FieldsField(),
-        'fields_from_all_version': serializers.BooleanField(),
+        'fields_from_all_versions': serializers.BooleanField(),
         'group_sep': serializers.CharField(),
         'hierarchy_in_labels': serializers.BooleanField(),
         'include_media_url': serializers.BooleanField(),
