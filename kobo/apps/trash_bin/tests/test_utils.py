@@ -508,8 +508,8 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
 
     def test_storage_updates_on_project_trash_and_restore(self):
         """
-        Test that attachment storage counters in XForm and UserProfile are
-        cleared on trash, and restored properly on untrash
+        Test that attachment storage counter in UserProfile is cleared on trash,
+        and restored properly on untrash. Counter on xform remains unchanged.
         """
         asset, xform, instance, user_profile, attachment = (
             self._create_test_asset_and_submission(
@@ -537,7 +537,7 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
         )
         xform.refresh_from_db()
         user_profile.refresh_from_db()
-        self.assertEqual(xform.attachment_storage_bytes, 0)
+        self.assertEqual(xform.attachment_storage_bytes, xform_storage_init)
         self.assertEqual(user_profile.attachment_storage_bytes, 0)
 
         # Restore the project
@@ -554,7 +554,7 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
         )
         xform.refresh_from_db()
         user_profile.refresh_from_db()
-        self.assertGreater(xform.attachment_storage_bytes, 0)
+        self.assertEqual(xform.attachment_storage_bytes, xform_storage_init)
         self.assertGreater(user_profile.attachment_storage_bytes, 0)
         self.assertEqual(xform_storage_init, xform.attachment_storage_bytes)
         self.assertEqual(user_storage_init, user_profile.attachment_storage_bytes)

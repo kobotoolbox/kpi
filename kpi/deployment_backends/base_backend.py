@@ -171,6 +171,16 @@ class BaseDeploymentBackend(abc.ABC):
             deprecated_id = get_or_create_element(
                 xml_parsed, self.SUBMISSION_DEPRECATED_UUID_XPATH
             )
+
+            # If the submission has been edited before, it will already contain
+            # a rootUuid element - otherwise create a new element
+            root_uuid = get_or_create_element(
+                xml_parsed, self.SUBMISSION_ROOT_UUID_XPATH
+            )
+
+            if not root_uuid.text:
+                root_uuid.text = instance_id.text
+
             deprecated_id.text = instance_id.text
             instance_id.text = uuid_formatted
 
@@ -794,9 +804,14 @@ class BaseDeploymentBackend(abc.ABC):
             return queryset
 
     def _inject_properties(
-        self, submission: dict, request: 'rest_framework.request.Request'
+        self,
+        submission: dict,
+        request: 'rest_framework.request.Request',
+        all_attachment_xpaths: list[str],
     ) -> dict:
-        submission = self._rewrite_json_attachment_urls(submission, request)
+        submission = self._rewrite_json_attachment_urls(
+            submission, request, all_attachment_xpaths
+        )
         submission = self._inject_root_uuid(submission)
         return submission
 
@@ -812,14 +827,16 @@ class BaseDeploymentBackend(abc.ABC):
         return submission
 
     def _rewrite_json_attachment_urls(
-        self, submission: dict, request: 'rest_framework.request.Request'
+        self,
+        submission: dict,
+        request: 'rest_framework.request.Request',
+        all_attachment_xpaths: list[str],
     ) -> dict:
         if not request or '_attachments' not in submission:
             return submission
 
-        attachment_xpaths = self.asset.get_attachment_xpaths(deployed=True)
         filenames_and_xpaths = get_attachment_filenames_and_xpaths(
-            submission, attachment_xpaths
+            submission, all_attachment_xpaths
         )
 
         if is_uid_missing := any(
