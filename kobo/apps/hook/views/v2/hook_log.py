@@ -28,18 +28,24 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         description=read_md('hook', 'logs/logs_list.md'),
         responses=open_api_200_ok_response(
             HookLogSerializer,
+            require_auth=False,
+            validate_payload=False,
         )
     ),
     retrieve=extend_schema(
         description=read_md('hook', 'logs/logs_retrieve.md'),
         responses=open_api_200_ok_response(
             HookLogSerializer,
+            require_auth=False,
+            validate_payload=False,
         )
     ),
     retry=extend_schema(
         description=read_md('hook', 'logs/logs_retry.md'),
         responses=open_api_200_ok_response(
             LogsRetryResponse,
+            require_auth=False,
+            validate_payload=False,
         )
     ),
 )
