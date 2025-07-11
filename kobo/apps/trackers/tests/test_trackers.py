@@ -1,6 +1,11 @@
 from datetime import datetime
+from unittest.mock import patch
+
+import pytest
+from django.conf import settings
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.models.asset import Asset
@@ -96,3 +101,22 @@ class TrackersTestCases(KpiTestCase):
         )
         assert tracker_two_services.counters[new_service] == initial_amount
         assert tracker_two_services.counters[service] == expected_amount
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_check_exceed_limit_on_update_nlp_counters(self):
+        asset = self._create_asset()
+        with patch(
+            'kobo.apps.trackers.utils.check_exceeded_limit',
+            return_value=None,
+        ) as patched:
+            update_nlp_counter(UsageType.ASR_SECONDS, 1, self.user.id, asset.id)
+            patched.assert_called_once_with(self.user, UsageType.ASR_SECONDS)
+
+        with patch(
+            'kobo.apps.trackers.utils.check_exceeded_limit',
+            return_value=None,
+        ) as patched:
+            update_nlp_counter(UsageType.MT_CHARACTERS, 1, self.user.id, asset.id)
+            patched.assert_called_once_with(self.user, UsageType.MT_CHARACTERS)
