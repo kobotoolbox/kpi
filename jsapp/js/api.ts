@@ -118,7 +118,7 @@ export interface FetchDataOptions {
   includeHeaders?: boolean
 }
 
-const fetchData = async <T>(
+export const fetchData = async <T>(
   /**
    * If you have full url to be called, remember to use `prependRootUrl` option.
    */

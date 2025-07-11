@@ -1,4 +1,8 @@
 export const endpoints = {
+  ASSETS: '/api/v2/assets/',
+  ASSET_DETAIL: '/api/v2/assets/:uid/',
+  ASSET_CLONE: '/api/v2/assets/:uid/clone/',
+  ASSET_PERMISSIONS: '/api/v2/assets/:uid/permissions/',
   ENVIRONMENT: '/environment/',
   /** Note: currently this endpoint only handles DELETE. Pass `{submission_root_uuids: string[]}` as payload. */
   ATTACHMENT_BULK_URL: '/api/v2/assets/:asset_uid/attachments/bulk/',
