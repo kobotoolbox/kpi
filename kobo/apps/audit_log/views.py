@@ -36,7 +36,12 @@ from .serializers import (
 
 
 @extend_schema(
-    tags=['audit-logs'],
+    tags=['Audit Logs'],
+)
+@extend_schema_view(
+    list=extend_schema(
+        description=read_md('audit_log', 'audit_logs/list.md'),
+    )
 )
 class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     """
@@ -492,7 +497,11 @@ def generate_ph_view_set_logstring(description, path, example_path, all):
 
     """
 
-
+@extend_schema_view(
+    list=extend_schema(
+        description=read_md('audit_log', 'audit_logs/project_history_logs/list.md'),
+    )
+)
 class AllProjectHistoryLogViewSet(AuditLogViewSet):
     __doc__ = generate_ph_view_set_logstring(
         'List all project history logs for all projects. Only available to superusers.',
@@ -505,6 +514,14 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     serializer_class = ProjectHistoryLogSerializer
     filter_backends = (SearchFilter,)
 
+    @extend_schema(
+        methods=['GET'],
+        description=read_md('audit_log', 'audit_logs/project_history_logs/export_list.md'),
+    )
+    @extend_schema(
+        methods=['POST'],
+        description=read_md('audit_log', 'audit_logs/project_history_logs/export_create.md'),
+    )
     @action(detail=False, methods=['GET', 'POST'])
     def export(self, request, *args, **kwargs):
         in_progress = ProjectHistoryLogExportTask.objects.filter(
