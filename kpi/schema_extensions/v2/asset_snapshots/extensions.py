@@ -19,12 +19,14 @@ class AssetSnapshotCreateRequestSerializerExtension(OpenApiSerializerExtension):
         return {
             'oneOf': [
                 build_object_type(
+                    required=['asset', 'details'],
                     properties={
                         'asset': ASSET_URL_SCHEMA,
                         'details': ASSET_SNAPSHOT_DETAILS_SCHEMA,
                     }
                 ),
                 build_object_type(
+                    required=['source', 'details'],
                     properties={
                         'source': ASSET_SNAPSHOT_SOURCE_SCHEMA,
                         'details': ASSET_SNAPSHOT_DETAILS_SCHEMA,

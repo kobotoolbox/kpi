@@ -174,7 +174,6 @@ class PairedDataViewset(
 
     parent_model = Asset
     renderer_classes = (
-        renderers.BrowsableAPIRenderer,
         renderers.JSONRenderer,
         SubmissionXMLRenderer,
     )

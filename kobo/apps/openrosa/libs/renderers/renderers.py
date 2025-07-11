@@ -11,6 +11,8 @@ from rest_framework.renderers import (
 )
 from rest_framework_xml.renderers import XMLRenderer
 
+from kpi.renderers import MediaFileRenderer
+
 
 class XLSRenderer(BaseRenderer):
     media_type = 'application/vnd.openxmlformats'
@@ -56,18 +58,6 @@ class MediaFileContentNegotiation(DefaultContentNegotiation):
             renderers = [MediaFileRenderer()]
 
         return renderers
-
-
-class MediaFileRenderer(BaseRenderer):
-    # FIXME: Need to see if format accept a '' instead of a NONE (required for api doc)
-
-    media_type = '*/*'
-    format = 'TODO'
-    charset = None
-    render_style = 'binary'
-
-    def render(self, data, accepted_media_type=None, renderer_context=None):
-        return data
 
 
 class XFormListRenderer(BaseRenderer):
