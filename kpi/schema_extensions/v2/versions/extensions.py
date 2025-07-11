@@ -22,6 +22,7 @@ class ContentFieldExtension(OpenApiSerializerFieldExtension):
                             'hint': build_array_type(
                                 schema=build_basic_type(OpenApiTypes.STR),
                             ),
+                            'name': build_basic_type(OpenApiTypes.STR),
                             'type': build_basic_type(OpenApiTypes.STR),
                             '$kuid': build_basic_type(OpenApiTypes.STR),
                             'label': build_array_type(
