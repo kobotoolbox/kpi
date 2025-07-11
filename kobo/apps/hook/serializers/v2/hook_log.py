@@ -3,6 +3,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from kobo.apps.hook.models.hook_log import HookLog
+from kobo.apps.hook.schema_extensions.v2.logs.fields import UrlField
 
 
 class HookLogSerializer(serializers.ModelSerializer):
@@ -33,7 +34,7 @@ class HookLogSerializer(serializers.ModelSerializer):
             'date_modified',
         )
 
-    url = serializers.SerializerMethodField()
+    url = UrlField()
 
     def get_url(self, hook_log):
         hook = hook_log.hook
