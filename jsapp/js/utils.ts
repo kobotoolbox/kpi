@@ -15,6 +15,7 @@ import type { Toast, ToastOptions } from 'react-hot-toast'
 import { toast } from 'react-hot-toast'
 
 export const LANGUAGE_COOKIE_NAME = 'django_language'
+export const RTL_LANGUAGES = ['ar', 'he', 'fa', 'ur']
 
 const cookies = new Cookies()
 
@@ -576,4 +577,19 @@ export function removeDefaultUuidPrefix(uuid: string) {
  */
 export function matchUuid(uuidA: string, uuidB: string) {
   return addDefaultUuidPrefix(uuidA) === addDefaultUuidPrefix(uuidB)
+}
+
+/**
+ * Checks if the given language code is a Right-To-Left language
+ * (like Arabic, Hebrew, Persian, Urdu).
+ *
+ * Used to adjust UI rendering for RTL languages, such as reversing
+ * the order of lists or changing punctuation.
+ *
+ * Example:
+ *   isRtlLanguage('ar') // true
+ *   isRtlLanguage('en') // false
+ */
+export function isRtlLanguage(langCode: string): boolean {
+  return RTL_LANGUAGES.includes(langCode)
 }
