@@ -1,6 +1,5 @@
-from drf_spectacular.plumbing import build_object_type, build_basic_type
+from drf_spectacular.plumbing import build_basic_type, build_object_type
 from drf_spectacular.types import OpenApiTypes
-
 
 BALANCE_FIELDS = build_object_type(
     properties={

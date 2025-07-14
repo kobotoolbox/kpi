@@ -3,13 +3,11 @@ from drf_spectacular.plumbing import build_basic_type, build_object_type
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
-
 from .schema import BALANCE_FIELDS
 
+
 class AssetFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.organizations.fields.AssetField'
-    )
+    target_class = 'kpi.schema_extensions.v2.organizations.fields.AssetField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
@@ -19,9 +17,7 @@ class AssetFieldExtension(OpenApiSerializerFieldExtension):
 
 
 class AssetUsageFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.organizations.fields.AssetUsageField'
-    )
+    target_class = 'kpi.schema_extensions.v2.organizations.fields.AssetUsageField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
@@ -31,9 +27,7 @@ class AssetUsageFieldExtension(OpenApiSerializerFieldExtension):
 
 
 class BalanceFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.organizations.fields.BalanceField'
-    )
+    target_class = 'kpi.schema_extensions.v2.organizations.fields.BalanceField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
@@ -47,18 +41,14 @@ class BalanceFieldExtension(OpenApiSerializerFieldExtension):
 
 
 class IsOwnerFieldExtensions(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.organizations.fields.IsOwnerField'
-    )
+    target_class = 'kpi.schema_extensions.v2.organizations.fields.IsOwnerField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_basic_type(OpenApiTypes.BOOL)
 
 
 class MembersFieldExtensions(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.organizations.fields.MembersField'
-    )
+    target_class = 'kpi.schema_extensions.v2.organizations.fields.MembersField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
@@ -67,19 +57,8 @@ class MembersFieldExtensions(OpenApiSerializerFieldExtension):
         )
 
 
-class RequestUserRoleFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.organizations.fields.RequestUserRoleField'
-    )
-
-    def map_serializer_field(self, auto_schema, direction):
-        return build_basic_type(OpenApiTypes.STR)
-
-
 class NlpUsageAllTimeExtension(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.organizations.fields.NlpUsageAllTime'
-    )
+    target_class = 'kpi.schema_extensions.v2.organizations.fields.NlpUsageAllTime'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
@@ -91,9 +70,7 @@ class NlpUsageAllTimeExtension(OpenApiSerializerFieldExtension):
 
 
 class NlpUsageCurrentPeriodExtension(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.organizations.fields.NlpUsageCurrentPeriod'
-    )
+    target_class = 'kpi.schema_extensions.v2.organizations.fields.NlpUsageCurrentPeriod'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
@@ -104,10 +81,25 @@ class NlpUsageCurrentPeriodExtension(OpenApiSerializerFieldExtension):
         )
 
 
+class RequestUserRoleFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.organizations.fields.RequestUserRoleField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_basic_type(OpenApiTypes.STR)
+
+
+class ServiceUsageFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.organizations.fields.ServiceUsageField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_url_type(
+            'api_v2:organizations-service-usage',
+            id='orgzeph7Ub8tVmJ82JBbH96n',
+        )
+
+
 class TotalNlpUsageFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.organizations.fields.TotalNlpUsageField'
-    )
+    target_class = 'kpi.schema_extensions.v2.organizations.fields.TotalNlpUsageField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
@@ -134,22 +126,8 @@ class TotalSubmissionCountFieldExtension(OpenApiSerializerFieldExtension):
         )
 
 
-class ServiceUsageFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.organizations.fields.ServiceUsageField'
-    )
-
-    def map_serializer_field(self, auto_schema, direction):
-        return build_url_type(
-            'api_v2:organizations-service-usage',
-            id='orgzeph7Ub8tVmJ82JBbH96n',
-        )
-
-
 class UrlFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.organizations.fields.UrlField'
-    )
+    target_class = 'kpi.schema_extensions.v2.organizations.fields.UrlField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(

@@ -9,7 +9,6 @@ from django.utils import timezone
 from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound, PermissionDenied
-from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -23,8 +22,15 @@ from kobo.apps.organizations.models import (
 )
 from kobo.apps.project_ownership.models import InviteStatusChoices
 from kpi.exceptions import RetryAfterAPIException
-from kpi.schema_extensions.v2.organizations.fields import AssetField, AssetUsageField, \
-    IsOwnerField, MembersField, RequestUserRoleField, ServiceUsageField, UrlField
+from kpi.schema_extensions.v2.organizations.fields import (
+    AssetField,
+    AssetUsageField,
+    IsOwnerField,
+    MembersField,
+    RequestUserRoleField,
+    ServiceUsageField,
+    UrlField,
+)
 from kpi.utils.cache import void_cache_for_request
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.placeholders import replace_placeholders

@@ -10,7 +10,6 @@ from .fields import (
     TotalSubmissionCountField,
 )
 
-
 OrganizationAssetUsageResponse = inline_serializer_class(
     name='OrganizationAssetUsageResponse',
     fields={
@@ -21,7 +20,7 @@ OrganizationAssetUsageResponse = inline_serializer_class(
         'storage_bytes': serializers.IntegerField(),
         'submission_count_current_period': serializers.IntegerField(),
         'submission_count_all_time': serializers.IntegerField(),
-        'deployment_status': serializers.CharField()
+        'deployment_status': serializers.CharField(),
     },
 )
 

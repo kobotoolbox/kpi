@@ -13,16 +13,19 @@ from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
-from kpi.schema_extensions.v2.organizations.serializers import OrganizationPatchPayload, \
-    OrganizationAssetUsageResponse, OrganizationServiceUsageResponse
+from kpi.schema_extensions.v2.organizations.serializers import (
+    OrganizationAssetUsageResponse,
+    OrganizationPatchPayload,
+    OrganizationServiceUsageResponse,
+)
+from kpi.serializers.v2.asset import AssetSerializer
 from kpi.serializers.v2.service_usage import (
     CustomAssetUsageSerializer,
     ServiceUsageSerializer,
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
-    open_api_202_accepted_response
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from kpi.views.v2.asset import AssetViewSet
 from ..accounts.mfa.models import MfaMethod
 from .models import (
@@ -45,7 +48,7 @@ from .serializers import (
     OrgMembershipInviteSerializer,
 )
 from .utils import revoke_org_asset_perms
-from kpi.serializers.v2.asset import AssetSerializer
+
 
 class OrganizationAssetViewSet(AssetViewSet):
     """
@@ -114,7 +117,7 @@ class OrganizationAssetViewSet(AssetViewSet):
             OrganizationSerializer,
             require_auth=False,
             raise_access_forbidden=False,
-        )
+        ),
     ),
     asset_usage=extend_schema(
         description=read_md('kpi', 'organizations/org_asset_usage.md'),
@@ -123,7 +126,7 @@ class OrganizationAssetViewSet(AssetViewSet):
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     assets=extend_schema(
         description=read_md('kpi', 'organizations/org_assets.md'),
@@ -132,7 +135,7 @@ class OrganizationAssetViewSet(AssetViewSet):
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     service_usage=extend_schema(
         description=read_md('kpi', 'organizations/org_service_usage.md'),
@@ -141,7 +144,7 @@ class OrganizationAssetViewSet(AssetViewSet):
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
 )
 class OrganizationViewSet(viewsets.ModelViewSet):

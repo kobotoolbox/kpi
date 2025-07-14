@@ -22,15 +22,19 @@ class MembersField(serializers.SerializerMethodField):
     pass
 
 
-class RequestUserRoleField(serializers.SerializerMethodField):
-    pass
-
-
 class NlpUsageAllTime(serializers.JSONField):
     pass
 
 
 class NlpUsageCurrentPeriod(serializers.JSONField):
+    pass
+
+
+class RequestUserRoleField(serializers.SerializerMethodField):
+    pass
+
+
+class ServiceUsageField(serializers.SerializerMethodField):
     pass
 
 
@@ -42,10 +46,5 @@ class TotalSubmissionCountField(serializers.JSONField):
     pass
 
 
-class ServiceUsageField(serializers.SerializerMethodField):
-    pass
-
-
 class UrlField(HyperlinkedIdentityField):
     pass
-
