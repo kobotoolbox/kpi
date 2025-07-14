@@ -23,7 +23,7 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
             raise_access_forbidden=False,
             raise_not_found=False,
             validate_payload=False,
-        )
+        ),
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'permissions/retrieve.md'),
@@ -33,7 +33,7 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
             raise_access_forbidden=False,
             raise_not_found=False,
             validate_payload=False,
-        )
+        ),
     ),
 )
 class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
@@ -53,7 +53,9 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     model = Permission
     lookup_field = 'codename'
     serializer_class = PermissionSerializer
-    renderer_classes = [JSONRenderer,]
+    renderer_classes = [
+        JSONRenderer,
+    ]
 
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset(*args, **kwargs)

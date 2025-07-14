@@ -1,13 +1,5 @@
-from rest_framework import serializers
-
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
-from .fields import (
-    CodenameField,
-    ContradictoryField,
-    ImpliedField,
-    NameField,
-    UrlField
-)
+from .fields import CodenameField, ContradictoryField, ImpliedField, NameField, UrlField
 
 PermissionResponse = inline_serializer_class(
     name='PermissionResponse',

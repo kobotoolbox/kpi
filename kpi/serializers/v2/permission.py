@@ -3,7 +3,6 @@ from django.contrib.auth.models import Permission
 from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.fields import empty
-from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 
 from kpi.models.asset import Asset
@@ -17,10 +16,9 @@ from kpi.schema_extensions.v2.permissions.fields import (
 
 class PermissionSerializer(serializers.ModelSerializer):
 
-    url = UrlField(
-        lookup_field='codename', view_name='permission-detail')
+    url = UrlField(lookup_field='codename', view_name='permission-detail')
     implied = ImpliedField()
-    contradictory =ContradictoryField()
+    contradictory = ContradictoryField()
     name = NameField()
 
     class Meta:
