@@ -75,7 +75,7 @@ jobs:
         set -xe
         # TODO, lets test deploy to beta later with a real release branch
         git checkout -B public-beta
-        git push -f
+        git push -f --set-upstream origin public-beta
 
   merge:
     runs-on: ubuntu-24.04
@@ -102,6 +102,11 @@ jobs:
   notify:
     needs:
       - version
+      - darker
+      - pytest
+      - npm-test
+      - deploy-to-beta
+      - merge
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
