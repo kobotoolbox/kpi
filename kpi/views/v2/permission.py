@@ -1,14 +1,23 @@
 # coding: utf-8
 from django.contrib.auth.models import Permission
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
+from rest_framework.renderers import JSONRenderer
 
 from kpi.models.asset import Asset
 from kpi.serializers.v2.permission import PermissionSerializer
 
 
 @extend_schema(
-    tags=['permissions'],
+    tags=['Permissions'],
+)
+@extend_schema_view(
+    list=extend_schema(
+        description='list'
+    ),
+    retrieve=extend_schema(
+        description='codename'
+    ),
 )
 class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -91,6 +100,7 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     model = Permission
     lookup_field = 'codename'
     serializer_class = PermissionSerializer
+    renderer_classes = [JSONRenderer,]
 
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset(*args, **kwargs)
