@@ -18,6 +18,7 @@ from kpi.serializers.v2.service_usage import (
     ServiceUsageSerializer,
 )
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.schema_extensions.markdown import read_md
 from kpi.views.v2.asset import AssetViewSet
 from ..accounts.mfa.models import MfaMethod
 from .models import (
@@ -85,26 +86,28 @@ class OrganizationAssetViewSet(AssetViewSet):
 )
 @extend_schema_view(
     list=extend_schema(
-        description='list'
+        description=read_md('kpi', 'organizations/org_list.md'),
     ),
     retrieve=extend_schema(
-        description='retrieve'
+        description=read_md('kpi', 'organizations/org_retrieve.md'),
     ),
     partial_update=extend_schema(
-        description='patch'
+        description=read_md('kpi', 'organizations/org_update.md'),
     ),
     asset_usage=extend_schema(
-        description='asset usage'
+        description=read_md('kpi', 'organizations/org_asset_usage.md'),
     ),
     assets=extend_schema(
-        description='assets'
+        description=read_md('kpi', 'organizations/org_assets.md'),
     ),
     service_usage=extend_schema(
-        description='service usage'
+        description=read_md('kpi', 'organizations/org_service_usage.md'),
     ),
 )
 class OrganizationViewSet(viewsets.ModelViewSet):
     """
+    Viewset for managing organizations
+
     Organizations are groups of users with assigned permissions and configurations
 
     - Organization admins can manage the organization and its membership
@@ -125,18 +128,6 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         detail=True, methods=['GET'], permission_classes=[IsOrgAdminPermission]
     )
     def assets(self, request: Request, *args, **kwargs):
-        """
-        ### Retrieve Organization Assets
-
-        This endpoint returns all assets associated with a specific organization.
-        The assets listed here are restricted to those owned by the specified
-        organization.
-
-        Only the owner or administrators of the organization can access this endpoint.
-
-        ### Additional Information
-        For more details, please refer to `/api/v2/assets/`.
-        """
 
         # `get_object()` checks permissions
         organization = self.get_object()
@@ -154,66 +145,6 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def service_usage(self, request, pk=None, *args, **kwargs):
-        """
-        ## Organization Usage Tracker
-        <p>Tracks the total usage of different services for each account in an organization</p>
-        <p>Tracks the submissions and NLP seconds/characters for the current month/year/all time</p>
-        <p>Tracks the current total storage used</p>
-        <p>Includes a detailed list of balances relative to a user's usage limits</p>
-        <p>If no organization is found with the provided ID, returns the usage for the logged-in user</p>
-        <strong>This endpoint is cached for an amount of time determined by ENDPOINT_CACHE_DURATION</strong>
-
-        <pre class="prettyprint">
-        <b>GET</b> /api/v2/organizations/{organization_id}/service_usage/
-        </pre>
-
-        > Example
-        >
-        >       curl -X GET https://[kpi]/api/v2/organizations/{organization_id}/service_usage/
-        >       {
-        >           "total_nlp_usage": {
-        >               "asr_seconds_current_period": {integer},
-        >               "asr_seconds_all_time": {integer},
-        >               "mt_characters_current_period": {integer},
-        >               "mt_characters_all_time": {integer},
-        >           },
-        >           "total_storage_bytes": {integer},
-        >           "total_submission_count": {
-        >               "current_period": {integer},
-        >               "all_time": {integer},
-        >           },
-        >           "balances": {
-        >               "asr_seconds": {
-        >                   "effective_limit": {integer},
-        >                   "balance_value": {integer},
-        >                   "balance_percent": {integer},
-        >                   "exceeded": {boolean},
-        >               } | {None},
-        >               "mt_characters": {
-        >                   "effective_limit": {integer},
-        >                   "balance_value": {integer},
-        >                   "balance_percent": {integer},
-        >                   "exceeded": {boolean},
-        >               } | {None},
-        >               "storage_bytes": {
-        >                   "effective_limit": {integer},
-        >                   "balance_value": {integer},
-        >                   "balance_percent": {integer},
-        >                   "exceeded": {boolean},
-        >               } | {None},
-        >               "submission": {
-        >                   "effective_limit": {integer},
-        >                   "balance_value": {integer},
-        >                   "balance_percent": {integer},
-        >                   "exceeded": {boolean},
-        >               } | {None},
-        >           },
-        >           "current_period_start": {string (date), ISO format},
-        >           "current_period_end": {string (date), ISO format}|{None},
-        >           "last_updated": {string (date), ISO format},
-        >       }
-        ### CURRENT ENDPOINT
-        """
 
         self.get_object()  # This call is necessary to check permissions
         serializer = ServiceUsageSerializer(
@@ -232,43 +163,6 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], permission_classes=[IsOrgAdminPermission])
     def asset_usage(self, request, pk=None, *args, **kwargs):
-        """
-        ## Organization Asset Usage Tracker
-        <p>Tracks the total usage of each asset for the user in the given organization</p>
-
-        <pre class="prettyprint">
-        <b>GET</b> /api/v2/organizations/{organization_id}/asset_usage/
-        </pre>
-
-        > Example
-        >
-        >       curl -X GET https://[kpi]/api/v2/organizations/{organization_id}/asset_usage/
-        >       {
-        >           "count": {integer},
-        >           "next": {url_to_next_page},
-        >           "previous": {url_to_previous_page},
-        >           "results": [
-        >               {
-        >                   "asset_type": {string},
-        >                   "asset": {asset_url},
-        >                   "asset_name": {string},
-        >                   "nlp_usage_current_period": {
-        >                       "total_asr_seconds": {integer},
-        >                       "total_mt_characters": {integer},
-        >                   }
-        >                   "nlp_usage_all_time": {
-        >                       "total_asr_seconds": {integer},
-        >                       "total_mt_characters": {integer},
-        >                   }
-        >                   "storage_bytes": {integer},
-        >                   "submission_count_current_period": {integer},
-        >                   "submission_count_all_time": {integer},
-        >                   "deployment_status": {string},
-        >               },{...}
-        >           ]
-        >       }
-        ### CURRENT ENDPOINT
-        """
 
         # `get_object()` checks permissions
         organization = self.get_object()
