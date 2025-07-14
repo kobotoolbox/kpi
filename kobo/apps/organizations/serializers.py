@@ -23,6 +23,8 @@ from kobo.apps.organizations.models import (
 )
 from kobo.apps.project_ownership.models import InviteStatusChoices
 from kpi.exceptions import RetryAfterAPIException
+from kpi.schema_extensions.v2.organizations.fields import AssetField, AssetUsageField, \
+    IsOwnerField, MembersField, RequestUserRoleField, ServiceUsageField, UrlField
 from kpi.utils.cache import void_cache_for_request
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.placeholders import replace_placeholders
@@ -157,14 +159,14 @@ class OrganizationOwnerSerializer(serializers.ModelSerializer):
 
 class OrganizationSerializer(serializers.ModelSerializer):
 
-    assets = serializers.SerializerMethodField()
-    asset_usage = serializers.SerializerMethodField()
+    assets = AssetField()
+    asset_usage = AssetUsageField()
     is_mmo = serializers.BooleanField(read_only=True)
-    is_owner = serializers.SerializerMethodField()
-    members = serializers.SerializerMethodField()
-    request_user_role = serializers.SerializerMethodField()
-    service_usage = serializers.SerializerMethodField()
-    url = HyperlinkedIdentityField(lookup_field='id', view_name='organizations-detail')
+    is_owner = IsOwnerField()
+    members = MembersField()
+    request_user_role = RequestUserRoleField()
+    service_usage = ServiceUsageField()
+    url = UrlField(lookup_field='id', view_name='organizations-detail')
     website = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:

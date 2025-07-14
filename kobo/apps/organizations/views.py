@@ -113,6 +113,23 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     - Organization admins can manage the organization and its membership
     - Connect to authentication mechanisms and enforce policy
     - Create teams and projects under the organization
+
+
+    Available actions:
+    - list              → GET       /api/v2/organizations/
+    - retrieve          → GET       /api/v2/organizations/{id}/
+    - partial_update    → PATCH     /api/v2/organizations/{id}/
+    - asset_usage       → GET       /api/v2/organizations/{id}/asset_usage/
+    - assets            → GET       /api/v2/organizations/{id}/assets/
+    - service_usage     → PATCH     /api/v2/organizations/{id}/service_usage/
+
+    Documentation:
+    - docs/api/v2/organizations/org_list.md
+    - docs/api/v2/organizations/org_retrieve.md
+    - docs/api/v2/organizations/org_update.md
+    - docs/api/v2/organizations/org_asset_usage.md
+    - docs/api/v2/organizations/org_assets.md
+    - docs/api/v2/organizations/org_service_usage.md
     """
 
     queryset = Organization.objects.all()

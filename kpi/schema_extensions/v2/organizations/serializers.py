@@ -5,8 +5,8 @@ from .fields import (
     AssetUsageField,
 )
 
-OrganizationResponse = inline_serializer_class(
-    name='OrganizationResponse',
+OrganizationMemberResponse = inline_serializer_class(
+    name='OrganizationMemberResponse',
     fields={
     },
 )
