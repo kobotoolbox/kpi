@@ -19,12 +19,20 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
         description=read_md('kpi', 'permissions/list.md'),
         responses=open_api_200_ok_response(
             PermissionResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+            validate_payload=False,
         )
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'permissions/retrieve.md'),
         responses=open_api_200_ok_response(
             PermissionResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+            validate_payload=False,
         )
     ),
 )
