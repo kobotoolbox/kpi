@@ -45,7 +45,7 @@ from .serializers import (
     OrgMembershipInviteSerializer,
 )
 from .utils import revoke_org_asset_perms
-
+from kpi.serializers.v2.asset import AssetSerializer
 
 class OrganizationAssetViewSet(AssetViewSet):
     """
@@ -116,6 +116,9 @@ class OrganizationAssetViewSet(AssetViewSet):
     ),
     assets=extend_schema(
         description=read_md('kpi', 'organizations/org_assets.md'),
+        responses=open_api_200_ok_response(
+            AssetSerializer(many=True),
+        )
     ),
     service_usage=extend_schema(
         description=read_md('kpi', 'organizations/org_service_usage.md'),
