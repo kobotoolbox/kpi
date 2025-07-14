@@ -1,12 +1,7 @@
 from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
-from .fields import (
-    AuditLogMetadataField,
-    ProjectHistoryMetadataField,
-    UserField,
-)
-
+from .fields import AuditLogMetadataField, ProjectHistoryMetadataField, UserField
 
 AuditLogResponse = inline_serializer_class(
     name='AuditLogResponse',

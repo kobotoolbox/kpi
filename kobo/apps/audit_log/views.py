@@ -28,8 +28,11 @@ from .schema_extensions.v2.access_logs.serializers import (
     ExportCreateResponse,
     ExportListResponse,
 )
-from .schema_extensions.v2.audit_logs.serializers import AuditLogResponse, \
-    ProjectHistoryLogResponse, ExportHistoryResponse
+from .schema_extensions.v2.audit_logs.serializers import (
+    AuditLogResponse,
+    ExportHistoryResponse,
+    ProjectHistoryLogResponse,
+)
 from .serializers import (
     AccessLogSerializer,
     AuditLogSerializer,
@@ -47,13 +50,11 @@ from .serializers import (
             AuditLogResponse,
             require_auth=False,
             validate_payload=False,
-        )
+        ),
     )
 )
 class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
-    """
-
-    """
+    """ """
 
     model = AuditLog
     serializer_class = AuditLogSerializer
@@ -391,6 +392,7 @@ def generate_ph_view_set_logstring(description, path, example_path, all):
 
     """
 
+
 @extend_schema_view(
     list=extend_schema(
         description=read_md('audit_log', 'audit_logs/project_history_logs/list.md'),
@@ -398,7 +400,7 @@ def generate_ph_view_set_logstring(description, path, example_path, all):
             ProjectHistoryLogResponse,
             require_auth=False,
             validate_payload=False,
-        )
+        ),
     )
 )
 class AllProjectHistoryLogViewSet(AuditLogViewSet):
@@ -416,8 +418,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     @extend_schema(
         methods=['GET'],
         description=read_md(
-            'audit_log',
-            'audit_logs/project_history_logs/export_list.md'
+            'audit_log', 'audit_logs/project_history_logs/export_list.md'
         ),
         responses=open_api_202_accepted_response(
             ExportHistoryResponse,
@@ -428,8 +429,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     @extend_schema(
         methods=['POST'],
         description=read_md(
-            'audit_log',
-            'audit_logs/project_history_logs/export_create.md'
+            'audit_log', 'audit_logs/project_history_logs/export_create.md'
         ),
         request=None,
         responses=open_api_202_accepted_response(
