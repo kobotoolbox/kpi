@@ -32,11 +32,3 @@ jobs:
     needs: changes
     if: false && needs.changes.outputs.npm-test == 'true'
     uses: ./.github/workflows/npm-test.yml
-
-  debug:
-    uses: ./.github/workflows/linear.yml
-    secrets: inherit
-    with:
-      title: hello world
-      description: |
-        some very long desc and weird chars. wip: te$t w'th "escapable" title "!@#$%^&*(),'./\| 14

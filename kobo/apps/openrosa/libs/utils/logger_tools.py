@@ -203,6 +203,7 @@ def create_instance(
     # get root uuid
     root_uuid, fallback_on_uuid = get_root_uuid_from_xml(xml)
     new_uuid = root_uuid if fallback_on_uuid else get_uuid_from_xml(xml)
+
     if not new_uuid:
         raise InstanceIdMissingError
 
