@@ -7,15 +7,21 @@ from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 
 from kpi.models.asset import Asset
+from kpi.schema_extensions.v2.permissions.fields import (
+    ContradictoryField,
+    ImpliedField,
+    NameField,
+    UrlField,
+)
 
 
 class PermissionSerializer(serializers.ModelSerializer):
 
-    url = HyperlinkedIdentityField(
+    url = UrlField(
         lookup_field='codename', view_name='permission-detail')
-    implied = serializers.SerializerMethodField()
-    contradictory = serializers.SerializerMethodField()
-    name = serializers.SerializerMethodField()
+    implied = ImpliedField()
+    contradictory =ContradictoryField()
+    name = NameField()
 
     class Meta:
         model = Permission
