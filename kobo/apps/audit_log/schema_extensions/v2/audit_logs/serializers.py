@@ -24,6 +24,14 @@ AuditLogResponse = inline_serializer_class(
 )
 
 
+ExportHistoryResponse = inline_serializer_class(
+    name='ExportHistoryResponse',
+    fields={
+        'status': serializers.CharField(),
+    },
+)
+
+
 ProjectHistoryLogResponse = inline_serializer_class(
     name='ProjectHistoryLogResponse',
     fields={

@@ -29,7 +29,7 @@ from .schema_extensions.v2.access_logs.serializers import (
     ExportListResponse,
 )
 from .schema_extensions.v2.audit_logs.serializers import AuditLogResponse, \
-    ProjectHistoryLogResponse
+    ProjectHistoryLogResponse, ExportHistoryResponse
 from .serializers import (
     AccessLogSerializer,
     AuditLogSerializer,
@@ -415,11 +415,28 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
     @extend_schema(
         methods=['GET'],
-        description=read_md('audit_log', 'audit_logs/project_history_logs/export_list.md'),
+        description=read_md(
+            'audit_log',
+            'audit_logs/project_history_logs/export_list.md'
+        ),
+        responses=open_api_202_accepted_response(
+            ExportHistoryResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
     )
     @extend_schema(
         methods=['POST'],
-        description=read_md('audit_log', 'audit_logs/project_history_logs/export_create.md'),
+        description=read_md(
+            'audit_log',
+            'audit_logs/project_history_logs/export_create.md'
+        ),
+        request=None,
+        responses=open_api_202_accepted_response(
+            ExportHistoryResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
     )
     @action(detail=False, methods=['GET', 'POST'])
     def export(self, request, *args, **kwargs):
