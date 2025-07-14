@@ -1,61 +1,6 @@
 ## List all project history logs for all projects.
 
-Only available to superusers.
-    > Response 200
-
-    >       {{
-    >           "count": 10,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >                {{
-    >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "u12345",
-    >                    "username": "admin",
-    >                    "action": "modify-user-permissions"
-    >                    "metadata": {{
-    >                        "source": "Firefox (Ubuntu)",
-    >                        "ip_address": "172.18.0.6",
-    >                        "asset_uid": "a678910",
-    >                        "log_subtype": "permissions",
-    >                        "permissions":
-    >                            {{
-    >                                "username": "user1",
-    >                                "added": ["add_submissions", "view_submissions"],
-    >                                "removed": ["change_asset"],
-    >                            }}
-    >                    }},
-    >                    "date_created": "2024-08-19T16:48:58Z",
-    >                }},
-    >                {{
-    >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "u56789",
-    >                    "username": "someuser",
-    >                    "action": "update-settings",
-    >                    "metadata": {{
-    >                        "source": "Firefox (Ubuntu)",
-    >                        "ip_address": "172.18.0.6",
-    >                        "asset_uid": {"a111213" if all else "a678910"},
-    >                        "log_subtype": "project",
-    >                        "settings":
-    >                            {{
-    >                                "description":
-    >                                    {{
-    >                                        "old": "old_description",
-    >                                        "new": "new_description",
-    >                                    }}
-    >                                "countries":
-    >                                    {{
-    >                                        "added": ["USA"],
-    >                                        "removed": ["ALB"],
-    >                                    }}
-    >                            }}
-    >                     }},
-    >                    "date_created": "2024-08-19T16:48:58Z",
-    >                }},
-    >                ...
-    >           ]
-    >       }}
+<sup>*</sup> _Only available to superusers_
 
 Results from this endpoint can be filtered by a Boolean query
 specified in the `q` parameter.

@@ -1,7 +1,11 @@
 from rest_framework import serializers
 
 
-class MetadataField(serializers.JSONField):
+class AuditLogMetadataField(serializers.JSONField):
+    pass
+
+
+class ProjectHistoryMetadataField(serializers.JSONField):
     pass
 
 

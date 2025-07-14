@@ -28,7 +28,8 @@ from .schema_extensions.v2.access_logs.serializers import (
     ExportCreateResponse,
     ExportListResponse,
 )
-from .schema_extensions.v2.audit_logs.serializers import AuditLogResponse
+from .schema_extensions.v2.audit_logs.serializers import AuditLogResponse, \
+    ProjectHistoryLogResponse
 from .serializers import (
     AccessLogSerializer,
     AuditLogSerializer,
@@ -393,6 +394,11 @@ def generate_ph_view_set_logstring(description, path, example_path, all):
 @extend_schema_view(
     list=extend_schema(
         description=read_md('audit_log', 'audit_logs/project_history_logs/list.md'),
+        responses=open_api_200_ok_response(
+            ProjectHistoryLogResponse,
+            require_auth=False,
+            validate_payload=False,
+        )
     )
 )
 class AllProjectHistoryLogViewSet(AuditLogViewSet):

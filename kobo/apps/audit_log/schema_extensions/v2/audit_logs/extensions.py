@@ -6,7 +6,7 @@ from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
 class MetadataFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kobo.apps.audit_log.schema_extensions.v2.audit_logs.fields.MetadataField'  # noqa
+    target_class = 'kobo.apps.audit_log.schema_extensions.v2.audit_logs.fields.AuditLogMetadataField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
@@ -20,6 +20,45 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
                         'fields': build_array_type(build_basic_type(OpenApiTypes.STR)),
                         'source_uid': build_basic_type(OpenApiTypes.STR),
                         'source_name': build_basic_type(OpenApiTypes.STR),
+                    }
+                ),
+                'project_owner': build_basic_type(OpenApiTypes.STR),
+            }
+        )
+
+
+class ProjectHistoryMetadataFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kobo.apps.audit_log.schema_extensions.v2.audit_logs.fields.ProjectHistoryMetadataField'  # noqa
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'source': build_basic_type(OpenApiTypes.STR),
+                'asset_uid': build_basic_type(OpenApiTypes.STR),
+                'ip_address': build_basic_type(OpenApiTypes.STR),
+                'cloned_from': build_basic_type(OpenApiTypes.STR),
+                'log_subtype': build_basic_type(OpenApiTypes.STR),
+                'settings': build_object_type(
+                    properties={
+                        'description': build_object_type(
+                            properties={
+                                'old': build_basic_type(OpenApiTypes.STR),
+                                'new': build_basic_type(OpenApiTypes.STR),
+                            }
+                        ),
+                        'countries': build_object_type(
+                            properties={
+                                'added': build_array_type(build_basic_type(OpenApiTypes.STR)),  # noqa
+                                'removed': build_array_type(build_basic_type(OpenApiTypes.STR)),  # noqa
+                            }
+                        )
+                    }
+                ),
+                'permissions': build_object_type(
+                    properties={
+                        'added': build_array_type(build_basic_type(OpenApiTypes.STR)),
+                        'removed': build_array_type(build_basic_type(OpenApiTypes.STR)),
+                        'username': build_basic_type(OpenApiTypes.STR),
                     }
                 ),
                 'project_owner': build_basic_type(OpenApiTypes.STR),
