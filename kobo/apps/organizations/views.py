@@ -93,12 +93,18 @@ class OrganizationAssetViewSet(AssetViewSet):
         description=read_md('kpi', 'organizations/org_list.md'),
         responses=open_api_200_ok_response(
             OrganizationSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         ),
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'organizations/org_retrieve.md'),
         responses=open_api_200_ok_response(
             OrganizationSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         ),
     ),
     partial_update=extend_schema(
@@ -106,24 +112,35 @@ class OrganizationAssetViewSet(AssetViewSet):
         request={'application/json': OrganizationPatchPayload},
         responses=open_api_200_ok_response(
             OrganizationSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
         )
     ),
     asset_usage=extend_schema(
         description=read_md('kpi', 'organizations/org_asset_usage.md'),
         responses=open_api_200_ok_response(
             OrganizationAssetUsageResponse(many=True),
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
     assets=extend_schema(
         description=read_md('kpi', 'organizations/org_assets.md'),
         responses=open_api_200_ok_response(
             AssetSerializer(many=True),
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
     service_usage=extend_schema(
         description=read_md('kpi', 'organizations/org_service_usage.md'),
         responses=open_api_200_ok_response(
             OrganizationServiceUsageResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
 )
