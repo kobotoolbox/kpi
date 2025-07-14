@@ -330,12 +330,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   onGetSubmissionsFailed(error: FailResponse) {
-    if (error?.responseText) {
-      handleApiFail(error)
-    }
-
     if (error?.status) {
       this.setState({ errorNumber: error.status })
+
+      if (error.status === 500 && error?.responseText) {
+        handleApiFail(error)
+      }
 
       // 500's from the backend gives us an html responseText, so we show a hard coded string during render instead
       if (error.status !== 500 && error?.responseText) {
