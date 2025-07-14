@@ -1,40 +1,6 @@
 ## List actions performed by users.
 
-Only available for superusers.
-
-    > Response 200
-
-    >       {
-    >           "count": 2,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >               {
-    >                    "app_label": "foo",
-    >                    "model_name": "bar",
-    >                    "user": "http://kf.kobo.local/api/v2/users/kobo_user/",
-    >                    "user_uid": "u12345",
-    >                    "action": "delete",
-    >                    "date_created": "2024-10-01T00:01:00Z",
-    >                    "log_type": "asset-management",
-    >               },
-    >               {
-    >                    "app_label": "kobo_auth",
-    >                    "model_name": "user",
-    >                    "user": "http://kf.kobo.local/api/v2/users/another_user/",
-    >                    "user_uid": "u12345",
-    >                    "username": "another_user",
-    >                    "action": "auth",
-    >                    "metadata": {
-    >                        "source": "Firefox (Ubuntu)",
-    >                        "auth_type": "Digest",
-    >                        "ip_address": "1.2.3.4"
-    >                   },
-    >                    "date_created": "2024-10-01T00:00:00Z",
-    >                    "log_type": "access"
-    >                },
-    >           ]
-    >       }
+<sup>*</sup> _Only available to superusers_
 
 Results from this endpoint can be filtered by a Boolean query specified in the
 
