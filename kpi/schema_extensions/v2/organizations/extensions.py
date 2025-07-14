@@ -59,6 +59,34 @@ class RequestUserRoleFieldExtension(OpenApiSerializerFieldExtension):
         return build_basic_type(OpenApiTypes.STR)
 
 
+class NlpUsageAllTimeExtension(OpenApiSerializerFieldExtension):
+    target_class = (
+        'kpi.schema_extensions.v2.organizations.fields.NlpUsageAllTime'
+    )
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'total_nlp_asr_seconds': build_basic_type(OpenApiTypes.INT),
+                'total_nlp_mt_characters': build_basic_type(OpenApiTypes.INT),
+            }
+        )
+
+
+class NlpUsageCurrentPeriodExtension(OpenApiSerializerFieldExtension):
+    target_class = (
+        'kpi.schema_extensions.v2.organizations.fields.NlpUsageCurrentPeriod'
+    )
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'total_nlp_asr_seconds': build_basic_type(OpenApiTypes.INT),
+                'total_nlp_mt_characters': build_basic_type(OpenApiTypes.INT),
+            }
+        )
+
+
 class ServiceUsageFieldExtension(OpenApiSerializerFieldExtension):
     target_class = (
         'kpi.schema_extensions.v2.organizations.fields.ServiceUsageField'

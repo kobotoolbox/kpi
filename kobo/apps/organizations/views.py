@@ -13,7 +13,8 @@ from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
-from kpi.schema_extensions.v2.organizations.serializers import OrganizationPatchPayload
+from kpi.schema_extensions.v2.organizations.serializers import OrganizationPatchPayload, \
+    OrganizationAssetUsageResponse
 from kpi.serializers.v2.service_usage import (
     CustomAssetUsageSerializer,
     ServiceUsageSerializer,
@@ -109,6 +110,9 @@ class OrganizationAssetViewSet(AssetViewSet):
     ),
     asset_usage=extend_schema(
         description=read_md('kpi', 'organizations/org_asset_usage.md'),
+        responses=open_api_200_ok_response(
+            OrganizationAssetUsageResponse(many=True),
+        )
     ),
     assets=extend_schema(
         description=read_md('kpi', 'organizations/org_assets.md'),

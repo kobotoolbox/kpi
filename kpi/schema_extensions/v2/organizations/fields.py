@@ -22,6 +22,14 @@ class RequestUserRoleField(serializers.SerializerMethodField):
     pass
 
 
+class NlpUsageAllTime(serializers.JSONField):
+    pass
+
+
+class NlpUsageCurrentPeriod(serializers.JSONField):
+    pass
+
+
 class ServiceUsageField(serializers.SerializerMethodField):
     pass
 
