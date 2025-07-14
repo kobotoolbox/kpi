@@ -5,8 +5,12 @@ from .fields import (
     AssetUsageField,
 )
 
-OrganizationMemberResponse = inline_serializer_class(
-    name='OrganizationMemberResponse',
+
+OrganizationPatchPayload = inline_serializer_class(
+    name='OrganizationPatchPayload',
     fields={
+        'name': serializers.CharField(),
+        'website': serializers.CharField(),
+        'organization_type': serializers.CharField(),
     },
 )

@@ -13,12 +13,15 @@ from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
+from kpi.schema_extensions.v2.organizations.serializers import OrganizationPatchPayload
 from kpi.serializers.v2.service_usage import (
     CustomAssetUsageSerializer,
     ServiceUsageSerializer,
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
+    open_api_202_accepted_response
 from kpi.views.v2.asset import AssetViewSet
 from ..accounts.mfa.models import MfaMethod
 from .models import (
@@ -87,12 +90,22 @@ class OrganizationAssetViewSet(AssetViewSet):
 @extend_schema_view(
     list=extend_schema(
         description=read_md('kpi', 'organizations/org_list.md'),
+        responses=open_api_200_ok_response(
+            OrganizationSerializer,
+        ),
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'organizations/org_retrieve.md'),
+        responses=open_api_200_ok_response(
+            OrganizationSerializer,
+        ),
     ),
     partial_update=extend_schema(
         description=read_md('kpi', 'organizations/org_update.md'),
+        request={'application/json': OrganizationPatchPayload},
+        responses=open_api_200_ok_response(
+            OrganizationSerializer,
+        )
     ),
     asset_usage=extend_schema(
         description=read_md('kpi', 'organizations/org_asset_usage.md'),
