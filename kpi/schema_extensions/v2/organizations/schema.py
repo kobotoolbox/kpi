@@ -1,0 +1,12 @@
+from drf_spectacular.plumbing import build_object_type, build_basic_type
+from drf_spectacular.types import OpenApiTypes
+
+
+BALANCE_FIELDS = build_object_type(
+    properties={
+        'effective_limit': build_basic_type(OpenApiTypes.INT),
+        'balance_value': build_basic_type(OpenApiTypes.INT),
+        'balance_percent': build_basic_type(OpenApiTypes.INT),
+        'exceeded': build_basic_type(OpenApiTypes.INT),
+    }
+)

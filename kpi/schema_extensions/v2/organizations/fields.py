@@ -10,6 +10,10 @@ class AssetUsageField(serializers.SerializerMethodField):
     pass
 
 
+class BalanceField(serializers.JSONField):
+    pass
+
+
 class IsOwnerField(serializers.SerializerMethodField):
     pass
 
@@ -27,6 +31,14 @@ class NlpUsageAllTime(serializers.JSONField):
 
 
 class NlpUsageCurrentPeriod(serializers.JSONField):
+    pass
+
+
+class TotalNlpUsageField(serializers.JSONField):
+    pass
+
+
+class TotalSubmissionCountField(serializers.JSONField):
     pass
 
 

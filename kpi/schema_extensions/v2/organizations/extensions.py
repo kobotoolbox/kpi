@@ -4,6 +4,7 @@ from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
+from .schema import BALANCE_FIELDS
 
 class AssetFieldExtension(OpenApiSerializerFieldExtension):
     target_class = (
@@ -26,6 +27,22 @@ class AssetUsageFieldExtension(OpenApiSerializerFieldExtension):
         return build_url_type(
             'api_v2:organizations-asset-usage',
             id='orgzeph7Ub8tVmJ82JBbH96n',
+        )
+
+
+class BalanceFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = (
+        'kpi.schema_extensions.v2.organizations.fields.BalanceField'
+    )
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'submission': BALANCE_FIELDS,
+                'storage_bytes': BALANCE_FIELDS,
+                'asr_seconds': BALANCE_FIELDS,
+                'mt_characters': BALANCE_FIELDS,
+            }
         )
 
 
@@ -83,6 +100,36 @@ class NlpUsageCurrentPeriodExtension(OpenApiSerializerFieldExtension):
             properties={
                 'total_nlp_asr_seconds': build_basic_type(OpenApiTypes.INT),
                 'total_nlp_mt_characters': build_basic_type(OpenApiTypes.INT),
+            }
+        )
+
+
+class TotalNlpUsageFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = (
+        'kpi.schema_extensions.v2.organizations.fields.TotalNlpUsageField'
+    )
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'asr_seconds_current_period': build_basic_type(OpenApiTypes.INT),
+                'mt_characters_current_period': build_basic_type(OpenApiTypes.INT),
+                'asr_seconds_all_time': build_basic_type(OpenApiTypes.INT),
+                'mt_characters_all_time': build_basic_type(OpenApiTypes.INT),
+            }
+        )
+
+
+class TotalSubmissionCountFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = (
+        'kpi.schema_extensions.v2.organizations.fields.TotalSubmissionCountField'
+    )
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'all_time': build_basic_type(OpenApiTypes.INT),
+                'current_period': build_basic_type(OpenApiTypes.INT),
             }
         )
 

@@ -3,8 +3,11 @@ from rest_framework import serializers
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
     AssetField,
+    BalanceField,
     NlpUsageAllTime,
     NlpUsageCurrentPeriod,
+    TotalNlpUsageField,
+    TotalSubmissionCountField,
 )
 
 
@@ -19,6 +22,20 @@ OrganizationAssetUsageResponse = inline_serializer_class(
         'submission_count_current_period': serializers.IntegerField(),
         'submission_count_all_time': serializers.IntegerField(),
         'deployment_status': serializers.CharField()
+    },
+)
+
+
+OrganizationServiceUsageResponse = inline_serializer_class(
+    name='OrganizationServiceUsageResponse',
+    fields={
+        'total_nlp_usage': TotalNlpUsageField(),
+        'total_storage_bytes': serializers.IntegerField(),
+        'total_submission_count': TotalSubmissionCountField(),
+        'balances': BalanceField(),
+        'current_period_start': serializers.DateTimeField(),
+        'current_period_end': serializers.DateTimeField(),
+        'last_updated': serializers.DateTimeField(),
     },
 )
 
