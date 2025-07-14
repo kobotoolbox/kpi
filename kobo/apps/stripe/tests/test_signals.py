@@ -38,5 +38,5 @@ class StripeSignalsTestCase(BaseTestCase):
         self.subscription.save()
 
         patched_calculator.assert_called_once_with(self.someuser)
-        patched_calculator.return_value._clear_cache.assert_called_once()
+        patched_calculator.return_value.clear_cache.assert_called_once()
         patched_update.assert_called_once_with(counter)

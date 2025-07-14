@@ -29,7 +29,7 @@ def clear_usage_cache_and_counters(sender, instance, created, **kwargs):
     if not user:
         return
 
-    ServiceUsageCalculator(user)._clear_cache()
+    ServiceUsageCalculator(user).clear_cache()
 
     counters = ExceededLimitCounter.objects.filter(user=user)
     for counter in counters:
