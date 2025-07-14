@@ -18,6 +18,7 @@ from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.fields import WritableJSONField
 from kpi.utils.gravatar_url import gravatar_url
+from kpi.utils.log import logging
 from kpi.utils.object_permission import get_database_user
 
 
@@ -37,6 +38,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     validated_password = serializers.SerializerMethodField()
     accepted_tos = serializers.SerializerMethodField()
     organization = serializers.SerializerMethodField()
+    extra_details__uid = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -58,6 +60,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'validated_password',
             'accepted_tos',
             'organization',
+            'extra_details__uid',
         )
         read_only_fields = (
             'email',
@@ -131,6 +134,9 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             return True
 
         return extra_details.validated_password
+
+    def get_extra_details__uid(self, obj):
+        return obj.extra_details.uid
 
     def to_representation(self, obj):
         if obj.is_anonymous:
