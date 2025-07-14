@@ -110,6 +110,8 @@ interface DataTableState {
   pageSize: number
   currentPage: number
   error: string | boolean
+  errorNumber: number | null
+  errorStatus: string | null
   showLabels: boolean
   translationIndex: number
   showGroupName: boolean
@@ -158,6 +160,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       pageSize: 30,
       currentPage: 0,
       error: false,
+      errorNumber: null,
+      errorStatus: null,
       showLabels: true,
       translationIndex: 0,
       showGroupName: true,
@@ -328,8 +332,31 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       handleApiFail(error)
     }
 
-    if (error?.status && error.statusText) {
-      this.setState({ error: `${error.status} ${error.statusText}` })
+    if (error?.status) {
+      this.setState({ errorNumber: error.status })
+
+      // 500's from the backend gives us an html responseText, so we show a hard coded string during render instead
+      if (error.status !== 500 && error?.responseText) {
+        let displayedError
+
+        try {
+          displayedError = JSON.parse(error.responseText)
+        } catch {
+          displayedError = error.responseText
+        }
+
+        if (displayedError.detail) {
+          this.setState({ error: displayedError.detail, loading: false })
+        } else {
+          this.setState({ error: displayedError, loading: false })
+        }
+      } else if (error.status !== 500 && !error?.responseText) {
+        this.setState({ error: t('Error: could not load data.'), loading: false })
+      }
+    }
+
+    if (error?.statusText) {
+      this.setState({ errorStatus: error.statusText })
     }
   }
 
@@ -1307,7 +1334,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   render() {
-    if (this.state.error && typeof this.state.error === 'string') {
+    if (this.state.errorNumber && this.state.errorNumber === 500) {
       const supportMessage = t(
         'Please try again later, or [contact the support team](##SUPPORT_URL##) if this happens repeatedly.',
       ).replace('##SUPPORT_URL##', envStore.data.support_url)
@@ -1322,11 +1349,19 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 </div>
                 <br />
                 <div>
-                  {t('Response details:')} {this.state.error}
+                  {t('Response details:')} {`${this.state.errorNumber} ${this.state.errorStatus}`}
                 </div>
               </div>
             }
           />
+        </bem.FormView>
+      )
+    }
+
+    if (this.state.error && typeof this.state.error === 'string') {
+      return (
+        <bem.FormView m='ui-panel'>
+          <CenteredMessage message={this.state.error} />
         </bem.FormView>
       )
     }
