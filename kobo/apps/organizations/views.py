@@ -2,7 +2,7 @@ from django.db import transaction
 from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -81,7 +81,27 @@ class OrganizationAssetViewSet(AssetViewSet):
 
 
 @extend_schema(
-    tags=['organizations'],
+    tags=['Organizations'],
+)
+@extend_schema_view(
+    list=extend_schema(
+        description='list'
+    ),
+    retrieve=extend_schema(
+        description='retrieve'
+    ),
+    partial_update=extend_schema(
+        description='patch'
+    ),
+    asset_usage=extend_schema(
+        description='asset usage'
+    ),
+    assets=extend_schema(
+        description='assets'
+    ),
+    service_usage=extend_schema(
+        description='service usage'
+    ),
 )
 class OrganizationViewSet(viewsets.ModelViewSet):
     """
@@ -97,6 +117,9 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     lookup_field = 'id'
     permission_classes = [HasOrgRolePermission]
     http_method_names = ['get', 'patch']
+    renderer_classes = [
+        JSONRenderer,
+    ]
 
     @action(
         detail=True, methods=['GET'], permission_classes=[IsOrgAdminPermission]
