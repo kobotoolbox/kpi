@@ -53,6 +53,7 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
         ],
         responses=open_api_200_ok_response(
             description='Will return a content type with the type of the attachment as well as the attachment itself.',  # noqa
+            error_media_type='application/json',
             require_auth=False,
             raise_access_forbidden=False,
         ),
@@ -70,6 +71,7 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
         ],
         responses=open_api_200_ok_response(
             description='Will return a content type with the type of the attachment as well as the attachment itself.',  # noqa
+            error_media_type='application/json',
             require_auth=False,
             raise_access_forbidden=False,
         ),
