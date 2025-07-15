@@ -43,13 +43,21 @@ exportsActions.getExport.listen((assetUid, exportUid) => {
  * @param {string} assetUid
  * @param {object} data
  * @param {string} data.source - asset uid
+ * @param {string} dateQuery - query with start and end date
  * …and the rest of parameters should match export_settings
  */
-exportsActions.createExport.listen((assetUid, data) => {
-  dataInterface
-    .createAssetExport(assetUid, data)
-    .done(exportsActions.createExport.completed)
-    .fail(exportsActions.createExport.failed)
+exportsActions.createExport.listen((assetUid, data, dateQuery) => {
+  if (dateQuery) {
+    dataInterface
+      .createAssetExport(assetUid, data, dateQuery)
+      .done(exportsActions.createExport.completed)
+      .fail(exportsActions.createExport.failed)
+  } else {
+    dataInterface
+      .createAssetExport(assetUid, data, dateQuery)
+      .done(exportsActions.createExport.completed)
+      .fail(exportsActions.createExport.failed)
+  }
 })
 exportsActions.createExport.failed.listen(() => {
   notify(t('Failed to create export'), 'error')
@@ -99,15 +107,23 @@ exportsActions.getExportSetting.listen((assetUid, settingUid) => {
  * @param {string} settingUid
  * @param {object} data
  */
-exportsActions.updateExportSetting.listen((assetUid, settingUid, data) => {
+exportsActions.updateExportSetting.listen((assetUid, settingUid, data, dateQuery) => {
   const cleanData = {
     name: data.name,
     export_settings: JSON.stringify(data.export_settings),
   }
-  dataInterface
-    .updateExportSetting(assetUid, settingUid, cleanData)
-    .done(exportsActions.updateExportSetting.completed)
-    .fail(exportsActions.updateExportSetting.failed)
+
+  if (dateQuery) {
+    dataInterface
+      .updateExportSetting(assetUid, settingUid, cleanData, dateQuery)
+      .done(exportsActions.updateExportSetting.completed)
+      .fail(exportsActions.updateExportSetting.failed)
+  } else {
+    dataInterface
+      .updateExportSetting(assetUid, settingUid, cleanData)
+      .done(exportsActions.updateExportSetting.completed)
+      .fail(exportsActions.updateExportSetting.failed)
+  }
 })
 exportsActions.updateExportSetting.failed.listen(() => {
   notify(t('Failed to update export setting'), 'error')

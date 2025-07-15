@@ -1504,9 +1504,13 @@ export const dataInterface: DataInterface = {
     })
   },
 
-  createAssetExport(assetUid: string, data: ExportSettingSettings): JQuery.jqXHR<ExportDataResponse> {
+  createAssetExport(
+    assetUid: string,
+    data: ExportSettingSettings,
+    dateQuery?: string,
+  ): JQuery.jqXHR<ExportDataResponse> {
     return $ajax({
-      url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/`,
+      url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/${dateQuery}`,
       method: 'POST',
       data: JSON.stringify(data),
       dataType: 'json',
@@ -1544,9 +1548,14 @@ export const dataInterface: DataInterface = {
     })
   },
 
-  updateExportSetting(assetUid: string, settingUid: string, data: ExportSettingRequest): JQuery.jqXHR<any> {
+  updateExportSetting(
+    assetUid: string,
+    settingUid: string,
+    data: ExportSettingRequest,
+    dateQuery?: string,
+  ): JQuery.jqXHR<any> {
     return $ajax({
-      url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
+      url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/${dateQuery}`,
       method: 'PATCH',
       data: data,
     })

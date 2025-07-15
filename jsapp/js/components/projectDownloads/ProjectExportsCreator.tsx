@@ -259,7 +259,7 @@ export default class ProjectExportsCreator extends React.Component<
     this.setState({ isPending: true })
 
     const exportParams = response.export_settings
-    actions.exports.createExport(this.props.asset.uid, exportParams)
+    actions.exports.createExport(this.props.asset.uid, exportParams, this.state.startDate)
   }
 
   /**
@@ -475,15 +475,23 @@ export default class ProjectExportsCreator extends React.Component<
       this.clearScheduledExport = actions.exports.updateExportSetting.completed.listen(
         this.handleScheduledExport.bind(this),
       )
-      actions.exports.updateExportSetting(this.props.asset.uid, foundDefinedExport.data?.uid, payload)
+      actions.exports.updateExportSetting(
+        this.props.asset.uid,
+        foundDefinedExport.data?.uid,
+        payload,
+        this.state.startDate,
+      )
       // Case 4: There is no defined export like this one, we need to create it.
     } else {
       this.clearScheduledExport = actions.exports.createExportSetting.completed.listen(
         this.handleScheduledExport.bind(this),
       )
-      actions.exports.createExportSetting(this.props.asset.uid, payload)
+      actions.exports.createExportSetting(
+        this.props.asset.uid,
+        payload,
+        `${this.state.startDate}&${this.state.endDate}`,
+      )
     }
-    console.log('paylooad', payload)
   }
 
   generateExportName() {
@@ -714,11 +722,21 @@ export default class ProjectExportsCreator extends React.Component<
             <div>
               <label>
                 {t('Between')}
-                <input type='date' onChange={(e) => {this.setState({ startDate: e.currentTarget.value })}} />
+                <input
+                  type='date'
+                  onChange={(e) => {
+                    this.setState({ startDate: e.currentTarget.value })
+                  }}
+                />
               </label>
               <label>
                 {t('and')}
-                <input type='date' onChange={(e) =>  {this.setState({ endDate: e.currentTarget.value })}} />
+                <input
+                  type='date'
+                  onChange={(e) => {
+                    this.setState({ endDate: e.currentTarget.value })
+                  }}
+                />
               </label>
             </div>
           </bem.ProjectDownloads__columnRow>
@@ -779,7 +797,6 @@ export default class ProjectExportsCreator extends React.Component<
     }
 
     const exportFormatOptions = getExportFormatOptions(this.props.asset)
-    console.log('2314123123123', this.state)
 
     return (
       <bem.FormView__cell m={['box', 'padding']}>
