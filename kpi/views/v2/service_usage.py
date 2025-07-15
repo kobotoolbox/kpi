@@ -1,78 +1,29 @@
-from drf_spectacular.utils import extend_schema
+from docutils.nodes import description
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import renderers, viewsets
 from rest_framework.response import Response
 
 from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.service_usage import ServiceUsageSerializer
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.schema_extensions.markdown import read_md
 
 
 @extend_schema(
-    tags=['service-usage'],
+    tags=['Service Usage'],
+)
+@extend_schema_view(
+    description=read_md('kpi', 'service_usage/list.md'),
 )
 class ServiceUsageViewSet(viewsets.GenericViewSet):
     """
-    <span class='label label-warning'>⚠️ Deprecated</span>
-    ## Service Usage Tracker
+    Viewset for managing the service usage of current user
 
-    <p>Tracks the total usage of different services for the logged-in user</p>
-    <p>Tracks the submissions and NLP seconds/characters for the current month/year/all time</p>
-    <p>Tracks the current total storage used</p>
-    <p>Note: this endpoint is not currently used by the frontend to display usage information</p>
-    <p>See /api/v2/organizations/{organization_id}/service_usage/ for the endpoint we use on the Usage page</p>
+    Available actions:
+    - list    → GET /api/v2/service_usage/
 
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/service_usage/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/service_usage/
-    >       {
-    >           "total_nlp_usage": {
-    >               "asr_seconds_current_period": {integer},
-    >               "asr_seconds_all_time": {integer},
-    >               "mt_characters_current_period": {integer},
-    >               "mt_characters_all_time": {integer},
-    >           },
-    >           "total_storage_bytes": {integer},
-    >           "total_submission_count": {
-    >               "current_period": {integer},
-    >               "all_time": {integer},
-    >           },
-    >           "balances": {
-    >               "asr_seconds": {
-    >                   "effective_limit": {integer},
-    >                   "balance_value": {integer},
-    >                   "balance_percent": {integer},
-    >                   "exceeded": {boolean},
-    >               } | {None},
-    >               "mt_characters": {
-    >                   "effective_limit": {integer},
-    >                   "balance_value": {integer},
-    >                   "balance_percent": {integer},
-    >                   "exceeded": {boolean},
-    >               } | {None},
-    >               "storage_bytes": {
-    >                   "effective_limit": {integer},
-    >                   "balance_value": {integer},
-    >                   "balance_percent": {integer},
-    >                   "exceeded": {boolean},
-    >               } | {None},
-    >               "submission": {
-    >                   "effective_limit": {integer},
-    >                   "balance_value": {integer},
-    >                   "balance_percent": {integer},
-    >                   "exceeded": {boolean},
-    >               } | {None},
-    >           },
-    >           "current_period_start": {string (date), ISO format},
-    >           "current_period_end": {string (date), ISO format}|{None},
-    >           "last_updated": {string (date), ISO format},
-    >       }
-
-
-    ### CURRENT ENDPOINT
+    Documentation:
+    - docs/api/v2/service_usage/list.md
     """
 
     renderer_classes = (renderers.JSONRenderer,)
