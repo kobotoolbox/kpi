@@ -61,6 +61,7 @@ class AttachmentDeleteViewSet(
     renderer_classes = [JSONRenderer]
     permission_classes = [AttachmentDeletionPermission]
     http_method_names = ['delete']
+    lookup_field = 'uid'
 
     def _perform_attachment_deletion(self, request, data, success_status):
         serializer = AttachmentDeleteSerializer(
@@ -77,8 +78,8 @@ class AttachmentDeleteViewSet(
             request, request.data, status.HTTP_202_ACCEPTED
         )
 
-    def destroy(self, request, pk=None, *args, **kwargs):
-        data = {'attachment_uid': pk}
+    def destroy(self, request, uid=None, *args, **kwargs):
+        data = {'attachment_uid': uid}
         return self._perform_attachment_deletion(
             request, data, status.HTTP_204_NO_CONTENT
         )

@@ -1,3 +1,3 @@
 ## Delete a specific attachment of an Asset
 
-* Only `uid` of attachment is accepted.
+* `uid` can only be the uid of attachment to be deleted

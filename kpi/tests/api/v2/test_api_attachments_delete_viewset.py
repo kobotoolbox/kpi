@@ -177,7 +177,7 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
             self._get_endpoint('asset-attachments-detail'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': self.attachment_uid_1,
+                'uid': self.attachment_uid_1,
             },
         )
         response = self.client.delete(url)
@@ -192,7 +192,7 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
             self._get_endpoint('asset-attachments-detail'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': 'invalid',
+                'uid': 'invalid',
             },
         )
         response = self.client.delete(url)
@@ -228,7 +228,7 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
             self._get_endpoint('asset-attachments-detail'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': self.attachment_uid_1,
+                'uid': self.attachment_uid_1,
             },
         )
         delete_response = self.client.delete(delete_url)
