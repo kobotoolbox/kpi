@@ -970,8 +970,11 @@ def _has_edit_xform_permission(
         if request.user.is_superuser:
             return True
 
+        if xform.asset is None:
+            return False
         if request.user.has_perm(PERM_CHANGE_SUBMISSIONS, xform.asset):
             return True
+
 
         # User's permissions have been already checked when calling KPI endpoint
         # If `has_partial_perms` is True, user is allowed to perform the action.
