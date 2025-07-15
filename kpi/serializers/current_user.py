@@ -18,7 +18,6 @@ from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.fields import WritableJSONField
 from kpi.utils.gravatar_url import gravatar_url
-from kpi.utils.log import logging
 from kpi.utils.object_permission import get_database_user
 
 
