@@ -1371,7 +1371,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       )
     }
 
-    if (this.state.error && typeof this.state.error === 'string') {
+    if (typeof this.state.error === 'string') {
       return (
         <bem.FormView m='ui-panel'>
           <CenteredMessage message={this.state.error} />
