@@ -411,16 +411,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             'owner_label',
             'last_modified_by'
         )
+        read_only_fields = ('last_modified_by', 'uid')
         extra_kwargs = {
             'parent': {
                 'lookup_field': 'uid',
             },
-            'uid': {
-                'read_only': True,
-            },
-            'last_modified_by': {
-                'read_only': True,
-            }
         }
 
     def create(self, validated_data):

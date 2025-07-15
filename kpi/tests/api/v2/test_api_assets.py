@@ -1436,7 +1436,7 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         assert self.asset.owner != anotheruser.username
         self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
         payload = {
-            'last_modified_by': anotheruser.username
+            'last_modified_by': 'bob'
         }
         self.client.force_login(anotheruser)
         response = self.client.patch(
@@ -1446,8 +1446,8 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         )
         assert response.status_code == status.HTTP_200_OK
         self.asset.refresh_from_db()
-        assert response.data['last_modified_by'] == 'someuser'
-        assert self.asset.last_modified_by == 'someuser'
+        assert response.data['last_modified_by'] == anotheruser.username
+        assert self.asset.last_modified_by == anotheruser.username
 
 
 class AssetsXmlExportApiTests(KpiTestCase):
