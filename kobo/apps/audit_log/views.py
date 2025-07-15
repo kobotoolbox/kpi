@@ -1,5 +1,6 @@
 from django.db import transaction
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -46,6 +47,14 @@ from .serializers import (
 @extend_schema_view(
     list=extend_schema(
         description=read_md('audit_log', 'audit_logs/list.md'),
+        parameters=[
+            OpenApiParameter(
+                name='q',
+                required=False,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+            ),
+        ],
         responses=open_api_200_ok_response(
             AuditLogResponse,
             require_auth=False,
