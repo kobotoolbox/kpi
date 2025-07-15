@@ -45,10 +45,12 @@ XFORM_MODELS_NAMES = [
 def assign_perm(perm, user, obj):
     if hasattr(obj, 'asset'):
         obj = obj.asset  # XForms permissions are based on the asset's
-        perm = KPI_PERMISSIONS_MAP[perm.replace('logger.', '')]
+        only_perm = perm.split('.')[-1]
+        perm = KPI_PERMISSIONS_MAP[only_perm]
     obj.assign_perm(user, perm)
 
 
+@cache_for_request
 def get_users_with_perms(obj, attach_perms=False):
     return obj.get_users_with_perms(attach_perms)
 
@@ -56,29 +58,32 @@ def get_users_with_perms(obj, attach_perms=False):
 def remove_perm(perm, user, obj):
     if hasattr(obj, 'asset'):
         obj = obj.asset  # XForms permissions are based on the asset's
-        perm = KPI_PERMISSIONS_MAP[perm.replace('logger.', '')]
+        only_perm = perm.split('.')[-1]
+        perm = KPI_PERMISSIONS_MAP[only_perm]
     obj.remove_perm(user, perm)
 
 
+@cache_for_request
 def get_xform_ids_for_user(user, perm=CAN_VIEW_XFORM):
     from kpi.utils.object_permission import (
         get_objects_for_user as kpi_get_objects_for_user,
     )
+    from kobo.apps.openrosa.apps.logger.models.xform import XForm
 
-    XForm = apps.get_model('logger.xform')
-    perm = KPI_PERMISSIONS_MAP[perm.replace('logger.', '')]
+    only_perm = perm.split('.')[-1]
+    perm = KPI_PERMISSIONS_MAP[only_perm]
     # By default kpi.utils.object_permissions.get_objects_for_user works for Asset model
     qs_assets = kpi_get_objects_for_user(user, [perm])
-    uids = qs_assets.values_list('uid', flat=True)
-    xform_ids = XForm.objects.values_list('id', flat=True).filter(
+    uids = list(qs_assets.values_list('uid', flat=True))
+    xform_ids = list(XForm.objects.values_list('id', flat=True).filter(
         kpi_asset_uid__in=uids
-    )
+    ))
     return xform_ids
 
 
 def get_object_users_with_permissions(obj, exclude=None, serializable=False):
-    """Returns users, roles and permissions for a object.
-    When called with with `serializable=True`, return usernames (strings)
+    """Returns users, roles and permissions for an object.
+    When called with `serializable=True`, return usernames (strings)
     instead of User objects, which cannot be serialized by REST Framework.
     """
     result = []
