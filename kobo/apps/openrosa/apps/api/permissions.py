@@ -104,6 +104,9 @@ class XFormPermissions(ObjectPermissionsWithViewRestricted):
         if request.method == 'POST':
             post_view = getattr(view, 'post', object)
             url_name = getattr(post_view, 'url_name', None)
+            # Labels POST action goes through this permission class. By default,
+            # the POST action is not associated to changing the asset but to creating
+            # a new asset, so we need to check for change asset permissions instead
             if url_name == 'labels':
                 return request.user.has_perm(PERM_CHANGE_ASSET, obj.asset)
 
