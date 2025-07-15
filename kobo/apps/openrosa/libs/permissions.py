@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django_request_cache import cache_for_request
@@ -42,7 +41,7 @@ XFORM_MODELS_NAMES = [
 # Wrapper functions for KPI object permissions system
 
 
-def assign_perm(perm, user, obj):
+def assign_perm(perm: str, user: 'settings.AUTH_USER_MODEL', obj) -> bool:
     if hasattr(obj, 'asset'):
         obj = obj.asset  # XForms permissions are based on the asset's
         only_perm = perm.split('.')[-1]
@@ -51,11 +50,13 @@ def assign_perm(perm, user, obj):
 
 
 @cache_for_request
-def get_users_with_perms(obj, attach_perms=False):
+def get_users_with_perms(
+    obj, attach_perms: bool = False
+) -> list['settings.AUTH_USER_MODEL']:
     return obj.get_users_with_perms(attach_perms)
 
 
-def remove_perm(perm, user, obj):
+def remove_perm(perm: str, user: 'settings.AUTH_USER_MODEL', obj):
     if hasattr(obj, 'asset'):
         obj = obj.asset  # XForms permissions are based on the asset's
         only_perm = perm.split('.')[-1]
@@ -64,24 +65,26 @@ def remove_perm(perm, user, obj):
 
 
 @cache_for_request
-def get_xform_ids_for_user(user, perm=CAN_VIEW_XFORM):
+def get_xform_ids_for_user(
+    user: 'settings.AUTH_USER_MODEL', perm: str = CAN_VIEW_XFORM
+) -> list[int]:
+    from kobo.apps.openrosa.apps.logger.models.xform import XForm
     from kpi.utils.object_permission import (
         get_objects_for_user as kpi_get_objects_for_user,
     )
-    from kobo.apps.openrosa.apps.logger.models.xform import XForm
 
     only_perm = perm.split('.')[-1]
     perm = KPI_PERMISSIONS_MAP[only_perm]
     # By default kpi.utils.object_permissions.get_objects_for_user works for Asset model
     qs_assets = kpi_get_objects_for_user(user, [perm])
     uids = list(qs_assets.values_list('uid', flat=True))
-    xform_ids = list(XForm.objects.values_list('id', flat=True).filter(
-        kpi_asset_uid__in=uids
-    ))
+    xform_ids = list(
+        XForm.objects.values_list('id', flat=True).filter(kpi_asset_uid__in=uids)
+    )
     return xform_ids
 
 
-def get_object_users_with_permissions(obj, exclude=None, serializable=False):
+def get_object_users_with_permissions(obj, serializable: bool = False) -> list[dict]:
     """Returns users, roles and permissions for an object.
     When called with `serializable=True`, return usernames (strings)
     instead of User objects, which cannot be serialized by REST Framework.
@@ -103,7 +106,7 @@ def get_object_users_with_permissions(obj, exclude=None, serializable=False):
 
 
 @cache_for_request
-def get_model_permission_codenames():
+def get_model_permission_codenames() -> list[str]:
     kc_perms = set(Permission.objects.using(settings.OPENROSA_DB_ALIAS).values_list(
         'codename', flat=True
     ))
