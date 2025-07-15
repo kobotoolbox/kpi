@@ -1,9 +1,9 @@
-import React, { useContext, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
 import { UsageLimitTypes } from '#/account/stripe.types'
-import { UsageContext } from '#/account/usage/useUsage.hook'
+import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import Button from '#/components/common/button'
 import LanguageSelector, { resetAllLanguageSelectors } from '#/components/languages/languageSelector'
 import type { DetailedLanguage, LanguageCode, ListLanguage } from '#/components/languages/languagesStore'
@@ -13,13 +13,12 @@ import TransxAutomaticButton from '#/components/processing/transxAutomaticButton
 import { useExceedingLimits } from '#/components/usageLimits/useExceedingLimits.hook'
 import envStore from '#/envStore'
 import NlpUsageLimitBlockModal from '../nlpUsageLimitBlockModal/nlpUsageLimitBlockModal.component'
-import { getAttachmentForProcessing } from '../transcript/transcript.utils'
 
 export default function StepConfig() {
-  const [usage] = useContext(UsageContext)
   const limits = useExceedingLimits()
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
   const isOverLimit = useMemo(() => limits.exceedList.includes(UsageLimitTypes.TRANSLATION), [limits.exceedList])
+  const { billingPeriod } = useBillingPeriod()
 
   function dismissLimitBlockModal() {
     setIsLimitBlockModalOpen(false)
@@ -85,7 +84,6 @@ export default function StepConfig() {
 
   const draft = singleProcessingStore.getTranslationDraft()
   const isAutoEnabled = envStore.data.asr_mt_features_enabled
-  const attachment = getAttachmentForProcessing()
 
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
@@ -120,13 +118,12 @@ export default function StepConfig() {
             onClick={onAutomaticButtonClick}
             selectedLanguage={draft?.languageCode}
             type='translation'
-            disabled={typeof attachment === 'string' || attachment.is_deleted}
           />
           <NlpUsageLimitBlockModal
             isModalOpen={isLimitBlockModalOpen}
             usageType={UsageLimitTypes.TRANSLATION}
             dismissed={dismissLimitBlockModal}
-            interval={usage.trackingPeriod}
+            interval={billingPeriod}
           />
         </div>
       </footer>

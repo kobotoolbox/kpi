@@ -91,6 +91,7 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
         on_delete=models.CASCADE,
         db_index=True,
     )
+    hash = models.CharField(null=True, max_length=64)
 
     objects = AttachmentDefaultManager()
     all_objects = models.Manager()
@@ -126,21 +127,13 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
         return self.media_file.url
 
     @property
-    def file_hash(self):
-        if self.media_file.storage.exists(self.media_file.name):
-            # TODO optimize calculation of hash when using cloud storage.
-            #   Instead of reading the whole file, we could pass the url of the
-            #   file to build the hash based on headers (e.g.: Etag).
-            media_file_position = self.media_file.tell()
-            self.media_file.seek(0)
-            media_file_hash = calculate_hash(self.media_file.read())
-            self.media_file.seek(media_file_position)
-            return media_file_hash
-        return ''
-
-    @property
     def filename(self):
         return os.path.basename(self.media_file.name)
+
+    def get_hash(self, algorithm: str = 'sha1') -> str:
+        if self.media_file.storage.exists(self.media_file.name):
+            return calculate_hash(self.media_file, algorithm)
+        return ''
 
     @property
     def mp3_storage_path(self):
@@ -197,9 +190,11 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
                 mimetype, encoding = mimetypes.guess_type(self.media_file.name)
                 if mimetype:
                     self.mimetype = mimetype
-            # Cache the file size in the database to avoid expensive calls to
-            # the storage engine when running reports
+            # Cache the file size and sha1sum in the database to avoid expensive calls
+            # to the storage engine
             self.media_file_size = self.media_file.size
+            if not self.hash:
+                self.hash = self.get_hash()
 
         if not (self.xform_id and self.user_id):
             # Denormalize xform and user

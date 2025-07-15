@@ -122,7 +122,7 @@ INSTALLED_APPS = (
     'kobo.apps.service_health',
     'kobo.apps.subsequences',
     'constance',
-    'kobo.apps.hook',
+    'kobo.apps.hook.apps.HookAppConfig',
     'django_celery_beat',
     'corsheaders',
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
@@ -220,9 +220,7 @@ CONSTANCE_CONFIG = {
         'URL for "KoboToolbox Help Center"',
     ),
     'ACADEMY_URL': (
-        env.str(
-            'KOBO_ACADEMY_URL', 'https://academy.kobotoolbox.org/'
-        ),
+        env.str('KOBO_ACADEMY_URL', 'https://academy.kobotoolbox.org/'),
         'URL for "KoboToolbox Community Forum"',
     ),
     'COMMUNITY_URL': (
@@ -975,13 +973,13 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_RENDERER_CLASSES': [
        'rest_framework.renderers.JSONRenderer',
-       'rest_framework.renderers.BrowsableAPIRenderer',
        'kpi.renderers.XMLRenderer',
     ],
     'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIAutoVersioning',
     # Cannot be placed in kpi.exceptions.py because of circular imports
     'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_CONTENT_NEGOTIATION_CLASS': 'kpi.negotiation.DefaultContentNegotiation',
 }
 
 # Settings for the API documentation using drf-spectacular
@@ -1282,7 +1280,7 @@ CELERY_BEAT_SCHEDULE = {
     'organization-invite-mark-as-expired': {
         'task': 'kobo.apps.organizations.tasks.mark_organization_invite_as_expired',
         'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
     # Schedule every 10 minutes
     'project-ownership-task-restarter': {
@@ -1450,7 +1448,7 @@ MASS_EMAILS_CONDENSE_SEND = env.bool('MASS_EMAILS_CONDENSE_SEND', False)
 if MASS_EMAILS_CONDENSE_SEND:
     CELERY_BEAT_SCHEDULE['mass-emails-send'] = {
         'task': 'kobo.apps.mass_emails.tasks.send_emails',
-        'schedule': crontab(minute='2-59/5'),
+        'schedule': crontab(minute='1-59/5'),
         'options': {'queue': 'kpi_queue'},
     }
     CELERY_BEAT_SCHEDULE['mass-emails-enqueue-records'] = {

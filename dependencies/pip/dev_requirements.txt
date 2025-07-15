@@ -8,7 +8,7 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@8735cd8a37bf9f7753be952f30e8d32b0475c338#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@efddba5933955bc00dda538b305fd93a1482aa1d#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
@@ -273,6 +273,8 @@ execnet==2.1.1
 executing==2.0.1
     # via stack-data
 fabric==3.2.2
+    # via -r dependencies/pip/dev_requirements.in
+fakeredis==2.30.1
     # via -r dependencies/pip/dev_requirements.in
 flake8==7.1.1
     # via
@@ -556,6 +558,7 @@ redis==5.0.3
     #   celery
     #   django-redis
     #   django-redis-sessions
+    #   fakeredis
 referencing==0.34.0
     # via
     #   jsonschema
@@ -606,6 +609,8 @@ six==1.16.0
     #   python-dateutil
 smsapi-client==2.9.5
     # via django-trench
+sortedcontainers==2.4.0
+    # via fakeredis
 sqlparse==0.4.4
     # via
     #   -r dependencies/pip/requirements.in
@@ -649,6 +654,7 @@ typing-extensions==4.10.0
     #   azure-core
     #   azure-storage-blob
     #   black
+    #   fakeredis
     #   ipython
     #   jwcrypto
     #   psycopg

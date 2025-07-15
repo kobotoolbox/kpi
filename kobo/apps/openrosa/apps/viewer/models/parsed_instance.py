@@ -487,6 +487,7 @@ def _get_grouped_attachments_for_instances(
             'download_url': a.secure_url(),
             'mimetype': a.mimetype,
             'filename': a.media_file.name,
+            'media_file_basename': a.media_file_basename,
             'instance': a.instance.pk,
             'xform': a.xform.id,
             'id': a.id,

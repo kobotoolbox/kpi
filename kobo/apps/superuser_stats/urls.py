@@ -12,7 +12,6 @@ from kobo.apps.superuser_stats.views import (
     user_statistics_report,
 )
 
-
 urlpatterns = [
     # Continued usage
     path(

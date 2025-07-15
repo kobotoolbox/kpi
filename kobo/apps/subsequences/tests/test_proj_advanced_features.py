@@ -1,7 +1,9 @@
 from django.conf import settings
 from django.test import TestCase
+from django.urls import reverse
 from django.utils import timezone
 from model_bakery import baker
+from rest_framework import status
 
 from kpi.models import Asset
 
@@ -89,3 +91,30 @@ class ProjectAdvancedFeaturesTestCase(TestCase):
         addl_fields = _afj['additional_fields']
         assert len(addl_fields) == 2
         assert len(engines) == 1
+
+    def test_qpath_to_xpath_with_renamed_question(self):
+        """
+        Test that the analysis form JSON can handle a question that has been
+        renamed or deleted from the survey, but is still referenced in advanced
+        features or known columns.
+
+        This ensures that the asset endpoint does not return a 500 error when
+        processing legacy qpaths that no longer exist in the survey definition.
+        """
+        asset = self.sample_asset(
+            advanced_features={
+                'translation': {'values': ['q1'], 'languages': ['en', 'fr']},
+            }
+        )
+
+        # Simulate known_cols with a legacy (renamed or deleted) question
+        asset.known_cols = [
+            'group_ia0id17-q1:translation:en',
+            'group_ia0id17-q1:translation:fr',
+        ]
+        asset.save()
+
+        self.client.force_login(asset.owner)
+        asset_detail_url = reverse('asset-detail', kwargs={'uid': asset.uid})
+        response = self.client.get(asset_detail_url)
+        assert response.status_code == status.HTTP_200_OK

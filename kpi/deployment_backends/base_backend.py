@@ -60,6 +60,7 @@ class BaseDeploymentBackend(abc.ABC):
     # XPaths are relative to the root node
     SUBMISSION_CURRENT_UUID_XPATH = 'meta/instanceID'
     SUBMISSION_DEPRECATED_UUID_XPATH = 'meta/deprecatedID'
+    SUBMISSION_ROOT_UUID_XPATH = 'meta/rootUuid'
     FORM_UUID_XPATH = 'formhub/uuid'
 
     def __init__(self, asset):
@@ -170,6 +171,16 @@ class BaseDeploymentBackend(abc.ABC):
             deprecated_id = get_or_create_element(
                 xml_parsed, self.SUBMISSION_DEPRECATED_UUID_XPATH
             )
+
+            # If the submission has been edited before, it will already contain
+            # a rootUuid element - otherwise create a new element
+            root_uuid = get_or_create_element(
+                xml_parsed, self.SUBMISSION_ROOT_UUID_XPATH
+            )
+
+            if not root_uuid.text:
+                root_uuid.text = instance_id.text
+
             deprecated_id.text = instance_id.text
             instance_id.text = uuid_formatted
 
@@ -793,9 +804,14 @@ class BaseDeploymentBackend(abc.ABC):
             return queryset
 
     def _inject_properties(
-        self, submission: dict, request: 'rest_framework.request.Request'
+        self,
+        submission: dict,
+        request: 'rest_framework.request.Request',
+        all_attachment_xpaths: list[str],
     ) -> dict:
-        submission = self._rewrite_json_attachment_urls(submission, request)
+        submission = self._rewrite_json_attachment_urls(
+            submission, request, all_attachment_xpaths
+        )
         submission = self._inject_root_uuid(submission)
         return submission
 
@@ -811,14 +827,16 @@ class BaseDeploymentBackend(abc.ABC):
         return submission
 
     def _rewrite_json_attachment_urls(
-        self, submission: dict, request: 'rest_framework.request.Request'
+        self,
+        submission: dict,
+        request: 'rest_framework.request.Request',
+        all_attachment_xpaths: list[str],
     ) -> dict:
         if not request or '_attachments' not in submission:
             return submission
 
-        attachment_xpaths = self.asset.get_attachment_xpaths(deployed=True)
         filenames_and_xpaths = get_attachment_filenames_and_xpaths(
-            submission, attachment_xpaths
+            submission, all_attachment_xpaths
         )
 
         if is_uid_missing := any(
@@ -886,7 +904,10 @@ class BaseDeploymentBackend(abc.ABC):
 
             # Retrieve XPath and add it to attachment dictionary
             basename = os.path.basename(attachment['filename'])
-            attachment['question_xpath'] = filenames_and_xpaths.get(basename, '')
+            attachment['question_xpath'] = filenames_and_xpaths.get(
+                basename,
+                filenames_and_xpaths.get(self._without_suffix(basename), ''),
+            )
 
             # Remove unwanted keys
             if 'instance' in attachment:
@@ -897,3 +918,28 @@ class BaseDeploymentBackend(abc.ABC):
                 del attachment['id']
 
         return submission
+
+    @staticmethod
+    def _without_suffix(filename: str) -> str:
+        """
+        Django does not overwrite files on the storage backend; instead, it appends a
+        suffix to the filename (e.g., `_MtYT6pg` etc.) to avoid collisions.
+
+        This helper returns the original filename by removing any such suffix.
+
+        :warning: A file with a suffixed name may legitimately exist, even if it wasn't
+        created by Django's auto-renaming mechanism.
+        """
+        if '_' not in filename:
+            return filename
+
+        basename, ext = os.path.splitext(filename)
+        *filename_parts, suffix = basename.split('_')
+
+        # Django uses a 7-character random string as a suffix when avoiding filename
+        # collisions.
+        # See: https://github.com/django/django/blob/4.2/django/core/files/storage/base.py#L52-L58 # noqa
+        if len(suffix) != 7:
+            return filename
+
+        return '_'.join(filename_parts) + ext

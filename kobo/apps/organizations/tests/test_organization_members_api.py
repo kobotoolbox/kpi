@@ -1,14 +1,14 @@
-from ddt import ddt, data, unpack
+from ddt import data, ddt, unpack
 from django.urls import reverse
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import (
     OrganizationInvitation,
-    OrganizationInviteStatusChoices
+    OrganizationInviteStatusChoices,
 )
 from kobo.apps.organizations.tests.test_organizations_api import (
-    BaseOrganizationAssetApiTestCase
+    BaseOrganizationAssetApiTestCase,
 )
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.models import Asset
@@ -28,7 +28,8 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         self.admin_user = self.anotheruser
         self.external_user = self.bob
         self.registered_invitee_user = User.objects.create_user(
-            username='registered_invitee', email='registered_invitee@test.com',
+            username='registered_invitee',
+            email='registered_invitee@test.com',
         )
 
         # Create an asset owned by the organization member
@@ -71,9 +72,7 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         """
         detail_url = reverse(
             self._get_endpoint('organization-invites-detail'),
-            kwargs={
-                'guid': guid, 'organization_id': self.organization.id
-            }
+            kwargs={'guid': guid, 'organization_id': self.organization.id},
         )
         self.client.force_login(user)
         return self.client.patch(detail_url, data={'status': status})
@@ -102,8 +101,14 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         # Expected user count (owner, admin, member and invitees)
         expected_users = 5
         expected_invite_keys = {
-            'url', 'invited_by', 'status', 'invitee_role', 'organization_name',
-            'created', 'modified',  'invitee'
+            'url',
+            'invited_by',
+            'status',
+            'invitee_role',
+            'organization_name',
+            'created',
+            'modified',
+            'invitee',
         }
 
         # Check if the invite data is present for invitees
@@ -113,21 +118,19 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
             self.assertIn('invite', result)
             if result['invite']:
                 # Check if the invite contains exactly the expected keys
-                self.assertEqual(
-                    set(result['invite'].keys()), expected_invite_keys
-                )
+                self.assertEqual(set(result['invite'].keys()), expected_invite_keys)
 
                 # Ensure the details are not revealed for unregistered invitees
                 if result['invite']['invitee'] in [
-                    'registered_invitee', 'unregistered_invitee@test.com'
+                    'registered_invitee',
+                    'unregistered_invitee@test.com',
                 ]:
                     self.assertEqual(result['user__username'], None)
                     self.assertEqual(result['user__has_mfa_enabled'], None)
                     self.assertEqual(result['role'], None)
                 else:
                     self.assertIn(
-                        result['user__username'],
-                        ['someuser', 'anotheruser', 'alice']
+                        result['user__username'], ['someuser', 'anotheruser', 'alice']
                     )
 
     @data(

@@ -10,7 +10,9 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
-from kobo.apps.stripe.utils import get_organizations_effective_limits
+from kobo.apps.stripe.utils.subscription_limits import (
+    get_organizations_effective_limits,
+)
 from kpi.models import Asset
 from kpi.utils.usage_calculator import (
     get_nlp_usage_for_current_billing_period_by_user_id,
@@ -201,4 +203,6 @@ def get_users_over_100_percent_of_nlp_limits() -> QuerySet:
 def get_all_test_users() -> QuerySet:
     # for testing only
     test_emails = config.MASS_EMAIL_TEST_EMAILS.split('\n')
+    # remove empty strings
+    test_emails = [email for email in test_emails if len(email) > 0]
     return User.objects.filter(email__in=test_emails)

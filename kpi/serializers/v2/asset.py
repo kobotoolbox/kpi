@@ -11,16 +11,16 @@ from django.db.models import F
 from django.utils.translation import gettext as t
 from django.utils.translation import ngettext as nt
 from django_request_cache import cache_for_request
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import exceptions, serializers
 from rest_framework.fields import empty
-from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 
 from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.organizations.utils import get_real_owner
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
-from kobo.apps.subsequences.utils.deprecation import WritableAdvancedFeaturesField
 from kobo.apps.trash_bin.exceptions import TrashIntegrityError, TrashTaskInProgressError
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kobo.apps.trash_bin.utils import move_to_trash, put_back
@@ -39,17 +39,8 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.fields import (
-    PaginatedApiField,
-    RelativePrefixHyperlinkedRelatedField,
-    WritableJSONField,
-)
-from kpi.models import (
-    Asset,
-    AssetVersion,
-    ObjectPermission,
-    UserAssetSubscription,
-)
+from kpi.fields import WritableJSONField
+from kpi.models import Asset, AssetVersion, ObjectPermission, UserAssetSubscription
 from kpi.models.asset import AssetDeploymentStatus
 from kpi.utils.object_permission import (
     get_cached_code_names,
@@ -62,7 +53,43 @@ from kpi.utils.project_views import (
     user_has_project_view_asset_perm,
     view_has_perm,
 )
-
+from ...schema_extensions.v2.assets.fields import (
+    AccessTypeField,
+    AdvancedFeatureField,
+    AdvancedSubmissionSchemaField,
+    AnalysisFormJsonField,
+    AssetHyperlinkedURLField,
+    AssignablePermissionField,
+    ChildrenField,
+    ContentField,
+    DataSharingField,
+    DataURLField,
+    DeployedVersionsField,
+    DeploymentActiveField,
+    DeploymentDataDownloadLinksField,
+    DeploymentLinkField,
+    DeploymentSubmissionCountField,
+    DownloadsField,
+    EffectivePermissionField,
+    ExportsURLField,
+    FileListField,
+    HasDeploymentField,
+    HooksUrlField,
+    MapCustomField,
+    MapStylesField,
+    UserURLRelativeHyperlinkedRelatedField,
+    PairedDataURLField,
+    ParentURLField,
+    PermissionsField,
+    ReportCustomField,
+    ReportStyleField,
+    SettingsField,
+    SubscribersCountField,
+    SummaryField,
+    VersionCountField,
+    XFormLinkField,
+    XLSLinkField,
+)
 from .asset_export_settings import AssetExportSettingsSerializer
 from .asset_file import AssetFileSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
@@ -286,129 +313,128 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
-    owner = RelativePrefixHyperlinkedRelatedField(
+    owner = UserURLRelativeHyperlinkedRelatedField(
         view_name='user-kpi-detail', lookup_field='username', read_only=True)
     owner__username = serializers.ReadOnlyField(source='owner.username')
     owner_label = serializers.SerializerMethodField()
-    url = HyperlinkedIdentityField(
-        lookup_field='uid', view_name='asset-detail')
+    url = AssetHyperlinkedURLField(lookup_field='uid', view_name='asset-detail')
     asset_type = serializers.ChoiceField(choices=ASSET_TYPES)
-    settings = WritableJSONField(required=False, allow_blank=True)
-    content = WritableJSONField(required=False)
-    report_styles = WritableJSONField(required=False)
-    report_custom = WritableJSONField(required=False)
-    map_styles = WritableJSONField(required=False)
-    map_custom = WritableJSONField(required=False)
-    advanced_features = WritableAdvancedFeaturesField(required=False)
-    advanced_submission_schema = serializers.SerializerMethodField()
-    files = serializers.SerializerMethodField()
-    analysis_form_json = serializers.SerializerMethodField()
-    xls_link = serializers.SerializerMethodField()
-    summary = serializers.ReadOnlyField()
-    xform_link = serializers.SerializerMethodField()
-    version_count = serializers.SerializerMethodField()
-    downloads = serializers.SerializerMethodField()
-    embeds = serializers.SerializerMethodField()
-    parent = RelativePrefixHyperlinkedRelatedField(
+    settings = SettingsField(required=False, allow_blank=True)
+    content = ContentField(required=False)
+    report_styles = ReportStyleField(required=False)
+    report_custom = ReportCustomField(required=False)
+    map_styles = MapStylesField(required=False)
+    map_custom = MapCustomField(required=False)
+    advanced_features = AdvancedFeatureField(required=False)
+    advanced_submission_schema = AdvancedSubmissionSchemaField()
+    files = FileListField()
+    analysis_form_json = AnalysisFormJsonField()
+    xls_link = XLSLinkField()
+    summary = SummaryField()
+    xform_link = XFormLinkField()
+    version_count = VersionCountField()
+    downloads = DownloadsField()
+    embeds = DownloadsField()
+    parent = ParentURLField(
         lookup_field='uid',
         queryset=Asset.objects.filter(asset_type=ASSET_TYPE_COLLECTION),
         view_name='asset-detail',
         required=False,
-        allow_null=True
+        allow_null=True,
     )
-    assignable_permissions = serializers.SerializerMethodField()
-    permissions = serializers.SerializerMethodField()
-    effective_permissions = serializers.SerializerMethodField()
-    exports = serializers.SerializerMethodField()
+    assignable_permissions = AssignablePermissionField()
+    permissions = PermissionsField()
+    effective_permissions = EffectivePermissionField()
+    exports = ExportsURLField()
     export_settings = AssetExportSettingsSerializer(
         many=True, read_only=True, source='asset_export_settings'
     )
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.CharField(read_only=True)
     version__content_hash = serializers.CharField(read_only=True)
-    has_deployment = serializers.ReadOnlyField()
+    has_deployment = HasDeploymentField(read_only=True)
     deployed_version_id = serializers.SerializerMethodField()
-    deployed_versions = PaginatedApiField(
+    deployed_versions = DeployedVersionsField(
         serializer_class=AssetVersionListSerializer,
         # Higher-than-normal limit since the client doesn't yet know how to
         # request more than the first page
         default_limit=100
     )
-    deployment__active = serializers.SerializerMethodField()
-    deployment__links = serializers.SerializerMethodField()
-    deployment__data_download_links = serializers.SerializerMethodField()
-    deployment__submission_count = serializers.SerializerMethodField()
+    deployment__active = DeploymentActiveField()
+    deployment__links = DeploymentLinkField()
+    deployment__data_download_links = DeploymentDataDownloadLinksField()
+    deployment__submission_count = DeploymentSubmissionCountField()
     deployment_status = serializers.SerializerMethodField()
-    data = serializers.SerializerMethodField()
+    data = DataURLField()
     # Only add link instead of hooks list to avoid multiple access to DB.
-    hooks_link = serializers.SerializerMethodField()
-
-    children = serializers.SerializerMethodField()
-    subscribers_count = serializers.SerializerMethodField()
+    hooks_link = HooksUrlField()
+    children = ChildrenField()
+    subscribers_count = SubscribersCountField()
     status = serializers.SerializerMethodField()
-    access_types = serializers.SerializerMethodField()
-    data_sharing = WritableJSONField(required=False)
-    paired_data = serializers.SerializerMethodField()
+    access_types = AccessTypeField()
+    data_sharing = DataSharingField(required=False)
+    paired_data = PairedDataURLField()
     project_ownership = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
         lookup_field = 'uid'
-        fields = ('url',
-                  'owner',
-                  'owner__username',
-                  'parent',
-                  'settings',
-                  'asset_type',
-                  'files',
-                  'summary',
-                  'date_created',
-                  'date_modified',
-                  'date_deployed',
-                  'version_id',
-                  'version__content_hash',
-                  'version_count',
-                  'has_deployment',
-                  'deployed_version_id',
-                  'deployed_versions',
-                  'deployment__links',
-                  'deployment__active',
-                  'deployment__data_download_links',
-                  'deployment__submission_count',
-                  'deployment_status',
-                  'report_styles',
-                  'report_custom',
-                  'advanced_features',
-                  'advanced_submission_schema',
-                  'analysis_form_json',
-                  'map_styles',
-                  'map_custom',
-                  'content',
-                  'downloads',
-                  'embeds',
-                  'xform_link',
-                  'hooks_link',
-                  'tag_string',
-                  'uid',
-                  'kind',
-                  'xls_link',
-                  'name',
-                  'assignable_permissions',
-                  'permissions',
-                  'effective_permissions',
-                  'exports',
-                  'export_settings',
-                  'settings',
-                  'data',
-                  'children',
-                  'subscribers_count',
-                  'status',
-                  'access_types',
-                  'data_sharing',
-                  'paired_data',
-                  'project_ownership',
-                  'owner_label',
-                  )
+        fields = (
+            'url',
+            'owner',
+            'owner__username',
+            'parent',
+            'settings',
+            'asset_type',
+            'files',
+            'summary',
+            'date_created',
+            'date_modified',
+            'date_deployed',
+            'version_id',
+            'version__content_hash',
+            'version_count',
+            'has_deployment',
+            'deployed_version_id',
+            'deployed_versions',
+            'deployment__links',
+            'deployment__active',
+            'deployment__data_download_links',
+            'deployment__submission_count',
+            'deployment_status',
+            'report_styles',
+            'report_custom',
+            'advanced_features',
+            'advanced_submission_schema',
+            'analysis_form_json',
+            'map_styles',
+            'map_custom',
+            'content',
+            'downloads',
+            'embeds',
+            'xform_link',
+            'hooks_link',
+            'tag_string',
+            'uid',
+            'kind',
+            'xls_link',
+            'name',
+            'assignable_permissions',
+            'permissions',
+            'effective_permissions',
+            'exports',
+            'export_settings',
+            'settings',
+            'data',
+            'children',
+            'subscribers_count',
+            'status',
+            'access_types',
+            'data_sharing',
+            'paired_data',
+            'project_ownership',
+            'owner_label',
+        )
         extra_kwargs = {
             'parent': {
                 'lookup_field': 'uid',
@@ -554,6 +580,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                        args=(obj.uid,),
                        request=self.context.get('request', None))
 
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_kind(self, obj):
+        return Asset.kind
+
     def get_embeds(self, obj):
         request = self.context.get('request', None)
 
@@ -596,6 +626,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                        kwargs=kwargs,
                        request=self.context.get('request', None))
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_deployed_version_id(self, obj):
         if not obj.has_deployment:
             return
@@ -691,6 +722,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # ToDo Optimize this. What about caching it inside `summary`
         return UserAssetSubscription.objects.filter(asset_id=asset.pk).count()
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_status(self, asset):
 
         # `order_by` lets us check `AnonymousUser`'s permissions first.
@@ -851,6 +883,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return access_types
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_owner_label(self, asset):
         try:
             organization = self.context['organizations_per_asset'].get(asset.id)

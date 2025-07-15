@@ -1,10 +1,9 @@
 from constance.test import override_config
 from django.contrib.auth import get_user_model
 from django.core import mail
-from django.test import override_settings, TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from rest_framework import status
-
 
 from kobo.apps.accounts.models import EmailContent
 
@@ -99,7 +98,7 @@ class EmailContentModelTestCase(TestCase):
             'password2': username,
             'username': username,
         }
-        default = "Thanks for signing up with KoboToolbox!"
+        default = 'Thanks for signing up with KoboToolbox!'
         # This is unreliable. On commit
         # 3d4dbdd4ac16b5739237fd9957d0140f50f17280, this assertion passes when
         # the entire test suite is run, but it fails when the this unit test is
@@ -144,13 +143,17 @@ class EmailContentModelTestCase(TestCase):
             'password2': username,
             'username': username,
         }
-        default_subject = "Activate your KoboToolbox Account"
-        default_greeting = "Thanks for signing up with KoboToolbox!"
-        default_body = "Confirming your account will give you access to " \
-                       "KoboToolbox applications. Please visit the following " \
-                       "URL to finish activation of your new account."
-        default_closing = 'For help getting started, check out the KoboToolbox ' \
-                          'user documentation: https://support.kobotoolbox.com'
+        default_subject = 'Activate your KoboToolbox Account'
+        default_greeting = 'Thanks for signing up with KoboToolbox!'
+        default_body = (
+            'Confirming your account will give you access to '
+            'KoboToolbox applications. Please visit the following '
+            'URL to finish activation of your new account.'
+        )
+        default_closing = (
+            'For help getting started, check out the KoboToolbox '
+            'user documentation: https://support.kobotoolbox.com'
+        )
         request = self.client.post(self.signup_url, data)
         user = get_user_model().objects.get(email=email)
         assert request.status_code == status.HTTP_302_FOUND
@@ -161,4 +164,4 @@ class EmailContentModelTestCase(TestCase):
         assert default_greeting in mail.outbox[0].body
         assert default_body in mail.outbox[0].body
         assert default_closing in mail.outbox[0].body
-        assert "Best,\nKoboToolbox" in mail.outbox[0].body
+        assert 'Best,\nKoboToolbox' in mail.outbox[0].body

@@ -4,17 +4,14 @@ from django.utils.translation import gettext as t
 from rest_framework import renderers
 from rest_framework.response import Response
 
-
 from kobo.apps.openrosa.apps.api.permissions import AttachmentObjectPermissions
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.libs import filters
+from kobo.apps.openrosa.libs.renderers.renderers import MediaFileContentNegotiation
 from kobo.apps.openrosa.libs.serializers.attachment_serializer import (
     AttachmentSerializer,
 )
-from kobo.apps.openrosa.libs.renderers.renderers import (
-    MediaFileContentNegotiation,
-    MediaFileRenderer,
-)
+from kpi.renderers import MediaFileRenderer
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
 
 
@@ -152,14 +149,16 @@ class AttachmentViewSet(OpenRosaReadOnlyModelViewSet):
     serializer_class = AttachmentSerializer
     renderer_classes = (
         renderers.JSONRenderer,
-        renderers.BrowsableAPIRenderer,
-        MediaFileRenderer)
+        MediaFileRenderer,
+    )
 
     def retrieve(self, request, *args, **kwargs):
         self.object = self.get_object()
 
-        if isinstance(request.accepted_renderer, MediaFileRenderer) \
-                and self.object.media_file is not None:
+        if (
+            isinstance(request.accepted_renderer, MediaFileRenderer)
+            and self.object.media_file is not None
+        ):
             data = self.object.media_file.read()
 
             return Response(data, content_type=self.object.mimetype)

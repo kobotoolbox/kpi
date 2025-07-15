@@ -69,8 +69,9 @@ class AssetListApiTests(BaseAssetTestCase):
         creation_response = self.create_asset()
         asset_url = creation_response.data['url']
         response = self.client.delete(asset_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK,
-                         msg=response.data)
+        self.assertEqual(
+            response.status_code, status.HTTP_204_NO_CONTENT, msg=response.data
+        )
 
     def test_asset_list_matches_detail(self):
         detail_response = self.create_asset()
@@ -411,18 +412,18 @@ class AssetListApiTests(BaseAssetTestCase):
     def test_query_counts(self):
         self.create_asset()
         # 45 when stripe is disabled, 46 when enabled
-        with self.assertNumQueries(FuzzyInt(45, 46)):
+        with self.assertNumQueries(FuzzyInt(42, 43)):
             self.client.get(self.list_url)
         # test query count does not increase with more assets
         # add several assets so the fuzziness of the count doesn't hide an O(n) addition
         self.create_asset()
         self.create_asset()
         self.create_asset()
-        with self.assertNumQueries(FuzzyInt(45, 46)):
+        with self.assertNumQueries(FuzzyInt(42, 43)):
             self.client.get(self.list_url)
 
         # test query counts with search filter
-        with self.assertNumQueries(FuzzyInt(45, 46)):
+        with self.assertNumQueries(FuzzyInt(42, 43)):
             self.client.get(self.list_url, data={'q': 'asset_type:survey'})
 
 

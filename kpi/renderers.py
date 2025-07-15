@@ -4,13 +4,13 @@ import re
 from collections.abc import Callable
 from io import StringIO
 
-import formpack
 from dict2xml import dict2xml
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers, status
-from rest_framework.exceptions import ErrorDetail
+from rest_framework.exceptions import ErrorDetail, ParseError
 from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
+import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
 from kpi.utils.xml import add_xml_declaration
@@ -22,10 +22,9 @@ class AssetJsonRenderer(renderers.JSONRenderer):
 
 
 class MediaFileRenderer(renderers.BaseRenderer):
-    # FIXME: Need to see if format accept a '' instead of a NONE (required for api doc)
 
     media_type = '*/*'
-    format = 'TODO'
+    format = ''
     charset = None
     render_style = 'binary'
 
@@ -249,10 +248,17 @@ class XMLRenderer(DRFXMLRenderer):
             if relationship is not None and hasattr(obj, relationship):
                 var_or_callable = getattr(obj, relationship)
                 if isinstance(var_or_callable, Callable):
-                    return var_or_callable(
+                    xml_source = var_or_callable(
                         *(relationship_args or tuple()),
-                        **(relationship_kwargs or dict())
-                    ).xml
+                        **(relationship_kwargs or dict()),
+                    )
+                    if (
+                        hasattr(xml_source, 'details')
+                        and xml_source.details.get('status') == 'failure'
+                    ):
+                        # raise error if XML generation failed
+                        raise ParseError(xml_source.details.get('error'))
+                    return xml_source.xml
                 return var_or_callable.xml
             return add_xml_declaration(obj.xml)
         else:

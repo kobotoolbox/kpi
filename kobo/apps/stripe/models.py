@@ -14,7 +14,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
-from kobo.apps.stripe.utils import get_default_add_on_limits
+from kobo.apps.stripe.utils.subscription_limits import get_default_add_on_limits
 from kpi.fields import KpiUidField
 from kpi.utils.django_orm_helper import DeductUsageValue
 
