@@ -146,7 +146,7 @@ class XForm(AbstractTimeStampedModel):
                 # An `Asset` object needs to be returned to avoid 500 while
                 # Enketo is fetching for project XML (e.g: /formList, /manifest)
                 # The uid is set to null to auto-generate it when the asset is saved.
-                # This is useful specially in unit tests for xforms withous assets
+                # This is useful specially in unit tests for xforms without assets
                 asset = Asset(
                     uid=None,
                     name=self.title,
