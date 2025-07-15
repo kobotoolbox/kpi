@@ -31,7 +31,7 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
                                         'label': build_basic_type(OpenApiTypes.STR),
                                         'value': build_basic_type(OpenApiTypes.STR),
                                     }
-                                )
+                                ),
                             }
                         ),
                         'country': build_object_type(
@@ -72,34 +72,58 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
                                     properties={
                                         'sort-by': build_object_type(
                                             properties={
-                                                'value': build_basic_type(OpenApiTypes.STR),
-                                                'fieldId': build_basic_type(OpenApiTypes.STR),
+                                                'value': build_basic_type(
+                                                    OpenApiTypes.STR
+                                                ),
+                                                'fieldId': build_basic_type(
+                                                    OpenApiTypes.STR
+                                                ),
                                             }
                                         ),
-                                        'frozen-column': build_basic_type(OpenApiTypes.STR),
-                                        'show-hxl-tags': build_basic_type(OpenApiTypes.BOOL),
-                                        'show-group-name': build_basic_type(OpenApiTypes.BOOL),
+                                        'frozen-column': build_basic_type(
+                                            OpenApiTypes.STR
+                                        ),
+                                        'show-hxl-tags': build_basic_type(
+                                            OpenApiTypes.BOOL
+                                        ),
+                                        'show-group-name': build_basic_type(
+                                            OpenApiTypes.BOOL
+                                        ),
                                         'selected-columns': build_array_type(
                                             schema=build_basic_type(OpenApiTypes.STR)
                                         ),
-                                        'translation-index': build_basic_type(OpenApiTypes.INT),
+                                        'translation-index': build_basic_type(
+                                            OpenApiTypes.INT
+                                        ),
                                     }
                                 ),
                                 'old': build_object_type(
                                     properties={
                                         'sort-by': build_object_type(
                                             properties={
-                                                'value': build_basic_type(OpenApiTypes.STR),
-                                                'fieldId': build_basic_type(OpenApiTypes.STR),
+                                                'value': build_basic_type(
+                                                    OpenApiTypes.STR
+                                                ),
+                                                'fieldId': build_basic_type(
+                                                    OpenApiTypes.STR
+                                                ),
                                             }
                                         ),
-                                        'frozen-column': build_basic_type(OpenApiTypes.STR),
-                                        'show-hxl-tags': build_basic_type(OpenApiTypes.BOOL),
-                                        'show-group-name': build_basic_type(OpenApiTypes.BOOL),
+                                        'frozen-column': build_basic_type(
+                                            OpenApiTypes.STR
+                                        ),
+                                        'show-hxl-tags': build_basic_type(
+                                            OpenApiTypes.BOOL
+                                        ),
+                                        'show-group-name': build_basic_type(
+                                            OpenApiTypes.BOOL
+                                        ),
                                         'selected-columns': build_array_type(
                                             schema=build_basic_type(OpenApiTypes.STR)
                                         ),
-                                        'translation-index': build_basic_type(OpenApiTypes.INT),
+                                        'translation-index': build_basic_type(
+                                            OpenApiTypes.INT
+                                        ),
                                     }
                                 ),
                             }
@@ -195,7 +219,7 @@ class ProjectHistoryMetadataFieldExtension(OpenApiSerializerFieldExtension):
                                         'label': build_basic_type(OpenApiTypes.STR),
                                         'value': build_basic_type(OpenApiTypes.STR),
                                     }
-                                )
+                                ),
                             }
                         ),
                         'country': build_object_type(
@@ -236,34 +260,58 @@ class ProjectHistoryMetadataFieldExtension(OpenApiSerializerFieldExtension):
                                     properties={
                                         'sort-by': build_object_type(
                                             properties={
-                                                'value': build_basic_type(OpenApiTypes.STR),
-                                                'fieldId': build_basic_type(OpenApiTypes.STR),
+                                                'value': build_basic_type(
+                                                    OpenApiTypes.STR
+                                                ),
+                                                'fieldId': build_basic_type(
+                                                    OpenApiTypes.STR
+                                                ),
                                             }
                                         ),
-                                        'frozen-column': build_basic_type(OpenApiTypes.STR),
-                                        'show-hxl-tags': build_basic_type(OpenApiTypes.BOOL),
-                                        'show-group-name': build_basic_type(OpenApiTypes.BOOL),
+                                        'frozen-column': build_basic_type(
+                                            OpenApiTypes.STR
+                                        ),
+                                        'show-hxl-tags': build_basic_type(
+                                            OpenApiTypes.BOOL
+                                        ),
+                                        'show-group-name': build_basic_type(
+                                            OpenApiTypes.BOOL
+                                        ),
                                         'selected-columns': build_array_type(
                                             schema=build_basic_type(OpenApiTypes.STR)
                                         ),
-                                        'translation-index': build_basic_type(OpenApiTypes.INT),
+                                        'translation-index': build_basic_type(
+                                            OpenApiTypes.INT
+                                        ),
                                     }
                                 ),
                                 'old': build_object_type(
                                     properties={
                                         'sort-by': build_object_type(
                                             properties={
-                                                'value': build_basic_type(OpenApiTypes.STR),
-                                                'fieldId': build_basic_type(OpenApiTypes.STR),
+                                                'value': build_basic_type(
+                                                    OpenApiTypes.STR
+                                                ),
+                                                'fieldId': build_basic_type(
+                                                    OpenApiTypes.STR
+                                                ),
                                             }
                                         ),
-                                        'frozen-column': build_basic_type(OpenApiTypes.STR),
-                                        'show-hxl-tags': build_basic_type(OpenApiTypes.BOOL),
-                                        'show-group-name': build_basic_type(OpenApiTypes.BOOL),
+                                        'frozen-column': build_basic_type(
+                                            OpenApiTypes.STR
+                                        ),
+                                        'show-hxl-tags': build_basic_type(
+                                            OpenApiTypes.BOOL
+                                        ),
+                                        'show-group-name': build_basic_type(
+                                            OpenApiTypes.BOOL
+                                        ),
                                         'selected-columns': build_array_type(
                                             schema=build_basic_type(OpenApiTypes.STR)
                                         ),
-                                        'translation-index': build_basic_type(OpenApiTypes.INT),
+                                        'translation-index': build_basic_type(
+                                            OpenApiTypes.INT
+                                        ),
                                     }
                                 ),
                             }
