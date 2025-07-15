@@ -69,6 +69,9 @@ interface ProjectExportsCreatorState {
   selectedDefinedExport: null | DefinedExportOption
   definedExports: DefinedExportOption[]
   isUpdatingDefinedExportsList: boolean
+  isDateEnabled: boolean
+  startDate: string | null
+  endDate: string | null
 }
 
 interface DefinedExportOption {
@@ -115,6 +118,9 @@ export default class ProjectExportsCreator extends React.Component<
       selectedDefinedExport: null,
       definedExports: [],
       isUpdatingDefinedExportsList: false,
+      isDateEnabled: true,
+      startDate: null,
+      endDate: null,
     }
 
     const allSelectableRows = this.getAllSelectableRows()
@@ -477,6 +483,7 @@ export default class ProjectExportsCreator extends React.Component<
       )
       actions.exports.createExportSetting(this.props.asset.uid, payload)
     }
+    console.log('paylooad', payload)
   }
 
   generateExportName() {
@@ -693,6 +700,28 @@ export default class ProjectExportsCreator extends React.Component<
               className='custom-export-name-textbox'
             />
           </bem.ProjectDownloads__columnRow>
+
+          <bem.ProjectDownloads__columnRow>
+            <Checkbox
+              checked={this.state.isDateEnabled}
+              onChange={(newValue) => {
+                this.clearSelectedDefinedExport()
+                this.setState({ isDateEnabled: newValue })
+              }}
+              label={t('Date range')}
+            />
+
+            <div>
+              <label>
+                {t('Between')}
+                <input type='date' onChange={(e) => {this.setState({ startDate: e.currentTarget.value })}} />
+              </label>
+              <label>
+                {t('and')}
+                <input type='date' onChange={(e) =>  {this.setState({ endDate: e.currentTarget.value })}} />
+              </label>
+            </div>
+          </bem.ProjectDownloads__columnRow>
         </bem.ProjectDownloads__column>
 
         <bem.ProjectDownloads__column m='right'>
@@ -750,6 +779,7 @@ export default class ProjectExportsCreator extends React.Component<
     }
 
     const exportFormatOptions = getExportFormatOptions(this.props.asset)
+    console.log('2314123123123', this.state)
 
     return (
       <bem.FormView__cell m={['box', 'padding']}>
