@@ -401,6 +401,7 @@ def generate_ph_view_set_logstring(description, path, example_path, all):
             require_auth=False,
             validate_payload=False,
         ),
+        tags=['Project History Logs'],
     )
 )
 class AllProjectHistoryLogViewSet(AuditLogViewSet):
@@ -425,6 +426,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
             require_auth=False,
             validate_payload=False,
         ),
+        tags=['Project History Logs'],
     )
     @extend_schema(
         methods=['POST'],
@@ -437,6 +439,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
             require_auth=False,
             validate_payload=False,
         ),
+        tags=['Project History Logs'],
     )
     @action(detail=False, methods=['GET', 'POST'])
     def export(self, request, *args, **kwargs):
