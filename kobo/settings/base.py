@@ -783,17 +783,13 @@ class DoNotUseRunner:
 
 TEST_RUNNER = __name__ + '.DoNotUseRunner'
 
-# The backend that handles user authentication must match KoBoCAT's when
-# sharing sessions. ModelBackend does not interfere with object-level
-# permissions: it always denies object-specific requests (see
-# https://github.com/django/django/blob/1.7/django/contrib/auth/backends.py#L44).
-# KoBoCAT also lists ModelBackend before
-# guardian.backends.ObjectPermissionBackend.
+# ModelBackend does not interfere with object-level permissions: it always denies
+# object-specific requests (see
+# https://github.com/django/django/blob/1.7/django/contrib/auth/backends.py#L44 ).
 AUTHENTICATION_BACKENDS = (
     'kpi.backends.ModelBackend',
     'kpi.backends.ObjectPermissionBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
-    'kobo.apps.openrosa.libs.backends.ObjectPermissionBackend',
 )
 
 ROOT_URLCONF = 'kobo.urls'
