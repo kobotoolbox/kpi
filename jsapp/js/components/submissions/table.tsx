@@ -340,7 +340,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         handleApiFail(error)
       }
 
-      // If the error is not a 500 we parce the response and pluck out the "detail" to display
+      // If the error is not a 500 we parse the response and pluck out the "detail" to display
       if (error.status !== 500 && error?.responseText) {
         let displayedError
 
