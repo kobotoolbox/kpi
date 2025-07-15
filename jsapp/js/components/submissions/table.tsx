@@ -329,6 +329,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     }
   }
 
+  // The table view needs to handle the following errors differently:
+  // - 500 response from the backend will give a raw html response, so we display something else instead
+  // - non-500 response which contains some "detail" attribute after parsing the JSON response text, so we pluck it out
   onGetSubmissionsFailed(error: FailResponse) {
     if (error?.status) {
       this.setState({ errorNumber: error.status })
