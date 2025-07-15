@@ -1347,7 +1347,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   render() {
-    if (this.state.errorNumber && this.state.errorNumber === 500) {
+    if (this.state.errorNumber === 500) {
       const supportMessage = t(
         'Please try again later, or [contact the support team](##SUPPORT_URL##) if this happens repeatedly.',
       ).replace('##SUPPORT_URL##', envStore.data.support_url)
