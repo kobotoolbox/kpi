@@ -45,11 +45,11 @@ class AttachmentDeleteViewSet(
     NestedViewSetMixin, AssetNestedObjectViewsetMixin, viewsets.ViewSet
 ):
     """
-    ViewSet for managing the current user's asset attachment
+    ViewSet for managing attachments on the current user's assets
 
     Available actions:
-    - delete      → DELETE /api/v2/assets/{uid}/attachments/{id}/
-    - bulk        → DELETE /api/v2/assets/{uid}/attachments/bulk/
+    - delete      → DELETE /api/v2/assets/{parent_lookup_asset}/attachments/{uid}/
+    - bulk        → DELETE /api/v2/assets/{parent_lookup_asset}/attachments/bulk/
 
     Documentation:
     - docs/api/v2/asset_attachments/bulk.md

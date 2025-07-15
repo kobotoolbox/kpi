@@ -26,4 +26,4 @@ to delete
 * Where: "number_of_attachment" is the number of items that was deleted
 
 
-### !! Due to limitations with DRF-Spectacular current version not fully supporting AOS 3.1, DELETE actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint. !!
+### !! Due to current DRF-Spectacular limitations with AOS 3.1, DELETE operations do not display request or response bodies in this documentation (as payloads are not typically recommended for DELETE). This means direct testing is unavailable. However, example payloads and responses are provided for reference, and HTTP codes/error messages are accurate.  !!

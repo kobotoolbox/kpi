@@ -55,7 +55,6 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
             description='Will return a content type with the type of the attachment as well as the attachment itself.',  # noqa
             require_auth=False,
             raise_access_forbidden=False,
-            validate_payload=False,
         ),
     ),
     retrieve=extend_schema(
@@ -73,7 +72,6 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
             description='Will return a content type with the type of the attachment as well as the attachment itself.',  # noqa
             require_auth=False,
             raise_access_forbidden=False,
-            validate_payload=False,
         ),
     ),
     thumb=extend_schema(
