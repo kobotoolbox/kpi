@@ -338,7 +338,6 @@ class ProjectHistoryMetadataFieldExtension(OpenApiSerializerFieldExtension):
                     }
                 ),
                 'project_owner': build_basic_type(OpenApiTypes.STR),
-                'auth_type': build_basic_type(OpenApiTypes.STR),
                 'latest_version_uid': build_basic_type(OpenApiTypes.STR),
                 'submission': build_object_type(
                     properties={

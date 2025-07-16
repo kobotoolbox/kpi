@@ -12,18 +12,18 @@ Results from this endpoint can be filtered by a Boolean query specified in the
 
 2. model_name
 
-3. action
-    a. Available actions:
-    * create
-    * delete
-    * in-trash
-    * put-back
-    * remove
-    * update
-    * auth
+3. action</br>
+  a. Available actions:
+   * create
+   * delete
+   * in-trash
+   * put-back
+   * remove
+   * update
+   * auth
 
-4. log_type
-    a. Available log types:
+4. log_type</br>
+a. Available log types:
     * access
     * project-history
     * data-editing
@@ -35,15 +35,15 @@ Results from this endpoint can be filtered by a Boolean query specified in the
 
 6. user_uid
 
-7. user__*
-    a. user__username
-    b. user__email
-    c. user__is_superuser
+7. user__*</br>
+a. user__username</br>
+b. user__email</br>
+c. user__is_superuser
 
-8. metadata__*
-    a. metadata__asset_uid
-    b. metadata__auth_type
-    c. some logs may have additional filterable fields in the metadata
+8. metadata__*</br>
+ a. metadata__asset_uid</br>
+ b. metadata__auth_type</br>
+ c. some logs may have additional filterable fields in the metadata
 
 **Some examples:**
 
