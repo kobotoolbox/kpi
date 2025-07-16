@@ -9,7 +9,7 @@ import { convertSecondsToMinutes, formatRelativeTime } from '#/utils'
 import { useOrganizationQuery } from '../organization/organizationQuery'
 import { UsageLimitTypes } from '../stripe.types'
 
-export interface UsageBalance {
+interface UsageBalance {
   effective_limit: number
   balance_value: number
   balance_percent: number
@@ -79,6 +79,8 @@ const loadUsage = async (organizationId: string | null): Promise<UsageState | un
       lastUpdated = formatRelativeTime(lastUpdateDate)
     }
   }
+
+  usage.balances.storage_bytes.exceeded = true
 
   const limitWarningList: string[] = []
   const limitExceedList: string[] = []
