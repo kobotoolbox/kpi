@@ -25,7 +25,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 )
 @extend_schema_view(
     list=extend_schema(
-        description=read_md('hook', 'logs/logs_list.md'),
+        description=read_md('hook', 'hooks/logs/list.md'),
         responses=open_api_200_ok_response(
             HookLogSerializer,
             require_auth=False,
@@ -33,7 +33,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
     ),
     retrieve=extend_schema(
-        description=read_md('hook', 'logs/logs_retrieve.md'),
+        description=read_md('hook', 'hooks/logs/retrieve.md'),
         responses=open_api_200_ok_response(
             HookLogSerializer,
             require_auth=False,
@@ -41,7 +41,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
     ),
     retry=extend_schema(
-        description=read_md('hook', 'logs/logs_retry.md'),
+        description=read_md('hook', 'hooks/logs/retry.md'),
         responses=open_api_200_ok_response(
             LogsRetryResponse,
             require_auth=False,
@@ -63,9 +63,9 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     - retry          → PATCH     /api/v2/asset/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/retry  # noqa
 
     Documentation:
-    - docs/api/v2/history/action.md
-    - docs/api/v2/history/export.md
-    - docs/api/v2/history/list.md
+    - docs/api/v2/hooks/logs/action.md
+    - docs/api/v2/hooks/logs/export.md
+    - docs/api/v2/hooks/logs/list.md
     """
 
     model = HookLog
