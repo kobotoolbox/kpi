@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
@@ -14,7 +14,12 @@ from kpi.tasks import sync_kobocat_xforms
 
 
 @extend_schema(
-    tags=['users'],
+    tags=['Users'],
+)
+@extend_schema_view(
+    list=extend_schema(),
+    retrieve=extend_schema(),
+    migrate=extend_schema(),
 )
 class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     """
