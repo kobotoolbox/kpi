@@ -99,4 +99,4 @@ def check_must_complete_long_running_migrations(app_configs, **kwargs):
     ]
 
 
-#register(check_must_complete_long_running_migrations, Tags.database)
+register(check_must_complete_long_running_migrations, Tags.database)
