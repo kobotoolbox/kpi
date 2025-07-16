@@ -36,6 +36,10 @@ class DuplicateUUIDError(Exception):
     pass
 
 
+class ExceededUsageLimitError(Exception):
+    pass
+
+
 class FormInactiveError(Exception):
     pass
 

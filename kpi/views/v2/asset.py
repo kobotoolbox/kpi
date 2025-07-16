@@ -55,6 +55,11 @@ from kpi.schema_extensions.v2.assets.serializers import (
     AssetReportResponse,
     AssetValidContentResponse,
 )
+from kpi.schema_extensions.v2.deployments.serializers import (
+    DeploymentCreateRequest,
+    DeploymentPatchRequest,
+    DeploymentResponse,
+)
 from kpi.serializers.v2.asset import (
     AssetBulkActionsSerializer,
     AssetListSerializer,
@@ -387,35 +392,6 @@ class AssetViewSet(
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/
 
-    ### Deployment
-
-    Retrieves the existing deployment, if any.
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/{uid}/deployment/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/deployment/
-
-    Creates a new deployment, but only if a deployment does not exist already.
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/assets/{uid}/deployment/
-    </pre>
-
-    > Example
-    >
-    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/deployment/
-
-    Updates the `active` field of the existing deployment.
-    <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/assets/{uid}/deployment/
-    </pre>
-
-    > Example
-    >
-    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/deployment/
-
     Overwrites the entire deployment, including the form contents, but does not change the deployment's identifier
     <pre class="prettyprint">
     <b>PUT</b> /api/v2/assets/{uid}/deployment/
@@ -496,17 +472,50 @@ class AssetViewSet(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
 
+    @extend_schema(
+        methods=['GET'],
+        description=read_md('kpi', 'deployments/list.md'),
+        responses=open_api_200_ok_response(
+            DeploymentResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    )
+    @extend_schema(
+        methods=['PATCH'],
+        description=read_md('kpi', 'deployments/update.md'),
+        request={'application/json': DeploymentPatchRequest},
+        responses=open_api_200_ok_response(
+            DeploymentResponse,
+            raise_access_forbidden=False,
+        ),
+    )
+    @extend_schema(
+        methods=['POST'],
+        description=read_md('kpi', 'deployments/create.md'),
+        request={'application/json': DeploymentCreateRequest},
+        responses=open_api_200_ok_response(
+            DeploymentResponse,
+            raise_access_forbidden=False,
+        ),
+    )
     @action(detail=True,
             methods=['get', 'post', 'patch'],
             permission_classes=[PostMappedToChangePermission])
     def deployment(self, request, uid):
         """
-        A GET request retrieves the existing deployment, if any.
-        A POST request creates a new deployment, but only if a deployment does
-            not exist already.
-        A PATCH request updates the `active` field of the existing deployment.
-        A PUT request overwrites the entire deployment, including the form
-            contents, but does not change the deployment's identifier
+        ViewSet for managing the current project's deployment
+
+        Available actions:
+        - list           → GET /api/v2/assets/{uid}/deployment/
+        - create         → POST /api/v2/assets/{uid}/deployment/
+        - patch          → PATCH /api/v2/assets/{uid}/deployment/
+
+        Documentation:
+        - docs/api/v2/deployments/list.md
+        - docs/api/v2/deployments/create.md
+        - docs/api/v2/deployments/patch.md
         """
         asset = self.get_object()
         serializer_context = self.get_serializer_context()

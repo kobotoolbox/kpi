@@ -2,14 +2,15 @@ from drf_spectacular.extensions import (
     OpenApiSerializerExtension,
     OpenApiSerializerFieldExtension,
 )
-from drf_spectacular.plumbing import build_object_type
+from drf_spectacular.plumbing import build_object_type, build_basic_type
+from drf_spectacular.types import OpenApiTypes
 
 from .schema import (
-    LABEL_FIELD,
+    PERMISSION_ASSIGNMENT_LABEL_FIELD,
     PARTIAL_PERMISSION,
-    PERM_CHANGE_ASSET,
-    URL_FIELD,
-    USER_FIELD,
+    PERMISSION_ASSIGNMENT_CHANGE_ASSET,
+    # PERMISSION_URL_FIELD,
+    # PERMISSION_USER_FIELD,
 )
 
 
@@ -19,7 +20,7 @@ class LabelFieldExtension(OpenApiSerializerFieldExtension):
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return LABEL_FIELD
+        return PERMISSION_ASSIGNMENT_LABEL_FIELD
 
 
 class PermissionCreateSerializerExtension(OpenApiSerializerExtension):
@@ -35,8 +36,9 @@ class PermissionCreateSerializerExtension(OpenApiSerializerExtension):
                         'user',
                     ],
                     properties={
-                        'permission': PERM_CHANGE_ASSET,
-                        'user': USER_FIELD,
+                        'permission': PERMISSION_ASSIGNMENT_CHANGE_ASSET,
+                        # 'user': PERMISSION_USER_FIELD,
+                        'user': build_basic_type(OpenApiTypes.STR),
                     },
                 ),
                 build_object_type(
@@ -47,8 +49,9 @@ class PermissionCreateSerializerExtension(OpenApiSerializerExtension):
                     ],
                     properties={
                         'partial_permission': PARTIAL_PERMISSION,
-                        'permission': PERM_CHANGE_ASSET,
-                        'user': USER_FIELD,
+                        'permission': PERMISSION_ASSIGNMENT_CHANGE_ASSET,
+                        # 'user': PERMISSION_USER_FIELD,
+                        'user': build_basic_type(OpenApiTypes.STR),
                     },
                 ),
             ]
@@ -61,8 +64,9 @@ class PartialPermissionFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'user': USER_FIELD,
-                'permission': PERM_CHANGE_ASSET,
+                # 'user': PERMISSION_USER_FIELD,
+                'user': build_basic_type(OpenApiTypes.STR),
+                'permission': PERMISSION_ASSIGNMENT_CHANGE_ASSET,
                 'partial_permission': PARTIAL_PERMISSION,
             }
         )
@@ -74,7 +78,7 @@ class PermissionFieldExtension(OpenApiSerializerFieldExtension):
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return PERM_CHANGE_ASSET
+        return PERMISSION_ASSIGNMENT_CHANGE_ASSET
 
 
 class UrlFieldExtension(OpenApiSerializerFieldExtension):
@@ -83,7 +87,8 @@ class UrlFieldExtension(OpenApiSerializerFieldExtension):
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return URL_FIELD
+        # return PERMISSION_URL_FIELD
+        return build_basic_type(OpenApiTypes.STR)
 
 
 class UserFieldExtension(OpenApiSerializerFieldExtension):
@@ -92,4 +97,5 @@ class UserFieldExtension(OpenApiSerializerFieldExtension):
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return USER_FIELD
+        # return PERMISSION_USER_FIELD
+        return build_basic_type(OpenApiTypes.STR)
