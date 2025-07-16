@@ -108,7 +108,7 @@ jobs:
           current_branch="${{ steps.branches.outputs.current_branch }}"
           next_branch="${{ steps.branches.outputs.next_branch }}"
           git checkout "${next_branch}"
-          echo: 'TODO: squash migrations, if any'
+          echo 'TODO: squash migrations, if any'
           git merge --no-ff "${current_branch}"
           git push
 
