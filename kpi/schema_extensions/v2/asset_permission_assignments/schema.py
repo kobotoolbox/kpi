@@ -18,7 +18,7 @@ PERMISSION_ASSIGNMENT_LABEL_FIELD = build_basic_type(OpenApiTypes.STR)
 #     codename='change_assets',
 # )
 
-PERMISSION_ASSIGNMENT_CHANGE_ASSET = build_basic_type(OpenApiTypes.STR)
+PERMISSION_ASSIGNMENT_URL_SCHEMA = build_basic_type(OpenApiTypes.STR)
 
 
 PARTIAL_PERMISSION = build_array_type(
@@ -37,7 +37,7 @@ PARTIAL_PERMISSION = build_array_type(
                     }
                 )
             ),
-            'url': PERMISSION_ASSIGNMENT_CHANGE_ASSET,
+            'url': PERMISSION_ASSIGNMENT_URL_SCHEMA,
         }
     )
 )
@@ -48,4 +48,4 @@ PARTIAL_PERMISSION = build_array_type(
 #     uid='pGaXCTDAbdZKLXoXAXd3M4',
 # )
 
-PERMISSION_ASSIGNMENT_USER_FIELD = build_url_type('api_v2:user-kpi-detail', username='bob')
+USER_URL_SCHEMA = build_url_type('api_v2:user-kpi-detail', username='bob')

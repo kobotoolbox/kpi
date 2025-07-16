@@ -1,5 +1,3 @@
-# coding: utf-8
-
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
@@ -71,8 +69,8 @@ class PermissionAssignmentSchema(AutoSchema):
 
         from kpi.schema_extensions.v2.asset_permission_assignments.schema import (
             PARTIAL_PERMISSION,
-            PERM_CHANGE_ASSET,
-            USER_FIELD,
+            PERMISSION_ASSIGNMENT_URL_SCHEMA,
+            USER_URL_SCHEMA,
         )
 
         operation = super().get_operation(*args, **kwargs)
@@ -88,18 +86,18 @@ class PermissionAssignmentSchema(AutoSchema):
             operation['requestBody']['content']['application/json']['examples'] = {
                 'CreatingPartial': {
                     'value': {
-                        'user': generate_example_from_schema(USER_FIELD),
+                        'user': generate_example_from_schema(USER_URL_SCHEMA),
                         'partial_permission': generate_example_from_schema(
                             PARTIAL_PERMISSION
                         ),
-                        'permission': generate_example_from_schema(PERM_CHANGE_ASSET),
+                        'permission': generate_example_from_schema(PERMISSION_ASSIGNMENT_URL_SCHEMA),
                     },
                     'summary': 'Creating a partial permission',
                 },
                 'CreatingPermission': {
                     'value': {
-                        'user': generate_example_from_schema(USER_FIELD),
-                        'permission': generate_example_from_schema(PERM_CHANGE_ASSET),
+                        'user': generate_example_from_schema(USER_URL_SCHEMA),
+                        'permission': generate_example_from_schema(PERMISSION_ASSIGNMENT_URL_SCHEMA),
                     },
                     'summary': 'Creating a regular permission',
                 },
