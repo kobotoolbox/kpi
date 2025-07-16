@@ -1,19 +1,25 @@
-from docutils.nodes import description
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import renderers, viewsets
 from rest_framework.response import Response
 
 from kpi.permissions import IsAuthenticated
+from kpi.schema_extensions.v2.service_usage.serializers import ServiceUsageResponse
 from kpi.serializers.v2.service_usage import ServiceUsageSerializer
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 
 
 @extend_schema(
     tags=['Service Usage'],
 )
 @extend_schema_view(
-    description=read_md('kpi', 'service_usage/list.md'),
+    list=extend_schema(
+        description=read_md('kpi', 'service_usage/list.md'),
+        responses=open_api_200_ok_response(
+            ServiceUsageResponse(many=False),
+        )
+    )
 )
 class ServiceUsageViewSet(viewsets.GenericViewSet):
     """
