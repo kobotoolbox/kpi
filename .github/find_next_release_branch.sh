@@ -34,6 +34,7 @@ do
 
     patch=`printf '%02d' ${patch}`
     next_branch="release/2.${minor}.${patch}"
+    echo "checking branch '$next_branch'.."
 done
 
 echo "next_branch=${next_branch}" >> $GITHUB_OUTPUT
