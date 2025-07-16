@@ -399,8 +399,20 @@ export interface ExportSettingSettings {
   xls_types_as_text?: boolean
   hierarchy_in_labels: boolean
   fields_from_all_versions: boolean
+  query?: MongoQuery
   /** Only for GeoJSON */
   flatten?: boolean
+}
+
+export interface MongoQuery<T = any> {
+  [key: string]:
+    | T
+    | { $eq?: T; $ne?: T }
+    | { $gt?: T; $gte?: T; $lt?: T; $lte?: T }
+    | { $in?: T[]; $nin?: T[] }
+    | { $exists?: boolean }
+    | { $regex?: string | RegExp; $options?: string }
+    | MongoQuery<T>; // Recursive for nested queries
 }
 
 /**
@@ -1507,10 +1519,9 @@ export const dataInterface: DataInterface = {
   createAssetExport(
     assetUid: string,
     data: ExportSettingSettings,
-    dateQuery?: string,
   ): JQuery.jqXHR<ExportDataResponse> {
     return $ajax({
-      url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/${dateQuery}`,
+      url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/`,
       method: 'POST',
       data: JSON.stringify(data),
       dataType: 'json',
@@ -1552,10 +1563,9 @@ export const dataInterface: DataInterface = {
     assetUid: string,
     settingUid: string,
     data: ExportSettingRequest,
-    dateQuery?: string,
   ): JQuery.jqXHR<any> {
     return $ajax({
-      url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/${dateQuery}`,
+      url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
       method: 'PATCH',
       data: data,
     })

@@ -35,9 +35,10 @@ import type {
   ExportSetting,
   ExportSettingRequest,
   ExportSettingSettings,
+  MongoQuery,
   PaginatedResponse,
 } from '#/dataInterface'
-import { formatTimeDate } from '#/utils'
+import { createDateQuery, formatTimeDate } from '#/utils'
 
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings')
 
@@ -70,8 +71,8 @@ interface ProjectExportsCreatorState {
   definedExports: DefinedExportOption[]
   isUpdatingDefinedExportsList: boolean
   isDateEnabled: boolean
-  startDate: string | null
-  endDate: string | null
+  startDate: string
+  endDate: string
 }
 
 interface DefinedExportOption {
@@ -119,8 +120,8 @@ export default class ProjectExportsCreator extends React.Component<
       definedExports: [],
       isUpdatingDefinedExportsList: false,
       isDateEnabled: true,
-      startDate: null,
-      endDate: null,
+      startDate: '',
+      endDate: '',
     }
 
     const allSelectableRows = this.getAllSelectableRows()
@@ -245,6 +246,14 @@ export default class ProjectExportsCreator extends React.Component<
     return allRows
   }
 
+  createMongoDateQuery(): MongoQuery {
+    if (this.state.startDate || this.state.endDate) {
+      return {$and: createDateQuery(this.state.startDate, this.state.endDate)}
+    } else {
+      return {}
+    }
+  }
+
   /**
    * Used when update/create export settings call goes through to make a next
    * call to create an export from this settings.
@@ -259,7 +268,7 @@ export default class ProjectExportsCreator extends React.Component<
     this.setState({ isPending: true })
 
     const exportParams = response.export_settings
-    actions.exports.createExport(this.props.asset.uid, exportParams, this.state.startDate)
+    actions.exports.createExport(this.props.asset.uid, exportParams)
   }
 
   /**
@@ -410,6 +419,7 @@ export default class ProjectExportsCreator extends React.Component<
         lang: this.state.selectedExportFormat.value,
         multiple_select: this.state.selectedExportMultiple.value,
         type: this.state.selectedExportType.value,
+        query: this.createMongoDateQuery()
       },
     }
 
@@ -478,8 +488,7 @@ export default class ProjectExportsCreator extends React.Component<
       actions.exports.updateExportSetting(
         this.props.asset.uid,
         foundDefinedExport.data?.uid,
-        payload,
-        this.state.startDate,
+        payload
       )
       // Case 4: There is no defined export like this one, we need to create it.
     } else {
@@ -488,8 +497,7 @@ export default class ProjectExportsCreator extends React.Component<
       )
       actions.exports.createExportSetting(
         this.props.asset.uid,
-        payload,
-        `${this.state.startDate}&${this.state.endDate}`,
+        payload
       )
     }
   }
