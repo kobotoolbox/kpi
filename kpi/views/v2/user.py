@@ -1,6 +1,7 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.fields import JSONField
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -11,15 +12,22 @@ from kpi.models.asset import Asset
 from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.user import UserListSerializer, UserSerializer
 from kpi.tasks import sync_kobocat_xforms
+from kpi.utils.schema_extensions.markdown import read_md
 
 
 @extend_schema(
     tags=['Users'],
 )
 @extend_schema_view(
-    list=extend_schema(),
-    retrieve=extend_schema(),
-    migrate=extend_schema(),
+    list=extend_schema(
+        description=read_md('kpi', 'users/users_list.md'),
+    ),
+    retrieve=extend_schema(
+        description=read_md('kpi', 'users/users_retrieve.md'),
+    ),
+    migrate=extend_schema(
+        description=read_md('kpi', 'users/users_migrate.md'),
+    ),
 )
 class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     """
@@ -35,6 +43,9 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     permission_classes = (IsAuthenticated,)
     search_default_field_lookups = [
         'username__icontains',
+    ]
+    renderer_classes = [
+        JSONField,
     ]
 
     class Meta:
@@ -61,24 +72,6 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             renderer_classes=[renderers.JSONRenderer],
             url_path=r'migrate(?:/(?P<task_id>[\d\w\-]+))?')
     def migrate(self, request, task_id: str = None, **kwargs):
-        """
-        A temporary endpoint that allows superusers to migrate other users'
-        projects, and users to migrate their own projects, from Kobocat to KPI.
-        This is required while users transition from the legacy interface to
-        the new.
-
-        1. Call this endpoint with `?username=<username>`
-        2. Fetch url provided to check the state of the Celery task.
-           It can be:
-            - 'PENDING'
-            - 'FAILED'
-            - 'SUCCESS'
-
-        Notes: Be aware that the Celery `res.state` isn't too reliable, it
-        returns 'PENDING' if task does not exist.
-
-        """
-
         request_user = request.user
         migrate_user = kwargs.get('username')
         if request_user.is_anonymous or (
