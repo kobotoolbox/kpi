@@ -1,0 +1,84 @@
+name: 'CD: create Github releases'
+
+
+on: workflow_dispatch
+
+
+jobs:
+
+  version:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Formats the version number
+      id: version
+      run: |
+        VERSION="todo" # TODO
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+  changelog:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: generate changelog for github releases
+      run: |
+        echo 'TODO, for now generate changelog manually'
+
+  kpi:
+    runs-on: ubuntu-24.04
+    needs:
+      - changelog
+    steps:
+    - name: make a Github release for kpi
+      run: |
+        echo 'TODO, for now release it manually'
+
+
+  kobo-docker:
+    runs-on: ubuntu-24.04
+    needs:
+      - changelog
+    steps:
+    - name: make a Github release for kobo-docker
+      run: |
+        echo 'TODO, for now release it manually'
+
+
+  kobo-install:
+    runs-on: ubuntu-24.04
+    needs:
+      - changelog
+    steps:
+    - name: make a Github release for kobo-install
+      run: |
+        echo 'TODO, for now release it manually'
+
+
+  notify:
+    needs:
+      - version
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "${{ needs.version.outputs.version }} release"
+      content: ":rocket: Please create a release on kpi, kobo-docker and kobo-install. (TODO: automate)"
+
+
+  on-failure:
+    needs:
+      - changelog
+      - kpi
+      - kobo-docker
+      - kobo-install
+    if: |
+      failure() &&
+      (needs.changelog.result == 'failure' || needs.changelog.result == 'timed_out' ||
+      needs.kpi.result == 'failure' || needs.kpi.result == 'timed_out' ||
+      needs.kobo-docker.result == 'failure' || needs.kobo-docker.result == 'timed_out' ||
+      needs.kobo-install.result == 'failure' || needs.kobo-install.result == 'timed_out')
+    secrets: inherit
+    uses: './.github/workflows/zulip.yml'
+    with:
+      topic: "Github Actions (${{ github.event.inputs.prod_env }})"
+      content: ":warning: ${{ github.event.inputs.tag }} failed to create a Github release(s), see [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})."

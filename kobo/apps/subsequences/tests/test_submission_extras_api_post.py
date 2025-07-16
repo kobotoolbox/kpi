@@ -2,7 +2,9 @@ import uuid
 from copy import deepcopy
 from unittest.mock import Mock, patch
 
+import pytest
 from constance.test import override_config
+from django.conf import settings
 from django.test import override_settings
 from django.urls import reverse
 from google.cloud import translate_v3
@@ -22,6 +24,7 @@ from kobo.apps.languages.models.translation import (
 )
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
+from kobo.apps.organizations.constants import UsageType
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
@@ -552,6 +555,95 @@ class GoogleNLPSubmissionTest(BaseTestCase):
         self.assertContains(res, 'complete')
         with self.assertNumQueries(FuzzyInt(25, 35)):
             self.client.post(url, data, format='json')
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_settings(
+        CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}},
+    )
+    @override_config(ASR_MT_INVITEE_USERNAMES='*')
+    @patch('kobo.apps.subsequences.integrations.google.google_translate.translate')
+    @patch('google.cloud.speech.SpeechClient')
+    @patch('google.cloud.storage.Client')
+    def test_google_services_usage_limit_checks(self, m1, m2, translate):
+        url = reverse('advanced-submission-post', args=[self.asset.uid])
+        submission_id = 'abc123-def456'
+        submission = {
+            '__version__': self.asset.latest_deployed_version.uid,
+            'q1': 'audio_conversion_test_clip.3gp',
+            '_uuid': submission_id,
+            '_attachments': [
+                {
+                    'filename': 'someuser/audio_conversion_test_clip.3gp',
+                    'mimetype': 'video/3gpp',
+                },
+            ],
+            '_submitted_by': self.user.username,
+        }
+        self.asset.deployment.mock_submissions([submission])
+        mock_translation_client = Mock()
+        mock_translation_client.translate_text = Mock(
+            return_value='Test translated text'
+        )
+        translate.TranslationServiceClient = Mock(return_value=mock_translation_client)
+        # Avoid error on isinstance call with this:
+        translate.types = translate_v3.types
+
+        data = {
+            'submission': submission_id,
+            'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}},
+        }
+
+        mock_balances = {
+            UsageType.ASR_SECONDS: {'exceeded': True},
+            UsageType.MT_CHARACTERS: {'exceeded': True},
+        }
+        with patch(
+            'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',
+            return_value=mock_balances,
+        ):
+            data = {
+                'submission': submission_id,
+                'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}},
+            }
+            res = self.client.post(url, data, format='json')
+            assert res.status_code == status.HTTP_402_PAYMENT_REQUIRED
+
+            data = {
+                'submission': submission_id,
+                'q1': {
+                    'transcript': {'value': 'test transcription', 'languageCode': ''},
+                    GOOGLETX: {'status': 'requested', 'languageCode': ''},
+                },
+            }
+            res = self.client.post(url, data, format='json')
+            assert res.status_code == status.HTTP_402_PAYMENT_REQUIRED
+
+        mock_balances = {
+            UsageType.ASR_SECONDS: {'exceeded': False},
+            UsageType.MT_CHARACTERS: {'exceeded': False},
+        }
+        with patch(
+            'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',
+            return_value=mock_balances,
+        ):
+            data = {
+                'submission': submission_id,
+                'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}},
+            }
+            res = self.client.post(url, data, format='json')
+            self.assertContains(res, 'complete')
+
+            data = {
+                'submission': submission_id,
+                'q1': {
+                    'transcript': {'value': 'test transcription', 'languageCode': ''},
+                    GOOGLETX: {'status': 'requested', 'languageCode': ''},
+                },
+            }
+            res = self.client.post(url, data, format='json')
+            self.assertContains(res, 'complete')
 
     @override_settings(
         CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}},
