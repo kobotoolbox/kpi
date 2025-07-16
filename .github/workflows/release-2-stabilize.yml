@@ -77,7 +77,9 @@ jobs:
         git checkout -B public-beta
         git push -f --set-upstream origin public-beta
 
-  merge:
+
+  merge-forward:
+    name: Merge Forward
     runs-on: ubuntu-24.04
     needs:
       - darker
@@ -93,11 +95,23 @@ jobs:
       (needs.changelog.result == 'skipped' || needs.changelog.result == 'success') &&
       needs.deploy-to-beta.result == 'success'
     steps:
-    - uses: actions/checkout@v4
-    - name: merge to main
-      run: |
-        echo 'TODO, squash migrations, if any'
-        echo 'TODO, lets test merging later with a real release branch'
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: "0"
+      - name: Find next release branch
+        id: branches
+        run: ./.github/find_next_release_branch.sh
+      - name: Merge
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "github-actions-bot@kobotoolbox.org"
+          current_branch="${{ steps.branches.outputs.current_branch }}"
+          next_branch="${{ steps.branches.outputs.next_branch }}"
+          git checkout "${next_branch}"
+          echo: 'TODO: squash migrations, if any'
+          git merge --no-ff "${current_branch}"
+          git push
+
 
   notify:
     needs:
@@ -106,7 +120,7 @@ jobs:
       - pytest
       - npm-test
       - deploy-to-beta
-      - merge
+      - merge-forward
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
@@ -120,7 +134,7 @@ jobs:
       - pytest
       - npm-test
       - deploy-to-beta
-      - merge
+      - merge-forward
     if: |
       failure() &&
       (needs.version.result == 'failure' || needs.version.result == 'timed_out' ||
@@ -128,7 +142,7 @@ jobs:
       needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' ||
       needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out' ||
       needs.deploy-to-beta.result == 'failure' || needs.deploy-to-beta.result == 'timed_out' ||
-      needs.merge.result == 'failure' || needs.merge.result == 'timed_out')
+      needs.merge-forward.result == 'failure' || needs.merge-forward.result == 'timed_out')
     secrets: inherit
     uses: './.github/workflows/zulip.yml'
     with:
