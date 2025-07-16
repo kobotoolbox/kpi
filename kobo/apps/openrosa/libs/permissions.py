@@ -79,7 +79,7 @@ def get_xform_ids_for_user(
     qs_assets = kpi_get_objects_for_user(user, [perm])
     uids = list(qs_assets.values_list('uid', flat=True))
     xform_ids = list(
-        XForm.objects.values_list('id', flat=True).filter(kpi_asset_uid__in=uids)
+        XForm.objects.filter(kpi_asset_uid__in=uids).values_list('id', flat=True)
     )
     return xform_ids
 
