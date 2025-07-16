@@ -47,22 +47,22 @@ Results from this endpoint can be filtered by a Boolean query specified in the
 
 **Some examples:**
 
-1. All deleted submissions<br>
+1. All deleted submissions
     `api/v2/audit-logs/?q=action:delete`
 
-2. All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`<br>
+2. All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`
     `api/v2/audit-logs/?q=action:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`
 
-3. All submissions deleted by a specific user `my_username`<br>
+3. All submissions deleted by a specific user `my_username`
     `api/v2/audit-logs/?q=action:delete AND user__username:my_username`
 
-4. All deleted submissions submitted after a specific date<br>
+4. All deleted submissions submitted after a specific date
     `/api/v2/audit-logs/?q=action:delete AND date_created__gte:2022-11-15`
 
-5. All deleted submissions submitted after a specific date **and time**<br>
+5. All deleted submissions submitted after a specific date **and time**
     `/api/v2/audit-logs/?q=action:delete AND date_created__gte:"2022-11-15 20:34"`
 
-6. All authentications from superusers<br>
+6. All authentications from superusers
     `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`
 
 *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces
