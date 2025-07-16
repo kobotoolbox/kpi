@@ -1,0 +1,75 @@
+from drf_spectacular.extensions import OpenApiSerializerFieldExtension
+from drf_spectacular.plumbing import (
+    build_array_type,
+    build_basic_type,
+    build_object_type,
+)
+from drf_spectacular.types import OpenApiTypes
+
+from kpi.utils.schema_extensions.url_builder import build_url_type
+
+
+class AssetCountFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.users.fields.AssetCountField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_basic_type(OpenApiTypes.INT)
+
+
+class CollectionCountExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.users.fields.CollectionCount'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_basic_type(OpenApiTypes.INT)
+
+
+class DateJoinedFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.users.fields.DateJoinedField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_basic_type(OpenApiTypes.DATETIME)
+
+
+class MetadataFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.users.fields.MetadataField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'name': build_basic_type(OpenApiTypes.STR),
+                'sector': build_basic_type(OpenApiTypes.STR),
+                'country': build_basic_type(OpenApiTypes.STR),
+                'organization': build_basic_type(OpenApiTypes.STR),
+                'last_ui_language': build_basic_type(OpenApiTypes.STR),
+                'organization_type': build_basic_type(OpenApiTypes.STR),
+                'organization_website': build_basic_type(OpenApiTypes.STR),
+                'project_views_settings': build_object_type(
+                    properties={
+                        'order': build_object_type(properties={}),
+                        'fields': build_array_type(
+                            schema=build_basic_type(OpenApiTypes.STR),
+                        ),
+                        'filters': build_array_type(
+                            schema=build_basic_type(OpenApiTypes.STR),
+                        ),
+                    }
+                )
+            }
+        )
+
+
+class PublicCollectionSubscriptionFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.users.fields.PublicCollectionSubscriptionField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_basic_type(OpenApiTypes.INT)
+
+
+class UserUrlFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.users.fields.UserUrlField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_url_type(
+            'api_v2:user-kpi-detail',
+            username='bob'
+        )

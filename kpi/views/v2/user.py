@@ -44,9 +44,6 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     search_default_field_lookups = [
         'username__icontains',
     ]
-    renderer_classes = [
-        JSONField,
-    ]
 
     class Meta:
         model = Asset

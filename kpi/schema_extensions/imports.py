@@ -10,3 +10,4 @@ import kpi.schema_extensions.v2.export_tasks.extensions
 import kpi.schema_extensions.v2.openrosa.extensions
 import kpi.schema_extensions.v2.paired_data.extensions
 import kpi.schema_extensions.v2.versions.extensions
+import kpi.schema_extensions.v2.users.extensions
