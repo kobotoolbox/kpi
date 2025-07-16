@@ -68,8 +68,8 @@ class PermissionAssignmentSchema(AutoSchema):
     def get_operation(self, *args, **kwargs):
 
         from kpi.schema_extensions.v2.asset_permission_assignments.schema import (
-            PARTIAL_PERMISSION,
-            PERMISSION_ASSIGNMENT_URL_SCHEMA,
+            PARTIAL_PERMISSION_SCHEMA,
+            PERMISSION_URL_SCHEMA,
             USER_URL_SCHEMA,
         )
 
@@ -88,16 +88,16 @@ class PermissionAssignmentSchema(AutoSchema):
                     'value': {
                         'user': generate_example_from_schema(USER_URL_SCHEMA),
                         'partial_permission': generate_example_from_schema(
-                            PARTIAL_PERMISSION
+                            PARTIAL_PERMISSION_SCHEMA
                         ),
-                        'permission': generate_example_from_schema(PERMISSION_ASSIGNMENT_URL_SCHEMA),
+                        'permission': generate_example_from_schema(PERMISSION_URL_SCHEMA),
                     },
                     'summary': 'Creating a partial permission',
                 },
                 'CreatingPermission': {
                     'value': {
                         'user': generate_example_from_schema(USER_URL_SCHEMA),
-                        'permission': generate_example_from_schema(PERMISSION_ASSIGNMENT_URL_SCHEMA),
+                        'permission': generate_example_from_schema(PERMISSION_URL_SCHEMA),
                     },
                     'summary': 'Creating a regular permission',
                 },

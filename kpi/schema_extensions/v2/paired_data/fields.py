@@ -11,7 +11,7 @@ class FieldFields(serializers.ListField):
     pass
 
 
-class SourceField(RelativePrefixHyperlinkedRelatedField):
+class SourceField(serializers.URLField):
     pass
 
 

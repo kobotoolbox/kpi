@@ -6,6 +6,7 @@ from django.utils.translation import gettext as t
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.reverse import reverse
+from kpi.fields import RelativePrefixHyperlinkedRelatedField
 
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
@@ -25,7 +26,7 @@ from kpi.schema_extensions.v2.paired_data.fields import (
 
 class PairedDataSerializer(serializers.Serializer):
 
-    source = SourceField(
+    source = RelativePrefixHyperlinkedRelatedField(
         lookup_field='uid',
         queryset=Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY),
         view_name='asset-detail',

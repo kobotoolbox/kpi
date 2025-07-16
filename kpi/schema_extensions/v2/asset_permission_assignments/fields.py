@@ -7,7 +7,7 @@ class LabelField(serializers.SerializerMethodField):
     pass
 
 
-class PermissionField(RelativePrefixHyperlinkedRelatedField):
+class PermissionField(serializers.URLField):
     pass
 
 
@@ -15,9 +15,9 @@ class PartialPermissionField(serializers.SerializerMethodField):
     pass
 
 
-class UrlField(serializers.SerializerMethodField):
+class AssetPermissionUrlField(serializers.URLField):
     pass
 
 
-class UserField(RelativePrefixHyperlinkedRelatedField):
+class UserField(serializers.URLField):
     pass
