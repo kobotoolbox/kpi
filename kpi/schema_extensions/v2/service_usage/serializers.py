@@ -1,11 +1,7 @@
 from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
-from .fields import (
-    BalancesField,
-    NlpUsageField,
-    SubmissionCountField,
-)
+from .fields import BalancesField, NlpUsageField, SubmissionCountField
 
 ServiceUsageResponse = inline_serializer_class(
     name='ServiceUsageResponse',

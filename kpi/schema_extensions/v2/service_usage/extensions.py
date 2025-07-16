@@ -1,12 +1,9 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
-from drf_spectacular.plumbing import (
-    build_array_type,
-    build_basic_type,
-    build_object_type,
-)
+from drf_spectacular.plumbing import build_basic_type, build_object_type
 from drf_spectacular.types import OpenApiTypes
 
 from .schema import BALANCE_FIELDS_OBJECTS
+
 
 class BalancesFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.service_usage.fields.BalancesField'
