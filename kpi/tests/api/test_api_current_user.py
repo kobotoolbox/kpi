@@ -200,3 +200,13 @@ class CurrentUserTestCase(BaseTestCase):
             'last_login': None,
             'extra_details__uid': self.user.extra_details.uid,
         }
+
+    def test_cannot_update_uid(self):
+        self.client.force_authenticate(self.user)
+        uid = self.user.extra_details.uid
+        response = self.client.patch(
+            self.url, data={'extra_details__uid': 'u12345'}, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        self.user.refresh_from_db()
+        assert self.user.extra_details.uid == uid
