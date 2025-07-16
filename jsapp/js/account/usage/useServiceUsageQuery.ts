@@ -30,10 +30,10 @@ export interface UsageResponse {
     mt_characters_all_time: number
   }
   balances: {
-    storage_bytes: UsageBalance
-    submission: UsageBalance
-    asr_seconds: UsageBalance
-    mt_characters: UsageBalance
+    storage_bytes: UsageBalance | null
+    submission: UsageBalance | null
+    asr_seconds: UsageBalance | null
+    mt_characters: UsageBalance | null
   }
 }
 
@@ -45,6 +45,12 @@ export interface UsageState {
   currentPeriodStart: string
   currentPeriodEnd: string
   lastUpdated?: String | null
+  balances: {
+    storage_bytes: UsageBalance | null
+    submission: UsageBalance | null
+    asr_seconds: UsageBalance | null
+    mt_characters: UsageBalance | null
+  }
   limitWarningList: string[]
   limitExceedList: string[]
 }
@@ -80,8 +86,6 @@ const loadUsage = async (organizationId: string | null): Promise<UsageState | un
     }
   }
 
-  usage.balances.storage_bytes.exceeded = true
-
   const limitWarningList: string[] = []
   const limitExceedList: string[] = []
 
@@ -91,9 +95,9 @@ const loadUsage = async (organizationId: string | null): Promise<UsageState | un
     // Mapping the balance to our Stripe's UsageLimitTypes enum
     const limitType = usageBalanceKeyMapping[key as keyof typeof usageBalanceKeyMapping]
 
-    if (balance.exceeded) {
+    if (balance?.exceeded) {
       limitExceedList.push(limitType)
-    } else if (balance.balance_percent / 100 >= USAGE_WARNING_RATIO) {
+    } else if (balance && balance.balance_percent / 100 >= USAGE_WARNING_RATIO) {
       limitWarningList.push(limitType)
     }
   })
@@ -106,6 +110,7 @@ const loadUsage = async (organizationId: string | null): Promise<UsageState | un
     currentPeriodStart: usage.current_period_start,
     currentPeriodEnd: usage.current_period_end,
     lastUpdated,
+    balances: usage.balances,
     limitWarningList,
     limitExceedList,
   }
