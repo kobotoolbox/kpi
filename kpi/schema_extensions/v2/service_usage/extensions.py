@@ -2,7 +2,7 @@ from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import build_basic_type, build_object_type
 from drf_spectacular.types import OpenApiTypes
 
-from .schema import BALANCE_FIELDS_OBJECTS
+from .schema import BALANCE_FIELDS_SCHEMA
 
 
 class BalancesFieldExtension(OpenApiSerializerFieldExtension):
@@ -11,10 +11,10 @@ class BalancesFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'submission': BALANCE_FIELDS_OBJECTS,
-                'storage_bytes': BALANCE_FIELDS_OBJECTS,
-                'asr_seconds': BALANCE_FIELDS_OBJECTS,
-                'mt_characters': BALANCE_FIELDS_OBJECTS,
+                'submission': BALANCE_FIELDS_SCHEMA,
+                'storage_bytes': BALANCE_FIELDS_SCHEMA,
+                'asr_seconds': BALANCE_FIELDS_SCHEMA,
+                'mt_characters': BALANCE_FIELDS_SCHEMA,
             }
         )
 
