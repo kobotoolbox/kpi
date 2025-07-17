@@ -94,7 +94,7 @@ class rowDetailsSkipLogic.SkipLogicCriterion extends Backbone.Model
 
   set_option_names: (options) ->
     _.each(options, (model)->
-      if (`model.get('name') == null`)
+      if `model.get('name') == null`
         model.set('name', $utils.sluggify(model.get('label')))
     )
     ``
