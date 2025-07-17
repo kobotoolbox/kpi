@@ -79,7 +79,9 @@ class FileSchema(AutoSchema):
                         'description': 'Description of the file',
                         'file_type': 'image/png',
                         'base64Encoded': '<base64-encoded-string>',
-                        'metadata': generate_example_from_schema(BASE64_METADATA_SCHEMA),
+                        'metadata': generate_example_from_schema(
+                            BASE64_METADATA_SCHEMA
+                        ),
                     },
                     'summary': 'Creating a file with Base64 content',
                 },

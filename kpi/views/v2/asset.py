@@ -134,7 +134,9 @@ class AssetSchema(AutoSchema):
                 'UsingSource': {
                     'value': {
                         'name': generate_example_from_schema(ASSET_NAME_SCHEMA),
-                        'clone_from': generate_example_from_schema(ASSET_CLONE_FROM_SCHEMA),
+                        'clone_from': generate_example_from_schema(
+                            ASSET_CLONE_FROM_SCHEMA
+                        ),
                         'asset_type': generate_example_from_schema(ASSET_TYPE_SCHEMA),
                     },
                     'summary': 'Cloning an asset',
@@ -146,7 +148,9 @@ class AssetSchema(AutoSchema):
             operation['requestBody']['content']['application/json']['examples'] = {
                 'UsingAssets': {
                     'value': {
-                        'asset_uids': generate_example_from_schema(BULK_ASSET_UIDS_SCHEMA),
+                        'asset_uids': generate_example_from_schema(
+                            BULK_ASSET_UIDS_SCHEMA
+                        ),
                         'action': generate_example_from_schema(BULK_ACTION_SCHEMA),
                     },
                     'summary': 'Perform action on one or more asset',

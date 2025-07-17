@@ -6,7 +6,13 @@ from drf_spectacular.plumbing import build_basic_type, build_object_type
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from .schema import ASSET_URL_SCHEMA, BASE64_METADATA_SCHEMA, FILE_URL_SCHEMA, URL_METADATA_SCHEMA, USER_URL_SCHEMA
+from .schema import (
+    ASSET_URL_SCHEMA,
+    BASE64_METADATA_SCHEMA,
+    FILE_URL_SCHEMA,
+    URL_METADATA_SCHEMA,
+    USER_URL_SCHEMA,
+)
 
 
 class AssetUrlFieldExtension(OpenApiSerializerFieldExtension):
