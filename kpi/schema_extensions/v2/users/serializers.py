@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
+    CeleryTask,
     MetadataField,
 )
 
@@ -18,4 +19,11 @@ UserListResponse = inline_serializer_class(
         'asset_count': serializers.IntegerField(),
         'metadata': MetadataField(),
     },
+)
+
+MigrateResponse = inline_serializer_class(
+    name='MigrateResponse',
+    fields={
+        'celery_task': CeleryTask(),
+    }
 )

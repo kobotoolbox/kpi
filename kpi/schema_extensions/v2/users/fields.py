@@ -1,6 +1,8 @@
 from rest_framework import serializers
-from rest_framework.relations import HyperlinkedIdentityField
 
+
+class CeleryTask(serializers.URLField):
+    pass
 
 class MetadataField(serializers.JSONField):
     pass
