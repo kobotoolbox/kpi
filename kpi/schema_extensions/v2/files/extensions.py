@@ -6,14 +6,14 @@ from drf_spectacular.plumbing import build_basic_type, build_object_type
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from .schema import ASSET_URL, BASE64_METADATA, FILE_URL, URL_METADATA, USER_URL
+from .schema import ASSET_URL_SCHEMA, BASE64_METADATA_SCHEMA, FILE_URL_SCHEMA, URL_METADATA_SCHEMA, USER_URL_SCHEMA
 
 
 class AssetUrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.files.fields.AssetUrlField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return ASSET_URL
+        return ASSET_URL_SCHEMA
 
 
 class ContentURlFieldExtension(OpenApiSerializerFieldExtension):
@@ -44,8 +44,8 @@ class FileCreateRequestSerializerExtension(OpenApiSerializerExtension):
                         'content',
                     ],
                     properties={
-                        'user': USER_URL,
-                        'asset': ASSET_URL,
+                        'user': USER_URL_SCHEMA,
+                        'asset': ASSET_URL_SCHEMA,
                         'description': build_basic_type(OpenApiTypes.STR),
                         'file_type': build_basic_type(OpenApiTypes.STR),
                         'content': build_basic_type(OpenApiTypes.STR),
@@ -61,12 +61,12 @@ class FileCreateRequestSerializerExtension(OpenApiSerializerExtension):
                         'metadata',
                     ],
                     properties={
-                        'user': USER_URL,
-                        'asset': ASSET_URL,
+                        'user': USER_URL_SCHEMA,
+                        'asset': ASSET_URL_SCHEMA,
                         'description': build_basic_type(OpenApiTypes.STR),
                         'file_type': build_basic_type(OpenApiTypes.STR),
                         'base64Encoded': build_basic_type(OpenApiTypes.STR),
-                        'metadata': BASE64_METADATA,
+                        'metadata': BASE64_METADATA_SCHEMA,
                     },
                 ),
                 build_object_type(
@@ -78,11 +78,11 @@ class FileCreateRequestSerializerExtension(OpenApiSerializerExtension):
                         'metadata',
                     ],
                     properties={
-                        'user': USER_URL,
-                        'asset': ASSET_URL,
+                        'user': USER_URL_SCHEMA,
+                        'asset': ASSET_URL_SCHEMA,
                         'description': build_basic_type(OpenApiTypes.STR),
                         'file_type': build_basic_type(OpenApiTypes.STR),
-                        'metadata': URL_METADATA,
+                        'metadata': URL_METADATA_SCHEMA,
                     },
                 ),
             ]
@@ -93,7 +93,7 @@ class FileUrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.files.fields.FileUrlField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return FILE_URL
+        return FILE_URL_SCHEMA
 
 
 class MetadataCreateFieldExtension(OpenApiSerializerFieldExtension):
@@ -120,4 +120,4 @@ class UserUrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.files.fields.UserUrlField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return USER_URL
+        return USER_URL_SCHEMA

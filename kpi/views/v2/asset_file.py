@@ -48,10 +48,10 @@ class FileSchema(AutoSchema):
     def get_operation(self, *args, **kwargs):
 
         from kpi.schema_extensions.v2.files.schema import (
-            ASSET_URL,
-            BASE64_METADATA,
-            URL_METADATA,
-            USER_URL,
+            ASSET_URL_SCHEMA,
+            BASE64_METADATA_SCHEMA,
+            URL_METADATA_SCHEMA,
+            USER_URL_SCHEMA,
         )
 
         operation = super().get_operation(*args, **kwargs)
@@ -64,8 +64,8 @@ class FileSchema(AutoSchema):
             operation['requestBody']['content']['application/json']['examples'] = {
                 'Binary': {
                     'value': {
-                        'user': generate_example_from_schema(USER_URL),
-                        'asset': generate_example_from_schema(ASSET_URL),
+                        'user': generate_example_from_schema(USER_URL_SCHEMA),
+                        'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
                         'description': 'Description of the file',
                         'file_type': 'image/png',
                         'content': '<binary>',
@@ -74,22 +74,22 @@ class FileSchema(AutoSchema):
                 },
                 'Base64': {
                     'value': {
-                        'user': generate_example_from_schema(USER_URL),
-                        'asset': generate_example_from_schema(ASSET_URL),
+                        'user': generate_example_from_schema(USER_URL_SCHEMA),
+                        'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
                         'description': 'Description of the file',
                         'file_type': 'image/png',
                         'base64Encoded': '<base64-encoded-string>',
-                        'metadata': generate_example_from_schema(BASE64_METADATA),
+                        'metadata': generate_example_from_schema(BASE64_METADATA_SCHEMA),
                     },
                     'summary': 'Creating a file with Base64 content',
                 },
                 'RemoteUrl': {
                     'value': {
-                        'user': generate_example_from_schema(USER_URL),
-                        'asset': generate_example_from_schema(ASSET_URL),
+                        'user': generate_example_from_schema(USER_URL_SCHEMA),
+                        'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
                         'description': 'Description of the file',
                         'file_type': 'image/png',
-                        'metadata': generate_example_from_schema(URL_METADATA),
+                        'metadata': generate_example_from_schema(URL_METADATA_SCHEMA),
                     },
                     'summary': 'Creating a file with a remote url',
                 },
