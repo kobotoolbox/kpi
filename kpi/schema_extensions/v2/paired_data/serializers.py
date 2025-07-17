@@ -1,12 +1,9 @@
 from rest_framework import serializers
 
-from kpi.constants import ASSET_TYPE_SURVEY
-from kpi.models import Asset
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
-from .fields import DataField, FieldFields, SourceField, SourceNameField, URLField
-# from kpi.schema_extensions.v2.assets.schema import ASSET_URL_SCHEMA
-from kpi.utils.schema_extensions.url_builder import build_url_type
 
+# from kpi.schema_extensions.v2.assets.schema import ASSET_URL_SCHEMA
+from .fields import DataField, FieldFields, SourceField, SourceNameField, URLField
 
 ExternalResponse = inline_serializer_class(
     name='ExternalResponse',

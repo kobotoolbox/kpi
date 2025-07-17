@@ -2,7 +2,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
 from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import (
@@ -90,14 +90,18 @@ class PermissionAssignmentSchema(AutoSchema):
                         'partial_permission': generate_example_from_schema(
                             PARTIAL_PERMISSION_SCHEMA
                         ),
-                        'permission': generate_example_from_schema(PERMISSION_URL_SCHEMA),
+                        'permission': generate_example_from_schema(
+                            PERMISSION_URL_SCHEMA
+                        ),
                     },
                     'summary': 'Creating a partial permission',
                 },
                 'CreatingPermission': {
                     'value': {
                         'user': generate_example_from_schema(USER_URL_SCHEMA),
-                        'permission': generate_example_from_schema(PERMISSION_URL_SCHEMA),
+                        'permission': generate_example_from_schema(
+                            PERMISSION_URL_SCHEMA
+                        ),
                     },
                     'summary': 'Creating a regular permission',
                 },
@@ -105,11 +109,11 @@ class PermissionAssignmentSchema(AutoSchema):
 
         return operation
 
-"""
-    Some parameters (like parent_lookup_asset) might get mixed up and thus result
-    in a schema error. By specifying the parameter and its type, we erase this
-    problem.
-"""
+# Some parameters (like parent_lookup_asset) might get mixed up and thus result
+# in a schema error. By specifying the parameter and its type, we erase this
+# problem.
+
+
 @extend_schema(
     tags=['Asset Permission Assignments'],
     parameters=[
@@ -120,7 +124,7 @@ class PermissionAssignmentSchema(AutoSchema):
             required=True,
             description='UID of the parent asset',
         ),
-    ]
+    ],
 )
 @extend_schema_view(
     bulk_assignments=extend_schema(
@@ -161,7 +165,7 @@ class PermissionAssignmentSchema(AutoSchema):
                 required=True,
                 description='UID of the permission',
             ),
-        ]
+        ],
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'asset_permission_assignments/delete.md'),
@@ -177,7 +181,7 @@ class PermissionAssignmentSchema(AutoSchema):
                 required=True,
                 description='UID of the permission',
             ),
-        ]
+        ],
     ),
     list=extend_schema(
         description=read_md('kpi', 'asset_permission_assignments/list.md'),
@@ -202,7 +206,7 @@ class PermissionAssignmentSchema(AutoSchema):
                 required=True,
                 description='UID of the permission',
             ),
-        ]
+        ],
     ),
 )
 class AssetPermissionAssignmentViewSet(

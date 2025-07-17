@@ -21,13 +21,6 @@ from kpi.constants import (
 from kpi.fields import RelativePrefixHyperlinkedRelatedField
 from kpi.models.asset import Asset, AssetUserPartialPermission
 from kpi.models.object_permission import ObjectPermission
-from kpi.schema_extensions.v2.asset_permission_assignments.fields import (
-    LabelField,
-    PartialPermissionField,
-    PermissionField,
-    AssetPermissionUrlField,
-    UserField,
-)
 from kpi.utils.object_permission import get_user_permission_assignments_queryset
 from kpi.utils.urls import absolute_resolve
 
