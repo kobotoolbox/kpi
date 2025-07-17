@@ -4,8 +4,8 @@
 # list is set to the string 'true'.
 
 all:
-  - '.github/workflows/ci-*.yml'   # ci
-  - '.github/workflows/zulip.yml'  # ci
+  - '.github/workflows/ci-*.yml'      # ci
+  - '.github/workflows/zulip.yml'     # ci
 
 darker:
   - '{kpi,kobo,hub}/**/*.py'       # .py
@@ -25,3 +25,7 @@ npm-test:
   - '{.editorconfig,.stylelint*,.eslint*,coffeelint*,biome.jsonc}'            # linters
   - '.gitignore'                                                              # (can affect tools)
   - '.github/workflows/{npm-test,chromatic}.yml'                              # ci
+
+# Notably, not included:
+# - '.github/workflows/release-*.yml'               # not running on a PR anyways.
+# - '.github/workflows/find_next_release_branch.sh' # not running on a PR anyways.
