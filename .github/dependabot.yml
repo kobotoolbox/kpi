@@ -6,7 +6,7 @@ updates:
       - cron: "7 6 * * *"
     labels:
       - "dependencies"
-      - "github-actions"
+      - "github actions"
     groups:
       actions-deps:
         patterns:
