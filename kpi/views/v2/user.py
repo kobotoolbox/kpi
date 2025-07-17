@@ -10,6 +10,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.filters import SearchFilter
 from kpi.models.asset import Asset
 from kpi.permissions import IsAuthenticated
+from kpi.schema_extensions.v2.users.serializers import UserListResponse
 from kpi.serializers.v2.user import UserListSerializer, UserSerializer
 from kpi.tasks import sync_kobocat_xforms
 from kpi.utils.schema_extensions.markdown import read_md
@@ -23,13 +24,13 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
     list=extend_schema(
         description=read_md('kpi', 'users/users_list.md'),
         responses=open_api_200_ok_response(
-            UserSerializer
+            UserListResponse,
         )
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'users/users_retrieve.md'),
         responses=open_api_200_ok_response(
-
+            UserListResponse,
         )
     ),
     migrate=extend_schema(
