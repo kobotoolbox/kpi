@@ -4,9 +4,10 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models.query import QuerySet
 from django.http import Http404
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -27,7 +28,21 @@ from .serializers import ProjectViewSerializer
 
 
 @extend_schema(
-    tags=['project-views'],
+    tags=['Project Views'],
+)
+@extend_schema_view(
+    assets=extend_schema(
+        description='assets',
+    ),
+    list=extend_schema(
+        description='list',
+    ),
+    retrieve=extend_schema(
+        description='retrieve',
+    ),
+    users=extend_schema(
+        description='users',
+    ),
 )
 class ProjectViewViewSet(
     AssetViewSetListMixin, ObjectPermissionViewSetMixin, viewsets.ReadOnlyModelViewSet
@@ -43,6 +58,9 @@ class ProjectViewViewSet(
     min_search_characters = 2
     ordering_fields = AssetOrderingFilter.DEFAULT_ORDERING_FIELDS
     queryset = ProjectView.objects.all()
+    renderer_classes = [
+        JSONRenderer,
+    ]
 
     def get_queryset(self, *args, **kwargs):
         user = get_database_user(self.request.user)
@@ -77,6 +95,14 @@ class ProjectViewViewSet(
             queryset, serializer_class=AssetMetadataListSerializer
         )
 
+    @extend_schema(
+        description='export list',
+        methods=['GET'],
+    )
+    @extend_schema(
+        description='export post',
+        methods=['POST']
+    )
     @action(
         detail=True,
         methods=['GET', 'POST'],
