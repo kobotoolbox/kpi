@@ -562,7 +562,7 @@ class Asset(
             try:
                 xpath = qual_question['xpath']
             except KeyError:
-                xpath = qpath_to_xpath(qual_question['qpath'], self)
+                xpath = self.get_xpath_from_qpath(qual_question['qpath'])
 
             field = dict(
                 label=qual_question['labels']['_default'],
@@ -662,7 +662,16 @@ class Asset(
             content, self.advanced_features, url=url
         )
 
-    def get_all_attachment_xpaths(self):
+    def get_all_attachment_xpaths(self) -> list:
+
+        # We previously used `cache_for_request`, but it provides no benefit in Celery
+        # tasks. A "protected" property on the Asset instance now serves the same
+        # purpose during its lifecycle.
+        if (
+            _all_attachment_xpaths := getattr(self, '_all_attachment_xpaths', None)
+        ) is not None:
+            return _all_attachment_xpaths
+
         # return deployed versions first
         versions = self.asset_versions.filter(deployed=True).order_by('-date_modified')
         xpaths = set()
@@ -670,7 +679,8 @@ class Asset(
             if xpaths_from_version := self.get_attachment_xpaths_from_version(version):
                 xpaths.update(xpaths_from_version)
 
-        return list(xpaths)
+        setattr(self, '_all_attachment_xpaths', list(xpaths))
+        return self._all_attachment_xpaths
 
     def get_attachment_xpaths_from_version(self, version=None) -> Optional[list]:
 
@@ -831,6 +841,23 @@ class Asset(
 
         return None
 
+    def get_xpath_from_qpath(self, qpath: str) -> str:
+
+        # We could have used `cache_for_request` in the `qpath_to_xpath` utility,
+        # but it provides no benefit in Celery tasks.
+        # Instead, we use a "protected" property on the Asset model to cache the result
+        # during the lifetime of the asset instance.
+        qpaths_xpaths_mapping = getattr(self, '_qpaths_xpaths_mapping', {})
+
+        try:
+            xpath = qpaths_xpaths_mapping[qpath]
+        except KeyError:
+            qpaths_xpaths_mapping[qpath] = qpath_to_xpath(qpath, self)
+            xpath = qpaths_xpaths_mapping[qpath]
+
+        setattr(self, '_qpaths_xpaths_mapping', qpaths_xpaths_mapping)
+        return xpath
+
     @property
     def has_advanced_features(self):
         if self.advanced_features is None:
@@ -910,6 +937,9 @@ class Asset(
         super().refresh_from_db(using=using, fields=fields)
         # Refresh hidden fields too
         self.__copy_hidden_fields(fields)
+        # reset caching fields
+        self._qpaths_xpaths_mapping = {}
+        self._all_attachment_xpaths = None
 
     def rename_translation(self, _from, _to):
         if not self._has_translations(self.content, 2):
