@@ -17,6 +17,7 @@ import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import SubmissionsCountGraph from '#/project/submissionsCountGraph.component'
 import { ANON_USERNAME, getUsernameFromUrl } from '#/users/utils'
+import LimitNotifications from '../usageLimits/limitNotifications.component'
 import FormSummaryProjectInfo from './formSummaryProjectInfo'
 
 class FormSummary extends React.Component {
@@ -157,32 +158,34 @@ class FormSummary extends React.Component {
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='summary'>
-          <bem.FormView__column m='left'>
-            {/* We only want to pass an actual asset object, but because this
+          <LimitNotifications />
+          <bem.FormView__row m='panels'>
+            <bem.FormView__column m='left'>
+              {/* We only want to pass an actual asset object, but because this
             component uses `mixins.dmix`, we have to add this little check. */}
-            {this.state.uid && <FormSummaryProjectInfo asset={this.state} />}
+              {this.state.uid && <FormSummaryProjectInfo asset={this.state} />}
 
-            {this.state.uid && (
-              <bem.FormView__row>
-                <bem.FormView__cell m={['label', 'first']}>{t('Submissions')}</bem.FormView__cell>
+              {this.state.uid && (
+                <bem.FormView__row>
+                  <bem.FormView__cell m={['label', 'first']}>{t('Submissions')}</bem.FormView__cell>
 
-                <bem.FormView__cell m='box'>
-                  <SubmissionsCountGraph assetUid={this.state.uid} />
-                </bem.FormView__cell>
+                  <bem.FormView__cell m='box'>
+                    <SubmissionsCountGraph assetUid={this.state.uid} />
+                  </bem.FormView__cell>
+                </bem.FormView__row>
+              )}
+            </bem.FormView__column>
+            <bem.FormView__column m='right'>
+              <bem.FormView__row m='quick-links'>
+                <bem.FormView__cell m={['label', 'first']}>{t('Quick Links')}</bem.FormView__cell>
+                <bem.FormView__cell m='box'>{this.renderQuickLinks()}</bem.FormView__cell>
               </bem.FormView__row>
-            )}
-          </bem.FormView__column>
 
-          <bem.FormView__column m='right'>
-            <bem.FormView__row m='quick-links'>
-              <bem.FormView__cell m={['label', 'first']}>{t('Quick Links')}</bem.FormView__cell>
-              <bem.FormView__cell m='box'>{this.renderQuickLinks()}</bem.FormView__cell>
-            </bem.FormView__row>
+              {this.renderDataTabs()}
 
-            {this.renderDataTabs()}
-
-            {this.renderTeam()}
-          </bem.FormView__column>
+              {this.renderTeam()}
+            </bem.FormView__column>
+          </bem.FormView__row>
         </bem.FormView>
       </DocumentTitle>
     )
