@@ -23,7 +23,7 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
 )
 @extend_schema_view(
     list=extend_schema(
-        description=read_md('kpi', 'users/users_list.md'),
+        description=read_md('kpi', 'users/list.md'),
         responses=open_api_200_ok_response(
             UserListResponse,
             require_auth=False,
@@ -32,7 +32,7 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
         )
     ),
     retrieve=extend_schema(
-        description=read_md('kpi', 'users/users_retrieve.md'),
+        description=read_md('kpi', 'users/retrieve.md'),
         responses=open_api_200_ok_response(
             UserListResponse,
             require_auth=False,
@@ -41,7 +41,7 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
         )
     ),
     migrate=extend_schema(
-        description=read_md('kpi', 'users/users_migrate.md'),
+        description=read_md('kpi', 'users/migrate.md'),
         responses=open_api_200_ok_response(
             MigrateResponse,
             raise_not_found=False,
@@ -53,6 +53,16 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     """
     This viewset provides only the `detail` action; `list` is *not* provided to
     avoid disclosing every username in the database
+
+    Available actions:
+    - list          → GET     /api/v2/users/
+    - retrieve      → GET     /api/v2/users/{username}/
+    - migrate       → GET     /api/v2/users/{username}/migrate/
+
+    Documentation:
+    - docs/api/v2/users/list.md
+    - docs/api/v2/organizations/retrieve.md
+    - docs/api/v2/organizations/migrate.md
     """
 
     queryset = User.objects.all()
