@@ -3,6 +3,7 @@ from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.fields import JSONField
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
@@ -25,18 +26,26 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
         description=read_md('kpi', 'users/users_list.md'),
         responses=open_api_200_ok_response(
             UserListResponse,
+            require_auth=False,
+            raise_not_found=False,
+            validate_payload=False,
         )
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'users/users_retrieve.md'),
         responses=open_api_200_ok_response(
             UserListResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
     migrate=extend_schema(
         description=read_md('kpi', 'users/users_migrate.md'),
         responses=open_api_200_ok_response(
             MigrateResponse,
+            raise_not_found=False,
+            validate_payload=False,
         )
     ),
 )
@@ -54,6 +63,9 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     permission_classes = (IsAuthenticated,)
     search_default_field_lookups = [
         'username__icontains',
+    ]
+    renderer_classes = [
+        JSONRenderer,
     ]
 
     class Meta:
