@@ -92,7 +92,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         else:
             return False
 
-    def get_gravatar(self, obj):
+    def get_gravatar(self, obj) -> str:
         return gravatar_url(obj.email)
 
     def get_organization(self, obj):

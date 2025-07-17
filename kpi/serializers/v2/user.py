@@ -2,6 +2,8 @@ from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django_request_cache import cache_for_request
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 
@@ -9,17 +11,24 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_COLLECTION, PERM_DISCOVER_ASSET
 from kpi.models.asset import Asset, UserAssetSubscription
 from kpi.models.object_permission import ObjectPermission
-from kpi.schema_extensions.v2.users.fields import UserUrlField, DateJoinedField, \
-    PublicCollectionSubscriptionField, CollectionCount, MetadataField, AssetCountField
+from kpi.utils.schema_extensions.url_builder import build_url_type
+
+@extend_schema_field({
+        'type': 'string',
+        'format': 'uri',
+        'example': '/api/v2/users',
+    })
+class foo(HyperlinkedIdentityField):
+    pass
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
 
-    url = UserUrlField(
+    url = foo(
         lookup_field='username', view_name='user-kpi-detail')
-    date_joined = DateJoinedField()
-    public_collection_subscribers_count = PublicCollectionSubscriptionField()
-    public_collections_count = CollectionCount()
+    date_joined = serializers.SerializerMethodField()
+    public_collection_subscribers_count = serializers.SerializerMethodField()
+    public_collections_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -60,8 +69,8 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class UserListSerializer(UserSerializer):
-    metadata = MetadataField()
-    asset_count = AssetCountField()
+    metadata = serializers.SerializerMethodField()
+    asset_count = serializers.SerializerMethodField()
 
     class Meta(UserSerializer.Meta):
         fields = (
