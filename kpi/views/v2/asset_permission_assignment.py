@@ -2,7 +2,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
 from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import (
@@ -105,9 +105,22 @@ class PermissionAssignmentSchema(AutoSchema):
 
         return operation
 
-
+"""
+    Some parameters (like parent_lookup_asset) might get mixed up and thus result
+    in a schema error. By specifying the parameter and its type, we erase this
+    problem.
+"""
 @extend_schema(
     tags=['Asset Permission Assignments'],
+    parameters=[
+        OpenApiParameter(
+            name='parent_lookup_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent asset',
+        ),
+    ]
 )
 @extend_schema_view(
     bulk_assignments=extend_schema(
@@ -140,6 +153,15 @@ class PermissionAssignmentSchema(AutoSchema):
             require_auth=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the permission',
+            ),
+        ]
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'asset_permission_assignments/delete.md'),
@@ -147,6 +169,15 @@ class PermissionAssignmentSchema(AutoSchema):
             require_auth=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the permission',
+            ),
+        ]
     ),
     list=extend_schema(
         description=read_md('kpi', 'asset_permission_assignments/list.md'),
@@ -163,6 +194,15 @@ class PermissionAssignmentSchema(AutoSchema):
             require_auth=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the permission',
+            ),
+        ]
     ),
 )
 class AssetPermissionAssignmentViewSet(
