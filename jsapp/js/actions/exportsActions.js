@@ -104,7 +104,6 @@ exportsActions.updateExportSetting.listen((assetUid, settingUid, data) => {
     name: data.name,
     export_settings: JSON.stringify(data.export_settings),
   }
-
   dataInterface
     .updateExportSetting(assetUid, settingUid, cleanData)
     .done(exportsActions.updateExportSetting.completed)
