@@ -107,7 +107,6 @@ class AssetAttachmentXPathCachingTests(TestCase):
                 'survey': [{'type': 'image', 'name': 'photo', 'label': ['photo']}],
             },
             owner=bob,
-
         )
         self.asset.deploy(backend='mock', active=True)
 

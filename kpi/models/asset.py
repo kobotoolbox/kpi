@@ -28,7 +28,8 @@ from kobo.apps.subsequences.utils import (
 from kobo.apps.subsequences.utils.deprecation import (
     get_sanitized_advanced_features,
     get_sanitized_dict_keys,
-    get_sanitized_known_columns, qpath_to_xpath,
+    get_sanitized_known_columns,
+    qpath_to_xpath,
 )
 from kobo.apps.subsequences.utils.parse_known_cols import parse_known_cols
 from kpi.constants import (
@@ -661,15 +662,13 @@ class Asset(
             content, self.advanced_features, url=url
         )
 
-    def get_all_attachment_xpaths(self):
+    def get_all_attachment_xpaths(self) -> list:
 
         # We previously used `cache_for_request`, but it provides no benefit in Celery
-        # tasks. A "protected" property on the Asset instance now serves the same purpose
-        # during its lifecycle.
+        # tasks. A "protected" property on the Asset instance now serves the same
+        # purpose during its lifecycle.
         if (
-            _all_attachment_xpaths := getattr(
-                self, '_all_attachment_xpaths', None
-            )
+            _all_attachment_xpaths := getattr(self, '_all_attachment_xpaths', None)
         ) is not None:
             return _all_attachment_xpaths
 
@@ -938,6 +937,9 @@ class Asset(
         super().refresh_from_db(using=using, fields=fields)
         # Refresh hidden fields too
         self.__copy_hidden_fields(fields)
+        # reset caching fields
+        self._qpaths_xpaths_mapping = {}
+        self._all_attachment_xpaths = None
 
     def rename_translation(self, _from, _to):
         if not self._has_translations(self.content, 2):
