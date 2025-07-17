@@ -18,11 +18,14 @@ jobs:
       !failure() &&
       needs.npm-test.result == 'success' &&
       ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    outputs:
+      pr-url: ${{ github.event.pull_request.html_url }}
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
         uses: dependabot/fetch-metadata@v1.3.1
       - name: Enable auto-merge for Dependabot PRs
+        # This requires auto-merge to be enabled in GitHub repo settings
         run: gh pr merge --auto --merge "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
@@ -39,7 +42,20 @@ jobs:
         if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-major'}}
         run: |
           gh pr comment $PR_URL --body "I'm **not approving** this PR because **it includes a major update of a dependency**"
-          gh pr edit $PR_URL --add-label "dependency-requires-manual-qa"
+          gh pr edit $PR_URL --add-label "dependency-requires-review"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+  on-failure:
+    if: |
+      failure() &&
+      (needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out')
+    needs:
+      - npm-test
+      - review-dependabot-pr
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "Github Actions (dependabot)"
+      content: ":boom: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to auto-merge [a dependabot PR](${{needs.review-dependabot-pr.outputs.pr-url}}). Please review."
