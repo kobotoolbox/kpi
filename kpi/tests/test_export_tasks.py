@@ -5,7 +5,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kpi.models import Asset
 from kpi.models.import_export_task import ProjectViewExportTask
 from kpi.tasks import export_task_in_background
 
@@ -96,60 +95,3 @@ class ExportTaskInBackgroundTests(TestCase):
         )
 
         mock_send_mail.assert_not_called()
-
-
-class AssetAttachmentXPathCachingTests(TestCase):
-    def setUp(self):
-        bob = User.objects.create(username='bob')
-        self.asset = Asset.objects.create(
-            asset_type='survey',
-            content={
-                'survey': [{'type': 'image', 'name': 'photo', 'label': ['photo']}],
-            },
-            owner=bob,
-        )
-        self.asset.deploy(backend='mock', active=True)
-
-    @patch('kpi.models.asset.Asset.get_attachment_xpaths_from_version')
-    def test_xpath_method_called_once_for_single_version(
-        self, mock_get_xpaths_from_version
-    ):
-        """
-        Test `get_attachment_xpaths_from_version()` is called only once
-        for a single deployed version and results are cached
-        """
-        # Simulate return value for a single version
-        mock_get_xpaths_from_version.return_value = ['photo']
-
-        # Call the method twice, should hit cache after first call
-        self.asset.get_all_attachment_xpaths()
-        self.asset.get_all_attachment_xpaths()
-
-        # Confirm that the mock was called only once
-        mock_get_xpaths_from_version.assert_called_once()
-
-    @patch('kpi.models.asset.Asset.get_attachment_xpaths_from_version')
-    def test_xpath_method_called_once_per_version(self, mock_get_xpaths_from_version):
-        """
-        Test `get_attachment_xpaths_from_version()` is called only once per deployed
-        version and results are cached
-        """
-        self.asset.content['survey'].append(
-            {'type': 'image', 'name': 'photo2', 'label': ['photo2']}
-        )
-        self.asset.save()
-        self.asset.deploy(backend='mock', active=True)
-
-        # Use side_effect to simulate distinct outputs for each version
-        mock_get_xpaths_from_version.side_effect = [
-            ['photo'],               # first version
-            ['photo', 'photo2'],     # second version
-        ]
-
-        # Call multiple times, should hit cache for each version
-        self.asset.get_all_attachment_xpaths()
-        self.asset.get_all_attachment_xpaths()
-        self.asset.get_all_attachment_xpaths()
-
-        # Confirm it was called twice, once for each version
-        self.assertEqual(mock_get_xpaths_from_version.call_count, 2)

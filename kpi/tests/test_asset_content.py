@@ -4,6 +4,7 @@ import string
 from collections import OrderedDict
 from copy import deepcopy
 from functools import reduce
+from unittest.mock import patch
 
 from django.conf import settings
 from django.test import TestCase
@@ -870,10 +871,10 @@ def test_populates_xpath_correctly():
 
 class TestAssetContent(TestCase):
 
-    def test_get_attachment_xpaths_from_all_versions(self):
+    def setUp(self):
         user = baker.make(settings.AUTH_USER_MODEL, username='johndoe')
         # survey with 1 attachment question
-        asset = Asset.objects.create(
+        self.asset = Asset.objects.create(
             owner=user,
             content={
                 'survey': [
@@ -886,7 +887,11 @@ class TestAssetContent(TestCase):
                 ]
             },
         )
-        asset.deploy(backend='mock')
+        self.asset.deploy(backend='mock')
+
+    def test_get_attachment_xpaths_from_all_versions(self):
+
+        asset = self.asset
         # move the attachment question to a group
         asset.content = {
             'survey': [
@@ -931,3 +936,47 @@ class TestAssetContent(TestCase):
         # Validate XPaths can still be retrieved even on old versions
         xpaths = asset.get_all_attachment_xpaths()
         assert sorted(xpaths) == ['Image', 'group_kq1rd43/Image']
+
+    @patch('kpi.models.asset.Asset.get_attachment_xpaths_from_version')
+    def test_xpath_method_called_once_for_single_version(
+        self, mock_get_xpaths_from_version
+    ):
+        """
+        Test `get_attachment_xpaths_from_version()` is called only once
+        for a single deployed version and results are cached
+        """
+        # Simulate return value for a single version
+        mock_get_xpaths_from_version.return_value = ['Image']
+
+        # Call the method twice, should hit cache after first call
+        self.asset.get_all_attachment_xpaths()
+        self.asset.get_all_attachment_xpaths()
+
+        # Confirm that the mock was called only once
+        mock_get_xpaths_from_version.assert_called_once()
+
+    @patch('kpi.models.asset.Asset.get_attachment_xpaths_from_version')
+    def test_xpath_method_called_once_per_version(self, mock_get_xpaths_from_version):
+        """
+        Test `get_attachment_xpaths_from_version()` is called only once per deployed
+        version and results are cached
+        """
+        self.asset.content['survey'].append(
+            {'type': 'image', 'name': 'image2', 'label': ['image2']}
+        )
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+
+        # Use side_effect to simulate distinct outputs for each version
+        mock_get_xpaths_from_version.side_effect = [
+            ['image'],               # first version
+            ['image', 'image2'],     # second version
+        ]
+
+        # Call multiple times, should hit cache for each version
+        self.asset.get_all_attachment_xpaths()
+        self.asset.get_all_attachment_xpaths()
+        self.asset.get_all_attachment_xpaths()
+
+        # Confirm it was called twice, once for each version
+        self.assertEqual(mock_get_xpaths_from_version.call_count, 2)
