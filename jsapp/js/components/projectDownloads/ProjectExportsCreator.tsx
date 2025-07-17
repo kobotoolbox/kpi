@@ -727,11 +727,13 @@ export default class ProjectExportsCreator extends React.Component<
               label={t('Date range')}
             />
 
-            <div>
+            <div className='project-downloads__date-wrapper'>
               <label>
                 {t('Between')}
                 <input
                   type='date'
+                  className='project-downloads__date-selector'
+                  disabled={!this.state.isDateEnabled}
                   onChange={(e) => {
                     this.setState({ startDate: e.currentTarget.value })
                   }}
@@ -741,6 +743,8 @@ export default class ProjectExportsCreator extends React.Component<
                 {t('and')}
                 <input
                   type='date'
+                  className='project-downloads__date-selector'
+                  disabled={!this.state.isDateEnabled}
                   onChange={(e) => {
                     this.setState({ endDate: e.currentTarget.value })
                   }}
