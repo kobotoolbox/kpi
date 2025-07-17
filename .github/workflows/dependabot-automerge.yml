@@ -24,12 +24,14 @@ jobs:
       - name: Dependabot metadata
         id: dependabot-metadata
         uses: dependabot/fetch-metadata@v1.3.1
+
       - name: Enable auto-merge for Dependabot PRs
         # This requires auto-merge to be enabled in GitHub repo settings
         run: gh pr merge --auto --merge "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
       - name: Approve patch and minor updates
         if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' || steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
         run: |
@@ -38,11 +40,13 @@ jobs:
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
       - name: Comment on major updates
         if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-major'}}
         run: |
           gh pr comment $PR_URL --body "I'm **not approving** this PR because **it includes a major update of a dependency**"
           gh pr edit $PR_URL --add-label "Front end"
+          gh pr edit $PR_URL --add-reviewer Akuukis,magicznyleszek,pauloamorimbr
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
