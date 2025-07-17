@@ -416,7 +416,7 @@ export interface MongoQuery<T = any> {
     | { $in?: T[]; $nin?: T[] }
     | { $exists?: boolean }
     | { $regex?: string | RegExp; $options?: string }
-    | MongoQuery<T>; // Recursive for nested queries
+    | MongoQuery<T> // Recursive for nested queries
 }
 
 /**
@@ -1520,10 +1520,7 @@ export const dataInterface: DataInterface = {
     })
   },
 
-  createAssetExport(
-    assetUid: string,
-    data: ExportSettingSettings,
-  ): JQuery.jqXHR<ExportDataResponse> {
+  createAssetExport(assetUid: string, data: ExportSettingSettings): JQuery.jqXHR<ExportDataResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/`,
       method: 'POST',
@@ -1563,11 +1560,7 @@ export const dataInterface: DataInterface = {
     })
   },
 
-  updateExportSetting(
-    assetUid: string,
-    settingUid: string,
-    data: ExportSettingRequest,
-  ): JQuery.jqXHR<any> {
+  updateExportSetting(assetUid: string, settingUid: string, data: ExportSettingRequest): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
       method: 'PATCH',

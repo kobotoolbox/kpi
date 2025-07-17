@@ -1,7 +1,7 @@
 import type { FlatQuestion } from '#/assetUtils'
 import type { Json } from '#/components/common/common.interfaces'
 import type { SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
-import {createDateQuery} from '#/utils'
+import { createDateQuery } from '#/utils'
 
 const IMAGE_MIMETYPES = ['image/png', 'image/gif', 'image/jpeg', 'image/svg+xml']
 

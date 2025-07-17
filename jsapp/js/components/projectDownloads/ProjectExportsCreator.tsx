@@ -248,7 +248,7 @@ export default class ProjectExportsCreator extends React.Component<
 
   createMongoDateQuery(): MongoQuery {
     if ((this.state.startDate || this.state.endDate) && this.state.isDateEnabled) {
-      return {$and: createDateQuery(this.state.startDate, this.state.endDate)}
+      return { $and: createDateQuery(this.state.startDate, this.state.endDate) }
     } else {
       return {}
     }
@@ -419,7 +419,7 @@ export default class ProjectExportsCreator extends React.Component<
         lang: this.state.selectedExportFormat.value,
         multiple_select: this.state.selectedExportMultiple.value,
         type: this.state.selectedExportType.value,
-        query: this.createMongoDateQuery()
+        query: this.createMongoDateQuery(),
       },
     }
 
@@ -485,20 +485,13 @@ export default class ProjectExportsCreator extends React.Component<
       this.clearScheduledExport = actions.exports.updateExportSetting.completed.listen(
         this.handleScheduledExport.bind(this),
       )
-      actions.exports.updateExportSetting(
-        this.props.asset.uid,
-        foundDefinedExport.data?.uid,
-        payload
-      )
+      actions.exports.updateExportSetting(this.props.asset.uid, foundDefinedExport.data?.uid, payload)
       // Case 4: There is no defined export like this one, we need to create it.
     } else {
       this.clearScheduledExport = actions.exports.createExportSetting.completed.listen(
         this.handleScheduledExport.bind(this),
       )
-      actions.exports.createExportSetting(
-        this.props.asset.uid,
-        payload
-      )
+      actions.exports.createExportSetting(this.props.asset.uid, payload)
     }
   }
 
