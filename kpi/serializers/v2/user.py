@@ -12,21 +12,16 @@ from kpi.constants import ASSET_TYPE_COLLECTION, PERM_DISCOVER_ASSET
 from kpi.models.asset import Asset, UserAssetSubscription
 from kpi.models.object_permission import ObjectPermission
 from kpi.schema_extensions.v2.users.fields import MetadataField
-from kpi.utils.schema_extensions.url_builder import build_url_type
 
-@extend_schema_field({
-        'type': 'string',
-        'format': 'uri',
-        'example': '/api/v2/users',
-    })
-class foo(HyperlinkedIdentityField):
+
+@extend_schema_field(OpenApiTypes.URI)
+class UrlSchemaExtension(HyperlinkedIdentityField):
     pass
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
 
-    url = foo(
-        lookup_field='username', view_name='user-kpi-detail')
+    url = UrlSchemaExtension(lookup_field='username', view_name='user-kpi-detail')
     date_joined = serializers.SerializerMethodField()
     public_collection_subscribers_count = serializers.SerializerMethodField()
     public_collections_count = serializers.SerializerMethodField()

@@ -1,7 +1,6 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.fields import JSONField
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -11,7 +10,11 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.filters import SearchFilter
 from kpi.models.asset import Asset
 from kpi.permissions import IsAuthenticated
-from kpi.schema_extensions.v2.users.serializers import UserListResponse, MigrateResponse
+from kpi.schema_extensions.v2.users.serializers import (
+    MigrateResponse,
+    UserListResponse,
+    UserRetrieveResponse,
+)
 from kpi.serializers.v2.user import UserListSerializer, UserSerializer
 from kpi.tasks import sync_kobocat_xforms
 from kpi.utils.schema_extensions.markdown import read_md
@@ -29,16 +32,16 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
             require_auth=False,
             raise_not_found=False,
             validate_payload=False,
-        )
+        ),
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'users/retrieve.md'),
         responses=open_api_200_ok_response(
-            UserListResponse,
+            UserRetrieveResponse,
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     migrate=extend_schema(
         description=read_md('kpi', 'users/migrate.md'),
@@ -46,7 +49,7 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
             MigrateResponse,
             raise_not_found=False,
             validate_payload=False,
-        )
+        ),
     ),
 )
 class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):

@@ -15,8 +15,8 @@ class CeleryTaskExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'user-kpi-migrate',
-            username = 'bob',
-            task_id = '4c586952-a95a-4cdf-a5b7-e03137c6e33d'
+            username='bob',
+            task_id='4c586952-a95a-4cdf-a5b7-e03137c6e33d',
         )
 
 
@@ -47,6 +47,16 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
                             }
                         )
                     }
-                )
+                ),
             }
+        )
+
+
+class UrlFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.users.fields.UrlField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_url_type(
+            'user-kpi-detail',
+            username='bob'
         )

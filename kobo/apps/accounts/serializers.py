@@ -63,11 +63,11 @@ class SocialAccountSerializer(serializers.ModelSerializer):
     @extend_schema_field(OpenApiTypes.EMAIL)
     def get_email(self, obj):
         if obj.extra_data:
-            if "email" in obj.extra_data:
-                return obj.extra_data.get("email")
-            return obj.extra_data.get("userPrincipalName")  # MS oauth uses this
+            if 'email' in obj.extra_data:
+                return obj.extra_data.get('email')
+            return obj.extra_data.get('userPrincipalName')  # MS oauth uses this
 
     @extend_schema_field(OpenApiTypes.STR)
     def get_username(self, obj):
         if obj.extra_data:
-            return obj.extra_data.get("username")
+            return obj.extra_data.get('username')
