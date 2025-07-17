@@ -35,9 +35,10 @@ import type {
   ExportSetting,
   ExportSettingRequest,
   ExportSettingSettings,
+  MongoQuery,
   PaginatedResponse,
 } from '#/dataInterface'
-import { formatTimeDate } from '#/utils'
+import { createDateQuery, formatTimeDate } from '#/utils'
 
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings')
 
@@ -69,6 +70,9 @@ interface ProjectExportsCreatorState {
   selectedDefinedExport: null | DefinedExportOption
   definedExports: DefinedExportOption[]
   isUpdatingDefinedExportsList: boolean
+  isDateEnabled: boolean
+  startDate: string
+  endDate: string
 }
 
 interface DefinedExportOption {
@@ -115,6 +119,9 @@ export default class ProjectExportsCreator extends React.Component<
       selectedDefinedExport: null,
       definedExports: [],
       isUpdatingDefinedExportsList: false,
+      isDateEnabled: true,
+      startDate: '',
+      endDate: '',
     }
 
     const allSelectableRows = this.getAllSelectableRows()
@@ -237,6 +244,14 @@ export default class ProjectExportsCreator extends React.Component<
     allRows = new Set(injectSupplementalRowsIntoListOfRows(this.props.asset, allRows))
 
     return allRows
+  }
+
+  createMongoDateQuery(): MongoQuery {
+    if ((this.state.startDate || this.state.endDate) && this.state.isDateEnabled) {
+      return { $and: createDateQuery(this.state.startDate, this.state.endDate) }
+    } else {
+      return {}
+    }
   }
 
   /**
@@ -404,6 +419,7 @@ export default class ProjectExportsCreator extends React.Component<
         lang: this.state.selectedExportFormat.value,
         multiple_select: this.state.selectedExportMultiple.value,
         type: this.state.selectedExportType.value,
+        query: this.createMongoDateQuery(),
       },
     }
 
@@ -692,6 +708,42 @@ export default class ProjectExportsCreator extends React.Component<
               placeholder={t('Name your export settings')}
               className='custom-export-name-textbox'
             />
+          </bem.ProjectDownloads__columnRow>
+
+          <bem.ProjectDownloads__columnRow>
+            <Checkbox
+              checked={this.state.isDateEnabled}
+              onChange={(newValue) => {
+                this.clearSelectedDefinedExport()
+                this.setState({ isDateEnabled: newValue })
+              }}
+              label={t('Date range')}
+            />
+
+            <div className='project-downloads__date-wrapper'>
+              <label>
+                {t('Between')}
+                <input
+                  type='date'
+                  className='project-downloads__date-selector'
+                  disabled={!this.state.isDateEnabled}
+                  onChange={(e) => {
+                    this.setState({ startDate: e.currentTarget.value })
+                  }}
+                />
+              </label>
+              <label>
+                {t('and')}
+                <input
+                  type='date'
+                  className='project-downloads__date-selector'
+                  disabled={!this.state.isDateEnabled}
+                  onChange={(e) => {
+                    this.setState({ endDate: e.currentTarget.value })
+                  }}
+                />
+              </label>
+            </div>
           </bem.ProjectDownloads__columnRow>
         </bem.ProjectDownloads__column>
 
