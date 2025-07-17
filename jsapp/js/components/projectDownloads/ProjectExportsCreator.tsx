@@ -247,7 +247,7 @@ export default class ProjectExportsCreator extends React.Component<
   }
 
   createMongoDateQuery(): MongoQuery {
-    if (this.state.startDate || this.state.endDate) {
+    if ((this.state.startDate || this.state.endDate) && this.state.isDateEnabled) {
       return {$and: createDateQuery(this.state.startDate, this.state.endDate)}
     } else {
       return {}
