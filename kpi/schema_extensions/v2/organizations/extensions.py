@@ -3,7 +3,7 @@ from drf_spectacular.plumbing import build_basic_type, build_object_type
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from .schema import BALANCE_FIELDS
+from .schema import BALANCE_FIELDS_SCHEMA
 
 
 class AssetFieldExtension(OpenApiSerializerFieldExtension):
@@ -32,10 +32,10 @@ class BalanceFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'submission': BALANCE_FIELDS,
-                'storage_bytes': BALANCE_FIELDS,
-                'asr_seconds': BALANCE_FIELDS,
-                'mt_characters': BALANCE_FIELDS,
+                'submission': BALANCE_FIELDS_SCHEMA,
+                'storage_bytes': BALANCE_FIELDS_SCHEMA,
+                'asr_seconds': BALANCE_FIELDS_SCHEMA,
+                'mt_characters': BALANCE_FIELDS_SCHEMA,
             }
         )
 
