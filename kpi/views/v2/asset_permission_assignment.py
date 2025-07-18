@@ -1,9 +1,8 @@
-# coding: utf-8
-
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.openapi import AutoSchema
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import (
@@ -26,16 +25,189 @@ from kpi.constants import (
 from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import AssetPermissionAssignmentPermission
+from kpi.schema_extensions.v2.asset_permission_assignments.serializers import (
+    PermissionBulkRequest,
+    PermissionCloneRequest,
+    PermissionCreateRequest,
+    PermissionResponse,
+)
 from kpi.serializers.v2.asset_permission_assignment import (
     AssetBulkInsertPermissionSerializer,
     AssetPermissionAssignmentSerializer,
 )
 from kpi.utils.object_permission import get_user_permission_assignments_queryset
+from kpi.utils.schema_extensions.examples import generate_example_from_schema
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_204_empty_response,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
+class PermissionAssignmentSchema(AutoSchema):
+    """
+    Custom schema used to inject OpenAPI examples for AssetViewSet at runtime.
+
+    We cannot use `@extend_schema(..., examples=...)` or `@extend_schema_view(...)`
+    directly for these examples because the values rely on variables
+    (e.g., `ASSET_URL_SCHEMA`) that trigger Django's URL resolver via `reverse()`.
+    Since those decorators are evaluated at module import time—before the full Django
+    application and URL config are guaranteed to be loaded—this leads to circular
+    import errors.
+
+    By overriding `get_operation()` here, we defer the evaluation of those dynamic
+    values until the OpenAPI schema is being generated (e.g., via `/api/v2/schema/`),
+    when all apps and routes are fully initialized. This ensures a clean, safe injection
+    of complex or reverse-dependent examples.
+
+    This class matches the `operationId` for the `POST /assets/` endpoint
+    to inject multiple request examples, such as referencing an asset or a source.
+    """
+
+    def get_operation(self, *args, **kwargs):
+
+        from kpi.schema_extensions.v2.asset_permission_assignments.schema import (
+            PARTIAL_PERMISSION_SCHEMA,
+            PERMISSION_URL_SCHEMA,
+            USER_URL_SCHEMA,
+        )
+
+        operation = super().get_operation(*args, **kwargs)
+
+        if not operation:
+            return None
+
+        if (
+            operation.get('operationId')
+            == 'api_v2_assets_permission_assignments_create'
+        ):
+
+            operation['requestBody']['content']['application/json']['examples'] = {
+                'CreatingPartial': {
+                    'value': {
+                        'user': generate_example_from_schema(USER_URL_SCHEMA),
+                        'partial_permission': generate_example_from_schema(
+                            PARTIAL_PERMISSION_SCHEMA
+                        ),
+                        'permission': generate_example_from_schema(
+                            PERMISSION_URL_SCHEMA
+                        ),
+                    },
+                    'summary': 'Creating a partial permission',
+                },
+                'CreatingPermission': {
+                    'value': {
+                        'user': generate_example_from_schema(USER_URL_SCHEMA),
+                        'permission': generate_example_from_schema(
+                            PERMISSION_URL_SCHEMA
+                        ),
+                    },
+                    'summary': 'Creating a regular permission',
+                },
+            }
+
+        return operation
+
+# Some parameters (like parent_lookup_asset) might get mixed up and thus result
+# in a schema error. By specifying the parameter and its type, we erase this
+# problem.
+
+
 @extend_schema(
-    tags=['permission-assignments'],
+    tags=['Asset Permission Assignments'],
+    parameters=[
+        OpenApiParameter(
+            name='parent_lookup_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent asset',
+        ),
+    ],
+)
+@extend_schema_view(
+    bulk_assignments=extend_schema(
+        description=read_md('kpi', 'asset_permission_assignments/bulk.md'),
+        request={'application/json': PermissionBulkRequest(many=True)},
+        responses=open_api_200_ok_response(
+            PermissionResponse(many=True),
+            require_auth=False,
+        ),
+    ),
+    clone=extend_schema(
+        description=read_md('kpi', 'asset_permission_assignments/clone.md'),
+        request={'application/json': PermissionCloneRequest},
+        responses=open_api_200_ok_response(
+            PermissionResponse(many=True),
+            require_auth=False,
+        ),
+    ),
+    create=extend_schema(
+        description=read_md('kpi', 'asset_permission_assignments/create.md'),
+        request={'application/json': PermissionCreateRequest},
+        responses=open_api_200_ok_response(
+            PermissionResponse,
+            require_auth=False,
+        ),
+    ),
+    delete_all=extend_schema(
+        description=read_md('kpi', 'asset_permission_assignments/delete_all.md'),
+        responses=open_api_204_empty_response(
+            require_auth=False,
+            validate_payload=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the permission',
+            ),
+        ],
+    ),
+    destroy=extend_schema(
+        description=read_md('kpi', 'asset_permission_assignments/delete.md'),
+        responses=open_api_204_empty_response(
+            require_auth=False,
+            validate_payload=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the permission',
+            ),
+        ],
+    ),
+    list=extend_schema(
+        description=read_md('kpi', 'asset_permission_assignments/list.md'),
+        responses=open_api_200_ok_response(
+            PermissionResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
+    ),
+    retrieve=extend_schema(
+        description=read_md('kpi', 'asset_permission_assignments/retrieve.md'),
+        responses=open_api_200_ok_response(
+            PermissionResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the permission',
+            ),
+        ],
+    ),
 )
 class AssetPermissionAssignmentViewSet(
     AuditLoggedViewSet,
@@ -47,146 +219,26 @@ class AssetPermissionAssignmentViewSet(
     ListModelMixin,
 ):
     """
-    ## Permission assignments of an asset
+    Viewset for managing the assignment permission for current project
 
-    **Important**: partial_permissions section of API is not stable and may change without notice.
+    Available actions:
+    - bulk            → DELETE /api/v2/assets/{parent_lookup_asset}/permission-assignments/bulk/  # noqa
+    - clone           → PATCH /api/v2/assets/{parent_lookup_asset}/permission-assignments/clone/  # noqa
+    - create          → DELETE /api/v2/assets/{parent_lookup_asset}/permission-assignments/  # noqa
+    - delete          → POST /api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/  # noqa
+    - delete_all      → GET /api/v2/assets/{parent_lookup_asset}/permission-assignments/delete-all/  # noqa
+    - list            → GET /api/v2/assets/{parent_lookup_asset}/permission-assignments/
+    - retrieve        → GET /api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/  # noqa
 
-    This endpoint shows assignments on an asset. An assignment implies:
-
-    - a `Permission` object
-    - a `User` object
-
-    **Roles' permissions:**
-
-    - Owner sees all permissions
-    - Viewers see owner's permissions and their permissions
-    - Anonymous users see only owner's permissions
-
-
-    `uid` - is the unique identifier of a specific asset
-
-    **Retrieve assignments**
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/
-
-
-    **Assign a permission**
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/
-    </pre>
-
-    > Example
-    >
-    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/ \\
-    >            -H 'Content-Type: application/json' \\
-    >            -d '<payload>'  # Payload is sent as a string
-
-
-    > _Payload to assign a permission_
-    >
-    >        {
-    >           "user": "https://[kpi]/api/v2/users/{username}/",
-    >           "permission": "https://[kpi]/api/v2/permissions/{codename}/",
-    >        }
-
-    > _Payload to assign partial permissions_
-    >
-    >        {
-    >           "user": "https://[kpi]/api/v2/users/{username}/",
-    >           "permission": "https://[kpi]/api/v2/permissions/{partial_permission_codename}/",
-    >           "partial_permissions": [
-    >               {
-    >                   "url": "https://[kpi]/api/v2/permissions/{codename}/",
-    >                   "filters": [
-    >                       {"_submitted_by": {"$in": ["{username}", "{username}"]}}
-    >                   ]
-    >              },
-    >           ]
-    >        }
-
-    N.B.:
-
-    - Filters use Mongo Query Engine to narrow down results
-    - Filters are joined with `OR` operator
-    - Implied permissions will be also assigned. (e.g. `change_asset` will add `view_asset` too)
-
-    **Remove a permission assignment**
-
-    <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/{permission_uid}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/pG6AeSjCwNtpWazQAX76Ap/  # noqa: E501
-
-    **Remove all permission assignments**
-
-    <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/{permission_uid}/delete-all/
-    </pre>
-
-    > Example
-    >
-    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/pG6AeSjCwNtpWazQAX76Ap/delete-all/  # noqa: E501
-
-    **Remove all permission assignments**
-
-    <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/{permission_uid}/delete-all/
-    </pre>
-
-    > Example
-    >
-    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/pG6AeSjCwNtpWazQAX76Ap/delete-all/
-
-
-    **Assign all permissions at once**
-
-    <span class='label label-danger'>All permissions will erased (except the owner's) before new assignments</span>
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/bulk/
-    </pre>
-
-    > Example
-    >
-    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/bulk/
-
-    > _Payload to assign all permissions at once_
-    >
-    >        [{
-    >           "user": "https://[kpi]/api/v2/users/{username}/",
-    >           "permission": "https://[kpi]/api/v2/permissions/{codename}/",
-    >        },
-    >        {
-    >           "user": "https://[kpi]/api/v2/users/{username}/",
-    >           "permission": "https://[kpi]/api/v2/permissions/{codename}/",
-    >        },...]
-
-
-    **Clone permissions from another asset**
-
-    <span class='label label-danger'>All permissions will erased (except the owner's) before new assignments</span>
-    <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/clone/
-    </pre>
-
-    > Example
-    >
-    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/clone/
-
-    > _Payload to clone permissions from another asset_
-    >
-    >        {
-    >           "clone_from": "{source_asset_uid}"
-    >        }
-
-    ### CURRENT ENDPOINT
+    Documentation:
+    - docs/api/v2/asset_permission_assignments/bulk.md
+    - docs/api/v2/asset_permission_assignments/clone.md
+    - docs/api/v2/asset_permission_assignments/create.md
+    - docs/api/v2/asset_permission_assignments/delete.md
+    - docs/api/v2/asset_permission_assignments/delete_all.md
+    - docs/api/v2/asset_permission_assignments/list.md
+    - docs/api/v2/asset_permission_assignments/retrieve.md
+    - docs/api/v2/asset_permission_assignments/update.md
     """
 
     model = ObjectPermission
@@ -196,6 +248,8 @@ class AssetPermissionAssignmentViewSet(
     pagination_class = None
     log_type = AuditType.PROJECT_HISTORY
     logged_fields = ['asset.id', 'asset.owner.username']
+    renderer_classes = [renderers.JSONRenderer]
+    schema = PermissionAssignmentSchema()
     # filter_backends = Just kidding! Look at this instead:
     #     kpi.utils.object_permission.get_user_permission_assignments_queryset
 
