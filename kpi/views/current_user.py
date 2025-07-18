@@ -12,20 +12,21 @@ from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.schema_extensions.v2.me.serializers import CurrentUserDeleteRequest
 from kpi.serializers import CurrentUserSerializer
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
-    open_api_204_empty_response
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_204_empty_response,
+)
 from kpi.versioning import APIV2Versioning
 
-@extend_schema(
-    tags=['Me']
-)
+
+@extend_schema(tags=['Me'])
 @extend_schema_view(
     destroy=extend_schema(
         description=read_md('kpi', 'me/delete.md'),
         request={'application/json': CurrentUserDeleteRequest},
         responses=open_api_204_empty_response(
             raise_not_found=False,
-        )
+        ),
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'me/retrieve.md'),
@@ -34,15 +35,13 @@ from kpi.versioning import APIV2Versioning
             raise_not_found=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     partial_update=extend_schema(
         description=read_md('kpi', 'me/update.md'),
         responses=open_api_200_ok_response(
-            CurrentUserSerializer,
-            raise_not_found=False,
-            raise_access_forbidden=False
-        )
+            CurrentUserSerializer, raise_not_found=False, raise_access_forbidden=False
+        ),
     ),
 )
 class CurrentUserViewSet(viewsets.ModelViewSet):

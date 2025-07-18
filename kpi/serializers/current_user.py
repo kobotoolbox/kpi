@@ -19,10 +19,17 @@ from kobo.apps.accounts.serializers import SocialAccountSerializer
 from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.fields import WritableJSONField
-from kpi.schema_extensions.v2.me.fields import ServerTimeField, DateJoinedField, \
-    GravatarField, ProjectUrlField, OrganizationField, ExtraDetailField
+from kpi.schema_extensions.v2.me.fields import (
+    DateJoinedField,
+    ExtraDetailField,
+    GravatarField,
+    OrganizationField,
+    ProjectUrlField,
+    ServerTimeField,
+)
 from kpi.utils.gravatar_url import gravatar_url
 from kpi.utils.object_permission import get_database_user
+
 
 @extend_schema_field(ExtraDetailField)
 class ExtraDetailsOverload(WritableJSONField):

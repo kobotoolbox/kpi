@@ -1,5 +1,9 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
-from drf_spectacular.plumbing import build_object_type, build_basic_type, build_array_type
+from drf_spectacular.plumbing import (
+    build_array_type,
+    build_basic_type,
+    build_object_type,
+)
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
@@ -30,7 +34,7 @@ class ExtraDetailField(OpenApiSerializerFieldExtension):
                                 'order': build_object_type(properties={}),
                                 'fields': build_array_type(
                                     schema=build_basic_type(OpenApiTypes.STR),
-                                )
+                                ),
                             }
                         ),
                     }
@@ -48,7 +52,7 @@ class GravatarFieldExtension(OpenApiSerializerFieldExtension):
         return {
             'type': 'string',
             'format': 'uri',
-            'example': 'https://www.gravatar.com/avatar/5a9aec55090975e64e0f6b0a29110a5f?s=40',
+            'example': 'https://www.gravatar.com/avatar/5a9aec55090975e64e0f6b0a29110a5f?s=40',  # noqa
         }
 
 
@@ -72,7 +76,4 @@ class ProjectUrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.me.fields.ProjectUrlField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type(
-            'user_profile',
-            username='bob'
-        )
+        return build_url_type('user_profile', username='bob')

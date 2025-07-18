@@ -23,4 +23,3 @@ class OrganizationField(serializers.URLField):
 
 class ServerTimeField(serializers.DateTimeField):
     pass
-
