@@ -5,7 +5,6 @@ from django.utils import timezone
 from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.models import ExceededLimitCounter
 from kobo.apps.stripe.tasks import update_exceeded_limit_counters
