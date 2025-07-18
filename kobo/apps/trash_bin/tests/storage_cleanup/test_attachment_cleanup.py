@@ -102,7 +102,7 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
             '_attachments': [
                 {
                     'download_url': f'http://testserver/{self.owner.username}/audio_conversion_test_image.jpg',  # noqa
-                    'filename': f'{self.owner.username}/audio_conversion_test_image.jpg',
+                    'filename': f'{self.owner.username}/audio_conversion_test_image.jpg',  # noqa
                     'mimetype': 'image/jpeg',
                 },
             ],
