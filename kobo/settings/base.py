@@ -783,17 +783,13 @@ class DoNotUseRunner:
 
 TEST_RUNNER = __name__ + '.DoNotUseRunner'
 
-# The backend that handles user authentication must match KoBoCAT's when
-# sharing sessions. ModelBackend does not interfere with object-level
-# permissions: it always denies object-specific requests (see
-# https://github.com/django/django/blob/1.7/django/contrib/auth/backends.py#L44).
-# KoBoCAT also lists ModelBackend before
-# guardian.backends.ObjectPermissionBackend.
+# ModelBackend does not interfere with object-level permissions: it always denies
+# object-specific requests (see
+# https://github.com/django/django/blob/1.7/django/contrib/auth/backends.py#L44 ).
 AUTHENTICATION_BACKENDS = (
     'kpi.backends.ModelBackend',
     'kpi.backends.ObjectPermissionBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
-    'kobo.apps.openrosa.libs.backends.ObjectPermissionBackend',
 )
 
 ROOT_URLCONF = 'kobo.urls'
@@ -1626,9 +1622,8 @@ if GIT_REV['branch'] == 'HEAD':
 Since this project handles user creation, we must handle the model-level
 permission assignment that would've been done by KoBoCAT's user post_save
 signal handler. Here we record the content types of the models listed in KC's
-set_api_permissions_for_user(). Verify that this list still matches that
-function if you experience permission-related problems. See
-https://github.com/kobotoolbox/kobocat/blob/main/onadata/libs/utils/user_auth.py.
+deprecated function set_api_permissions_for_user.
+TODO: This is being refactored and is pending to clean up
 """
 KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES = [
     # Each tuple must be (app_label, model_name)

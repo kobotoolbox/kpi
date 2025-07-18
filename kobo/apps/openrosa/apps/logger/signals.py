@@ -17,7 +17,6 @@ from kobo.apps.openrosa.apps.logger.models.monthly_xform_submission_counter impo
     MonthlyXFormSubmissionCounter,
 )
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm, get_perms_for_model
 from kobo.apps.openrosa.libs.utils.image_tools import get_optimized_image_path
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
@@ -92,13 +91,6 @@ def post_save_attachment(instance, created, **kwargs):
     user_id = xform.user_id
 
     update_storage_counters(xform.pk, user_id, file_size)
-
-
-@receiver(post_save, sender=XForm, dispatch_uid='xform_object_permissions')
-def set_object_permissions(sender, instance=None, created=False, **kwargs):
-    if created:
-        for perm in get_perms_for_model(XForm):
-            assign_perm(perm.codename, instance.user, instance)
 
 
 @receiver(post_delete, sender=XForm, dispatch_uid='update_profile_num_submissions')

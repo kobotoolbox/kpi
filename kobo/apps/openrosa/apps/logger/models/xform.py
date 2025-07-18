@@ -135,7 +135,7 @@ class XForm(AbstractTimeStampedModel):
         See kpi.utils.xml.XMLFormWithDisclaimer for more details.
         """
         Asset = apps.get_model('kpi', 'Asset')  # noqa
-        if not getattr(self, '_cache_asset', None):
+        if not getattr(self, '_cached_asset', None):
             # We only need to load some fields when fetching the related Asset object
             # with XMLFormWithDisclaimer
             try:
@@ -145,8 +145,10 @@ class XForm(AbstractTimeStampedModel):
             except Asset.DoesNotExist:
                 # An `Asset` object needs to be returned to avoid 500 while
                 # Enketo is fetching for project XML (e.g: /formList, /manifest)
+                # The uid is set to null to auto-generate it when the asset is saved.
+                # This is useful specially in unit tests for xforms without assets
                 asset = Asset(
-                    uid=self.id_string,
+                    uid=None,
                     name=self.title,
                     owner_id=self.user.id,
                 )
