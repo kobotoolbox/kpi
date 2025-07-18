@@ -1,14 +1,18 @@
+import pytest
 import uuid
 from unittest.mock import patch
 
 from constance import config
 from constance.test import override_config
+from django.conf import settings
 from django.test import TestCase
+
+if settings.STRIPE_ENABLED:
+    from kobo.apps.stripe.models import ExceededLimitCounter
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.organizations.constants import UsageType
-from kobo.apps.stripe.models import ExceededLimitCounter
 from kobo.apps.trash_bin.tasks.attachment import auto_delete_excess_attachments, \
     schedule_auto_attachment_cleanup_for_users
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
@@ -120,6 +124,9 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
         # The new attachment should *not* be deleted since user is no longer over limit
         self.assertEqual(Attachment.objects.all().count(), 1)
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     @override_config(AUTO_DELETE_ATTACHMENTS=True)
     def test_schedule_cleanup_task_only_for_users_exceeding_grace_period(self):
         """
@@ -138,6 +145,9 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
             schedule_auto_attachment_cleanup_for_users()
             mock_task.assert_called_once_with(self.owner.pk)
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     @override_config(AUTO_DELETE_ATTACHMENTS=True)
     def test_schedule_cleanup_task_skips_users_below_grace_period(self):
         """
