@@ -83,19 +83,33 @@ class AssetPagination(Paginated):
                     'type': 'object',
                     'properties': {
                         'languages': {
-                            'type': 'list',
+                            'type': 'array',
+                            'items': {'type': 'string'},
                             'example': ['English (en)']
                         },
                         'countries': {
-                            'type': 'list',
+                            'type': 'array',
+                            'items': {
+                                'type': 'array',
+                                'items': {
+                                    'type': 'string',
+                                },
+                            },
                             'example': [['FRA', 'France']]
                         },
                         'sectors': {
-                            'type': 'list',
+                            'type': 'array',
+                            'items': {
+                                'type': 'array',
+                                'items': {
+                                    'type': 'string',
+                                },
+                            },
                             'example': [['Public Administration', 'Public Administration']]
                         },
                         'organizations': {
-                            'type': 'list',
+                            'type': 'array',
+                            'items': {'type': 'string'},
                             'example': ['Kobotoolbox']
                         }
                     }
