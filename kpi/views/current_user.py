@@ -4,11 +4,13 @@ from django.utils.timezone import now
 from django.utils.translation import gettext as t
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import permissions, status, viewsets
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.serializers import CurrentUserSerializer
+from kpi.utils.schema_extensions.markdown import read_md
 from kpi.versioning import APIV2Versioning
 
 @extend_schema(
@@ -16,20 +18,26 @@ from kpi.versioning import APIV2Versioning
 )
 @extend_schema_view(
     destroy=extend_schema(
-        description='delete'
+        description=read_md('kpi', 'me/delete.md')
     ),
     retrieve=extend_schema(
-        description='retrieve'
+        description=read_md('kpi', 'me/retrieve.md')
     ),
     partial_update=extend_schema(
-        description='update'
+        description=read_md('kpi', 'me/update.md')
     ),
 )
 class CurrentUserViewSet(viewsets.ModelViewSet):
     """
-    <pre class="prettyprint">
-    <b>GET</b> /me/
-    </pre>
+    Available actions:
+    - destroy               → DELETE        /me/
+    - retrieve              → GET           /me/
+    - partial_update        → PATCH         /me/
+
+    Documentation:
+    - docs/api/v2/me/delete.md
+    - docs/api/v2/me/retrieve.md
+    - docs/api/v2/me/update.md
 
     > Example
     >
@@ -113,6 +121,9 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     serializer_class = CurrentUserSerializer
     permission_classes = [permissions.IsAuthenticated]
     versioning_class = APIV2Versioning
+    renderer_classes = [
+        JSONRenderer,
+    ]
 
     def get_object(self):
         return self.request.user
