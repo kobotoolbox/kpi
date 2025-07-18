@@ -1292,12 +1292,11 @@ CELERY_BEAT_SCHEDULE = {
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 30 minutes
-    # ToDo: Uncomment when the task for auto-cleanup of attachments is ready (DEV-240)
-    # 'attachment-cleanup-for-users-exceeding-limits': {
-    #     'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
-    #     'schedule': crontab(minute='*/30'),
-    #     'options': {'queue': 'kpi_low_priority_queue'}
-    # },
+    'attachment-cleanup-for-users-exceeding-limits': {
+        'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
+        'schedule': crontab(minute='*/30'),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
     # Schedule every day at midnight UTC
     'project-ownership-garbage-collector': {
         'task': 'kobo.apps.project_ownership.tasks.garbage_collector',
