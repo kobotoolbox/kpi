@@ -2,6 +2,7 @@ from constance import config
 from django.db import transaction
 from django.utils.timezone import now
 from django.utils.translation import gettext as t
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 
@@ -10,7 +11,20 @@ from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.serializers import CurrentUserSerializer
 from kpi.versioning import APIV2Versioning
 
-
+@extend_schema(
+    tags=['Me']
+)
+@extend_schema_view(
+    destroy=extend_schema(
+        description='delete'
+    ),
+    retrieve=extend_schema(
+        description='retrieve'
+    ),
+    partial_update=extend_schema(
+        description='update'
+    ),
+)
 class CurrentUserViewSet(viewsets.ModelViewSet):
     """
     <pre class="prettyprint">
