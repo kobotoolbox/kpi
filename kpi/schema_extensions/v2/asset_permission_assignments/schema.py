@@ -12,7 +12,7 @@ from kpi.utils.schema_extensions.url_builder import build_url_type
 Common schemas to avoid redundancy
 """
 
-PERMISSION_ASSIGNMENT_LABEL_FIELD = build_basic_type(OpenApiTypes.STR)
+PERMISSION_ASSIGNMENT_LABEL_SCHEMA = build_basic_type(OpenApiTypes.STR)
 
 PERMISSION_URL_SCHEMA = build_url_type(
     'api_v2:permission-detail',

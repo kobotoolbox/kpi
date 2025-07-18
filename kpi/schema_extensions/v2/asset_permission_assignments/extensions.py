@@ -7,7 +7,7 @@ from drf_spectacular.types import OpenApiTypes
 
 from .schema import (
     PARTIAL_PERMISSION_SCHEMA,
-    PERMISSION_ASSIGNMENT_LABEL_FIELD,
+    PERMISSION_ASSIGNMENT_LABEL_SCHEMA,
     PERMISSION_ASSIGNMENT_URL_SCHEMA,
     PERMISSION_URL_SCHEMA,
     USER_URL_SCHEMA,
@@ -20,7 +20,7 @@ class LabelFieldExtension(OpenApiSerializerFieldExtension):
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return PERMISSION_ASSIGNMENT_LABEL_FIELD
+        return PERMISSION_ASSIGNMENT_LABEL_SCHEMA
 
 
 class PermissionCreateSerializerExtension(OpenApiSerializerExtension):
