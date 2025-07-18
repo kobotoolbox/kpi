@@ -23,6 +23,7 @@ from kpi.serializers.v2.user import UserListSerializer
 from kpi.tasks import export_task_in_background
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.project_views import get_region_for_view, user_has_view_perms
+from kpi.utils.schema_extensions.markdown import read_md
 from .models.project_view import ProjectView
 from .serializers import ProjectViewSerializer
 
@@ -32,22 +33,40 @@ from .serializers import ProjectViewSerializer
 )
 @extend_schema_view(
     assets=extend_schema(
-        description='assets',
+        description=read_md('project_views', 'assets.md'),
     ),
     list=extend_schema(
-        description='list',
+        description=read_md('project_views', 'list.md'),
     ),
     retrieve=extend_schema(
-        description='retrieve',
+        description=read_md('project_views', 'retrieve.md'),
     ),
     users=extend_schema(
-        description='users',
+        description=read_md('project_views', 'user.md'),
     ),
 )
 class ProjectViewViewSet(
     AssetViewSetListMixin, ObjectPermissionViewSetMixin, viewsets.ReadOnlyModelViewSet
 ):
+    """
+    Viewset for managing the shared project of current user
 
+   Available actions:
+    - assets        → GET   /api/v2/project-views/{uid}/assets/
+    - export_list   → GET   /api/v2/project-views/{uid}/{obj_type}/export/
+    - export_post   → POST  /api/v2/project-views/{uid}/{obj_type}/export/
+    - list          → GET   /api/v2/project-views/
+    - retrieve      → GET   /api/v2/project-views/{uid}/
+    - users         → GET   /api/v2/project-views/{uid}/users
+
+    Documentation:
+    - docs/api/v2/project-views/assets.md
+    - docs/api/v2/project-views/export_list.md
+    - docs/api/v2/project-views/export_post.md
+    - docs/api/v2/project-views/list.md
+    - docs/api/v2/project-views/retrieve.md
+    - docs/api/v2/project-views/users.md
+    """
     serializer_class = ProjectViewSerializer
     permission_classes = (IsAuthenticated,)
     lookup_field = 'uid'
@@ -96,11 +115,11 @@ class ProjectViewViewSet(
         )
 
     @extend_schema(
-        description='export list',
+        description=read_md('project_views', 'export_list.md'),
         methods=['GET'],
     )
     @extend_schema(
-        description='export post',
+        description=read_md('project_views', 'export_post.md'),
         methods=['POST']
     )
     @action(
