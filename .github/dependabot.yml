@@ -27,8 +27,4 @@ updates:
         update-types:
           - "patch"
           - "minor"
-        # Ignore major just to be sure :wink:
-        ignore:
-          - dependency-name: "*"
-            update-types: ["version-update:semver-major"]
     open-pull-requests-limit: 10
