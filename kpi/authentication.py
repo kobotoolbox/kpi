@@ -14,7 +14,10 @@ from rest_framework.exceptions import AuthenticationFailed
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication as OPOAuth2Authentication
 
 from kobo.apps.audit_log.mixins import RequiresAccessLogMixin
+from kobo.apps.kobo_auth.models import Collector, CollectorUser
 from kpi.mixins.mfa import MfaBlockerMixin
+from rest_framework import exceptions
+
 
 
 class BasicAuthentication(MfaBlockerMixin, DRFBasicAuthentication, RequiresAccessLogMixin):
@@ -172,3 +175,37 @@ class OAuth2Authentication(OPOAuth2Authentication, RequiresAccessLogMixin):
         user, creds = result
         self.create_access_log(request, user, 'oauth2')
         return user, creds
+
+
+class CollectorTokenAuthentication(TokenAuthentication):
+    def authenticate(self, request):
+        auth = get_authorization_header(request).split()
+
+        if not auth or auth[0].lower() != self.keyword.lower().encode():
+            return None
+
+        if len(auth) == 1:
+            msg = 'Invalid token header. No credentials provided.'
+            raise exceptions.AuthenticationFailed(msg)
+        elif len(auth) > 2:
+            msg = 'Invalid token header. Token string should not contain spaces.'
+            raise exceptions.AuthenticationFailed(msg)
+
+        try:
+            token = auth[1].decode()
+        except UnicodeError:
+            msg = 'Invalid token header. Token string should not contain invalid characters.'
+            raise exceptions.AuthenticationFailed(msg)
+
+        return self.authenticate_credentials(token)
+
+
+    def authenticate_credentials(self, key):
+        try:
+            collector = Collector.objects.get(token=key)
+            server_user = CollectorUser()
+            group = collector.group
+            server_user.assets = group.assets.values_list('uid', flat=True)
+            return server_user, key
+        except Collector.DoesNotExist:
+            raise exceptions.AuthenticationFailed('Invalid token.')

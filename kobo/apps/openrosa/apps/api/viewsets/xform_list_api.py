@@ -25,7 +25,7 @@ from kobo.apps.openrosa.libs.serializers.xform_serializer import (
     XFormListSerializer,
     XFormManifestSerializer,
 )
-from kpi.authentication import DigestAuthentication
+from kpi.authentication import DigestAuthentication, CollectorTokenAuthentication
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.models.object_permission import ObjectPermission
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
@@ -47,6 +47,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         # previously hard-coded authentication classes are included first
         authentication_classes = [
             DigestAuthentication,
+            CollectorTokenAuthentication,
         ]
         self.authentication_classes = authentication_classes + [
             auth_class
@@ -85,6 +86,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             # If no username is specified, the request must be authenticated
             if self.request.user.is_anonymous:
                 # raises a permission denied exception, forces authentication
+
                 self.permission_denied(self.request)
             else:
                 # Return all the forms the currently-logged-in user can access,
