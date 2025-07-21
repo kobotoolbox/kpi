@@ -265,7 +265,21 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
-    tags=['members'],
+    tags=['Members'],
+)
+@extend_schema_view(
+    destroy=extend_schema(
+        description='destroy',
+    ),
+    list=extend_schema(
+        description='list',
+    ),
+    retrieve=extend_schema(
+        description='retrieve',
+    ),
+    partial_update=extend_schema(
+        description='update',
+    ),
 )
 class OrganizationMemberViewSet(viewsets.ModelViewSet):
     """
@@ -449,6 +463,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     permission_classes = [OrganizationNestedHasOrgRolePermission]
     http_method_names = ['get', 'patch', 'delete']
     lookup_field = 'user__username'
+    renderer_classes = [
+        JSONRenderer,
+    ]
 
     def paginate_queryset(self, queryset):
         page = super().paginate_queryset(queryset)
