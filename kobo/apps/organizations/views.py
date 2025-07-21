@@ -13,6 +13,7 @@ from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
+from kpi.schema_extensions.v2.invites.serializers import InviteResponse
 from kpi.schema_extensions.v2.organizations.serializers import (
     OrganizationAssetUsageResponse,
     OrganizationPatchPayload,
@@ -559,6 +560,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 @extend_schema_view(
     create=extend_schema(
         description=read_md('kpi', 'invites/create.md'),
+        responses=open_api_200_ok_response(
+            InviteResponse(many=True),
+        )
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'invites/delete.md'),
@@ -574,9 +578,15 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     ),
     list=extend_schema(
         description=read_md('kpi', 'invites/list.md'),
+        responses=open_api_200_ok_response(
+            InviteResponse,
+        )
     ),
     partial_update=extend_schema(
         description=read_md('kpi', 'invites/update.md'),
+        responses=open_api_200_ok_response(
+            InviteResponse(many=False),
+        ),
         parameters=[
             OpenApiParameter(
                 name='guid',
@@ -589,6 +599,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'invites/retrieve.md'),
+        responses=open_api_200_ok_response(
+            InviteResponse,
+        ),
         parameters=[
             OpenApiParameter(
                 name='guid',

@@ -22,15 +22,3 @@
     >     {
     >         "role": "admin"
     >     }
-
-    > Response 200
-
-    >     {
-    >         "url": "http://kf.kobo.local/api/v2/organizations/org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/",  # noqa
-    >         "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
-    >         "status": "accepted",
-    >         "invitee_role": "member",
-    >         "created": "2024-12-20T13:35:13Z",
-    >         "modified": "2024-12-20T13:35:13Z",
-    >         "invitee": "demo14"
-    >     }
