@@ -8,18 +8,19 @@ module.exports = do ->
     else if typeof defaultValue isnt 'undefined'
       valueAttr = "value='#{defaultValue}'"
 
-    return """
+    template = """
     <label class='text-box'>
       <span class='text-box__label'>#{label}</span>
       <input class='text-box__input' type='number' #{valueAttr} #{defaultValueAttr}/>
     </label>
     """
+    return template
 
   booleanParam = (label, isChecked) ->
     if isChecked is 'true'
       checkedAttr = 'checked'
 
-    return """
+    tempalte = """
     <div class='checkbox'>
       <label class='checkbox__wrapper'>
         <input class='checkbox__input' type='checkbox' #{checkedAttr}/>
@@ -27,6 +28,7 @@ module.exports = do ->
       </label>
     </div>
     """
+    return template
 
-  booleanParam: booleanParam
-  numberParam: numberParam
+  return booleanParam: booleanParam
+  return numberParam: numberParam

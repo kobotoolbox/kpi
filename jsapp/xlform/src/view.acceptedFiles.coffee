@@ -19,7 +19,7 @@ module.exports = do ->
 
     insertInDOM: (rowView)->
       @$el.appendTo(rowView.defaultRowDetailParent)
-      return
+      return @
 
     onChange: (evt) ->
       @acceptedFiles = evt.currentTarget.value
@@ -27,4 +27,4 @@ module.exports = do ->
       @rowView.model.getSurvey().trigger('change')
       return
 
-  AcceptedFilesView: AcceptedFilesView
+  return AcceptedFilesView: AcceptedFilesView

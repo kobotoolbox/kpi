@@ -8,18 +8,18 @@ module.exports = do ->
     attach_to: ($el) ->
       if $el instanceof viewWidgets.Base
         $el = $el.$el
-      $el.append(@el)
+      return $el.append(@el)
 
     bind_event: (type, callback) ->
       @$el.off type, callback
-      @$el.on type, callback
+      return @$el.on type, callback
     detach: () ->
-      @$el.remove()
+      return @$el.remove()
     val: (value) ->
       if value
         @$el.val value
         if !@$el.val()?
-          @$el.prop('selectedIndex', 0)
+          return @$el.prop('selectedIndex', 0)
       else return @$el.val()
 
   class viewWidgets.Label extends viewWidgets.Base
@@ -35,13 +35,13 @@ module.exports = do ->
         @$el.addClass @className
       if @input
         @$el.attr 'for', @input.cid
-      @
+      return @
 
   class viewWidgets.EmptyView extends viewWidgets.Base
     attach_to: () -> return
     bind_event: () -> return
-    render: () -> @
-    val: () -> null
+    render: () -> return @
+    val: () -> return null
 
   class viewWidgets.TextArea extends viewWidgets.Base
     tagName: 'textarea'
@@ -50,7 +50,7 @@ module.exports = do ->
       @$el.addClass @className
       @$el.on 'paste', (e) -> e.stopPropagation()
 
-      @
+      return @
     constructor: (@text, @className) -> super()
 
   class viewWidgets.TextBox extends viewWidgets.Base
@@ -62,7 +62,7 @@ module.exports = do ->
       @$el.attr 'placeholder', @placeholder
       @$el.on 'paste', (e) -> e.stopPropagation()
 
-      @
+      return @
     constructor: (@text, @className, @placeholder) -> super()
 
   class viewWidgets.Button extends viewWidgets.Base
@@ -71,7 +71,7 @@ module.exports = do ->
       @$el.html @text
       @$el.addClass @className
 
-      @
+      return @
     constructor: (@text, @className) -> super()
 
   class viewWidgets.DropDownModel extends Backbone.Model
@@ -91,12 +91,13 @@ module.exports = do ->
       options_html = ''
       _.each @options.get('options'), (option) ->
         options_html += '<option value="' + option.value + '">' + option.text + '</option>'
+        return
 
       @$el.html options_html
-      @
+      return @
 
     attach_to: (target) ->
       super(target)
-      @$el.select2({ minimumResultsForSearch: -1 })
+      return @$el.select2({ minimumResultsForSearch: -1 })
 
-  viewWidgets
+  return viewWidgets
