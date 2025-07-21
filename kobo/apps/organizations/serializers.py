@@ -7,6 +7,8 @@ from django.core.validators import validate_email
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as t
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.reverse import reverse
@@ -49,6 +51,11 @@ from .constants import (
 from .tasks import transfer_member_data_ownership_to_org
 
 
+@extend_schema_field(OpenApiTypes.STR)
+class ExtraDetailOverload(serializers.ReadOnlyField):
+    pass
+
+
 class OrganizationUserSerializer(serializers.ModelSerializer):
     invite = serializers.SerializerMethodField()
     user = serializers.HyperlinkedRelatedField(
@@ -65,7 +72,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         source='created', format='%Y-%m-%dT%H:%M:%SZ'
     )
     user__username = serializers.ReadOnlyField(source='user.username')
-    user__extra_details__name = serializers.ReadOnlyField(
+    user__extra_details__name = ExtraDetailOverload(
         source='user.extra_details.data.name'
     )
     user__email = serializers.ReadOnlyField(source='user.email')
@@ -86,6 +93,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             'invite',
         ]
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_url(self, obj):
 
         request = self.context.get('request')
@@ -98,6 +106,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             request=request
         )
 
+    @extend_schema_field(OpenApiTypes.OBJECT)
     def get_invite(self, obj):
         """
         Get the latest invite for the user if it exists

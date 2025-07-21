@@ -2,7 +2,7 @@ from django.db import transaction
 from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -25,7 +25,8 @@ from kpi.serializers.v2.service_usage import (
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import open_api_200_ok_response
+from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
+    open_api_204_empty_response
 from kpi.views.v2.asset import AssetViewSet
 from ..accounts.mfa.models import MfaMethod
 from .models import (
@@ -266,26 +267,62 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
 @extend_schema(
     tags=['Members'],
+    parameters=[
+        OpenApiParameter(
+            name='organization_id',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='ID of the organization asset',
+        )
+    ],
 )
 @extend_schema_view(
     destroy=extend_schema(
         description='destroy',
+        responses=open_api_204_empty_response(),
+        parameters=[
+            OpenApiParameter(
+                name='user__username',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the organization asset',
+            )
+        ],
     ),
     list=extend_schema(
         description='list',
     ),
     retrieve=extend_schema(
         description='retrieve',
+        responses=open_api_200_ok_response(),
+        parameters=[
+            OpenApiParameter(
+                name='user__username',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the organization asset',
+            )
+        ],
     ),
     partial_update=extend_schema(
         description='update',
+        responses=open_api_200_ok_response(),
+        parameters=[
+            OpenApiParameter(
+                name='user__username',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the organization asset',
+            )
+        ],
     ),
 )
 class OrganizationMemberViewSet(viewsets.ModelViewSet):
     """
-    The API uses `ModelViewSet` instead of `NestedViewSetMixin` to maintain
-    explicit control over the queryset.
-
     ## Organization Members API
 
     This API allows authorized users to view and manage organization members and
@@ -293,160 +330,6 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 
     * Manage members and their roles within an organization.
     * Update member roles (promote/demote).
-
-    ### List Members
-
-    Retrieves all members in the specified organization.
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/organizations/{organization_id}/members/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/organizations/org_12345/members/
-
-    > Response 200
-
-    >       {
-    >           "count": 2,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >               {
-    >                   "url": "http://[kpi]/api/v2/organizations/org_12345/ \
-    >                   members/foo_bar/",
-    >                   "user": "http://[kpi]/api/v2/users/foo_bar/",
-    >                   "user__username": "foo_bar",
-    >                   "user__email": "foo_bar@example.com",
-    >                   "user__name": "Foo Bar",
-    >                   "role": "owner",
-    >                   "user__has_mfa_enabled": true,
-    >                   "date_joined": "2024-08-11T12:36:32Z",
-    >                   "user__is_active": true,
-    >                   "invite": {}
-    >               },
-    >               {
-    >                   "url": "http://[kpi]/api/v2/organizations/org_12345/ \
-    >                   members/john_doe/",
-    >                   "user": "http://[kpi]/api/v2/users/john_doe/",
-    >                   "user__username": "john_doe",
-    >                   "user__email": "john_doe@example.com",
-    >                   "user__name": "John Doe",
-    >                   "role": "admin",
-    >                   "user__has_mfa_enabled": false,
-    >                   "date_joined": "2024-10-21T06:38:45Z",
-    >                   "user__is_active": true,
-    >                   "invite": {
-    >                       "url": "http://[kpi]/api/v2/organizations/org_12345/
-    >                       invites/83c725f1-3f41-4f72-9657-9e6250e130e1/",
-    >                       "invited_by": "http://[kpi]/api/v2/users/raj_patel/",
-    >                       "status": "accepted",
-    >                       "invitee_role": "admin",
-    >                       "created": "2024-10-21T05:38:45Z",
-    >                       "modified": "2024-10-21T05:40:45Z",
-    >                       "invitee": "john_doe"
-    >                   }
-    >               },
-    >               {
-    >                   "url": null,
-    >                   "user": null,
-    >                   "user__username": null,
-    >                   "user__email": "null,
-    >                   "user__extra_details__name": "null,
-    >                   "role": null,
-    >                   "user__has_mfa_enabled": null,
-    >                   "date_joined": null,
-    >                   "user__is_active": null,
-    >                   "invite": {
-    >                       "url": "http://[kpi]/api/v2/organizations/org_12345/
-    >                       invites/83c725f1-3f41-4f72-9657-9e6250e130e1/",
-    >                       "invited_by": "http://[kpi]/api/v2/users/raj_patel/",
-    >                       "status": "pending",
-    >                       "invitee_role": "admin",
-    >                       "created": "2025-01-07T09:03:50Z",
-    >                       "modified": "2025-01-07T09:03:50Z",
-    >                       "invitee": "demo"
-    >                   }
-    >               },
-    >           ]
-    >       }
-
-
-    ### Retrieve Member Details
-
-    Retrieves the details of a specific member within an organization by username.
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/organizations/{organization_id}/members/{username}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/organizations/org_12345/members/foo_bar/
-
-    > Response 200
-
-    >       {
-    >           "url": "http://[kpi]/api/v2/organizations/org_12345/members/foo_bar/",
-    >           "user": "http://[kpi]/api/v2/users/foo_bar/",
-    >           "user__username": "foo_bar",
-    >           "user__email": "foo_bar@example.com",
-    >           "user__name": "Foo Bar",
-    >           "role": "owner",
-    >           "user__has_mfa_enabled": true,
-    >           "date_joined": "2024-08-11T12:36:32Z",
-    >           "user__is_active": true
-    >       }
-
-    ### Update Member Role
-
-    Updates the role of a member within the organization to `admin` or
-     `member`.
-
-    - **admin**: Grants the member admin privileges within the organization
-    - **member**: Revokes admin privileges, setting the member as a regular user
-
-    <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/organizations/{organization_id}/members/{username}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X PATCH https://[kpi]/api/v2/organizations/org_12345/members/foo_bar/
-
-    > Payload
-
-    >       {
-    >           "role": "admin"
-    >       }
-
-    > Response 200
-
-    >       {
-    >           "url": "http://[kpi]/api/v2/organizations/org_12345/members/foo_bar/",
-    >           "user": "http://[kpi]/api/v2/users/foo_bar/",
-    >           "user__username": "foo_bar",
-    >           "user__email": "foo_bar@example.com",
-    >           "user__name": "Foo Bar",
-    >           "role": "admin",
-    >           "user__has_mfa_enabled": true,
-    >           "date_joined": "2024-08-11T12:36:32Z",
-    >           "user__is_active": true
-    >       }
-
-
-    ### Remove Member
-
-    Delete an organization member.
-
-    <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/organizations/{organization_id}/members/{username}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X DELETE https://[kpi]/api/v2/organizations/org_12345/members/foo_bar/
 
     ## Permissions
 
