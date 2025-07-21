@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v1.3.1
+        uses: dependabot/fetch-metadata@v2.4.0
 
       - name: Enable auto-merge for Dependabot PRs
         # This requires auto-merge to be enabled in GitHub repo settings
