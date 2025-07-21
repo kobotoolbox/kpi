@@ -3,6 +3,7 @@ from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, W
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from openpyxl.pivot.table import MemberList
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -13,6 +14,7 @@ from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
+from kpi.schema_extensions.v2.members.serializers import MemberListResponse
 from kpi.schema_extensions.v2.organizations.serializers import (
     OrganizationAssetUsageResponse,
     OrganizationPatchPayload,
@@ -293,10 +295,15 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     ),
     list=extend_schema(
         description='list',
+        responses=open_api_200_ok_response(
+            MemberListResponse,
+        )
     ),
     retrieve=extend_schema(
         description='retrieve',
-        responses=open_api_200_ok_response(),
+        responses=open_api_200_ok_response(
+            MemberListResponse
+        ),
         parameters=[
             OpenApiParameter(
                 name='user__username',
@@ -309,7 +316,9 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     ),
     partial_update=extend_schema(
         description='update',
-        responses=open_api_200_ok_response(),
+        responses=open_api_200_ok_response(
+            MemberListResponse
+        ),
         parameters=[
             OpenApiParameter(
                 name='user__username',
