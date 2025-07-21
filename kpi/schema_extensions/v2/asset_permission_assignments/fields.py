@@ -1,11 +1,11 @@
 from rest_framework import serializers
 
 
-class LabelField(serializers.SerializerMethodField):
+class AssetPermissionUrlField(serializers.URLField):
     pass
 
 
-class PermissionField(serializers.URLField):
+class LabelField(serializers.SerializerMethodField):
     pass
 
 
@@ -13,7 +13,7 @@ class PartialPermissionField(serializers.SerializerMethodField):
     pass
 
 
-class AssetPermissionUrlField(serializers.URLField):
+class AssetPermissionAssignmentUrlField(serializers.URLField):
     pass
 
 

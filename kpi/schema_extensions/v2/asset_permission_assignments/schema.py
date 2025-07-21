@@ -14,12 +14,12 @@ Common schemas to avoid redundancy
 
 PERMISSION_ASSIGNMENT_LABEL_SCHEMA = build_basic_type(OpenApiTypes.STR)
 
-PERMISSION_URL_SCHEMA = build_url_type(
+ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA = build_url_type(
     'api_v2:permission-detail',
     codename=PERM_CHANGE_ASSET,
 )
 
-PERMISSION_ASSIGNMENT_URL_SCHEMA = build_url_type(
+ASSET_PERMISSION_URL_SCHEMA = build_url_type(
     'api_v2:asset-permission-assignment-detail',
     parent_lookup_asset='a3C9wWefqZVkChNLKqqXVZ',
     uid='pGaXCTDAbdZKLXoXAXd3M4',
@@ -41,7 +41,7 @@ PARTIAL_PERMISSION_SCHEMA = build_array_type(
                     }
                 )
             ),
-            'url': PERMISSION_ASSIGNMENT_URL_SCHEMA,
+            'url': ASSET_PERMISSION_URL_SCHEMA,
         }
     )
 )
