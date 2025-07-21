@@ -13,7 +13,8 @@ from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
-from kpi.schema_extensions.v2.invites.serializers import InviteResponse
+from kpi.schema_extensions.v2.invites.serializers import InviteResponse, \
+    InviteCreatePayload
 from kpi.schema_extensions.v2.organizations.serializers import (
     OrganizationAssetUsageResponse,
     OrganizationPatchPayload,
@@ -26,7 +27,8 @@ from kpi.serializers.v2.service_usage import (
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import open_api_200_ok_response
+from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
+    open_api_204_empty_response
 from kpi.views.v2.asset import AssetViewSet
 from ..accounts.mfa.models import MfaMethod
 from .models import (
@@ -560,12 +562,14 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 @extend_schema_view(
     create=extend_schema(
         description=read_md('kpi', 'invites/create.md'),
+        request={'application/json': InviteCreatePayload},
         responses=open_api_200_ok_response(
             InviteResponse(many=True),
         )
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'invites/delete.md'),
+        responses=open_api_204_empty_response(),
         parameters=[
             OpenApiParameter(
                 name='guid',
