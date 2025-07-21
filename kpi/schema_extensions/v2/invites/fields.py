@@ -11,4 +11,3 @@ class InviteUrlField(serializers.URLField):
 
 class InvitedByUrlField(serializers.URLField):
     pass
-

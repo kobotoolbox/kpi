@@ -2,8 +2,8 @@ from django.db import transaction
 from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from drf_spectacular.openapi import AutoSchema
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -14,8 +14,11 @@ from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
-from kpi.schema_extensions.v2.invites.serializers import InviteResponse, \
-    InviteCreatePayload, InvitePatchPayload
+from kpi.schema_extensions.v2.invites.serializers import (
+    InviteCreatePayload,
+    InvitePatchPayload,
+    InviteResponse,
+)
 from kpi.schema_extensions.v2.organizations.serializers import (
     OrganizationAssetUsageResponse,
     OrganizationPatchPayload,
@@ -29,8 +32,10 @@ from kpi.serializers.v2.service_usage import (
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
-    open_api_204_empty_response
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_204_empty_response,
+)
 from kpi.views.v2.asset import AssetViewSet
 from ..accounts.mfa.models import MfaMethod
 from .models import (
@@ -53,6 +58,7 @@ from .serializers import (
     OrgMembershipInviteSerializer,
 )
 from .utils import revoke_org_asset_perms
+
 
 class InviteSchema(AutoSchema):
     """
@@ -84,7 +90,10 @@ class InviteSchema(AutoSchema):
         if not operation:
             return None
 
-        if operation.get('operationId') == 'api_v2_organizations_invites_partial_update':
+        if (
+            operation.get('operationId')
+            == 'api_v2_organizations_invites_partial_update'
+        ):
 
             operation['requestBody']['content']['application/json']['examples'] = {
                 'UsingStatus': {
@@ -608,7 +617,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             required=True,
             description='ID of the organization asset',
         )
-    ]
+    ],
 )
 @extend_schema_view(
     create=extend_schema(
@@ -618,7 +627,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             InviteResponse(many=True),
             require_auth=False,
             raise_access_forbidden=False,
-        )
+        ),
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'invites/delete.md'),
@@ -634,7 +643,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 required=True,
                 description='GUID of the invite',
             )
-        ]
+        ],
     ),
     list=extend_schema(
         description=read_md('kpi', 'invites/list.md'),
@@ -643,7 +652,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     partial_update=extend_schema(
         description=read_md('kpi', 'invites/update.md'),
@@ -660,7 +669,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 required=True,
                 description='GUID of the invite',
             ),
-        ]
+        ],
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'invites/retrieve.md'),
@@ -678,7 +687,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 required=True,
                 description='GUID of the invite',
             ),
-        ]
+        ],
     ),
 )
 class OrgMembershipInviteViewSet(viewsets.ModelViewSet):

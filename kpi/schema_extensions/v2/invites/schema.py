@@ -1,6 +1,4 @@
-from drf_spectacular.plumbing import (
-    build_basic_type,
-)
+from drf_spectacular.plumbing import build_basic_type
 from drf_spectacular.types import OpenApiTypes
 
 """

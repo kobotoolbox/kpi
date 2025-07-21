@@ -1,11 +1,7 @@
 from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
-from .fields import (
-    InviteesField,
-    InviteUrlField,
-    InvitedByUrlField,
-)
+from .fields import InvitedByUrlField, InviteesField, InviteUrlField
 
 InviteCreatePayload = inline_serializer_class(
     name='InviteCreatePayload',
