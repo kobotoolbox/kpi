@@ -5,7 +5,7 @@ from .fields import (
     AssetPermissionUrlField,
     LabelField,
     PartialPermissionField,
-    PermissionField,
+    AssetPermissionAssignmentUrlField,
     UserField,
 )
 
@@ -14,7 +14,7 @@ PermissionResponse = inline_serializer_class(
     fields={
         'url': AssetPermissionUrlField(),
         'user': UserField(),
-        'permission': PermissionField(),
+        'permission': AssetPermissionAssignmentUrlField(),
         'label': LabelField(),
     },
 )
@@ -23,7 +23,7 @@ PermissionBulkRequest = inline_serializer_class(
     name='PermissionBulkRequest',
     fields={
         'user': UserField(),
-        'permission': PermissionField(),
+        'permission': AssetPermissionAssignmentUrlField(),
     },
 )
 
@@ -36,6 +36,6 @@ PermissionCreateRequest = inline_serializer_class(
     fields={
         'user': UserField(),
         'partial_permission': PartialPermissionField(),
-        'permission': PermissionField(),
+        'permission': AssetPermissionAssignmentUrlField(),
     },
 )
