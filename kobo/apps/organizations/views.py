@@ -616,11 +616,16 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         request={'application/json': InviteCreatePayload},
         responses=open_api_200_ok_response(
             InviteResponse(many=True),
+            require_auth=False,
+            raise_access_forbidden=False,
         )
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'invites/delete.md'),
-        responses=open_api_204_empty_response(),
+        responses=open_api_204_empty_response(
+            require_auth=False,
+            validate_payload=False,
+        ),
         parameters=[
             OpenApiParameter(
                 name='guid',
@@ -635,6 +640,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         description=read_md('kpi', 'invites/list.md'),
         responses=open_api_200_ok_response(
             InviteResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
     partial_update=extend_schema(
@@ -642,6 +650,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         request={'application/json': InvitePatchPayload},
         responses=open_api_200_ok_response(
             InviteResponse(many=False),
+            require_auth=False,
         ),
         parameters=[
             OpenApiParameter(
@@ -657,6 +666,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         description=read_md('kpi', 'invites/retrieve.md'),
         responses=open_api_200_ok_response(
             InviteResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         ),
         parameters=[
             OpenApiParameter(
