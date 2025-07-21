@@ -566,153 +566,21 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 )
 class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     """
-    ### List Organization Invites
+    Viewset for managing organization invites
 
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/organizations/{organization_id}/invites/
-    </pre>
+    Available actions:
+    - create            → CREATE    /api/v2/organization/{parent_lookup_organization}/invites/  # noqa
+    - destroy           → DELETE    /api/v2/organization/{parent_lookup_organization}/invites/{guid}/  # noqa
+    - list              → LIST      /api/v2/organization/{parent_lookup_organization}/invites/  # noqa
+    - retrieve          → RETRIEVE  /api/v2/organization/{parent_lookup_organization}/invites/{guid}/   # noqa
+    - partial_update    → PATCH     /api/v2/organization/{parent_lookup_organization}/invites/{guid}/   # noqa
 
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/organizations/org_12345/invites/
-
-    > Response 200
-
-    >       {
-    >           "count": 2,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >               {
-    >                   "url": "http://kf.kobo.local/api/v2/organizations/
-                        org_12345/invites/f361ebf6-d1c1-4ced-8343-04b11863d784/",
-    >                   "invited_by": "http://kf.kobo.local/api/v2/users/demo7/",
-    >                   "status": "pending",
-    >                   "invitee_role": "member",
-    >                   "created": "2024-12-11T16:00:00Z",
-    >                   "modified": "2024-12-11T16:00:00Z",
-    >                   "invitee": "raj_patel"
-    >               },
-    >               {
-    >                   "url": "http://kf.kobo.local/api/v2/organizations/
-                        org_12345/invites/1a8b93bf-eec5-4e56-bd4a-5f7657e6a2fd/",
-    >                   "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
-    >                   "status": "pending",
-    >                   "invitee_role": "member",
-    >                   "created": "2024-12-11T18:19:56Z",
-    >                   "modified": "2024-12-11T18:19:56Z",
-    >                   "invitee": "demo7"
-    >               },
-    >           ]
-    >       }
-
-    ### Create Organization Invite
-
-    * Create organization invites for registered and unregistered users.
-    * Set the role for which the user is being invited -
-    (Choices: `member`, `admin`). Default is `member`.
-
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/organizations/{organization_id}/invites/
-    </pre>
-
-    > Example
-    >
-    >       curl -X POST https://[kpi]/api/v2/organizations/org_12345/invites/
-
-    > Payload
-
-    >       {
-    >           "invitees": ["demo14", "demo13@demo13.com", "demo20@demo20.com"]
-    >           "role": "member"
-    >       }
-
-    > Response 200
-
-    >       [
-    >           {
-    >               "url": "http://kf.kobo.local/api/v2/organizations/
-                    org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/",
-    >               "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
-    >               "status": "pending",
-    >               "invitee_role": "member",
-    >               "created": "2024-12-20T13:35:13Z",
-    >               "modified": "2024-12-20T13:35:13Z",
-    >               "invitee": "demo14"
-    >           },
-    >           {
-    >               "url": "http://kf.kobo.local/api/v2/organizations/
-                    org_12345/invites/5e79e0b4-6de4-4901-bbe5-59807fcdd99a/",
-    >               "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
-    >               "status": "pending",
-    >               "invitee_role": "member",
-    >               "created": "2024-12-20T13:35:13Z",
-    >               "modified": "2024-12-20T13:35:13Z",
-    >               "invitee": "demo13"
-    >           },
-    >           {
-    >               "url": "http://kf.kobo.local/api/v2/organizations/
-                    org_12345/invites/3efb7217-171f-47a5-9a42-b23055e499d4/",
-    >               "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
-    >               "status": "pending",
-    >               "invitee_role": "member",
-    >               "created": "2024-12-20T13:35:13Z",
-    >               "modified": "2024-12-20T13:35:13Z",
-    >               "invitee": "demo20@demo20.com"
-    >           }
-    >       ]
-
-    ### Update Organization Invite
-
-    * Update an organization invite to accept, decline, cancel, expire, or resend.
-    * Update the role of the invitee to `admin` or `member`. Only the owner or admin can update the role.
-
-    <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/organizations/{organization_id}/invites/{invite_guid}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X PATCH https://[kpi]/api/v2/organizations/org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/  # noqa
-
-    > Payload (Update Status)
-
-    >       {
-    >           "status": "accepted"
-    >       }
-
-    > Payload (Update Role - Only owner or admin can update role)
-
-    >       {
-    >           "role": "admin"
-    >       }
-
-    > Response 200
-
-    >       {
-    >           "url": "http://kf.kobo.local/api/v2/organizations/org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/",  # noqa
-    >           "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
-    >           "status": "accepted",
-    >           "invitee_role": "member",
-    >           "created": "2024-12-20T13:35:13Z",
-    >           "modified": "2024-12-20T13:35:13Z",
-    >           "invitee": "demo14"
-    >       }
-
-    ### Delete Organization Invite
-
-    * Organization owner or admin can delete an organization invite.
-
-    <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/organizations/{organization_id}/invites/{invite_guid}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X DELETE https://[kpi]/api/v2/organizations/org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/
-
-    > Response 204
-
+    Documentation:
+    - docs/api/v2/invites/create.md
+    - docs/api/v2/invites/destroy.md
+    - docs/api/v2/invites/list.md
+    - docs/api/v2/invites/retrieve.md
+    - docs/api/v2/invites/update.md
     """
 
     serializer_class = OrgMembershipInviteSerializer
