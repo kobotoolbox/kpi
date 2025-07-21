@@ -13,7 +13,8 @@ import moment from 'moment'
 import { Cookies } from 'react-cookie'
 import type { Toast, ToastOptions } from 'react-hot-toast'
 import { toast } from 'react-hot-toast'
-import { Json } from './components/common/common.interfaces'
+import type { Json } from './components/common/common.interfaces'
+import type { MongoQuery } from './dataInterface'
 
 export const LANGUAGE_COOKIE_NAME = 'django_language'
 
