@@ -43,7 +43,7 @@ from kpi.permissions import (
     get_perm_name,
 )
 from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, XlsRenderer
-from kpi.schema_extensions.v2.assets.schema import ASSET_CLONE_FROM
+from kpi.schema_extensions.v2.assets.schema import ASSET_CLONE_FROM_SCHEMA
 from kpi.schema_extensions.v2.assets.serializers import (
     AssetBulkRequest,
     AssetBulkResponse,
@@ -54,6 +54,11 @@ from kpi.schema_extensions.v2.assets.serializers import (
     AssetPatchRequest,
     AssetReportResponse,
     AssetValidContentResponse,
+)
+from kpi.schema_extensions.v2.deployments.serializers import (
+    DeploymentCreateRequest,
+    DeploymentPatchRequest,
+    DeploymentResponse,
 )
 from kpi.serializers.v2.asset import (
     AssetBulkActionsSerializer,
@@ -99,15 +104,15 @@ class AssetSchema(AutoSchema):
     def get_operation(self, *args, **kwargs):
 
         from kpi.schema_extensions.v2.assets.schema import (
-            ASSET_CONTENT,
-            ASSET_ENABLED,
-            ASSET_FIELDS,
-            ASSET_NAME,
-            ASSET_SETTINGS,
-            ASSET_TYPE,
-            BULK_ACTION,
-            BULK_ASSET_UIDS,
-            BULK_CONFIRM,
+            ASSET_CONTENT_SCHEMA,
+            ASSET_ENABLED_SCHEMA,
+            ASSET_FIELDS_SCHEMA,
+            ASSET_NAME_SCHEMA,
+            ASSET_SETTINGS_SCHEMA,
+            ASSET_TYPE_SCHEMA,
+            BULK_ACTION_SCHEMA,
+            BULK_ASSET_UIDS_SCHEMA,
+            BULK_CONFIRM_SCHEMA,
         )
 
         operation = super().get_operation(*args, **kwargs)
@@ -120,17 +125,19 @@ class AssetSchema(AutoSchema):
             operation['requestBody']['content']['application/json']['examples'] = {
                 'UsingAsset': {
                     'value': {
-                        'name': generate_example_from_schema(ASSET_NAME),
-                        'settings': generate_example_from_schema(ASSET_SETTINGS),
-                        'asset_type': generate_example_from_schema(ASSET_TYPE),
+                        'name': generate_example_from_schema(ASSET_NAME_SCHEMA),
+                        'settings': generate_example_from_schema(ASSET_SETTINGS_SCHEMA),
+                        'asset_type': generate_example_from_schema(ASSET_TYPE_SCHEMA),
                     },
                     'summary': 'Creating an asset',
                 },
                 'UsingSource': {
                     'value': {
-                        'name': generate_example_from_schema(ASSET_NAME),
-                        'clone_from': generate_example_from_schema(ASSET_CLONE_FROM),
-                        'asset_type': generate_example_from_schema(ASSET_TYPE),
+                        'name': generate_example_from_schema(ASSET_NAME_SCHEMA),
+                        'clone_from': generate_example_from_schema(
+                            ASSET_CLONE_FROM_SCHEMA
+                        ),
+                        'asset_type': generate_example_from_schema(ASSET_TYPE_SCHEMA),
                     },
                     'summary': 'Cloning an asset',
                 },
@@ -141,15 +148,17 @@ class AssetSchema(AutoSchema):
             operation['requestBody']['content']['application/json']['examples'] = {
                 'UsingAssets': {
                     'value': {
-                        'asset_uids': generate_example_from_schema(BULK_ASSET_UIDS),
-                        'action': generate_example_from_schema(BULK_ACTION),
+                        'asset_uids': generate_example_from_schema(
+                            BULK_ASSET_UIDS_SCHEMA
+                        ),
+                        'action': generate_example_from_schema(BULK_ACTION_SCHEMA),
                     },
                     'summary': 'Perform action on one or more asset',
                 },
                 'UsingConfirm': {
                     'value': {
-                        'confirm': generate_example_from_schema(BULK_CONFIRM),
-                        'action': generate_example_from_schema(BULK_ACTION),
+                        'confirm': generate_example_from_schema(BULK_CONFIRM_SCHEMA),
+                        'action': generate_example_from_schema(BULK_ACTION_SCHEMA),
                     },
                     'summary': 'Perform bulk on ALL asset',
                 },
@@ -160,15 +169,15 @@ class AssetSchema(AutoSchema):
             operation['requestBody']['content']['application/json']['examples'] = {
                 'Updating': {
                     'value': {
-                        'content': generate_example_from_schema(ASSET_CONTENT),
-                        'name': generate_example_from_schema(ASSET_NAME),
+                        'content': generate_example_from_schema(ASSET_CONTENT_SCHEMA),
+                        'name': generate_example_from_schema(ASSET_NAME_SCHEMA),
                     },
                     'summary': 'Updating an asset',
                 },
                 'ControlSharing': {
                     'value': {
-                        'enabled': generate_example_from_schema(ASSET_ENABLED),
-                        'fields': generate_example_from_schema(ASSET_FIELDS),
+                        'enabled': generate_example_from_schema(ASSET_ENABLED_SCHEMA),
+                        'fields': generate_example_from_schema(ASSET_FIELDS_SCHEMA),
                     },
                     'summary': 'Data sharing of the project',
                 },
@@ -387,35 +396,6 @@ class AssetViewSet(
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/
 
-    ### Deployment
-
-    Retrieves the existing deployment, if any.
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/{uid}/deployment/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/deployment/
-
-    Creates a new deployment, but only if a deployment does not exist already.
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/assets/{uid}/deployment/
-    </pre>
-
-    > Example
-    >
-    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/deployment/
-
-    Updates the `active` field of the existing deployment.
-    <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/assets/{uid}/deployment/
-    </pre>
-
-    > Example
-    >
-    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/deployment/
-
     Overwrites the entire deployment, including the form contents, but does not change the deployment's identifier
     <pre class="prettyprint">
     <b>PUT</b> /api/v2/assets/{uid}/deployment/
@@ -496,17 +476,50 @@ class AssetViewSet(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
 
+    @extend_schema(
+        methods=['GET'],
+        description=read_md('kpi', 'deployments/list.md'),
+        responses=open_api_200_ok_response(
+            DeploymentResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    )
+    @extend_schema(
+        methods=['PATCH'],
+        description=read_md('kpi', 'deployments/update.md'),
+        request={'application/json': DeploymentPatchRequest},
+        responses=open_api_200_ok_response(
+            DeploymentResponse,
+            raise_access_forbidden=False,
+        ),
+    )
+    @extend_schema(
+        methods=['POST'],
+        description=read_md('kpi', 'deployments/create.md'),
+        request={'application/json': DeploymentCreateRequest},
+        responses=open_api_200_ok_response(
+            DeploymentResponse,
+            raise_access_forbidden=False,
+        ),
+    )
     @action(detail=True,
             methods=['get', 'post', 'patch'],
             permission_classes=[PostMappedToChangePermission])
     def deployment(self, request, uid):
         """
-        A GET request retrieves the existing deployment, if any.
-        A POST request creates a new deployment, but only if a deployment does
-            not exist already.
-        A PATCH request updates the `active` field of the existing deployment.
-        A PUT request overwrites the entire deployment, including the form
-            contents, but does not change the deployment's identifier
+        ViewSet for managing the current project's deployment
+
+        Available actions:
+        - list           → GET /api/v2/assets/{uid}/deployment/
+        - create         → POST /api/v2/assets/{uid}/deployment/
+        - patch          → PATCH /api/v2/assets/{uid}/deployment/
+
+        Documentation:
+        - docs/api/v2/deployments/list.md
+        - docs/api/v2/deployments/create.md
+        - docs/api/v2/deployments/patch.md
         """
         asset = self.get_object()
         serializer_context = self.get_serializer_context()
