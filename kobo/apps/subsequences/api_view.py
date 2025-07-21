@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+from django.conf import settings
 from django.db.models import Q
 from django.shortcuts import Http404
 from jsonschema import validate
@@ -11,10 +12,14 @@ from rest_framework.response import Response
 from kobo.apps.audit_log.base_views import AuditLoggedApiView
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.openrosa.apps.logger.models import Instance
+from kobo.apps.organizations.constants import UsageType
+from kobo.apps.subsequences.constants import GOOGLETS, GOOGLETX
 from kobo.apps.subsequences.models import SubmissionExtras
 from kobo.apps.subsequences.utils.deprecation import get_sanitized_dict_keys
+from kpi.exceptions import UsageLimitExceededException
 from kpi.models import Asset
 from kpi.permissions import SubmissionPermission
+from kpi.utils.usage_calculator import ServiceUsageCalculator
 from kpi.views.environment import check_asr_mt_access_for_user
 
 
@@ -23,9 +28,7 @@ def _check_asr_mt_access_if_applicable(user, posted_data):
     # quotas and accounting
     MAGIC_STATUS_VALUE = 'requested'
     user_has_access = check_asr_mt_access_for_user(user)
-    if user_has_access:
-        return True
-    # Oops, no access. But did they request ASR/MT in the first place?
+
     for _, val in posted_data.items():
         # e.g.
         # {
@@ -39,7 +42,7 @@ def _check_asr_mt_access_if_applicable(user, posted_data):
         # }
         if not isinstance(val, dict):
             continue
-        for _, child_val in val.items():
+        for child_key, child_val in val.items():
             if not isinstance(child_val, dict):
                 continue
             try:
@@ -47,11 +50,25 @@ def _check_asr_mt_access_if_applicable(user, posted_data):
             except KeyError:
                 continue
             else:
-                if asr_mt_request:
+                if asr_mt_request and not user_has_access:
                     # This is temporary code, and anyone here is trying to
                     # abuse the API, so don't bother translators with the
                     # message string
                     raise PermissionDenied('ASR/MT features are not available')
+
+            if not settings.STRIPE_ENABLED:
+                return True
+
+            calculator = ServiceUsageCalculator(user)
+            balances = calculator.get_usage_balances()
+            if child_key == GOOGLETX:
+                balance = balances[UsageType.MT_CHARACTERS]
+                if balance and balance['exceeded']:
+                    raise UsageLimitExceededException()
+            if child_key == GOOGLETS:
+                balance = balances[UsageType.ASR_SECONDS]
+                if balance and balance['exceeded']:
+                    raise UsageLimitExceededException()
 
 
 class AdvancedSubmissionPermission(SubmissionPermission):

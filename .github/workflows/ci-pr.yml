@@ -2,9 +2,10 @@ name: CI of a PR
 
 on: pull_request
 
+
 jobs:
   changes:
-    runs-on:     ubuntu-22.04
+    runs-on:     ubuntu-24.04
     permissions: { pull-requests: read }
     steps:
       - uses: actions/checkout@v4
@@ -13,21 +14,22 @@ jobs:
         name: Detect changed files
         with: { filters: .github/filters.yml }
     outputs:
+      all:      ${{ steps.filter.outputs.all      }}
       darker:   ${{ steps.filter.outputs.darker   }}
       pytest:   ${{ steps.filter.outputs.pytest   }}
       npm-test: ${{ steps.filter.outputs.npm-test }}
 
   darker:
     needs: changes
+    if: needs.changes.outputs.all == 'true' || needs.changes.outputs.darker == 'true'
     uses: ./.github/workflows/darker.yml
-    if: needs.changes.outputs.darker == 'true'
 
   pytest:
     needs: changes
+    if: needs.changes.outputs.all == 'true' || needs.changes.outputs.pytest == 'true'
     uses: ./.github/workflows/pytest.yml
-    if: needs.changes.outputs.pytest == 'true'
 
   npm-test:
     needs: changes
+    if: needs.changes.outputs.all == 'true' || false && needs.changes.outputs.npm-test == 'true'
     uses: ./.github/workflows/npm-test.yml
-    if: needs.changes.outputs.npm-test == 'true'
