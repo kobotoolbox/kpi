@@ -22,3 +22,11 @@ MemberListResponse = inline_serializer_class(
         'invite': InviteField(),
     },
 )
+
+
+MemberPatchRequest = inline_serializer_class(
+    name='MemberPatchRequest',
+    fields={
+        'role': serializers.CharField(),
+    },
+)

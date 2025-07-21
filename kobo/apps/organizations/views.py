@@ -14,7 +14,8 @@ from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
-from kpi.schema_extensions.v2.members.serializers import MemberListResponse
+from kpi.schema_extensions.v2.members.serializers import MemberListResponse, \
+    MemberPatchRequest
 from kpi.schema_extensions.v2.organizations.serializers import (
     OrganizationAssetUsageResponse,
     OrganizationPatchPayload,
@@ -316,6 +317,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     ),
     partial_update=extend_schema(
         description='update',
+        request={'application/json': MemberPatchRequest},
         responses=open_api_200_ok_response(
             MemberListResponse
         ),
