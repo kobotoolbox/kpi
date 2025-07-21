@@ -2,8 +2,7 @@ from drf_spectacular.extensions import (
     OpenApiSerializerExtension,
     OpenApiSerializerFieldExtension,
 )
-from drf_spectacular.plumbing import build_basic_type, build_object_type
-from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.plumbing import build_object_type
 
 from .schema import (
     PARTIAL_PERMISSION_SCHEMA,
