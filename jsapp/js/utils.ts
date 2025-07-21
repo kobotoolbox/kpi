@@ -579,7 +579,7 @@ export function matchUuid(uuidA: string, uuidB: string) {
   return addDefaultUuidPrefix(uuidA) === addDefaultUuidPrefix(uuidB)
 }
 
-export function createDateQuery(startDate: string, endDate: string) {
+export function createDateQuery(startDate: string, endDate: string): MongoQuery {
   // $and is necessary as repeating a json key is not valid
   const andQuery: Json = []
   if (startDate) {
