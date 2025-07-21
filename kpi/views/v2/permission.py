@@ -1,96 +1,61 @@
 # coding: utf-8
 from django.contrib.auth.models import Permission
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
+from rest_framework.renderers import JSONRenderer
 
 from kpi.models.asset import Asset
+from kpi.schema_extensions.v2.permissions.serializers import PermissionResponse
 from kpi.serializers.v2.permission import PermissionSerializer
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 
 
 @extend_schema(
-    tags=['permissions'],
+    tags=['Permissions'],
+)
+@extend_schema_view(
+    list=extend_schema(
+        description=read_md('kpi', 'permissions/list.md'),
+        responses=open_api_200_ok_response(
+            PermissionResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+            validate_payload=False,
+        ),
+    ),
+    retrieve=extend_schema(
+        description=read_md('kpi', 'permissions/retrieve.md'),
+        responses=open_api_200_ok_response(
+            PermissionResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+            validate_payload=False,
+        ),
+    ),
 )
 class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    **Display all assignable permissions for `Asset`**
+    Viewset for managing permissions
 
-    The `implied` property of a given permission shows which additional
-    permissions are automatically granted when assigning that particular
-    permission.
+    Available actions:
+    - list           → GET /api/v2/permissions/
+    - retrieve       → GET /api/v2/assets/{codename}/
 
-    The `contradictory` property shows which permissions are removed when
-    assigning that particular permission.
-
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/permissions/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/permissions/
-
-    > Response
-    >
-    >        {
-    >           "count": 9,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >               {
-    >                   "url": "http://kpi/api/v2/permissions/change_submissions/",
-    >                   "codename": "change_submissions",
-    >                   "implied": [
-    >                       "http://kpi/api/v2/permissions/view_asset/"
-    >                   ],
-    >                   "contradictory": [
-    >                       "http://kpi/api/v2/permissions/partial_submissions/"
-    >                   ],
-    >                   "name": "Can modify submitted data for asset"
-    >                },
-    >                ...
-    >               {
-    >                   "url": "http://kpi/api/v2/permissions/add_submissions/",
-    >                   "codename": "add_submissions",
-    >                   "implied": [],
-    >                   "contradictory": [],
-    >                   "name": "Can submit data to asset"
-    >                }
-    >           ]
-    >        }
-
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/permissions/{codename}
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/permissions/change_submissions
-
-
-    > Response
-    >
-    >               {
-    >                   "url": "http://kpi/api/v2/permissions/change_submissions/",
-    >                   "codename": "change_submissions",
-    >                   "implied": [
-    >                       "http://kpi/api/v2/permissions/view_asset/"
-    >                   ],
-    >                   "contradictory": [
-    >                       "http://kpi/api/v2/permissions/partial_submissions/"
-    >                   ],
-    >                   "name": "Can modify submitted data for asset"
-    >                }
-
-
-    ### CURRENT ENDPOINT
+    Documentation:
+    - docs/api/v2/permissions/list.md
+    - docs/api/v2/permissions/retrieve.md
     """
 
     queryset = Permission.objects.all()
     model = Permission
     lookup_field = 'codename'
     serializer_class = PermissionSerializer
+    renderer_classes = [
+        JSONRenderer,
+    ]
 
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset(*args, **kwargs)
