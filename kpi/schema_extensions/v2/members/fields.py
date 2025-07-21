@@ -11,4 +11,3 @@ class MemberUrlField(serializers.JSONField):
 
 class UserUrlField(serializers.JSONField):
     pass
-

@@ -1,11 +1,7 @@
 from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
-from .fields import (
-    InviteField,
-    MemberUrlField,
-    UserUrlField,
-)
+from .fields import InviteField, MemberUrlField, UserUrlField
 
 MemberListResponse = inline_serializer_class(
     name='MemberListResponse',

@@ -1,7 +1,4 @@
-from drf_spectacular.extensions import (
-    OpenApiSerializerExtension,
-    OpenApiSerializerFieldExtension,
-)
+from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import build_basic_type, build_object_type
 from drf_spectacular.types import OpenApiTypes
 
@@ -39,7 +36,7 @@ class MemberUrlFieldExtension(OpenApiSerializerFieldExtension):
         return build_url_type(
             'api_v2:organization-members-detail',
             organization_id='orgR6zUBwMHop2mgGygtFd6c',
-            user__username='bob'
+            user__username='bob',
         )
 
 
@@ -47,7 +44,4 @@ class UserUrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.members.fields.UserUrlField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type(
-            'api_v2:user-kpi-detail',
-            username='bob'
-        )
+        return build_url_type('api_v2:user-kpi-detail', username='bob')
