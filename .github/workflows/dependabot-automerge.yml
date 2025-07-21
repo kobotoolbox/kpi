@@ -27,7 +27,7 @@ jobs:
 
       - name: Enable auto-merge for Dependabot PRs
         # This requires auto-merge to be enabled in GitHub repo settings
-        run: gh pr merge --auto --merge "$PR_URL"
+        run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
@@ -53,7 +53,7 @@ jobs:
 
   on-failure:
     if: |
-      failure() &&
+      failure() ||
       (needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out')
     needs:
       - npm-test
