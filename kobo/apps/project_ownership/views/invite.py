@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from kpi.permissions import IsAuthenticated
 from ...audit_log.base_views import AuditLoggedModelViewSet
@@ -8,7 +8,27 @@ from ..serializers import InviteSerializer
 
 
 @extend_schema(
-    tags=['project-ownership-invites'],
+    tags=['Project Ownership Invites'],
+)
+@extend_schema_view(
+    create=extend_schema(
+        description='create',
+    ),
+    destroy=extend_schema(
+        description='delete',
+    ),
+    list=extend_schema(
+        description='list',
+    ),
+    retrieve=extend_schema(
+        description='retrieve',
+    ),
+    partial_update=extend_schema(
+        description='update',
+    ),
+    update=extend_schema(
+        exclude=True,
+    )
 )
 class InviteViewSet(AuditLoggedModelViewSet):
     """
