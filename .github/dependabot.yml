@@ -3,7 +3,8 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      - cron: "7 6 * * *"
+      # dependabot doesn't support cron
+      interval: "daily"
     labels:
       - "dependencies"
       - "github actions"
@@ -16,7 +17,8 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      - cron: "7 6 * * *"
+      # dependabot doesn't support cron
+      interval: "daily"
     labels:
       - "dependencies"
     groups:
