@@ -21,11 +21,7 @@ from kpi.constants import (
     PERM_FROM_KC_ONLY,
     PREFIX_PARTIAL_PERMS,
 )
-from kpi.deployment_backends.kc_access.utils import (
-    assign_applicable_kc_permissions,
-    kc_transaction_atomic,
-    remove_applicable_kc_permissions,
-)
+from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.models.object_permission import ObjectPermission
 from kpi.utils.object_permission import (
     get_database_user,
@@ -102,34 +98,6 @@ class ObjectPermissionMixin:
         if type(source_object) is type(self):
             # First delete all permissions of the target asset (except owner's).
             perm_queryset = self.permissions.exclude(user_id=self.owner_id)
-            # The bulk delete below (i.e.: `perm_queryset.delete()`) does not
-            # remove permissions in KoBoCAT.
-            # We could loop through `self.permissions` and call `remove_perm`
-            # for each permission but it would have probably a performance hit
-            # with assets with lots of permissions.
-            # Let's use PostgreSQL specific function `ArrayAgg` to retrieve all
-            # codenames at once.
-
-            # It relies on the fact that permissions are synced in KoBoCAT and KPI.
-            # If any permissions are present in KoBoCAT but not in KPI, these
-            # permissions will not be deleted and will have to be deleted manually
-            # with KoBoCAT.
-
-            user_codenames = (
-                ObjectPermission.objects.filter(asset_id=self.pk, deny=False)
-                .exclude(user_id=self.owner_id)
-                .values('user_id')
-                .annotate(
-                    all_codenames=ArrayAgg(
-                        'permission__codename', distinct=True
-                    )
-                )
-            )
-            for user_codename in user_codenames:
-                remove_applicable_kc_permissions(
-                    self, user_codename['user_id'], user_codename['all_codenames']
-                )
-
             # Remove all permissions from the asset (except the owner's)
             perm_queryset.delete()
 
@@ -443,7 +411,7 @@ class ObjectPermissionMixin:
     @transaction.atomic
     @kc_transaction_atomic
     def assign_perm(self, user_obj, perm, deny=False, defer_recalc=False,
-                    skip_kc=False, partial_perms=None):
+                    partial_perms=None):
         r"""
             Assign `user_obj` the given `perm` on this object, or break
             inheritance from a parent object. By default, recalculate
@@ -454,8 +422,6 @@ class ObjectPermissionMixin:
             :param deny: bool. When `True`, break inheritance from parent object
             :param defer_recalc: bool. When `True`, skip recalculating
                 descendants
-            :param skip_kc: bool. When `True`, skip assignment of applicable KC
-                permissions
             :param partial_perms: dict. Filters used to narrow down query for
               partial permissions
         """
@@ -513,10 +479,7 @@ class ObjectPermissionMixin:
             'permission__codename', flat=True))
 
         contradictory_perms.delete()
-        # Check if any KC permissions should be removed as well
-        if deny and not skip_kc:
-            remove_applicable_kc_permissions(
-                self, user_obj, contradictory_codenames)
+
         # Create the new permission
         new_permission = ObjectPermission.objects.create(
             asset=self,
@@ -532,9 +495,6 @@ class ObjectPermissionMixin:
             codename=codename,
             deny=deny,
         )
-        # Assign any applicable KC permissions
-        if not deny and not skip_kc:
-            assign_applicable_kc_permissions(self, user_obj, codename)
         # Resolve implied permissions, e.g. granting change implies granting
         # view
         implied_perms = self.get_implied_perms(
@@ -680,7 +640,7 @@ class ObjectPermissionMixin:
 
     @transaction.atomic
     @kc_transaction_atomic
-    def remove_perm(self, user_obj, perm, defer_recalc=False, skip_kc=False):
+    def remove_perm(self, user_obj, perm, defer_recalc=False):
         """
             Revoke the given `perm` on this object from `user_obj`. By default,
             recalculate descendant objects' permissions and remove any
@@ -696,8 +656,6 @@ class ObjectPermissionMixin:
             :param perm str: The `codename` of the `Permission`
             :param defer_recalc bool: When `True`, skip recalculating
                 descendants
-            :param skip_kc bool: When `True`, skip assignment of applicable KC
-                permissions
         """
         user_obj = get_database_user(user_obj)
         app_label, codename = perm_parse(perm, self)
@@ -740,10 +698,6 @@ class ObjectPermissionMixin:
                 user=user_obj,
                 codename=codename,
             )
-
-        # Remove any applicable KC permissions
-        if not skip_kc:
-            remove_applicable_kc_permissions(self, user_obj, codename)
 
         # We might have been called by ourself to assign a related
         # permission. In that case, don't recalculate here.

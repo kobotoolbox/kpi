@@ -2,7 +2,6 @@ import json
 
 from django.conf import settings
 from django.db import models
-from guardian.conf import settings as guardian_settings
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.fields import LazyDefaultBooleanField
@@ -114,14 +113,3 @@ class UserProfile(models.Model):
         user_profile.validated_password = validated
         user_profile.save(update_fields=['validated_password'])
 
-
-# TODO, remove this in favor of `kpi.utils.object_permission.get_anonymous_user()`
-def get_anonymous_user_instance(user_class: User):
-    """
-    Force `AnonymousUser` to be saved with `pk` == `ANONYMOUS_USER_ID`
-    """
-
-    return user_class(
-        pk=settings.ANONYMOUS_USER_ID,
-        username=guardian_settings.ANONYMOUS_USER_NAME,
-    )

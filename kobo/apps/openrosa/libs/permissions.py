@@ -10,9 +10,6 @@ from kobo.apps.openrosa.libs.constants import (
     CAN_VALIDATE_XFORM,
     CAN_VIEW_XFORM,
 )
-from kobo.apps.openrosa.libs.utils.guardian import (
-    get_users_with_perms as guardian_get_users_with_perms,
-)
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
@@ -92,7 +89,7 @@ def get_object_users_with_permissions(obj, serializable: bool = False) -> list[d
     result = []
 
     if obj:
-        users_with_perms = guardian_get_users_with_perms(
+        users_with_perms = get_users_with_perms(
             obj, attach_perms=True, with_group_users=False
         ).items()
 
