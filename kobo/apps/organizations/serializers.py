@@ -7,6 +7,8 @@ from django.core.validators import validate_email
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as t
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.reverse import reverse
@@ -323,6 +325,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
 
         return invites
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_invited_by(self, invite):
         return reverse(
             'user-kpi-detail',
@@ -330,6 +333,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             request=self.context['request'],
         )
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_url(self, obj):
         """
         Return the detail URL for the invite

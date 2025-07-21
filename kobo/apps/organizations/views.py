@@ -2,7 +2,7 @@ from django.db import transaction
 from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -546,22 +546,58 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 
 @extend_schema(
     tags=['Invites'],
+    parameters=[
+        OpenApiParameter(
+            name='organization_id',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='ID of the organization asset',
+        )
+    ]
 )
 @extend_schema_view(
     create=extend_schema(
-        description='Create',
+        description=read_md('kpi', 'invites/create.md'),
     ),
     destroy=extend_schema(
-        description='Destroy',
+        description=read_md('kpi', 'invites/delete.md'),
+        parameters=[
+            OpenApiParameter(
+                name='guid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='GUID of the invite',
+            )
+        ]
     ),
     list=extend_schema(
-        description='List',
+        description=read_md('kpi', 'invites/list.md'),
     ),
     partial_update=extend_schema(
-        description='Update',
+        description=read_md('kpi', 'invites/update.md'),
+        parameters=[
+            OpenApiParameter(
+                name='guid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='GUID of the invite',
+            ),
+        ]
     ),
     retrieve=extend_schema(
-        description='Retrieve',
+        description=read_md('kpi', 'invites/retrieve.md'),
+        parameters=[
+            OpenApiParameter(
+                name='guid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='GUID of the invite',
+            ),
+        ]
     ),
 )
 class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
