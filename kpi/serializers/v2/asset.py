@@ -434,13 +434,12 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             'paired_data',
             'project_ownership',
             'owner_label',
+            'last_modified_by'
         )
+        read_only_fields = ('last_modified_by', 'uid')
         extra_kwargs = {
             'parent': {
                 'lookup_field': 'uid',
-            },
-            'uid': {
-                'read_only': True,
             },
         }
 
@@ -1047,37 +1046,39 @@ class AssetListSerializer(AssetSerializer):
         # WARNING! If you're changing something here, please update
         # `Asset.optimize_queryset_for_list()`; otherwise, you'll cause an
         # additional database query for each asset in the list.
-        fields = ('url',
-                  'date_created',
-                  'date_modified',
-                  'date_deployed',
-                  'owner',
-                  'summary',
-                  'owner__username',
-                  'parent',
-                  'uid',
-                  'tag_string',
-                  'settings',
-                  'kind',
-                  'name',
-                  'asset_type',
-                  'version_id',
-                  'has_deployment',
-                  'deployed_version_id',
-                  'deployment__active',
-                  'deployment__submission_count',
-                  'deployment_status',
-                  'permissions',
-                  'export_settings',
-                  'downloads',
-                  'data',
-                  'subscribers_count',
-                  'status',
-                  'access_types',
-                  'children',
-                  'data_sharing',
-                  'owner_label',
-                  )
+        fields = (
+            'url',
+            'date_created',
+            'date_modified',
+            'date_deployed',
+            'owner',
+            'summary',
+            'owner__username',
+            'parent',
+            'uid',
+            'tag_string',
+            'settings',
+            'kind',
+            'name',
+            'asset_type',
+            'version_id',
+            'has_deployment',
+            'deployed_version_id',
+            'deployment__active',
+            'deployment__submission_count',
+            'deployment_status',
+            'permissions',
+            'export_settings',
+            'downloads',
+            'data',
+            'subscribers_count',
+            'status',
+            'access_types',
+            'children',
+            'data_sharing',
+            'owner_label',
+            'last_modified_by',
+        )
 
     def get_permissions(self, asset):
         try:
@@ -1182,6 +1183,7 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'asset_type',
             'downloads',
             'owner_label',
+            'last_modified_by',
         )
 
     def get_deployment__submission_count(self, obj: Asset) -> int:
