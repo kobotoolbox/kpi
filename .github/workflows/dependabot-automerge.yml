@@ -9,6 +9,8 @@ permissions:
 jobs:
   npm-test:
     uses: ./.github/workflows/npm-test.yml
+    # Avoid running this on different PRs
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
 
   review-dependabot-pr:
     runs-on: ubuntu-latest
