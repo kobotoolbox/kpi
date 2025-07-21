@@ -76,7 +76,13 @@ class BaseAssetTestCase(BaseTestCase):
 
     EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
 
-    def create_asset(self, asset_type='survey', content: dict = None, name: str = None):
+    def create_asset(
+        self,
+        asset_type='survey',
+        content: dict = None,
+        name: str = None,
+        **extra_data
+    ):
         """
         Create a new, empty asset as the currently logged-in user
         """
@@ -87,6 +93,10 @@ class BaseAssetTestCase(BaseTestCase):
             'content': json.dumps(content),
             'asset_type': asset_type,
         }
+
+        if extra_data:
+            data.update(extra_data)
+
         if name:
             data['name'] = name
 
