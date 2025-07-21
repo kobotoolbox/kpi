@@ -545,7 +545,24 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
-    tags=['invites'],
+    tags=['Invites'],
+)
+@extend_schema_view(
+    create=extend_schema(
+        description='Create',
+    ),
+    destroy=extend_schema(
+        description='Destroy',
+    ),
+    list=extend_schema(
+        description='List',
+    ),
+    partial_update=extend_schema(
+        description='Update',
+    ),
+    retrieve=extend_schema(
+        description='Retrieve',
+    ),
 )
 class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     """
