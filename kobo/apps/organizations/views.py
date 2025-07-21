@@ -272,25 +272,28 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     tags=['Members'],
     parameters=[
         OpenApiParameter(
-            name='organization_id',
+            name='user__username',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
-            description='ID of the organization asset',
+            description='Username of the user',
         )
     ],
 )
 @extend_schema_view(
     destroy=extend_schema(
         description='destroy',
-        responses=open_api_204_empty_response(),
+        responses=open_api_204_empty_response(
+            require_auth=False,
+            validate_payload=False,
+        ),
         parameters=[
             OpenApiParameter(
                 name='user__username',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the organization asset',
+                description='Username of the user',
             )
         ],
     ),
@@ -298,12 +301,18 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         description='list',
         responses=open_api_200_ok_response(
             MemberListResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
     retrieve=extend_schema(
         description='retrieve',
         responses=open_api_200_ok_response(
-            MemberListResponse
+            MemberListResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         ),
         parameters=[
             OpenApiParameter(
@@ -311,7 +320,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the organization asset',
+                description='Username of the user',
             )
         ],
     ),
@@ -319,7 +328,8 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         description='update',
         request={'application/json': MemberPatchRequest},
         responses=open_api_200_ok_response(
-            MemberListResponse
+            MemberListResponse,
+            require_auth=False,
         ),
         parameters=[
             OpenApiParameter(
@@ -327,7 +337,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the organization asset',
+                description='Username of the user',
             )
         ],
     ),
