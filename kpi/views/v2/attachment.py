@@ -5,7 +5,6 @@ from django.conf import settings
 from django.shortcuts import Http404
 from django.utils.translation import gettext as t
 from drf_spectacular.utils import extend_schema
-from rest_framework import serializers, status, viewsets
 from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
