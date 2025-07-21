@@ -3,6 +3,7 @@ from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, W
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.openapi import AutoSchema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -14,7 +15,7 @@ from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
 from kpi.schema_extensions.v2.invites.serializers import InviteResponse, \
-    InviteCreatePayload
+    InviteCreatePayload, InvitePatchPayload
 from kpi.schema_extensions.v2.organizations.serializers import (
     OrganizationAssetUsageResponse,
     OrganizationPatchPayload,
@@ -26,6 +27,7 @@ from kpi.serializers.v2.service_usage import (
     ServiceUsageSerializer,
 )
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
     open_api_204_empty_response
@@ -51,6 +53,55 @@ from .serializers import (
     OrgMembershipInviteSerializer,
 )
 from .utils import revoke_org_asset_perms
+
+class InviteSchema(AutoSchema):
+    """
+    Custom schema used to inject OpenAPI examples for OrgMembershipInviteViewSet
+    at runtime.
+
+    We cannot use `@extend_schema(..., examples=...)` or `@extend_schema_view(...)`
+    directly for these examples because the values rely on variables
+    that trigger Django's URL resolver via `reverse()`.
+    Since those decorators are evaluated at module import time—before the full Django
+    application and URL config are guaranteed to be loaded—this leads to circular
+    import errors.
+
+    By overriding `get_operation()` here, we defer the evaluation of those dynamic
+    values until the OpenAPI schema is being generated (e.g., via `/api/v2/schema/`),
+    when all apps and routes are fully initialized. This ensures a clean, safe injection
+    of complex or reverse-dependent examples.
+    """
+
+    def get_operation(self, *args, **kwargs):
+
+        from kpi.schema_extensions.v2.invites.schema import (
+            INVITE_ROLE_SCHEMA,
+            INVITE_STATUS_SCHEMA,
+        )
+
+        operation = super().get_operation(*args, **kwargs)
+
+        if not operation:
+            return None
+
+        if operation.get('operationId') == 'api_v2_organizations_invites_partial_update':
+
+            operation['requestBody']['content']['application/json']['examples'] = {
+                'UsingStatus': {
+                    'value': {
+                        'status': generate_example_from_schema(INVITE_STATUS_SCHEMA),
+                    },
+                    'summary': 'Updating status',
+                },
+                'UsingRole': {
+                    'value': {
+                        'role': generate_example_from_schema(INVITE_ROLE_SCHEMA),
+                    },
+                    'summary': 'Updating role',
+                },
+            }
+
+        return operation
 
 
 class OrganizationAssetViewSet(AssetViewSet):
@@ -588,6 +639,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     ),
     partial_update=extend_schema(
         description=read_md('kpi', 'invites/update.md'),
+        request={'application/json': InvitePatchPayload},
         responses=open_api_200_ok_response(
             InviteResponse(many=False),
         ),
@@ -640,6 +692,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
     lookup_field = 'guid'
     renderer_classes = (JSONRenderer,)
+    schema = InviteSchema
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

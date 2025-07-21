@@ -15,6 +15,16 @@ InviteCreatePayload = inline_serializer_class(
     },
 )
 
+
+InvitePatchPayload = inline_serializer_class(
+    name='InvitePatchPayload',
+    fields={
+        'status': serializers.CharField(),
+        'role': serializers.CharField(),
+    },
+)
+
+
 InviteResponse = inline_serializer_class(
     name='InviteResponse',
     fields={
