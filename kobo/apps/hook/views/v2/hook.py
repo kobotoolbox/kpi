@@ -30,7 +30,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 @extend_schema(
-    tags=['Hooks'],
+    tags=['Rest Service'],
 )
 @extend_schema_view(
     create=extend_schema(
