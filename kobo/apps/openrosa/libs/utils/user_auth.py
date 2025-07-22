@@ -2,27 +2,21 @@
 import re
 
 from django.conf import settings
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.request import Request as DRFRequest
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.utils.rest_framework import openrosa_drf_settings
-from kobo.apps.openrosa.apps.logger.models import XForm, Note
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from kobo.apps.openrosa.libs.utils.guardian import (
-    assign_perm,
-    get_perms_for_model,
-)
-from kobo.apps.openrosa.libs.utils.string import (
-    base64_encodestring,
-)
 from kobo.apps.openrosa.libs.constants import (
-    CAN_DELETE_DATA_XFORM,
     CAN_CHANGE_XFORM,
+    CAN_DELETE_DATA_XFORM,
     CAN_VIEW_XFORM,
 )
+from kobo.apps.openrosa.libs.utils.string import base64_encodestring
 
 
 class HttpResponseNotAuthorized(HttpResponse):
@@ -37,31 +31,31 @@ class HttpResponseNotAuthorized(HttpResponse):
 
 def check_and_set_user(request, username):
     if username != request.user.username:
-        return HttpResponseRedirect("/%s" % username)
+        return HttpResponseRedirect('/%s' % username)
     content_user = None
     try:
         content_user = User.objects.get(username=username)
     except User.DoesNotExist:
-        return HttpResponseRedirect("/")
+        return HttpResponseRedirect('/')
     return content_user
 
 
 def set_profile_data(data, content_user):
     # create empty profile if none exists
     profile, created = UserProfile.objects.get_or_create(user=content_user)
-    location = ""
+    location = ''
     if profile.city:
         location = profile.city
     if profile.country:
         if profile.city:
-            location += ", "
+            location += ', '
         location += profile.country
     forms = content_user.xforms.filter(shared__exact=1)
     num_forms = forms.count()
     user_instances = profile.num_of_submissions
     home_page = profile.home_page
-    if home_page and re.match("http", home_page) is None:
-        home_page = "http://%s" % home_page
+    if home_page and re.match('http', home_page) is None:
+        home_page = 'http://%s' % home_page
 
     data.update(
         {
@@ -189,12 +183,3 @@ def add_cors_headers(response):
     )
     response['Content-Type'] = 'application/json'
     return response
-
-
-def set_api_permissions_for_user(user):
-    models = [UserProfile, XForm, Note]
-    for model in models:
-        for perm in get_perms_for_model(model):
-            assign_perm(
-                '%s.%s' % (perm.content_type.app_label, perm.codename), user
-            )

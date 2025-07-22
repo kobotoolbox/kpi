@@ -16,6 +16,7 @@ from kobo.apps.openrosa.libs.constants import (
     CAN_VALIDATE_XFORM,
     CAN_VIEW_XFORM,
 )
+from kpi.constants import PERM_CHANGE_ASSET
 
 
 class ViewDjangoObjectPermissions(DjangoObjectPermissions):
@@ -100,6 +101,14 @@ class XFormPermissions(ObjectPermissionsWithViewRestricted):
         if request.method in SAFE_METHODS and view.action == 'retrieve':
             if obj.shared:
                 return True
+        if request.method == 'POST':
+            post_view = getattr(view, 'post', object)
+            url_name = getattr(post_view, 'url_name', None)
+            # Labels POST action goes through this permission class. By default,
+            # the POST action is not associated to changing the asset but to creating
+            # a new asset, so we need to check for change asset permissions instead
+            if url_name == 'labels':
+                return request.user.has_perm(PERM_CHANGE_ASSET, obj.asset)
 
         return super().has_object_permission(request, view, obj)
 
