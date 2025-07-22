@@ -175,7 +175,11 @@ export default function TransferProjects(props: TransferProjectsProps) {
               isFullWidth
               onClick={toggleModal}
               isDisabled={isTransferBlocked}
-              tooltip={isTransferBlocked ? t('Transfer is not allowed when current owner is over their usage limit.') : undefined}
+              tooltip={
+                isTransferBlocked
+                  ? t('Transfer is not allowed when current owner is over their usage limit.')
+                  : undefined
+              }
               tooltipPosition='right'
               type='secondary'
               size='l'
