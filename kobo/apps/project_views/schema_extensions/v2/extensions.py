@@ -113,8 +113,41 @@ class UrlFieldExtension(OpenApiSerializerFieldExtension):
         )
 
 
+class UserMetadataFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kobo.apps.project_views.schema_extensions.v2.fields.UserMetadataField'  # noqa
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'city': build_basic_type(OpenApiTypes.STR),
+                'name': build_basic_type(OpenApiTypes.STR),
+                'sector': build_basic_type(OpenApiTypes.STR),
+                'country': build_basic_type(OpenApiTypes.STR),
+                'organization': build_basic_type(OpenApiTypes.STR),
+                'last_ui_language': build_basic_type(OpenApiTypes.STR),
+                'organization_type': build_basic_type(OpenApiTypes.STR),
+                'organization_website': build_basic_type(OpenApiTypes.STR),
+                'project_view_settings': build_object_type(
+                    properties={
+                        'kobo_my_project': build_object_type(
+                            properties={
+                                'order': build_object_type(properties={}),
+                                'fields': build_array_type(
+                                    schema=build_basic_type(OpenApiTypes.STR)
+                                ),
+                                'filters': build_array_type(
+                                    schema=build_basic_type(OpenApiTypes.STR)
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+        )
+
+
 class UserURLFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kobo.apps.project_views.schema_extensions.v2.fields.UserURLField'  # noqa
+    target_class = 'kobo.apps.project_views.schema_extensions.v2.fields.UserURLField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(

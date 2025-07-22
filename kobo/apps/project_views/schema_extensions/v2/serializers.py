@@ -7,6 +7,7 @@ from .fields import (
     AssetsURLField,
     AssetDownloadField,
     ExportResponseResult,
+    UserMetadataField,
     UserURLField,
 )
 
@@ -50,5 +51,21 @@ ProjectViewExportResponse = inline_serializer_class(
     fields={
         'status': serializers.CharField(max_length=32),
         'result': ExportResponseResult(),
+    },
+)
+
+
+ProjectViewUserResponse = inline_serializer_class(
+    name='ProjectViewUserResponse',
+    fields={
+        'id': serializers.IntegerField(),
+        'username': serializers.CharField(),
+        'is_superuser': serializers.BooleanField(),
+        'date_joined': serializers.DateTimeField(),
+        'last_login': serializers.DateTimeField(),
+        'is_active': serializers.BooleanField(),
+        'email': serializers.EmailField(),
+        'asset_count': serializers.IntegerField(),
+        'metadata': UserMetadataField(),
     },
 )
