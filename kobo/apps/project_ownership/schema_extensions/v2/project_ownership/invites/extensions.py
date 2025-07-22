@@ -8,6 +8,16 @@ from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
+class InviteAssetFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = (
+        'kobo.apps.project_ownership.schema_extensions.v2.project_ownership.invites.fields.InviteAssetField'  # noqa
+    )
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_array_type(
+            schema=build_basic_type(OpenApiTypes.STR)
+        )
+
 
 class InviteUrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = (

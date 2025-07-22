@@ -5,7 +5,8 @@ from kpi.permissions import IsAuthenticated
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
     open_api_201_created_response, open_api_204_empty_response
-from ..schema_extensions.v2.project_ownership.invites.serializers import InviteResponse
+from ..schema_extensions.v2.project_ownership.invites.serializers import InviteResponse, \
+    InviteCreatePayload, InviteUpdatePayload
 from ...audit_log.base_views import AuditLoggedModelViewSet
 from ..filters import InviteFilter
 from ..models import Invite
@@ -18,6 +19,7 @@ from ..serializers import InviteSerializer
 @extend_schema_view(
     create=extend_schema(
         description=read_md('project_ownership', 'project_ownership/invites/create.md'),
+        request={'application/json': InviteCreatePayload},
         responses=open_api_201_created_response(
             InviteResponse,
         )
@@ -40,6 +42,7 @@ from ..serializers import InviteSerializer
     ),
     partial_update=extend_schema(
         description=read_md('project_ownership', 'project_ownership/invites/update.md'),
+        request={'application/json': InviteUpdatePayload},
         responses=open_api_200_ok_response(
             InviteResponse,
         )

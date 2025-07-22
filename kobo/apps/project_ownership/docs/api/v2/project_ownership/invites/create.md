@@ -1,12 +1,5 @@
-## Create an invite
+## Create (send) an invite
 
+Where the assets `uid` are given in the payload's list
 
-    > Payload to create (send) an invite
-    >
-    >       {
-    >            "recipient": "https://[kpi]/api/v2/users/alice/",
-    >            "assets": [
-    >                "a8rg3w7ZNL5Nwj7iHzKiyX"
-    >            ]
-    >       }
 
