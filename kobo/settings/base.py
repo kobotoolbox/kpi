@@ -1322,6 +1322,8 @@ CELERY_BEAT_SCHEDULE = {
 }
 
 if STRIPE_ENABLED:
+    # Schedule to run once per celery timeout
+    # with a five minute buffer
     CELERY_BEAT_SCHEDULE['update-exceeded-limit-counters'] = {
         'task': 'kobo.apps.stripe.tasks.update_exceeded_limit_counters',
         'schedule': timedelta(seconds=CELERY_TASK_TIME_LIMIT + (60 * 5)),

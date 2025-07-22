@@ -21,6 +21,10 @@ def update_exceeded_limit_counters():
 
 @celery_app.task
 def update_counter(counter_id):
-    counter = ExceededLimitCounter.objects.filter(id=counter_id).first()
+    counter = (
+        ExceededLimitCounter.objects.filter(id=counter_id)
+        .select_related('user')
+        .first()
+    )
     if counter:
         update_or_remove_limit_counter(counter)
