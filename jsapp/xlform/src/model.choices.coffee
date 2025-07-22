@@ -11,12 +11,14 @@ module.exports = do ->
     initialize: ->
       @unset("list name")
       @unset("list_name")
+      return
     destroy: ->
       choicelist = @list()._parent
       choicelist_cid = choicelist.cid
       survey = choicelist.collection._parent
       @collection.remove(@)
       survey.trigger('remove-option', choicelist_cid, @cid)
+      return
     list: -> @collection
     getKeys: (with_val)->
       # returns a list of columns in the xlsform.
@@ -28,12 +30,12 @@ module.exports = do ->
           keys.push(key)
         else if @get key
           keys.push(key)
-      keys
+      return keys
     toJSON: ()->
       attributes = {}
       for key, attribute of @attributes
         attributes[key] = @get key
-      attributes
+      return attributes
 
   class choices.Options extends base.BaseCollection
     model: choices.Option
@@ -45,38 +47,39 @@ module.exports = do ->
       super name: opts.name, context
       @options = new choices.Options(options || [], _parent: @)
     summaryObj: ->
-      @toJSON()
+      return @toJSON()
     getSurvey: ->
-      @collection.getSurvey()
+      return @collection.getSurvey()
 
     getList: ->
       # used for cascading selects: if choiceList is connected to
       # another choiceList, pass it on.
       if @__cascadedList
-        @__cascadedList
+        return @__cascadedList
       else
-        null
+        return null
 
     _get_previous_linked_choice_list: ->
-      @collection.find((cl)=> cl.getList() is @ )
+      return @collection.find((cl)=> cl.getList() is @ )
 
     _get_last_linked_choice_list: ->
       prev = next = @
       while next = prev._get_previous_linked_choice_list()
         prev = next
-      prev
+      return prev
 
     _get_first_linked_choice_list: ->
       prev = next = @
       while next = prev.getList()
         prev = next
-      prev
+      return prev
 
     _has_corresponding_row: ->
       _name = @get('name')
-      !!@getSurvey().rows.find((r)->
-          r.get('type').get('listName') is _name
+      row = !!@getSurvey().rows.find((r)->
+          return r.get('type').get('listName') is _name
         )
+      return row
 
     _create_corresponding_row_data: (opts={})->
       full_path = !!opts._full_path_choice_filter
@@ -89,12 +92,12 @@ module.exports = do ->
           _choice_filtered = prevs
         else
           _choice_filtered = _.compact([_.last(prevs)])
-        {
+        return {
           label: name
           type: "select_one #{name}"
           choice_filter: _choice_filtered.map((cl)->
               cl_name = cl.get('name')
-              "#{cl_name}=${#{cl_name}}"
+              return "#{cl_name}=${#{cl_name}}"
             ).join(" and ")
         }
       rows_data.push(build_row_data(cl))
@@ -103,7 +106,7 @@ module.exports = do ->
       while (next_list = next_list._get_previous_linked_choice_list())
         rows_data.push(build_row_data(next_list))
         prevs.push(next_list)
-      rows_data
+      return rows_data
 
     create_corresponding_rows: (opts={})->
       rows_data = @_create_corresponding_row_data()
@@ -111,13 +114,14 @@ module.exports = do ->
       _index = opts.at or 0
       for row_data in rows_data.reverse()
         survey.addRowAtIndex(row_data, _index)
+      return
 
     getOptionKeys: (with_val=true)->
       option_keys = []
       for option in @options.models
         for option_key in option.getKeys(with_val)
           option_keys.push(option_key)
-      _.uniq(option_keys)
+      return _.uniq(option_keys)
 
     finalize: ->
       # ensure that all options have names
@@ -150,20 +154,23 @@ module.exports = do ->
       @finalize()
 
       # Returns {name: '', options: []}
-      name: @get("name")
-      options: @options.invoke("toJSON")
+      return {
+        name: @get("name")
+        options: @options.invoke("toJSON")
+      }
 
     getNames: ()->
       names = @options.map (opt)-> opt.get("name")
-      _.compact names
+      return _.compact names
 
   class choices.ChoiceLists extends base.BaseCollection
     model: choices.ChoiceList
     create: ->
       @add(cl = new choices.ChoiceList(name: txtid()))
-      cl
+      return cl
     getListNames: ->
       @invoke('get', 'name')
+      return
     summaryObj: (shorter=false)->
       out = {}
       for model in @models
@@ -171,6 +178,6 @@ module.exports = do ->
           out[model.get("name")] = model.summaryObj().options
         else
           out[model.get("name")] = model.summaryObj()
-      out
+      return out
 
-  choices
+  return choices
