@@ -4,13 +4,12 @@ from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from celery.signals import task_failure, task_retry
 from constance import config
 from django.conf import settings
-if settings.STRIPE_ENABLED:
-    from kobo.apps.stripe.models import ExceededLimitCounter
 
+from kobo.apps.organizations.constants import UsageType
+from kobo.apps.stripe.utils.import_management import requires_stripe
 from kobo.celery import celery_app
 from ..exceptions import TrashTaskInProgressError
 from ..models.attachment import AttachmentTrash
-from ...organizations.constants import UsageType
 from ..utils import process_deletion, trash_bin_task_failure, trash_bin_task_retry
 from ..utils.attachment import delete_attachment
 
@@ -60,23 +59,28 @@ def empty_attachment_retry(sender=None, **kwargs):
 
 
 # @celery_app.task
-def schedule_auto_attachment_cleanup_for_users():
+@requires_stripe
+def schedule_auto_attachment_cleanup_for_users(**stripe_models):
     """
     Identifies users exceeding storage limits beyond the grace period and
     schedules a cleanup task for each.
 
     Runs only if AUTO_DELETE_ATTACHMENTS and Stripe billing is enabled.
     """
-    if not config.AUTO_DELETE_ATTACHMENTS or not settings.STRIPE_ENABLED:
+    if not config.AUTO_DELETE_ATTACHMENTS:
         return
+
+    ExceededLimitCounter = stripe_models['exceeded_limit_counter_model']
 
     exceeded_counters = ExceededLimitCounter.objects.filter(
         limit_type=UsageType.STORAGE_BYTES,
-        days__gte=config.STORAGE_OVERAGE_ATTACHMENT_DELETION_GRACE_PERIOD
-    ).select_related('user')
+        days__gte=config.LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD
+    )
+
+    logging.info(f'Found {len(exceeded_counters)} users exceeding storage limits.')
 
     for counter in exceeded_counters:
-        auto_delete_excess_attachments(counter.user.pk)
+        auto_delete_excess_attachments(counter.user_id)
 
 
 def auto_delete_excess_attachments(user_id: int):
