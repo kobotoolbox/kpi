@@ -1,4 +1,4 @@
-
+# FIXME: still WIP!!
 _ = require 'underscore'
 Backbone = require 'backbone'
 $base = require './model.base'
@@ -356,13 +356,14 @@ module.exports = do ->
     if type in formSettingsTypes
       # e.g. "today"
       throw new Error("#{type} is not properly handled as a SurveyDetail")
-      $surveyDetail.SurveyDetail
+      return $surveyDetail.SurveyDetail
     else if type is 'score'
-      $row.Row
+      return $row.Row
     else if type in ['group', 'repeat', 'kobomatrix']
-      surveyFragment.Group
+      return surveyFragment.Group
     else
-      $row.Row
+      return $row.Row
+    return
 
   class Rows extends $base.BaseCollection
     constructor: (args...)->
@@ -372,10 +373,10 @@ module.exports = do ->
     model: (obj, ctxt)->
       RowConstructor = _determineConstructorByParams(obj)
       try
-        new RowConstructor(obj, _.extend({}, ctxt, _parent: ctxt.collection))
+        return new RowConstructor(obj, _.extend({}, ctxt, _parent: ctxt.collection))
       catch e
         # Store exceptions in with the survey
-        new $row.RowError(obj, _.extend({}, ctxt, error: e, _parent: ctxt.collection))
+        return new $row.RowError(obj, _.extend({}, ctxt, error: e, _parent: ctxt.collection))
     comparator: (m)-> m.ordinal
 
-  surveyFragment
+  return surveyFragment
