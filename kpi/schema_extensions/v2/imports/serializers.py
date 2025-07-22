@@ -16,3 +16,12 @@ ImportResponse = inline_serializer_class(
         'date_created': serializers.DateTimeField(),
     },
 )
+
+ImportCreateResponse = inline_serializer_class(
+    name='ImportCreateResponse',
+    fields={
+        'uid': serializers.CharField(),
+        'url': ImportUrlField(),
+        'status': serializers.CharField(),
+    },
+)
