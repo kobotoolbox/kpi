@@ -1,8 +1,11 @@
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from rest_framework.renderers import JSONRenderer
 
 from kpi.permissions import IsAuthenticated
 from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
+    open_api_201_created_response, open_api_204_empty_response
+from ..schema_extensions.v2.project_ownership.invites.serializers import InviteResponse
 from ...audit_log.base_views import AuditLoggedModelViewSet
 from ..filters import InviteFilter
 from ..models import Invite
@@ -15,18 +18,31 @@ from ..serializers import InviteSerializer
 @extend_schema_view(
     create=extend_schema(
         description=read_md('project_ownership', 'project_ownership/invites/create.md'),
+        responses=open_api_201_created_response(
+            InviteResponse,
+        )
     ),
     destroy=extend_schema(
         description=read_md('project_ownership', 'project_ownership/invites/delete.md'),
+        responses=open_api_204_empty_response(),
     ),
     list=extend_schema(
         description=read_md('project_ownership', 'project_ownership/invites/list.md'),
+        responses=open_api_200_ok_response(
+            InviteResponse,
+        )
     ),
     retrieve=extend_schema(
         description=read_md('project_ownership', 'project_ownership/invites/retrieve.md'),
+        responses=open_api_200_ok_response(
+            InviteResponse,
+        )
     ),
     partial_update=extend_schema(
         description=read_md('project_ownership', 'project_ownership/invites/update.md'),
+        responses=open_api_200_ok_response(
+            InviteResponse,
+        )
     ),
     update=extend_schema(
         exclude=True,

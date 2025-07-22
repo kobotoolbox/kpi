@@ -10,4 +10,6 @@ class ProjectOwnershipAppConfig(AppConfig):
         # Makes sure all signal handlers are connected
         # Uncomment the lines below if you need signals
         # from kobo.apps.project_ownership import signals
+        from .schema_extensions.v2.project_ownership.invites import extensions  # noqa F401
+
         super().ready()
