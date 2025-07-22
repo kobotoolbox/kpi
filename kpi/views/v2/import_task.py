@@ -12,12 +12,15 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import (
     get_human_readable_client_user_agent,
 )
 from kpi.models import ImportTask
+from kpi.schema_extensions.v2.imports.serializers import ImportResponse
 from kpi.serializers.v2.import_task import (
     ImportTaskListSerializer,
     ImportTaskSerializer,
 )
 from kpi.tasks import import_in_background
 from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
+    open_api_201_created_response
 from kpi.utils.strings import to_str
 
 
@@ -27,12 +30,20 @@ from kpi.utils.strings import to_str
 @extend_schema_view(
     create=extend_schema(
         description=read_md('kpi', 'imports/create.md'),
+        request=None,
+        responses=open_api_201_created_response()
     ),
     list=extend_schema(
         description=read_md('kpi', 'imports/list.md'),
+        responses=open_api_200_ok_response(
+            ImportResponse(many=True),
+        )
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'imports/retrieve.md'),
+        responses=open_api_200_ok_response(
+            ImportResponse(many=False),
+        )
     ),
 )
 class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
