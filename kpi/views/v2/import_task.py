@@ -37,18 +37,24 @@ from kpi.utils.strings import to_str
         request={'multipart/form-data': ImportCreateRequestSerializer},
         responses=open_api_201_created_response(
             ImportCreateResponse,
+            raise_access_forbidden=False,
         )
     ),
     list=extend_schema(
         description=read_md('kpi', 'imports/list.md'),
         responses=open_api_200_ok_response(
             ImportResponse(many=True),
+            raise_access_forbidden=False,
+            validate_payload=False,
+            raise_not_found=False,
         )
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'imports/retrieve.md'),
         responses=open_api_200_ok_response(
             ImportResponse(many=False),
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
 )
