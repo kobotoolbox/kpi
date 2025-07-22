@@ -1,5 +1,4 @@
 from drf_spectacular.extensions import (
-    OpenApiSerializerExtension,
     OpenApiSerializerFieldExtension,
 )
 from drf_spectacular.plumbing import build_basic_type, build_object_type, build_array_type
@@ -42,12 +41,35 @@ class MessagesFieldExtension(OpenApiSerializerFieldExtension):
                                         build_basic_type(OpenApiTypes.STR)
                                     ),
                                     'row_count': build_basic_type(OpenApiTypes.INT),
+                                    'name_quality': build_object_type(
+                                        properties={
+                                            'ok': build_basic_type(OpenApiTypes.INT),
+                                            'bad': build_basic_type(OpenApiTypes.INT),
+                                            'good': build_basic_type(OpenApiTypes.INT),
+                                            'total': build_basic_type(OpenApiTypes.INT),
+                                            'first': build_object_type(properties={}),
+                                        }
+                                    ),
                                     'default_translation': build_basic_type(
                                         OpenApiTypes.STR
                                     ),
                                 }
                             ),
                             'owner__username': build_basic_type(OpenApiTypes.STR),
+                        }
+                    )
+                ),
+                'audit-logs': build_array_type(
+                    schema=build_object_type(
+                        properties={
+                            'source': build_basic_type(OpenApiTypes.STR),
+                            'asset_id': build_basic_type(OpenApiTypes.INT),
+                            'new_name': build_basic_type(OpenApiTypes.STR),
+                            'old_name': build_basic_type(OpenApiTypes.STR),
+                            'asset_uid': build_basic_type(OpenApiTypes.STR),
+                            'ip_address': build_basic_type(OpenApiTypes.STR),
+                            'project_owner': build_basic_type(OpenApiTypes.STR),
+                            'latest_version_uid': build_basic_type(OpenApiTypes.STR),
                         }
                     )
                 ),
