@@ -1,15 +1,21 @@
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.renderers import JSONRenderer
 
 from kpi.permissions import IsAuthenticated
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
-    open_api_201_created_response, open_api_204_empty_response
-from ..schema_extensions.v2.project_ownership.invites.serializers import InviteResponse, \
-    InviteCreatePayload, InviteUpdatePayload
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_201_created_response,
+    open_api_204_empty_response,
+)
 from ...audit_log.base_views import AuditLoggedModelViewSet
 from ..filters import InviteFilter
 from ..models import Invite
+from ..schema_extensions.v2.project_ownership.invites.serializers import (
+    InviteCreatePayload,
+    InviteResponse,
+    InviteUpdatePayload,
+)
 from ..serializers import InviteSerializer
 
 
@@ -24,7 +30,7 @@ from ..serializers import InviteSerializer
             InviteResponse,
             require_auth=False,
             raise_not_found=False,
-        )
+        ),
     ),
     destroy=extend_schema(
         description=read_md('project_ownership', 'project_ownership/invites/delete.md'),
@@ -40,15 +46,17 @@ from ..serializers import InviteSerializer
             require_auth=False,
             raise_not_found=False,
             validate_payload=False,
-        )
+        ),
     ),
     retrieve=extend_schema(
-        description=read_md('project_ownership', 'project_ownership/invites/retrieve.md'),
+        description=read_md(
+            'project_ownership', 'project_ownership/invites/retrieve.md'
+        ),
         responses=open_api_200_ok_response(
             InviteResponse,
             require_auth=False,
             validate_payload=False,
-        )
+        ),
     ),
     partial_update=extend_schema(
         description=read_md('project_ownership', 'project_ownership/invites/update.md'),
@@ -56,11 +64,11 @@ from ..serializers import InviteSerializer
         responses=open_api_200_ok_response(
             InviteResponse,
             require_auth=False,
-        )
+        ),
     ),
     update=extend_schema(
         exclude=True,
-    )
+    ),
 )
 class InviteViewSet(AuditLoggedModelViewSet):
     """
@@ -88,7 +96,9 @@ class InviteViewSet(AuditLoggedModelViewSet):
     filter_backends = (InviteFilter, )
     log_type = 'project-history'
     logged_fields = ['recipient.username', 'status', 'transfers']
-    renderer_classes = [JSONRenderer,]
+    renderer_classes = [
+        JSONRenderer,
+    ]
 
     def get_queryset(self):
 
