@@ -58,8 +58,7 @@ jobs:
           gh pr edit $PR_URL --add-reviewer Akuukis,magicznyleszek,pauloamorimbr
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          GITHUB_TOKEN: ${{steps.app-token.outputs.token}}
 
   on-failure:
     if: |
