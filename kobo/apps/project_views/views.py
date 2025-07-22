@@ -26,8 +26,12 @@ from kpi.utils.project_views import get_region_for_view, user_has_view_perms
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from .models.project_view import ProjectView
-from .schema_extensions.v2.serializers import ProjectViewExportResponse, \
-    ProjectViewExportCreateResponse, ProjectViewAssetResponse, ProjectViewUserResponse
+from .schema_extensions.v2.serializers import (
+    ProjectViewAssetResponse,
+    ProjectViewExportCreateResponse,
+    ProjectViewExportResponse,
+    ProjectViewUserResponse,
+)
 from .serializers import ProjectViewSerializer
 
 
@@ -39,48 +43,48 @@ from .serializers import ProjectViewSerializer
         description=read_md('project_views', 'assets.md'),
         responses=open_api_200_ok_response(
             ProjectViewAssetResponse(many=True),
-        )
+        ),
     ),
     list=extend_schema(
         description=read_md('project_views', 'list.md'),
         responses=open_api_200_ok_response(
             ProjectViewSerializer,
-        )
+        ),
     ),
     retrieve=extend_schema(
         description=read_md('project_views', 'retrieve.md'),
         responses=open_api_200_ok_response(
             ProjectViewSerializer,
-        )
+        ),
     ),
     users=extend_schema(
         description=read_md('project_views', 'user.md'),
         responses=open_api_200_ok_response(
             ProjectViewUserResponse(many=True),
-        )
+        ),
     ),
 )
 class ProjectViewViewSet(
     AssetViewSetListMixin, ObjectPermissionViewSetMixin, viewsets.ReadOnlyModelViewSet
 ):
     """
-    Viewset for managing the shared project of current user
+     Viewset for managing the shared project of current user
 
-   Available actions:
-    - assets        → GET   /api/v2/project-views/{uid}/assets/
-    - export_list   → GET   /api/v2/project-views/{uid}/{obj_type}/export/
-    - export_post   → POST  /api/v2/project-views/{uid}/{obj_type}/export/
-    - list          → GET   /api/v2/project-views/
-    - retrieve      → GET   /api/v2/project-views/{uid}/
-    - users         → GET   /api/v2/project-views/{uid}/users
+    Available actions:
+     - assets        → GET   /api/v2/project-views/{uid}/assets/
+     - export_list   → GET   /api/v2/project-views/{uid}/{obj_type}/export/
+     - export_post   → POST  /api/v2/project-views/{uid}/{obj_type}/export/
+     - list          → GET   /api/v2/project-views/
+     - retrieve      → GET   /api/v2/project-views/{uid}/
+     - users         → GET   /api/v2/project-views/{uid}/users
 
-    Documentation:
-    - docs/api/v2/project-views/assets.md
-    - docs/api/v2/project-views/export_list.md
-    - docs/api/v2/project-views/export_post.md
-    - docs/api/v2/project-views/list.md
-    - docs/api/v2/project-views/retrieve.md
-    - docs/api/v2/project-views/users.md
+     Documentation:
+     - docs/api/v2/project-views/assets.md
+     - docs/api/v2/project-views/export_list.md
+     - docs/api/v2/project-views/export_post.md
+     - docs/api/v2/project-views/list.md
+     - docs/api/v2/project-views/retrieve.md
+     - docs/api/v2/project-views/users.md
     """
     serializer_class = ProjectViewSerializer
     permission_classes = (IsAuthenticated,)
@@ -131,9 +135,7 @@ class ProjectViewViewSet(
 
     @extend_schema(
         description=read_md('project_views', 'export_list.md'),
-        responses=open_api_200_ok_response(
-            ProjectViewExportResponse
-        ),
+        responses=open_api_200_ok_response(ProjectViewExportResponse),
         methods=['GET'],
     )
     @extend_schema(
@@ -142,7 +144,7 @@ class ProjectViewViewSet(
         responses=open_api_200_ok_response(
             ProjectViewExportCreateResponse,
         ),
-        methods=['POST']
+        methods=['POST'],
     )
     @action(
         detail=True,

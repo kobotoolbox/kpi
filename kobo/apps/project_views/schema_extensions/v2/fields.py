@@ -39,4 +39,3 @@ class UserURLField(serializers.URLField):
 
 class UserExportURLField(serializers.URLField):
     pass
-

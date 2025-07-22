@@ -1,5 +1,9 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
-from drf_spectacular.plumbing import build_basic_type, build_object_type, build_array_type
+from drf_spectacular.plumbing import (
+    build_array_type,
+    build_basic_type,
+    build_object_type,
+)
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
@@ -11,9 +15,7 @@ class AssetLanguageFieldExtension(OpenApiSerializerFieldExtension):
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_array_type(
-            schema=build_basic_type(OpenApiTypes.STR)
-        )
+        return build_array_type(schema=build_basic_type(OpenApiTypes.STR))
 
 
 class AssetSettingsFieldExtension(OpenApiSerializerFieldExtension):
@@ -63,7 +65,7 @@ class AssetDownloadFieldExtension(OpenApiSerializerFieldExtension):
                         'api_v2:asset-detail',
                         uid='aTPPUDScaFZkvBzd8FyK4Q',
                         format='xls',
-                    )
+                    ),
                 }
             )
         )
@@ -71,10 +73,10 @@ class AssetDownloadFieldExtension(OpenApiSerializerFieldExtension):
 
 class AssetsURLFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kobo.apps.project_views.schema_extensions.v2.fields.AssetsURLField'
+
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
-            'api_v2:projectview-assets',
-            uid='pvyHWBnzRw3GCJpFs6cMdem'
+            'api_v2:projectview-assets', uid='pvyHWBnzRw3GCJpFs6cMdem'
         )
 
 
@@ -87,7 +89,7 @@ class AssetsExportURLFieldExtension(OpenApiSerializerFieldExtension):
         return build_url_type(
             'api_v2:projectview-export',
             uid='pvyHWBnzRw3GCJpFs6cMdem',
-            obj_type='assets'
+            obj_type='assets',
         )
 
 
@@ -99,7 +101,7 @@ class ExportResponseResultExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'serve_private_file',
-            path='bob/exports/assets-bob-view_pvyHWBnzRw3GCJpFs6cMdem-2025-07-18T124015Z.csv'
+            path='bob/exports/assets-bob-view_pvyHWBnzRw3GCJpFs6cMdem-2025-07-18T124015Z.csv',
         )
 
 
@@ -108,13 +110,14 @@ class UrlFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
-            'api_v2:projectview-detail',
-            uid='pvyHWBnzRw3GCJpFs6cMdem'
+            'api_v2:projectview-detail', uid='pvyHWBnzRw3GCJpFs6cMdem'
         )
 
 
 class UserMetadataFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kobo.apps.project_views.schema_extensions.v2.fields.UserMetadataField'  # noqa
+    target_class = (
+        'kobo.apps.project_views.schema_extensions.v2.fields.UserMetadataField'
+    )
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
@@ -137,11 +140,11 @@ class UserMetadataFieldExtension(OpenApiSerializerFieldExtension):
                                 ),
                                 'filters': build_array_type(
                                     schema=build_basic_type(OpenApiTypes.STR)
-                                )
+                                ),
                             }
                         )
                     }
-                )
+                ),
             }
         )
 
@@ -157,11 +160,11 @@ class UserURLFieldExtension(OpenApiSerializerFieldExtension):
 
 
 class UserExportURLFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kobo.apps.project_views.schema_extensions.v2.fields.UserExportURLField'  # noqa
+    target_class = (
+        'kobo.apps.project_views.schema_extensions.v2.fields.UserExportURLField'
+    )
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
-            'api_v2:projectview-export',
-            uid='pvyHWBnzRw3GCJpFs6cMdem',
-            obj_type='users'
+            'api_v2:projectview-export', uid='pvyHWBnzRw3GCJpFs6cMdem', obj_type='users'
         )

@@ -2,10 +2,10 @@ from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
+    AssetDownloadField,
     AssetLanguageField,
     AssetSettingsField,
     AssetsURLField,
-    AssetDownloadField,
     ExportResponseResult,
     UserMetadataField,
     UserURLField,
