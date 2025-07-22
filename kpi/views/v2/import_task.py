@@ -17,6 +17,7 @@ from kpi.serializers.v2.import_task import (
     ImportTaskSerializer,
 )
 from kpi.tasks import import_in_background
+from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.strings import to_str
 
 
@@ -25,60 +26,28 @@ from kpi.utils.strings import to_str
 )
 @extend_schema_view(
     create=extend_schema(
-        description='create',
+        description=read_md('kpi', 'imports/create.md'),
     ),
     list=extend_schema(
-        description='list',
+        description=read_md('kpi', 'imports/list.md'),
     ),
     retrieve=extend_schema(
-        description='retrieve',
+        description=read_md('kpi', 'imports/retrieve.md'),
     ),
 )
 class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    ## List of imported files
+    Viewset for imported files
 
-    Lists all files imported by the requesting user.
-    An empty json response will be returned if the user anonymous.
+    Available actions:
+    - list           → GET       /api/v2/imports/
+    - retrieve       → GET       /api/v2/imports/
+    - create         → CREATE    /api/v2/imports/{uid}/
 
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/imports/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/imports/
-    >       {
-    >           "count": integer,
-    >           "next": ...,
-    >           "previous": ...,
-    >           "results": [
-    >               {
-    >                   "url": "https:[kpi]/api/v2/imports/{import_uid}/",
-    >                   "status": asset_uid,
-    >                   "messages": {
-    >                       "updated": [
-    >                           {
-    >                               "uid": "",
-    >                               "kind": "",
-    >                               "summary": {
-    >                                       "geo": boolean,
-    >                                       "labels": [],
-    >                                       "columns": [],
-    >                                       "languages": [],
-    >                                       "row_count": integer,
-    >                                       "default_translation": "",
-    >                                   },
-    >                                   "owner__username": "",
-    >                            }
-    >                       ]
-    >                   },
-    >                   "uid": import_uid,
-    >                   "date_created": "",
-    >               },
-    >           ]
-    >       }
-
+    Documentation:
+    - docs/api/v2/imports/list.md
+    - docs/api/v2/imports/retrieve.md
+    - docs/api/v2/imports/create.md
     """
     queryset = ImportTask.objects.all()
     serializer_class = ImportTaskSerializer
