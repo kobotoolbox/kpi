@@ -43,24 +43,32 @@ from .serializers import ProjectViewSerializer
         description=read_md('project_views', 'assets.md'),
         responses=open_api_200_ok_response(
             ProjectViewAssetResponse(many=True),
+            raise_access_forbidden=False,
         ),
     ),
     list=extend_schema(
         description=read_md('project_views', 'list.md'),
         responses=open_api_200_ok_response(
             ProjectViewSerializer,
+            require_auth=False,
+            validate_payload=False,
+            raise_not_found=False,
         ),
     ),
     retrieve=extend_schema(
         description=read_md('project_views', 'retrieve.md'),
         responses=open_api_200_ok_response(
             ProjectViewSerializer,
+            require_auth=False,
+            validate_payload=False,
         ),
     ),
     users=extend_schema(
         description=read_md('project_views', 'user.md'),
         responses=open_api_200_ok_response(
             ProjectViewUserResponse(many=True),
+            require_auth=False,
+            validate_payload=False,
         ),
     ),
 )
