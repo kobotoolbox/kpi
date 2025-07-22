@@ -5,6 +5,7 @@ from unittest.mock import patch
 from constance import config
 from constance.test import override_config
 from django.conf import settings
+from django.core.cache import cache
 from django.test import TestCase
 
 if settings.STRIPE_ENABLED:
@@ -136,11 +137,11 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
         ExceededLimitCounter.objects.create(
             user=self.owner,
             limit_type=UsageType.STORAGE_BYTES,
-            days=config.STORAGE_OVERAGE_ATTACHMENT_DELETION_GRACE_PERIOD + 1
+            days=config.LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD + 1
         )
 
         with patch(
-            'kobo.apps.trash_bin.tasks.attachment.auto_delete_excess_attachments'
+            'kobo.apps.trash_bin.tasks.attachment.auto_delete_excess_attachments.delay'
         ) as mock_task:
             schedule_auto_attachment_cleanup_for_users()
             mock_task.assert_called_once_with(self.owner.pk)
@@ -157,11 +158,11 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
         ExceededLimitCounter.objects.create(
             user=self.owner,
             limit_type=UsageType.STORAGE_BYTES,
-            days=config.STORAGE_OVERAGE_ATTACHMENT_DELETION_GRACE_PERIOD - 1
+            days=config.LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD - 1
         )
 
         with patch(
-            'kobo.apps.trash_bin.tasks.attachment.auto_delete_excess_attachments'
+            'kobo.apps.trash_bin.tasks.attachment.auto_delete_excess_attachments.delay'
         ) as mock_task:
             schedule_auto_attachment_cleanup_for_users()
             mock_task.assert_not_called()
@@ -178,3 +179,36 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
 
             auto_delete_excess_attachments(self.owner.pk)
             self.assertTrue(Attachment.objects.filter(pk=self.attachment.pk).exists())
+
+    def test_auto_delete_excess_attachments_skips_if_lock_held(self):
+        """
+        Test that the task does not run if a cache lock is already held
+        """
+        lock_key = f'auto_delete_excess_attachments_lock_for_user_{self.owner.pk}'
+
+        # Manually acquire the lock to simulate another task running
+        lock = cache.lock(lock_key, timeout=30)
+        acquired = lock.acquire(blocking_timeout=0)
+        self.assertTrue(acquired)
+
+        mock_balances = {
+            UsageType.STORAGE_BYTES: {
+                'effective_limit': 100000,
+                'balance_value': -50000,
+                'balance_percent': 150,
+                'exceeded': True,
+            },
+        }
+        with patch(
+            'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',  # noqa
+            return_value=mock_balances,
+        ):
+
+            with patch(
+                'kobo.apps.trash_bin.tasks.attachment.auto_delete_excess_attachments.delay'
+            ) as mock_task:
+                schedule_auto_attachment_cleanup_for_users()
+                mock_task.assert_not_called()
+
+        lock.release()
+

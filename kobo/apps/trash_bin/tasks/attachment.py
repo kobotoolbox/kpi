@@ -4,6 +4,7 @@ from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from celery.signals import task_failure, task_retry
 from constance import config
 from django.conf import settings
+from django.core.cache import cache
 
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.organizations.constants import UsageType
@@ -88,7 +89,7 @@ def schedule_auto_attachment_cleanup_for_users(**stripe_models):
     logging.info(f'Found {len(exceeded_counters)} users exceeding storage limits.')
 
     for counter in exceeded_counters:
-        auto_delete_excess_attachments(counter.user_id)
+        auto_delete_excess_attachments.delay(counter.user_id)
 
 
 @celery_app.task(
@@ -102,14 +103,18 @@ def schedule_auto_attachment_cleanup_for_users(**stripe_models):
     max_retries=5,
     retry_jitter=False,
     queue='kpi_low_priority_queue',
-    soft_time_limit=settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT,
-    time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
+    soft_time_limit=600,
+    time_limit=900,
 )
 def auto_delete_excess_attachments(user_id: int):
+    cache_key = f'auto_delete_excess_attachments_lock_for_user_{user_id}'
+    with cache.lock(cache_key, timeout=300, blocking_timeout=0) as lock_acquired:
+        if not lock_acquired:
+            logging.info(f'Lock already held for user `{user_id}`')
+            return
+
     user = User.objects.get(pk=user_id)
-    usage_balance = ServiceUsageCalculator(
-        user, disable_cache=True
-    ).get_usage_balances()
+    usage_balance = ServiceUsageCalculator(user).get_usage_balances()
 
     balance_info = usage_balance.get(UsageType.STORAGE_BYTES)
     if not balance_info:
