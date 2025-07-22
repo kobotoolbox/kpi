@@ -6,14 +6,14 @@ from .fields import (
     MessagesField,
 )
 
-ImportResponse = inline_serializer_class(
-    name='ImportResponse',
+
+ImportCreateRequestSerializer = inline_serializer_class(
+    name='ImportCreateRequestSerializer',
     fields={
-        'url': ImportUrlField(),
-        'status': serializers.CharField(),
-        'messages': MessagesField(),
-        'uid': serializers.CharField(),
-        'date_created': serializers.DateTimeField(),
+        'destination': serializers.URLField(),
+        'url': serializers.URLField(),
+        'name': serializers.CharField(required=False, allow_blank=True),
+        'assetUid': serializers.CharField(),
     },
 )
 
@@ -25,3 +25,15 @@ ImportCreateResponse = inline_serializer_class(
         'status': serializers.CharField(),
     },
 )
+
+ImportResponse = inline_serializer_class(
+    name='ImportResponse',
+    fields={
+        'url': ImportUrlField(),
+        'status': serializers.CharField(),
+        'messages': MessagesField(),
+        'uid': serializers.CharField(),
+        'date_created': serializers.DateTimeField(),
+    },
+)
+
