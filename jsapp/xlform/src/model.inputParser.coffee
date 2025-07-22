@@ -20,8 +20,7 @@ module.exports = do ->
         if item instanceof ParsedStruct
           item = item.export()
         arr.push(item)
-      _.extend({}, @atts, {type: @type, __rows: arr})
-      return
+      return _.extend({}, @atts, {type: @type, __rows: arr})
 
   hasBeenParsed = (obj)->
     for row in obj
