@@ -1,12 +1,16 @@
 from datetime import datetime
 
 from constance.test import override_config
-from django.urls import reverse
+from django.conf import settings
+from django.test import RequestFactory
 from django.utils import timezone
+from freezegun import freeze_time
 from rest_framework import status
+from rest_framework.reverse import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.utils.gravatar_url import gravatar_url
 
 
 class CurrentUserTestCase(BaseTestCase):
@@ -159,3 +163,50 @@ class CurrentUserTestCase(BaseTestCase):
             self.user.refresh_from_db()
             # Validate the flag kept the original value
             assert getattr(self.user, flag, False) is False
+
+    def test_expected_result(self):
+        request = RequestFactory().get('/')
+        self.client.force_authenticate(self.user)
+        time = timezone.now()
+        with freeze_time(time):
+            response = self.client.get(self.url)
+        assert response.data == {
+            'username': self.user.username,
+            'first_name': self.user.first_name,
+            'last_name': self.user.last_name,
+            'email': self.user.email,
+            'server_time': time.strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'date_joined': self.user.date_joined.strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'projects_url': '/'.join((settings.KOBOCAT_URL, self.user.username)),
+            'gravatar': gravatar_url(self.user.email),
+            'extra_details': {
+                'organization': '',
+                'name': '',
+                'require_auth': True,
+            },
+            'git_rev': False,
+            'social_accounts': [],
+            'validated_password': True,
+            'accepted_tos': False,
+            'organization': {
+                'url': reverse(
+                    'api_v2:organizations-detail',
+                    kwargs={'id': self.user.organization.id},
+                    request=request,
+                ),
+                'name': self.user.organization.name,
+                'uid': self.user.organization.id,
+            },
+            'last_login': None,
+            'extra_details__uid': self.user.extra_details.uid,
+        }
+
+    def test_cannot_update_uid(self):
+        self.client.force_authenticate(self.user)
+        uid = self.user.extra_details.uid
+        response = self.client.patch(
+            self.url, data={'extra_details__uid': 'u12345'}, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        self.user.refresh_from_db()
+        assert self.user.extra_details.uid == uid

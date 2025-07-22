@@ -2,7 +2,7 @@ from constance import config
 from django.db import transaction
 from django.utils.timezone import now
 from django.utils.translation import gettext as t
-from rest_framework import status, viewsets, permissions
+from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -58,7 +58,8 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     >               "url": string,
     >               "name": string,
     >               "uid": string,
-    >           }
+    >           },
+    >           "extra_details__uid": string,
     >       }
 
     Update account details

@@ -30,7 +30,10 @@ from kobo.apps.stripe.utils.billing_dates import (
     get_current_billing_period_dates_by_org,
     get_current_billing_period_dates_for_active_plans,
 )
-from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limit
+from kobo.apps.stripe.utils.limit_enforcement import (
+    check_exceeded_limit,
+    update_or_remove_limit_counter,
+)
 from kobo.apps.stripe.utils.subscription_limits import (
     determine_limit,
     get_default_plan_name,
@@ -48,17 +51,19 @@ from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 class OrganizationsUtilsTestCase(BaseTestCase):
     fixtures = ['test_data']
 
-    def setUp(self):
-        self.organization = baker.make(
-            Organization, id='123456abcdef', name='test organization'
-        )
-        self.second_organization = baker.make(
-            Organization, id='abcdef123456', name='second test organization'
-        )
-        self.someuser = User.objects.get(username='someuser')
-        self.anotheruser = User.objects.get(username='anotheruser')
-        self.newuser = baker.make(User, username='newuser')
-        self.organization.add_user(self.anotheruser, is_admin=True)
+    @classmethod
+    def setUpTestData(cls):
+        cls.someuser = User.objects.get(username='someuser')
+        cls.anotheruser = User.objects.get(username='anotheruser')
+        cls.organization = cls.someuser.organization
+        cls.organization.mmo_override = True
+        cls.organization.save()
+        cls.organization.add_user(cls.anotheruser, is_admin=True)
+
+        cls.newuser = baker.make(User, username='newuser')
+        cls.second_organization = cls.newuser.organization
+        cls.organization.mmo_override = True
+        cls.organization.save()
 
     def test_get_organization_subscription_limits(self):
         free_plan = generate_free_plan()
@@ -694,3 +699,30 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
             ) as patched:
                 check_exceeded_limit(self.someuser, UsageType.SUBMISSION)
                 patched.assert_called_once()
+
+    def test_update_or_remove_limit_counter(self):
+        mock_balances = {
+            UsageType.SUBMISSION: {'exceeded': True},
+        }
+        counter = baker.make(
+            ExceededLimitCounter, user=self.someuser, limit_type=UsageType.SUBMISSION
+        )
+        with freeze_time(timedelta(days=2)):
+            with patch(
+                'kobo.apps.stripe.utils.limit_enforcement.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
+                return_value=mock_balances,
+            ):
+                update_or_remove_limit_counter(counter)
+
+            counter.refresh_from_db()
+            assert counter.days == 2
+
+        mock_balances = {
+            UsageType.SUBMISSION: {'exceeded': False},
+        }
+        with patch(
+            'kobo.apps.stripe.utils.limit_enforcement.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
+            return_value=mock_balances,
+        ):
+            update_or_remove_limit_counter(counter)
+            assert ExceededLimitCounter.objects.count() == 0

@@ -63,7 +63,7 @@ class CachedClass:
         remaining_seconds = self._redis_client.ttl(self._cache_hash_str)
         return timezone.now() - timedelta(seconds=self.CACHE_TTL - remaining_seconds)
 
-    def _clear_cache(self):
+    def clear_cache(self):
         if not self._cache_available:
             return
 
