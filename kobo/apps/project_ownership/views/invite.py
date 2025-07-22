@@ -22,22 +22,32 @@ from ..serializers import InviteSerializer
         request={'application/json': InviteCreatePayload},
         responses=open_api_201_created_response(
             InviteResponse,
+            require_auth=False,
+            raise_not_found=False,
         )
     ),
     destroy=extend_schema(
         description=read_md('project_ownership', 'project_ownership/invites/delete.md'),
-        responses=open_api_204_empty_response(),
+        responses=open_api_204_empty_response(
+            require_auth=False,
+            validate_payload=False,
+        ),
     ),
     list=extend_schema(
         description=read_md('project_ownership', 'project_ownership/invites/list.md'),
         responses=open_api_200_ok_response(
             InviteResponse,
+            require_auth=False,
+            raise_not_found=False,
+            validate_payload=False,
         )
     ),
     retrieve=extend_schema(
         description=read_md('project_ownership', 'project_ownership/invites/retrieve.md'),
         responses=open_api_200_ok_response(
             InviteResponse,
+            require_auth=False,
+            validate_payload=False,
         )
     ),
     partial_update=extend_schema(
@@ -45,6 +55,7 @@ from ..serializers import InviteSerializer
         request={'application/json': InviteUpdatePayload},
         responses=open_api_200_ok_response(
             InviteResponse,
+            require_auth=False,
         )
     ),
     update=extend_schema(
