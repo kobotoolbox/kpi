@@ -180,6 +180,10 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
             auto_delete_excess_attachments(self.owner.pk)
             self.assertTrue(Attachment.objects.filter(pk=self.attachment.pk).exists())
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(AUTO_DELETE_ATTACHMENTS=True)
     def test_auto_delete_excess_attachments_skips_if_lock_held(self):
         """
         Test that the task does not run if a cache lock is already held
