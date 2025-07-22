@@ -11,6 +11,6 @@ class ProjectViewAppConfig(AppConfig):
         # the type was unknown and will return to default (string)) and seen as string
         # in the UI.
 
-        from .schema_extension.v2 import extensions  # noqa F401
+        from .schema_extensions.v2 import extensions  # noqa F401
 
         super().ready()

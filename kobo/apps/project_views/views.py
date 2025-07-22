@@ -26,8 +26,8 @@ from kpi.utils.project_views import get_region_for_view, user_has_view_perms
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from .models.project_view import ProjectView
-from .schema_extension.v2.serializers import ProjectViewExportResponse, \
-    ProjectViewExportCreateResponse
+from .schema_extensions.v2.serializers import ProjectViewExportResponse, \
+    ProjectViewExportCreateResponse, ProjectViewAssetResponse
 from .serializers import ProjectViewSerializer
 
 
@@ -37,6 +37,9 @@ from .serializers import ProjectViewSerializer
 @extend_schema_view(
     assets=extend_schema(
         description=read_md('project_views', 'assets.md'),
+        responses=open_api_200_ok_response(
+            ProjectViewAssetResponse,
+        )
     ),
     list=extend_schema(
         description=read_md('project_views', 'list.md'),

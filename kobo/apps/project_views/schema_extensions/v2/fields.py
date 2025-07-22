@@ -1,11 +1,23 @@
 from rest_framework import serializers
 
 
+class AssetLanguageField(serializers.ListField):
+    pass
+
+
+class AssetSettingsField(serializers.JSONField):
+    pass
+
+
 class AssetsURLField(serializers.URLField):
     pass
 
 
 class AssetsExportURLField(serializers.URLField):
+    pass
+
+
+class AssetDownloadField(serializers.ListField):
     pass
 
 

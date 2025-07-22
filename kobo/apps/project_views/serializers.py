@@ -7,7 +7,7 @@ from rest_framework.reverse import reverse
 
 from kobo.static_lists import COUNTRIES
 from .models.project_view import ProjectView
-from .schema_extension.v2.fields import UrlField, UserExportURLField, UserURLField, \
+from .schema_extensions.v2.fields import UrlField, UserExportURLField, UserURLField, \
     AssetsURLField, AssetsExportURLField
 
 
