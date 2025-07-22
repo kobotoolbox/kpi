@@ -70,7 +70,7 @@
     "react-select": "^5.8.0",
     "react-table": "^6.11.5",
     "react-tagsinput": "^3.20.3",
-    "react-textarea-autosize": "^8.4.1",
+    "react-textarea-autosize": "^8.5.9",
     "reflux": "^6.4.1",
     "reflux-core": "^1.0.0",
     "select2": "3.5.2-browserify",
