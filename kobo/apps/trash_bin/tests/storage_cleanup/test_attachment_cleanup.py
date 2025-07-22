@@ -205,10 +205,9 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
         ):
 
             with patch(
-                'kobo.apps.trash_bin.tasks.attachment.auto_delete_excess_attachments.delay'
+                'kobo.apps.trash_bin.tasks.attachment.auto_delete_excess_attachments.delay'  # noqa
             ) as mock_task:
                 schedule_auto_attachment_cleanup_for_users()
                 mock_task.assert_not_called()
 
         lock.release()
-
