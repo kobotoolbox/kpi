@@ -13,9 +13,9 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import (
 )
 from kpi.models import ImportTask
 from kpi.schema_extensions.v2.imports.serializers import (
-    ImportResponse,
+    ImportCreateRequestSerializer,
     ImportCreateResponse,
-    ImportCreateRequestSerializer
+    ImportResponse,
 )
 from kpi.serializers.v2.import_task import (
     ImportTaskListSerializer,
@@ -23,8 +23,10 @@ from kpi.serializers.v2.import_task import (
 )
 from kpi.tasks import import_in_background
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
-    open_api_201_created_response
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_201_created_response,
+)
 from kpi.utils.strings import to_str
 
 
@@ -38,7 +40,7 @@ from kpi.utils.strings import to_str
         responses=open_api_201_created_response(
             ImportCreateResponse,
             raise_access_forbidden=False,
-        )
+        ),
     ),
     list=extend_schema(
         description=read_md('kpi', 'imports/list.md'),
@@ -47,7 +49,7 @@ from kpi.utils.strings import to_str
             raise_access_forbidden=False,
             validate_payload=False,
             raise_not_found=False,
-        )
+        ),
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'imports/retrieve.md'),
@@ -55,7 +57,7 @@ from kpi.utils.strings import to_str
             ImportResponse(many=False),
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
 )
 class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):

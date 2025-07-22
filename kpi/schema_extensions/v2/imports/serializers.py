@@ -1,11 +1,7 @@
 from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
-from .fields import (
-    ImportUrlField,
-    MessagesField,
-)
-
+from .fields import ImportUrlField, MessagesField
 
 ImportCreateRequestSerializer = inline_serializer_class(
     name='ImportCreateRequestSerializer',
@@ -36,4 +32,3 @@ ImportResponse = inline_serializer_class(
         'date_created': serializers.DateTimeField(),
     },
 )
-
