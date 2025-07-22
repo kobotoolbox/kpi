@@ -9,6 +9,8 @@ permissions:
 jobs:
   npm-test:
     uses: ./.github/workflows/npm-test.yml
+    # Avoid running this on different PRs
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
 
   review-dependabot-pr:
     runs-on: ubuntu-latest
@@ -25,12 +27,14 @@ jobs:
         id: dependabot-metadata
         uses: dependabot/fetch-metadata@v1.3.1
 
-      - name: Enable auto-merge for Dependabot PRs
-        # This requires auto-merge to be enabled in GitHub repo settings
-        run: gh pr merge --auto --merge "$PR_URL"
-        env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      # Disable until I figure out what is wrong with automerges
+      # - name: Enable auto-merge for Dependabot PRs of patch and minor updates
+      #   if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' || steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
+      #   # This requires auto-merge to be enabled in GitHub repo settings
+      #   run: gh pr merge --auto --squash "$PR_URL"
+      #   env:
+      #     PR_URL: ${{github.event.pull_request.html_url}}
+      #     GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
       - name: Approve patch and minor updates
         if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' || steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
@@ -41,7 +45,14 @@ jobs:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
-      - name: Comment on major updates
+      - name: Get special token that can read organization users
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.PR_MANAGEMENT_APP_ID }}
+          private-key: ${{ secrets.PR_MANAGEMENT_PRIVATE_KEY }}
+
+      - name: Comment and request review on major updates
         if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-major'}}
         run: |
           gh pr comment $PR_URL --body "I'm **not approving** this PR because **it includes a major update of a dependency**"
@@ -49,11 +60,11 @@ jobs:
           gh pr edit $PR_URL --add-reviewer Akuukis,magicznyleszek,pauloamorimbr
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{steps.app-token.outputs.token}}
 
   on-failure:
     if: |
-      failure() &&
+      failure() ||
       (needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out')
     needs:
       - npm-test
