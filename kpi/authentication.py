@@ -177,27 +177,15 @@ class OAuth2Authentication(OPOAuth2Authentication, RequiresAccessLogMixin):
         return user, creds
 
 
-class CollectorTokenAuthentication(TokenAuthentication):
+class CollectorTokenAuthentication(BaseAuthentication):
     def authenticate(self, request):
-        auth = get_authorization_header(request).split()
-
-        if not auth or auth[0].lower() != self.keyword.lower().encode():
+        context = request.parser_context
+        kwargs = context.get('kwargs', {})
+        token = kwargs.get('token', None)
+        if not token:
             return None
-
-        if len(auth) == 1:
-            msg = 'Invalid token header. No credentials provided.'
-            raise exceptions.AuthenticationFailed(msg)
-        elif len(auth) > 2:
-            msg = 'Invalid token header. Token string should not contain spaces.'
-            raise exceptions.AuthenticationFailed(msg)
-
-        try:
-            token = auth[1].decode()
-        except UnicodeError:
-            msg = 'Invalid token header. Token string should not contain invalid characters.'
-            raise exceptions.AuthenticationFailed(msg)
-
         return self.authenticate_credentials(token)
+
 
 
     def authenticate_credentials(self, key):
@@ -206,6 +194,7 @@ class CollectorTokenAuthentication(TokenAuthentication):
             server_user = CollectorUser()
             group = collector.group
             server_user.assets = group.assets.values_list('uid', flat=True)
+            server_user.name = collector.name
             return server_user, key
         except Collector.DoesNotExist:
             raise exceptions.AuthenticationFailed('Invalid token.')

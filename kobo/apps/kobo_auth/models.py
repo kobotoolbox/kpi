@@ -3,9 +3,7 @@ from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django_request_cache import cache_for_request
 from django.db import models
 from rest_framework.authtoken.models import Token
-from xlwt.ExcelFormulaLexer import false_pattern
 
-from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.libs.constants import (
     OPENROSA_APP_LABELS,
 )
@@ -101,13 +99,12 @@ class CollectorUser(AnonymousUser):
         return True
 
     assets = []
+    name = None
 
     def has_perm(self, perm, obj = ...):
-        if not isinstance(obj, XForm) or perm != 'report_xform':
+        if perm != 'report_xform':
             return False
         return obj.kpi_asset_uid in self.assets
-
-
 
 class CollectorGroup(models.Model):
     uid = KpiUidField(uid_prefix='cg')

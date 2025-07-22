@@ -10,6 +10,7 @@ from rest_framework.response import Response
 
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
+from kobo.apps.kobo_auth.models import CollectorUser
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.libs import filters
@@ -26,7 +27,7 @@ from kpi.authentication import (
     BasicAuthentication,
     DigestAuthentication,
     SessionAuthentication,
-    TokenAuthentication,
+    TokenAuthentication, CollectorTokenAuthentication,
 )
 from kpi.utils.object_permission import get_database_user
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
@@ -142,7 +143,8 @@ class XFormSubmissionApi(
         authentication_classes = [
             DigestAuthentication,
             BasicAuthentication,
-            TokenAuthentication
+            TokenAuthentication,
+            CollectorTokenAuthentication,
         ]
         # Do not use `SessionAuthentication`, which implicitly requires CSRF
         # prevention (which in turn requires that the CSRF token be submitted
@@ -156,13 +158,14 @@ class XFormSubmissionApi(
 
     def create(self, request, *args, **kwargs):
         username = self.kwargs.get('username')
+        token = self.kwargs.get('token')
 
         if self.request.user.is_anonymous:
-            if not username:
+            if not username and not token:
                 # Authentication is mandatory when username is omitted from the
                 # submission URL
                 raise NotAuthenticated
-            else:
+            elif username:
                 _ = get_object_or_404(User, username=username.lower())
         elif not username:
             # get the username from the user if not set
