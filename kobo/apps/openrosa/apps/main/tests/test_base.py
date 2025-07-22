@@ -23,6 +23,7 @@ from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import (
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils.logger_tools import publish_xls_form
 from kobo.apps.openrosa.libs.utils.string import base64_encodestring
+from kpi.utils.object_permission import get_database_user
 
 
 class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
@@ -52,8 +53,7 @@ class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
         # `auth_permission`.  Without this, actions
         # on individual instances are immediately denied and object-level permissions
         # are never considered.
-        if user.is_anonymous:
-            user = User.objects.get(id=settings.ANONYMOUS_USER_ID)
+        user = get_database_user(user)
         user.user_permissions.set(Permission.objects.all())
         if save:
             user.save()
