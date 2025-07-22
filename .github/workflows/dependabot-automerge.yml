@@ -27,13 +27,14 @@ jobs:
         id: dependabot-metadata
         uses: dependabot/fetch-metadata@v1.3.1
 
-      - name: Enable auto-merge for Dependabot PRs of patch and minor updates
-        if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' || steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
-        # This requires auto-merge to be enabled in GitHub repo settings
-        run: gh pr merge --auto --squash "$PR_URL"
-        env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      # Disable until I figure out what is wrong with automerges
+      # - name: Enable auto-merge for Dependabot PRs of patch and minor updates
+      #   if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' || steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
+      #   # This requires auto-merge to be enabled in GitHub repo settings
+      #   run: gh pr merge --auto --squash "$PR_URL"
+      #   env:
+      #     PR_URL: ${{github.event.pull_request.html_url}}
+      #     GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
       - name: Approve patch and minor updates
         if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' || steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
