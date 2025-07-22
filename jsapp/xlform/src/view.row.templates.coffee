@@ -292,7 +292,7 @@ module.exports = do ->
     rank_constraint_message_li = """
       #{rank_constraint_message_html}
     """
-    tempalte = """
+    template = """
     <div class="rank_preview clearfix">
       <ol class="rank__rows">
         #{rank_rows_lis.join('')}
@@ -315,7 +315,7 @@ module.exports = do ->
     else
       modifier = 'custom'
 
-    tempalte = """
+    template = """
     <div class="card__settings__fields__field">
       <label>#{t('Mandatory response')}:</label>
       <span class="settings__input">
@@ -373,7 +373,7 @@ module.exports = do ->
     return template
 
   paramsSimple = ->
-    tempalte = """
+    template = """
     <div class="js-params-view params-view__simple-wrapper">
       <div class="params-view"></div>
     </div>

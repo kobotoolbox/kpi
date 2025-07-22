@@ -20,7 +20,7 @@ module.exports = do ->
     if isChecked is 'true'
       checkedAttr = 'checked'
 
-    tempalte = """
+    template = """
     <div class='checkbox'>
       <label class='checkbox__wrapper'>
         <input class='checkbox__input' type='checkbox' #{checkedAttr}/>
@@ -30,5 +30,7 @@ module.exports = do ->
     """
     return template
 
-  return booleanParam: booleanParam
-  return numberParam: numberParam
+  return {
+    booleanParam: booleanParam
+    numberParam: numberParam
+  }

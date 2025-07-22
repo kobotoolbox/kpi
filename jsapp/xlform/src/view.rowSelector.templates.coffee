@@ -26,7 +26,7 @@ module.exports = do ->
       return template
 
   xlfRowSelector.namer = () ->
-    tempalte = """
+    template = """
       <div class="row__questiontypes row__questiontypes--namer">
         #{closeRowSelectorButton}
         <form class="row__questiontypes__form" action="javascript:void(0);" >

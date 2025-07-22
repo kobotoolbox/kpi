@@ -10,7 +10,7 @@ module.exports = do ->
         warnings_html += """<p class="survey-warnings__warning">#{warning}</p>"""
       warnings_html += """<button class="survey-warnings__close-button js-close-warning">x</button></div>"""
 
-    tempalte = """
+    template = """
       #{warnings_html}
       <div class="survey-editor form-editor-wrap container">
         <ul class="-form-editor survey-editor__list">
