@@ -463,7 +463,7 @@ CONSTANCE_CONFIG = {
         'Enable automatic deletion of attachments for users who have exceeded '
         'their storage limits.'
     ),
-    'STORAGE_OVERAGE_ATTACHMENT_DELETION_GRACE_PERIOD': (
+    'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD': (
         90,
         'Number of days to keep attachments after the user has exceeded their '
         'storage limits.'
@@ -767,9 +767,9 @@ CONSTANCE_CONFIG_FIELDSETS = {
     'Trash bin': (
         'ACCOUNT_TRASH_GRACE_PERIOD',
         'ATTACHMENT_TRASH_GRACE_PERIOD',
-        'AUTO_DELETE_ATTACHMENTS',
         'PROJECT_TRASH_GRACE_PERIOD',
-        'STORAGE_OVERAGE_ATTACHMENT_DELETION_GRACE_PERIOD',
+        'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD',
+        'AUTO_DELETE_ATTACHMENTS',
     ),
     'Regular maintenance settings': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
