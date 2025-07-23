@@ -74,6 +74,7 @@ class DoXmlFormUpload:
     def publish(self):
         return publish_xml_form(self.xml_file, self.user)
 
+
 @extend_schema(
     tags=['OpenRosa'],
     exclude=True,

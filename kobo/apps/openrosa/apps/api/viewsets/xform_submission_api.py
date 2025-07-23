@@ -64,6 +64,7 @@ def create_instance_from_json(username, request):
     xml_file = io.StringIO(xml_string)
     return safe_create_instance(username, xml_file, [], None, request=request)
 
+
 @extend_schema(
     tags=['OpenRosa'],
     exclude=True,

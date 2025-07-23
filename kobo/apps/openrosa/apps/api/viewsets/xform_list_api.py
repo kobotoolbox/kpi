@@ -31,6 +31,7 @@ from kpi.constants import PERM_MANAGE_ASSET
 from kpi.models.object_permission import ObjectPermission
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
 
+
 @extend_schema(
     tags=['OpenRosa'],
     exclude=True,
