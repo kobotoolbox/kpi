@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.request import Request
@@ -30,7 +31,10 @@ from kpi.constants import PERM_MANAGE_ASSET
 from kpi.models.object_permission import ObjectPermission
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
 
-
+@extend_schema(
+    tags=['OpenRosa'],
+    exclude=True,
+)
 class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
     content_negotiation_class = MediaFileContentNegotiation

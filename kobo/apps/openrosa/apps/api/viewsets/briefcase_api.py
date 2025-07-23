@@ -5,6 +5,7 @@ from django.core.files import File
 from django.core.validators import ValidationError
 from django.http import Http404
 from django.utils.translation import gettext as t
+from drf_spectacular.utils import extend_schema
 from rest_framework import exceptions, mixins, permissions, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -73,7 +74,10 @@ class DoXmlFormUpload:
     def publish(self):
         return publish_xml_form(self.xml_file, self.user)
 
-
+@extend_schema(
+    tags=['OpenRosa'],
+    exclude=True,
+)
 class BriefcaseApi(
     OpenRosaHeadersMixin,
     mixins.CreateModelMixin,

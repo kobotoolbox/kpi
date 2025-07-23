@@ -3,6 +3,7 @@ import re
 
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
+from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, permissions, status
 from rest_framework.exceptions import NotAuthenticated
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
@@ -63,7 +64,10 @@ def create_instance_from_json(username, request):
     xml_file = io.StringIO(xml_string)
     return safe_create_instance(username, xml_file, [], None, request=request)
 
-
+@extend_schema(
+    tags=['OpenRosa'],
+    exclude=True,
+)
 class XFormSubmissionApi(
     OpenRosaHeadersMixin,
     mixins.CreateModelMixin,
