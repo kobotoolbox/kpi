@@ -81,27 +81,6 @@ def get_xform_ids_for_user(
     return xform_ids
 
 
-def get_object_users_with_permissions(obj, serializable: bool = False) -> list[dict]:
-    """Returns users, roles and permissions for an object.
-    When called with `serializable=True`, return usernames (strings)
-    instead of User objects, which cannot be serialized by REST Framework.
-    """
-    result = []
-
-    if obj:
-        users_with_perms = get_users_with_perms(
-            obj, attach_perms=True, with_group_users=False
-        ).items()
-
-        result = [{
-            'user': user if not serializable else user.username,
-            'permissions': permissions} for user, permissions in
-            users_with_perms
-        ]
-
-    return result
-
-
 @cache_for_request
 def get_model_permission_codenames() -> list[str]:
     kc_perms = set(Permission.objects.using(settings.OPENROSA_DB_ALIAS).values_list(
