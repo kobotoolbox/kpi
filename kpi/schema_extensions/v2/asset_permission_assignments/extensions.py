@@ -5,9 +5,9 @@ from drf_spectacular.extensions import (
 from drf_spectacular.plumbing import build_object_type
 
 from .schema import (
+    ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA,
     PARTIAL_PERMISSION_SCHEMA,
     PERMISSION_ASSIGNMENT_LABEL_SCHEMA,
-    ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA,
     PERMISSION_URL_SCHEMA,
     USER_URL_SCHEMA,
 )
@@ -21,13 +21,10 @@ class AssetPermissionAssignmentUrlFieldExtension(OpenApiSerializerFieldExtension
 
 
 class AssetPermissionUrlFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.asset_permission_assignments.fields.AssetPermissionUrlField'  # noqa
-    )
+    target_class = 'kpi.schema_extensions.v2.asset_permission_assignments.fields.AssetPermissionUrlField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
         return PERMISSION_URL_SCHEMA
-
 
 
 class LabelFieldExtension(OpenApiSerializerFieldExtension):

@@ -15,14 +15,12 @@ def build_url_type(viewname: str, **kwargs) -> dict:
 
     urls_pattern_mapping = {
         'asset-detail': '/api/v2/assets/{uid}/',
-        'asset-permission-assignment-detail':
-            '/api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/',
+        'asset-permission-assignment-detail': '/api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/',  # noqa
         'permission-detail': '/api/v2/permissions/{codename}/',
         'user-kpi-detail': '/api/v2/users/{username}/',
         'assetsnapshot-detail': '/api/v2/asset_snapshots/{uid}/',
         'assetsnapshot-preview': '/api/v2/asset_snapshots/{uid}/preview/',
-        'assetsnapshot-xml-with-disclaimer':
-            '/api/v2/asset_snapshots/{uid}/xml_with_disclaimer/',
+        'assetsnapshot-xml-with-disclaimer': '/api/v2/asset_snapshots/{uid}/xml_with_disclaimer/',  # noqa
         'assetsnapshot-manifest-alias': '/api/v2/asset_snapshots/{uid}/manifest/',
         'userassetsubscription-detail': '/api/v2/asset_subscription/{uid}/',
         'asset-version-detail': '/api/v2/assets/{parent_lookup_asset}/versions/{uid}/',
@@ -32,12 +30,9 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'asset-export-list': '/api/v2/assets/{parent_lookup_asset}/exports/',
         'submission-list': '/api/v2/assets/{parent_lookup_asset}/submissions/',
         'paired-data-list': '/api/v2/assets/{parent_lookup_asset}/paired-data/',
-        'attachment-detail':
-            '/api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/{pk}',  # noqa
-        'attachment-thumb':
-            '/api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/{pk}/{suffix}/',  # noqa
-        'paired-data-detail':
-            '/api/v2/assets/{parent_lookup_asset}/paired-data/{paired_data_uid}',
+        'attachment-detail': '/api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/{pk}',  # noqa
+        'attachment-thumb': '/api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/{pk}/{suffix}/',  # noqa
+        'paired-data-detail': '/api/v2/assets/{parent_lookup_asset}/paired-data/{paired_data_uid}',  # noqa
     }
 
     try:

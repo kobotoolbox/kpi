@@ -1,8 +1,12 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view, \
-    OpenApiExample
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiParameter,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import (
@@ -94,9 +98,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
                     'partial_permission': generate_example_from_schema(
                         PARTIAL_PERMISSION_SCHEMA
                     ),
-                    'permission': generate_example_from_schema(
-                        PERMISSION_URL_SCHEMA
-                    ),
+                    'permission': generate_example_from_schema(PERMISSION_URL_SCHEMA),
                 },
                 request_only=True,
             ),
@@ -104,12 +106,10 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
                 name='Create permission',
                 value={
                     'user': generate_example_from_schema(USER_URL_SCHEMA),
-                    'permission': generate_example_from_schema(
-                        PERMISSION_URL_SCHEMA
-                    ),
+                    'permission': generate_example_from_schema(PERMISSION_URL_SCHEMA),
                 },
                 request_only=True,
-            )
+            ),
         ],
     ),
     delete_all=extend_schema(

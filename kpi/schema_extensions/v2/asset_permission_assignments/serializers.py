@@ -2,10 +2,10 @@ from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
+    AssetPermissionAssignmentUrlField,
     AssetPermissionUrlField,
     LabelField,
     PartialPermissionField,
-    AssetPermissionAssignmentUrlField,
     UserURLField,
 )
 
@@ -29,9 +29,7 @@ PermissionAssignmentBulkRequest = inline_serializer_class(
 
 PermissionAssignmentCloneRequest = inline_serializer_class(
     name='PermissionAssignmentCloneRequest',
-    fields={
-        'clone_from': serializers.CharField()
-    }
+    fields={'clone_from': serializers.CharField()},
 )
 
 PermissionAssignmentCreateRequest = inline_serializer_class(
