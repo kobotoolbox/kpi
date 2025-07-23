@@ -92,20 +92,7 @@ def schedule_auto_attachment_cleanup_for_users(**stripe_models):
         auto_delete_excess_attachments.delay(counter.user_id)
 
 
-@celery_app.task(
-    autoretry_for=(
-        TimeLimitExceeded,
-        TrashTaskInProgressError,
-        SoftTimeLimitExceeded,
-    ),
-    retry_backoff=60,
-    retry_backoff_max=600,
-    max_retries=5,
-    retry_jitter=False,
-    queue='kpi_low_priority_queue',
-    soft_time_limit=600,
-    time_limit=900,
-)
+@celery_app.task(queue='kpi_low_priority_queue')
 def auto_delete_excess_attachments(user_id: int):
     cache_key = f'auto_delete_excess_attachments_lock_for_user_{user_id}'
     with cache.lock(cache_key, timeout=300, blocking_timeout=0) as lock_acquired:
