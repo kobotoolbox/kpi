@@ -16,6 +16,7 @@ from xml.etree import ElementTree as ET
 from xml.parsers.expat import ExpatError
 from zoneinfo import ZoneInfo
 
+import constance
 from dict2xml import dict2xml
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -206,7 +207,12 @@ def create_instance(
     xml_hash = Instance.get_hash(xml)
     xform = get_xform_from_submission(xml, username, uuid)
     check_submission_permissions(request, xform)
-    if settings.STRIPE_ENABLED and check_usage_limits:
+    print(constance.config.MFA_ENABLED)
+    if (
+        settings.STRIPE_ENABLED
+        # and constance.config.USAGE_LIMIT_ENFORCEMENT
+        and check_usage_limits
+    ):
         calculator = ServiceUsageCalculator(xform.user)
         balances = calculator.get_usage_balances()
         for usage_type in [UsageType.STORAGE_BYTES, UsageType.SUBMISSION]:
@@ -357,6 +363,7 @@ def get_instance_lock(submission_uuid: str, xform_id: int) -> bool:
     int_lock = int.from_bytes(
         hashlib.shake_128(f'{xform_id}!!{submission_uuid}'.encode()).digest(7), 'little'
     )
+    print(int_lock)
     acquired = False
 
     try:
@@ -364,6 +371,8 @@ def get_instance_lock(submission_uuid: str, xform_id: int) -> bool:
             cur = connection.cursor()
             cur.execute('SELECT pg_try_advisory_lock(%s::bigint);', (int_lock,))
             acquired = cur.fetchone()[0]
+            print("acquired")
+            print(acquired)
             yield acquired
     finally:
         # Release the lock if it was acquired

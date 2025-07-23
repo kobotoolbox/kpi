@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 import requests
 import simplejson as json
+from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.base import ContentFile
@@ -69,8 +70,11 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             expected_queries = FuzzyInt(43, 47)
             # In stripe-enabled environments usage limit enforcement
             # requires additional queries
+            # TODO: Constance adds three extra queries when checking
+            # USAGE_LIMIT_ENFORCEMENT variable. But we use caching
+            # so should find a way to keep that out of this count
             if settings.STRIPE_ENABLED:
-                expected_queries = FuzzyInt(79, 83)
+                expected_queries = FuzzyInt(79, 86)
             with self.assertNumQueries(expected_queries):
                 self.view(request)
 
@@ -158,6 +162,52 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 request.META.update(auth(request.META, response))
                 response = self.view(request, username=self.user.username)
                 self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
+
+            mock_balances = {
+                UsageType.STORAGE_BYTES: {
+                    'exceeded': True,
+                },
+                UsageType.SUBMISSION: None,
+            }
+            with patch(
+                'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
+                return_value=mock_balances,
+            ):
+                request = self.factory.post('/submission', data, format='json')
+                response = self.view(request)
+                self.assertEqual(response.status_code, 401)
+                request = self.factory.post('/submission', data, format='json')
+                auth = DigestAuth('bob', 'bobbob')
+                request.META.update(auth(request.META, response))
+                response = self.view(request, username=self.user.username)
+                self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_disable_limit_enforcement(self):
+        """
+        Ensure submissions by an authenticated user are rejected if asset owner
+        is over their storage or submission limit
+        """
+        path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'transport_submission.json',
+        )
+        with open(path, 'rb') as f:
+            data = json.loads(f.read())
+            request = self.factory.post('/submission', data, format='json')
+            response = self.view(request)
+            self.assertEqual(response.status_code, 401)
+
+            with override_config(USAGE_LIMIT_ENFORCEMENT=True):
+                request = self.factory.post('/submission', data, format='json')
+                auth = DigestAuth('bob', 'bobbob')
+                request.META.update(auth(request.META, response))
+                response = self.view(request, username=self.user.username)
+                self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
             mock_balances = {
                 UsageType.STORAGE_BYTES: {
@@ -753,7 +803,7 @@ class ConcurrentSubmissionTestCase(RequestMixin, LiveServerTestCase):
                 range(DUPLICATE_SUBMISSIONS_COUNT),
             ):
                 results[result] += 1
-
+        # breakpoint()
         assert results[status.HTTP_201_CREATED] == 1
         assert results[status.HTTP_423_LOCKED] == DUPLICATE_SUBMISSIONS_COUNT - 1
 
