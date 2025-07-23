@@ -285,7 +285,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 )
 @extend_schema_view(
     destroy=extend_schema(
-        description='destroy',
+        description=read_md('organizations', 'members/delete.md'),
         responses=open_api_204_empty_response(
             require_auth=False,
             validate_payload=False,
@@ -301,7 +301,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ],
     ),
     list=extend_schema(
-        description='list',
+        description=read_md('organizations', 'members/list.md'),
         responses=open_api_200_ok_response(
             MemberListResponse,
             require_auth=False,
@@ -310,7 +310,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ),
     ),
     retrieve=extend_schema(
-        description='retrieve',
+        description=read_md('organizations', 'members/retrieve.md'),
         responses=open_api_200_ok_response(
             MemberListResponse,
             require_auth=False,
@@ -328,7 +328,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ],
     ),
     partial_update=extend_schema(
-        description='update',
+        description=read_md('organizations', 'members/update.md'),
         request={'application/json': MemberPatchRequest},
         responses=open_api_200_ok_response(
             MemberListResponse,
