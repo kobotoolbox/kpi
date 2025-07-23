@@ -1,6 +1,6 @@
 ## List of invites
 
-Invites sent or received by current user about transfer project ownership.
+Invites sent or received by current user about transferring project ownership.
 
 List can be filtered with `mode` parameter,  e.g.: display only received invites.
 

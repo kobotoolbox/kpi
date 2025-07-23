@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from rest_framework.renderers import JSONRenderer
 
 from kpi.permissions import IsAuthenticated
@@ -47,6 +47,14 @@ from ..serializers import InviteSerializer
             raise_not_found=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='mode',
+                type=str,
+                required=False,
+                location=OpenApiParameter.QUERY,
+            ),
+        ]
     ),
     retrieve=extend_schema(
         description=read_md(
