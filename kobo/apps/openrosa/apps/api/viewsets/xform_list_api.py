@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.request import Request
@@ -28,9 +29,28 @@ from kobo.apps.openrosa.libs.serializers.xform_serializer import (
 from kpi.authentication import DigestAuthentication
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.models.object_permission import ObjectPermission
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_http_example_response
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
 
 
+@extend_schema(
+    tags=['Form List']
+)
+@extend_schema_view(
+    list=extend_schema(
+        description=read_md('openrosa', 'formlist/list.md'),
+    ),
+    retrieve=extend_schema(
+        description='RETRIEVE',
+    ),
+    manifest=extend_schema(
+        description='MANIFEST'
+    ),
+    media=extend_schema(
+        description='MEDIA'
+    ),
+)
 class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
     content_negotiation_class = MediaFileContentNegotiation
