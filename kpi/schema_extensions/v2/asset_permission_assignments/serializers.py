@@ -9,8 +9,8 @@ from .fields import (
     UserField,
 )
 
-PermissionResponse = inline_serializer_class(
-    name='PermissionResponse',
+PermissionAssignmentResponse = inline_serializer_class(
+    name='PermissionAssignmentResponse',
     fields={
         'url': AssetPermissionUrlField(),
         'user': UserField(),
@@ -19,20 +19,23 @@ PermissionResponse = inline_serializer_class(
     },
 )
 
-PermissionBulkRequest = inline_serializer_class(
-    name='PermissionBulkRequest',
+PermissionAssignmentBulkRequest = inline_serializer_class(
+    name='PermissionAssignmentBulkRequest',
     fields={
         'user': UserField(),
         'permission': AssetPermissionAssignmentUrlField(),
     },
 )
 
-PermissionCloneRequest = inline_serializer_class(
-    name='PermissionCloneRequest', fields={'clone_from': serializers.CharField()}
+PermissionAssignmentCloneRequest = inline_serializer_class(
+    name='PermissionAssignmentCloneRequest',
+    fields={
+        'clone_from': serializers.CharField()
+    }
 )
 
-PermissionCreateRequest = inline_serializer_class(
-    name='PermissionCreateRequest',
+PermissionAssignmentCreateRequest = inline_serializer_class(
+    name='PermissionAssignmentCreateRequest',
     fields={
         'user': UserField(),
         'partial_permission': PartialPermissionField(),
