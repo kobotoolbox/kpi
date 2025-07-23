@@ -28,16 +28,7 @@ class ExtraDetailField(OpenApiSerializerFieldExtension):
                 'organization_type': build_basic_type(OpenApiTypes.STR),
                 'organization_website': build_basic_type(OpenApiTypes.STR),
                 'project_views_settings': build_object_type(
-                    properties={
-                        'kobo_my_projects': build_object_type(
-                            properties={
-                                'order': build_object_type(properties={}),
-                                'fields': build_array_type(
-                                    schema=build_basic_type(OpenApiTypes.STR),
-                                ),
-                            }
-                        ),
-                    }
+                    properties={}
                 ),
                 'require_auth': build_basic_type(OpenApiTypes.BOOL),
                 'newsletter_subscription': build_basic_type(OpenApiTypes.STR),
