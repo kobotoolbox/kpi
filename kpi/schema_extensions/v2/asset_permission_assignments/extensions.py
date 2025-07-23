@@ -7,8 +7,8 @@ from drf_spectacular.plumbing import build_object_type
 from .schema import (
     PARTIAL_PERMISSION_SCHEMA,
     PERMISSION_ASSIGNMENT_LABEL_SCHEMA,
-    ASSET_PERMISSION_URL_SCHEMA,
     ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA,
+    PERMISSION_URL_SCHEMA,
     USER_URL_SCHEMA,
 )
 
@@ -35,7 +35,7 @@ class PermissionCreateSerializerExtension(OpenApiSerializerExtension):
                         'user',
                     ],
                     properties={
-                        'permission': ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA,
+                        'permission': PERMISSION_URL_SCHEMA,
                         'user': USER_URL_SCHEMA,
                     },
                 ),
@@ -47,7 +47,7 @@ class PermissionCreateSerializerExtension(OpenApiSerializerExtension):
                     ],
                     properties={
                         'partial_permission': PARTIAL_PERMISSION_SCHEMA,
-                        'permission': ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA,
+                        'permission': PERMISSION_URL_SCHEMA,
                         'user': USER_URL_SCHEMA,
                     },
                 ),
@@ -62,7 +62,7 @@ class PartialPermissionFieldExtension(OpenApiSerializerFieldExtension):
         return build_object_type(
             properties={
                 'user': USER_URL_SCHEMA,
-                'permission': ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA,
+                'permission': PERMISSION_URL_SCHEMA,
                 'partial_permission': PARTIAL_PERMISSION_SCHEMA,
             }
         )
@@ -74,14 +74,14 @@ class AssetPermissionAssignmentUrlFieldExtension(OpenApiSerializerFieldExtension
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA
+        return PERMISSION_URL_SCHEMA
 
 
 class AssetPermissionUrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.asset_permission_assignments.fields.AssetPermissionUrlField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
-        return ASSET_PERMISSION_URL_SCHEMA
+        return ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA
 
 
 class UserFieldExtension(OpenApiSerializerFieldExtension):

@@ -27,7 +27,7 @@ from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import AssetPermissionAssignmentPermission
 from kpi.schema_extensions.v2.asset_permission_assignments.schema import USER_URL_SCHEMA, \
-    PARTIAL_PERMISSION_SCHEMA, ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA
+    PARTIAL_PERMISSION_SCHEMA, PERMISSION_URL_SCHEMA
 from kpi.schema_extensions.v2.asset_permission_assignments.serializers import (
     PermissionAssignmentBulkRequest,
     PermissionAssignmentCloneRequest,
@@ -93,7 +93,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
                         PARTIAL_PERMISSION_SCHEMA
                     ),
                     'permission': generate_example_from_schema(
-                        ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA
+                        PERMISSION_URL_SCHEMA
                     ),
                 },
                 request_only=True,
@@ -103,7 +103,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
                 value={
                     'user': generate_example_from_schema(USER_URL_SCHEMA),
                     'permission': generate_example_from_schema(
-                        ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA
+                        PERMISSION_URL_SCHEMA
                     ),
                 },
                 request_only=True,
