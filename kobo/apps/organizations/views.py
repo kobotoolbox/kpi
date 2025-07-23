@@ -621,7 +621,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 )
 @extend_schema_view(
     create=extend_schema(
-        description=read_md('kpi', 'invites/create.md'),
+        description=read_md('organizations', 'invites/create.md'),
         request={'application/json': InviteCreatePayload},
         responses=open_api_200_ok_response(
             InviteResponse(many=True),
@@ -630,7 +630,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         ),
     ),
     destroy=extend_schema(
-        description=read_md('kpi', 'invites/delete.md'),
+        description=read_md('organizations', 'invites/delete.md'),
         responses=open_api_204_empty_response(
             require_auth=False,
             validate_payload=False,
@@ -646,7 +646,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         ],
     ),
     list=extend_schema(
-        description=read_md('kpi', 'invites/list.md'),
+        description=read_md('organizations', 'invites/list.md'),
         responses=open_api_200_ok_response(
             InviteResponse,
             require_auth=False,
@@ -655,7 +655,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         ),
     ),
     partial_update=extend_schema(
-        description=read_md('kpi', 'invites/update.md'),
+        description=read_md('organizations', 'invites/update.md'),
         request={'application/json': InvitePatchPayload},
         responses=open_api_200_ok_response(
             InviteResponse(many=False),
@@ -672,7 +672,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         ],
     ),
     retrieve=extend_schema(
-        description=read_md('kpi', 'invites/retrieve.md'),
+        description=read_md('organizations', 'invites/retrieve.md'),
         responses=open_api_200_ok_response(
             InviteResponse,
             require_auth=False,
