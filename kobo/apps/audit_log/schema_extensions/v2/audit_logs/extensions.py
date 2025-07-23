@@ -69,62 +69,10 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
                         'data-table': build_object_type(
                             properties={
                                 'new': build_object_type(
-                                    properties={
-                                        'sort-by': build_object_type(
-                                            properties={
-                                                'value': build_basic_type(
-                                                    OpenApiTypes.STR
-                                                ),
-                                                'fieldId': build_basic_type(
-                                                    OpenApiTypes.STR
-                                                ),
-                                            }
-                                        ),
-                                        'frozen-column': build_basic_type(
-                                            OpenApiTypes.STR
-                                        ),
-                                        'show-hxl-tags': build_basic_type(
-                                            OpenApiTypes.BOOL
-                                        ),
-                                        'show-group-name': build_basic_type(
-                                            OpenApiTypes.BOOL
-                                        ),
-                                        'selected-columns': build_array_type(
-                                            schema=build_basic_type(OpenApiTypes.STR)
-                                        ),
-                                        'translation-index': build_basic_type(
-                                            OpenApiTypes.INT
-                                        ),
-                                    }
+                                    properties={}
                                 ),
                                 'old': build_object_type(
-                                    properties={
-                                        'sort-by': build_object_type(
-                                            properties={
-                                                'value': build_basic_type(
-                                                    OpenApiTypes.STR
-                                                ),
-                                                'fieldId': build_basic_type(
-                                                    OpenApiTypes.STR
-                                                ),
-                                            }
-                                        ),
-                                        'frozen-column': build_basic_type(
-                                            OpenApiTypes.STR
-                                        ),
-                                        'show-hxl-tags': build_basic_type(
-                                            OpenApiTypes.BOOL
-                                        ),
-                                        'show-group-name': build_basic_type(
-                                            OpenApiTypes.BOOL
-                                        ),
-                                        'selected-columns': build_array_type(
-                                            schema=build_basic_type(OpenApiTypes.STR)
-                                        ),
-                                        'translation-index': build_basic_type(
-                                            OpenApiTypes.INT
-                                        ),
-                                    }
+                                    properties={}
                                 ),
                             }
                         ),
