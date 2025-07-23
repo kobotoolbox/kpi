@@ -5,7 +5,7 @@ from .fields import (
     AssetPermissionAssignmentUrlField,
     AssetPermissionUrlField,
     LabelField,
-    PartialPermissionField,
+    AssetPartialPermissionAssignmentField,
     UserURLField,
 )
 
@@ -36,7 +36,7 @@ PermissionAssignmentCreateRequest = inline_serializer_class(
     name='PermissionAssignmentCreateRequest',
     fields={
         'user': UserURLField(),
-        'partial_permission': PartialPermissionField(),
+        'partial_permission': AssetPartialPermissionAssignmentField(),
         'permission': AssetPermissionAssignmentUrlField(),
     },
 )

@@ -6,7 +6,7 @@ from drf_spectacular.plumbing import build_object_type
 
 from .schema import (
     ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA,
-    PARTIAL_PERMISSION_SCHEMA,
+    ASSET_PARTIAL_PERMISSION_ASSIGNMENT_SCHEMA,
     PERMISSION_ASSIGNMENT_LABEL_SCHEMA,
     PERMISSION_URL_SCHEMA,
     USER_URL_SCHEMA,
@@ -36,22 +36,22 @@ class LabelFieldExtension(OpenApiSerializerFieldExtension):
         return PERMISSION_ASSIGNMENT_LABEL_SCHEMA
 
 
-class PartialPermissionFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.asset_permission_assignments.fields.PartialPermissionField'  # noqa
+class AssetPartialPermissionAssignmentFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.asset_permission_assignments.fields.AssetPartialPermissionAssignmentField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
                 'user': USER_URL_SCHEMA,
                 'permission': PERMISSION_URL_SCHEMA,
-                'partial_permission': PARTIAL_PERMISSION_SCHEMA,
+                'partial_permission': ASSET_PARTIAL_PERMISSION_ASSIGNMENT_SCHEMA,
             }
         )
 
 
-class PermissionCreateSerializerExtension(OpenApiSerializerExtension):
+class AssetPermissionCreateAssignmentSerializerExtension(OpenApiSerializerExtension):
 
-    target_class = 'kpi.schema_extensions.v2.asset_permission_assignments.serializers.PermissionCreateRequest'  # noqa
+    target_class = 'kpi.schema_extensions.v2.asset_permission_assignments.serializers.PermissionAssignmentCreateRequest'  # noqa
 
     def map_serializer(self, auto_schema, direction):
         return {
@@ -73,7 +73,7 @@ class PermissionCreateSerializerExtension(OpenApiSerializerExtension):
                         'user',
                     ],
                     properties={
-                        'partial_permission': PARTIAL_PERMISSION_SCHEMA,
+                        'partial_permission': ASSET_PARTIAL_PERMISSION_ASSIGNMENT_SCHEMA,
                         'permission': PERMISSION_URL_SCHEMA,
                         'user': USER_URL_SCHEMA,
                     },
@@ -82,7 +82,7 @@ class PermissionCreateSerializerExtension(OpenApiSerializerExtension):
         }
 
 
-class UserFieldExtension(OpenApiSerializerFieldExtension):
+class UserURLFieldExtension(OpenApiSerializerFieldExtension):
     target_class = (
         'kpi.schema_extensions.v2.asset_permission_assignments.fields.UserURLField'
     )

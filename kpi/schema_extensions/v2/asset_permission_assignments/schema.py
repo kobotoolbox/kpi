@@ -25,7 +25,7 @@ ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA = build_url_type(
     uid='pGaXCTDAbdZKLXoXAXd3M4',
 )
 
-PARTIAL_PERMISSION_SCHEMA = build_array_type(
+ASSET_PARTIAL_PERMISSION_ASSIGNMENT_SCHEMA = build_array_type(
     schema=build_object_type(
         properties={
             'filter': build_array_type(

@@ -13,7 +13,7 @@ class LabelField(serializers.SerializerMethodField):
     pass
 
 
-class PartialPermissionField(serializers.SerializerMethodField):
+class AssetPartialPermissionAssignmentField(serializers.SerializerMethodField):
     pass
 
 
