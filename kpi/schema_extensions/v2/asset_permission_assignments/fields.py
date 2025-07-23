@@ -17,5 +17,5 @@ class PartialPermissionField(serializers.SerializerMethodField):
     pass
 
 
-class UserField(serializers.URLField):
+class UserURLField(serializers.URLField):
     pass

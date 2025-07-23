@@ -6,15 +6,15 @@ from .fields import (
     LabelField,
     PartialPermissionField,
     AssetPermissionAssignmentUrlField,
-    UserField,
+    UserURLField,
 )
 
 PermissionAssignmentResponse = inline_serializer_class(
     name='PermissionAssignmentResponse',
     fields={
-        'url': AssetPermissionUrlField(),
-        'user': UserField(),
-        'permission': AssetPermissionAssignmentUrlField(),
+        'url': AssetPermissionAssignmentUrlField(),
+        'user': UserURLField(),
+        'permission': AssetPermissionUrlField(),
         'label': LabelField(),
     },
 )
@@ -22,7 +22,7 @@ PermissionAssignmentResponse = inline_serializer_class(
 PermissionAssignmentBulkRequest = inline_serializer_class(
     name='PermissionAssignmentBulkRequest',
     fields={
-        'user': UserField(),
+        'user': UserURLField(),
         'permission': AssetPermissionAssignmentUrlField(),
     },
 )
@@ -37,7 +37,7 @@ PermissionAssignmentCloneRequest = inline_serializer_class(
 PermissionAssignmentCreateRequest = inline_serializer_class(
     name='PermissionAssignmentCreateRequest',
     fields={
-        'user': UserField(),
+        'user': UserURLField(),
         'partial_permission': PartialPermissionField(),
         'permission': AssetPermissionAssignmentUrlField(),
     },
