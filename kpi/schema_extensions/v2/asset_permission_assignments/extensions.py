@@ -74,7 +74,7 @@ class AssetPermissionAssignmentUrlFieldExtension(OpenApiSerializerFieldExtension
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return PERMISSION_URL_SCHEMA
+        return ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA
 
 
 class AssetPermissionUrlFieldExtension(OpenApiSerializerFieldExtension):

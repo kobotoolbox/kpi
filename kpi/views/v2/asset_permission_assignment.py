@@ -2,7 +2,8 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
 from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view, \
+    OpenApiExample
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import (
@@ -25,6 +26,8 @@ from kpi.constants import (
 from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import AssetPermissionAssignmentPermission
+from kpi.schema_extensions.v2.asset_permission_assignments.schema import USER_URL_SCHEMA, \
+    PARTIAL_PERMISSION_SCHEMA, ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA
 from kpi.schema_extensions.v2.asset_permission_assignments.serializers import (
     PermissionBulkRequest,
     PermissionCloneRequest,
@@ -43,75 +46,6 @@ from kpi.utils.schema_extensions.response import (
     open_api_204_empty_response,
 )
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-
-
-class PermissionAssignmentSchema(AutoSchema):
-    """
-    Custom schema used to inject OpenAPI examples for AssetViewSet at runtime.
-
-    We cannot use `@extend_schema(..., examples=...)` or `@extend_schema_view(...)`
-    directly for these examples because the values rely on variables
-    (e.g., `ASSET_URL_SCHEMA`) that trigger Django's URL resolver via `reverse()`.
-    Since those decorators are evaluated at module import time—before the full Django
-    application and URL config are guaranteed to be loaded—this leads to circular
-    import errors.
-
-    By overriding `get_operation()` here, we defer the evaluation of those dynamic
-    values until the OpenAPI schema is being generated (e.g., via `/api/v2/schema/`),
-    when all apps and routes are fully initialized. This ensures a clean, safe injection
-    of complex or reverse-dependent examples.
-
-    This class matches the `operationId` for the `POST /assets/` endpoint
-    to inject multiple request examples, such as referencing an asset or a source.
-    """
-
-    def get_operation(self, *args, **kwargs):
-
-        from kpi.schema_extensions.v2.asset_permission_assignments.schema import (
-            PARTIAL_PERMISSION_SCHEMA,
-            ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA,
-            USER_URL_SCHEMA,
-        )
-
-        operation = super().get_operation(*args, **kwargs)
-
-        if not operation:
-            return None
-
-        if (
-            operation.get('operationId')
-            == 'api_v2_assets_permission_assignments_create'
-        ):
-
-            operation['requestBody']['content']['application/json']['examples'] = {
-                'CreatingPartial': {
-                    'value': {
-                        'user': generate_example_from_schema(USER_URL_SCHEMA),
-                        'partial_permission': generate_example_from_schema(
-                            PARTIAL_PERMISSION_SCHEMA
-                        ),
-                        'permission': generate_example_from_schema(
-                            ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA
-                        ),
-                    },
-                    'summary': 'Creating a partial permission',
-                },
-                'CreatingPermission': {
-                    'value': {
-                        'user': generate_example_from_schema(USER_URL_SCHEMA),
-                        'permission': generate_example_from_schema(
-                            ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA
-                        ),
-                    },
-                    'summary': 'Creating a regular permission',
-                },
-            }
-
-        return operation
-
-# Some parameters (like parent_lookup_asset) might get mixed up and thus result
-# in a schema error. By specifying the parameter and its type, we erase this
-# problem.
 
 
 @extend_schema(
@@ -150,6 +84,31 @@ class PermissionAssignmentSchema(AutoSchema):
             PermissionResponse,
             require_auth=False,
         ),
+        examples=[
+            OpenApiExample(
+                name='Create partial permission',
+                value={
+                    'name': generate_example_from_schema(USER_URL_SCHEMA),
+                    'partial_permission': generate_example_from_schema(
+                        PARTIAL_PERMISSION_SCHEMA
+                    ),
+                    'permission': generate_example_from_schema(
+                        ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA
+                    ),
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                name='Create permission',
+                value={
+                    'user': generate_example_from_schema(USER_URL_SCHEMA),
+                    'permission': generate_example_from_schema(
+                        ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA
+                    ),
+                },
+                request_only=True,
+            )
+        ],
     ),
     delete_all=extend_schema(
         description=read_md('kpi', 'asset_permission_assignments/delete_all.md'),
@@ -249,7 +208,6 @@ class AssetPermissionAssignmentViewSet(
     log_type = AuditType.PROJECT_HISTORY
     logged_fields = ['asset.id', 'asset.owner.username']
     renderer_classes = [renderers.JSONRenderer]
-    schema = PermissionAssignmentSchema()
     # filter_backends = Just kidding! Look at this instead:
     #     kpi.utils.object_permission.get_user_permission_assignments_queryset
 
