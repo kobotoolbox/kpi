@@ -73,7 +73,7 @@ class AssetPermissionCreateAssignmentSerializerExtension(OpenApiSerializerExtens
                         'user',
                     ],
                     properties={
-                        'partial_permission': ASSET_PARTIAL_PERMISSION_ASSIGNMENT_SCHEMA,
+                        'partial_permission': ASSET_PARTIAL_PERMISSION_ASSIGNMENT_SCHEMA,  # noqa
                         'permission': PERMISSION_URL_SCHEMA,
                         'user': USER_URL_SCHEMA,
                     },
