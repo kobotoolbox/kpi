@@ -98,6 +98,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          token: ${{ secrets.CI_RELEASE_PAT }}
           fetch-depth: "0"
       - name: Find next release branch
         id: branches
