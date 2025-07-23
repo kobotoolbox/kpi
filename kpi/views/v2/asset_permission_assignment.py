@@ -1,7 +1,6 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
-from drf_spectacular.openapi import AutoSchema
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view, \
     OpenApiExample
 from rest_framework import exceptions, renderers, status
@@ -26,8 +25,11 @@ from kpi.constants import (
 from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import AssetPermissionAssignmentPermission
-from kpi.schema_extensions.v2.asset_permission_assignments.schema import USER_URL_SCHEMA, \
-    PARTIAL_PERMISSION_SCHEMA, PERMISSION_URL_SCHEMA
+from kpi.schema_extensions.v2.asset_permission_assignments.schema import (
+    PARTIAL_PERMISSION_SCHEMA,
+    PERMISSION_URL_SCHEMA,
+    USER_URL_SCHEMA,
+)
 from kpi.schema_extensions.v2.asset_permission_assignments.serializers import (
     PermissionAssignmentBulkRequest,
     PermissionAssignmentCloneRequest,
