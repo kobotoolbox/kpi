@@ -275,11 +275,11 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     tags=['Members'],
     parameters=[
         OpenApiParameter(
-            name='user__username',
-            type=str,
+            name='organization_id',
+            type=int,
             location=OpenApiParameter.PATH,
             required=True,
-            description='Username of the user',
+            description='ID of the organization',
         )
     ],
 )
