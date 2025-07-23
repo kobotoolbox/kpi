@@ -96,10 +96,18 @@ jobs:
       (needs.changelog.result == 'skipped' || needs.changelog.result == 'success') &&
       needs.deploy-to-beta.result == 'success'
     steps:
+      - name: Generate a token to trigger a workflow from a workflow
+        id: generate-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.KPI_GITHUB_ACTIONS_CASCADING_TOKEN_APP_ID }}
+          private-key: ${{ secrets.KPI_GITHUB_ACTIONS_CASCADING_TOKEN_PRIVATE_KEY }}
+
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.CI_RELEASE_PAT }}
+          token: ${{ steps.generate-token.outputs.token }}
           fetch-depth: "0"
+
       - name: Find next release branch
         id: branches
         run: ./.github/find_next_release_branch.sh
