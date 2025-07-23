@@ -25,6 +25,10 @@ class ExportResponseResult(serializers.URLField):
     pass
 
 
+class GenericListField(serializers.ListField):
+    pass
+
+
 class UserMetadataField(serializers.JSONField):
     pass
 

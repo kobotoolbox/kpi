@@ -2,13 +2,17 @@ from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
+    AssetsExportURLField,
     AssetDownloadField,
     AssetLanguageField,
     AssetSettingsField,
     AssetsURLField,
     ExportResponseResult,
+    GenericListField,
     UserMetadataField,
+    UrlField,
     UserURLField,
+    UserExportURLField,
 )
 
 ProjectViewAssetResponse = inline_serializer_class(
@@ -51,6 +55,23 @@ ProjectViewExportResponse = inline_serializer_class(
     fields={
         'status': serializers.CharField(max_length=32),
         'result': ExportResponseResult(),
+    },
+)
+
+
+ProjectViewListResponse = inline_serializer_class(
+    name='ProjectViewListResponse',
+    fields={
+        'uid': serializers.CharField(max_length=32),
+        'name': ExportResponseResult(),
+        'url': UrlField(),
+        'assets': AssetsURLField(),
+        'assets_export': AssetsExportURLField(),
+        'users': UserURLField(),
+        'users_export': UserExportURLField(),
+        'countries': GenericListField(),
+        'permissions': GenericListField(),
+        'assigned_users': GenericListField(),
     },
 )
 

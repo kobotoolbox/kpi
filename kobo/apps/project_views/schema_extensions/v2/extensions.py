@@ -105,6 +105,15 @@ class ExportResponseResultExtension(OpenApiSerializerFieldExtension):
         )
 
 
+class GenericListFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = (
+        'kobo.apps.project_views.schema_extensions.v2.fields.GenericListField'
+    )
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_array_type(schema=build_basic_type(OpenApiTypes.STR))
+
+
 class UrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kobo.apps.project_views.schema_extensions.v2.fields.UrlField'
 

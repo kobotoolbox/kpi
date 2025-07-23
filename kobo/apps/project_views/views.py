@@ -30,7 +30,7 @@ from .schema_extensions.v2.serializers import (
     ProjectViewAssetResponse,
     ProjectViewExportCreateResponse,
     ProjectViewExportResponse,
-    ProjectViewUserResponse,
+    ProjectViewUserResponse, ProjectViewListResponse,
 )
 from .serializers import ProjectViewSerializer
 
@@ -49,7 +49,7 @@ from .serializers import ProjectViewSerializer
     list=extend_schema(
         description=read_md('project_views', 'list.md'),
         responses=open_api_200_ok_response(
-            ProjectViewSerializer,
+            ProjectViewListResponse,
             require_auth=False,
             validate_payload=False,
             raise_not_found=False,
@@ -58,7 +58,7 @@ from .serializers import ProjectViewSerializer
     retrieve=extend_schema(
         description=read_md('project_views', 'retrieve.md'),
         responses=open_api_200_ok_response(
-            ProjectViewSerializer,
+            ProjectViewListResponse,
             require_auth=False,
             validate_payload=False,
         ),
