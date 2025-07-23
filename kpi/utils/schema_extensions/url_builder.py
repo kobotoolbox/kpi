@@ -17,7 +17,7 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'asset-detail': '/api/v2/assets/{uid}/',
         'asset-permission-assignment-detail':
             '/api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/',
-        'permission-detail': '/api/v2/users/{codename}/',
+        'permission-detail': '/api/v2/permissions/{codename}/',
         'user-kpi-detail': '/api/v2/users/{username}/',
         'assetsnapshot-detail': '/api/v2/asset_snapshots/{uid}/',
         'assetsnapshot-preview': '/api/v2/asset_snapshots/{uid}/preview/',
