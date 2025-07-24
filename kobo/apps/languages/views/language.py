@@ -19,12 +19,17 @@ from .base import BaseViewSet
         description=read_md('languages', 'languages/list.md'),
         responses=open_api_200_ok_response(
             LanguageListSerializer,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
     retrieve=extend_schema(
         description=read_md('languages', 'languages/retrieve.md'),
         responses=open_api_200_ok_response(
             LanguageSerializer,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
 )
