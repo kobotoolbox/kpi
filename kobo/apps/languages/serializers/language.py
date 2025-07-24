@@ -5,8 +5,13 @@ from rest_framework import serializers
 
 from .translation import TranslationServiceSerializer, TranslationServiceLanguageM2MSerializer
 from .transcription import TranscriptionServiceSerializer, TranscriptionServiceLanguageM2MSerializer
+from ..schema_extensions.v2.languages.fields import ServicesField, LanguageUrlField
 from ..models.language import Language, LanguageRegion
 
+
+@extend_schema_field(LanguageUrlField)
+class LanguageUrlOverload(serializers.HyperlinkedIdentityField):
+    pass
 
 class LanguageRegionSerializer(serializers.ModelSerializer):
 
@@ -35,7 +40,7 @@ class LanguageSerializer(serializers.ModelSerializer):
             'regions',
         )
 
-    @extend_schema_field(OpenApiTypes.OBJECT)
+    @extend_schema_field(ServicesField)
     def get_transcription_services(self, language):
         return TranscriptionServiceLanguageM2MSerializer(
             language.transcription_services.through.objects.select_related(
@@ -44,7 +49,7 @@ class LanguageSerializer(serializers.ModelSerializer):
             many=True,
         ).data
 
-    @extend_schema_field(OpenApiTypes.OBJECT)
+    @extend_schema_field(ServicesField)
     def get_translation_services(self, language):
         return TranslationServiceLanguageM2MSerializer(
             language.translation_services.through.objects.select_related(
@@ -56,7 +61,7 @@ class LanguageSerializer(serializers.ModelSerializer):
 
 class LanguageListSerializer(LanguageSerializer):
 
-    url = serializers.HyperlinkedIdentityField(
+    url = LanguageUrlOverload(
         view_name='language-detail', lookup_field='code'
     )
     regions = None
@@ -71,14 +76,14 @@ class LanguageListSerializer(LanguageSerializer):
             'url',
         )
 
-    @extend_schema_field(OpenApiTypes.OBJECT)
+    @extend_schema_field(ServicesField)
     def get_transcription_services(self, language):
         transcription_services = self.context['transcription_services']
         return TranscriptionServiceSerializer(
             transcription_services.get(language.pk, []), many=True
         ).data
 
-    @extend_schema_field(OpenApiTypes.OBJECT)
+    @extend_schema_field(ServicesField)
     def get_translation_services(self, language):
         translation_services = self.context['translation_services']
         return TranslationServiceSerializer(

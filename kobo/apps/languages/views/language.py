@@ -5,6 +5,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.renderers import JSONRenderer
 
 from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from ..models.language import Language
 from ..serializers import LanguageListSerializer, LanguageSerializer
 from .base import BaseViewSet
@@ -16,9 +17,15 @@ from .base import BaseViewSet
 @extend_schema_view(
     list=extend_schema(
         description=read_md('languages', 'languages/list.md'),
+        responses=open_api_200_ok_response(
+            LanguageListSerializer,
+        )
     ),
     retrieve=extend_schema(
         description=read_md('languages', 'languages/retrieve.md'),
+        responses=open_api_200_ok_response(
+            LanguageSerializer,
+        )
     ),
 )
 class LanguageViewSet(BaseViewSet):
