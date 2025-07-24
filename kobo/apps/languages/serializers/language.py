@@ -1,4 +1,6 @@
 # coding: utf-8
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from .translation import TranslationServiceSerializer, TranslationServiceLanguageM2MSerializer
@@ -33,6 +35,7 @@ class LanguageSerializer(serializers.ModelSerializer):
             'regions',
         )
 
+    @extend_schema_field(OpenApiTypes.OBJECT)
     def get_transcription_services(self, language):
         return TranscriptionServiceLanguageM2MSerializer(
             language.transcription_services.through.objects.select_related(
@@ -41,6 +44,7 @@ class LanguageSerializer(serializers.ModelSerializer):
             many=True,
         ).data
 
+    @extend_schema_field(OpenApiTypes.OBJECT)
     def get_translation_services(self, language):
         return TranslationServiceLanguageM2MSerializer(
             language.translation_services.through.objects.select_related(
@@ -67,12 +71,14 @@ class LanguageListSerializer(LanguageSerializer):
             'url',
         )
 
+    @extend_schema_field(OpenApiTypes.OBJECT)
     def get_transcription_services(self, language):
         transcription_services = self.context['transcription_services']
         return TranscriptionServiceSerializer(
             transcription_services.get(language.pk, []), many=True
         ).data
 
+    @extend_schema_field(OpenApiTypes.OBJECT)
     def get_translation_services(self, language):
         translation_services = self.context['translation_services']
         return TranslationServiceSerializer(

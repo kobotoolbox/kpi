@@ -1,7 +1,8 @@
 # coding: utf-8
 from collections import defaultdict
 
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework.renderers import JSONRenderer
 
 from ..models.language import Language
 from ..serializers import LanguageListSerializer, LanguageSerializer
@@ -9,7 +10,15 @@ from .base import BaseViewSet
 
 
 @extend_schema(
-    tags=['languages'],
+    tags=['Languages'],
+)
+@extend_schema_view(
+    list=extend_schema(
+        description='list',
+    ),
+    retrieve=extend_schema(
+        description='retrieve',
+    ),
 )
 class LanguageViewSet(BaseViewSet):
     """
@@ -127,6 +136,9 @@ class LanguageViewSet(BaseViewSet):
 
     serializer_class = LanguageListSerializer
     min_search_characters = 2
+    renderer_classes = [
+        JSONRenderer,
+    ]
 
     def get_queryset(self):
         if self.action == 'list':
