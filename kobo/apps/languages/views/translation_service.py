@@ -1,5 +1,6 @@
 # coding: utf-8
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework.renderers import JSONRenderer
 
 from ..models.translation import TranslationService
 from ..serializers import TranslationServiceSerializer
@@ -7,7 +8,15 @@ from .base import BaseViewSet
 
 
 @extend_schema(
-    tags=['translation-services'],
+    tags=['Translation Services'],
+)
+@extend_schema_view(
+    list=extend_schema(
+        description='List documentation',
+    ),
+    retrieve=extend_schema(
+        description='Retrieve documentation',
+    ),
 )
 class TranslationServiceViewSet(BaseViewSet):
     """
@@ -62,3 +71,6 @@ class TranslationServiceViewSet(BaseViewSet):
 
     serializer_class = TranslationServiceSerializer
     queryset = TranslationService.objects.all()
+    renderer_classes = [
+        JSONRenderer,
+    ]
