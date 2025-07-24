@@ -803,7 +803,7 @@ class ConcurrentSubmissionTestCase(RequestMixin, LiveServerTestCase):
                 range(DUPLICATE_SUBMISSIONS_COUNT),
             ):
                 results[result] += 1
-        # breakpoint()
+
         assert results[status.HTTP_201_CREATED] == 1
         assert results[status.HTTP_423_LOCKED] == DUPLICATE_SUBMISSIONS_COUNT - 1
 
