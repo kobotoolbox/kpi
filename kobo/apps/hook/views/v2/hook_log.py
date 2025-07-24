@@ -21,7 +21,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 @extend_schema(
-    tags=['Rest Service'],
+    tags=['Rest Services'],
 )
 @extend_schema_view(
     list=extend_schema(
