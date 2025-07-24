@@ -48,24 +48,18 @@ module.exports = do ->
     use_mode_selector_helper: () ->
       @state = new validationLogicHelpers.ValidationLogicModeSelectorHelper @view_factory, @
       @render @destination
-    use_hand_code_helper: (serialized_criteria) ->
-      @state = new validationLogicHelpers.ValidationLogicHandCodeHelper(serialized_criteria, @builder, @view_factory, @)
+    use_hand_code_helper: () ->
+      @state = new validationLogicHelpers.ValidationLogicHandCodeHelper(@state.serialize(), @builder, @view_factory, @)
       if @questionTypeHasNoValidationOperators()
         @state.button = @view_factory.create_empty()
       @render @destination
       return
     constructor: (model_factory, view_factory, helper_factory, serialized_criteria) ->
-      @model_factory = model_factory
-      @view_factory = view_factory
-      @helper_factory = helper_factory
-
-      if @questionTypeHasNoValidationOperators()
-        @use_hand_code_helper(serialized_criteria)
-      else
-        super(model_factory, view_factory, helper_factory, serialized_criteria)
+      super(model_factory, view_factory, helper_factory, serialized_criteria)
 
     questionTypeHasNoValidationOperators: () ->
       typeId = @helper_factory.current_question.get('type').get('typeId')
+      # Note: Leszek: seems like a dead code, can't figure out how to setup a test to trigger it.
       if !typeId
         return console.error('no type id found for question', @helper_factory.current_question)
       operators = $skipLogicHelpers.question_types[typeId]?.operators
