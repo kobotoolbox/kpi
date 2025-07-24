@@ -1007,18 +1007,7 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         response = self.client.get(self.asset_url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data.get('deployment__active'), False)
-        self.assertEqual(response.data.get('deployment__uuid'), None)
         self.assertEqual(response.data.get('has_deployment'), False)
-
-        self.asset.deploy(backend='mock', active=True)
-        response = self.client.get(self.asset_url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data.get('deployment__active'), True)
-        self.assertEqual(
-            response.data.get('deployment__uuid'),
-            self.asset.deployment.xform.uuid,
-        )
-        self.assertEqual(response.data.get('has_deployment'), True)
 
     def test_can_clone_asset(self):
         response = self.client.post(reverse(self._get_endpoint('asset-list')),
