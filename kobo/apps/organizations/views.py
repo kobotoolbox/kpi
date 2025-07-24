@@ -276,7 +276,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     parameters=[
         OpenApiParameter(
             name='organization_id',
-            type=int,
+            type=str,
             location=OpenApiParameter.PATH,
             required=True,
             description='ID of the organization',
