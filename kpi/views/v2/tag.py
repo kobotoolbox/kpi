@@ -10,7 +10,7 @@ from kpi.utils.object_permission import (
     get_database_user,
     get_objects_for_user,
 )
-from kpi.serializers import TagSerializer, TagListSerializer
+from kpi.serializers.v2.tag import TagSerializer, TagListSerializer
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

@@ -30,6 +30,7 @@ from kpi.views.v2.import_task import ImportTaskViewSet
 from kpi.views.v2.paired_data import PairedDataViewset
 from kpi.views.v2.permission import PermissionViewSet
 from kpi.views.v2.service_usage import ServiceUsageViewSet
+from kpi.views.v2.tag import TagViewSet
 from kpi.views.v2.user import UserViewSet
 from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
 
@@ -171,7 +172,7 @@ router_api_v2.register(r'service_usage',
                        ServiceUsageViewSet, basename='service-usage')
 router_api_v2.register(r'users', UserViewSet, basename='user-kpi')
 
-
+router_api_v2.register(r'tags', TagViewSet, basename='tags')
 # Merge django apps routers with API v2 router
 # All routes are under `/api/v2/` within the same namespace.
 router_api_v2.registry.extend(project_ownership_router.registry)
