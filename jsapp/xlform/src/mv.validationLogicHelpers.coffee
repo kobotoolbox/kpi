@@ -54,8 +54,6 @@ module.exports = do ->
         @state.button = @view_factory.create_empty()
       @render @destination
       return
-    constructor: (model_factory, view_factory, helper_factory, serialized_criteria) ->
-      super(model_factory, view_factory, helper_factory, serialized_criteria)
 
     questionTypeHasNoValidationOperators: () ->
       typeId = @helper_factory.current_question.get('type').get('typeId')
