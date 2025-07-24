@@ -1,4 +1,4 @@
-# Endpoint removals as of release 2.025.14e
+# Endpoint removals as of release 2.025.14g
 
 ## Sitewide Message
 
