@@ -33,6 +33,7 @@ class AssetSerializer(AssetSerializerV2):
                   'deployment__active',
                   'deployment__data_download_links',
                   'deployment__submission_count',
+                  'deployment__uuid',
                   'report_styles',
                   'report_custom',
                   'map_styles',
@@ -85,6 +86,7 @@ class AssetListSerializer(AssetSerializer):
                   'deployed_version_id',
                   'deployment__active',
                   'deployment__submission_count',
+                  'deployment__uuid',
                   'permissions',
                   'downloads',
                   )
