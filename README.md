@@ -8,6 +8,16 @@ For production always use a specific release branch, `main` branch may include b
 
 We're open for [contributions](./CONTRIBUTING.md)!
 
+## API Deprecation & Removal Notices
+
+Please refer to the following documents for important information about deprecated or removed API endpoints:
+
+[DEPRECATION.md](./DEPRECATION.md) — Lists all API endpoints that are deprecated.
+
+[REMOVALS.md](./REMOVALS.md) — Documents API endpoints that have already been removed.
+
+We recommend reviewing these files regularly to ensure your integrations remain compatible with future versions of the API.
+
 ## Important notice when upgrading from any release older than [`2.024.19`](https://github.com/kobotoolbox/kpi/releases/tag/2.024.19)
 
 Prior to release [`2.024.19`](https://github.com/kobotoolbox/kpi/releases/tag/2.024.19), this project (KPI) and [KoboCAT](https://github.com/kobotoolbox/kobocat) were two separated projects.
