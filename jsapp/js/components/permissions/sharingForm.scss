@@ -15,6 +15,12 @@ $s-gray-row-spacing: 10px;
     font-weight: 500;
   }
 
+  .form-modal__item--form-container {
+    padding: 40px 40px 16px;
+    display: flex;
+    flex-direction: column;
+  }
+
   .user-row + button {
     margin-top: 15px;
   }

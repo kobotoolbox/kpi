@@ -182,12 +182,18 @@
 @media screen and (min-width: breakpoints.$b768) {
   .form-view--summary {
     display: flex;
+    flex-direction: column;
 
-    .form-view__column--left {
-      width: 65%;
+    .form-view__row--panels {
+      display: flex;
+      margin: 0;
 
-      .form-view__row {
-        margin-right: 0;
+      .form-view__column--left {
+        flex: 1;
+
+        .form-view__row {
+          margin-right: 0;
+        }
       }
     }
 
@@ -204,10 +210,6 @@
 
 @media screen and (width >= 1024px) {
   .form-view--summary {
-    .form-view__column--left {
-      width: 70%;
-    }
-
     .form-view__column--right {
       width: 30%;
     }

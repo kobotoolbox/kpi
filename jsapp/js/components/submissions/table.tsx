@@ -91,6 +91,7 @@ import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
 import { stores } from '#/stores'
 import { formatTimeDateShort } from '#/utils'
+import LimitNotifications from '../usageLimits/limitNotifications.component'
 import RepeatGroupCell from './RepeatGroupCell'
 import AudioCell from './audioCell'
 import MediaCell from './mediaCell'
@@ -1386,6 +1387,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     }
     return (
       <bem.FormView m={formViewModifiers}>
+        <bem.FormView__item m='banner-container'>
+          <LimitNotifications />
+        </bem.FormView__item>
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
           {userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) && (
             <ColumnsHideDropdown
@@ -1418,7 +1422,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             />
           </bem.FormView__item>
         </bem.FormView__group>
-
         <ReactTable
           data={this.state.submissions}
           columns={this.state.columns}

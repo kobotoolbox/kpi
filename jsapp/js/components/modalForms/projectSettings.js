@@ -30,6 +30,7 @@ import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { addRequiredToLabel } from '#/textUtils'
 import { escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
+import LimitNotifications from '../usageLimits/limitNotifications.component'
 
 const VIA_URL_SUPPORT_URL = 'xls_url.html'
 
@@ -865,185 +866,199 @@ class ProjectSettings extends React.Component {
     const descriptionField = envStore.data.getProjectMetadataField('description')
 
     return (
-      <form
-        onSubmit={this.handleSubmit}
-        onChange={this.onProjectDetailsFormChange}
-        className={cx(styles.projectDetails, this.checkModalStyle() ?? styles.projectDetailsView)}
-      >
-        {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
-          <div className={styles.saveChanges}>
-            <Button type='primary' size='l' isSubmit onClick={this.handleSubmit.bind(this)} label={t('Save Changes')} />
-          </div>
-        )}
-        <div className={styles.inputWrapper}>
-          {/* Project Name */}
-          <div className={styles.input}>
-            <TextBox
-              value={this.state.fields.name}
-              onChange={this.onNameChange.bind(this)}
-              errors={this.hasFieldError('name') ? t('Please enter a title for your project!') : false}
-              label={addRequiredToLabel(this.getNameInputLabel(this.state.fields.name))}
-              placeholder={t('Enter title of project here')}
-            />
-          </div>
-
-          {/* Description */}
-          {descriptionField && (
-            <div className={styles.input}>
-              <TextBox
-                type='text-multiline'
-                value={this.state.fields.description}
-                onChange={this.onDescriptionChange.bind(this)}
-                errors={this.hasFieldError('description') ? t('Please enter a description for your project') : false}
-                label={addRequiredToLabel(descriptionField.label, descriptionField.required)}
-                placeholder={t('Enter short description here')}
-              />
-            </div>
-          )}
-
-          {/* Sector */}
-          {sectorField && (
-            <div className={cx(styles.input, bothCountryAndSector ? styles.sector : null)}>
-              <WrappedSelect
-                label={addRequiredToLabel(sectorField.label, sectorField.required)}
-                value={this.state.fields.sector}
-                onChange={this.onAnyFieldChange.bind(this, 'sector')}
-                options={sectors}
-                isLimitedHeight
-                menuPlacement='top'
-                isClearable
-                error={this.hasFieldError('sector') ? t('Please choose a sector') : false}
-              />
-            </div>
-          )}
-
-          {/* Country */}
-          {countryField && (
-            <div className={cx(styles.input, bothCountryAndSector ? styles.country : null)}>
-              <WrappedSelect
-                label={addRequiredToLabel(countryField.label, countryField.required)}
-                isMulti
-                value={this.state.fields.country}
-                onChange={this.onAnyFieldChange.bind(this, 'country')}
-                options={countries}
-                isLimitedHeight
-                menuPlacement='top'
-                isClearable
-                error={this.hasFieldError('country') ? t('Please select at least one country') : false}
-              />
-            </div>
-          )}
-
-          {/* Operational Purpose of Data */}
-          {operationalPurposeField && (
-            <div className={styles.input}>
-              <WrappedSelect
-                label={addRequiredToLabel(operationalPurposeField.label, operationalPurposeField.required)}
-                value={this.state.fields.operational_purpose}
-                onChange={this.onAnyFieldChange.bind(this, 'operational_purpose')}
-                options={operationalPurposes}
-                isLimitedHeight
-                isClearable
-                error={
-                  this.hasFieldError('operational_purpose')
-                    ? t('Please specify the operational purpose of your project')
-                    : false
-                }
-              />
-            </div>
-          )}
-
-          {/* Does this project collect personally identifiable information? */}
-          {collectsPiiField && (
-            <div className={styles.input}>
-              <WrappedSelect
-                label={addRequiredToLabel(collectsPiiField.label, collectsPiiField.required)}
-                value={this.state.fields.collects_pii}
-                onChange={this.onAnyFieldChange.bind(this, 'collects_pii')}
-                options={[
-                  { value: 'Yes', label: t('Yes') },
-                  { value: 'No', label: t('No') },
-                ]}
-                isClearable
-                error={
-                  this.hasFieldError('collects_pii')
-                    ? t('Please indicate whether or not your project collects personally identifiable information')
-                    : false
-                }
-              />
-            </div>
-          )}
-
-          {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW ||
-            this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) && (
-            <div className={styles.modalFooter}>
-              {/* Don't allow going back if asset already exist */}
-              {!this.state.formAsset && this.renderBackButton()}
-
+      <>
+        <LimitNotifications />
+        <form
+          onSubmit={this.handleSubmit}
+          onChange={this.onProjectDetailsFormChange}
+          className={cx(styles.projectDetails, this.checkModalStyle() ?? styles.projectDetailsView)}
+        >
+          {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
+            <div className={styles.saveChanges}>
               <Button
                 type='primary'
                 size='l'
                 isSubmit
                 onClick={this.handleSubmit.bind(this)}
-                isDisabled={this.state.isSubmitPending}
-                label={
-                  <>
-                    {this.state.isSubmitPending && t('Please wait…')}
-                    {!this.state.isSubmitPending &&
-                      this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW &&
-                      t('Create project')}
-                    {!this.state.isSubmitPending &&
-                      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE &&
-                      t('Save')}
-                  </>
-                }
+                label={t('Save Changes')}
               />
             </div>
           )}
+          <div className={styles.inputWrapper}>
+            {/* Project Name */}
+            <div className={styles.input}>
+              <TextBox
+                value={this.state.fields.name}
+                onChange={this.onNameChange.bind(this)}
+                errors={this.hasFieldError('name') ? t('Please enter a title for your project!') : false}
+                label={addRequiredToLabel(this.getNameInputLabel(this.state.fields.name))}
+                placeholder={t('Enter title of project here')}
+              />
+            </div>
 
-          {userCan('manage_asset', this.state.formAsset) &&
-            this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
+            {/* Description */}
+            {descriptionField && (
               <div className={styles.input}>
-                <div className={cx(styles.input, styles.inputInline)}>
-                  {this.isArchived() && (
-                    <Button type='secondary' size='l' label={t('Unarchive Project')} onClick={this.unarchiveProject} />
-                  )}
-
-                  {this.isArchivable() && (
-                    <Button type='secondary' size='l' label={t('Archive Project')} onClick={this.archiveProject} />
-                  )}
-                </div>
-
-                {this.isArchivable() && (
-                  <div className={cx(styles.input, styles.inputInline)}>
-                    {t('Archive project to stop accepting submissions.')}
-                  </div>
-                )}
-                {this.isArchived() && (
-                  <div className={cx(styles.input, styles.inputInline)}>
-                    {t('Unarchive project to resume accepting submissions.')}
-                  </div>
-                )}
-              </div>
-            )}
-
-          {userCan('delete_asset', this.state.formAsset) &&
-            this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
-              <div className={styles.input}>
-                <Button
-                  type='danger'
-                  size='l'
-                  label={
-                    this.state.formAsset.deployment__submission_count > 0
-                      ? t('Delete Project and Data')
-                      : t('Delete Project')
-                  }
-                  onClick={this.deleteProject}
+                <TextBox
+                  type='text-multiline'
+                  value={this.state.fields.description}
+                  onChange={this.onDescriptionChange.bind(this)}
+                  errors={this.hasFieldError('description') ? t('Please enter a description for your project') : false}
+                  label={addRequiredToLabel(descriptionField.label, descriptionField.required)}
+                  placeholder={t('Enter short description here')}
                 />
               </div>
             )}
-        </div>
-      </form>
+
+            {/* Sector */}
+            {sectorField && (
+              <div className={cx(styles.input, bothCountryAndSector ? styles.sector : null)}>
+                <WrappedSelect
+                  label={addRequiredToLabel(sectorField.label, sectorField.required)}
+                  value={this.state.fields.sector}
+                  onChange={this.onAnyFieldChange.bind(this, 'sector')}
+                  options={sectors}
+                  isLimitedHeight
+                  menuPlacement='top'
+                  isClearable
+                  error={this.hasFieldError('sector') ? t('Please choose a sector') : false}
+                />
+              </div>
+            )}
+
+            {/* Country */}
+            {countryField && (
+              <div className={cx(styles.input, bothCountryAndSector ? styles.country : null)}>
+                <WrappedSelect
+                  label={addRequiredToLabel(countryField.label, countryField.required)}
+                  isMulti
+                  value={this.state.fields.country}
+                  onChange={this.onAnyFieldChange.bind(this, 'country')}
+                  options={countries}
+                  isLimitedHeight
+                  menuPlacement='top'
+                  isClearable
+                  error={this.hasFieldError('country') ? t('Please select at least one country') : false}
+                />
+              </div>
+            )}
+
+            {/* Operational Purpose of Data */}
+            {operationalPurposeField && (
+              <div className={styles.input}>
+                <WrappedSelect
+                  label={addRequiredToLabel(operationalPurposeField.label, operationalPurposeField.required)}
+                  value={this.state.fields.operational_purpose}
+                  onChange={this.onAnyFieldChange.bind(this, 'operational_purpose')}
+                  options={operationalPurposes}
+                  isLimitedHeight
+                  isClearable
+                  error={
+                    this.hasFieldError('operational_purpose')
+                      ? t('Please specify the operational purpose of your project')
+                      : false
+                  }
+                />
+              </div>
+            )}
+
+            {/* Does this project collect personally identifiable information? */}
+            {collectsPiiField && (
+              <div className={styles.input}>
+                <WrappedSelect
+                  label={addRequiredToLabel(collectsPiiField.label, collectsPiiField.required)}
+                  value={this.state.fields.collects_pii}
+                  onChange={this.onAnyFieldChange.bind(this, 'collects_pii')}
+                  options={[
+                    { value: 'Yes', label: t('Yes') },
+                    { value: 'No', label: t('No') },
+                  ]}
+                  isClearable
+                  error={
+                    this.hasFieldError('collects_pii')
+                      ? t('Please indicate whether or not your project collects personally identifiable information')
+                      : false
+                  }
+                />
+              </div>
+            )}
+
+            {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW ||
+              this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) && (
+              <div className={styles.modalFooter}>
+                {/* Don't allow going back if asset already exist */}
+                {!this.state.formAsset && this.renderBackButton()}
+
+                <Button
+                  type='primary'
+                  size='l'
+                  isSubmit
+                  onClick={this.handleSubmit.bind(this)}
+                  isDisabled={this.state.isSubmitPending}
+                  label={
+                    <>
+                      {this.state.isSubmitPending && t('Please wait…')}
+                      {!this.state.isSubmitPending &&
+                        this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW &&
+                        t('Create project')}
+                      {!this.state.isSubmitPending &&
+                        this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE &&
+                        t('Save')}
+                    </>
+                  }
+                />
+              </div>
+            )}
+
+            {userCan('manage_asset', this.state.formAsset) &&
+              this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
+                <div className={styles.input}>
+                  <div className={cx(styles.input, styles.inputInline)}>
+                    {this.isArchived() && (
+                      <Button
+                        type='secondary'
+                        size='l'
+                        label={t('Unarchive Project')}
+                        onClick={this.unarchiveProject}
+                      />
+                    )}
+
+                    {this.isArchivable() && (
+                      <Button type='secondary' size='l' label={t('Archive Project')} onClick={this.archiveProject} />
+                    )}
+                  </div>
+
+                  {this.isArchivable() && (
+                    <div className={cx(styles.input, styles.inputInline)}>
+                      {t('Archive project to stop accepting submissions.')}
+                    </div>
+                  )}
+                  {this.isArchived() && (
+                    <div className={cx(styles.input, styles.inputInline)}>
+                      {t('Unarchive project to resume accepting submissions.')}
+                    </div>
+                  )}
+                </div>
+              )}
+
+            {userCan('delete_asset', this.state.formAsset) &&
+              this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
+                <div className={styles.input}>
+                  <Button
+                    type='danger'
+                    size='l'
+                    label={
+                      this.state.formAsset.deployment__submission_count > 0
+                        ? t('Delete Project and Data')
+                        : t('Delete Project')
+                    }
+                    onClick={this.deleteProject}
+                  />
+                </div>
+              )}
+          </div>
+        </form>
+      </>
     )
   }
 
