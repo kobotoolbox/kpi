@@ -13,7 +13,6 @@ from .v1.import_task import ImportTaskListSerializer
 from .v1.import_task import ImportTaskSerializer
 from .v1.object_permission import ObjectPermissionNestedSerializer
 from .v1.object_permission import ObjectPermissionSerializer
-from .v1.sitewide_message import SitewideMessageSerializer
 from .v1.tag import TagListSerializer
 from .v1.tag import TagSerializer
 from .create_user import CreateUserSerializer
