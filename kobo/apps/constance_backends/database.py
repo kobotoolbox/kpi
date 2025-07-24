@@ -10,8 +10,6 @@ class DatabaseBackend(BaseDatabaseBackend):
     """
 
     def get(self, key):
-        print("RETURNING NOTHING")
-        return
         key = self.add_prefix(key)
         if self._cache:
             value = self._cache.get(key)

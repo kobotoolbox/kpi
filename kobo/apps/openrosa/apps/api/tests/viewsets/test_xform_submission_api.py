@@ -13,6 +13,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.test.testcases import LiveServerTestCase
+from django.test.utils import override_settings
 from django_digest.test import DigestAuth
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -779,6 +780,10 @@ class ConcurrentSubmissionTestCase(RequestMixin, LiveServerTestCase):
 
         self.xform = logger_tools.publish_xls_form(xls_file, self.user)
 
+    # FIXME Find a way to avoid constance db calls interfering with
+    # `get_instance_lock()`. Currently, we set STRIPE_ENABLED to false here
+    # to avoid constance being called at all in `create_instance()``
+    @override_settings(STRIPE_ENABLED=False)
     @pytest.mark.skipif(
         settings.SKIP_TESTS_WITH_CONCURRENCY,
         reason='GitLab does not seem to support multi-processes'
