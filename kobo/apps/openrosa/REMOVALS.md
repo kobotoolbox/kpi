@@ -1,1 +1,0 @@
-# OpenRosa endpoint removals
