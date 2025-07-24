@@ -76,7 +76,7 @@ from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
     open_api_204_empty_response,
-    open_api_http_example_response,
+    open_api_http_example_response, open_api_201_created_response,
 )
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
@@ -213,7 +213,7 @@ class AssetSchema(AutoSchema):
     create=extend_schema(
         description=read_md('kpi', 'assets/create.md'),
         request={'application/json': AssetCreateRequest},
-        responses=open_api_200_ok_response(
+        responses=open_api_201_created_response(
             AssetSerializer(),
             raise_not_found=False,
             raise_access_forbidden=False,
