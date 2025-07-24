@@ -11,8 +11,8 @@ minor=`echo "${release_version}" | cut -d '.' -f 2`
 patch=`echo "${release_version}" | cut -d '.' -f 3`
 current_tag="2.${minor}.${patch}"
 
-echo "current_tag=${current_tag}" #>> $GITHUB_OUTPUT
-echo "current_branch=${current_branch}" #>> $GITHUB_OUTPUT
+echo "current_tag=${current_tag}" >> $GITHUB_OUTPUT
+echo "current_branch=${current_branch}" >> $GITHUB_OUTPUT
 
 counter=0
 prev_branch="$current_branch-this-branch-surely-doesnt-exist"
@@ -41,8 +41,8 @@ do
     echo "checking branch '$prev_branch'.."
 done
 
-echo "prev_tag=${prev_tag}" #>> $GITHUB_OUTPUT
-echo "prev_branch=${prev_branch}" #>> $GITHUB_OUTPUT
+echo "prev_tag=${prev_tag}" >> $GITHUB_OUTPUT
+echo "prev_branch=${prev_branch}" >> $GITHUB_OUTPUT
 echo "Previous release branch: '${prev_branch}'"
 
 if git ls-remote --exit-code --tags origin "$prev_tag"; then
