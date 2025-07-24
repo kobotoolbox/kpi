@@ -1,5 +1,6 @@
 # flake8: noqa: F401
 import kpi.schema_extensions.v2.asset_attachments.extensions
+import kpi.schema_extensions.v2.asset_permission_assignments.extensions
 import kpi.schema_extensions.v2.asset_snapshots.extensions
 import kpi.schema_extensions.v2.asset_subscriptions.extensions
 import kpi.schema_extensions.v2.asset_usage.extensions
@@ -11,5 +12,6 @@ import kpi.schema_extensions.v2.files.extensions
 import kpi.schema_extensions.v2.openrosa.extensions
 import kpi.schema_extensions.v2.organizations.extensions
 import kpi.schema_extensions.v2.paired_data.extensions
+import kpi.schema_extensions.v2.service_usage.extensions
 import kpi.schema_extensions.v2.permissions.extensions
 import kpi.schema_extensions.v2.versions.extensions

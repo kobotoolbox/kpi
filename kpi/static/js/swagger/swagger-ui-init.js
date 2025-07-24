@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const swaggerSettingsJson = swaggerUiDiv.dataset.swaggerSettings;
     const schemaAuthNamesJson = swaggerUiDiv.dataset.schemaAuthNames;
     const csrfHeaderName = swaggerUiDiv.dataset.csrfHeaderName;
-    const csrfToken = swaggerUiDiv.dataset.csrfToken;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     const schemaUrl = swaggerUiDiv.dataset.schemaUrl;
     const oauth2ConfigJson = swaggerUiDiv.dataset.oauth2Config;
 
