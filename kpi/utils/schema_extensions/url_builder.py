@@ -33,6 +33,20 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'attachment-detail': '/api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/{pk}',  # noqa
         'attachment-thumb': '/api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/{pk}/{suffix}/',  # noqa
         'paired-data-detail': '/api/v2/assets/{parent_lookup_asset}/paired-data/{paired_data_uid}',  # noqa
+        'asset-reports': '/api/v2/assets/{uid}/reports/',
+        'asset-export-settings-detail': '/api/v2/assets/{parent_lookup_asset}/export-settings/{uid}/',  # noqa
+        'asset-export-settings-detail-format': '/api/v2/assets/{parent_lookup_asset}/export-settings/{uid}/data.{format}',  # noqa
+        'asset-export-detail': '/api/v2/assets/{parent_lookup_asset}/exports/{uid}/',
+        'serve_private_file': '{path}',
+        'asset-file-detail': '/api/v2/assets/{parent_lookup_asset}/files/{uid}/',
+        'asset-file-content': '/api/v2/assets/{parent_lookup_asset}/files/{uid}/content/',
+        'hook-log-list': '/api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/',  # noqa
+        'hook-log-detail': '/api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/',  # noqa
+        'organization-members-list': '/api/v2/organizations/{id}/members/',
+        'organizations-assets': '/api/v2/organizations/{id}/assets/',
+        'organizations-service-usage': '/api/v2/organizations/{id}/service_usage/',  # noqa
+        'organizations-asset-usage': '/api/v2/organizations/{id}/assets_usage/',
+        'organizations-detail': '/api/v2/organizations/{id}/',
     }
 
     try:
