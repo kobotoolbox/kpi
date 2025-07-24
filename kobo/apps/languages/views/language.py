@@ -22,7 +22,7 @@ from .base import BaseViewSet
             raise_not_found=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     retrieve=extend_schema(
         description=read_md('languages', 'languages/retrieve.md'),
@@ -30,7 +30,7 @@ from .base import BaseViewSet
             LanguageSerializer,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
 )
 class LanguageViewSet(BaseViewSet):

@@ -1,17 +1,23 @@
 # coding: utf-8
-from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from .translation import TranslationServiceSerializer, TranslationServiceLanguageM2MSerializer
-from .transcription import TranscriptionServiceSerializer, TranscriptionServiceLanguageM2MSerializer
-from ..schema_extensions.v2.languages.fields import ServicesField, LanguageUrlField
 from ..models.language import Language, LanguageRegion
+from ..schema_extensions.v2.languages.fields import LanguageUrlField, ServicesField
+from .transcription import (
+    TranscriptionServiceLanguageM2MSerializer,
+    TranscriptionServiceSerializer,
+)
+from .translation import (
+    TranslationServiceLanguageM2MSerializer,
+    TranslationServiceSerializer,
+)
 
 
 @extend_schema_field(LanguageUrlField)
 class LanguageUrlOverload(serializers.HyperlinkedIdentityField):
     pass
+
 
 class LanguageRegionSerializer(serializers.ModelSerializer):
 
@@ -61,9 +67,7 @@ class LanguageSerializer(serializers.ModelSerializer):
 
 class LanguageListSerializer(LanguageSerializer):
 
-    url = LanguageUrlOverload(
-        view_name='language-detail', lookup_field='code'
-    )
+    url = LanguageUrlOverload(view_name='language-detail', lookup_field='code')
     regions = None
 
     class Meta(LanguageSerializer.Meta):
