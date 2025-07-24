@@ -13,7 +13,6 @@ from kpi.views.v1 import (
     ExportTaskViewSet,
     ImportTaskViewSet,
     ObjectPermissionViewSet,
-    SitewideMessageViewSet,
     SubmissionViewSet,
     TagViewSet,
     UserAssetSubscriptionViewSet,
@@ -59,7 +58,6 @@ router_api_v1.register(r'permissions', ObjectPermissionViewSet)
 router_api_v1.register(r'reports', ReportsViewSet, basename='reports')
 router_api_v1.register(r'imports', ImportTaskViewSet)
 router_api_v1.register(r'exports', ExportTaskViewSet)
-router_api_v1.register(r'sitewide_messages', SitewideMessageViewSet)
 
 router_api_v1.register(r'authorized_application/users',
                        AuthorizedApplicationUserViewSet,

@@ -180,8 +180,6 @@ router_api_v2.registry.extend(audit_log_router.registry)
 
 
 # TODO migrate ViewSet below
-# router_api_v2.register(r'sitewide_messages', SitewideMessageViewSet)
-#
 # router_api_v2.register(r'authorized_application/users',
 #                        AuthorizedApplicationUserViewSet,
 #                        basename='authorized_applications')
