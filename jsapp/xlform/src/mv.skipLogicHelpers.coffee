@@ -257,18 +257,16 @@ module.exports = do ->
       return
     serialize: () ->
       return @state.serialize()
-    use_criterion_builder_helper: () ->
+    use_criterion_builder_helper: (serialized_criteria) ->
       @builder ?= @helper_factory.create_builder()
-      presenters = @builder.build_criterion_builder(@state.serialize())
-
+      presenters = @builder.build_criterion_builder(serialized_criteria)
       if presenters == false
-        @state = null
+        @use_hand_code_helper()
       else
         @state = new skipLogicHelpers.SkipLogicCriterionBuilderHelper(presenters[0], presenters[1], @builder, @view_factory, @)
         @render @destination
-      return
-    use_hand_code_helper: () ->
-      @state = new skipLogicHelpers.SkipLogicHandCodeHelper(@state.serialize(), @builder, @view_factory, @)
+    use_hand_code_helper: (serialized_criteria) ->
+      @state = new skipLogicHelpers.SkipLogicHandCodeHelper(serialized_criteria, @builder, @view_factory, @)
       @render @destination
       return
     use_mode_selector_helper : () ->
@@ -277,16 +275,10 @@ module.exports = do ->
       @render @destination
       return
     constructor: (@model_factory, @view_factory, @helper_factory, serialized_criteria) ->
-      @state = serialize: () -> return serialized_criteria
       if !serialized_criteria? || serialized_criteria == ''
-        serialized_criteria = ''
         @use_mode_selector_helper()
       else
-        @use_criterion_builder_helper()
-
-      if !@state?
-        @state = serialize: () -> return serialized_criteria
-        @use_hand_code_helper()
+        @use_criterion_builder_helper(serialized_criteria)
 
   class skipLogicHelpers.SkipLogicCriterionBuilderHelper
     determine_criterion_delimiter_visibility: () ->
@@ -403,11 +395,11 @@ module.exports = do ->
 
       @criterion_builder_button.bind_event('click', () =>
         @context.view_factory.survey.trigger('change')
-        @context.use_criterion_builder_helper()
+        @context.use_criterion_builder_helper(@context.state.serialize())
       )
       @handcode_button.bind_event('click', () =>
         @context.view_factory.survey.trigger('change')
-        @context.use_hand_code_helper()
+        @context.use_hand_code_helper(@context.state.serialize())
       )
 
     serialize: () ->

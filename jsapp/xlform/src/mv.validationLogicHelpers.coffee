@@ -48,8 +48,8 @@ module.exports = do ->
     use_mode_selector_helper: () ->
       @state = new validationLogicHelpers.ValidationLogicModeSelectorHelper @view_factory, @
       @render @destination
-    use_hand_code_helper: () ->
-      @state = new validationLogicHelpers.ValidationLogicHandCodeHelper(@state.serialize(), @builder, @view_factory, @)
+    use_hand_code_helper: (serialized_criteria) ->
+      @state = new validationLogicHelpers.ValidationLogicHandCodeHelper(serialized_criteria, @builder, @view_factory, @)
       if @questionTypeHasNoValidationOperators()
         @state.button = @view_factory.create_empty()
       @render @destination
@@ -59,9 +59,8 @@ module.exports = do ->
       @view_factory = view_factory
       @helper_factory = helper_factory
 
-      @state = serialize: () -> return serialized_criteria
       if @questionTypeHasNoValidationOperators()
-        @use_hand_code_helper()
+        @use_hand_code_helper(serialized_criteria)
       else
         super(model_factory, view_factory, helper_factory, serialized_criteria)
 
