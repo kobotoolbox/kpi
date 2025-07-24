@@ -608,7 +608,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
-    tags=['Project Ownership Transfer'],
+    tags=['Organization Invites'],
     parameters=[
         OpenApiParameter(
             name='organization_id',
