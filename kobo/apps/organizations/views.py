@@ -272,7 +272,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
-    tags=['Members'],
+    tags=['Organization Members'],
     parameters=[
         OpenApiParameter(
             name='organization_id',
