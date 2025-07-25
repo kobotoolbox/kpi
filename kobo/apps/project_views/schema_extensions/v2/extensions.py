@@ -141,7 +141,7 @@ class UserMetadataFieldExtension(OpenApiSerializerFieldExtension):
                 'organization_website': build_basic_type(OpenApiTypes.STR),
                 'project_view_settings': build_object_type(
                     properties={
-                        'kobo_my_project': build_object_type(
+                        'my_project_view_name': build_object_type(
                             properties={
                                 'order': build_object_type(properties={}),
                                 'fields': build_array_type(
