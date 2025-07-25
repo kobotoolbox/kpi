@@ -772,6 +772,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'content': 'content',
             'advanced_features.qual.qual_survey': 'survey',
             'latest_version.uid': 'v12345',
+            'owner.username': 'someuser',
         }
         request.updated_data = {**request.initial_data, field: 'new'}
         with patch(
@@ -792,6 +793,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'advanced_features.qual.qual_survey': 'survey',
             'latest_version.uid': 'v12345',
             'something_new': 'new',
+            'owner.username': 'someuser',
         }
         request.updated_data = {**request.initial_data, 'something_new': 'i am new'}
         # no log should be created even though 'something_new' changed
