@@ -23,3 +23,7 @@ class OrganizationField(serializers.URLField):
 
 class ServerTimeField(serializers.DateTimeField):
     pass
+
+
+class SocialAccountField(serializers.JSONField):
+    pass

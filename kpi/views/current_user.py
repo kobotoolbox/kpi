@@ -9,7 +9,8 @@ from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.trash_bin.utils import move_to_trash
-from kpi.schema_extensions.v2.me.serializers import CurrentUserDeleteRequest
+from kpi.schema_extensions.v2.me.serializers import CurrentUserDeleteRequest, \
+    MeListResponse
 from kpi.serializers import CurrentUserSerializer
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
@@ -31,7 +32,7 @@ from kpi.versioning import APIV2Versioning
     retrieve=extend_schema(
         description=read_md('kpi', 'me/retrieve.md'),
         responses=open_api_200_ok_response(
-            CurrentUserSerializer,
+            MeListResponse,
             raise_not_found=False,
             raise_access_forbidden=False,
             validate_payload=False,
@@ -40,7 +41,7 @@ from kpi.versioning import APIV2Versioning
     partial_update=extend_schema(
         description=read_md('kpi', 'me/update.md'),
         responses=open_api_200_ok_response(
-            CurrentUserSerializer, raise_not_found=False, raise_access_forbidden=False
+            MeListResponse, raise_not_found=False, raise_access_forbidden=False
         ),
     ),
 )

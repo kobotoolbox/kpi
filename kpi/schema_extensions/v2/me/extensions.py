@@ -1,7 +1,7 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import (
     build_basic_type,
-    build_object_type,
+    build_object_type, build_array_type,
 )
 from drf_spectacular.types import OpenApiTypes
 
@@ -67,3 +67,21 @@ class ProjectUrlFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type('user_profile', username='bob')
+
+
+class SocialAccountFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.me.fields.SocialAccountField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_array_type(
+            schema=build_object_type(
+                properties={
+                    'provider': build_basic_type(OpenApiTypes.STR),
+                    'uid': build_basic_type(OpenApiTypes.STR),
+                    'last_joined': build_basic_type(OpenApiTypes.DATETIME),
+                    'date_joined': build_basic_type(OpenApiTypes.DATETIME),
+                    'email': build_basic_type(OpenApiTypes.EMAIL),
+                    'username': build_basic_type(OpenApiTypes.STR),
+                }
+            )
+        )
