@@ -564,6 +564,7 @@ class ProjectHistoryLog(AuditLog):
             'ip_address': get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
             'latest_version_uid': updated_data['latest_version.uid'],
+            'project_owner': updated_data['owner.username'],
         }
 
         changed_field_to_action_map = {
@@ -685,7 +686,7 @@ class ProjectHistoryLog(AuditLog):
     def _create_from_ownership_transfer(cls, request):
         updated_data = getattr(request, 'updated_data')
         transfers = updated_data['transfers'].values(
-            'asset__uid', 'asset__asset_type', 'asset__id'
+            'asset__uid', 'asset__asset_type', 'asset__id', 'asset__owner__username'
         )
         logs = []
         for transfer in transfers:
@@ -703,6 +704,7 @@ class ProjectHistoryLog(AuditLog):
                         'ip_address': get_client_ip(request),
                         'source': get_human_readable_client_user_agent(request),
                         'username': updated_data['recipient.username'],
+                        'project_owner': transfer['asset__owner__username'],
                     },
                 )
             )

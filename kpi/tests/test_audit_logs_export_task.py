@@ -179,6 +179,7 @@ class ProjectHistoryLogExportTaskTests(TestCase):
                 'submission': {
                     'submitted_by': 'Fred',
                 },
+                'project_owner': 'someuser',
             },
             date_created='2024-11-05T12:00:00Z',
             action=AuditAction.ADD_SUBMISSION,
@@ -226,6 +227,7 @@ class ProjectHistoryLogExportTaskTests(TestCase):
                 'ip_address': '12345',
                 'asset_uid': asset.uid,
                 'log_subtype': 'project',
+                'project_owner': 'someuser',
             },
             object_id=asset.id,
         )
@@ -238,6 +240,7 @@ class ProjectHistoryLogExportTaskTests(TestCase):
                 'ip_address': '12345',
                 'asset_uid': 'fakeuid',
                 'log_subtype': 'project',
+                'project_owner': 'someuser',
             },
             object_id=2,
         )
@@ -260,6 +263,7 @@ class ProjectHistoryLogExportTaskTests(TestCase):
                 'ip_address': '12345',
                 'asset_uid': asset.uid,
                 'log_subtype': 'project',
+                'project_owner': 'someuser',
             },
             object_id=asset.id,
         )
@@ -272,6 +276,7 @@ class ProjectHistoryLogExportTaskTests(TestCase):
                 'ip_address': '12345',
                 'asset_uid': 'fakeuid',
                 'log_subtype': 'project',
+                'project_owner': 'someuser',
             },
             object_id=2,
         )
