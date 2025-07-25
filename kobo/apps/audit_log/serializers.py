@@ -1,4 +1,7 @@
 from django.contrib.auth import get_user_model
+from drf_spectacular.plumbing import build_basic_type
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from kpi.fields import RelativePrefixHyperlinkedRelatedField
@@ -41,9 +44,11 @@ class AuditLogSerializer(serializers.ModelSerializer):
             'log_type',
         )
 
+    @extend_schema_field(build_basic_type(OpenApiTypes.DATETIME))
     def get_date_created(self, audit_log):
         return audit_log.date_created.strftime('%Y-%m-%dT%H:%M:%SZ')
 
+    @extend_schema_field(build_basic_type(OpenApiTypes.STR))
     def get_username(self, audit_log):
         return getattr(audit_log.user, 'username', None)
 
@@ -62,6 +67,7 @@ class AccessLogSerializer(serializers.Serializer):
     user_uid = serializers.CharField()
     count = serializers.IntegerField()
 
+    @extend_schema_field(build_basic_type(OpenApiTypes.DATETIME))
     def get_date_created(self, audit_log):
         return audit_log['date_created'].strftime('%Y-%m-%dT%H:%M:%SZ')
 

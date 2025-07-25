@@ -1,6 +1,8 @@
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
 from django.utils.translation import gettext as t
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 
@@ -58,12 +60,14 @@ class SocialAccountSerializer(serializers.ModelSerializer):
             'username',
         )
 
+    @extend_schema_field(OpenApiTypes.EMAIL)
     def get_email(self, obj):
         if obj.extra_data:
-            if "email" in obj.extra_data:
-                return obj.extra_data.get("email")
-            return obj.extra_data.get("userPrincipalName")  # MS oauth uses this
+            if 'email' in obj.extra_data:
+                return obj.extra_data.get('email')
+            return obj.extra_data.get('userPrincipalName')  # MS oauth uses this
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_username(self, obj):
         if obj.extra_data:
-            return obj.extra_data.get("username")
+            return obj.extra_data.get('username')
