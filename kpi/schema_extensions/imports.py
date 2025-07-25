@@ -9,6 +9,7 @@ import kpi.schema_extensions.v2.data.extensions
 import kpi.schema_extensions.v2.export_settings.extensions
 import kpi.schema_extensions.v2.export_tasks.extensions
 import kpi.schema_extensions.v2.files.extensions
+import kpi.schema_extensions.v2.invites.extensions
 import kpi.schema_extensions.v2.members.extensions
 import kpi.schema_extensions.v2.invites.extensions
 import kpi.schema_extensions.v2.openrosa.extensions
