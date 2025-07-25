@@ -8,7 +8,6 @@ from typing import Optional
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.aggregates import ArrayAgg
 from django.db import models, transaction
 from django_request_cache import cache_for_request
 from rest_framework import serializers
@@ -21,7 +20,11 @@ from kpi.constants import (
     PERM_FROM_KC_ONLY,
     PREFIX_PARTIAL_PERMS,
 )
-from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic, _get_xform_id_for_asset, set_kc_anonymous_permissions_xform_flags
+from kpi.deployment_backends.kc_access.utils import (
+    _get_xform_id_for_asset,
+    kc_transaction_atomic,
+    set_kc_anonymous_permissions_xform_flags,
+)
 from kpi.models.object_permission import ObjectPermission
 from kpi.utils.object_permission import (
     get_database_user,
@@ -410,20 +413,21 @@ class ObjectPermissionMixin:
 
     @transaction.atomic
     @kc_transaction_atomic
-    def assign_perm(self, user_obj, perm, deny=False, defer_recalc=False,
-                    partial_perms=None):
+    def assign_perm(
+        self, user_obj, perm, deny=False, defer_recalc=False, partial_perms=None
+    ):
         r"""
-            Assign `user_obj` the given `perm` on this object, or break
-            inheritance from a parent object. By default, recalculate
-            descendant objects' permissions and apply any applicable KC
-            permissions.
-            :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
-            :param perm: str. The `codename` of the `Permission`
-            :param deny: bool. When `True`, break inheritance from parent object
-            :param defer_recalc: bool. When `True`, skip recalculating
-                descendants
-            :param partial_perms: dict. Filters used to narrow down query for
-              partial permissions
+        Assign `user_obj` the given `perm` on this object, or break
+        inheritance from a parent object. By default, recalculate
+        descendant objects' permissions and apply any applicable KC
+        permissions.
+        :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
+        :param perm: str. The `codename` of the `Permission`
+        :param deny: bool. When `True`, break inheritance from parent object
+        :param defer_recalc: bool. When `True`, skip recalculating
+            descendants
+        :param partial_perms: dict. Filters used to narrow down query for
+          partial permissions
         """
         app_label, codename = perm_parse(perm, self)
         assignable_permissions = self.get_assignable_permissions()
@@ -648,20 +652,20 @@ class ObjectPermissionMixin:
     @kc_transaction_atomic
     def remove_perm(self, user_obj, perm, defer_recalc=False):
         """
-            Revoke the given `perm` on this object from `user_obj`. By default,
-            recalculate descendant objects' permissions and remove any
-            applicable KC permissions.  May delete granted permissions or add
-            deny permissions as appropriate:
-            Current access      Action
-            ==============      ======
-            None                None
-            Direct              Remove direct permission
-            Inherited           Add deny permission
-            Direct & Inherited  Remove direct permission; add deny permission
-            :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
-            :param perm str: The `codename` of the `Permission`
-            :param defer_recalc bool: When `True`, skip recalculating
-                descendants
+        Revoke the given `perm` on this object from `user_obj`. By default,
+        recalculate descendant objects' permissions and remove any
+        applicable KC permissions.  May delete granted permissions or add
+        deny permissions as appropriate:
+        Current access      Action
+        ==============      ======
+        None                None
+        Direct              Remove direct permission
+        Inherited           Add deny permission
+        Direct & Inherited  Remove direct permission; add deny permission
+        :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
+        :param perm str: The `codename` of the `Permission`
+        :param defer_recalc bool: When `True`, skip recalculating
+            descendants
         """
         user_obj = get_database_user(user_obj)
         app_label, codename = perm_parse(perm, self)

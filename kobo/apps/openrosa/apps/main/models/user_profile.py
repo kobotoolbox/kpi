@@ -1,6 +1,5 @@
 import json
 
-from django.conf import settings
 from django.db import models
 
 from kobo.apps.kobo_auth.shortcuts import User

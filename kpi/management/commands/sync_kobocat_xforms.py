@@ -3,28 +3,24 @@ import datetime
 import io
 import json
 import re
-from collections import defaultdict
 
 import requests
 import xlwt
 from django.conf import settings
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from formpack.utils.xls_to_ss_structure import xlsx_to_dicts
 from pyxform import xls2json_backends
 from rest_framework.authtoken.models import Token
 
-from formpack.utils.xls_to_ss_structure import xlsx_to_dicts
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
-from kpi.models import Asset, ObjectPermission
+from kpi.models import Asset
 from kpi.utils.log import logging
 from kpi.utils.models import _set_auto_field_update
-from kpi.utils.object_permission import get_anonymous_user
 
 TIMESTAMP_DIFFERENCE_TOLERANCE = datetime.timedelta(seconds=30)
 

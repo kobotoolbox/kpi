@@ -7,7 +7,6 @@ from xml.sax.saxutils import escape as xml_escape
 
 from django.apps import apps
 from django.conf import settings
-from django.contrib.auth.management import DEFAULT_DB_ALIAS
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.urls import reverse
@@ -29,9 +28,7 @@ from kpi.deployment_backends.kc_access.storage import (
 )
 from kpi.fields.file import ExtendedFileField
 from kpi.models.abstract_models import AbstractTimeStampedModel
-from kpi.utils.database import use_db
 from kpi.utils.hash import calculate_hash
-from kpi.utils.object_permission import perm_parse
 from kpi.utils.xml import XMLFormWithDisclaimer
 
 XFORM_TITLE_LENGTH = 255

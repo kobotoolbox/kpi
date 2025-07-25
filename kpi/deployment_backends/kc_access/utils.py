@@ -1,17 +1,14 @@
 from contextlib import contextmanager
-from typing import Union
 
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser, Permission
+from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.db import ProgrammingError, transaction
-from django.db.models import Model
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.utils.database import use_db
 from kpi.utils.log import logging
-from kpi.utils.permissions import is_user_anonymous
 
 
 def safe_kc_read(func):

@@ -1,5 +1,6 @@
-from kpi.utils.object_permission import get_anonymous_user
 from pytest import fixture
+
+from kpi.utils.object_permission import get_anonymous_user
 
 
 @fixture(autouse=True)

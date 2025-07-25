@@ -13,10 +13,10 @@ from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
 from kobo.apps.openrosa.libs.utils.image_tools import image_url
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kobo.apps.trackers.utils import update_nlp_counter
-from kpi.deployment_backends.kc_access.storage import (
-    default_kobocat_storage as default_storage
-)
 from kpi.constants import PERM_VIEW_ASSET
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
+)
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
