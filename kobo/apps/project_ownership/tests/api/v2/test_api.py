@@ -377,10 +377,6 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         self.submissions = submissions
 
     @patch(
-        'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
-        MagicMock()
-    )
-    @patch(
         'kobo.apps.project_ownership.tasks.move_attachments',
         MagicMock()
     )
@@ -466,10 +462,6 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         assert response.data['total_storage_bytes'] == expected_data['total_storage_bytes']
         assert response.data['total_submission_count'] == expected_data['total_submission_count']
 
-    @patch(
-        'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
-        MagicMock()
-    )
     @patch(
         'kobo.apps.project_ownership.tasks.move_attachments',
         MagicMock()
@@ -580,10 +572,6 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             self.assertFalse(default_storage.exists(thumbnail))
 
     @patch(
-        'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
-        MagicMock()
-    )
-    @patch(
         'kobo.apps.project_ownership.tasks.move_attachments',
         MagicMock()
     )
@@ -637,10 +625,6 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             ) == 0
         )
 
-    @patch(
-        'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
-        MagicMock()
-    )
     @patch(
         'kobo.apps.project_ownership.tasks.move_attachments',
         MagicMock()

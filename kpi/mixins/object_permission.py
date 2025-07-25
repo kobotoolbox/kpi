@@ -498,8 +498,8 @@ class ObjectPermissionMixin:
 
         # Handle KoboCat xform flags for the anonymous user
         if not deny and is_anonymous:
-            xform_id = _get_xform_id_for_asset(self)
-            set_kc_anonymous_permissions_xform_flags(self, codename, xform_id)
+            if xform_id := _get_xform_id_for_asset(self) is not None:
+                set_kc_anonymous_permissions_xform_flags(self, codename, xform_id)
 
         # Resolve implied permissions, e.g. granting change implies granting
         # view
@@ -718,10 +718,10 @@ class ObjectPermissionMixin:
         is_anonymous = is_user_anonymous(user_obj)
         # Handle KoboCat xform flags for the anonymous user
         if is_anonymous:
-            xform_id = _get_xform_id_for_asset(self)
-            set_kc_anonymous_permissions_xform_flags(
-                self, codename, xform_id, remove=True
-            )
+            if xform_id := _get_xform_id_for_asset(self) is not None:
+                set_kc_anonymous_permissions_xform_flags(
+                    self, codename, xform_id, remove=True
+                )
 
     def _update_partial_permissions(
         self,
