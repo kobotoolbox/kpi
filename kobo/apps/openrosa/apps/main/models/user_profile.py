@@ -111,4 +111,3 @@ class UserProfile(models.Model):
         user_profile, created = cls.objects.get_or_create(user_id=user_id)
         user_profile.validated_password = validated
         user_profile.save(update_fields=['validated_password'])
-

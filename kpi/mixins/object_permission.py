@@ -479,9 +479,6 @@ class ObjectPermissionMixin:
                 permission__codename__in=self.CONTRADICTORY_PERMISSIONS.get(perm),
             )
         contradictory_perms = existing_perms.filter(contradictory_filters)
-        contradictory_codenames = list(contradictory_perms.values_list(
-            'permission__codename', flat=True))
-
         contradictory_perms.delete()
 
         # Create the new permission
