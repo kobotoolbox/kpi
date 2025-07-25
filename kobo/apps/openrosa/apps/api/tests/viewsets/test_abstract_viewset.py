@@ -20,6 +20,7 @@ from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import (
 )
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils import logger_tools
+from kpi.utils.object_permission import get_database_user
 
 
 class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
@@ -106,6 +107,11 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
                 xls_file = ContentFile(f.read(), name='transportation.xls')
 
             self.xform = logger_tools.publish_xls_form(xls_file, self.user)
+            # The permissions are based on the asset, so we need the asset to be saved
+            asset = self.xform.asset
+            asset.save()
+            self.xform.kpi_asset_uid = asset.uid
+            self.xform.save()
             response = self.client.get(
                 reverse('xform-detail', kwargs={'pk': self.xform.pk})
             )
@@ -144,8 +150,7 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
         `auth_permission`.  Without this, actions on individual instances are
         immediately denied and object-level permissions are never considered.
         """
-        if user.is_anonymous:
-            user = User.objects.get(id=settings.ANONYMOUS_USER_ID)
+        user = get_database_user(user)
         user.user_permissions.set(Permission.objects.all())
         if save:
             user.save()

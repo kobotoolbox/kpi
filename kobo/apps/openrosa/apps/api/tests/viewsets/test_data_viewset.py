@@ -11,7 +11,7 @@ from kobo.apps.openrosa.libs.constants import (
     CAN_DELETE_DATA_XFORM,
     CAN_VIEW_XFORM,
 )
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm, remove_perm
+from kobo.apps.openrosa.libs.permissions import assign_perm, remove_perm
 
 
 def _data_list(formid):
@@ -442,12 +442,12 @@ class TestDataViewSet(TestBase):
         view = DataViewSet.as_view({'get': 'list'})
         request = self.factory.get('/', **self.extra)
         formid = self.xform.pk
-        with self.assertNumQueries(10):
+        with self.assertNumQueries(14):
             view(request, pk=formid)
         # test adding submissions does not increase query count
         self._make_submissions()
         self._make_submissions()
-        with self.assertNumQueries(10):
+        with self.assertNumQueries(14):
             view(request, pk=formid)
 
     def test_query_counts_with_attachments(self):
@@ -456,9 +456,9 @@ class TestDataViewSet(TestBase):
         view = DataViewSet.as_view({'get': 'list'})
         request = self.factory.get('/', **self.extra)
         formid = self.xform.pk
-        with self.assertNumQueries(10):
+        with self.assertNumQueries(14):
             view(request, pk=formid)
         self._submit_transport_instance_w_attachment()
         self._submit_transport_instance_w_attachment()
-        with self.assertNumQueries(10):
+        with self.assertNumQueries(14):
             view(request, pk=formid)
