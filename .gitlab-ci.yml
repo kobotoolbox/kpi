@@ -32,6 +32,7 @@ deploy-beta:
   rules:
     - if: $CI_COMMIT_BRANCH == "public-beta" && $CI_COMMIT_REF_PROTECTED
 
+
 deploy-staging:
   stage: deploy
   image:
