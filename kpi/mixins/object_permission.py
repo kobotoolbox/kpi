@@ -501,7 +501,6 @@ class ObjectPermissionMixin:
         )
 
         # Handle KoboCat xform flags for the anonymous user
-        breakpoint()
         if not deny and is_anonymous:
             if xform_id := _get_xform_id_for_asset(self):
                 set_kc_anonymous_permissions_xform_flags(self, codename, xform_id)
