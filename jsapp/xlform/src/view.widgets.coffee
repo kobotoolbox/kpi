@@ -24,8 +24,11 @@ module.exports = do ->
 
   class viewWidgets.Label extends viewWidgets.Base
     tagName: 'label'
-    constructor: (@text, @className, @input) ->
+    constructor: (text, className, input) ->
       super()
+      @text = text
+      @className = className
+      @input = input
     val: () ->
     bind_event: () ->
     render: () ->
@@ -38,6 +41,7 @@ module.exports = do ->
       @
 
   class viewWidgets.EmptyView extends viewWidgets.Base
+    constructor: () -> super()
     attach_to: () -> return
     bind_event: () -> return
     render: () -> @
@@ -51,7 +55,10 @@ module.exports = do ->
       @$el.on 'paste', (e) -> e.stopPropagation()
 
       @
-    constructor: (@text, @className) -> super()
+    constructor: (text, className) ->
+      super()
+      @text = text
+      @className = className
 
   class viewWidgets.TextBox extends viewWidgets.Base
     tagName: 'input'
@@ -63,7 +70,11 @@ module.exports = do ->
       @$el.on 'paste', (e) -> e.stopPropagation()
 
       @
-    constructor: (@text, @className, @placeholder) -> super()
+    constructor: (text, className, placeholder) ->
+      super()
+      @text = text
+      @className = className
+      @placeholder = placeholder
 
   class viewWidgets.Button extends viewWidgets.Base
     tagName: 'button'
@@ -72,22 +83,25 @@ module.exports = do ->
       @$el.addClass @className
 
       @
-    constructor: (@text, @className) -> super()
+    constructor: (text, className) ->
+      super()
+      @text = text
+      @className = className
 
   class viewWidgets.DropDownModel extends Backbone.Model
 
   class viewWidgets.DropDown extends viewWidgets.Base
     tagName: 'select'
     constructor: (options) ->
+      super()
       @options = options
-      super(options)
 
       if !(@options instanceof viewWidgets.DropDownModel)
         @options = new viewWidgets.DropDownModel()
         @options.set('options', options)
       @options.on 'change:options', @render.bind(@)
 
-    render: () =>
+    render: () ->
       options_html = ''
       _.each @options.get('options'), (option) ->
         options_html += '<option value="' + option.value + '">' + option.text + '</option>'
