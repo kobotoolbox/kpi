@@ -61,4 +61,4 @@ pages:
     paths:
       - public
   rules:
-    - if: $CI_COMMIT_BRANCH == "main" || $$CI_COMMIT_BRANCH == "storybook"
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "storybook"
