@@ -11,17 +11,17 @@ from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
 from .schema import (
-    ASSET_CLONE_FROM,
-    ASSET_CONTENT,
-    ASSET_ENABLED,
-    ASSET_FIELDS,
-    ASSET_NAME,
-    ASSET_SETTINGS,
-    ASSET_TYPE,
+    ASSET_CLONE_FROM_SCHEMA,
+    ASSET_CONTENT_SCHEMA,
+    ASSET_ENABLED_SCHEMA,
+    ASSET_FIELDS_SCHEMA,
+    ASSET_NAME_SCHEMA,
+    ASSET_SETTINGS_SCHEMA,
+    ASSET_TYPE_SCHEMA,
     ASSET_URL_SCHEMA,
-    BULK_ACTION,
-    BULK_ASSET_UIDS,
-    BULK_CONFIRM,
+    BULK_ACTION_SCHEMA,
+    BULK_ASSET_UIDS_SCHEMA,
+    BULK_CONFIRM_SCHEMA,
 )
 
 
@@ -71,7 +71,7 @@ class AssetCloneFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AssetCloneField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return ASSET_CLONE_FROM
+        return ASSET_CLONE_FROM_SCHEMA
 
 
 class AssetCreateRequestSerializerExtension(OpenApiSerializerExtension):
@@ -89,9 +89,9 @@ class AssetCreateRequestSerializerExtension(OpenApiSerializerExtension):
                         'asset_type',
                     ],
                     properties={
-                        'name': ASSET_NAME,
-                        'clone_from': ASSET_CLONE_FROM,
-                        'asset_type': ASSET_TYPE,
+                        'name': ASSET_NAME_SCHEMA,
+                        'clone_from': ASSET_CLONE_FROM_SCHEMA,
+                        'asset_type': ASSET_TYPE_SCHEMA,
                     }
                 ),
                 build_object_type(
@@ -101,9 +101,9 @@ class AssetCreateRequestSerializerExtension(OpenApiSerializerExtension):
                         'asset_type',
                     ],
                     properties={
-                        'name': ASSET_NAME,
-                        'settings': ASSET_SETTINGS,
-                        'asset_type': ASSET_TYPE,
+                        'name': ASSET_NAME_SCHEMA,
+                        'settings': ASSET_SETTINGS_SCHEMA,
+                        'asset_type': ASSET_TYPE_SCHEMA,
                     }
                 ),
             ]
@@ -121,15 +121,15 @@ class AssetPatchRequestSerializerExtension(OpenApiSerializerExtension):
                 build_object_type(
                     required=['content', 'name'],
                     properties={
-                        'content': ASSET_CONTENT,
-                        'name': ASSET_NAME,
+                        'content': ASSET_CONTENT_SCHEMA,
+                        'name': ASSET_NAME_SCHEMA,
                     }
                 ),
                 build_object_type(
                     required=['enabled', 'fields'],
                     properties={
-                        'enabled': ASSET_ENABLED,
-                        'fields': ASSET_FIELDS,
+                        'enabled': ASSET_ENABLED_SCHEMA,
+                        'fields': ASSET_FIELDS_SCHEMA,
                     }
                 ),
             ]
@@ -140,7 +140,7 @@ class AssetFieldsFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AssetFieldsField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return ASSET_FIELDS
+        return ASSET_FIELDS_SCHEMA
 
 
 class AssetURLFieldExtension(OpenApiSerializerFieldExtension):
@@ -161,7 +161,7 @@ class AssetSettingsFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AssetSettingsField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return ASSET_SETTINGS
+        return ASSET_SETTINGS_SCHEMA
 
 
 class BulkActionFieldExtension(OpenApiSerializerFieldExtension):
@@ -204,15 +204,15 @@ class BulkPayloadSerializerExtension(OpenApiSerializerExtension):
                 build_object_type(
                     required=['asset_uids', 'action'],
                     properties={
-                        'asset_uids': BULK_ASSET_UIDS,
-                        'action': BULK_ACTION,
+                        'asset_uids': BULK_ASSET_UIDS_SCHEMA,
+                        'action': BULK_ACTION_SCHEMA,
                     }
                 ),
                 build_object_type(
                     required=['confirm', 'action'],
                     properties={
-                        'confirm': BULK_CONFIRM,
-                        'action': BULK_ACTION,
+                        'confirm': BULK_CONFIRM_SCHEMA,
+                        'action': BULK_ACTION_SCHEMA,
                     }
                 ),
             ]
