@@ -2,7 +2,7 @@ from django.db import transaction
 from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -13,11 +13,26 @@ from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
+from kpi.schema_extensions.v2.members.serializers import (
+    MemberListResponse,
+    MemberPatchRequest,
+)
+from kpi.schema_extensions.v2.organizations.serializers import (
+    OrganizationAssetUsageResponse,
+    OrganizationPatchPayload,
+    OrganizationServiceUsageResponse,
+)
+from kpi.serializers.v2.asset import AssetSerializer
 from kpi.serializers.v2.service_usage import (
     CustomAssetUsageSerializer,
     ServiceUsageSerializer,
 )
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_204_empty_response,
+)
 from kpi.views.v2.asset import AssetViewSet
 from ..accounts.mfa.models import MfaMethod
 from .models import (
@@ -81,15 +96,90 @@ class OrganizationAssetViewSet(AssetViewSet):
 
 
 @extend_schema(
-    tags=['organizations'],
+    tags=['Organizations'],
+)
+@extend_schema_view(
+    list=extend_schema(
+        description=read_md('kpi', 'organizations/org_list.md'),
+        responses=open_api_200_ok_response(
+            OrganizationSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    retrieve=extend_schema(
+        description=read_md('kpi', 'organizations/org_retrieve.md'),
+        responses=open_api_200_ok_response(
+            OrganizationSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    partial_update=extend_schema(
+        description=read_md('kpi', 'organizations/org_update.md'),
+        request={'application/json': OrganizationPatchPayload},
+        responses=open_api_200_ok_response(
+            OrganizationSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
+        ),
+    ),
+    asset_usage=extend_schema(
+        description=read_md('kpi', 'organizations/org_asset_usage.md'),
+        responses=open_api_200_ok_response(
+            OrganizationAssetUsageResponse(many=True),
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    assets=extend_schema(
+        description=read_md('kpi', 'organizations/org_assets.md'),
+        responses=open_api_200_ok_response(
+            AssetSerializer(many=True),
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    service_usage=extend_schema(
+        description=read_md('kpi', 'organizations/org_service_usage.md'),
+        responses=open_api_200_ok_response(
+            OrganizationServiceUsageResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
 )
 class OrganizationViewSet(viewsets.ModelViewSet):
     """
+    Viewset for managing organizations
+
     Organizations are groups of users with assigned permissions and configurations
 
     - Organization admins can manage the organization and its membership
     - Connect to authentication mechanisms and enforce policy
     - Create teams and projects under the organization
+
+
+    Available actions:
+    - list              → GET       /api/v2/organizations/
+    - retrieve          → GET       /api/v2/organizations/{id}/
+    - partial_update    → PATCH     /api/v2/organizations/{id}/
+    - asset_usage       → GET       /api/v2/organizations/{id}/asset_usage/
+    - assets            → GET       /api/v2/organizations/{id}/assets/
+    - service_usage     → PATCH     /api/v2/organizations/{id}/service_usage/
+
+    Documentation:
+    - docs/api/v2/organizations/org_list.md
+    - docs/api/v2/organizations/org_retrieve.md
+    - docs/api/v2/organizations/org_update.md
+    - docs/api/v2/organizations/org_asset_usage.md
+    - docs/api/v2/organizations/org_assets.md
+    - docs/api/v2/organizations/org_service_usage.md
     """
 
     queryset = Organization.objects.all()
@@ -97,23 +187,14 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     lookup_field = 'id'
     permission_classes = [HasOrgRolePermission]
     http_method_names = ['get', 'patch']
+    renderer_classes = [
+        JSONRenderer,
+    ]
 
     @action(
         detail=True, methods=['GET'], permission_classes=[IsOrgAdminPermission]
     )
     def assets(self, request: Request, *args, **kwargs):
-        """
-        ### Retrieve Organization Assets
-
-        This endpoint returns all assets associated with a specific organization.
-        The assets listed here are restricted to those owned by the specified
-        organization.
-
-        Only the owner or administrators of the organization can access this endpoint.
-
-        ### Additional Information
-        For more details, please refer to `/api/v2/assets/`.
-        """
 
         # `get_object()` checks permissions
         organization = self.get_object()
@@ -131,66 +212,6 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def service_usage(self, request, pk=None, *args, **kwargs):
-        """
-        ## Organization Usage Tracker
-        <p>Tracks the total usage of different services for each account in an organization</p>
-        <p>Tracks the submissions and NLP seconds/characters for the current month/year/all time</p>
-        <p>Tracks the current total storage used</p>
-        <p>Includes a detailed list of balances relative to a user's usage limits</p>
-        <p>If no organization is found with the provided ID, returns the usage for the logged-in user</p>
-        <strong>This endpoint is cached for an amount of time determined by ENDPOINT_CACHE_DURATION</strong>
-
-        <pre class="prettyprint">
-        <b>GET</b> /api/v2/organizations/{organization_id}/service_usage/
-        </pre>
-
-        > Example
-        >
-        >       curl -X GET https://[kpi]/api/v2/organizations/{organization_id}/service_usage/
-        >       {
-        >           "total_nlp_usage": {
-        >               "asr_seconds_current_period": {integer},
-        >               "asr_seconds_all_time": {integer},
-        >               "mt_characters_current_period": {integer},
-        >               "mt_characters_all_time": {integer},
-        >           },
-        >           "total_storage_bytes": {integer},
-        >           "total_submission_count": {
-        >               "current_period": {integer},
-        >               "all_time": {integer},
-        >           },
-        >           "balances": {
-        >               "asr_seconds": {
-        >                   "effective_limit": {integer},
-        >                   "balance_value": {integer},
-        >                   "balance_percent": {integer},
-        >                   "exceeded": {boolean},
-        >               } | {None},
-        >               "mt_characters": {
-        >                   "effective_limit": {integer},
-        >                   "balance_value": {integer},
-        >                   "balance_percent": {integer},
-        >                   "exceeded": {boolean},
-        >               } | {None},
-        >               "storage_bytes": {
-        >                   "effective_limit": {integer},
-        >                   "balance_value": {integer},
-        >                   "balance_percent": {integer},
-        >                   "exceeded": {boolean},
-        >               } | {None},
-        >               "submission": {
-        >                   "effective_limit": {integer},
-        >                   "balance_value": {integer},
-        >                   "balance_percent": {integer},
-        >                   "exceeded": {boolean},
-        >               } | {None},
-        >           },
-        >           "current_period_start": {string (date), ISO format},
-        >           "current_period_end": {string (date), ISO format}|{None},
-        >           "last_updated": {string (date), ISO format},
-        >       }
-        ### CURRENT ENDPOINT
-        """
 
         self.get_object()  # This call is necessary to check permissions
         serializer = ServiceUsageSerializer(
@@ -209,43 +230,6 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], permission_classes=[IsOrgAdminPermission])
     def asset_usage(self, request, pk=None, *args, **kwargs):
-        """
-        ## Organization Asset Usage Tracker
-        <p>Tracks the total usage of each asset for the user in the given organization</p>
-
-        <pre class="prettyprint">
-        <b>GET</b> /api/v2/organizations/{organization_id}/asset_usage/
-        </pre>
-
-        > Example
-        >
-        >       curl -X GET https://[kpi]/api/v2/organizations/{organization_id}/asset_usage/
-        >       {
-        >           "count": {integer},
-        >           "next": {url_to_next_page},
-        >           "previous": {url_to_previous_page},
-        >           "results": [
-        >               {
-        >                   "asset_type": {string},
-        >                   "asset": {asset_url},
-        >                   "asset_name": {string},
-        >                   "nlp_usage_current_period": {
-        >                       "total_asr_seconds": {integer},
-        >                       "total_mt_characters": {integer},
-        >                   }
-        >                   "nlp_usage_all_time": {
-        >                       "total_asr_seconds": {integer},
-        >                       "total_mt_characters": {integer},
-        >                   }
-        >                   "storage_bytes": {integer},
-        >                   "submission_count_current_period": {integer},
-        >                   "submission_count_all_time": {integer},
-        >                   "deployment_status": {string},
-        >               },{...}
-        >           ]
-        >       }
-        ### CURRENT ENDPOINT
-        """
 
         # `get_object()` checks permissions
         organization = self.get_object()
@@ -288,13 +272,81 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
-    tags=['members'],
+    tags=['Organization Members'],
+    parameters=[
+        OpenApiParameter(
+            name='organization_id',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='ID of the organization',
+        )
+    ],
+)
+@extend_schema_view(
+    destroy=extend_schema(
+        description=read_md('organizations', 'members/delete.md'),
+        responses=open_api_204_empty_response(
+            require_auth=False,
+            validate_payload=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='user__username',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='Username of the user',
+            )
+        ],
+    ),
+    list=extend_schema(
+        description=read_md('organizations', 'members/list.md'),
+        responses=open_api_200_ok_response(
+            MemberListResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    retrieve=extend_schema(
+        description=read_md('organizations', 'members/retrieve.md'),
+        responses=open_api_200_ok_response(
+            MemberListResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='user__username',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='Username of the user',
+            )
+        ],
+    ),
+    partial_update=extend_schema(
+        description=read_md('organizations', 'members/update.md'),
+        request={'application/json': MemberPatchRequest},
+        responses=open_api_200_ok_response(
+            MemberListResponse,
+            require_auth=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='user__username',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='Username of the user',
+            )
+        ],
+    ),
 )
 class OrganizationMemberViewSet(viewsets.ModelViewSet):
     """
-    The API uses `ModelViewSet` instead of `NestedViewSetMixin` to maintain
-    explicit control over the queryset.
-
     ## Organization Members API
 
     This API allows authorized users to view and manage organization members and
@@ -302,160 +354,6 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 
     * Manage members and their roles within an organization.
     * Update member roles (promote/demote).
-
-    ### List Members
-
-    Retrieves all members in the specified organization.
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/organizations/{organization_id}/members/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/organizations/org_12345/members/
-
-    > Response 200
-
-    >       {
-    >           "count": 2,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >               {
-    >                   "url": "http://[kpi]/api/v2/organizations/org_12345/ \
-    >                   members/foo_bar/",
-    >                   "user": "http://[kpi]/api/v2/users/foo_bar/",
-    >                   "user__username": "foo_bar",
-    >                   "user__email": "foo_bar@example.com",
-    >                   "user__name": "Foo Bar",
-    >                   "role": "owner",
-    >                   "user__has_mfa_enabled": true,
-    >                   "date_joined": "2024-08-11T12:36:32Z",
-    >                   "user__is_active": true,
-    >                   "invite": {}
-    >               },
-    >               {
-    >                   "url": "http://[kpi]/api/v2/organizations/org_12345/ \
-    >                   members/john_doe/",
-    >                   "user": "http://[kpi]/api/v2/users/john_doe/",
-    >                   "user__username": "john_doe",
-    >                   "user__email": "john_doe@example.com",
-    >                   "user__name": "John Doe",
-    >                   "role": "admin",
-    >                   "user__has_mfa_enabled": false,
-    >                   "date_joined": "2024-10-21T06:38:45Z",
-    >                   "user__is_active": true,
-    >                   "invite": {
-    >                       "url": "http://[kpi]/api/v2/organizations/org_12345/
-    >                       invites/83c725f1-3f41-4f72-9657-9e6250e130e1/",
-    >                       "invited_by": "http://[kpi]/api/v2/users/raj_patel/",
-    >                       "status": "accepted",
-    >                       "invitee_role": "admin",
-    >                       "created": "2024-10-21T05:38:45Z",
-    >                       "modified": "2024-10-21T05:40:45Z",
-    >                       "invitee": "john_doe"
-    >                   }
-    >               },
-    >               {
-    >                   "url": null,
-    >                   "user": null,
-    >                   "user__username": null,
-    >                   "user__email": "null,
-    >                   "user__extra_details__name": "null,
-    >                   "role": null,
-    >                   "user__has_mfa_enabled": null,
-    >                   "date_joined": null,
-    >                   "user__is_active": null,
-    >                   "invite": {
-    >                       "url": "http://[kpi]/api/v2/organizations/org_12345/
-    >                       invites/83c725f1-3f41-4f72-9657-9e6250e130e1/",
-    >                       "invited_by": "http://[kpi]/api/v2/users/raj_patel/",
-    >                       "status": "pending",
-    >                       "invitee_role": "admin",
-    >                       "created": "2025-01-07T09:03:50Z",
-    >                       "modified": "2025-01-07T09:03:50Z",
-    >                       "invitee": "demo"
-    >                   }
-    >               },
-    >           ]
-    >       }
-
-
-    ### Retrieve Member Details
-
-    Retrieves the details of a specific member within an organization by username.
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/organizations/{organization_id}/members/{username}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/organizations/org_12345/members/foo_bar/
-
-    > Response 200
-
-    >       {
-    >           "url": "http://[kpi]/api/v2/organizations/org_12345/members/foo_bar/",
-    >           "user": "http://[kpi]/api/v2/users/foo_bar/",
-    >           "user__username": "foo_bar",
-    >           "user__email": "foo_bar@example.com",
-    >           "user__name": "Foo Bar",
-    >           "role": "owner",
-    >           "user__has_mfa_enabled": true,
-    >           "date_joined": "2024-08-11T12:36:32Z",
-    >           "user__is_active": true
-    >       }
-
-    ### Update Member Role
-
-    Updates the role of a member within the organization to `admin` or
-     `member`.
-
-    - **admin**: Grants the member admin privileges within the organization
-    - **member**: Revokes admin privileges, setting the member as a regular user
-
-    <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/organizations/{organization_id}/members/{username}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X PATCH https://[kpi]/api/v2/organizations/org_12345/members/foo_bar/
-
-    > Payload
-
-    >       {
-    >           "role": "admin"
-    >       }
-
-    > Response 200
-
-    >       {
-    >           "url": "http://[kpi]/api/v2/organizations/org_12345/members/foo_bar/",
-    >           "user": "http://[kpi]/api/v2/users/foo_bar/",
-    >           "user__username": "foo_bar",
-    >           "user__email": "foo_bar@example.com",
-    >           "user__name": "Foo Bar",
-    >           "role": "admin",
-    >           "user__has_mfa_enabled": true,
-    >           "date_joined": "2024-08-11T12:36:32Z",
-    >           "user__is_active": true
-    >       }
-
-
-    ### Remove Member
-
-    Delete an organization member.
-
-    <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/organizations/{organization_id}/members/{username}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X DELETE https://[kpi]/api/v2/organizations/org_12345/members/foo_bar/
 
     ## Permissions
 
@@ -472,6 +370,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     permission_classes = [OrganizationNestedHasOrgRolePermission]
     http_method_names = ['get', 'patch', 'delete']
     lookup_field = 'user__username'
+    renderer_classes = [
+        JSONRenderer,
+    ]
 
     def paginate_queryset(self, queryset):
         page = super().paginate_queryset(queryset)
