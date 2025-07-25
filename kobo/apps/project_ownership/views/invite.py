@@ -1,227 +1,100 @@
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from rest_framework.renderers import JSONRenderer
 
 from kpi.permissions import IsAuthenticated
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_201_created_response,
+    open_api_204_empty_response,
+)
 from ...audit_log.base_views import AuditLoggedModelViewSet
 from ..filters import InviteFilter
 from ..models import Invite
+from ..schema_extensions.v2.project_ownership.invites.serializers import (
+    InviteCreatePayload,
+    InviteResponse,
+    InviteUpdatePayload,
+)
 from ..serializers import InviteSerializer
 
 
 @extend_schema(
-    tags=['project-ownership-invites'],
+    tags=['Project Ownership Invites'],
+)
+@extend_schema_view(
+    create=extend_schema(
+        description=read_md('project_ownership', 'project_ownership/invites/create.md'),
+        request={'application/json': InviteCreatePayload},
+        responses=open_api_201_created_response(
+            InviteResponse,
+            require_auth=False,
+            raise_not_found=False,
+        ),
+    ),
+    destroy=extend_schema(
+        description=read_md('project_ownership', 'project_ownership/invites/delete.md'),
+        responses=open_api_204_empty_response(
+            require_auth=False,
+            validate_payload=False,
+        ),
+    ),
+    list=extend_schema(
+        description=read_md('project_ownership', 'project_ownership/invites/list.md'),
+        responses=open_api_200_ok_response(
+            InviteResponse,
+            require_auth=False,
+            raise_not_found=False,
+            validate_payload=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='mode',
+                type=str,
+                required=False,
+                location=OpenApiParameter.QUERY,
+            ),
+        ]
+    ),
+    retrieve=extend_schema(
+        description=read_md(
+            'project_ownership', 'project_ownership/invites/retrieve.md'
+        ),
+        responses=open_api_200_ok_response(
+            InviteResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
+    ),
+    partial_update=extend_schema(
+        description=read_md('project_ownership', 'project_ownership/invites/update.md'),
+        request={'application/json': InviteUpdatePayload},
+        responses=open_api_200_ok_response(
+            InviteResponse,
+            require_auth=False,
+        ),
+    ),
+    update=extend_schema(
+        exclude=True,
+    ),
 )
 class InviteViewSet(AuditLoggedModelViewSet):
     """
-    ## List of invites
+    Viewset for managing project invites
 
-    Invites sent or received by current user about transfer project ownership.
+    Available actions:
+    - create            → GET     /api/v2/project-ownership/invites/
+    - destroy           → GET     /api/v2/project-ownership/invites/{guid}/
+    - list              → GET     /api/v2/project-ownership/invites/
+    - retrieve          → GET     /api/v2/project-ownership/invites/{guid}/
+    - partial_update    → GET     /api/v2/project-ownership/invites/{guid}/
 
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/project-ownership/invites/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/project-ownership/invites/
-
-    <pre class="prettyprint">
-    <b>HTTP 200 OK</b>
-    {
-        "count": 1
-        "next": ...
-        "previous": ...
-        "results": [
-            {
-               "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/",
-               "recipient": "https://[kpi]/api/v2/users/bob/",
-               "status": "complete",
-               "date_created": "2023-12-14T21:17:27Z",
-               "date_modified": "2023-12-14T21:17:29Z",
-               "transfers": [
-                   {
-                       "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
-                       "asset": "https://[kpi]/api/v2/assets/a8rg3w7ZNL5Nwj7iHzKiyX/",
-                       "status": "success",
-                       "error": null,
-                       "date_modified": "2023-12-14T21:17:29Z"
-                   }
-               ]
-           }
-        ]
-    }
-    </pre>
-
-    List can be filtered with `mode` parameter,  e.g.: display only received invites.
-
-    Possible values for `mode`:
-
-    - `sender`
-    - `recipient`
-
-
-    ## Create an invite
-
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/project-ownership/invites/
-    </pre>
-
-    > Example
-    >
-    >       curl -X POST https://[kpi]/api/v2/project-ownership/invites/
-
-
-    > Payload to create (send) an invite
-    >
-    >       {
-    >            "recipient": "https://[kpi]/api/v2/users/alice/",
-    >            "assets": [
-    >                "a8rg3w7ZNL5Nwj7iHzKiyX"
-    >            ]
-    >       }
-
-    <pre class="prettyprint">
-    <b>HTTP 201 OK</b>
-    {
-        "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/",
-        "recipient": "https://[kpi]/api/v2/users/alice/",
-        "status": "pending",
-        "date_created": "2023-12-14T21:17:27Z",
-        "date_modified": "2023-12-14T21:17:29Z",
-        "transfers": [
-           {
-               "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
-               "asset": "https://[kpi]/api/v2/assets/a8rg3w7ZNL5Nwj7iHzKiyX/",
-               "status": "pending",
-               "error": null,
-               "date_modified": "2023-12-14T21:17:29Z"
-           }
-        ]
-    }
-    </pre>
-
-    ## Cancel an invite
-
-    <span class='label label-warning'>Only the sender can cancel an invite, and **if only if** the invite is still pending.</span>
-
-    <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/project-ownership/invites/&lt;invite_uid&gt;/
-    </pre>
-
-    > Example
-    >
-    >       curl -X PATCH https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/
-
-
-    > Payload to cancel an invite
-    >
-    >       {
-    >            "status": "cancelled"
-    >       }
-
-    <pre class="prettyprint">
-    <b>HTTP 200 OK</b>
-    {
-        "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/",
-        "recipient": "https://[kpi]/api/v2/users/alice/",
-        "status": "cancelled",
-        "date_created": "2023-12-14T21:17:27Z",
-        "date_modified": "2023-12-14T21:17:29Z",
-        "transfers": [
-           {
-               "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
-               "asset": "https://[kpi]/api/v2/assets/a8rg3w7ZNL5Nwj7iHzKiyX/",
-               "status": "cancelled",
-               "error": null,
-               "date_modified": "2023-12-14T21:17:29Z"
-           }
-        ]
-    }
-    </pre>
-
-    ## Accept or decline an invite
-
-    <span class='label label-warning'>Only the recipient can accept or decline, **if and only if** the invite is still pending.</span>
-
-    <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/project-ownership/invites/&lt;invite_uid&gt;/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/
-
-    > Payload to accept (or decline) an invite
-    >
-    >       {
-    >            "status": "accepted|declined"
-    >       }
-
-    <pre class="prettyprint">
-    <b>HTTP 200 OK</b>
-    {
-        "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/",
-        "recipient": "https://[kpi]/api/v2/users/alice/",
-        "status": "in_progress|declined",
-        "date_created": "2023-12-14T21:17:27Z",
-        "date_modified": "2023-12-14T21:17:29Z",
-        "transfers": [
-           {
-               "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
-               "asset": "https://[kpi]/api/v2/assets/a8rg3w7ZNL5Nwj7iHzKiyX/",
-               "status": "in_progress|cancelled",
-               "error": null,
-               "date_modified": "2023-12-14T21:17:29Z"
-           }
-        ]
-    }
-    </pre>
-
-    _**Notes**: When submitting `accepted` the invite status becomes automatically `in_progress`_
-
-
-    ## Invite detail
-
-    It can be useful to monitor the invite status while the transfer is being
-    process
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/project-ownership/invites/&lt;invite_uid&gt;/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/
-
-    <pre class="prettyprint">
-    <b>HTTP 200 OK</b>
-    {
-        "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/",
-        "recipient": "https://[kpi]/api/v2/users/alice/",
-        "status": "in_progress",
-        "date_created": "2023-12-14T21:17:27Z",
-        "date_modified": "2023-12-14T21:17:29Z",
-        "transfers": [
-           {
-               "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
-               "asset": "https://[kpi]/api/v2/assets/a8rg3w7ZNL5Nwj7iHzKiyX/",
-               "status": "in_progress",
-               "error": null,
-               "date_modified": "2023-12-14T21:17:29Z"
-           },
-           ...
-          {
-               "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/potKpv6rc9xGoPwSHft2prWs/",
-               "asset": "https://[kpi]/api/v2/assets/a8jyVbhvaPSBRtYqoshiLE/",
-               "status": "success",
-               "error": null,
-               "date_modified": "2023-12-14T21:16:29Z"
-           }
-        ]
-    }
-    </pre>
-
-
-    ### CURRENT ENDPOINT
+    Documentation:
+    - docs/api/v2/project_ownership/invites/create.md
+    - docs/api/v2/project_ownership/invites/delete.md
+    - docs/api/v2/project_ownership/invites/list.md
+    - docs/api/v2/project_ownership/invites/retrieve.md
+    - docs/api/v2/project_ownership/invites/update.md
     """
 
     model = Invite
@@ -231,6 +104,9 @@ class InviteViewSet(AuditLoggedModelViewSet):
     filter_backends = (InviteFilter, )
     log_type = 'project-history'
     logged_fields = ['recipient.username', 'status', 'transfers']
+    renderer_classes = [
+        JSONRenderer,
+    ]
 
     def get_queryset(self):
 
