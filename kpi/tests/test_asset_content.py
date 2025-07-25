@@ -1,15 +1,16 @@
-# coding: utf-8
 import inspect
 import json
 import string
 from collections import OrderedDict
 from copy import deepcopy
 from functools import reduce
+from unittest.mock import patch
 
-import pytest
 from django.conf import settings
+from django.test import TestCase
 from model_bakery import baker
 
+from kpi.constants import ATTACHMENT_QUESTION_TYPES
 from kpi.models import Asset
 from kpi.utils.sluggify import sluggify_label
 
@@ -868,25 +869,114 @@ def test_populates_xpath_correctly():
     assert [rr['$xpath'] for rr in rs] == ['g1', 'g1/r1', 'g1/g2', 'g1/g2/r2']
 
 
-@pytest.mark.django_db()
-def test_return_xpaths_even_if_missing():
-    user = baker.make(
-        settings.AUTH_USER_MODEL, username='johndoe'
-    )
-    asset = Asset.objects.create(owner=user, content={
-        'survey': [
-            {'type': 'begin_group', 'name': 'g1'},
-            {'type': 'audio', 'name': 'r1', '$kuid': 'k1'},
-            {'type': 'begin_group', 'name': 'g2'},
-            {'type': 'image', 'name': 'r2', '$kuid': 'k2'},
-            {'type': 'end_group'},
-            {'type': 'end_group'},
-        ],
-    })
+class TestAssetContent(TestCase):
 
-    expected = ['g1/r1', 'g1/g2/r2']
-    # 'xpath' is not injected until an Asset object is saved with
-    # `adjust_content=True` or `adjust_content_on_save()` is called directly.
-    # No matter what, `get_attachment_xpaths()` should be able to return
-    # attachment xpaths.
-    assert asset.get_attachment_xpaths(deployed=False) == expected
+    def setUp(self):
+        user = baker.make(settings.AUTH_USER_MODEL, username='johndoe')
+        # survey with 1 attachment question
+        self.asset = Asset.objects.create(
+            owner=user,
+            content={
+                'survey': [
+                    {
+                        'type': 'image',
+                        'label': ['Image'],
+                        'required': False,
+                        'name': 'Image',
+                    }
+                ]
+            },
+        )
+        self.asset.deploy(backend='mock')
+
+    def test_get_attachment_xpaths_from_all_versions(self):
+
+        asset = self.asset
+        # move the attachment question to a group
+        asset.content = {
+            'survey': [
+                {
+                    'name': 'group_kq1rd43',
+                    'type': 'begin_group',
+                    'label': ['Group'],
+                },
+                {
+                    'type': 'image',
+                    'label': ['Image'],
+                    'required': False,
+                    'name': 'Image',
+                },
+                {'type': 'end_group'},
+            ],
+        }
+        asset.save()
+        asset.deploy(backend='mock')
+        xpaths = asset.get_all_attachment_xpaths()
+        assert sorted(xpaths) == ['Image', 'group_kq1rd43/Image']
+
+        assert asset.asset_versions.filter(deployed=True).count() == 2
+
+        # Simulate versions created before the NLP feature, which lack the `$xpath`
+        # property
+        first_version = (
+            asset.asset_versions.filter(deployed=True).order_by('date_modified').first()
+        )
+        first_version_survey = first_version.version_content['survey']
+        for question in first_version_survey:
+            if question['type'] not in ATTACHMENT_QUESTION_TYPES:
+                continue
+            try:
+                del question['$xpath']
+            except KeyError:
+                pass
+
+        first_version.version_content['survey'] = first_version_survey
+        first_version.save(update_fields=['version_content'])
+
+        # Validate XPaths can still be retrieved even on old versions
+        xpaths = asset.get_all_attachment_xpaths()
+        assert sorted(xpaths) == ['Image', 'group_kq1rd43/Image']
+
+    @patch('kpi.models.asset.Asset.get_attachment_xpaths_from_version')
+    def test_xpath_method_called_once_for_single_version(
+        self, mock_get_xpaths_from_version
+    ):
+        """
+        Test `get_attachment_xpaths_from_version()` is called only once
+        for a single deployed version and results are cached
+        """
+        # Simulate return value for a single version
+        mock_get_xpaths_from_version.return_value = ['Image']
+
+        # Call the method twice, should hit cache after first call
+        self.asset.get_all_attachment_xpaths()
+        self.asset.get_all_attachment_xpaths()
+
+        # Confirm that the mock was called only once
+        mock_get_xpaths_from_version.assert_called_once()
+
+    @patch('kpi.models.asset.Asset.get_attachment_xpaths_from_version')
+    def test_xpath_method_called_once_per_version(self, mock_get_xpaths_from_version):
+        """
+        Test `get_attachment_xpaths_from_version()` is called only once per deployed
+        version and results are cached
+        """
+        self.asset.content['survey'].append(
+            {'type': 'image', 'name': 'image2', 'label': ['image2']}
+        )
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+
+        # Use side_effect to simulate distinct outputs for each version
+        mock_get_xpaths_from_version.side_effect = [
+            ['image'],               # first version
+            ['image', 'image2'],     # second version
+        ]
+
+        # Call multiple times, should hit cache for each version
+        self.asset.get_all_attachment_xpaths()
+        self.asset.get_all_attachment_xpaths()
+        self.asset.get_all_attachment_xpaths()
+
+        # Confirm it was called twice, once for each version
+        self.assertEqual(mock_get_xpaths_from_version.call_count, 2)

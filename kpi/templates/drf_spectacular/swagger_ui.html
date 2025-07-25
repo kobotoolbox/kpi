@@ -7,6 +7,13 @@
 {% endblock %}
 
 {% block body %}
-    {{ block.super }}
-    <script src="{% static 'js/swagger/swagger-smart-search.js' %}"></script>
+  {% csrf_token %}
+  <div id="swagger-ui"
+       data-schema-url="{{ data_schema_url }}"
+       data-csrf-header-name="X-CSRFToken"
+  ></div>
+  <script src="{{ swagger_ui_bundle }}"></script>
+  <script src="{{ swagger_ui_standalone }}"></script>
+  <script src="{{ script_url }}"></script>
+  <script src="{% static 'js/swagger/swagger-smart-search.js' %}"></script>
 {% endblock %}

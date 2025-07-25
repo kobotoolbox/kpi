@@ -3,11 +3,19 @@ import json
 
 import constance
 from django.utils.translation import gettext as t
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.hook.models.hook import Hook
+from kobo.apps.hook.schema_extensions.v2.hooks.fields import (
+    LogsUrlField,
+    SettingsField,
+    SubsetFieldsField,
+    UrlField,
+)
 
 
 class HookSerializer(serializers.ModelSerializer):
@@ -15,24 +23,51 @@ class HookSerializer(serializers.ModelSerializer):
     payload_template = serializers.CharField(required=False, allow_blank=True,
                                              allow_null=True)
 
+    settings = SettingsField()
+    subset_fields = SubsetFieldsField()
+
     class Meta:
         model = Hook
-        fields = ('url', 'logs_url', 'asset', 'uid', 'name', 'endpoint', 'active',
-                  'export_type', 'auth_level', 'success_count', 'failed_count',
-                  'pending_count', 'settings', 'date_modified', 'email_notification',
-                  'subset_fields', 'payload_template')
+        fields = (
+            'active',
+            'asset',
+            'auth_level',
+            'date_modified',
+            'email_notification',
+            'endpoint',
+            'export_type',
+            'failed_count',
+            'logs_url',
+            'name',
+            'payload_template',
+            'pending_count',
+            'settings',
+            'subset_fields',
+            'success_count',
+            'uid',
+            'url',
+        )
 
-        read_only_fields = ('url', 'asset', 'uid', 'date_modified', 'success_count',
-                            'failed_count', 'pending_count')
+        read_only_fields = (
+            'asset',
+            'date_modified',
+            'failed_count',
+            'uid',
+            'url',
+            'pending_count',
+            'success_count',
+        )
 
-    url = serializers.SerializerMethodField()
-    logs_url = serializers.SerializerMethodField()
+    url = UrlField()
+    logs_url = LogsUrlField()
 
+    @extend_schema_field(OpenApiTypes.URI_REF)
     def get_url(self, hook):
         return reverse('hook-detail',
                        args=(hook.asset.uid, hook.uid),
                        request=self.context.get('request', None))
 
+    @extend_schema_field(OpenApiTypes.URI_REF)
     def get_logs_url(self, hook):
         return reverse('hook-log-list',
                        args=(hook.asset.uid, hook.uid),

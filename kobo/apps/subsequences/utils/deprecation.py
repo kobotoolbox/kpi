@@ -23,7 +23,7 @@ def get_sanitized_advanced_features(asset: 'Asset') -> dict | None:
     qual_survey_iter = deepcopy(qual_survey_orig)
     for idx, qual_q in enumerate(qual_survey_iter):
         qpath = qual_survey_orig[idx]['qpath']
-        xpath = qpath_to_xpath(qpath, asset)
+        xpath = asset.get_xpath_from_qpath(qpath)
         del qual_survey_orig[idx]['qpath']
         qual_survey_orig[idx]['xpath'] = xpath
 
@@ -39,7 +39,7 @@ def get_sanitized_dict_keys(dict_to_update: dict, asset: 'Asset') -> dict | None
     changed = False
     for old_xpath, values in dict_to_update.items():
         if '-' in old_xpath and '/' not in old_xpath:
-            xpath = qpath_to_xpath(old_xpath, asset)
+            xpath = asset.get_xpath_from_qpath(old_xpath)
             if xpath == old_xpath:
                 continue
 
@@ -62,7 +62,7 @@ def get_sanitized_known_columns(asset: 'Asset') -> list:
         # it will enter this condition - which is not a problem except extra
         # CPU usage for nothing.
         if '-' in xpath and '/' not in xpath:
-            xpath = qpath_to_xpath(xpath, asset)
+            xpath = asset.get_xpath_from_qpath(xpath)
             rest.insert(0, xpath)
             known_cols[idx] = ':'.join(rest)
 
@@ -88,7 +88,7 @@ def qpath_to_xpath(qpath: str, asset: 'Asset') -> str:
             return ''
 
     # Could not find it from the survey, let's try to detect it automatically
-    xpaths = asset.get_attachment_xpaths(deployed=True)
+    xpaths = asset.get_all_attachment_xpaths()
     for xpath in xpaths:
         dashed_xpath = xpath.replace('/', '-')
         if dashed_xpath == qpath:

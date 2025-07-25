@@ -225,14 +225,19 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       )
     }
 
+    const attachmentShortFilename = attachment.filename.split('/').pop()
+
     return (
       <>
         {type === QUESTION_TYPES.audio.id && (
           <Group>
             <AudioPlayer mediaURL={attachment?.download_url} />
 
+            <span className='print-only'>{attachmentShortFilename}</span>
+
             {shouldProcessingBeAccessible(this.props.submissionData, attachment) && (
               <Button
+                className='hide-on-print'
                 type='primary'
                 size='s'
                 endIcon='arrow-up-right'
@@ -244,12 +249,20 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
         )}
 
         {type === QUESTION_TYPES.image.id && (
-          <a href={attachment.download_url} target='_blank'>
-            <img src={attachment.download_medium_url} />
-          </a>
+          <>
+            <a href={attachment.download_url} target='_blank'>
+              <img src={attachment.download_medium_url} />
+            </a>
+            <span className='print-only'>{attachmentShortFilename}</span>
+          </>
         )}
 
-        {type === QUESTION_TYPES.video.id && <video src={attachment.download_url} controls />}
+        {type === QUESTION_TYPES.video.id && (
+          <>
+            <video src={attachment.download_url} controls />
+            <span className='print-only'>{attachmentShortFilename}</span>
+          </>
+        )}
 
         {type === QUESTION_TYPES.file.id && (
           <a href={attachment.download_url} target='_blank'>

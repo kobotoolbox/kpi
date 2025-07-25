@@ -28,24 +28,24 @@ class MockCachedClass(CachedClass):
 
 def test_cached_class_int_property():
     instance = MockCachedClass()
-    instance._clear_cache()
+    instance.clear_cache()
     assert instance.get_number() == 1
     assert instance.get_number() == 1
-    instance._clear_cache()
+    instance.clear_cache()
     assert instance.get_number() == 2
 
 
 def test_cached_class_dict_property():
     instance = MockCachedClass()
-    instance._clear_cache()
+    instance.clear_cache()
     assert instance.get_dict() == {'value': 1, 'other_value': 'test'}
     assert instance.get_dict()['value'] == 1
-    instance._clear_cache()
+    instance.clear_cache()
     assert instance.get_dict()['value'] == 2
 
 
 def clear_mock_cache(self):
-    self._clear_cache()
+    self.clear_cache()
 
 
 @patch('kpi.utils.cache.CachedClass._handle_cache_expiration', clear_mock_cache)
