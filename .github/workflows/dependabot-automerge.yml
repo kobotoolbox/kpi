@@ -25,7 +25,7 @@ jobs:
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v1.3.1
+        uses: dependabot/fetch-metadata@v2.4.0
 
       # Disable until I figure out what is wrong with automerges
       # - name: Enable auto-merge for Dependabot PRs of patch and minor updates
@@ -46,7 +46,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
       - name: Get special token that can read organization users
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v2
         id: app-token
         with:
           app-id: ${{ vars.PR_MANAGEMENT_APP_ID }}
