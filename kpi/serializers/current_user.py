@@ -9,6 +9,8 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as t
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
@@ -80,11 +82,13 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         )
         return accepted_tos
 
+    @extend_schema_field(OpenApiTypes.DATETIME)
     def get_date_joined(self, obj):
         return obj.date_joined.astimezone(ZoneInfo('UTC')).strftime(
             '%Y-%m-%dT%H:%M:%SZ'
         )
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_git_rev(self, obj):
         request = self.context.get('request', False)
         if constance.config.EXPOSE_GIT_REV or (
@@ -94,9 +98,10 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         else:
             return False
 
-    def get_gravatar(self, obj):
+    def get_gravatar(self, obj) -> str:
         return gravatar_url(obj.email)
 
+    @extend_schema_field(OpenApiTypes.OBJECT)
     def get_organization(self, obj):
         user = get_database_user(obj)
         request = self.context.get('request')
@@ -113,15 +118,18 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'uid': user.organization.id,
         }
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_projects_url(self, obj):
         return '/'.join((settings.KOBOCAT_URL, obj.username))
 
+    @extend_schema_field(OpenApiTypes.DATETIME)
     def get_server_time(self, obj):
         # Currently unused on the front end
         return datetime.datetime.now(tz=ZoneInfo('UTC')).strftime(
             '%Y-%m-%dT%H:%M:%SZ'
         )
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_validated_password(self, obj):
         try:
             extra_details = obj.extra_details
