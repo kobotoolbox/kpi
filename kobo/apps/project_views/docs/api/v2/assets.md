@@ -1,1 +1,1 @@
-## Retrieve asset of shared project
+## Retrieve assets available in project view

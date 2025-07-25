@@ -1,1 +1,1 @@
-## List project views of shared project to current user
+## List project views for current user

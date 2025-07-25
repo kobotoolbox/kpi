@@ -1,1 +1,1 @@
-## Retrieve shared user for project
+## Retrieve users available in project view
