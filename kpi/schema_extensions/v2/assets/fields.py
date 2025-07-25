@@ -1,9 +1,5 @@
 from rest_framework import serializers
 
-from kpi.fields import (
-    WritableJSONField,
-)
-
 
 class AccessTypeField(serializers.ListField):
     pass
@@ -41,7 +37,7 @@ class AssignablePermissionField(serializers.ListField):
     pass
 
 
-class BulkActionField(WritableJSONField):
+class BulkActionField(serializers.CharField):
     pass
 
 
@@ -57,7 +53,7 @@ class ChildrenField(serializers.JSONField):
     pass
 
 
-class ContentDataField(WritableJSONField):
+class ContentDataField(serializers.JSONField):
     pass
 
 

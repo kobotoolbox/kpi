@@ -165,14 +165,14 @@ class AssetSettingsFieldExtension(OpenApiSerializerFieldExtension):
 
 
 class BulkActionFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.assets.serializers.BulkActionField'
+    target_class = 'kpi.schema_extensions.v2.assets.fields.BulkActionField'
 
     def map_serializer(self, auto_schema, direction):
-        return build_object_type(properties={})
+        return build_basic_type(OpenApiTypes.STR)
 
 
 class BulkAssetUidsFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.assets.serializers.BulkAssetUidsField'
+    target_class = 'kpi.schema_extensions.v2.assets.fields.BulkAssetUidsField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
