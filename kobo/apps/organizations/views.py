@@ -2,6 +2,7 @@ from django.db import transaction
 from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
+from drf_spectacular.openapi import AutoSchema
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -13,6 +14,11 @@ from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
+from kpi.schema_extensions.v2.invites.serializers import (
+    InviteCreatePayload,
+    InvitePatchPayload,
+    InviteResponse,
+)
 from kpi.schema_extensions.v2.members.serializers import (
     MemberListResponse,
     MemberPatchRequest,
@@ -28,6 +34,7 @@ from kpi.serializers.v2.service_usage import (
     ServiceUsageSerializer,
 )
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
@@ -55,6 +62,59 @@ from .serializers import (
     OrgMembershipInviteSerializer,
 )
 from .utils import revoke_org_asset_perms
+
+
+class InviteSchema(AutoSchema):
+    """
+    Custom schema used to inject OpenAPI examples for OrgMembershipInviteViewSet
+    at runtime.
+
+    We cannot use `@extend_schema(..., examples=...)` or `@extend_schema_view(...)`
+    directly for these examples because the values rely on variables
+    that trigger Django's URL resolver via `reverse()`.
+    Since those decorators are evaluated at module import time—before the full Django
+    application and URL config are guaranteed to be loaded—this leads to circular
+    import errors.
+
+    By overriding `get_operation()` here, we defer the evaluation of those dynamic
+    values until the OpenAPI schema is being generated (e.g., via `/api/v2/schema/`),
+    when all apps and routes are fully initialized. This ensures a clean, safe injection
+    of complex or reverse-dependent examples.
+    """
+
+    def get_operation(self, *args, **kwargs):
+
+        from kpi.schema_extensions.v2.invites.schema import (
+            INVITE_ROLE_SCHEMA,
+            INVITE_STATUS_SCHEMA,
+        )
+
+        operation = super().get_operation(*args, **kwargs)
+
+        if not operation:
+            return None
+
+        if (
+            operation.get('operationId')
+            == 'api_v2_organizations_invites_partial_update'
+        ):
+
+            operation['requestBody']['content']['application/json']['examples'] = {
+                'UsingStatus': {
+                    'value': {
+                        'status': generate_example_from_schema(INVITE_STATUS_SCHEMA),
+                    },
+                    'summary': 'Updating status',
+                },
+                'UsingRole': {
+                    'value': {
+                        'role': generate_example_from_schema(INVITE_ROLE_SCHEMA),
+                    },
+                    'summary': 'Updating role',
+                },
+            }
+
+        return operation
 
 
 class OrganizationAssetViewSet(AssetViewSet):
@@ -469,163 +529,112 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
-    tags=['invites'],
+    tags=['Organization Invites'],
+    parameters=[
+        OpenApiParameter(
+            name='organization_id',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='ID of the organization asset',
+        )
+    ],
+)
+@extend_schema_view(
+    create=extend_schema(
+        description=read_md('organizations', 'invites/create.md'),
+        request={'application/json': InviteCreatePayload},
+        responses=open_api_200_ok_response(
+            InviteResponse(many=True),
+            require_auth=False,
+            raise_access_forbidden=False,
+        ),
+    ),
+    destroy=extend_schema(
+        description=read_md('organizations', 'invites/delete.md'),
+        responses=open_api_204_empty_response(
+            require_auth=False,
+            validate_payload=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='guid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='GUID of the invite',
+            )
+        ],
+    ),
+    list=extend_schema(
+        description=read_md('organizations', 'invites/list.md'),
+        responses=open_api_200_ok_response(
+            InviteResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    partial_update=extend_schema(
+        description=read_md('organizations', 'invites/update.md'),
+        request={'application/json': InvitePatchPayload},
+        responses=open_api_200_ok_response(
+            InviteResponse(many=False),
+            require_auth=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='guid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='GUID of the invite',
+            ),
+        ],
+    ),
+    retrieve=extend_schema(
+        description=read_md('organizations', 'invites/retrieve.md'),
+        responses=open_api_200_ok_response(
+            InviteResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='guid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='GUID of the invite',
+            ),
+        ],
+    ),
 )
 class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     """
-    ### List Organization Invites
+    Viewset for managing organization invites
 
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/organizations/{organization_id}/invites/
-    </pre>
+    Available actions:
+    - create            → CREATE    /api/v2/organization/{parent_lookup_organization}/invites/  # noqa
+    - destroy           → DELETE    /api/v2/organization/{parent_lookup_organization}/invites/{guid}/  # noqa
+    - list              → LIST      /api/v2/organization/{parent_lookup_organization}/invites/  # noqa
+    - retrieve          → RETRIEVE  /api/v2/organization/{parent_lookup_organization}/invites/{guid}/   # noqa
+    - partial_update    → PATCH     /api/v2/organization/{parent_lookup_organization}/invites/{guid}/   # noqa
 
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/organizations/org_12345/invites/
-
-    > Response 200
-
-    >       {
-    >           "count": 2,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >               {
-    >                   "url": "http://kf.kobo.local/api/v2/organizations/
-                        org_12345/invites/f361ebf6-d1c1-4ced-8343-04b11863d784/",
-    >                   "invited_by": "http://kf.kobo.local/api/v2/users/demo7/",
-    >                   "status": "pending",
-    >                   "invitee_role": "member",
-    >                   "created": "2024-12-11T16:00:00Z",
-    >                   "modified": "2024-12-11T16:00:00Z",
-    >                   "invitee": "raj_patel"
-    >               },
-    >               {
-    >                   "url": "http://kf.kobo.local/api/v2/organizations/
-                        org_12345/invites/1a8b93bf-eec5-4e56-bd4a-5f7657e6a2fd/",
-    >                   "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
-    >                   "status": "pending",
-    >                   "invitee_role": "member",
-    >                   "created": "2024-12-11T18:19:56Z",
-    >                   "modified": "2024-12-11T18:19:56Z",
-    >                   "invitee": "demo7"
-    >               },
-    >           ]
-    >       }
-
-    ### Create Organization Invite
-
-    * Create organization invites for registered and unregistered users.
-    * Set the role for which the user is being invited -
-    (Choices: `member`, `admin`). Default is `member`.
-
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/organizations/{organization_id}/invites/
-    </pre>
-
-    > Example
-    >
-    >       curl -X POST https://[kpi]/api/v2/organizations/org_12345/invites/
-
-    > Payload
-
-    >       {
-    >           "invitees": ["demo14", "demo13@demo13.com", "demo20@demo20.com"]
-    >           "role": "member"
-    >       }
-
-    > Response 200
-
-    >       [
-    >           {
-    >               "url": "http://kf.kobo.local/api/v2/organizations/
-                    org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/",
-    >               "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
-    >               "status": "pending",
-    >               "invitee_role": "member",
-    >               "created": "2024-12-20T13:35:13Z",
-    >               "modified": "2024-12-20T13:35:13Z",
-    >               "invitee": "demo14"
-    >           },
-    >           {
-    >               "url": "http://kf.kobo.local/api/v2/organizations/
-                    org_12345/invites/5e79e0b4-6de4-4901-bbe5-59807fcdd99a/",
-    >               "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
-    >               "status": "pending",
-    >               "invitee_role": "member",
-    >               "created": "2024-12-20T13:35:13Z",
-    >               "modified": "2024-12-20T13:35:13Z",
-    >               "invitee": "demo13"
-    >           },
-    >           {
-    >               "url": "http://kf.kobo.local/api/v2/organizations/
-                    org_12345/invites/3efb7217-171f-47a5-9a42-b23055e499d4/",
-    >               "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
-    >               "status": "pending",
-    >               "invitee_role": "member",
-    >               "created": "2024-12-20T13:35:13Z",
-    >               "modified": "2024-12-20T13:35:13Z",
-    >               "invitee": "demo20@demo20.com"
-    >           }
-    >       ]
-
-    ### Update Organization Invite
-
-    * Update an organization invite to accept, decline, cancel, expire, or resend.
-    * Update the role of the invitee to `admin` or `member`. Only the owner or admin can update the role.
-
-    <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/organizations/{organization_id}/invites/{invite_guid}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X PATCH https://[kpi]/api/v2/organizations/org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/  # noqa
-
-    > Payload (Update Status)
-
-    >       {
-    >           "status": "accepted"
-    >       }
-
-    > Payload (Update Role - Only owner or admin can update role)
-
-    >       {
-    >           "role": "admin"
-    >       }
-
-    > Response 200
-
-    >       {
-    >           "url": "http://kf.kobo.local/api/v2/organizations/org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/",  # noqa
-    >           "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
-    >           "status": "accepted",
-    >           "invitee_role": "member",
-    >           "created": "2024-12-20T13:35:13Z",
-    >           "modified": "2024-12-20T13:35:13Z",
-    >           "invitee": "demo14"
-    >       }
-
-    ### Delete Organization Invite
-
-    * Organization owner or admin can delete an organization invite.
-
-    <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/organizations/{organization_id}/invites/{invite_guid}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X DELETE https://[kpi]/api/v2/organizations/org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/
-
-    > Response 204
-
+    Documentation:
+    - docs/api/v2/invites/create.md
+    - docs/api/v2/invites/destroy.md
+    - docs/api/v2/invites/list.md
+    - docs/api/v2/invites/retrieve.md
+    - docs/api/v2/invites/update.md
     """
 
     serializer_class = OrgMembershipInviteSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     lookup_field = 'guid'
     renderer_classes = (JSONRenderer,)
+    schema = InviteSchema
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
