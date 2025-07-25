@@ -101,6 +101,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             '%Y-%m-%dT%H:%M:%SZ'
         )
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_git_rev(self, obj):
         request = self.context.get('request', False)
         if constance.config.EXPOSE_GIT_REV or (
