@@ -49,7 +49,7 @@ jobs:
           cache-name: cache-node-modules
         with:
           path: node_modules
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-node-v${{ steps.resolved-node-version.outputs.NODE_VERSION }}-${{ hashFiles('**/package-lock.json', 'patches/**/*.patch') }}
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-node-${{ steps.resolved-node-version.outputs.NODE_VERSION }}-${{ hashFiles('**/package-lock.json', 'patches/**/*.patch') }}
 
       # Cache hit:  If the cache key matches,
       #             /node_modules/ will have been copied from a previous run.
@@ -91,7 +91,7 @@ jobs:
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: 'playwright-browsers-${{ github.head_ref }}-${{ needs.read-playwright-version.outputs.playwright-version }}'
+          key: 'playwright-browsers-${{ needs.read-playwright-version.outputs.playwright-version }}'
 
       - run: npx playwright install --with-deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
