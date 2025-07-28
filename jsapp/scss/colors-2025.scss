@@ -1,0 +1,263 @@
+// 2025 Design Guidelines - Color System
+// This file will contain the new color palette based on the 2025 design guidelines
+// To be populated with specific color codes when guidelines are provided
+
+/*
+ * 2025 Design System - Color Foundation
+ * ===================================
+ * 
+ * This new color system will replace the existing colors.scss gradually.
+ * All colors follow the 2025 design guidelines and are designed for:
+ * - Accessibility (WCAG 2.1 AA compliance)
+ * - Modern design principles
+ * - Consistent semantic color usage
+ */
+
+// =============================================================================
+// PRIMARY COLORS - Main brand colors for primary actions and branding
+// =============================================================================
+
+// Primary Blue Palette - Modern 2025 brand color (Based on best practices)
+$primary-blue-50: hsl(214deg 100% 97%);   // #f0f9ff - Light tint for backgrounds
+$primary-blue-100: hsl(214deg 95% 93%);   // #e0f2fe - Very light
+$primary-blue-200: hsl(213deg 97% 87%);   // #bae6fd - Light
+$primary-blue-300: hsl(212deg 96% 78%);   // #7dd3fc - Medium light
+$primary-blue-400: hsl(213deg 94% 68%);   // #38bdf8 - Medium
+$primary-blue-500: hsl(199deg 89% 48%);   // #0ea5e9 - Main primary color (base)
+$primary-blue-600: hsl(200deg 98% 39%);   // #0284c7 - Medium dark
+$primary-blue-700: hsl(201deg 96% 32%);   // #0369a1 - Dark
+$primary-blue-800: hsl(201deg 90% 27%);   // #075985 - Very dark
+$primary-blue-900: hsl(202deg 80% 24%);   // #0c4a6e - Darkest for text
+
+// =============================================================================
+// SECONDARY COLORS - Supporting colors for secondary actions
+// =============================================================================
+
+// Secondary Teal Palette - 2025 trend: Sophisticated teal
+$secondary-teal-50: hsl(166deg 76% 97%);   // #f0fdfa
+$secondary-teal-100: hsl(167deg 85% 89%);  // #ccfbf1
+$secondary-teal-200: hsl(168deg 84% 78%);  // #99f6e4
+$secondary-teal-300: hsl(171deg 77% 64%);  // #5eead4
+$secondary-teal-400: hsl(172deg 66% 50%);  // #2dd4bf
+$secondary-teal-500: hsl(173deg 80% 40%);  // #14b8a6  Base secondary color
+$secondary-teal-600: hsl(175deg 84% 32%);  // #0d9488
+$secondary-teal-700: hsl(175deg 77% 26%);  // #0f766e
+$secondary-teal-800: hsl(176deg 69% 22%);  // #115e59
+$secondary-teal-900: hsl(176deg 61% 19%);  // #134e4a
+
+// =============================================================================
+// ACCENT COLORS - For highlights, CTAs, and special elements
+// =============================================================================
+
+// Accent Purple Palette - 2025 trend: Modern violet for highlights
+$accent-purple-50: hsl(270deg 100% 98%);   // #faf5ff
+$accent-purple-100: hsl(269deg 100% 95%);  // #f3e8ff
+$accent-purple-200: hsl(269deg 100% 92%);  // #e9d5ff
+$accent-purple-300: hsl(268deg 100% 86%);  // #d8b4fe
+$accent-purple-400: hsl(270deg 95% 75%);   // #c084fc
+$accent-purple-500: hsl(271deg 91% 65%);   // #a855f7   Base accent color
+$accent-purple-600: hsl(271deg 81% 56%);   // #9333ea
+$accent-purple-700: hsl(272deg 72% 47%);   // #7c3aed
+$accent-purple-800: hsl(273deg 67% 39%);   // #6d28d9
+$accent-purple-900: hsl(274deg 66% 32%);   // #581c87
+
+// =============================================================================
+// SEMANTIC COLORS - For system feedback and status indication
+// =============================================================================
+
+// Success Colors (Green) - Optimized for accessibility and modern appeal
+$success-50: hsl(138deg 76% 97%);   // #f0fdf4
+$success-100: hsl(141deg 84% 93%);  // #dcfce7
+$success-200: hsl(141deg 79% 85%);  // #bbf7d0
+$success-300: hsl(142deg 77% 73%);  // #86efac
+$success-400: hsl(142deg 69% 58%);  // #4ade80
+$success-500: hsl(142deg 71% 45%);  // #22c55e    Base success color
+$success-600: hsl(142deg 76% 36%);  // #16a34a
+$success-700: hsl(142deg 72% 29%);  // #15803d
+$success-800: hsl(143deg 64% 24%);  // #166534
+$success-900: hsl(144deg 61% 20%);  // #14532d
+
+// Warning Colors (Amber/Orange) - Warm, attention-grabbing but not alarming
+$warning-50: hsl(48deg 100% 96%);   // #fffbeb
+$warning-100: hsl(48deg 96% 89%);   // #fef3c7
+$warning-200: hsl(48deg 97% 77%);   // #fde68a
+$warning-300: hsl(46deg 97% 65%);   // #fcd34d
+$warning-400: hsl(43deg 96% 56%);   // #fbbf24
+$warning-500: hsl(38deg 92% 50%);   // #f59e0b    Base warning color
+$warning-600: hsl(32deg 95% 44%);   // #d97706
+$warning-700: hsl(26deg 90% 37%);   // #b45309
+$warning-800: hsl(23deg 83% 31%);   // #92400e
+$warning-900: hsl(22deg 78% 26%);   // #78350f
+
+// Error Colors (Red) - Strong but not aggressive, accessible
+$error-50: hsl(0deg 86% 97%);     // #fef2f2
+$error-100: hsl(0deg 93% 94%);    // #fee2e2
+$error-200: hsl(0deg 96% 89%);    // #fecaca
+$error-300: hsl(0deg 94% 82%);    // #fca5a5
+$error-400: hsl(0deg 91% 71%);    // #f87171
+$error-500: hsl(0deg 84% 60%);    // #ef4444      Base error color
+$error-600: hsl(0deg 72% 51%);    // #dc2626
+$error-700: hsl(0deg 74% 42%);    // #b91c1c
+$error-800: hsl(0deg 70% 35%);    // #991b1b
+$error-900: hsl(0deg 63% 31%);    // #7f1d1d
+
+// Info Colors (Light Blue) - Calm, informative, distinct from primary
+$info-50: hsl(204deg 100% 97%);    // #eff6ff
+$info-100: hsl(204deg 94% 94%);    // #dbeafe
+$info-200: hsl(201deg 94% 86%);    // #bfdbfe
+$info-300: hsl(199deg 95% 74%);    // #93c5fd
+$info-400: hsl(198deg 93% 60%);    // #60a5fa
+$info-500: hsl(198deg 89% 48%);    // #3b82f6       Base info color
+$info-600: hsl(221deg 83% 53%);    // #2563eb
+$info-700: hsl(224deg 76% 48%);    // #1d4ed8
+$info-800: hsl(226deg 71% 40%);    // #1e40af
+$info-900: hsl(224deg 64% 33%);    // #1e3a8a
+
+// =============================================================================
+// NEUTRAL COLORS - Grays for text, backgrounds, and borders
+// =============================================================================
+
+// Neutral Gray Palette - Updated for 2025 with perfect balance and accessibility
+$neutral-0: hsl(0deg 0% 100%);       // #ffffff - Pure white
+$neutral-50: hsl(210deg 20% 98%);    // #f8fafc - Lightest gray
+$neutral-100: hsl(214deg 15% 91%);   // #e2e8f0 - Very light gray
+$neutral-200: hsl(213deg 13% 83%);   // #cbd5e1 - Light gray
+$neutral-300: hsl(212deg 11% 74%);   // #94a3b8 - Medium light gray
+$neutral-400: hsl(215deg 14% 58%);   // #64748b - Medium gray
+$neutral-500: hsl(215deg 16% 47%);   // #475569 - Base gray
+$neutral-600: hsl(215deg 19% 35%);   // #334155 - Medium dark gray
+$neutral-700: hsl(215deg 25% 27%);   // #1e293b - Dark gray
+$neutral-800: hsl(217deg 33% 17%);   // #0f172a - Very dark gray
+$neutral-900: hsl(222deg 84% 5%);    // #020617 - Near black
+$neutral-1000: hsl(0deg 0% 0%);      // #000000 - Pure black
+
+// =============================================================================
+// SEMANTIC COLOR ALIASES - Easy-to-use semantic names
+// =============================================================================
+
+// Primary Action Colors
+$color-primary: $primary-blue-500;
+$color-primary-hover: $primary-blue-600;
+$color-primary-active: $primary-blue-700;
+$color-primary-light: $primary-blue-100;
+$color-primary-dark: $primary-blue-800;
+
+// Secondary Action Colors
+$color-secondary: $secondary-teal-500;
+$color-secondary-hover: $secondary-teal-600;
+$color-secondary-active: $secondary-teal-700;
+$color-secondary-light: $secondary-teal-100;
+$color-secondary-dark: $secondary-teal-800;
+
+// Status Colors
+$color-success: $success-500;
+$color-success-light: $success-100;
+$color-success-dark: $success-700;
+
+$color-warning: $warning-500;
+$color-warning-light: $warning-100;
+$color-warning-dark: $warning-700;
+
+$color-error: $error-500;
+$color-error-light: $error-100;
+$color-error-dark: $error-700;
+
+$color-info: $info-500;
+$color-info-light: $info-100;
+$color-info-dark: $info-700;
+
+// Text Colors
+$color-text-primary: $neutral-900;
+$color-text-secondary: $neutral-700;
+$color-text-tertiary: $neutral-500;
+$color-text-disabled: $neutral-400;
+$color-text-inverse: $neutral-0;
+
+// Background Colors
+$color-bg-primary: $neutral-0;
+$color-bg-secondary: $neutral-50;
+$color-bg-tertiary: $neutral-100;
+$color-bg-overlay: rgba($neutral-900, 0.6);
+
+// Border Colors
+$color-border-primary: $neutral-300;
+$color-border-secondary: $neutral-200;
+$color-border-focus: $primary-blue-500;
+
+// =============================================================================
+// MIGRATION HELPERS - Backward compatibility during transition
+// =============================================================================
+
+// Map old color names to new 2025 colors for gradual migration
+// These will be removed once migration is complete
+
+// Old to new mappings (to be updated when 2025 colors are provided)
+$kobo-blue-2025: $color-primary;
+$kobo-teal-2025: $color-secondary;
+$kobo-gray-900-2025: $neutral-900;
+$kobo-gray-800-2025: $neutral-800;
+$kobo-gray-700-2025: $neutral-700;
+// ... additional mappings as needed
+
+// =============================================================================
+// CSS CUSTOM PROPERTIES - For dynamic theming support
+// =============================================================================
+
+:root {
+  // Primary Colors
+  --color-primary: #{$color-primary};
+  --color-primary-hover: #{$color-primary-hover};
+  --color-primary-active: #{$color-primary-active};
+  --color-primary-light: #{$color-primary-light};
+  --color-primary-dark: #{$color-primary-dark};
+
+  // Secondary Colors
+  --color-secondary: #{$color-secondary};
+  --color-secondary-hover: #{$color-secondary-hover};
+  --color-secondary-active: #{$color-secondary-active};
+  --color-secondary-light: #{$color-secondary-light};
+  --color-secondary-dark: #{$color-secondary-dark};
+
+  // Semantic Colors
+  --color-success: #{$color-success};
+  --color-success-light: #{$color-success-light};
+  --color-success-dark: #{$color-success-dark};
+
+  --color-warning: #{$color-warning};
+  --color-warning-light: #{$color-warning-light};
+  --color-warning-dark: #{$color-warning-dark};
+
+  --color-error: #{$color-error};
+  --color-error-light: #{$color-error-light};
+  --color-error-dark: #{$color-error-dark};
+
+  --color-info: #{$color-info};
+  --color-info-light: #{$color-info-light};
+  --color-info-dark: #{$color-info-dark};
+
+  // Text Colors
+  --color-text-primary: #{$color-text-primary};
+  --color-text-secondary: #{$color-text-secondary};
+  --color-text-tertiary: #{$color-text-tertiary};
+  --color-text-disabled: #{$color-text-disabled};
+  --color-text-inverse: #{$color-text-inverse};
+
+  // Background Colors
+  --color-bg-primary: #{$color-bg-primary};
+  --color-bg-secondary: #{$color-bg-secondary};
+  --color-bg-tertiary: #{$color-bg-tertiary};
+  --color-bg-overlay: #{$color-bg-overlay};
+
+  // Border Colors
+  --color-border-primary: #{$color-border-primary};
+  --color-border-secondary: #{$color-border-secondary};
+  --color-border-focus: #{$color-border-focus};
+}
+
+// Dark theme support (future enhancement)
+[data-theme="dark"] {
+  // Dark theme color overrides will go here
+  // --color-bg-primary: #{$neutral-900};
+  // --color-text-primary: #{$neutral-0};
+  // ... etc
+}

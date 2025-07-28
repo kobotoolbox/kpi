@@ -1,0 +1,280 @@
+/**
+ * 2025 Color Migration Utilities
+ * 
+ * This file provides utilities to help migrate from the current color system
+ * to the new 2025 design guidelines. It includes helper functions and mixins
+ * to ensure a smooth transition.
+ */
+
+@use 'sass:map';
+@use 'colors-2025' as colors2025;
+
+// =============================================================================
+// MIGRATION MIXINS - Helper mixins for consistent color application
+// =============================================================================
+
+// Primary button styling with 2025 colors
+@mixin button-primary-2025 {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  border: 1px solid var(--color-primary);
+  
+  &:hover {
+    background-color: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+  }
+  
+  &:active {
+    background-color: var(--color-primary-active);
+    border-color: var(--color-primary-active);
+  }
+  
+  &:focus {
+    box-shadow: 0 0 0 2px var(--color-border-focus);
+  }
+  
+  &:disabled {
+    background-color: var(--color-text-disabled);
+    border-color: var(--color-text-disabled);
+    color: var(--color-text-inverse);
+    cursor: not-allowed;
+  }
+}
+
+// Secondary button styling with 2025 colors
+@mixin button-secondary-2025 {
+  background-color: var(--color-secondary);
+  color: var(--color-text-inverse);
+  border: 1px solid var(--color-secondary);
+  
+  &:hover {
+    background-color: var(--color-secondary-hover);
+    border-color: var(--color-secondary-hover);
+  }
+  
+  &:active {
+    background-color: var(--color-secondary-active);
+    border-color: var(--color-secondary-active);
+  }
+  
+  &:focus {
+    box-shadow: 0 0 0 2px var(--color-border-focus);
+  }
+}
+
+// Semantic status mixins
+@mixin status-success-2025 {
+  background-color: var(--color-success-light);
+  color: var(--color-success-dark);
+  border: 1px solid var(--color-success);
+}
+
+@mixin status-warning-2025 {
+  background-color: var(--color-warning-light);
+  color: var(--color-warning-dark);
+  border: 1px solid var(--color-warning);
+}
+
+@mixin status-error-2025 {
+  background-color: var(--color-error-light);
+  color: var(--color-error-dark);
+  border: 1px solid var(--color-error);
+}
+
+@mixin status-info-2025 {
+  background-color: var(--color-info-light);
+  color: var(--color-info-dark);
+  border: 1px solid var(--color-info);
+}
+
+// Input field styling with 2025 colors
+@mixin input-field-2025 {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-primary);
+  color: var(--color-text-primary);
+  
+  &::placeholder {
+    color: var(--color-text-tertiary);
+  }
+  
+  &:focus {
+    border-color: var(--color-border-focus);
+    box-shadow: 0 0 0 2px rgba(var(--color-primary), 0.1);
+    outline: none;
+  }
+  
+  &:disabled {
+    background-color: var(--color-bg-tertiary);
+    border-color: var(--color-border-secondary);
+    color: var(--color-text-disabled);
+  }
+  
+  &[aria-invalid="true"] {
+    border-color: var(--color-error);
+    box-shadow: 0 0 0 1px var(--color-error);
+  }
+}
+
+// Card/panel styling with 2025 colors
+@mixin card-2025 {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(var(--color-text-primary), 0.1);
+  
+  &:hover {
+    border-color: var(--color-border-primary);
+    box-shadow: 0 2px 6px rgba(var(--color-text-primary), 0.15);
+  }
+}
+
+// Navigation styling with 2025 colors
+@mixin navigation-item-2025 {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  
+  &:hover {
+    color: var(--color-primary);
+    background-color: var(--color-primary-light);
+  }
+  
+  &.active {
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+}
+
+// =============================================================================
+// UTILITY CLASSES - Ready-to-use CSS classes for 2025 colors
+// =============================================================================
+
+// Text colors
+.text-primary-2025 { color: var(--color-text-primary) !important; }
+.text-secondary-2025 { color: var(--color-text-secondary) !important; }
+.text-tertiary-2025 { color: var(--color-text-tertiary) !important; }
+.text-disabled-2025 { color: var(--color-text-disabled) !important; }
+.text-inverse-2025 { color: var(--color-text-inverse) !important; }
+
+// Brand colors
+.text-brand-primary-2025 { color: var(--color-primary) !important; }
+.text-brand-secondary-2025 { color: var(--color-secondary) !important; }
+
+// Semantic text colors
+.text-success-2025 { color: var(--color-success) !important; }
+.text-warning-2025 { color: var(--color-warning) !important; }
+.text-error-2025 { color: var(--color-error) !important; }
+.text-info-2025 { color: var(--color-info) !important; }
+
+// Background colors
+.bg-primary-2025 { background-color: var(--color-bg-primary) !important; }
+.bg-secondary-2025 { background-color: var(--color-bg-secondary) !important; }
+.bg-tertiary-2025 { background-color: var(--color-bg-tertiary) !important; }
+
+// Brand backgrounds
+.bg-brand-primary-2025 { background-color: var(--color-primary) !important; }
+.bg-brand-secondary-2025 { background-color: var(--color-secondary) !important; }
+
+// Semantic backgrounds
+.bg-success-2025 { 
+  background-color: var(--color-success-light) !important; 
+  color: var(--color-success-dark) !important;
+}
+.bg-warning-2025 { 
+  background-color: var(--color-warning-light) !important; 
+  color: var(--color-warning-dark) !important;
+}
+.bg-error-2025 { 
+  background-color: var(--color-error-light) !important; 
+  color: var(--color-error-dark) !important;
+}
+.bg-info-2025 { 
+  background-color: var(--color-info-light) !important; 
+  color: var(--color-info-dark) !important;
+}
+
+// Border colors
+.border-primary-2025 { border-color: var(--color-border-primary) !important; }
+.border-secondary-2025 { border-color: var(--color-border-secondary) !important; }
+.border-focus-2025 { border-color: var(--color-border-focus) !important; }
+
+// =============================================================================
+// COMPONENT MIGRATION CLASSES - Specific classes for existing components
+// =============================================================================
+
+// Update existing kobo-button classes with 2025 colors
+.kobo-button.kobo-button--2025 {
+  @include button-primary-2025;
+  
+  &.kobo-button--secondary {
+    @include button-secondary-2025;
+  }
+  
+  &.kobo-button--success {
+    @include status-success-2025;
+  }
+  
+  &.kobo-button--warning {
+    @include status-warning-2025;
+  }
+  
+  &.kobo-button--error {
+    @include status-error-2025;
+  }
+}
+
+// Update form inputs with 2025 colors
+.form-input--2025 {
+  @include input-field-2025;
+}
+
+// Update cards with 2025 colors
+.card--2025 {
+  @include card-2025;
+}
+
+// Update navigation with 2025 colors
+.nav-item--2025 {
+  @include navigation-item-2025;
+}
+
+// =============================================================================
+// ACCESSIBILITY HELPERS - Ensure WCAG compliance
+// =============================================================================
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+  :root {
+    // Increase contrast ratios for accessibility
+    --color-border-primary: var(--color-text-primary);
+    --color-text-tertiary: var(--color-text-secondary);
+  }
+}
+
+// Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+  .card--2025,
+  .kobo-button.kobo-button--2025 {
+    transition: none;
+  }
+}
+
+// Color blindness support markers
+.colorblind-safe {
+  // Use patterns or icons alongside colors for critical information
+  &::before {
+    content: attr(data-status-icon);
+    margin-right: 0.5em;
+  }
+}
+
+// =============================================================================
+// DARK THEME SUPPORT (Future Enhancement)
+// =============================================================================
+
+// Dark theme will override CSS custom properties
+[data-theme="dark"] {
+  // These will be defined when dark mode is implemented
+  // --color-bg-primary: var(--color-neutral-900);
+  // --color-text-primary: var(--color-neutral-0);
+  // etc.
+}
