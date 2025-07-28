@@ -28,7 +28,6 @@ from .base import BaseViewSet
             TranslationServiceSerializer,
             raise_not_found=False,
             raise_access_forbidden=False,
-            validate_payload=False,
         ),
     ),
     retrieve=extend_schema(
