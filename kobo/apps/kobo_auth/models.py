@@ -1,12 +1,15 @@
 from django.conf import settings
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django_request_cache import cache_for_request
+from django.db import models
+from rest_framework.authtoken.models import Token
 
 from kobo.apps.openrosa.libs.constants import (
     OPENROSA_APP_LABELS,
 )
 from kobo.apps.openrosa.libs.permissions import get_model_permission_codenames
 from kobo.apps.organizations.models import Organization, create_organization
+from kpi.fields import KpiUidField
 from kpi.utils.database import update_autofield_sequence, use_db
 from kpi.utils.permissions import is_user_anonymous
 
@@ -87,3 +90,36 @@ class User(AbstractUser):
             unique_fields=['pk'],
         )
         update_autofield_sequence(User)
+
+class CollectorUser(AnonymousUser):
+    @property
+    def is_authenticated(self):
+        # Always return True. This is a way to tell if
+        # the user has been authenticated in permissions
+        return True
+
+    assets = []
+    name = None
+
+    def has_perm(self, perm, obj = ...):
+        if perm != 'report_xform':
+            return False
+        return obj.kpi_asset_uid in self.assets
+
+class CollectorGroup(models.Model):
+    uid = KpiUidField(uid_prefix='cg')
+
+class Collector(models.Model):
+    uid = KpiUidField(uid_prefix='c')
+    name = models.CharField(blank=True, null=True)
+    token = models.CharField(unique=True)
+    group = models.ForeignKey(
+        CollectorGroup, on_delete=models.PROTECT, related_name='collectors'
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = Token.generate_key()
+        return super().save(*args, **kwargs)
+
+

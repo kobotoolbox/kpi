@@ -14,7 +14,10 @@ from rest_framework.exceptions import AuthenticationFailed
 from oauth2_provider.contrib.rest_framework import OAuth2Authentication as OPOAuth2Authentication
 
 from kobo.apps.audit_log.mixins import RequiresAccessLogMixin
+from kobo.apps.kobo_auth.models import Collector, CollectorUser
 from kpi.mixins.mfa import MfaBlockerMixin
+from rest_framework import exceptions
+
 
 
 class BasicAuthentication(MfaBlockerMixin, DRFBasicAuthentication, RequiresAccessLogMixin):
@@ -172,3 +175,26 @@ class OAuth2Authentication(OPOAuth2Authentication, RequiresAccessLogMixin):
         user, creds = result
         self.create_access_log(request, user, 'oauth2')
         return user, creds
+
+
+class CollectorTokenAuthentication(BaseAuthentication):
+    def authenticate(self, request):
+        context = request.parser_context
+        kwargs = context.get('kwargs', {})
+        token = kwargs.get('token', None)
+        if not token:
+            return None
+        return self.authenticate_credentials(token)
+
+
+
+    def authenticate_credentials(self, key):
+        try:
+            collector = Collector.objects.get(token=key)
+            server_user = CollectorUser()
+            group = collector.group
+            server_user.assets = group.assets.values_list('uid', flat=True)
+            server_user.name = collector.name
+            return server_user, key
+        except Collector.DoesNotExist:
+            raise exceptions.AuthenticationFailed('Invalid token.')

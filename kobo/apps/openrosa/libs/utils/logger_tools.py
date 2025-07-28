@@ -38,6 +38,7 @@ from pyxform.errors import PyXFormError
 from pyxform.xform2json import create_survey_element_from_xml
 from rest_framework.exceptions import NotAuthenticated
 
+from kobo.apps.kobo_auth.models import CollectorUser
 from kobo.apps.openrosa.apps.logger.exceptions import (
     AccountInactiveError,
     ConflictingAttachmentBasenameError,
@@ -948,7 +949,7 @@ def _get_instance(
     else:
         submitted_by = (
             get_database_user(request.user)
-            if request and request.user.is_authenticated
+            if request and request.user.is_authenticated and not isinstance(request.user, CollectorUser)
             else None
         )
 

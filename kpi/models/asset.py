@@ -17,6 +17,8 @@ from taggit.utils import require_instance_manager
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
+
+from kobo.apps.kobo_auth.models import CollectorGroup
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
 from kobo.apps.subsequences.advanced_features_params_schema import (
     ADVANCED_FEATURES_PARAMS_SCHEMA,
@@ -272,6 +274,7 @@ class Asset(
     # visibility in the "My Projects" list. (#5451)
     is_excluded_from_projects_list = models.BooleanField(null=True)
     search_field = LazyDefaultJSONBField(default=dict)
+    collector_group = models.ForeignKey(CollectorGroup, null=True, blank=True, on_delete=models.SET_NULL, related_name='assets')
 
     objects = AssetWithoutPendingDeletedManager()
     all_objects = AssetAllManager()
