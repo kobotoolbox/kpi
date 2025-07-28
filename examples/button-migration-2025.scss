@@ -1,0 +1,241 @@
+// EXAMPLE: How to update an existing component with 2025 colors
+// File: jsapp/scss/components/_kobo.button-2025-example.scss
+
+@use '../colors-2025' as colors;
+@use '../mixins-2025' as mixins;
+
+/*
+ * Updated KoBoToolbox Button Component for 2025
+ * This shows how to migrate existing kobo-button to use 2025 colors
+ */
+
+.kobo-button {
+  // Keep existing structure, update colors
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500; // Slightly lighter for 2025
+  text-transform: none; // 2025 trend: sentence case
+  text-decoration: none;
+  text-align: center;
+  border-radius: 6px;
+  height: auto;
+  min-height: 40px;
+  line-height: 1.2; // Better readability
+  padding: 12px 24px; // More generous padding
+  margin: 0;
+  border: 1px solid;
+  transition: all 0.2s ease-in-out; // Smooth interactions
+  
+  // 2025 Default (Primary) Style
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  &:hover:not([disabled]) {
+    background-color: hsl(200, 98%, 39%); // Primary-600
+    border-color: hsl(200, 98%, 39%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+  }
+
+  &:active:not([disabled]) {
+    background-color: hsl(201, 96%, 32%); // Primary-700
+    border-color: hsl(201, 96%, 32%);
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.4);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  &[disabled] {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-disabled);
+    border-color: var(--color-border-secondary);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  // 2025 Color Variants
+  &.kobo-button--secondary {
+    background-color: var(--color-secondary);
+    border-color: var(--color-secondary);
+    
+    &:hover:not([disabled]) {
+      background-color: hsl(175, 84%, 32%); // Secondary-600
+      border-color: hsl(175, 84%, 32%);
+      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+    }
+  }
+
+  &.kobo-button--success {
+    @include mixins.status-success-2025;
+    
+    &:hover:not([disabled]) {
+      background-color: hsl(142, 76%, 36%); // Success-600
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+    }
+  }
+
+  &.kobo-button--warning {
+    @include mixins.status-warning-2025;
+    color: var(--color-text-primary); // Dark text for warning
+    
+    &:hover:not([disabled]) {
+      background-color: hsl(32, 95%, 44%); // Warning-600
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+  }
+
+  &.kobo-button--error {
+    @include mixins.status-error-2025;
+    
+    &:hover:not([disabled]) {
+      background-color: hsl(0, 72%, 51%); // Error-600
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+  }
+
+  &.kobo-button--outline {
+    background-color: transparent;
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    
+    &:hover:not([disabled]) {
+      background-color: hsl(214, 100%, 97%); // Primary-50
+      color: hsl(200, 98%, 39%); // Primary-600
+      border-color: hsl(200, 98%, 39%);
+    }
+  }
+
+  &.kobo-button--ghost {
+    background-color: transparent;
+    color: var(--color-primary);
+    border-color: transparent;
+    box-shadow: none;
+    
+    &:hover:not([disabled]) {
+      background-color: hsl(214, 100%, 97%); // Primary-50
+      color: hsl(200, 98%, 39%); // Primary-600
+    }
+  }
+
+  // Size variants for 2025
+  &.kobo-button--small {
+    min-height: 32px;
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  &.kobo-button--large {
+    min-height: 48px;
+    padding: 16px 32px;
+    font-size: 16px;
+  }
+
+  // Full width variant
+  &.kobo-button--fullwidth {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  // Icon button support
+  &.kobo-button--icon-only {
+    padding: 8px;
+    min-width: 40px;
+    border-radius: 6px;
+    
+    &.kobo-button--small {
+      min-width: 32px;
+      padding: 6px;
+    }
+    
+    &.kobo-button--large {
+      min-width: 48px;
+      padding: 12px;
+    }
+  }
+}
+
+// Button group support
+.kobo-button-group {
+  display: inline-flex;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  
+  .kobo-button {
+    border-radius: 0;
+    box-shadow: none;
+    
+    &:not(:first-child) {
+      border-left-width: 0;
+    }
+    
+    &:first-child {
+      border-top-left-radius: 6px;
+      border-bottom-left-radius: 6px;
+    }
+    
+    &:last-child {
+      border-top-right-radius: 6px;
+      border-bottom-right-radius: 6px;
+    }
+    
+    &:hover {
+      z-index: 1;
+      border-left-width: 1px;
+      margin-left: -1px;
+    }
+  }
+}
+
+// Accessibility improvements for 2025
+@media (prefers-contrast: high) {
+  .kobo-button {
+    border-width: 2px;
+    font-weight: 600;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kobo-button {
+    transition: none;
+    
+    &:hover:not([disabled]) {
+      transform: none;
+    }
+  }
+}
+
+// Usage examples in comments:
+/*
+<!-- Basic usage -->
+<button class="kobo-button">Primary Action</button>
+<button class="kobo-button kobo-button--secondary">Secondary Action</button>
+<button class="kobo-button kobo-button--outline">Outline Button</button>
+
+<!-- Semantic variants -->
+<button class="kobo-button kobo-button--success">Save Changes</button>
+<button class="kobo-button kobo-button--warning">Warning Action</button>
+<button class="kobo-button kobo-button--error">Delete Item</button>
+
+<!-- Size variants -->
+<button class="kobo-button kobo-button--small">Small</button>
+<button class="kobo-button kobo-button--large">Large Action</button>
+
+<!-- Button groups -->
+<div class="kobo-button-group">
+  <button class="kobo-button">Left</button>
+  <button class="kobo-button">Center</button>
+  <button class="kobo-button">Right</button>
+</div>
+*/

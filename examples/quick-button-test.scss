@@ -1,0 +1,40 @@
+// Example: Quick Test to See 2025 Colors in Action
+// Add this AFTER the existing @use 'scss/colors'; line in _kobo.button.scss
+
+@use 'scss/colors-2025' as colors2025;
+
+/* 
+ * TEST: Add 2025 color modifier to existing buttons
+ * This is safe to add without breaking existing styles
+ */
+
+.kobo-button.kobo-button--2025 {
+  // Use the new 2025 primary blue
+  background-color: colors2025.$primary-blue-500; // #0ea5e9
+  border-color: colors2025.$primary-blue-500;
+  color: colors2025.$neutral-0; // white
+  
+  &:hover {
+    background-color: colors2025.$primary-blue-600; // darker shade
+    border-color: colors2025.$primary-blue-600;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+  }
+  
+  &.kobo-button--secondary {
+    background-color: colors2025.$secondary-teal-500; // #14b8a6
+    border-color: colors2025.$secondary-teal-500;
+    
+    &:hover {
+      background-color: colors2025.$secondary-teal-600;
+      border-color: colors2025.$secondary-teal-600;
+      box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+    }
+  }
+}
+
+/*
+Usage in HTML:
+<button class="kobo-button kobo-button--2025">New 2025 Style!</button>
+<button class="kobo-button">Old Style (unchanged)</button>
+*/
