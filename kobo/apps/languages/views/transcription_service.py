@@ -20,53 +20,15 @@ from .base import BaseViewSet
 )
 class TranscriptionServiceViewSet(BaseViewSet):
     """
-    Lists the transcription services accessible to requesting (authenticated) user.
+    Viewset for transcription services
 
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/transcription-services/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/transcription-services/
-
-    Search can be made with `q` parameter to search for the term in names and codes.
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/transcription-services/?q=goo
-    >       {
-    >           "count": 1
-    >           "next": ...
-    >           "previous": ...
-    >           "results": [
-    >               {
-    >                   "name": "Google",
-    >                   "code": "goog",
-    >               }
-    >           ]
-    >       }
-
-    Results are order by name.
-
-
-    ## Get one transcription service
-
-    * `code` - is the unique identifier of a specific language
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/transcription-services/<code>{code}</code>/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/transcription-services/goog/
-    >       {
-    >           "name": "Google",
-    >           "code": "goog",
-    >       }
-
-    ### CURRENT ENDPOINT
+    Available actions:
+    - list           → GET       /api/v2/transcription-services/
+    - retrieve       → GET       /api/v2/transcription-services/{code}/
+    
+    Documentation:
+    - docs/api/v2/transcription/list.md
+    - docs/api/v2/transcription/retrieve.md
     """
 
     serializer_class = TranscriptionServiceSerializer
