@@ -28,7 +28,7 @@ updates:
         patterns:
           - "*"
         update-types:
-          - "patch"
           - "minor"
+          - "patch"
     # change from 10 to make it more manageable
     open-pull-requests-limit: 2
