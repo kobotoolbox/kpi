@@ -8,14 +8,14 @@ from django.conf import settings
 from django.core.cache import cache
 from django.test import TestCase
 
-if settings.STRIPE_ENABLED:
-    from kobo.apps.stripe.models import ExceededLimitCounter
-
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.organizations.constants import UsageType
-from kobo.apps.trash_bin.tasks.attachment import auto_delete_excess_attachments, \
+from kobo.apps.stripe.utils.import_management import requires_stripe
+from kobo.apps.trash_bin.tasks.attachment import (
+    auto_delete_excess_attachments,
     schedule_auto_attachment_cleanup_for_users
+)
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 
 
@@ -25,6 +25,47 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
         self.asset, self.xform, self.instance, self.owner_profile, self.attachment = (
             self._create_test_asset_and_submission(user=self.owner)
         )
+
+    def _create_submissions_with_attachments(self, count=1):
+        """
+        Helper method to add new submissions with attachments to the asset
+        """
+        for _ in range(count):
+            instance_uid = uuid.uuid4()
+            submission = {
+                'q1': 'audio_conversion_test_clip.3gp',
+                '_uuid': str(instance_uid),
+                '_attachments': [
+                    {
+                        'download_url': f'http://testserver/{self.owner.username}/audio_conversion_test_clip.3gp',  # noqa
+                        'filename': f'{self.owner.username}/audio_conversion_test_clip.3gp',
+                        'mimetype': 'video/3gpp',
+                    },
+                ],
+                '_submitted_by': self.owner.username,
+            }
+            self.asset.deployment.mock_submissions([submission])
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @requires_stripe
+    def test_schedule_cleanup_skips_if_auto_delete_disabled(self, **stripe_models):
+        """
+        Test that no cleanup tasks are scheduled if AUTO_DELETE_ATTACHMENTS is False
+        """
+        ExceededLimitCounter = stripe_models['exceeded_limit_counter_model']
+        ExceededLimitCounter.objects.create(
+            user=self.owner,
+            limit_type=UsageType.STORAGE_BYTES,
+            days=config.LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD + 1,
+        )
+
+        with patch(
+            'kobo.apps.trash_bin.tasks.attachment.auto_delete_excess_attachments.delay'
+        ) as mock_task:
+            schedule_auto_attachment_cleanup_for_users()
+            mock_task.assert_not_called()
 
     def test_auto_delete_excess_attachments_user_within_limit(self):
         """
@@ -66,17 +107,26 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
             self.attachment.refresh_from_db()
             self.assertFalse(Attachment.objects.filter(pk=self.attachment.pk).exists())
 
-    def test_auto_delete_stops_when_user_is_within_storage_limit(self):
+    def test_auto_delete_trashes_minimum_attachments_to_meet_limit(self):
         """
-        Test that attachments are soft deleted only until the user's exceeded
-        storage usage is resolved, and further deletions are not performed
+        Test only the minimum number of attachments are soft-deleted to bring
+        the user within their limit, and no more.
         """
+        limit_bytes = 300000
+
+        # Add 3 more attachments
+        self._create_submissions_with_attachments(count=3)
+
+        all_attachments = Attachment.objects.filter(user=self.owner)
+        total_size = sum(att.media_file_size for att in all_attachments)
+
+        # Set up mock balance indicating user is exceeding limit
         mock_balances = {
             UsageType.STORAGE_BYTES: {
-                'effective_limit': 100000,
-                'balance_value': -82255,
-                'balance_percent': 182,
-                'exceeded': True
+                'effective_limit': limit_bytes,
+                'balance_value': limit_bytes - total_size,
+                'balance_percent': int((total_size / limit_bytes) * 100),
+                'exceeded': total_size > limit_bytes
             },
         }
         with patch(
@@ -84,79 +134,52 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
             return_value=mock_balances,
         ):
             auto_delete_excess_attachments(self.owner.pk)
-            self.assertFalse(Attachment.objects.filter(pk=self.attachment.pk).exists())
-            self.assertEqual(Attachment.objects.all().count(), 0)
 
-        updated_balances = {
-            UsageType.ASR_SECONDS: None,
-            UsageType.MT_CHARACTERS: None,
-            UsageType.STORAGE_BYTES: {
-                'effective_limit': 100000,
-                'balance_value': 100000,
-                'balance_percent': 100,
-                'exceeded': False
-            },
-            UsageType.SUBMISSION: None
-        }
+        # Confirm enough attachments were deleted to get under the limit
+        remaining_attachments = Attachment.objects.filter(user=self.owner)
+        remaining_size = sum(att.media_file_size for att in remaining_attachments)
 
-        # Add another attachment after user is now within limit
-        instance_uid = uuid.uuid4()
-        submission = {
-            'q1': 'audio_conversion_test_image.jpg',
-            '_uuid': str(instance_uid),
-            '_attachments': [
-                {
-                    'download_url': f'http://testserver/{self.owner.username}/audio_conversion_test_image.jpg',  # noqa
-                    'filename': f'{self.owner.username}/audio_conversion_test_image.jpg',  # noqa
-                    'mimetype': 'image/jpeg',
-                },
-            ],
-            '_submitted_by': self.owner.username,
-        }
-        self.asset.deployment.mock_submissions([submission])
-        self.assertEqual(Attachment.objects.all().count(), 1)
+        self.assertLessEqual(remaining_size, limit_bytes)
+        self.assertEqual(remaining_attachments.count(), 1)
 
+        # Re-run the task and ensure no further deletions
         with patch(
             'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',  # noqa
-            return_value=updated_balances
+            return_value={
+                UsageType.STORAGE_BYTES: {
+                    'effective_limit': limit_bytes,
+                    'balance_value': limit_bytes - remaining_size,
+                    'balance_percent': int((remaining_size / limit_bytes) * 100),
+                    'exceeded': remaining_size > limit_bytes
+                },
+            },
         ):
             auto_delete_excess_attachments(self.owner.pk)
-
-        # The new attachment should *not* be deleted since user is no longer over limit
-        self.assertEqual(Attachment.objects.all().count(), 1)
+            self.assertEqual(Attachment.objects.filter(user=self.owner).count(), 1)
 
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
+    @requires_stripe
     @override_config(AUTO_DELETE_ATTACHMENTS=True)
-    def test_schedule_cleanup_task_only_for_users_exceeding_grace_period(self):
+    def test_schedule_cleanup_task_only_for_users_exceeding_grace_period(self, **stripe_models):
         """
         Test that only users over their limit for more than the grace period are
         scheduled for attachment cleanup
         """
+        anotheruser = User.objects.create(username='anotheruser', password='password')
+        ExceededLimitCounter = stripe_models['exceeded_limit_counter_model']
+
+        # Qualifying user
         ExceededLimitCounter.objects.create(
             user=self.owner,
             limit_type=UsageType.STORAGE_BYTES,
             days=config.LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD + 1
         )
 
-        with patch(
-            'kobo.apps.trash_bin.tasks.attachment.auto_delete_excess_attachments.delay'
-        ) as mock_task:
-            schedule_auto_attachment_cleanup_for_users()
-            mock_task.assert_called_once_with(self.owner.pk)
-
-    @pytest.mark.skipif(
-        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
-    )
-    @override_config(AUTO_DELETE_ATTACHMENTS=True)
-    def test_schedule_cleanup_task_skips_users_below_grace_period(self):
-        """
-        Test that users who are over their limit but within the grace period
-        are not scheduled for attachment cleanup
-        """
+        # Non-qualifying user (within grace period)
         ExceededLimitCounter.objects.create(
-            user=self.owner,
+            user=anotheruser,
             limit_type=UsageType.STORAGE_BYTES,
             days=config.LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD - 1
         )
@@ -165,7 +188,7 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
             'kobo.apps.trash_bin.tasks.attachment.auto_delete_excess_attachments.delay'
         ) as mock_task:
             schedule_auto_attachment_cleanup_for_users()
-            mock_task.assert_not_called()
+            mock_task.assert_called_once_with(self.owner.pk)
 
     def test_auto_delete_excess_attachments_ignores_missing_balance_info(self):
         """

@@ -95,7 +95,10 @@ def schedule_auto_attachment_cleanup_for_users(**stripe_models):
 @celery_app.task(queue='kpi_low_priority_queue')
 def auto_delete_excess_attachments(user_id: int):
     cache_key = f'auto_delete_excess_attachments_lock_for_user_{user_id}'
-    with cache.lock(cache_key, timeout=300, blocking_timeout=0) as lock_acquired:
+    lock_timeout = settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT
+    with cache.lock(
+        cache_key, timeout=lock_timeout, blocking_timeout=0
+    ) as lock_acquired:
         if not lock_acquired:
             logging.info(f'Lock already held for user `{user_id}`')
             return
@@ -119,7 +122,7 @@ def auto_delete_excess_attachments(user_id: int):
 
     attachments_to_trash = []
     trashed_bytes = 0
-    queryset = Attachment.objects.filter(user=user).order_by('date_created').only(
+    queryset = Attachment.objects.filter(user_id=user_id).order_by('date_created').only(
         'pk', 'uid', 'media_file_basename', 'media_file_size'
     )
 
