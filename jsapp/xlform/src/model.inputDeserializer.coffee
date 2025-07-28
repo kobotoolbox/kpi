@@ -13,7 +13,7 @@ module.exports = do ->
     r = deserialize inp, ctx
     if not ctx.error and ctx.validate
       validateParse(r, ctx)
-    r
+    return r
 
   # [inputDeserializer.deserialize] parses csv string, json string,
   #  or object into survey object
@@ -28,7 +28,7 @@ module.exports = do ->
       if (sht = cobj.sheet "settings")
         out.settings = sht.toObjects()[0]
 
-      out
+      return out
 
     _parse_sheets = (repr)->
       # If a sheet has a first-row which is an array, that array will be treated as column
@@ -48,14 +48,14 @@ module.exports = do ->
             else
               out_sheet.push(row)
           repr[shtName] = out_sheet
-      repr
+      return repr
 
     # returns: function
-    (repr, ctx={})->
-      if _.isString(repr)
-        _csv_to_params repr
+    return (repr, ctx={})->
+      if _.isString repr
+        return _csv_to_params repr
       else if _.isObject repr
-        _parse_sheets repr
+        return _parse_sheets repr
       else
         ``
 
@@ -66,7 +66,7 @@ module.exports = do ->
     requiredSheetNameList = $aliases.q.requiredSheetNameList()
 
     # returns: function
-    (repr, ctx={})->
+    return (repr, ctx={})->
       valid_with_sheet = false
       for sheetId in requiredSheetNameList
         if repr[sheetId]
@@ -77,8 +77,8 @@ module.exports = do ->
       unless valid_with_sheet
         sn = requiredSheetNameList.join(', ')
         ctx.error = "Missing a survey sheet [#{sn}]"
-      !ctx.error
+      return !ctx.error
 
   inputDeserializer.validateParse = validateParse
   inputDeserializer.deserialize = deserialize
-  inputDeserializer
+  return inputDeserializer

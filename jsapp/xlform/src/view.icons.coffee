@@ -67,7 +67,7 @@ module.exports = do ->
           grp_keys.push(grping)  unless grping in grp_keys
           ii = grp_keys.indexOf(grping)
           @_groups[ii] or @_groups[ii] = []
-          @_groups[ii].push(model)
-      _.zip.apply(null, @_groups)
+          return @_groups[ii].push(model)
+      return _.zip.apply(null, @_groups)
 
-  new QtypeIconCollection(iconDetails)
+  return new QtypeIconCollection(iconDetails)

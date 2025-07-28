@@ -57,5 +57,5 @@ module.exports = do ->
         throw new Error("SurveyDetail `#{key}` not loaded from schema. [Aliases have not been implemented]")
       return
 
-  SurveyDetails: SurveyDetails
-  SurveyDetail: SurveyDetail
+  return SurveyDetails: SurveyDetails
+  return SurveyDetail: SurveyDetail

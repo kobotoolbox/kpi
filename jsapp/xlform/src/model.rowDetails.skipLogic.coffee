@@ -20,16 +20,16 @@ class rowDetailsSkipLogic.SkipLogicFactory
       when 'select_multiple' then operator = new rowDetailsSkipLogic.SelectMultipleSkipLogicOperator symbol
       when 'empty' then return new rowDetailsSkipLogic.EmptyOperator()
     operator.set 'id', id
-    operator
+    return operator
   create_criterion_model: () ->
-    new rowDetailsSkipLogic.SkipLogicCriterion(@, @survey)
+    return new rowDetailsSkipLogic.SkipLogicCriterion(@, @survey)
   create_response_model: (type) ->
     model = null
     switch type
       when 'integer' then model = new rowDetailsSkipLogic.IntegerResponseModel
       when 'decimal' then model = new rowDetailsSkipLogic.DecimalResponseModel
       else model = new rowDetailsSkipLogic.ResponseModel(type)
-    model.set 'type', type
+    return model.set 'type', type
   constructor: (@survey) ->
 
 class rowDetailsSkipLogic.SkipLogicCriterion extends Backbone.Model
@@ -43,7 +43,7 @@ class rowDetailsSkipLogic.SkipLogicCriterion extends Backbone.Model
     else
       return ''
   _get_question: () ->
-    @survey.findRowByCid(this.get('question_cid'), { includeGroups: true })
+    return @survey.findRowByCid(this.get('question_cid'), { includeGroups: true })
 
 
   change_question: (cid) ->
@@ -89,15 +89,18 @@ class rowDetailsSkipLogic.SkipLogicCriterion extends Backbone.Model
       # +           this._get_question()._isSelectQuestion() ? _ref1.get('cid') : _ref1.get('value')
       # +             : void 0) || '');
       @change_response @get('response_value')?.get(if @_get_question()._isSelectQuestion() then 'cid' else 'value') or ''
+    return
   get_correct_type: () ->
-    @get('operator').get_type().response_type || @_get_question().get_type().response_type
+    return @get('operator').get_type().response_type || @_get_question().get_type().response_type
 
   set_option_names: (options) ->
     _.each(options, (model)->
-      if (`model.get('name') == null`)
+      if `model.get('name') == null`
         model.set('name', $utils.sluggify(model.get('label')))
+        return
     )
     ``
+    return
 
   change_response: (value) ->
     response_model = @get('response_value')
@@ -129,6 +132,7 @@ class rowDetailsSkipLogic.SkipLogicCriterion extends Backbone.Model
         response_model.set_value choices[0].cid
     else
       response_model.set_value(value)
+    return
   constructor: (@factory, @survey) ->
     super()
 
@@ -136,15 +140,16 @@ class rowDetailsSkipLogic.SkipLogicCriterion extends Backbone.Model
 class rowDetailsSkipLogic.Operator extends Backbone.Model
   serialize: (question_name, response_value) ->
     throw new Error("Not Implemented")
+    return
   get_value: () ->
     val = ''
     if @get 'is_negated'
       val = '-'
-    val + @get 'id'
+    return val + @get 'id'
   get_type: () ->
-    $skipLogicHelpers.operator_types[@get('id') - 1]
+    return $skipLogicHelpers.operator_types[@get('id') - 1]
   get_id: () ->
-    @get 'id'
+    return @get 'id'
 
 class rowDetailsSkipLogic.EmptyOperator extends rowDetailsSkipLogic.Operator
   serialize: () -> ''
@@ -152,6 +157,7 @@ class rowDetailsSkipLogic.EmptyOperator extends rowDetailsSkipLogic.Operator
     super()
     @set 'id', 0
     @set 'is_negated', false
+    return
 
 class rowDetailsSkipLogic.SkipLogicOperator extends rowDetailsSkipLogic.Operator
   serialize: (question_name, response_value) ->
@@ -202,10 +208,12 @@ class rowDetailsSkipLogic.ResponseModel extends Backbone.Model
           @_set_value(choice.get('name'))
           @set('cid', cid)
         ``
+        return
   get_type: () ->
     return @get('type')
   set_value: (value) ->
     @set('value', value, validate: true)
+    return
 
 class rowDetailsSkipLogic.IntegerResponseModel extends rowDetailsSkipLogic.ResponseModel
   validation:
@@ -216,6 +224,7 @@ class rowDetailsSkipLogic.IntegerResponseModel extends rowDetailsSkipLogic.Respo
     if value is ''
       value = `undefined`
     this.set 'value', value, validate: !!value
+    return
 
 class rowDetailsSkipLogic.DecimalResponseModel extends rowDetailsSkipLogic.ResponseModel
   validation:
@@ -248,6 +257,7 @@ class rowDetailsSkipLogic.DecimalResponseModel extends rowDetailsSkipLogic.Respo
       # else
       #   final_value = +(value.replace(',', ''))
     @set('value', value, validate: true)
+    return
 
 class rowDetailsSkipLogic.DateResponseModel extends rowDetailsSkipLogic.ResponseModel
   validation:
@@ -257,5 +267,6 @@ class rowDetailsSkipLogic.DateResponseModel extends rowDetailsSkipLogic.Response
     if /^\d{4}-\d{2}-\d{2}$/.test(value)
       value = "date('" + value + "')"
     @set('value', value, validate: true)
+    return
 
 module.exports = rowDetailsSkipLogic

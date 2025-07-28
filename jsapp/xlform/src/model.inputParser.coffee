@@ -13,13 +13,14 @@ module.exports = do ->
     push: (item)->
       @contents.push(item)
       ``
+      return
     export: ->
       arr = []
       for item in @contents
         if item instanceof ParsedStruct
           item = item.export()
         arr.push(item)
-      _.extend({}, @atts, {type: @type, __rows: arr})
+      return _.extend({}, @atts, {type: @type, __rows: arr})
 
   hasBeenParsed = (obj)->
     for row in obj
@@ -41,6 +42,7 @@ module.exports = do ->
           else
             lang_str = key
           item[lang_str] = _translated_val
+          return
         )
     return item
 
@@ -53,6 +55,8 @@ module.exports = do ->
       counts[opn_cls][att]?=0
       counts[opn_cls][att]++
       ``
+      return
+      
     grpStack = [new ParsedStruct(type)]
 
     _pushGrp = (type='group', item)->
@@ -60,6 +64,7 @@ module.exports = do ->
       grp = new ParsedStruct(type, item)
       _curGrp().push(grp)
       grpStack.push(grp)
+      return
 
     _popGrp = (closedByAtts, type)->
       count_att('close', type)
@@ -67,12 +72,13 @@ module.exports = do ->
       if _grp.type isnt closedByAtts.type
         throw new Error("mismatched group/repeat tags")
       ``
+      return
 
     _curGrp = ->
       _l = grpStack.length
       if _l is 0
         throw new Error("unmatched group/repeat")
-      grpStack[_l-1]
+      return grpStack[_l-1]
 
     for item in sArr
       _groupAtts = $aliases.q.testGroupable(item.type)
@@ -94,7 +100,7 @@ module.exports = do ->
           counts: counts
         }))
 
-    _curGrp().export().__rows
+    return _curGrp().export().__rows
 
   # normalizes required value - truthy values become `true` and falsy values become `false`
   normalizeRequiredValues = (survey) ->
@@ -114,7 +120,7 @@ module.exports = do ->
 
     nullified = formBuilderUtils.nullifyTranslations(o.translations, o.translated, o.survey, baseSurvey)
 
-    # we edit the received object directly, which is totally a case of BAD CODE™
+    # we edit the received object directly, which is totally a case of BAD CODEΓäó
     # but in fact is a necessary part of the nullify hack
     o.survey = nullified.survey;
     o.translations = nullified.translations
@@ -147,6 +153,7 @@ module.exports = do ->
       tmp[lName].push(choiceRow)
     for cn in choiceNames
       choices.add(name: cn, options: tmp[cn])
+    return choices
 
   # groupByVisibility = (inp, hidden=[], remain=[])->
   #   hiddenTypes = $aliases.q.hiddenTypes()
@@ -156,4 +163,4 @@ module.exports = do ->
   #   [hidden, inp]
 
   # inputParser.sortByVisibility = sortByVisibility
-  inputParser
+  return inputParser
