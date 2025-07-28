@@ -203,19 +203,25 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             response = self.view(request)
             self.assertEqual(response.status_code, 401)
 
-            with override_config(USAGE_LIMIT_ENFORCEMENT=True):
-                request = self.factory.post('/submission', data, format='json')
-                auth = DigestAuth('bob', 'bobbob')
-                request.META.update(auth(request.META, response))
-                response = self.view(request, username=self.user.username)
-                self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
             mock_balances = {
                 UsageType.STORAGE_BYTES: {
                     'exceeded': True,
                 },
-                UsageType.SUBMISSION: None,
+                UsageType.SUBMISSION: {
+                    'exceeded': True,
+                },
             }
+            with override_config(USAGE_LIMIT_ENFORCEMENT=False):
+                with patch(
+                    'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
+                    return_value=mock_balances,
+                ):
+                    request = self.factory.post('/submission', data, format='json')
+                    auth = DigestAuth('bob', 'bobbob')
+                    request.META.update(auth(request.META, response))
+                    response = self.view(request, username=self.user.username)
+                    self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
             with patch(
                 'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
                 return_value=mock_balances,
