@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 
+import { UsageLimitTypes } from '#/account/stripe.types'
+import { useServiceUsageQuery } from '#/account/usage/useServiceUsageQuery'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import TextBox from '#/components/common/textBox'
@@ -41,6 +43,16 @@ export default function TransferProjects(props: TransferProjectsProps) {
     inviteUrl: props.asset.project_ownership ? props.asset.project_ownership.invite : null,
     submitPending: false,
   })
+
+  const { data: serviceUsageData } = useServiceUsageQuery()
+
+  const isTransferBlocked = useMemo(
+    () =>
+      !serviceUsageData ||
+      serviceUsageData.limitExceedList.includes(UsageLimitTypes.STORAGE) ||
+      serviceUsageData.limitExceedList.includes(UsageLimitTypes.SUBMISSION),
+    [serviceUsageData],
+  )
 
   const updateUsername = (newUsername: string) => {
     setTransfer({
@@ -162,6 +174,13 @@ export default function TransferProjects(props: TransferProjectsProps) {
               label={t('Transfer')}
               isFullWidth
               onClick={toggleModal}
+              isDisabled={isTransferBlocked}
+              tooltip={
+                isTransferBlocked
+                  ? t('Transfer is not allowed when current owner is over their usage limit.')
+                  : undefined
+              }
+              tooltipPosition='right'
               type='secondary'
               size='l'
             />
