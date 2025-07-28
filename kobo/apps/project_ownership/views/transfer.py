@@ -21,12 +21,16 @@ from ..serializers import TransferDetailSerializer
         description=read_md('project_ownership', 'transfers/list.md'),
         responses=open_api_200_ok_response(
             TransferListResponse,
+            validate_payload=False,
+            require_auth=False,
         )
     ),
     retrieve=extend_schema(
         description=read_md('project_ownership', 'transfers/retrieve.md'),
         responses=open_api_200_ok_response(
             TransferListResponse,
+            validate_payload=False,
+            require_auth=False,
         )
     ),
 )
