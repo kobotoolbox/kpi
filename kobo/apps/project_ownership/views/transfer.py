@@ -6,7 +6,10 @@ from rest_framework.renderers import JSONRenderer
 
 from kpi.permissions import IsAuthenticated
 from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from ..models import Transfer, TransferStatus
+from ..schema_extensions.v2.project_ownership.transfers.serializers import \
+    TransferListResponse
 from ..serializers import TransferDetailSerializer
 
 
@@ -16,9 +19,15 @@ from ..serializers import TransferDetailSerializer
 @extend_schema_view(
     list=extend_schema(
         description=read_md('project_ownership', 'transfers/list.md'),
+        responses=open_api_200_ok_response(
+            TransferListResponse,
+        )
     ),
     retrieve=extend_schema(
         description=read_md('project_ownership', 'transfers/retrieve.md'),
+        responses=open_api_200_ok_response(
+            TransferListResponse,
+        )
     ),
 )
 class TransferViewSet(viewsets.ReadOnlyModelViewSet):
