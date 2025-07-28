@@ -17,13 +17,18 @@ from .base import BaseViewSet
         description=read_md('languages', 'translation/list.md'),
         responses=open_api_200_ok_response(
             TranslationServiceSerializer,
-        )
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
     ),
     retrieve=extend_schema(
         description=read_md('languages', 'translation/retrieve.md'),
         responses=open_api_200_ok_response(
             TranslationServiceSerializer,
-        )
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
     ),
 )
 class TranslationServiceViewSet(BaseViewSet):
