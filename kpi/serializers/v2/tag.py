@@ -23,9 +23,8 @@ class TagSerializer(serializers.ModelSerializer):
 
     def _get_assets(self, obj):
         request = self.context.get('request', None)
-        user = get_database_user(request.user)
         return [reverse('asset-detail', args=(sa.uid,), request=request)
-                for sa in Asset.objects.filter(tags=obj, owner=user).all()]
+                for sa in Asset.objects.values_list('uid', flat=True)]
 
     def _get_tag_url(self, obj):
         request = self.context.get('request', None)
