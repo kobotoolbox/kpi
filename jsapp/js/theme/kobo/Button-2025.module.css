@@ -1,0 +1,229 @@
+/* Example CSS Module for 2025 Button Component */
+/* File: jsapp/js/theme/kobo/Button-2025.module.css */
+
+.root {
+  /* 2025 Design Guidelines Button Base Styles */
+  font-family: 'Roboto', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-transform: none; /* 2025 guidelines prefer sentence case */
+  border-radius: 6px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  outline: none;
+  position: relative;
+  text-decoration: none;
+  vertical-align: middle;
+  user-select: none;
+  white-space: nowrap;
+
+  /* CSS Custom Properties for dynamic theming */
+  background-color: var(--button-bg);
+  color: var(--button-color);
+  border-color: var(--button-bd);
+  height: var(--button-height);
+  padding: var(--button-padding);
+
+  /* Focus ring for accessibility */
+  &:focus-visible {
+    box-shadow: 0 0 0 2px var(--color-border-focus);
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+
+  /* Hover state */
+  &:hover:not([data-disabled]) {
+    background-color: var(--button-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Active state */
+  &:active:not([data-disabled]) {
+    background-color: var(--button-active);
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Disabled state */
+  &[data-disabled] {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-disabled);
+    border-color: var(--color-border-secondary);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Loading state */
+  &[data-loading] {
+    color: transparent;
+    cursor: default;
+    pointer-events: none;
+
+    &::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: button-loading 0.6s linear infinite;
+    }
+  }
+}
+
+/* Size variations following 2025 design system */
+.root[data-size="xs"] {
+  font-size: 12px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 4px;
+}
+
+.root[data-size="sm"] {
+  font-size: 13px;
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 4px;
+}
+
+.root[data-size="md"] {
+  font-size: 14px;
+  height: 40px;
+  padding: 0 24px;
+  border-radius: 6px;
+}
+
+.root[data-size="lg"] {
+  font-size: 16px;
+  height: 48px;
+  padding: 0 32px;
+  border-radius: 8px;
+}
+
+.root[data-size="xl"] {
+  font-size: 18px;
+  height: 56px;
+  padding: 0 40px;
+  border-radius: 10px;
+}
+
+/* Full width button */
+.root[data-full-width] {
+  width: 100%;
+}
+
+/* Button group support */
+.root:not(:first-child):not(:last-child) {
+  border-radius: 0;
+  border-left-width: 0;
+}
+
+.root:first-child:not(:last-child) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.root:last-child:not(:first-child) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left-width: 0;
+}
+
+/* Icon button support */
+.root[data-variant="icon"] {
+  padding: 0;
+  width: var(--button-height);
+  border-radius: 50%;
+}
+
+/* Compact variant */
+.root[data-compact] {
+  height: calc(var(--button-height) - 8px);
+  padding-left: calc(var(--button-padding) / 2);
+  padding-right: calc(var(--button-padding) / 2);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .root {
+    border-width: 2px;
+  }
+
+  .root:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    transition: none;
+  }
+
+  .root:hover:not([data-disabled]) {
+    transform: none;
+  }
+
+  .root:active:not([data-disabled]) {
+    transform: none;
+  }
+
+  .root[data-loading]::after {
+    animation: none;
+  }
+}
+
+/* Dark theme support (for future implementation) */
+[data-theme="dark"] .root {
+  /* Dark theme overrides will be added here */
+}
+
+/* Loading animation */
+@keyframes button-loading {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Utility classes for semantic buttons */
+.success {
+  --button-bg: var(--color-success);
+  --button-hover: var(--color-success-dark);
+  --button-color: var(--color-text-inverse);
+  --button-bd: var(--color-success);
+}
+
+.warning {
+  --button-bg: var(--color-warning);
+  --button-hover: var(--color-warning-dark);
+  --button-color: var(--color-text-primary);
+  --button-bd: var(--color-warning);
+}
+
+.error {
+  --button-bg: var(--color-error);
+  --button-hover: var(--color-error-dark);
+  --button-color: var(--color-text-inverse);
+  --button-bd: var(--color-error);
+}
+
+.info {
+  --button-bg: var(--color-info);
+  --button-hover: var(--color-info-dark);
+  --button-color: var(--color-text-inverse);
+  --button-bd: var(--color-info);
+}
