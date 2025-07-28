@@ -28,12 +28,7 @@ module.exports = do ->
       extend_to_row = (val, key)=>
         if _.isFunction(val)
           return rr[key] = (args...)->
-<<<<<<< Updated upstream
-            val.apply(rr, args)
-            return
-=======
             return val.apply(rr, args)
->>>>>>> Stashed changes
         else
           return rr[key] = val
       _.each @, extend_to_row
@@ -349,18 +344,6 @@ module.exports = do ->
 
     groupStart: ->
       group = @
-<<<<<<< Updated upstream
-      export_relevant_values: (surv, shts)-> surv.push(@toJSON())
-      toJSON: ->
-        out = {}
-        for k, val of group.attributes
-          if k isnt '_isRepeat'
-            out[k] = val.getValue()
-        out.type = "begin_#{group._groupOrRepeatKey()}"
-        return out
-      return
-=======
-
       return {
         export_relevant_values: (surv, shts)-> surv.push(@toJSON())
         toJSON: ->
@@ -372,7 +355,6 @@ module.exports = do ->
           return out
       }
 
->>>>>>> Stashed changes
     groupEnd: ->
       group = @
       _kuid = @getValue("$kuid")
@@ -394,14 +376,9 @@ module.exports = do ->
     formSettingsTypes = do ->
       result = []
       for key, val of $configs.defaultSurveyDetails
-<<<<<<< Updated upstream
-        val.name
-    return type = obj?.type
-=======
         result.push val.name
       return result
     type = obj?.type
->>>>>>> Stashed changes
     if type in INVALID_TYPES_AT_THIS_STAGE
       # inputParser should have converted groups and repeats into a structure by this point
       throw new Error("Invalid type at this stage: #{type}")
