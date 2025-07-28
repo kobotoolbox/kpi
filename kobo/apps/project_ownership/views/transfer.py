@@ -5,6 +5,7 @@ from rest_framework import viewsets
 from rest_framework.renderers import JSONRenderer
 
 from kpi.permissions import IsAuthenticated
+from kpi.utils.schema_extensions.markdown import read_md
 from ..models import Transfer, TransferStatus
 from ..serializers import TransferDetailSerializer
 
@@ -14,66 +15,24 @@ from ..serializers import TransferDetailSerializer
 )
 @extend_schema_view(
     list=extend_schema(
-        description='list',
+        description=read_md('project_ownership', 'transfers/list.md'),
     ),
     retrieve=extend_schema(
-        description='retrieve',
+        description=read_md('project_ownership', 'transfers/retrieve.md'),
     ),
 )
 class TransferViewSet(viewsets.ReadOnlyModelViewSet):
 
     """
-    ## List of transfers
+        Viewset for transfers
 
-    <span class='label label-danger'>Not implemented</span> Refer to invite list instead.
+        Available actions:
+        - list           → GET       /api/v2/project-ownership/invites/{parent_lookup_invite_uid}/transfers/  # noqa
+        - retrieve       → GET       /api/v2/project-ownership/invites/{parent_lookup_invite_uid}/transfers/{uid}/  # noqa
 
-    ## Transfer detail
-
-    It provides more details on error
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/project-ownership/invites/&lt;invite_uid&gt;/transfers/&lt;transfer_uid&gt;/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/
-
-    <pre class="prettyprint">
-    <b>HTTP 200 OK</b>
-    {
-       "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
-       "asset": "https://[kpi]/api/v2/assets/a8rg3w7ZNL5Nwj7iHzKiyX/",
-       "status": "in_progress",
-       "error": null,
-       "date_modified": "2023-12-14T21:17:29Z",
-       "statuses": [
-            {
-                "status": "success",
-                "status_type": "submissions",
-                "error": null
-            },
-            {
-                "status": "success",
-                "status_type": "media_files",
-                "error": null
-            },
-            {
-                "status": "in_progress",
-                "status_type": "attachments",
-                "error": null
-            },
-            {
-                "status": "in_progress",
-                "status_type": "global",
-                "error": null
-            }
-        ]
-    }
-    </pre>
-
-
-    ### CURRENT ENDPOINT
+        Documentation:
+        - docs/api/v2/transfers/list.md
+        - docs/api/v2/transfers/retrieve.md
     """
 
     model = Transfer
