@@ -17,12 +17,17 @@ from .base import BaseViewSet
         description=read_md('languages', 'transcription/list.md'),
         responses=open_api_200_ok_response(
             TranscriptionServiceSerializer,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+            validate_payload=False,
         )
     ),
     retrieve=extend_schema(
         description=read_md('languages', 'transcription/retrieve.md'),
         responses=open_api_200_ok_response(
             TranscriptionServiceSerializer,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
 )
