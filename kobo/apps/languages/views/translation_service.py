@@ -1,7 +1,6 @@
 # coding: utf-8
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample, \
-    OpenApiParameter
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from rest_framework.renderers import JSONRenderer
 
 from kpi.utils.schema_extensions.markdown import read_md
