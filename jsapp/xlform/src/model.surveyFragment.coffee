@@ -358,10 +358,9 @@ module.exports = do ->
     groupEnd: ->
       group = @
       _kuid = @getValue("$kuid")
-      return _as_json = {
+      _as_json =
         type: "end_#{@_groupOrRepeatKey()}"
         $kuid: "/#{_kuid}"
-      }
 
       return {
         export_relevant_values: (surv, shts)->

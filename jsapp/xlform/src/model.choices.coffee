@@ -169,8 +169,7 @@ module.exports = do ->
       @add(cl = new choices.ChoiceList(name: txtid()))
       return cl
     getListNames: ->
-      @invoke('get', 'name')
-      return
+      return @invoke('get', 'name')
     summaryObj: (shorter=false)->
       out = {}
       for model in @models
