@@ -1,6 +1,6 @@
 # Endpoint deprecation as of release 2.025.30
 
-⚠️ The deprecated endpoints listed below will be permanently removed in **January 2026**.
+⚠️ The deprecated endpoints listed below will be permanently removed with the first release of 2026, scheduled for the week of **January 19, 2026**.
 
 We strongly encourage all developers and users with integrations to update their systems as soon as possible to avoid disruption.
 A new support article will be available soon to guide users through the migration from KoboCAT `v1` to KPI `v2`.
@@ -14,9 +14,10 @@ URL Pattern | View Class or Function                                           |
 `/api/v1/data` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet` | `data-list` | `/api/v2/assets/`
 `/api/v1/data/<pk>` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet` | `data-list` | `/api/v2/assets/<parent_lookup_asset>/data/`
 `/api/v1/data/<pk>/<dataid>` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet` | `data-detail` | `/api/v2/assets/<parent_lookup_asset>/data/<pk>/`
-`/api/v1/data/<pk>/<dataid>/labels` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet` | `data-labels` | None
-`/api/v1/data/<pk>/<dataid>/labels/<label>` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet` | `data-labels-extra` | None
+`/api/v1/data/<pk>/<dataid>/labels` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet` | `data-labels` | None<sup>*</sup>
+`/api/v1/data/<pk>/<dataid>/labels/<label>` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet` | `data-labels-extra` | None<sup>*</sup>
 
+<sup>*</sup> _These endpoints will be permanently removed and have not been carried over to the `v2` API due to very low or no usage._
 
 ### Forms
 
@@ -32,24 +33,25 @@ URL Pattern | View Class or Function                                           |
 
 URL Pattern | View Class or Function                                           | View Name | Equivalent KPI `v2` Endpoint
 -- |------------------------------------------------------------------| -- | --
-`/api/v1/metadata` | `kobo.apps.openrosa.apps.api.viewsets.metadata_viewset.MetaDataViewSet` | `metadata-list` | None
-`/api/v1/metadata/<pk>` | `kobo.apps.openrosa.apps.api.viewsets.metadata_viewset.MetaDataViewSet` | `metadata-detail` | None
+`/api/v1/metadata` | `kobo.apps.openrosa.apps.api.viewsets.metadata_viewset.MetaDataViewSet` | `metadata-list` | `/api/v2/assets/<parent_lookup_asset>/files/`
+`/api/v1/metadata/<pk>` | `kobo.apps.openrosa.apps.api.viewsets.metadata_viewset.MetaDataViewSet` | `metadata-detail` | `/api/v2/assets/<parent_lookup_asset>/files/<uid>/`
 
 
 ### Notes
 
 URL Pattern | View Class or Function                                           | View Name | Equivalent KPI `v2` Endpoint
 -- |------------------------------------------------------------------| -- | --
-`/api/v1/notes` | `kobo.apps.openrosa.apps.api.viewsets.note_viewset.NoteViewSet` | `notes-list` | None
-`/api/v1/notes/<pk>` | `kobo.apps.openrosa.apps.api.viewsets.note_viewset.NoteViewSet` | `notes-detail` | None
+`/api/v1/notes` | `kobo.apps.openrosa.apps.api.viewsets.note_viewset.NoteViewSet` | `notes-list` | None<sup>*</sup>
+`/api/v1/notes/<pk>` | `kobo.apps.openrosa.apps.api.viewsets.note_viewset.NoteViewSet` | `notes-detail` | None<sup>*</sup>
 
+<sup>*</sup> _These endpoints will be permanently removed and have not been carried over to the `v2` API due to very low or no usage._
 
 ### Submissions
 URL Pattern | View Class or Function                                           | View Name | Equivalent KPI `v2` Endpoint
 -- |------------------------------------------------------------------| -- | --
-`/api/v1/submissions` | `kobo.apps.openrosa.apps.api.viewsets.xform_submission_api.XFormSubmissionApi` | `submissions-list` | None
+`/api/v1/submissions` | `kobo.apps.openrosa.apps.api.viewsets.xform_submission_api.XFormSubmissionApi` | `submissions-list` | None<sup>*</sup>
 
-<sup>*</sup> Use OpenRosa API to submit data at https://kf.kobotoolbox.org/submission
+<sup>*</sup> _Use OpenRosa API to submit data at https://kf.kobotoolbox.org/submission_
 
 ### User
 
