@@ -44,7 +44,6 @@ CONSTANCE_DATABASE_CACHE_BACKEND = None
 if 'djstripe' not in INSTALLED_APPS:  # noqa F405
     INSTALLED_APPS += ('djstripe', 'kobo.apps.stripe')  # noqa F405
 STRIPE_ENABLED = True
-USAGE_LIMIT_ENFORCEMENT = True
 
 WEBPACK_LOADER['DEFAULT'][
     'LOADER_CLASS'
