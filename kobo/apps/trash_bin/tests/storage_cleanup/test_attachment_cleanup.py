@@ -38,7 +38,7 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
                 '_attachments': [
                     {
                         'download_url': f'http://testserver/{self.owner.username}/audio_conversion_test_clip.3gp',  # noqa
-                        'filename': f'{self.owner.username}/audio_conversion_test_clip.3gp',
+                        'filename': f'{self.owner.username}/audio_conversion_test_clip.3gp',  # noqa
                         'mimetype': 'video/3gpp',
                     },
                 ],
@@ -162,7 +162,9 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
     )
     @requires_stripe
     @override_config(AUTO_DELETE_ATTACHMENTS=True)
-    def test_schedule_cleanup_task_only_for_users_exceeding_grace_period(self, **stripe_models):
+    def test_schedule_cleanup_task_only_for_users_exceeding_grace_period(
+        self, **stripe_models
+    ):
         """
         Test that only users over their limit for more than the grace period are
         scheduled for attachment cleanup
