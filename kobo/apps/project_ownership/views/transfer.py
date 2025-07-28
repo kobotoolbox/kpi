@@ -1,7 +1,8 @@
 from django.db.models import Prefetch
 from django.shortcuts import Http404
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
+from rest_framework.renderers import JSONRenderer
 
 from kpi.permissions import IsAuthenticated
 from ..models import Transfer, TransferStatus
@@ -9,7 +10,15 @@ from ..serializers import TransferDetailSerializer
 
 
 @extend_schema(
-    tags=['transfers'],
+    tags=['Transfers'],
+)
+@extend_schema_view(
+    list=extend_schema(
+        description='list',
+    ),
+    retrieve=extend_schema(
+        description='retrieve',
+    ),
 )
 class TransferViewSet(viewsets.ReadOnlyModelViewSet):
 
@@ -71,6 +80,9 @@ class TransferViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uid'
     permission_classes = (IsAuthenticated,)
     serializer_class = TransferDetailSerializer
+    renderer_classes = [
+        JSONRenderer,
+    ]
 
     def get_queryset(self):
 
