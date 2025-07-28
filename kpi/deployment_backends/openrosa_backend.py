@@ -51,7 +51,6 @@ from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
-    PERM_FROM_KC_ONLY,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
@@ -917,39 +916,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 'version': self.asset.version_id,
             }
         )
-
-    def remove_from_kc_only_flag(
-        self, specific_user: Union[int, settings.AUTH_USER_MODEL] = None
-    ):
-        """
-        Removes `from_kc_only` flag for ALL USERS unless `specific_user` is
-        provided
-
-        Args:
-            specific_user (int, User): User object or pk
-        """
-        # This flag lets us know that permission assignments in KPI exist
-        # only because they were copied from KoBoCAT (by `sync_from_kobocat`).
-        # As soon as permissions are assigned through KPI, this flag must be
-        # removed
-        #
-        # This method is here instead of `ObjectPermissionMixin` because
-        # it's specific to KoBoCat as backend.
-
-        # TODO: Remove this method after kobotoolbox/kobocat#642
-
-        filters = {
-            'permission__codename': PERM_FROM_KC_ONLY,
-            'asset_id': self.asset.id,
-        }
-        if specific_user is not None:
-            try:
-                user_id = specific_user.pk
-            except AttributeError:
-                user_id = specific_user
-            filters['user_id'] = user_id
-
-        ObjectPermission.objects.filter(**filters).delete()
 
     def rename_enketo_id_key(
         self, previous_owner_username: str, project_identifier: str = None
