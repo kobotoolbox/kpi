@@ -10,8 +10,7 @@ from kpi.utils.object_permission import get_database_user
 class TagSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField('_get_tag_url', read_only=True)
     assets = serializers.SerializerMethodField('_get_assets', read_only=True)
-    parent = serializers.SerializerMethodField(
-        '_get_parent_url', read_only=True)
+    parent = serializers.SerializerMethodField('_get_parent_url', read_only=True)
     uid = serializers.ReadOnlyField(source='taguid.uid')
 
     class Meta:
@@ -23,8 +22,10 @@ class TagSerializer(serializers.ModelSerializer):
 
     def _get_assets(self, obj):
         request = self.context.get('request', None)
-        return [reverse('asset-detail', args=(sa.uid,), request=request)
-                for sa in Asset.objects.values_list('uid', flat=True)]
+        return [
+            reverse('asset-detail', args=(sa.uid,), request=request)
+            for sa in Asset.objects.values_list('uid', flat=True)
+        ]
 
     def _get_tag_url(self, obj):
         request = self.context.get('request', None)
@@ -33,7 +34,9 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class TagListSerializer(TagSerializer):
-
     class Meta:
         model = Tag
-        fields = ('name', 'url', )
+        fields = (
+            'name',
+            'url',
+        )
