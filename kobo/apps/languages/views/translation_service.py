@@ -1,5 +1,7 @@
 # coding: utf-8
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample, \
+    OpenApiParameter
 from rest_framework.renderers import JSONRenderer
 
 from kpi.utils.schema_extensions.markdown import read_md
@@ -15,6 +17,14 @@ from .base import BaseViewSet
 @extend_schema_view(
     list=extend_schema(
         description=read_md('languages', 'translation/list.md'),
+        parameters=[
+            OpenApiParameter(
+                name='q',
+                required=False,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+            ),
+        ],
         responses=open_api_200_ok_response(
             TranslationServiceSerializer,
             raise_not_found=False,
