@@ -2,6 +2,8 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.renderers import JSONRenderer
 
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from ..models.transcription import TranscriptionService
 from ..serializers import TranscriptionServiceSerializer
 from .base import BaseViewSet
@@ -12,10 +14,16 @@ from .base import BaseViewSet
 )
 @extend_schema_view(
     list=extend_schema(
-        description='list',
+        description=read_md('languages', 'transcription/list.md'),
+        responses=open_api_200_ok_response(
+            TranscriptionServiceSerializer,
+        )
     ),
     retrieve=extend_schema(
-        description='retrieve',
+        description=read_md('languages', 'transcription/retrieve.md'),
+        responses=open_api_200_ok_response(
+            TranscriptionServiceSerializer,
+        )
     ),
 )
 class TranscriptionServiceViewSet(BaseViewSet):
@@ -25,7 +33,7 @@ class TranscriptionServiceViewSet(BaseViewSet):
     Available actions:
     - list           → GET       /api/v2/transcription-services/
     - retrieve       → GET       /api/v2/transcription-services/{code}/
-    
+
     Documentation:
     - docs/api/v2/transcription/list.md
     - docs/api/v2/transcription/retrieve.md
