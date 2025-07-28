@@ -2,6 +2,7 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.renderers import JSONRenderer
 
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from ..models.translation import TranslationService
 from ..serializers import TranslationServiceSerializer
 from .base import BaseViewSet
@@ -13,9 +14,15 @@ from .base import BaseViewSet
 @extend_schema_view(
     list=extend_schema(
         description='List documentation',
+        responses=open_api_200_ok_response(
+            TranslationServiceSerializer,
+        )
     ),
     retrieve=extend_schema(
         description='Retrieve documentation',
+        responses=open_api_200_ok_response(
+            TranslationServiceSerializer,
+        )
     ),
 )
 class TranslationServiceViewSet(BaseViewSet):
