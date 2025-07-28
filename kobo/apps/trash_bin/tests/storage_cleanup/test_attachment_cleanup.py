@@ -26,26 +26,6 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
             self._create_test_asset_and_submission(user=self.owner)
         )
 
-    def _create_submissions_with_attachments(self, count=1):
-        """
-        Helper method to add new submissions with attachments to the asset
-        """
-        for _ in range(count):
-            instance_uid = uuid.uuid4()
-            submission = {
-                'q1': 'audio_conversion_test_clip.3gp',
-                '_uuid': str(instance_uid),
-                '_attachments': [
-                    {
-                        'download_url': f'http://testserver/{self.owner.username}/audio_conversion_test_clip.3gp',  # noqa
-                        'filename': f'{self.owner.username}/audio_conversion_test_clip.3gp',  # noqa
-                        'mimetype': 'video/3gpp',
-                    },
-                ],
-                '_submitted_by': self.owner.username,
-            }
-            self.asset.deployment.mock_submissions([submission])
-
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
@@ -240,3 +220,23 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
                 mock_task.assert_not_called()
 
         lock.release()
+
+    def _create_submissions_with_attachments(self, count=1):
+        """
+        Helper method to add new submissions with attachments to the asset
+        """
+        for _ in range(count):
+            instance_uid = uuid.uuid4()
+            submission = {
+                'q1': 'audio_conversion_test_clip.3gp',
+                '_uuid': str(instance_uid),
+                '_attachments': [
+                    {
+                        'download_url': f'http://testserver/{self.owner.username}/audio_conversion_test_clip.3gp',  # noqa
+                        'filename': f'{self.owner.username}/audio_conversion_test_clip.3gp',  # noqa
+                        'mimetype': 'video/3gpp',
+                    },
+                ],
+                '_submitted_by': self.owner.username,
+            }
+            self.asset.deployment.mock_submissions([submission])
