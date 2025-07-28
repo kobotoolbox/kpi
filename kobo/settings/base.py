@@ -130,8 +130,8 @@ INSTALLED_APPS = (
     'kobo.apps.help',
     'trench',
     'kobo.apps.accounts.mfa.apps.MfaAppConfig',
-    'kobo.apps.languages.LanguageAppConfig',
     'kobo.apps.project_views.apps.ProjectViewAppConfig',
+    'kobo.apps.languages.apps.LanguageAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
     'kobo.apps.mass_emails.MassEmailsConfig',
     'kobo.apps.trackers.TrackersConfig',
@@ -459,6 +459,16 @@ CONSTANCE_CONFIG = {
         'them and before automatically hard-deleting them by the system',
         'positive_int',
     ),
+    'AUTO_DELETE_ATTACHMENTS': (
+        False,
+        'Enable automatic deletion of attachments for users who have exceeded '
+        'their storage limits.'
+    ),
+    'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD': (
+        90,
+        'Number of days to keep attachments after the user has exceeded their '
+        'storage limits.'
+    ),
     # Toggle for ZXCVBN
     'ENABLE_PASSWORD_ENTROPY_METER': (
         True,
@@ -759,6 +769,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ACCOUNT_TRASH_GRACE_PERIOD',
         'ATTACHMENT_TRASH_GRACE_PERIOD',
         'PROJECT_TRASH_GRACE_PERIOD',
+        'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD',
+        'AUTO_DELETE_ATTACHMENTS',
     ),
     'Regular maintenance settings': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
@@ -1300,6 +1312,13 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    # Schedule every 30 minutes
+    # ToDo: Uncomment when the task for auto-cleanup of attachments is ready (DEV-240)
+    # 'attachment-cleanup-for-users-exceeding-limits': {
+    #     'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
+    #     'schedule': crontab(minute='*/30'),
+    #     'options': {'queue': 'kpi_low_priority_queue'}
+    # },
     # Schedule every day at midnight UTC
     'project-ownership-garbage-collector': {
         'task': 'kobo.apps.project_ownership.tasks.garbage_collector',

@@ -80,7 +80,7 @@ jobs:
 
 
   merge-forward:
-    name: Merge Forward
+    name: Merge forward
     runs-on: ubuntu-24.04
     needs:
       - darker
@@ -96,16 +96,36 @@ jobs:
       (needs.changelog.result == 'skipped' || needs.changelog.result == 'success') &&
       needs.deploy-to-beta.result == 'success'
     steps:
+      - name: Generate a token to trigger a workflow from a workflow
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+          private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+
       - uses: actions/checkout@v4
         with:
+          token: ${{ steps.app-token.outputs.token }}
           fetch-depth: "0"
+
+      # https://github.com/actions/create-github-app-token?tab=readme-ov-file#configure-git-cli-for-an-apps-bot-user
+      - name: Get GitHub App user id
+        id: get-user-id
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+      - name: Set git name and email for the bot
+        run: |
+          git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
+          git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
+
       - name: Find next release branch
         id: branches
         run: ./.github/find_next_release_branch.sh
+
       - name: Merge
         run: |
-          git config user.name "GitHub Actions Bot"
-          git config user.email "github-actions-bot@kobotoolbox.org"
           current_branch="${{ steps.branches.outputs.current_branch }}"
           next_branch="${{ steps.branches.outputs.next_branch }}"
           git checkout "${next_branch}"
@@ -126,7 +146,7 @@ jobs:
     secrets: inherit
     with:
       topic: "${{ needs.version.outputs.version }} release"
-      content: ":working_on_it: Release branch updated, passed CI and deployed to beta. Please merge to main and update release notes (TODO: automate)"
+      content: ":working_on_it: Release branch updated, passed CI, deployed to beta, and merged forward. Please update release notes (TODO: automate)"
 
   on-failure:
     needs:
