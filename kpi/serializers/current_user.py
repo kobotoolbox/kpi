@@ -19,8 +19,21 @@ from kobo.apps.accounts.serializers import SocialAccountSerializer
 from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.fields import WritableJSONField
+from kpi.schema_extensions.v2.me.fields import (
+    DateJoinedField,
+    ExtraDetailField,
+    GravatarField,
+    OrganizationField,
+    ProjectUrlField,
+    ServerTimeField,
+)
 from kpi.utils.gravatar_url import gravatar_url
 from kpi.utils.object_permission import get_database_user
+
+
+@extend_schema_field(ExtraDetailField)
+class ExtraDetailsOverload(WritableJSONField):
+    pass
 
 
 class CurrentUserSerializer(serializers.ModelSerializer):
@@ -29,7 +42,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     date_joined = serializers.SerializerMethodField()
     projects_url = serializers.SerializerMethodField()
     gravatar = serializers.SerializerMethodField()
-    extra_details = WritableJSONField(source='extra_details.data')
+    extra_details = ExtraDetailsOverload(source='extra_details.data')
     current_password = serializers.CharField(write_only=True, required=False)
     new_password = serializers.CharField(write_only=True, required=False)
     git_rev = serializers.SerializerMethodField()
@@ -82,7 +95,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         )
         return accepted_tos
 
-    @extend_schema_field(OpenApiTypes.DATETIME)
+    @extend_schema_field(DateJoinedField)
     def get_date_joined(self, obj):
         return obj.date_joined.astimezone(ZoneInfo('UTC')).strftime(
             '%Y-%m-%dT%H:%M:%SZ'
@@ -98,10 +111,11 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         else:
             return False
 
-    def get_gravatar(self, obj) -> str:
+    @extend_schema_field(GravatarField)
+    def get_gravatar(self, obj):
         return gravatar_url(obj.email)
 
-    @extend_schema_field(OpenApiTypes.OBJECT)
+    @extend_schema_field(OrganizationField)
     def get_organization(self, obj):
         user = get_database_user(obj)
         request = self.context.get('request')
@@ -118,18 +132,18 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'uid': user.organization.id,
         }
 
-    @extend_schema_field(OpenApiTypes.URI)
+    @extend_schema_field(ProjectUrlField)
     def get_projects_url(self, obj):
         return '/'.join((settings.KOBOCAT_URL, obj.username))
 
-    @extend_schema_field(OpenApiTypes.DATETIME)
+    @extend_schema_field(ServerTimeField)
     def get_server_time(self, obj):
         # Currently unused on the front end
         return datetime.datetime.now(tz=ZoneInfo('UTC')).strftime(
             '%Y-%m-%dT%H:%M:%SZ'
         )
 
-    @extend_schema_field(OpenApiTypes.STR)
+    @extend_schema_field(OpenApiTypes.BOOL)
     def get_validated_password(self, obj):
         try:
             extra_details = obj.extra_details
