@@ -1,4 +1,3 @@
-# coding: utf-8
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import viewsets
 from taggit.models import Tag
