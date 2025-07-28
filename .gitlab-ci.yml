@@ -30,7 +30,7 @@ deploy-beta:
     name: beta
     url: https://kf.beta.kobotoolbox.org
   rules:
-    - if: $CI_COMMIT_BRANCH == "public-beta"
+    - if: $CI_COMMIT_BRANCH == "public-beta" && $CI_COMMIT_REF_PROTECTED
 
 
 deploy-staging:
