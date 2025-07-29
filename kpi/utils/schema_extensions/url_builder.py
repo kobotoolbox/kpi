@@ -44,9 +44,11 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'hook-log-detail': '/api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/',  # noqa
         'organization-members-list': '/api/v2/organizations/{id}/members/',
         'organizations-assets': '/api/v2/organizations/{id}/assets/',
-        'organizations-service-usage': '/api/v2/organizations/{id}/service_usage/',  # noqa
+        'organizations-service-usage': '/api/v2/organizations/{id}/service_usage/',
         'organizations-asset-usage': '/api/v2/organizations/{id}/assets_usage/',
         'organizations-detail': '/api/v2/organizations/{id}/',
+        'language-detail': '/api/v2/language/{code}/',
+        'user_profile': '/{username}',
     }
 
     try:

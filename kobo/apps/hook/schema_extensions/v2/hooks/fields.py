@@ -1,11 +1,11 @@
 from rest_framework import serializers
 
 
-class LogsUrlField(serializers.SerializerMethodField):
+class LogsUrlField(serializers.URLField):
     pass
 
 
-class UrlField(serializers.SerializerMethodField):
+class UrlField(serializers.URLField):
     pass
 
 
