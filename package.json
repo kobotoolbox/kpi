@@ -145,7 +145,7 @@
     "chromatic": "^11.28.2",
     "circular-dependency-plugin": "^5.2.2",
     "coffee-loader": "^0.9.0",
-    "coffeelint": "^1.16.2",
+    "coffeelint": "^2.1.0",
     "coffeescript": "^1.12.0",
     "concurrently": "^9.1.2",
     "css-loader": "^6.11.0",
