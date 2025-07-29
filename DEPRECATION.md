@@ -51,7 +51,7 @@ URL Pattern | View Class or Function                                           |
 -- |------------------------------------------------------------------| -- | --
 `/api/v1/submissions` | `kobo.apps.openrosa.apps.api.viewsets.xform_submission_api.XFormSubmissionApi` | `submissions-list` | None<sup>*</sup>
 
-<sup>*</sup> _Use OpenRosa API to submit data at https://kf.kobotoolbox.org/submission_
+<sup>*</sup> _Use OpenRosa API to submit data at https://kobocat.domain.tld/submission_
 
 ### User
 
