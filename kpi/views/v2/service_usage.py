@@ -17,7 +17,7 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
     list=extend_schema(
         description=read_md('kpi', 'service_usage/list.md'),
         responses=open_api_200_ok_response(
-            ServiceUsageResponse(),
+            ServiceUsageResponse,
             raise_access_forbidden=False,
             raise_not_found=False,
             validate_payload=False,
