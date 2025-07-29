@@ -18,7 +18,6 @@ from kpi.utils.object_permission import get_database_user
 class ObjectPermissionsFilter(BaseFilterBackend):
     """
     Copy from django-rest-framework-guardian `ObjectPermissionsFilter`
-    Avoid importing the library (which does not seem to be maintained anymore)
     """
 
     perm_format = '%(app_label)s.view_%(model_name)s'
@@ -55,12 +54,10 @@ class ObjectPermissionsFilter(BaseFilterBackend):
 
     def _get_objects_for_org_admin(self, request, queryset, view):
         """
-        Bypasses the Django Guardian permission mechanism to retrieve all objects
-        belonging to the owner of an organization.
+        Retrieves all objects belonging to the owner of an organization.
 
         If the current user is an admin of the organization associated with the
         owner of the given object, this method returns all related objects
-        without applying Guardian's usual filtering.
         """
 
         # Only check for specific view and action
@@ -116,6 +113,7 @@ class RowLevelObjectPermissionFilter(ObjectPermissionsFilter):
         # We need to avoid `guardian` filter to allow:
         # - anonymous user to see public data
         # - superuser to take actions on all objects
+        # However, guardian was removed as dependency, so this may change in the future
         # The permissions validation is handled by the permission classes and
         # should deny access to forbidden data.
         if request.user.is_anonymous or request.user.is_superuser:

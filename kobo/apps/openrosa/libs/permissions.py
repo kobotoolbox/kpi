@@ -10,9 +10,6 @@ from kobo.apps.openrosa.libs.constants import (
     CAN_VALIDATE_XFORM,
     CAN_VIEW_XFORM,
 )
-from kobo.apps.openrosa.libs.utils.guardian import (
-    get_users_with_perms as guardian_get_users_with_perms,
-)
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
@@ -82,27 +79,6 @@ def get_xform_ids_for_user(
         XForm.objects.filter(kpi_asset_uid__in=uids).values_list('id', flat=True)
     )
     return xform_ids
-
-
-def get_object_users_with_permissions(obj, serializable: bool = False) -> list[dict]:
-    """Returns users, roles and permissions for an object.
-    When called with `serializable=True`, return usernames (strings)
-    instead of User objects, which cannot be serialized by REST Framework.
-    """
-    result = []
-
-    if obj:
-        users_with_perms = guardian_get_users_with_perms(
-            obj, attach_perms=True, with_group_users=False
-        ).items()
-
-        result = [{
-            'user': user if not serializable else user.username,
-            'permissions': permissions} for user, permissions in
-            users_with_perms
-        ]
-
-    return result
 
 
 @cache_for_request

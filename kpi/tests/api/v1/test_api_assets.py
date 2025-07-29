@@ -4,10 +4,10 @@ import unittest
 from urllib.parse import unquote_plus
 
 from django.urls import reverse
+from formpack.utils.expand_content import SCHEMA_VERSION
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
-from formpack.utils.expand_content import SCHEMA_VERSION
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_COLLECTION
 from kpi.models import Asset, SubmissionExportTask
