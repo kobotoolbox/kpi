@@ -17,7 +17,6 @@ from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     ASSET_TYPES_WITH_CHILDREN,
-    PERM_FROM_KC_ONLY,
     PREFIX_PARTIAL_PERMS,
 )
 from kpi.deployment_backends.kc_access.utils import (
@@ -951,8 +950,6 @@ class ObjectPermissionViewSetMixin:
         object_permissions = ObjectPermission.objects.filter(
             asset_id__in=asset_ids,
             deny=False,
-        ).exclude(
-            permission__codename=PERM_FROM_KC_ONLY
         ).select_related(
             'user', 'permission'
         ).order_by(
