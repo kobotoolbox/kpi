@@ -17,7 +17,7 @@ module.exports = do ->
           columns = []
           for row in @rows
             columns.push key  for own key of row when key not in columns
-          columns
+          return columns
         @buildRowArray()
         @obj = param
       else if param
@@ -29,17 +29,19 @@ module.exports = do ->
               for key, val of row when key not of columns
                 @columns.push key
           @rowArray = do =>
-            for row in param.rowObjects
+            return (for row in param.rowObjects
               row[c] for c in @columns
+              )
         else
           @rowArray = if _isArray param.rows then param.rows else []
         @kind     = param.kind if param.kind?
         @rows = do =>
-          for row in @rowArray
+          return (for row in @rowArray
             rowObj = {}
             for cell, i in row  when @columns[i]?
               rowObj[@columns[i]] = cell
             rowObj
+          )
       else
         @rows     = []
         @columns  = []
@@ -47,9 +49,11 @@ module.exports = do ->
 
     buildRowArray: ()->
       @rowArray = do =>
-        for row in @rows
+        return (for row in @rows
           for column in @columns
             row[column] || ""
+        )
+      return
 
     addRow: (r)->
       colsChanged = false
@@ -62,50 +66,50 @@ module.exports = do ->
         @buildRowArray()
       else
         @rowArray.push (r[column] for column in @columns)
-      r
+      return r
 
     toObjects: (opts={})->
       if @string
         return csv.toObjects @string, opts
       else if @rows
-        @rows
+        return @rows
 
     toObject: ()->
       out =
         columns: @columns
         rows: @rowArray
       out.kind = @kind  if @kind
-      out
+      return out
 
     toArrays: ()->
       out = [@columns]
       out.push row  for row in @rowArray when row.length > 0
-      out
+      return out
 
     toString: ()->
       headRow = (asCsvCellValue cell for cell in @columns).join(csv.settings.delimiter)
-      headRow + "\n" + (for row in @rowArray
+      return headRow + "\n" + (for row in @rowArray
         (asCsvCellValue cell for cell in row).join csv.settings.delimiter).join("\n")
 
   csv = (param, opts)->
-    if param instanceof Csv then param else new Csv param, opts
+    if param instanceof Csv then return param else return new Csv param, opts
 
   _remove_extra_escape_chars = (ss)->
-    ss.replace(/\\\\/g, '\\')
+    return ss.replace(/\\\\/g, '\\')
 
   asCsvCellValue = (cell)->
     if cell is undefined
-      ""
+      return ""
     else if ///\W|\w|#{csv.settings.delimiter}///.test cell
       outstr = JSON.stringify("" + cell)
-      _remove_extra_escape_chars outstr
+      return _remove_extra_escape_chars outstr
     else
-      cell
+      return cell
 
   csv.fromStringArray = (outpArr, opts={})->
     outArr = for row in outpArr
       (asCsvCellValue cell for cell in row).join csv.settings.delimiter
-    outArr.join "\n"
+    return outArr.join "\n"
 
   csv.fromArray = (arr, opts={})->
     sort        = !!opts.sort
@@ -116,21 +120,23 @@ module.exports = do ->
     outpArr = for row in arr
       asCsvCellValue row[col]  for col in headRow
     outpArr.unshift (asCsvCellValue col  for col in headRow)
-    csv.fromStringArray outpArr, opts
+    return csv.fromStringArray outpArr, opts
 
   csv.toObjects = (csvString)->
-    arrayToObjects csv.toArray csvString
+    return arrayToObjects csv.toArray csvString
 
   arrayToObjects = (arr)->
     [headRow, rows...] = arr
+    result = []
     for row in rows when !(row.length is 1 and row[0] is "")
       obj = {}
       for key, i in headRow
         obj[key] = row[i]
-      obj
+      result.push obj
+    return result
 
   csv.toObject = (csvString, opts)->
-    arrayToObject csv.toArray(csvString), opts
+    return arrayToObject csv.toArray(csvString), opts
 
   arrayToObject = (arr, opts={})->
     [headRow, rows...] = arr
@@ -150,12 +156,12 @@ module.exports = do ->
       obj[key] = row[i]  for key, i in headRow when i isnt sortByKeyI
       obj[sortByKey] = sbKeyVal  if includeSortByKey
       out[sbKeyVal] = obj
-    out
+    return out
 
   removeTrailingNewlines = (str)-> str.replace(/(\n+)$/g, "")
 
   csv._parse_string = (c)->
-    JSON.parse('"' + c.replace(/\\/g, '\\\\').replace(/\\\\"/g, '\\"') + '"')
+    return JSON.parse('"' + c.replace(/\\/g, '\\\\').replace(/\\\\"/g, '\\"') + '"')
 
   # The `csv.toArray` function, pulled from this [stackoverflow comment](http://stackoverflow.com/questions/1293147/javascript-code-to-parse-csv-data)
   # will parse a delimited string into an array of
@@ -243,7 +249,7 @@ module.exports = do ->
 
       row.push strMatchedValue
     rows.push row
-    rows
+    return rows
 
 
   #### Sheeted CSVs
@@ -274,17 +280,19 @@ module.exports = do ->
       @_sheets = {}
       if _isString param
         parseSheetedCsv param, (osids, sheets)=>
+          result = []
           for id in osids
             [columns, rows...] = sheets[id]
-            @sheet id, csv columns: columns, rows: rows
+            result.push @sheet id, csv columns: columns, rows: rows
+          return result
 
     sheet: (sheetId, contents=false)->
       if contents
         unless sheetId in @_sheetIds
           @_sheetIds.push sheetId
-        @_sheets[sheetId] = contents
+        return @_sheets[sheetId] = contents
       else
-        @_sheets[sheetId]
+        return @_sheets[sheetId]
     toString: ()->
       outp = []
       delimiter = csv.settings.delimiter
@@ -298,10 +306,10 @@ module.exports = do ->
         outp.push delimiter + (asCsvCellValue col for col in cols).join delimiter
         for row in rowA
           outp.push delimiter + (asCsvCellValue cell for cell in row).join delimiter
-      outp.join("\n")
+      return outp.join("\n")
 
   csv.sheeted = (param, opts)->
-    if param instanceof SheetedCsv then param else new SheetedCsv param, opts
+    if param instanceof SheetedCsv then return param else return new SheetedCsv param, opts
 
   # typically, most rows of a sheeted csv begin with an empty cell.
   #
@@ -334,23 +342,28 @@ module.exports = do ->
     unless cb
       return [orderedSheetIds, sheets]
 
-    cb.apply @, [orderedSheetIds, sheets]
+    return cb.apply @, [orderedSheetIds, sheets]
 
   # The function `csv.sheeted.toObjects(sheetedCsv)`
   # takes a sheeted csv and builds sheets individually
   # as it would in `csv.toObjects`
-  csv.sheeted.toObjects = (shCsv)-> parseSheetedCsv shCsv, (osids, sheets)->
+  csv.sheeted.toObjects = (shCsv)-> return parseSheetedCsv shCsv, (osids, sheets)->
+    throw new Error
     output = {}
     for sheet in osids
       output[sheet] = arrayToObjects sheets[sheet]
-    output
+    return output
 
   # The function `csv.sheeted.toArray(sheetedCsv)`
   # preserves the order of the sheets.
-  csv.sheeted.toArray = (shCsv)-> parseSheetedCsv shCsv, (osids, sheets)->
+  csv.sheeted.toArray = (shCsv)-> return parseSheetedCsv shCsv, (osids, sheets)->
+    result = []
     for sheet in osids
+      result.push {
       id: sheet
       sheet: arrayToObjects sheets[sheet]
+      }
+    return result
 
 
   # Misc. helper methods carried over from underscore.coffee
@@ -360,11 +373,11 @@ module.exports = do ->
   _nativeKeys     = Object.keys
   _keys           = _nativeKeys or (obj)->
     return new Array obj.length  if _isArray(obj)
-    key for key, val of obj
+    return key for key, val of obj
 
   csv.settings =
     delimiter: ","
     parseFloat: false
     removeTrailingNewlines: true
 
-  csv
+  return csv
