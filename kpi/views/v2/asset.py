@@ -92,56 +92,6 @@ from kpi.schema_extensions.v2.assets.schema import (
 )
 
 
-class AssetSchema(AutoSchema):
-    """
-    Custom schema used to inject OpenAPI examples for AssetViewSet at runtime.
-
-    We cannot use `@extend_schema(..., examples=...)` or `@extend_schema_view(...)`
-    directly for these examples because the values rely on variables
-    (e.g., `ASSET_URL_SCHEMA`) that trigger Django's URL resolver via `reverse()`.
-    Since those decorators are evaluated at module import time—before the full Django
-    application and URL config are guaranteed to be loaded—this leads to circular
-    import errors.
-
-    By overriding `get_operation()` here, we defer the evaluation of those dynamic
-    values until the OpenAPI schema is being generated (e.g., via `/api/v2/schema/`),
-    when all apps and routes are fully initialized. This ensures a clean, safe injection
-    of complex or reverse-dependent examples.
-
-    This class matches the `operationId` for the `POST /assets/` endpoint
-    to inject multiple request examples, such as referencing an asset or a source.
-    """
-
-    def get_operation(self, *args, **kwargs):
-
-
-        operation = super().get_operation(*args, **kwargs)
-
-        if not operation:
-            return None
-
-        if operation.get('operationId') == 'api_v2_assets_partial_update':
-
-            operation['requestBody']['content']['application/json']['examples'] = {
-                'Updating': {
-                    'value': {
-                        'content': generate_example_from_schema(ASSET_CONTENT_SCHEMA),
-                        'name': generate_example_from_schema(ASSET_NAME_SCHEMA),
-                    },
-                    'summary': 'Updating an asset',
-                },
-                'ControlSharing': {
-                    'value': {
-                        'enabled': generate_example_from_schema(ASSET_ENABLED_SCHEMA),
-                        'fields': generate_example_from_schema(ASSET_FIELDS_SCHEMA),
-                    },
-                    'summary': 'Data sharing of the project',
-                },
-            }
-
-        return operation
-
-
 @extend_schema(
     tags=['Assets'],
 )
@@ -261,6 +211,24 @@ class AssetSchema(AutoSchema):
             AssetSerializer(),
             raise_access_forbidden=False,
         ),
+        examples=[
+            OpenApiExample(
+                name='Updating an asset',
+                value={
+                    'content': generate_example_from_schema(ASSET_CONTENT_SCHEMA),
+                    'name': generate_example_from_schema(ASSET_NAME_SCHEMA),
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                name='Data sharing of the project',
+                value={
+                    'enabled': generate_example_from_schema(ASSET_ENABLED_SCHEMA),
+                    'fields': generate_example_from_schema(ASSET_FIELDS_SCHEMA),
+                },
+                request_only=True,
+            ),
+        ],
     ),
     update=extend_schema(exclude=True),
     reports=extend_schema(
@@ -407,7 +375,6 @@ class AssetViewSet(
 
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Asset.objects.all()
-    schema = AssetSchema()
     lookup_field = 'uid'
     pagination_class = AssetPagination
     permission_classes = (AssetPermission,)
