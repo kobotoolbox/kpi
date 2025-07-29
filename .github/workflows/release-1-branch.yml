@@ -53,6 +53,9 @@ jobs:
 
     - name: delete previous branch if unreleased
       if: ${{ steps.week.outputs.even == 'true' && steps.branches.outputs.prev_released == 'false' }}
+      env:
+        prev_tag: ${{ steps.branches.outputs.prev_tag }}
+        prev_branch: ${{ steps.branches.outputs.prev_branch }}
       run: |
         echo "tag $prev_tag doesn't exist, thus the previous release was NOT released and let's delete the branch.."
         git push origin :$prev_branch
