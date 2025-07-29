@@ -7,7 +7,7 @@ from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -79,6 +79,17 @@ from kpi.utils.schema_extensions.response import (
     open_api_http_example_response, open_api_201_created_response,
 )
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
+from kpi.schema_extensions.v2.assets.schema import (
+    ASSET_CONTENT_SCHEMA,
+    ASSET_ENABLED_SCHEMA,
+    ASSET_FIELDS_SCHEMA,
+    ASSET_NAME_SCHEMA,
+    ASSET_SETTINGS_SCHEMA,
+    ASSET_TYPE_SCHEMA,
+    BULK_ACTION_SCHEMA,
+    BULK_ASSET_UIDS_SCHEMA,
+    BULK_CONFIRM_SCHEMA,
+)
 
 
 class AssetSchema(AutoSchema):
@@ -103,45 +114,11 @@ class AssetSchema(AutoSchema):
 
     def get_operation(self, *args, **kwargs):
 
-        from kpi.schema_extensions.v2.assets.schema import (
-            ASSET_CONTENT_SCHEMA,
-            ASSET_ENABLED_SCHEMA,
-            ASSET_FIELDS_SCHEMA,
-            ASSET_NAME_SCHEMA,
-            ASSET_SETTINGS_SCHEMA,
-            ASSET_TYPE_SCHEMA,
-            BULK_ACTION_SCHEMA,
-            BULK_ASSET_UIDS_SCHEMA,
-            BULK_CONFIRM_SCHEMA,
-        )
 
         operation = super().get_operation(*args, **kwargs)
 
         if not operation:
             return None
-
-        if operation.get('operationId') == 'api_v2_assets_create':
-
-            operation['requestBody']['content']['application/json']['examples'] = {
-                'UsingAsset': {
-                    'value': {
-                        'name': generate_example_from_schema(ASSET_NAME_SCHEMA),
-                        'settings': generate_example_from_schema(ASSET_SETTINGS_SCHEMA),
-                        'asset_type': generate_example_from_schema(ASSET_TYPE_SCHEMA),
-                    },
-                    'summary': 'Creating an asset',
-                },
-                'UsingSource': {
-                    'value': {
-                        'name': generate_example_from_schema(ASSET_NAME_SCHEMA),
-                        'clone_from': generate_example_from_schema(
-                            ASSET_CLONE_FROM_SCHEMA
-                        ),
-                        'asset_type': generate_example_from_schema(ASSET_TYPE_SCHEMA),
-                    },
-                    'summary': 'Cloning an asset',
-                },
-            }
 
         if operation.get('operationId') == 'api_v2_assets_bulk_create':
 
@@ -218,6 +195,28 @@ class AssetSchema(AutoSchema):
             raise_not_found=False,
             raise_access_forbidden=False,
         ),
+        examples=[
+            OpenApiExample(
+                name='Creating an asset',
+                value={
+                    'name': generate_example_from_schema(ASSET_NAME_SCHEMA),
+                    'settings': generate_example_from_schema(ASSET_SETTINGS_SCHEMA),
+                    'asset_type': generate_example_from_schema(ASSET_TYPE_SCHEMA),
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                name='Cloning an asset',
+                value={
+                    'name': generate_example_from_schema(ASSET_NAME_SCHEMA),
+                    'clone_from': generate_example_from_schema(
+                        ASSET_CLONE_FROM_SCHEMA
+                    ),
+                    'asset_type': generate_example_from_schema(ASSET_TYPE_SCHEMA),
+                },
+                request_only=True,
+            ),
+        ],
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'assets/delete.md'),
