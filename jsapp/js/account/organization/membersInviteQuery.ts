@@ -1,5 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { type FetchDataOptions, fetchDeleteUrl, fetchGet, fetchPatchUrl, fetchPost } from '#/api'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { type FetchDataOptions, fetchDeleteUrl, fetchPatchUrl, fetchPost } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import type { Json } from '#/components/common/common.interfaces'
 import type { FailResponse } from '#/dataInterface'
@@ -96,26 +96,6 @@ export function useRemoveMemberInvite() {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMembers] })
     },
-  })
-}
-
-/**
- * A hook that gives you a single organization member invite.
- */
-export const useOrgMemberInviteQuery = (orgId: string, inviteId: string, displayErrorNotification = true) => {
-  const apiPath = endpoints.ORG_MEMBER_INVITE_DETAIL_URL.replace(':organization_id', orgId!).replace(
-    ':invite_id',
-    inviteId,
-  )
-  const fetchOptions: FetchDataOptions = {}
-  if (displayErrorNotification) {
-    fetchOptions.errorMessageDisplay = t('There was an error getting this invitation.')
-  } else {
-    fetchOptions.notifyAboutError = false
-  }
-  return useQuery<MemberInvite, FailResponse>({
-    queryFn: () => fetchGet<MemberInvite>(apiPath, fetchOptions),
-    queryKey: [QueryKeys.organizationMemberInviteDetail, apiPath, fetchOptions],
   })
 }
 

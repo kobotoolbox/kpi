@@ -2,10 +2,11 @@ import type { ReactNode } from 'react'
 
 import { Group, LoadingOverlay, Menu, Modal, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import { useOrganizationsInvitesDestroy, useOrganizationsInvitesPartialUpdate } from '#/api/organization-invites'
 import ButtonNew from '#/components/common/ButtonNew'
 import { notify } from '#/utils'
 import type { MemberInvite } from './membersInviteQuery'
-import { MemberInviteStatus, usePatchMemberInvite, useRemoveMemberInvite } from './membersInviteQuery'
+import { MemberInviteStatus } from './membersInviteQuery'
 
 /**
  * A dropdown with all actions that can be taken towards an organization invitee.
@@ -19,13 +20,23 @@ export default function InviteeActionsDropdown({
 }) {
   const [opened, { open, close }] = useDisclosure()
 
-  const patchInviteMutation = usePatchMemberInvite(invite.url)
-  const removeInviteMutation = useRemoveMemberInvite()
+  const orgInvitesPatchMutation = useOrganizationsInvitesPartialUpdate({
+    mutation: {
+      onSettled(data, error, variables, context) {
+
+      },
+    }
+  })
+  const orgInvitesDestroyMutation = useOrganizationsInvitesDestroy()
 
   const resendInvitation = async () => {
     try {
-      await patchInviteMutation.mutateAsync({
-        status: MemberInviteStatus.resent,
+      await orgInvitesPatchMutation.mutateAsync({
+        organizationId: '',
+        guid: invite.url,
+        data: {
+          status: MemberInviteStatus.resent,
+        },
       })
       notify(t('The invitation was resent'), 'success')
     } catch (e: any) {
@@ -50,7 +61,7 @@ export default function InviteeActionsDropdown({
 
   const removeInvitation = async () => {
     try {
-      await removeInviteMutation.mutateAsync(invite.url)
+      await orgInvitesDestroyMutation.mutateAsync({ organizationId: '', guid: invite.url })
       notify(t('Invitation removed'), 'success')
     } catch (e) {
       notify(t('An error occurred while removing the invitation'), 'error')
@@ -62,7 +73,7 @@ export default function InviteeActionsDropdown({
   return (
     <>
       <Modal opened={opened} onClose={close} title={t('Remove invitation?')}>
-        <LoadingOverlay visible={removeInviteMutation.isPending} />
+        <LoadingOverlay visible={orgInvitesDestroyMutation.isPending} />
         <Stack>
           <Text>{t("Are you sure you want to remove this user's invitation to join the team?")}</Text>
           <Group justify='flex-end'>
@@ -76,7 +87,7 @@ export default function InviteeActionsDropdown({
         </Stack>
       </Modal>
 
-      <LoadingOverlay visible={patchInviteMutation.isPending} />
+      <LoadingOverlay visible={orgInvitesPatchMutation.isPending} />
       <Menu offset={0} position='bottom-end'>
         <Menu.Target>{target}</Menu.Target>
 
