@@ -120,27 +120,6 @@ class AssetSchema(AutoSchema):
         if not operation:
             return None
 
-        if operation.get('operationId') == 'api_v2_assets_bulk_create':
-
-            operation['requestBody']['content']['application/json']['examples'] = {
-                'UsingAssets': {
-                    'value': {
-                        'asset_uids': generate_example_from_schema(
-                            BULK_ASSET_UIDS_SCHEMA
-                        ),
-                        'action': generate_example_from_schema(BULK_ACTION_SCHEMA),
-                    },
-                    'summary': 'Perform action on one or more asset',
-                },
-                'UsingConfirm': {
-                    'value': {
-                        'confirm': generate_example_from_schema(BULK_CONFIRM_SCHEMA),
-                        'action': generate_example_from_schema(BULK_ACTION_SCHEMA),
-                    },
-                    'summary': 'Perform bulk on ALL asset',
-                },
-            }
-
         if operation.get('operationId') == 'api_v2_assets_partial_update':
 
             operation['requestBody']['content']['application/json']['examples'] = {
@@ -176,6 +155,26 @@ class AssetSchema(AutoSchema):
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        examples=[
+            OpenApiExample(
+                name='Perform action on one or more asset',
+                value={
+                    'asset_uids': generate_example_from_schema(
+                        BULK_ASSET_UIDS_SCHEMA
+                    ),
+                    'action': generate_example_from_schema(BULK_ACTION_SCHEMA),
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                name='Perform bulk on ALL asset',
+                value={
+                    'confirm': generate_example_from_schema(BULK_CONFIRM_SCHEMA),
+                    'action': generate_example_from_schema(BULK_ACTION_SCHEMA),
+                },
+                request_only=True,
+            ),
+        ],
     ),
     content=extend_schema(
         description=read_md('kpi', 'assets/content.md'),
