@@ -97,7 +97,7 @@ URL Pattern | View Class or Function                                            
 `/assets/hash/` | `kpi.views.v1.asset.AssetViewSet`                                   | `asset-hash` | `/api/v2/assets/hash/`
 `/assets/metadata/` | `kpi.views.v1.asset.AssetViewSet`                                   | `asset-metadata` | `/api/v2/assets/metadata/`
 `/authorized_application/authenticate_user/` | `kpi.views.authorized_application_authenticate_user` | `authenticate_user` | `/api/v2/assets/authorized_application/authenticate_user/`
-`/authorized_application/users/` | `kpi.views.v1.authorized_application_user.AuthorizedApplicationUserViewSet` | `authorized_applications-list` | `/api/v2/assets/authorized_application/authenticate_user/`
+`/authorized_application/users/` | `kpi.views.v1.authorized_application_user.AuthorizedApplicationUserViewSet` | `authorized_applications-list` | `/api/v2/assets/authorized_application/users/`
 `/exports/` | `kpi.views.v1.export_task.ExportTaskViewSet`                        | `submissionexporttask-list` | `/api/v2/assets/<parent_lookup_asset>/exports/`
 `/exports/<uid>/` | `kpi.views.v1.export_task.ExportTaskViewSet`                        | `submissionexporttask-detail` | `/api/v2/assets/<parent_lookup_asset>/exports/<uid>/`
 `/imports/` | `kpi.views.v1.import_task.ImportTaskViewSet`                        | `importtask-list` | `/api/v2/imports/`
