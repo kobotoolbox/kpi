@@ -15,7 +15,6 @@ interface InlineMessageProps {
   icon?: IconName
   /** Additional class names. */
   className?: string
-  'data-cy'?: string
 }
 
 /**
@@ -27,9 +26,7 @@ export default function InlineMessage(props: InlineMessageProps) {
     <figure className={cx(['k-inline-message', `k-inline-message--type-${props.type}`, props.className])}>
       {props.icon && <Icon name={props.icon} size='m' />}
 
-      <p className='k-inline-message__message' data-cy={props['data-cy']}>
-        {props.message}
-      </p>
+      <p className='k-inline-message__message'>{props.message}</p>
     </figure>
   )
 }

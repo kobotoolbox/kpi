@@ -105,7 +105,7 @@ function applyValidityRulesForCheckbox(checkboxName: CheckboxNameAll, stateObj: 
  *
  * Returns updated state object
  */
-export function applyValidityRules(stateObj: UserAssetPermsEditorState) {
+export function applyValidityRules(stateObj: UserAssetPermsEditorState, assignablePerms: AssignablePermsMap) {
   // Step 1: Avoid mutation
   let output = clonedeep(stateObj)
 
@@ -119,7 +119,15 @@ export function applyValidityRules(stateObj: UserAssetPermsEditorState) {
 
   // Step 3: Apply permissions configuration rules to checkboxes
   for (const [, checkboxName] of Object.entries(CHECKBOX_NAMES)) {
-    output = applyValidityRulesForCheckbox(checkboxName, output)
+    if (isAssignable(CHECKBOX_PERM_PAIRS[checkboxName], assignablePerms)) {
+      // Apply validity rules only for assignable permissions. We don't touch the rest, because they are not present
+      // in the UI, and changing them could lead to bugs (e.g. if a checkbox is disabled, because it's blocked by
+      // an implied permission that is not being displayed).
+      output = applyValidityRulesForCheckbox(checkboxName, output)
+    } else {
+      // If the checkbox is not assignable, let's make sure it's not checked
+      output = Object.assign(output, { [checkboxName]: false })
+    }
   }
 
   // Step 4: For each unchecked partial checkbox, clean up the data of related

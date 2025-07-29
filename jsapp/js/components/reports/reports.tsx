@@ -114,7 +114,7 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
       let groupBy = ''
       // The code below is overriding the `ReportStyles` we got from endpoint in
       // `AssetResponse`, we clone it here to avoid mutation.
-      const reportStyles: AssetResponseReportStyles = clonedeep(asset.report_styles)
+      const reportStyles: AssetResponseReportStyles = this.state.reportStyles || clonedeep(asset.report_styles)
       const reportCustom = asset.report_custom
 
       if (this.state.currentCustomReport?.reportStyle?.groupDataBy) {
@@ -173,16 +173,19 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
               !this.state.currentCustomReport &&
               reportStyles.default?.groupDataBy !== undefined
             ) {
-              // reset default report groupBy if it fails and notify user
-              reportStyles.default.groupDataBy = ''
-              this.setState({ reportStyles: reportStyles })
               notify.error(
                 t('Could not load grouped results via "##". Will attempt to load the ungrouped report.').replace(
                   '##',
                   groupBy,
                 ),
               )
-              this.loadReportData()
+
+              // reset default report groupBy if it fails
+              reportStyles.default.groupDataBy = undefined
+              this.setState({ reportStyles: reportStyles }, () => {
+                // Retry loading report data without groupBy
+                this.loadReportData()
+              })
             } else {
               this.setState({
                 error: err,

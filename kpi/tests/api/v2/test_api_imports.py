@@ -1049,6 +1049,7 @@ class AssetImportTaskTest(BaseTestCase):
                 'source': task.data['source'],
                 'old_name': self.asset.name,
                 'new_name': self.asset.name,
+                'project_owner': self.asset.owner.username,
             },
         )
 
@@ -1079,5 +1080,6 @@ class AssetImportTaskTest(BaseTestCase):
                 'source': task.data['source'],
                 'old_name': self.asset.name,
                 'new_name': self.asset.name,
+                'project_owner': self.asset.owner.username,
             },
         )

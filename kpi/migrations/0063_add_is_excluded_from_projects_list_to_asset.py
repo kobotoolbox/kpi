@@ -9,10 +9,15 @@ class Migration(migrations.Migration):
         ('kpi', '0062_increase_asset_snapshot_submission_uuid'),
     ]
 
+    # `is_excluded_from_projects_list` has been modified to remove the default
+    # and allow NULL values.
+    # This change was introduced between versions 2.025.02b and 2.025.02d
+    # to avoid exclusive locks caused by PostgreSQL rewriting the entire table
+    # when applying defaults on large tables like `kpi_asset`.
     operations = [
         migrations.AddField(
             model_name='asset',
             name='is_excluded_from_projects_list',
-            field=models.BooleanField(default=False),
+            field=models.BooleanField(null=True),
         ),
     ]

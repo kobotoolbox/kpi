@@ -2,6 +2,7 @@ import multiprocessing
 import os
 from collections import defaultdict
 from functools import partial
+from unittest.mock import patch
 
 import pytest
 import requests
@@ -12,26 +13,27 @@ from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.test.testcases import LiveServerTestCase
 from django_digest.test import DigestAuth
+from rest_framework import status
 from rest_framework.authtoken.models import Token
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.main.models import UserProfile
-from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
-from rest_framework import status
-
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
     TestAbstractViewSet,
 )
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.apps.main import tests as main_tests
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.libs.constants import CAN_ADD_SUBMISSIONS
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm
+from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils import logger_tools
+from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 from kobo.apps.openrosa.libs.utils.logger_tools import (
     OpenRosaResponseNotAllowed,
     OpenRosaTemporarilyUnavailable,
 )
+from kobo.apps.organizations.constants import UsageType
+from kpi.utils.fuzzy_int import FuzzyInt
 
 
 class TestXFormSubmissionApi(TestAbstractViewSet):
@@ -48,6 +50,133 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
         request.META.update(auth(request.META, response))
         response = self.view(request)
         self.validate_openrosa_head_response(response)
+
+    def test_query_counts(self):
+        path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'transport_submission.json')
+        with open(path, 'rb') as f:
+            data = json.loads(f.read())
+            request = self.factory.post('/submission', data, format='json')
+            response = self.view(request)
+
+            # redo the request since it was consumed
+            request = self.factory.post('/submission', data, format='json')
+            auth = DigestAuth('bob', 'bobbob')
+            request.META.update(auth(request.META, response))
+            expected_queries = FuzzyInt(43, 47)
+            # In stripe-enabled environments usage limit enforcement
+            # requires additional queries
+            if settings.STRIPE_ENABLED:
+                expected_queries = FuzzyInt(79, 83)
+            with self.assertNumQueries(expected_queries):
+                self.view(request)
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_over_limit_submission_rejection_anonymous(self):
+        """
+        Ensure submissions by an anonymous user are rejected if asset owner
+        is over their storage or submission limit
+        """
+        path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'transport_submission.json',
+        )
+        with open(path, 'rb') as f:
+            self.xform.require_auth = False
+            self.xform.save(update_fields=['require_auth'])
+            data = json.loads(f.read())
+
+            mock_balances = {
+                UsageType.STORAGE_BYTES: None,
+                UsageType.SUBMISSION: {
+                    'exceeded': True,
+                },
+            }
+            with patch(
+                'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
+                return_value=mock_balances,
+            ):
+                request = self.factory.post('/submission', data, format='json')
+                request.user = AnonymousUser()
+                response = self.view(request, username=self.user.username)
+                self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
+
+            mock_balances = {
+                UsageType.STORAGE_BYTES: {
+                    'exceeded': True,
+                },
+                UsageType.SUBMISSION: None,
+            }
+            with patch(
+                'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
+                return_value=mock_balances,
+            ):
+                request = self.factory.post('/submission', data, format='json')
+                request.user = AnonymousUser()
+                response = self.view(request, username=self.user.username)
+                self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_over_limit_submission_rejection_authenticated(self):
+        """
+        Ensure submissions by an authenticated user are rejected if asset owner
+        is over their storage or submission limit
+        """
+        path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'transport_submission.json',
+        )
+        with open(path, 'rb') as f:
+            data = json.loads(f.read())
+            request = self.factory.post('/submission', data, format='json')
+            response = self.view(request)
+            self.assertEqual(response.status_code, 401)
+
+            mock_balances = {
+                UsageType.STORAGE_BYTES: None,
+                UsageType.SUBMISSION: {
+                    'exceeded': True,
+                },
+            }
+            with patch(
+                'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
+                return_value=mock_balances,
+            ):
+                request = self.factory.post('/submission', data, format='json')
+                auth = DigestAuth('bob', 'bobbob')
+                request.META.update(auth(request.META, response))
+                response = self.view(request, username=self.user.username)
+                self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
+
+            mock_balances = {
+                UsageType.STORAGE_BYTES: {
+                    'exceeded': True,
+                },
+                UsageType.SUBMISSION: None,
+            }
+            with patch(
+                'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
+                return_value=mock_balances,
+            ):
+                request = self.factory.post('/submission', data, format='json')
+                response = self.view(request)
+                self.assertEqual(response.status_code, 401)
+                request = self.factory.post('/submission', data, format='json')
+                auth = DigestAuth('bob', 'bobbob')
+                request.META.update(auth(request.META, response))
+                response = self.view(request, username=self.user.username)
+                self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
 
     def test_post_submission_anonymous(self):
 
@@ -432,8 +561,8 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             self.assertTrue(isinstance(response, OpenRosaResponseNotAllowed))
 
     def test_submission_blocking_flag(self):
-        # Set 'submissions_suspended' True in the profile to test if
-        # submission does fail with the flag set
+        # Ensure that 'submissions_suspended' flag on user profile and
+        # `pending_transfer` flag on xform block submissions
         self.xform.user.profile.submissions_suspended = True
         self.xform.user.profile.save()
 
@@ -477,6 +606,22 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 # check that users can submit data again when flag is removed
                 self.xform.user.profile.submissions_suspended = False
                 self.xform.user.profile.save()
+                self.xform.pending_transfer = True
+                self.xform.save()
+
+                request = self.factory.post(
+                    f'/{username}/submission', data
+                )
+                response = self.view(request, username=username)
+                self.assertEqual(
+                    response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE
+                )
+
+                self.xform.pending_transfer = False
+                self.xform.save()
+
+                sf.seek(0)
+                f.seek(0)
 
                 request = self.factory.post(
                     f'/{username}/submission', data
@@ -610,7 +755,7 @@ class ConcurrentSubmissionTestCase(RequestMixin, LiveServerTestCase):
                 results[result] += 1
 
         assert results[status.HTTP_201_CREATED] == 1
-        assert results[status.HTTP_202_ACCEPTED] == DUPLICATE_SUBMISSIONS_COUNT - 1
+        assert results[status.HTTP_423_LOCKED] == DUPLICATE_SUBMISSIONS_COUNT - 1
 
 
 def submit_data(identifier, survey_, username_, live_server_url, token_):

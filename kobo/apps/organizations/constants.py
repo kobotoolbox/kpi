@@ -1,3 +1,13 @@
+from django.db import models
+
+
+class UsageType(models.TextChoices):
+    SUBMISSION = 'submission'
+    STORAGE_BYTES = 'storage_bytes'
+    MT_CHARACTERS = 'mt_characters'
+    ASR_SECONDS = 'asr_seconds'
+
+
 INVITE_OWNER_ERROR = (
     'This account is already the owner of ##organization_name##. '
     'You cannot join multiple organizations with the same account. '
@@ -24,9 +34,5 @@ ORG_OWNER_ROLE = 'owner'
 USER_DOES_NOT_EXIST_ERROR = (
     'User with username or email `##invitee##` does not exist or is not active.'
 )
-INVITE_ALREADY_EXISTS_ERROR = (
-    'An active invitation already exists for `##invitee##`'
-)
-INVITEE_ALREADY_MEMBER_ERROR = (
-    'User is already a member of this organization.'
-)
+INVITE_ALREADY_EXISTS_ERROR = 'An active invitation already exists for `##invitee##`'
+INVITEE_ALREADY_MEMBER_ERROR = 'User is already a member of this organization.'

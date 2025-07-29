@@ -1,6 +1,7 @@
 import os
 from importlib.util import module_from_spec, spec_from_file_location
 
+from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from django.conf import settings
 from django.core.exceptions import SuspiciousOperation
 from django.db import models
@@ -31,6 +32,7 @@ class LongRunningMigration(AbstractTimeStampedModel):
         choices=LongRunningMigrationStatus.choices,
         max_length=20,
     )
+    error = models.TextField(null=True)
     attempts = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
@@ -62,15 +64,21 @@ class LongRunningMigration(AbstractTimeStampedModel):
 
         try:
             module.run()
+        except (SoftTimeLimitExceeded, TimeLimitExceeded):
+            # Let's continue in the next round — this task took too long to
+            # complete in a single run.
+            return
         except Exception as e:
             # Log the error and update the status to 'failed'
             logging.error(f'LongRunningMigration.execute(): {str(e)}')
             self.status = LongRunningMigrationStatus.FAILED
-            self.save(update_fields=['status', 'date_modified'])
+            self.error = str(e)
+            self.save(update_fields=['status', 'date_modified', 'error'])
             return
 
         self.status = LongRunningMigrationStatus.COMPLETED
-        self.save(update_fields=['status', 'date_modified'])
+        self.error = ''
+        self.save(update_fields=['status', 'date_modified', 'error'])
 
     def save(self, **kwargs):
 

@@ -5,6 +5,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.models.asset import Asset
+from kpi.tests.utils.transaction import immediate_on_commit
 
 
 class TestOrganizationAdminTestCase(TestCase):
@@ -88,6 +89,8 @@ class TestOrganizationAdminTestCase(TestCase):
             'admin:organizations_organization_change',
             kwargs={'object_id': self.organization.id},
         )
-        response = self.client.post(url, data=payload, follow=True)
+        with immediate_on_commit():
+            response = self.client.post(url, data=payload, follow=True)
+
         assert 'was changed successfully' in str(response.content)
         return response

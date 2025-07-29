@@ -13,10 +13,16 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
+    ASSET_TYPE_EMPTY,
+    ASSET_TYPE_SURVEY,
+    PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
     PERM_CHANGE_METADATA_ASSET,
+    PERM_CHANGE_SUBMISSIONS,
+    PERM_DELETE_SUBMISSIONS,
     PERM_MANAGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
+    PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
@@ -31,6 +37,7 @@ from kpi.tests.base_test_case import (
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.tests.utils.mixins import AssetFileTestCaseMixin
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.hash import calculate_hash
 from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.project_views import get_region_for_view
@@ -55,6 +62,12 @@ class AssetListApiTests(BaseAssetTestCase):
         Ensure we can create a new asset
         """
         self.create_asset()
+
+    def test_last_modified_by_field_not_assigned(self):
+        extra_data = {'last_modified_by': 'anotheruser'}
+        response = self.create_asset(**extra_data)
+        assert response.data['last_modified_by'] == response.data['owner__username']
+        assert response.data['last_modified_by'] != 'anotheruser'
 
     def test_delete_asset(self):
         self.client.logout()
@@ -361,6 +374,62 @@ class AssetListApiTests(BaseAssetTestCase):
             'ordering': 'name',
         })
         assert expected_order_by_name_collections_first == uids
+
+    def test_creator_permissions_on_import(self):
+        someuser = User.objects.get(username='someuser')
+        anotheruser = User.objects.get(username='anotheruser')
+        organization = someuser.organization
+        organization.mmo_override = True
+        organization.save()
+        organization.add_user(anotheruser)
+        self.client.force_login(anotheruser)
+        # Simulate an import with front end, first POST an empty survey…
+        response = self.create_asset(asset_type=ASSET_TYPE_EMPTY, content={})
+        asset = Asset.objects.get(uid=response.data['uid'])
+
+        assert asset.has_perm(anotheruser, PERM_MANAGE_ASSET)
+        assert not asset.has_perm(anotheruser, PERM_ADD_SUBMISSIONS)
+        assert not asset.has_perm(anotheruser, PERM_CHANGE_SUBMISSIONS)
+        assert not asset.has_perm(anotheruser, PERM_DELETE_SUBMISSIONS)
+        assert not asset.has_perm(anotheruser, PERM_VALIDATE_SUBMISSIONS)
+        assert not asset.has_perm(anotheruser, PERM_VIEW_SUBMISSIONS)
+
+        data = {
+            'content': json.dumps(
+                {
+                    'settings': [{'id_string': 'titled_asset'}],
+                    'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}],
+                }
+            ),
+            'asset_type': ASSET_TYPE_SURVEY,
+        }
+        # … then PATCH is with its content and correct type
+        response = self.client.patch(response.data['url'], data=data)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert asset.has_perm(anotheruser, PERM_MANAGE_ASSET)
+        assert asset.has_perm(anotheruser, PERM_ADD_SUBMISSIONS)
+        assert asset.has_perm(anotheruser, PERM_CHANGE_SUBMISSIONS)
+        assert asset.has_perm(anotheruser, PERM_DELETE_SUBMISSIONS)
+        assert asset.has_perm(anotheruser, PERM_VALIDATE_SUBMISSIONS)
+        assert asset.has_perm(anotheruser, PERM_VIEW_SUBMISSIONS)
+
+    def test_query_counts(self):
+        self.create_asset()
+        # 45 when stripe is disabled, 46 when enabled
+        with self.assertNumQueries(FuzzyInt(45, 46)):
+            self.client.get(self.list_url)
+        # test query count does not increase with more assets
+        # add several assets so the fuzziness of the count doesn't hide an O(n) addition
+        self.create_asset()
+        self.create_asset()
+        self.create_asset()
+        with self.assertNumQueries(FuzzyInt(45, 46)):
+            self.client.get(self.list_url)
+
+        # test query counts with search filter
+        with self.assertNumQueries(FuzzyInt(45, 46)):
+            self.client.get(self.list_url, data={'q': 'asset_type:survey'})
 
 
 class AssetProjectViewListApiTests(BaseAssetTestCase):
@@ -1360,6 +1429,25 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
             response.data['project_ownership']['status']
             == InviteStatusChoices.EXPIRED
         )
+
+    def test_cannot_modified_last_modified_by(self):
+        assert self.asset.last_modified_by == self.asset.owner.username
+        anotheruser = User.objects.get(username='anotheruser')
+        assert self.asset.owner != anotheruser.username
+        self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
+        payload = {
+            'last_modified_by': 'bob'
+        }
+        self.client.force_login(anotheruser)
+        response = self.client.patch(
+            self.asset_url,
+            data=payload,
+            format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        self.asset.refresh_from_db()
+        assert response.data['last_modified_by'] == anotheruser.username
+        assert self.asset.last_modified_by == anotheruser.username
 
 
 class AssetsXmlExportApiTests(KpiTestCase):

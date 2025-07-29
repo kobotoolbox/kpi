@@ -8,7 +8,7 @@ from storages.backends.s3 import ClientError, S3Storage
 
 class ExtendedFieldFile(FieldFile):
 
-    def move(self, target_folder: str):
+    def move(self, target_folder: str) -> bool:
 
         old_path = self.name
         filename = os.path.basename(old_path)

@@ -29,6 +29,10 @@ class AttachmentNotFoundException(Exception):
     pass
 
 
+class AttachmentUidMismatchException(Exception):
+    pass
+
+
 class BadAssetTypeException(Exception):
     pass
 
@@ -215,6 +219,12 @@ class SubmissionIntegrityError(Exception):
 
 class SubmissionNotFoundException(Exception):
     pass
+
+
+class UsageLimitExceededException(exceptions.APIException):
+    status_code = status.HTTP_402_PAYMENT_REQUIRED
+    default_detail = t('The owner of this asset has exeeded their usage limit')
+    default_code = 'usage_limit_exceeded'
 
 
 class XPathNotFoundException(Exception):

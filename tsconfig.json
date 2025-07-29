@@ -28,5 +28,5 @@
   "ts-node": {
     "swc": true
   },
-  "include": ["jsapp/**/*.ts", "jsapp/**/*.tsx"]
+  "include": ["jsapp/**/*.ts", "jsapp/**/*.tsx", ".storybook/**/*.ts", ".storybook/**/*.tsx"]
 }

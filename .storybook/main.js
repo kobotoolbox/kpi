@@ -8,8 +8,6 @@ module.exports = {
   stories: ['../jsapp/**/*.stories.@(js|jsx|ts|tsx)'],
   addons: [
     '@storybook/addon-links',
-    '@storybook/addon-essentials',
-    '@storybook/addon-interactions',
     '@storybook/addon-a11y',
     // NB:
     // 'storybook-addon-swc' may improve build speed in the future.
@@ -20,6 +18,8 @@ module.exports = {
     //   well.
     'storybook-dark-mode',
     '@storybook/addon-webpack5-compiler-swc',
+    'storybook-addon-remix-react-router',
+    '@storybook/addon-docs',
   ],
 
   framework: {
@@ -85,6 +85,7 @@ module.exports = {
     return config
   },
   docs: {},
+  staticDirs: ['../msw-mocks'],
 }
 
 /// Apply some customizations to the config, intended to decrease build time

@@ -52,13 +52,7 @@ class TestXForm(TestBase):
         xform.kpi_asset_uid = None
         xform.save(update_fields=['kpi_asset_uid'])
 
-        # 2) Fallback, asset is retrieved with formid in backend response
-        # Reset internal cache of xform
-        setattr(xform, '_cache_asset', None)
-        assert xform.kpi_asset_uid is None
-        assert xform.asset.pk == asset.pk
-
-        # 3) No asset found, `xform.asset` should still be an asset
+        # 2) No asset found, `xform.asset` should still be an asset
         Asset.objects.filter(uid=asset.uid).update(_deployment_data={})
         setattr(xform, '_cache_asset', None)
         assert xform.kpi_asset_uid is None

@@ -1,5 +1,5 @@
 import { LoadingOverlay } from '@mantine/core'
-import { Select } from '#/components/common/Select'
+import Select from '#/components/common/Select'
 import { usePatchMemberInvite } from './membersInviteQuery'
 import { usePatchOrganizationMember } from './membersQuery'
 import { OrganizationUserRole } from './organizationQuery'

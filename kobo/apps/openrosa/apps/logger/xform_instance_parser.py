@@ -81,13 +81,17 @@ def get_uuid_from_xml(xml):
     return None
 
 
-def get_root_uuid_from_xml(xml):
+def get_root_uuid_from_xml(xml) -> tuple[str, bool]:
+    """
+    Returns the value of <meta/rootUuid> from the given XML. If that node is missing,
+    falls back to <meta/instanceID>. The boolean indicates whether a fallback was used.
+    """
     root_uuid = get_meta_from_xml(xml, 'rootUuid')
     if root_uuid:
-        return remove_uuid_prefix(root_uuid)
+        return remove_uuid_prefix(root_uuid), False
 
     # If no rootUuid, fall back to instanceID
-    return get_uuid_from_xml(xml)
+    return get_uuid_from_xml(xml), True
 
 
 def get_submission_date_from_xml(xml) -> Optional[datetime]:
@@ -107,11 +111,9 @@ def get_submission_date_from_xml(xml) -> Optional[datetime]:
 
 def get_deprecated_uuid_from_xml(xml):
     uuid = get_meta_from_xml(xml, 'deprecatedID')
-    regex = re.compile(r'uuid:(.*)')
     if uuid:
-        matches = regex.match(uuid)
-        if matches and len(matches.groups()) > 0:
-            return matches.groups()[0]
+        return remove_uuid_prefix(uuid)
+
     return None
 
 
@@ -295,13 +297,27 @@ def _get_all_attributes(node):
             yield pair
 
 
+def _get_attributes_by_node(node):
+    """
+    Traverse the XML tree and yield each node with its attributes as a dictionary.
+    Only yields nodes that have attributes.
+    """
+    if hasattr(node, 'hasAttributes') and node.hasAttributes():
+        attrs = {key: node.getAttribute(key) for key in node.attributes.keys()}
+        yield node, attrs
+    for child in getattr(node, 'childNodes', []):
+        yield from _get_attributes_by_node(child)
+
+
 class XFormInstanceParser:
 
-    def __init__(self, xml_str, data_dictionary):
+    def __init__(self, xml_str, data_dictionary, delay_parse=False):
         self.dd = data_dictionary
         # The two following variables need to be initialized in the constructor, in case parsing fails.
         self._flat_dict = {}
         self._attributes = {}
+        if delay_parse:
+            return
         try:
             self.parse(xml_str)
         except Exception as e:
@@ -314,13 +330,14 @@ class XFormInstanceParser:
             # to return the correct HTTP code
             six.reraise(*sys.exc_info())
 
-    def parse(self, xml_str):
+    def parse(self, xml_str, repeats=None):
         self._xml_obj = clean_and_parse_xml(xml_str)
         self._root_node = self._xml_obj.documentElement
-        repeats = [
-            get_abbreviated_xpath(e)
-            for e in self.dd.get_survey_elements_of_type('repeat')
-        ]
+        if repeats is None:
+            repeats = [
+                get_abbreviated_xpath(e)
+                for e in self.dd.get_survey_elements_of_type('repeat')
+            ]
         self._dict = _xml_node_to_dict(self._root_node, repeats)
         if self._dict is None:
             raise InstanceEmptyError
@@ -387,40 +404,15 @@ def parse_xform_instance(xml_str, data_dictionary):
     return parser.get_flat_dict_with_attributes()
 
 
-def get_xform_media_question_xpaths(
-    xform: 'kobo.apps.openrosa.apps.logger.models.XForm',
-) -> list:
+def get_xform_media_question_xpaths(xform: 'logger.XForm') -> list:
     parser = XFormInstanceParser(xform.xml, xform.data_dictionary(use_cache=True))
-    all_attributes = _get_all_attributes(parser.get_root_node())
+    attributes_by_node = _get_attributes_by_node(parser.get_root_node())
     media_field_xpaths = []
-    # This code expects that the attributes from Enketo Express are **always**
-    # sent in the same order.
-    # For example:
-    #   <upload mediatype="application/*" ref="/azx11113333/Question_Name"/>
-    # `ref` attribute should always come right after `mediatype`
-    for (key, value) in all_attributes:
-        if key.lower() == 'mediatype':
-            try:
-                next_attribute = next(all_attributes)
-            except StopIteration:
-                logging.error(
-                    f'`ref` attribute seems to be missing in {xform.xml}',
-                    exc_info=True,
-                )
-                continue
 
-            next_attribute_key, next_attribute_value = next_attribute
-            try:
-                assert next_attribute_key.lower() == 'ref'
-            except AssertionError:
-                logging.error(
-                    f'`ref` should come after `mediatype:{value}` in {xform.xml}',
-                    exc_info=True,
-                )
-                continue
-
+    for node, attributes in attributes_by_node:
+        if 'mediatype' in attributes:
             # We are returning XPaths, leading slash should be removed
-            media_field_xpaths.append(next_attribute_value[1:])
+            media_field_xpaths.append(attributes['ref'][1:])
 
     return media_field_xpaths
 

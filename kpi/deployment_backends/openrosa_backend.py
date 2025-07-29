@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from collections import defaultdict
 from contextlib import contextmanager
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Generator, Literal, Optional, Union
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 import redis.exceptions
 import requests
+from constance import config
 from defusedxml import ElementTree as DET
 from django.conf import settings
 from django.core.cache.backends.base import InvalidCacheBackendError
@@ -20,7 +21,8 @@ from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
-from rest_framework import status
+from pyxform.builder import create_survey_from_xls
+from rest_framework import exceptions, status
 
 from kobo.apps.openrosa.apps.logger.models import (
     Attachment,
@@ -29,15 +31,21 @@ from kobo.apps.openrosa.apps.logger.models import (
     MonthlyXFormSubmissionCounter,
     XForm,
 )
+from kobo.apps.openrosa.apps.logger.models.instance import InstanceHistory
 from kobo.apps.openrosa.apps.logger.utils.instance import (
     add_validation_status_to_instance,
     delete_instances,
     remove_validation_status_from_instance,
     set_instance_validation_statuses,
 )
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    add_uuid_prefix,
+    remove_uuid_prefix,
+)
 from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
+from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, publish_xls_form
+from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import (
@@ -69,8 +77,7 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
-
-from ..exceptions import BadFormatException
+from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import assign_applicable_kc_permissions, kc_transaction_atomic
 
@@ -198,6 +205,61 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         super().delete()
 
+    def delete_attachments(
+        self, user: settings.AUTH_USER_MODEL, attachment_uids: list
+    ) -> list:
+        """
+        Validates if a list of attachments can be deleted by the user and then
+        deletes them.
+        Returns a count of deleted attachments.
+
+        The user must have either partial or full edit submission permissions
+        in order to delete each attachment.
+        """
+        # Import within delete_attachments() to avoid a circular dependency error
+        from kobo.apps.trash_bin.utils.trash import move_to_trash
+
+        if not attachment_uids:
+            return
+
+        submission_ids = (
+            Attachment.objects.values_list('instance_id', flat=True)
+            .filter(uid__in=attachment_uids)
+            .distinct()
+        )
+
+        authorized_submission_ids = self.validate_access_with_partial_perms(
+            user=user,
+            perm=PERM_CHANGE_SUBMISSIONS,
+            submission_ids=list(submission_ids),
+        )
+
+        if authorized_submission_ids is None:
+            if not self.asset.has_perm(user, PERM_CHANGE_SUBMISSIONS):
+                raise exceptions.PermissionDenied()
+
+        attachments = (
+            Attachment.objects.filter(xform_id=self.xform_id, uid__in=attachment_uids)
+            .annotate(
+                attachment_basename=F('media_file_basename'),
+                attachment_uid=F('uid'),
+            )
+            .values('pk', 'attachment_basename', 'attachment_uid')
+        )
+
+        count = len(attachment_uids)
+        if count != len(attachments):
+            raise AttachmentUidMismatchException
+
+        move_to_trash(
+            request_author=user,
+            objects_list=attachments,
+            grace_period=config.ATTACHMENT_TRASH_GRACE_PERIOD,
+            trash_type='attachment',
+        )
+        ParsedInstance.bulk_update_attachments(list(submission_ids))
+        return count
+
     def delete_submission(
         self, submission_id: int, user: settings.AUTH_USER_MODEL
     ) -> dict:
@@ -297,6 +359,20 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # silently
         xml_parsed.find(self.SUBMISSION_CURRENT_UUID_XPATH).text = uuid_formatted
 
+        # Remove references to the source
+        meta_node = xml_parsed.find('meta')
+        root_uuid_node = meta_node.find(
+            self.SUBMISSION_ROOT_UUID_XPATH.replace('meta/', '')
+        )
+        if root_uuid_node is not None:
+            meta_node.remove(root_uuid_node)
+
+        deprecated_uuid_node = meta_node.find(
+            self.SUBMISSION_DEPRECATED_UUID_XPATH.replace('meta/', '')
+        )
+        if deprecated_uuid_node is not None:
+            meta_node.remove(deprecated_uuid_node)
+
         # create_instance uses `username` argument to identify the XForm object
         # (when nothing else worked). `_submitted_by` is populated by `request.user`
         instance = create_instance(
@@ -306,9 +382,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             uuid=_uuid,
             request=request,
         )
-
+        all_attachment_xpaths = self.asset.get_all_attachment_xpaths()
         return self._rewrite_json_attachment_urls(
-            self.get_submission(submission_id=instance.pk, user=user), request
+            self.get_submission(submission_id=instance.pk, user=user),
+            request,
+            all_attachment_xpaths,
         )
 
     def edit_submission(
@@ -330,32 +408,60 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         except DET.ParseError:
             raise SubmissionIntegrityError(t('Your submission XML is malformed.'))
         try:
-            deprecated_uuid = xml_root.find(self.SUBMISSION_DEPRECATED_UUID_XPATH).text
             xform_uuid = xml_root.find(self.FORM_UUID_XPATH).text
+            deprecated_uuid = xml_root.find(self.SUBMISSION_DEPRECATED_UUID_XPATH).text
         except AttributeError:
             raise SubmissionIntegrityError(
                 t('Your submission XML is missing critical elements.')
             )
-        # Remove UUID prefix
-        deprecated_uuid = deprecated_uuid[len('uuid:'):]
 
+        # TODO We are reverting commit "950e8af", which had switched to using
+        #  `root_uuid`, and are temporarily falling back to `deprecatedID` and
+        #  the InstanceHistory `uuid`.
+        #  Re-enable `root_uuid` once the long-running migration 0005 has populated
+        #  this field for all instances.
+
+        sanitized_deprecated_uuid = remove_uuid_prefix(deprecated_uuid)
         try:
-            instance = Instance.objects.get(
-                uuid=deprecated_uuid,
+            instance = Instance.objects.defer('xml').get(
+                uuid=sanitized_deprecated_uuid,
                 xform__uuid=xform_uuid,
                 xform__kpi_asset_uid=self.asset.uid,
             )
         except Instance.DoesNotExist:
-            raise SubmissionIntegrityError(
-                t(
-                    'The submission you attempted to edit could not be found, '
-                    'or you do not have access to it.'
+            try:
+                # As Enketo does not upload files larger than 10 MB, it can still
+                # take up to 10 minutes to transfer them over a slow DSL
+                # connection (~128kb/s).
+                #
+                # We retrieve the instance PK from history to handle this scenario.
+                # Since Enketo uploads large files sequentially, we assume it should
+                # not take more than 10 minutes to process subsequent POSTs.
+                ten_minutes_ago = timezone.now() - timedelta(minutes=10)
+
+                instance_history = InstanceHistory.objects.only(
+                    'pk', 'xform_instance_id'
+                ).get(
+                    uuid=sanitized_deprecated_uuid,
+                    xform_instance__xform__uuid=xform_uuid,
+                    xform_instance__xform__kpi_asset_uid=self.asset.uid,
+                    date_created__gte=ten_minutes_ago,
                 )
-            )
+            except InstanceHistory.DoesNotExist:
+                raise SubmissionIntegrityError(
+                    t(
+                        'The submission you attempted to edit could not be found, '
+                        'or you do not have access to it.'
+                    )
+                )
+            else:
+                instance_id = instance_history.xform_instance_id
+        else:
+            instance_id = instance.pk
 
         # Validate write access for users with partial permissions
         submission_ids = self.validate_access_with_partial_perms(
-            user=user, perm=PERM_CHANGE_SUBMISSIONS, submission_ids=[instance.pk]
+            user=user, perm=PERM_CHANGE_SUBMISSIONS, submission_ids=[instance_id]
         )
 
         if submission_ids:
@@ -536,22 +642,18 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                         '$match': query,
                     },
                     {
+                        '$project': {
+                            'date_parts': {'$split': ['$_submission_time', 'T']}
+                        }
+                    },
+                    {
                         '$group': {
-                            '_id': {
-                                '$dateToString': {
-                                    'format': '%Y-%m-%d',
-                                    'date': {
-                                        '$dateFromString': {
-                                            'format': '%Y-%m-%dT%H:%M:%S',
-                                            'dateString': '$_submission_time',
-                                        }
-                                    },
-                                }
-                            },
+                            '_id': {'$arrayElemAt': ['$date_parts', 0]},
                             'count': {'$sum': 1},
                         }
                     },
-                ]
+                ],
+                maxTimeMS=MongoHelper.get_max_time_ms(),
             )
             return {doc['_id']: doc['count'] for doc in documents}
 
@@ -752,10 +854,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def mongo_userform_id(self):
-        return (
-            self.xform.mongo_uuid
-            or f'{self.asset.owner.username}_{self.xform_id_string}'
-        )
+        return get_mongo_userform_id(self.xform, self.asset.owner.username)
 
     @staticmethod
     def nlp_tracking_data(
@@ -866,15 +965,20 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         ObjectPermission.objects.filter(**filters).delete()
 
-    def rename_enketo_id_key(self, previous_owner_username: str):
+    def rename_enketo_id_key(
+        self, previous_owner_username: str, project_identifier: str = None
+    ):
         parsed_url = urlparse(settings.KOBOCAT_URL)
         domain_name = parsed_url.netloc
-        asset_uid = self.asset.uid
+
+        if not project_identifier:
+            project_identifier = self.xform.id_string
+
         try:
             enketo_redis_client = get_redis_connection('enketo_redis_main')
             enketo_redis_client.rename(
-                src=f'or:{domain_name}/{previous_owner_username},{asset_uid}',
-                dst=f'or:{domain_name}/{self.asset.owner.username},{asset_uid}',
+                src=f'or:{domain_name}/{previous_owner_username},{project_identifier}',
+                dst=f'or:{domain_name}/{self.asset.owner.username},{self.xform.id_string}',  # noqa E501
             )
         except InvalidCacheBackendError:
             # TODO: This handles the case when the cache is disabled and
@@ -883,6 +987,32 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         except redis.exceptions.ResponseError:
             # original does not exist, weird but don't raise a 500 for that
             pass
+
+    def reset_backend_response_id_string(self):
+        xform_id = self.xform.pk
+        backend_response = self.backend_response
+        backend_response['previous_id_string'] = backend_response['id_string']
+        backend_response['id_string'] = self.asset.uid
+        self.save_to_db(
+            {'backend_response': backend_response}, update_date_modified=False
+        )
+        xlsx_io = self.asset.to_xlsx_io(
+            versioned=True,
+            append={
+                'settings': {
+                    'id_string': self.asset.uid,
+                    'form_title': self.asset.name,
+                }
+            },
+        )
+        xlsx_io.name = f'{self.asset.uid}.xlsx'
+        survey = create_survey_from_xls(xlsx_io, default_name=self.asset.uid)
+        XForm.objects.filter(pk=xform_id).update(
+            xml=survey.to_xml(), json=survey.to_json(), id_string=self.asset.uid
+        )
+        self.xform.id_string = self.asset.uid
+        self.xform.xml = survey.to_xml()
+        self.xform.json = survey.to_json()
 
     @staticmethod
     def prepare_bulk_update_response(backend_results: list[dict]) -> dict:
@@ -905,6 +1035,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             results.append(
                 {
                     'uuid': uuid,
+                    'root_uuid': backend_result['result'].root_uuid,
                     'status_code': status_code,
                     'message': message,
                 }
@@ -992,7 +1123,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         """
         if not self.xform.mongo_uuid:
             self.xform.mongo_uuid = KpiUidField.generate_unique_id()
-            self.xform.save(update_fields=['mongo_uuid'])
+            XForm.objects.filter(pk=self.xform_id).update(
+                mongo_uuid=self.xform.mongo_uuid
+            )
 
     def set_validation_status(
         self,
@@ -1275,29 +1408,36 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     def xform_id_string(self):
         return self.get_data('backend_response.id_string')
 
-    @staticmethod
     @contextmanager
-    def suspend_submissions(user_ids: list[int]):
-        UserProfile.objects.filter(user_id__in=user_ids).update(
-            submissions_suspended=True
-        )
+    def suspend_submissions(self):
+        XForm.objects.filter(pk=self.xform_id).update(pending_transfer=True)
         try:
             yield
         finally:
-            UserProfile.objects.filter(user_id__in=user_ids).update(
-                submissions_suspended=False
-            )
+            XForm.objects.filter(pk=self.xform_id).update(pending_transfer=False)
 
     def transfer_submissions_ownership(self, previous_owner_username: str) -> bool:
 
-        results = settings.MONGO_DB.instances.update_many(
-            {'_userform_id': f'{previous_owner_username}_{self.xform_id_string}'},
-            {'$set': {'_userform_id': self.mongo_userform_id}},
+        if previous_id_string := self.backend_response.get('previous_id_string'):
+            mongo_query = {
+                '$or': [
+                    {'_userform_id': f'{previous_owner_username}_{previous_id_string}'},
+                    {'_userform_id': f'{previous_owner_username}_{self.xform_id_string}'},  # noqa E501
+                ],
+            }
+        else:
+            mongo_query = {
+                '_userform_id': f'{previous_owner_username}_{self.xform_id_string}'
+            }
+
+        results = MongoHelper.update_many(
+            mongo_query,
+            {'_userform_id': self.mongo_userform_id},
         )
 
-        return results.matched_count == 0 or (
-            results.matched_count > 0
-            and results.matched_count == results.modified_count
+        return results['matched_count'] == 0 or (
+            results['matched_count'] > 0
+            and results['matched_count'] == results['modified_count']
         )
 
     def transfer_counters_ownership(self, new_owner: 'kobo_auth.User'):
@@ -1417,10 +1557,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         if add_supplemental_details_to_query:
             mongo_cursor = stream_with_extras(mongo_cursor, self.asset)
 
+        all_attachment_xpaths = self.asset.get_all_attachment_xpaths()
+
         return (
             self._inject_properties(
                 MongoHelper.to_readable_dict(submission),
                 request,
+                all_attachment_xpaths,
             )
             for submission in mongo_cursor
         )

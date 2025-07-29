@@ -276,12 +276,28 @@ export function escapeHtml(str: string): string {
   return div.innerHTML
 }
 
+/**
+ * Returns text content of a HTML string
+ */
+export function getTextContentOnly(html: string): string {
+  const doc = new DOMParser().parseFromString(html, 'text/html')
+  const walker = document.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, null)
+  const texts = []
+  let node
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue !== null) {
+      texts.push(node.nodeValue)
+    }
+  }
+  return texts.join('')
+}
+
 export function renderCheckbox(id: string, label: string, isImportant = false) {
   let additionalClass = ''
   if (isImportant) {
     additionalClass += 'alertify-toggle-important'
   }
-  return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}" data-cy="checkbox"><span class="checkbox__label">${label}</span></label></div>`
+  return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`
 }
 
 export function hasVerticalScrollbar(element: HTMLElement): boolean {

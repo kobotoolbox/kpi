@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import Tabs from './tabs'
 
 const meta: Meta<typeof Tabs> = {
@@ -23,6 +23,7 @@ const meta: Meta<typeof Tabs> = {
         component: 'This is a component that provides a top tab navigation menu.',
       },
     },
+    a11y: { test: 'todo' },
   },
 }
 

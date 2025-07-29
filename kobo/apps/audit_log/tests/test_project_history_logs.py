@@ -23,7 +23,10 @@ from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
 from kobo.apps.hook.models import Hook
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    add_uuid_prefix,
+    remove_uuid_prefix,
+)
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kpi.constants import (
     ASSET_TYPE_TEMPLATE,
@@ -639,6 +642,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data=request_data,
             expected_action=AuditAction.REGISTER_SERVICE,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         new_hook = Hook.objects.get(name='test')
         self.assertEqual(log_metadata['hook']['uid'], new_hook.uid)
@@ -669,6 +673,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data=request_data,
             expected_action=AuditAction.MODIFY_SERVICE,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         self.assertEqual(log_metadata['hook']['uid'], new_hook.uid)
         self.assertEqual(log_metadata['hook']['active'], False)
@@ -697,6 +702,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data=request_data,
             expected_action=AuditAction.DELETE_SERVICE,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         self.assertEqual(log_metadata['hook']['uid'], new_hook.uid)
         self.assertEqual(log_metadata['hook']['active'], True)
@@ -726,6 +732,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data=request_data,
             expected_action=AuditAction.CONNECT_PROJECT,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         self.assertEqual(log_metadata['paired-data']['source_name'], source.name)
         self.assertEqual(log_metadata['paired-data']['source_uid'], source.uid)
@@ -760,6 +767,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.DISCONNECT_PROJECT,
             request_data=None,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         self.assertEqual(log_metadata['paired-data']['source_name'], source.name)
         self.assertEqual(log_metadata['paired-data']['source_uid'], source.uid)
@@ -793,6 +801,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.MODIFY_IMPORTED_FIELDS,
             request_data={'fields': ['q2']},
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         self.assertEqual(log_metadata['paired-data']['source_name'], source.name)
         self.assertEqual(log_metadata['paired-data']['source_uid'], source.uid)
@@ -821,6 +830,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data=request_data,
             expected_action=AuditAction.ADD_MEDIA,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         file = AssetFile.objects.filter(asset=self.asset).first()
         self.assertEqual(log_metadata['asset-file']['uid'], file.uid)
@@ -850,6 +860,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.DELETE_MEDIA,
             request_data=None,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         self.assertEqual(log_metadata['asset-file']['uid'], media.uid)
         self.assertEqual(log_metadata['asset-file']['filename'], media.filename)
@@ -922,7 +933,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         form_replace_log = log_query.filter(action=AuditAction.REPLACE_FORM).first()
         self.assertEqual(form_replace_log.object_id, self.asset.id)
         self._check_common_metadata(
-            form_replace_log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE
+            form_replace_log.metadata,
+            PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         self.assertEqual(
             form_replace_log.metadata['latest_version_uid'],
@@ -948,7 +961,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 },
             )
 
-    def test_export_creates_log(self):
+    @data(True, False)
+    def test_export_creates_log(self, anonymous_user):
         self.asset.deploy(backend='mock', active=True)
         request_data = {
             'fields_from_all_versions': True,
@@ -961,6 +975,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'xls_types_as_text': False,
             'include_media_url': True,
         }
+        if anonymous_user:
+            self.asset.assign_perm(perm=PERM_VIEW_SUBMISSIONS, user_obj=AnonymousUser())
+            self.client.logout()
         self._base_project_history_log_test(
             method=self.client.post,
             url=reverse(
@@ -972,6 +989,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.EXPORT,
             request_data=request_data,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
 
     def test_export_v1_creates_log(self):
@@ -1000,7 +1018,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(log_query.count(), 1)
         log = log_query.first()
-        self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log.object_id, self.asset.id)
 
     @data(
@@ -1083,10 +1103,14 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             metadata__permissions__username='anotheruser'
         ).first()
         self._check_common_metadata(
-            someuser_log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
+            someuser_log.metadata,
+            PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            expect_owner=True,
         )
         self._check_common_metadata(
-            anotheruser_log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
+            anotheruser_log.metadata,
+            PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            expect_owner=True,
         )
         self.assertListEqual(
             someuser_log.metadata['permissions'][
@@ -1183,7 +1207,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log = ProjectHistoryLog.objects.filter(action=expected_action).first()
         self.assertEqual(log.action, expected_action)
         self._check_common_metadata(
-            log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
+            log.metadata,
+            PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            expect_owner=True,
         )
 
         # get the permission that was created
@@ -1201,7 +1227,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             action=expected_inverse_action
         ).first()
         self._check_common_metadata(
-            removal_log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
+            removal_log.metadata,
+            PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            expect_owner=True,
         )
 
     # use bulk endpoint? (as opposed to -detail)
@@ -1233,7 +1261,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             action=AuditAction.MODIFY_USER_PERMISSIONS
         ).first()
         self._check_common_metadata(
-            log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
+            log.metadata,
+            PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            expect_owner=True,
         )
         self.assertListEqual(
             sorted(
@@ -1319,7 +1349,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             action=AuditAction.MODIFY_USER_PERMISSIONS
         ).first()
         self._check_common_metadata(
-            log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
+            log.metadata,
+            PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            expect_owner=True,
         )
         # can't sort a list of strings and dicts,
         # so check length and expected entries individually
@@ -1334,17 +1366,23 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # inherited partial permissions
         self.assertIn(
             {
-                'code': PERM_CHANGE_SUBMISSIONS,
+                'codename': PERM_CHANGE_SUBMISSIONS,
                 'filters': [{'_submitted_by': 'someuser'}],
             },
             added,
         )
         self.assertIn(
-            {'code': PERM_VIEW_SUBMISSIONS, 'filters': [{'_submitted_by': 'someuser'}]},
+            {
+                'codename': PERM_VIEW_SUBMISSIONS,
+                'filters': [{'_submitted_by': 'someuser'}],
+            },
             added,
         )
         self.assertIn(
-            {'code': PERM_ADD_SUBMISSIONS, 'filters': [{'_submitted_by': 'someuser'}]},
+            {
+                'codename': PERM_ADD_SUBMISSIONS,
+                'filters': [{'_submitted_by': 'someuser'}],
+            },
             added,
         )
 
@@ -1458,6 +1496,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data={CLONE_ARG_NAME: second_asset.uid},
             expected_action=AuditAction.CLONE_PERMISSIONS,
             expected_subtype=PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            expect_owner=True,
         )
         self.assertEqual(log_metadata['cloned_from'], second_asset.uid)
 
@@ -1539,6 +1578,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data={},
             expected_action=AuditAction.ADD_SUBMISSION,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         new_submission = Instance.objects.last()
         self._check_submission_log_metadata(
@@ -1557,9 +1597,20 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         xml_parsed = fromstring_preserve_root_xmlns(submission_xml)
         edit_submission_xml(
-            xml_parsed, 'meta/deprecatedID', submission_json['meta/instanceID']
+            xml_parsed,
+            self.asset.deployment.SUBMISSION_DEPRECATED_UUID_XPATH,
+            submission_json['meta/instanceID'],
         )
-        edit_submission_xml(xml_parsed, 'meta/instanceID', 'foo')
+        edit_submission_xml(
+            xml_parsed,
+            self.asset.deployment.SUBMISSION_ROOT_UUID_XPATH,
+            submission_json['meta/rootUuid'],
+        )
+        edit_submission_xml(
+            xml_parsed,
+            self.asset.deployment.SUBMISSION_CURRENT_UUID_XPATH,
+            'foo',
+        )
         edit_submission_xml(xml_parsed, 'Q1', 'new answer')
         edited_submission = xml_tostring(xml_parsed)
         url = reverse(
@@ -1585,7 +1636,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # check the log has the expected fields and metadata
         self.assertEqual(log.object_id, self.asset.id)
         self.assertEqual(log.action, AuditAction.MODIFY_SUBMISSION)
-        self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         submitted_by = username if username is not None else 'AnonymousUser'
         self._check_submission_log_metadata(
             log.metadata, submitted_by, instance.root_uuid
@@ -1615,7 +1668,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log1 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='adminuser'
         ).first()
-        self._check_common_metadata(log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log1.action, AuditAction.MODIFY_SUBMISSION)
         self._check_submission_log_metadata(
             log1.metadata, 'adminuser', instance1.root_uuid
@@ -1624,7 +1679,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log2 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='someuser'
         ).first()
-        self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log2.action, AuditAction.MODIFY_SUBMISSION)
         self._check_submission_log_metadata(
             log2.metadata, 'someuser', instance2.root_uuid
@@ -1633,7 +1690,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log3 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='AnonymousUser'
         ).first()
-        self._check_common_metadata(log3.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log3.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log3.action, AuditAction.MODIFY_SUBMISSION)
         self._check_submission_log_metadata(
             log3.metadata, 'AnonymousUser', instance3.root_uuid
@@ -1686,7 +1745,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log1 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='adminuser'
         ).first()
-        self._check_common_metadata(log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log1.action, AuditAction.MODIFY_SUBMISSION)
         self.assertEqual(log1.metadata['submission']['status'], 'On Hold')
         self._check_submission_log_metadata(
@@ -1696,7 +1757,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log2 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='someuser'
         ).first()
-        self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log2.action, AuditAction.MODIFY_SUBMISSION)
         self.assertEqual(log2.metadata['submission']['status'], 'On Hold')
         self._check_submission_log_metadata(
@@ -1706,7 +1769,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log3 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='AnonymousUser'
         ).first()
-        self._check_common_metadata(log3.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log3.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log3.action, AuditAction.MODIFY_SUBMISSION)
         self.assertEqual(log3.metadata['submission']['status'], 'On Hold')
         self._check_submission_log_metadata(
@@ -1768,7 +1833,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         self.assertEqual(log.object_id, self.asset.id)
         self.assertEqual(log.action, AuditAction.ADD_SUBMISSION)
-        self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         username = 'AnonymousUser' if anonymous else self.user.username
         self._check_submission_log_metadata(log.metadata, username, inst.root_uuid)
 
@@ -1828,7 +1895,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log1 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='adminuser'
         ).first()
-        self._check_common_metadata(log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log1.action, AuditAction.DELETE_SUBMISSION)
         self._check_submission_log_metadata(
             log1.metadata, 'adminuser', instance1.root_uuid
@@ -1837,7 +1906,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log2 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='someuser'
         ).first()
-        self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log2.action, AuditAction.DELETE_SUBMISSION)
         self._check_submission_log_metadata(
             log2.metadata, 'someuser', instance2.root_uuid
@@ -1846,7 +1917,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log3 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='AnonymousUser'
         ).first()
-        self._check_common_metadata(log3.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log3.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log3.action, AuditAction.DELETE_SUBMISSION)
         self._check_submission_log_metadata(
             log3.metadata, 'AnonymousUser', instance3.root_uuid
@@ -1885,4 +1958,52 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self._check_submission_log_metadata(
             log_metadata, expected_username, instance.root_uuid
+        )
+
+    def test_update_qa_data_on_modified_instance(self):
+        instance, submission = self._add_submission('adminuser')
+        deployment = self.asset.deployment
+        new_uuid = str(uuid.uuid4())
+        xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
+        edit_submission_xml(
+            xml_parsed,
+            deployment.SUBMISSION_DEPRECATED_UUID_XPATH,
+            add_uuid_prefix(instance.uuid),
+        )
+        edit_submission_xml(
+            xml_parsed,
+            deployment.SUBMISSION_ROOT_UUID_XPATH,
+            add_uuid_prefix(instance.root_uuid),
+        )
+        edit_submission_xml(
+            xml_parsed,
+            deployment.SUBMISSION_CURRENT_UUID_XPATH,
+            add_uuid_prefix(new_uuid),
+        )
+        instance.xml = xml_tostring(xml_parsed)
+        instance.uuid = new_uuid
+        instance.save()
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.post,
+            url=reverse(
+                'advanced-submission-post',
+                kwargs={'asset_uid': self.asset.uid},
+            ),
+            request_data={
+                'submission': submission['_uuid'],
+                'q1': {
+                    'qual': [
+                        {
+                            'type': 'qual_text',
+                            'uuid': '12345',
+                            'val': 'someval',
+                        }
+                    ]
+                },
+            },
+            expected_action=AuditAction.MODIFY_QA_DATA,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+        )
+        self._check_submission_log_metadata(
+            log_metadata, 'adminuser', instance.root_uuid
         )

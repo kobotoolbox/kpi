@@ -1,15 +1,18 @@
 from datetime import timedelta
 from math import inf
 
+from constance import config
 from django.conf import settings
 from django.db.models import Q, QuerySet
 from django.utils.timezone import now
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
-from kobo.apps.organizations.types import UsageType
-from kobo.apps.stripe.utils import get_organizations_effective_limits
+from kobo.apps.stripe.utils.subscription_limits import (
+    get_organizations_effective_limits,
+)
 from kpi.models import Asset
 from kpi.utils.usage_calculator import (
     get_nlp_usage_for_current_billing_period_by_user_id,
@@ -91,19 +94,19 @@ def get_users_within_range_of_usage_limit(
         return get_nlp_usage
 
     usage_method_by_type = {
-        'submission': get_submissions_for_current_billing_period_by_user_id,
-        'storage': get_storage_usage_by_user_id,
-        'seconds': get_nlp_usage_method('seconds'),
-        'characters': get_nlp_usage_method('characters'),
+        UsageType.SUBMISSION: get_submissions_for_current_billing_period_by_user_id,
+        UsageType.STORAGE_BYTES: get_storage_usage_by_user_id,
+        UsageType.ASR_SECONDS: get_nlp_usage_method(UsageType.ASR_SECONDS),
+        UsageType.MT_CHARACTERS: get_nlp_usage_method(UsageType.MT_CHARACTERS),
     }
 
     minimum = minimum or 0
     maximum = maximum or inf
-    include_storage_addons = 'storage' in usage_types
+    include_storage_addons = UsageType.STORAGE_BYTES in usage_types
     include_onetime_addons = (
-        'submission' in usage_types
-        or 'seconds' in usage_types
-        or 'characters' in usage_types
+        UsageType.SUBMISSION in usage_types
+        or UsageType.ASR_SECONDS in usage_types
+        or UsageType.MT_CHARACTERS in usage_types
     )
     org_ids_with_no_owner = list(
         Organization.objects.filter(owner__isnull=True).values_list('pk', flat=True)
@@ -139,41 +142,67 @@ def get_users_within_range_of_usage_limit(
     return User.objects.filter(id__in=user_ids)
 
 
-def get_users_over_90_percent_of_storage_limit():
-    results = get_users_within_range_of_usage_limit(
-        usage_types=['storage'], minimum=0.9, maximum=1
+def get_users_over_80_percent_of_storage_limit() -> QuerySet:
+    return get_users_within_range_of_usage_limit(
+        usage_types=[UsageType.STORAGE_BYTES], minimum=0.8, maximum=0.9
     )
-    return [user.extra_details.uid for user in results]
 
 
-def get_users_over_100_percent_of_storage_limit():
-    results = get_users_within_range_of_usage_limit(usage_types=['storage'], minimum=1)
-    return [user.extra_details.uid for user in results]
-
-
-def get_users_over_90_percent_of_submission_limit():
-    results = get_users_within_range_of_usage_limit(
-        usage_types=['submission'], minimum=0.9, maximum=1
+def get_users_over_90_percent_of_storage_limit() -> QuerySet:
+    return get_users_within_range_of_usage_limit(
+        usage_types=[UsageType.STORAGE_BYTES], minimum=0.9, maximum=1
     )
-    return [user.extra_details.uid for user in results]
 
 
-def get_users_over_100_percent_of_submission_limit():
-    results = get_users_within_range_of_usage_limit(
-        usage_types=['submission'], minimum=1
+def get_users_over_100_percent_of_storage_limit() -> QuerySet:
+    return get_users_within_range_of_usage_limit(
+        usage_types=[UsageType.STORAGE_BYTES], minimum=1
     )
-    return [user.extra_details.uid for user in results]
 
 
-def get_users_over_90_percent_of_nlp_limits():
-    results = get_users_within_range_of_usage_limit(
-        usage_types=['characters', 'seconds'], minimum=0.9, maximum=1
+def get_users_over_80_percent_of_submission_limit() -> QuerySet:
+    return get_users_within_range_of_usage_limit(
+        usage_types=[UsageType.SUBMISSION], minimum=0.8, maximum=0.9
     )
-    return [user.extra_details.uid for user in results]
 
 
-def get_users_over_100_percent_of_nlp_limits():
-    results = get_users_within_range_of_usage_limit(
-        usage_types=['characters', 'seconds'], minimum=1
+def get_users_over_90_percent_of_submission_limit() -> QuerySet:
+    return get_users_within_range_of_usage_limit(
+        usage_types=[UsageType.SUBMISSION], minimum=0.9, maximum=1
     )
-    return [user.extra_details.uid for user in results]
+
+
+def get_users_over_100_percent_of_submission_limit() -> QuerySet:
+    return get_users_within_range_of_usage_limit(
+        usage_types=[UsageType.SUBMISSION], minimum=1
+    )
+
+
+def get_users_over_80_percent_of_nlp_limits() -> QuerySet:
+    return get_users_within_range_of_usage_limit(
+        usage_types=[UsageType.MT_CHARACTERS, UsageType.ASR_SECONDS],
+        minimum=0.8,
+        maximum=0.9,
+    )
+
+
+def get_users_over_90_percent_of_nlp_limits() -> QuerySet:
+    return get_users_within_range_of_usage_limit(
+        usage_types=[UsageType.MT_CHARACTERS, UsageType.ASR_SECONDS],
+        minimum=0.9,
+        maximum=1,
+    )
+
+
+def get_users_over_100_percent_of_nlp_limits() -> QuerySet:
+    return get_users_within_range_of_usage_limit(
+        usage_types=[UsageType.MT_CHARACTERS, UsageType.ASR_SECONDS], minimum=1
+    )
+
+
+def get_all_test_users() -> QuerySet:
+    # for testing only
+    test_emails = config.MASS_EMAIL_TEST_EMAILS.split('\n')
+    # remove empty strings
+    test_emails = [email for email in test_emails if len(email) > 0]
+    return User.objects.filter(email__in=test_emails)

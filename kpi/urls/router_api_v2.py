@@ -11,7 +11,7 @@ from kobo.apps.languages.urls import router as language_router
 from kobo.apps.organizations.views import (
     OrganizationMemberViewSet,
     OrganizationViewSet,
-    OrgMembershipInviteViewSet
+    OrgMembershipInviteViewSet,
 )
 from kobo.apps.project_ownership.urls import router as project_ownership_router
 from kobo.apps.project_views.views import ProjectViewViewSet
@@ -24,6 +24,7 @@ from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
 from kpi.views.v2.asset_usage import AssetUsageViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
 from kpi.views.v2.attachment import AttachmentViewSet
+from kpi.views.v2.attachment_delete import AttachmentDeleteViewSet
 from kpi.views.v2.data import DataViewSet
 from kpi.views.v2.export_task import ExportTaskViewSet
 from kpi.views.v2.import_task import ImportTaskViewSet
@@ -120,6 +121,13 @@ asset_routes.register(
     r'history',
     ProjectHistoryLogViewSet,
     basename='history',
+    parents_query_lookups=['asset'],
+)
+
+asset_routes.register(
+    r'attachments',
+    AttachmentDeleteViewSet,
+    basename='asset-attachments',
     parents_query_lookups=['asset'],
 )
 

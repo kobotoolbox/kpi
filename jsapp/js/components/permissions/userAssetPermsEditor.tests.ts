@@ -1,6 +1,7 @@
 import constants from '#/constants'
 import permConfig from './permConfig'
 import { endpoints } from './permParser.mocks'
+import type { AssignablePermsMap } from './sharingForm.component'
 import {
   applyValidityRules,
   getFormData,
@@ -63,6 +64,8 @@ const EMPTY_EDITOR_STATE = {
   submissionsDeletePartialByResponsesValue: '',
 }
 
+let testAssignablePerms: AssignablePermsMap = new Map()
+
 describe('userAssetPermsEditor utils tests', () => {
   beforeEach(() => {
     // bootstraping
@@ -71,15 +74,23 @@ describe('userAssetPermsEditor utils tests', () => {
   })
 
   describe('applyValidityRules', () => {
+    beforeEach(() => {
+      // For the sake of the tests, we assume all permissions are assignable
+      testAssignablePerms = new Map(permConfig.permissions.map((perm) => [perm.url, perm.name]))
+    })
+
     it('should check and disable all implied checkboxes', () => {
       // We test here form with a single `formManage` checkbox enabled - it has
       // almost all permissions in the implied list, so a lot of checkboxes need
       // to be checked, and even more need to be disabled. This is a good test
       // to check if most of the cases will work correctly.
-      const outcome = applyValidityRules({
-        ...EMPTY_EDITOR_STATE,
-        formManage: true,
-      })
+      const outcome = applyValidityRules(
+        {
+          ...EMPTY_EDITOR_STATE,
+          formManage: true,
+        },
+        testAssignablePerms,
+      )
       chai.expect(outcome).to.deep.equal({
         ...EMPTY_EDITOR_STATE,
         formView: true,
@@ -110,14 +121,17 @@ describe('userAssetPermsEditor utils tests', () => {
     })
 
     it('should cleanup partial properties of unchecked checkbox', () => {
-      const outcome = applyValidityRules({
-        ...EMPTY_EDITOR_STATE,
-        submissionsViewPartialByUsers: false,
-        submissionsViewPartialByUsersList: ['joe', 'josh'],
-        submissionsViewPartialByResponses: false,
-        submissionsViewPartialByResponsesQuestion: 'Where_are_you_from',
-        submissionsViewPartialByResponsesValue: 'North',
-      })
+      const outcome = applyValidityRules(
+        {
+          ...EMPTY_EDITOR_STATE,
+          submissionsViewPartialByUsers: false,
+          submissionsViewPartialByUsersList: ['joe', 'josh'],
+          submissionsViewPartialByResponses: false,
+          submissionsViewPartialByResponsesQuestion: 'Where_are_you_from',
+          submissionsViewPartialByResponsesValue: 'North',
+        },
+        testAssignablePerms,
+      )
 
       chai.expect(outcome).to.deep.equal({
         ...EMPTY_EDITOR_STATE,
@@ -130,11 +144,14 @@ describe('userAssetPermsEditor utils tests', () => {
     })
 
     it('should disable and uncheck "parent" checkbox if its partial counterpart is checked', () => {
-      const outcome = applyValidityRules({
-        ...EMPTY_EDITOR_STATE,
-        submissionsViewPartialByUsers: true,
-        submissionsViewPartialByUsersList: ['joe', 'josh'],
-      })
+      const outcome = applyValidityRules(
+        {
+          ...EMPTY_EDITOR_STATE,
+          submissionsViewPartialByUsers: true,
+          submissionsViewPartialByUsersList: ['joe', 'josh'],
+        },
+        testAssignablePerms,
+      )
 
       chai.expect(outcome).to.deep.equal({
         ...EMPTY_EDITOR_STATE,
@@ -219,7 +236,7 @@ describe('userAssetPermsEditor utils tests', () => {
         submissionsDelete: true,
       }
 
-      const testAssignablePerms = new Map([
+      testAssignablePerms = new Map([
         ['/api/v2/permissions/add_submissions/', 'Add submissions'],
         ['/api/v2/permissions/view_submissions/', 'View submissions'],
       ])

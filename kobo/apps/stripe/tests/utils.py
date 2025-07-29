@@ -14,16 +14,17 @@ from djstripe.models import (
 )
 from model_bakery import baker
 
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 
 
 def generate_free_plan():
     product_metadata = {
         'product_type': 'plan',
-        'submission_limit': '5000',
-        'asr_seconds_limit': '600',
-        'mt_characters_limit': '6000',
-        'storage_bytes_limit': '1000',
+        f'{UsageType.SUBMISSION}_limit': '5000',
+        f'{UsageType.ASR_SECONDS}_limit': '600',
+        f'{UsageType.MT_CHARACTERS}_limit': '6000',
+        f'{UsageType.STORAGE_BYTES}_limit': '1000',
         'default_free_plan': 'true',
     }
 
@@ -78,6 +79,12 @@ def generate_plan_subscription(
     if interval == 'year':
         period_offset = relativedelta(months=6)
 
+    subscription_metadata = {
+        'kpi_owner_username': organization.owner_user_object.username,
+        'kpi_owner_user_id': organization.owner_user_object.id,
+        'organization_id': organization.id,
+    }
+
     subscription_item = baker.make(
         SubscriptionItem, price=price, quantity=1, livemode=False, plan=plan
     )
@@ -92,6 +99,7 @@ def generate_plan_subscription(
         current_period_start=created_date - period_offset,
         start_date=created_date,
         plan=subscription_item.plan,
+        metadata=subscription_metadata,
     )
 
 

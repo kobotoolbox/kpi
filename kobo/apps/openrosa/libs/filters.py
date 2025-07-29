@@ -27,6 +27,8 @@ class GuardianObjectPermissionsFilter(BaseFilterBackend):
         'XFormListApi': [
             'manifest',
             'list',
+            'retrieve',
+            'media',
         ]
     }
 

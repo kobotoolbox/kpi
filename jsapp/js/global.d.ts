@@ -260,3 +260,8 @@ declare module 'react-autobind' {
 
 declare module '*.module.scss'
 declare module '*.module.css'
+
+interface Window {
+  isStorybook?: boolean
+  expect?: Function
+}

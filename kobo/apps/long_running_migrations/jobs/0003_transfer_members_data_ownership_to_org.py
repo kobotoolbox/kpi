@@ -20,4 +20,6 @@ def run():
                 owner_id=OuterRef('pk')
             )
         ).exclude(pk=organization.owner_user_object.pk):
+            if not Asset.objects.filter(owner_id=user.pk).exists():
+                continue
             transfer_member_data_ownership_to_org(user.pk)

@@ -1,9 +1,8 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import { queryClientDecorator } from '#/query/queryClient.mocks'
 import AttachmentActionsDropdown from './AttachmentActionsDropdown'
 import { assetWithImage, assetWithImageSubmission } from './AttachmentActionsDropdown.mocks'
 
-const mockQueryClient = new QueryClient()
 const mockAsset = assetWithImage
 const mockSubmission = assetWithImageSubmission
 const mockAttachmentUid = assetWithImageSubmission._attachments[0].uid
@@ -24,12 +23,29 @@ const meta: Meta<typeof AttachmentActionsDropdown> = {
   args: {},
   render: (args) => (
     <div>
-      <img src='https://fakeimg.pl/300/' alt='some attachment' />
+      <div
+        style={{
+          width: '300px',
+          height: '300px',
+          padding: '20px',
+          lineHeight: '50px',
+          textAlign: 'justify',
+          fontSize: '32px',
+          color: 'lightcoral',
+          background: 'radial-gradient(circle, pink, blanchedalmond, thistle, pink, lavender, lavenderblush)',
+          display: 'inline-block',
+          verticalAlign: 'middle',
+          fontStyle: 'italic',
+          fontWeight: 900,
+        }}
+      >
+        If you fight fire with fire, fire is guaranteed to win
+      </div>
       <AttachmentActionsDropdown {...args} />
     </div>
   ),
-  // We need to provide `queryClient` for the component to work.
-  decorators: [(Story) => <QueryClientProvider client={mockQueryClient}>{Story()}</QueryClientProvider>],
+  decorators: [queryClientDecorator],
+  parameters: { a11y: { test: 'todo' } },
 }
 
 export default meta

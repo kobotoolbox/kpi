@@ -7,8 +7,8 @@ from .models import LongRunningMigration
 class LongRunningMigrationAdmin(admin.ModelAdmin):
 
     list_display = ('name', 'status', 'date_modified')
-    readonly_fields = ('name', 'date_created', 'attempts', 'date_modified')
-    fields = ('status', 'attempts', 'date_created', 'date_modified')
+    readonly_fields = ('name', 'date_created', 'attempts', 'date_modified', 'error')
+    fields = ('status', 'attempts', 'date_created', 'date_modified', 'error')
 
     def has_add_permission(self, request, obj=None):
         return False

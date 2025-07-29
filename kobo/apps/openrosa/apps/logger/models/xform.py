@@ -105,6 +105,7 @@ class XForm(AbstractTimeStampedModel):
 
     kpi_asset_uid = models.CharField(max_length=32, null=True, db_index=True)
     pending_delete = models.BooleanField(default=False)
+    pending_transfer = models.BooleanField(default=False, null=True)
 
     class Meta:
         app_label = 'logger'
@@ -142,18 +143,13 @@ class XForm(AbstractTimeStampedModel):
                     'pk', 'name', 'uid', 'owner_id'
                 ).get(uid=self.kpi_asset_uid)
             except Asset.DoesNotExist:
-                try:
-                    asset = Asset.all_objects.only(
-                        'pk', 'name', 'uid', 'owner_id'
-                    ).get(_deployment_data__backend_response__formid=self.pk)
-                except Asset.DoesNotExist:
-                    # An `Asset` object needs to be returned to avoid 500 while
-                    # Enketo is fetching for project XML (e.g: /formList, /manifest)
-                    asset = Asset(
-                        uid=self.id_string,
-                        name=self.title,
-                        owner_id=self.user.id,
-                    )
+                # An `Asset` object needs to be returned to avoid 500 while
+                # Enketo is fetching for project XML (e.g: /formList, /manifest)
+                asset = Asset(
+                    uid=self.id_string,
+                    name=self.title,
+                    owner_id=self.user.id,
+                )
 
             setattr(self, '_cached_asset', asset)
 
@@ -172,10 +168,9 @@ class XForm(AbstractTimeStampedModel):
 
         if not use_cache:
             return DataDictionary.all_objects.get(pk=self.pk)
-
+        fields = [field.name for field in self._meta.get_fields()]
         xform_dict = deepcopy(self.__dict__)
-        xform_dict.pop('_state', None)
-        xform_dict.pop('_cached_asset', None)
+        xform_dict = {key: val for key, val in xform_dict.items() if key in fields}
         return DataDictionary(**xform_dict)
 
     def file_name(self):

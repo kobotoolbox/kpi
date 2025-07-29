@@ -15,6 +15,8 @@ import responses
 from constance.test import override_config
 from django.conf import settings
 from django.core.files.base import ContentFile
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
@@ -22,7 +24,10 @@ from rest_framework import status
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    add_uuid_prefix,
+    remove_uuid_prefix,
+)
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
@@ -57,6 +62,7 @@ from kpi.tests.utils.mock import (
 from kpi.tests.utils.transaction import immediate_on_commit
 from kpi.tests.utils.xml import get_form_and_submission_tag_names
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.xml import (
     edit_submission_xml,
@@ -419,6 +425,47 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         self.client.logout()
         response = self.client.post(self.submission_list_url, data=submission)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_query_counts_for_list_submissions(self):
+        # query count differs when stripe is enabled/disabled
+        with self.assertNumQueries(FuzzyInt(16, 17)):
+            # regular
+            self.client.get(self.submission_list_url, {'format': 'json'})
+        with self.assertNumQueries(17):
+            # with params
+            self.client.get(
+                self.submission_list_url,
+                {
+                    'format': 'json',
+                    'start': 1,
+                    'limit': 5,
+                    'sort': '{"q1": -1}',
+                    'fields': '["q1", "_submitted_by"]',
+                    'query': '{"_submitted_by": {'
+                             '  "$in": '
+                             '    ["unknownuser", "someuser", "anotheruser"]'
+                             ' }'
+                             '}',
+                },
+            )
+
+    def test_query_count_does_not_increase_with_more_submissions(self):
+        with CaptureQueriesContext(connection) as context:
+            self.client.get(self.submission_list_url, {'format': 'json'})
+        count = context.final_queries - context.initial_queries
+        # add a few submissions
+        self._add_submissions()
+        with self.assertNumQueries(count):
+            self.client.get(self.submission_list_url, {'format': 'json'})
+        # get second page
+        with self.assertNumQueries(count):
+            self.client.get(
+                self.submission_list_url, {
+                    'format': 'json',
+                    'start': 6,
+                    'limit': 5
+                }
+            )
 
     def test_list_submissions_as_owner(self):
         """
@@ -1141,7 +1188,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
 
 class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase):
     """
-    Tests for editin submissions.
+    Tests for editing submissions.
 
     WARNING: Tests in this class must work in v1 as well, or else be added to the
     skipped tests in kpi/tests/api/v1/test_api_submissions.py
@@ -1715,14 +1762,28 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         # Use Digest authentication; testing SessionAuth is not required.
         # The purpose of this test is to validate partial permissions.
         submission = self.submissions_submitted_by_anotheruser[0]
+        submission_json = self.asset.deployment.get_submission(
+            submission['_id'], self.asset.owner, format_type='json'
+        )
         instance_xml = self.asset.deployment.get_submission(
             submission['_id'], self.asset.owner, format_type='xml'
         )
         xml_parsed = fromstring_preserve_root_xmlns(instance_xml)
         edit_submission_xml(
-            xml_parsed, 'meta/deprecatedID', submission['meta/instanceID']
+            xml_parsed,
+            self.asset.deployment.SUBMISSION_DEPRECATED_UUID_XPATH,
+            submission_json['meta/instanceID'],
         )
-        edit_submission_xml(xml_parsed, 'meta/instanceID', 'foo')
+        edit_submission_xml(
+            xml_parsed,
+            self.asset.deployment.SUBMISSION_ROOT_UUID_XPATH,
+            submission_json['meta/rootUuid'],
+        )
+        edit_submission_xml(
+            xml_parsed,
+            self.asset.deployment.SUBMISSION_CURRENT_UUID_XPATH,
+            'foo',
+        )
         edited_submission = xml_tostring(xml_parsed)
 
         url = reverse(
@@ -1775,6 +1836,116 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         data = {'xml_submission_file': ContentFile(edited_submission)}
         response = client.post(url, data)
         assert response.status_code == status.HTTP_201_CREATED
+
+    def test_edit_submission_with_large_uploads(self):
+        # Create a project with two optional media questions: one audio and one file
+        asset = Asset.objects.create(
+            content={
+                'survey': [
+                    {'type': 'audio', 'label': 'q1', 'required': 'false'},
+                    {'type': 'file', 'label': 'q2', 'required': 'false'},
+                ]
+            },
+            owner=self.someuser,
+            asset_type='survey',
+        )
+        asset.deploy(backend='mock', active=True)
+        asset.save()
+
+        submission_uuid = str(uuid.uuid4())
+        version_uid = asset.latest_deployed_version.uid
+
+        # Simulate one initial submission (without actual media files yet)
+        submission = {
+            '__version__': version_uid,
+            'meta/instanceID': add_uuid_prefix(submission_uuid),
+            'q1': 'audio_conversion_test_clip.3gp',
+            'q2': 'audio_conversion_test_image.jpg',
+            '_submitted_by': 'someuser',
+        }
+        asset.deployment.mock_submissions([submission])
+
+        # Simulate editing the submission:
+        # - fetch the original XML
+        # - generate a new snapshot
+        # - inject rootUuid and deprecatedID in XML
+        instance = Instance.objects.get(root_uuid=remove_uuid_prefix(submission_uuid))
+        submission_xml = instance.xml
+        submission_json = asset.deployment.get_submission(
+            instance.pk, asset.owner, format_type='json'
+        )
+        xml_parsed = fromstring_preserve_root_xmlns(submission_xml)
+        xml_root_node_name = xml_parsed.tag
+
+        snapshot = asset.snapshot(
+            regenerate=True,
+            root_node_name=xml_root_node_name,
+            version_uid=version_uid,
+            submission_uuid=remove_uuid_prefix(submission_json['meta/rootUuid']),
+        )
+
+        edit_submission_xml(
+            xml_parsed, 'meta/deprecatedID', submission_json['meta/instanceID']
+        )
+        edit_submission_xml(
+            xml_parsed, 'meta/rootUuid', submission_json['meta/rootUuid']
+        )
+        new_submission_uuid = str(uuid.uuid4())
+        edit_submission_xml(xml_parsed, 'meta/instanceID', new_submission_uuid)
+        edited_submission = xml_tostring(xml_parsed)
+
+        # Submit the edited XML in multiple POSTs, simulating Enketo behavior.
+        # Enketo splits large submissions into chunks (max 10 MB per request).
+        # Here we simulate that by sending one attachment per request.
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=(snapshot.uid,),
+        )
+
+        attachments = [
+            'audio_conversion_test_clip.3gp',
+            'audio_conversion_test_image.jpg',
+        ]
+
+        for idx, attachment in enumerate(attachments):
+            attachment_path = os.path.join(
+                settings.BASE_DIR, 'kpi', 'fixtures', 'attachments', attachment
+            )
+            with open(attachment_path, 'rb') as f:
+                data = {'xml_submission_file': ContentFile(edited_submission)}
+                files = {attachment: f.read()}
+                response = self.client.post(url, data, files=files)
+
+                # The first POST creates the edited submission (201) with one
+                # attachment, the second attaches the file to the submission (202).
+                assert response.status_code == (
+                    status.HTTP_201_CREATED if idx == 0 else status.HTTP_202_ACCEPTED
+                )
+
+    def test_edit_submission_without_root_uuid(self):
+        # Old submissions may have `root_uuid = None` because this is a relatively new
+        # feature. Only recent submissions have their `root_uuid` set at the time of
+        # saving.
+        # For legacy data, we must fall back to `uuid` when `root_uuid` is null,
+        # until long-running migration 0005 has completed and populated missing values.
+
+        root_uuid = remove_uuid_prefix(self.submission['_uuid'])
+
+        instance = Instance.objects.get(root_uuid=root_uuid)
+
+        # Simulate a legacy submission by clearing the root_uuid
+        Instance.objects.filter(pk=instance.pk).update(root_uuid=None)
+
+        self._simulate_edit_submission(instance)
+
+    def test_edit_submission_twice(self):
+        # Ensure that double edit still work if we use `root_uuid` to identify
+        # the edited submission
+        self.test_edit_submission_without_root_uuid()
+        root_uuid = remove_uuid_prefix(self.submission['_uuid'])
+        instance = Instance.objects.get(root_uuid=root_uuid)
+        assert 'deprecatedID' in instance.xml
+        self._simulate_edit_submission(instance)
 
 
 class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):
@@ -2002,7 +2173,9 @@ class SubmissionDuplicateWithXMLNamespaceApiTests(SubmissionDuplicateBaseApiTest
         self._check_duplicate(response)
 
 
-class SubmissionDuplicateApiTests(SubmissionDuplicateBaseApiTests):
+class SubmissionDuplicateApiTests(
+    SubmissionEditTestCaseMixin, SubmissionDuplicateBaseApiTests
+):
 
     def setUp(self):
         super().setUp()
@@ -2174,6 +2347,39 @@ class SubmissionDuplicateApiTests(SubmissionDuplicateBaseApiTests):
             == dummy_extra['q1']['transcript']['value']
         )
 
+    def test_duplicate_edited_submission(self):
+        """
+        someuser is the owner of the project.
+        someuser is allowed to duplicate their own data
+        """
+        deployment = self.asset.deployment
+        instance = Instance.objects.get(root_uuid=self.submission['_uuid'])
+        self._simulate_edit_submission(instance)
+
+        submission = deployment.get_submission(instance.pk, self.asset.owner)
+        assert deployment.SUBMISSION_DEPRECATED_UUID_XPATH in submission
+
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_201_CREATED
+        self._check_duplicate(response)
+
+        duplicated_instance = Instance.objects.get(
+            root_uuid=remove_uuid_prefix(
+                response.data[deployment.SUBMISSION_ROOT_UUID_XPATH]
+            )
+        )
+        # `rootUuid` should be present in MongoDB but different from the source, but
+        # should not be present in the duplicated submission XML
+        assert (
+            submission[deployment.SUBMISSION_ROOT_UUID_XPATH]
+            != response.data[deployment.SUBMISSION_ROOT_UUID_XPATH]
+        )
+        assert 'rootUuid' not in duplicated_instance.xml
+        # `deprecatedID` should not be present in MongoDB, neither in the duplicated
+        # submission XML
+        assert deployment.SUBMISSION_DEPRECATED_UUID_XPATH not in response.data
+        assert 'deprecatedID' not in duplicated_instance.xml
+
 
 class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
 
@@ -2215,6 +2421,26 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         )
         assert response.status_code == status.HTTP_200_OK
         self._check_bulk_update(response)
+
+        # Not really testing the API, but let's validate everything is in place
+        # with the ORM, i.e.: instance.xml contains a <meta/rootUuid> node that matches
+        # with instance.root_uuid
+        instances = Instance.objects.filter(
+            pk__in=self.updated_submission_data['submission_ids']
+        )
+        for instance in instances:
+            for result in response.data['results']:
+                if result['uuid'] == instance.uuid:
+                    assert instance.root_uuid == result['root_uuid']
+                    xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
+                    root_uuid = xml_parsed.find(
+                        self.asset.deployment.SUBMISSION_ROOT_UUID_XPATH
+                    )
+                    assert root_uuid is not None
+                    assert result['root_uuid'] == remove_uuid_prefix(
+                        root_uuid.text
+                    )
+                    break
 
     @pytest.mark.skip(
         reason=(

@@ -266,11 +266,15 @@ def task_restarter():
     )
 
     # Restart tasks that were stopped unintentionally.
-    for transfer_status in TransferStatus.objects.filter(
-        date_modified__lte=resume_threshold,
-        date_created__gt=stuck_threshold,
-        status=TransferStatusChoices.IN_PROGRESS,
-    ).exclude(status_type=TransferStatusTypeChoices.GLOBAL):
+    for transfer_status in (
+        TransferStatus.objects.filter(
+            date_modified__lte=resume_threshold,
+            date_created__gt=stuck_threshold,
+            status=TransferStatusChoices.IN_PROGRESS,
+        )
+        .exclude(status_type=TransferStatusTypeChoices.GLOBAL)
+        .order_by('date_modified')[:settings.MAX_RESTARTED_TASKS]
+    ):
         async_task.delay(
             transfer_status.transfer.pk, transfer_status.status_type
         )

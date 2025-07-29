@@ -1,9 +1,8 @@
 import { makeAutoObservable } from 'mobx'
 import { fetchGet } from '#/api'
+import { endpoints } from '#/api.endpoints'
 import type { LabelValuePair, TransxLanguages } from '#/dataInterface'
 import type { UserFieldName } from './account/account.constants'
-
-const ENV_ENDPOINT = '/environment/'
 
 export interface EnvironmentResponse {
   mfa_has_availability_list: boolean
@@ -20,8 +19,6 @@ export interface EnvironmentResponse {
   operational_purpose_choices: string[][]
   country_choices: string[][]
   interface_languages: string[][]
-  transcription_languages: TransxLanguages
-  translation_languages: TransxLanguages
   submission_placeholder: string
   use_team_label: boolean
   frontend_min_retry_time: number
@@ -181,7 +178,7 @@ class EnvStore {
 
   async fetchData() {
     // Error handling is done inside `fetchGet`
-    const response = await fetchGet<EnvironmentResponse>(ENV_ENDPOINT)
+    const response = await fetchGet<EnvironmentResponse>(endpoints.ENVIRONMENT)
     this.onGetEnvCompleted(response)
   }
 

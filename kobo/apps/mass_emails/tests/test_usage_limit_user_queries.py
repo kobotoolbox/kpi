@@ -9,8 +9,8 @@ from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import get_users_within_range_of_usage_limit
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
-from kobo.apps.organizations.types import UsageType
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
 
@@ -39,9 +39,9 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         user3org = user3.organization
 
         usage_limits = {
-            user1org.id: {'storage_limit': 1000000000},
-            user2org.id: {'storage_limit': 1000000000},
-            user3org.id: {'storage_limit': 1000000000},
+            user1org.id: {'storage_bytes_limit': 1000000000},
+            user2org.id: {'storage_bytes_limit': 1000000000},
+            user3org.id: {'storage_bytes_limit': 1000000000},
         }
         storage_by_user_id = {
             user1.id: 1000000001,  # over full usage
@@ -59,7 +59,9 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
                 return_value=storage_by_user_id,
             ):
                 results = get_users_within_range_of_usage_limit(
-                    usage_types=['storage'], minimum=minimum, maximum=maximum
+                    usage_types=[UsageType.STORAGE_BYTES],
+                    minimum=minimum,
+                    maximum=maximum,
                 )
         aslist = list(results.order_by('username'))
         assert aslist == list(
@@ -78,7 +80,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
     def test_users_with_infinite_limits(self, minimum, maximum):
         user1 = User.objects.get(username='anotheruser')
         user1org = user1.organization
-        usage_limits = {user1org.id: {'storage_limit': inf}}
+        usage_limits = {user1org.id: {'storage_bytes_limit': inf}}
         storage_by_user_id = {user1.id: 1000000000}
         with patch(
             'kobo.apps.mass_emails.user_queries.get_organizations_effective_limits',
@@ -89,7 +91,9 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
                 return_value=storage_by_user_id,
             ):
                 results = get_users_within_range_of_usage_limit(
-                    usage_types=['storage'], minimum=minimum, maximum=maximum
+                    usage_types=[UsageType.STORAGE_BYTES],
+                    minimum=minimum,
+                    maximum=maximum,
                 )
 
         # result should always be empty no matter what min/max were given if user has
@@ -102,16 +106,21 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
     )
     @data(
         # usage type, usage method, include storage addons, include one-time addons
-        ('storage', 'get_storage_usage_by_user_id', True, False),
+        ('storage_bytes', 'get_storage_usage_by_user_id', True, False),
         (
             'submission',
             'get_submissions_for_current_billing_period_by_user_id',
             False,
             True,
         ),
-        ('seconds', 'get_nlp_usage_for_current_billing_period_by_user_id', False, True),
         (
-            'characters',
+            'asr_seconds',
+            'get_nlp_usage_for_current_billing_period_by_user_id',
+            False,
+            True,
+        ),
+        (
+            'mt_characters',
             'get_nlp_usage_for_current_billing_period_by_user_id',
             False,
             True,
@@ -146,7 +155,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
     )
     def test_users_in_range_of_usage_limit_only_gets_nlp_usage_once(self):
         org1 = User.objects.get(username='someuser').organization
-        usage = {org1.id: {'seconds': 10, 'characters': 20}}
+        usage = {org1.id: {UsageType.ASR_SECONDS: 10, UsageType.MT_CHARACTERS: 20}}
 
         full_usage_method_to_patch = ('kobo.apps.mass_emails.user_queries'
                                       '.get_nlp_usage_for_current_billing_period'
@@ -159,7 +168,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         ) as patched_usage_method:
             with patch(full_limit_method_to_patch):
                 get_users_within_range_of_usage_limit(
-                    usage_types=['seconds', 'characters']
+                    usage_types=[UsageType.ASR_SECONDS, UsageType.MT_CHARACTERS]
                 )
         patched_usage_method.assert_called_once()
 
@@ -172,7 +181,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
     def test_organization_with_no_owner(self):
         no_owner = baker.make(Organization, id='org_abcd1234', mmo_override=False)
         assert no_owner.owner_user_object is None
-        usage_limits = {no_owner.id: {'storage_limit': 10}}
+        usage_limits = {no_owner.id: {'storage_bytes_limit': 10}}
         storage_by_user_id = {self.someuser.id: 1000000000}
         with patch(
             'kobo.apps.mass_emails.user_queries.get_organizations_effective_limits',
@@ -183,7 +192,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
                 return_value=storage_by_user_id,
             ):
                 results = get_users_within_range_of_usage_limit(
-                    usage_types=['storage'], minimum=0
+                    usage_types=[UsageType.STORAGE_BYTES], minimum=0
                 )
 
         # result should be empty because the organization has no owner

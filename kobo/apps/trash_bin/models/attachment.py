@@ -8,8 +8,13 @@ from kobo.apps.openrosa.apps.logger.models.attachment import (
     Attachment,
     AttachmentDeleteStatus,
 )
+from kobo.apps.openrosa.apps.logger.utils.attachment import (
+    bulk_update_attachment_storage_counters
+)
+from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import KpiUidField
 from . import BaseTrash
+from ..type_aliases import UpdatedQuerySetAndCount
 
 
 class AttachmentTrash(BaseTrash):
@@ -49,12 +54,40 @@ class AttachmentTrash(BaseTrash):
         super().save(*args, **kwargs)
 
     @classmethod
-    def toggle_statuses(cls, object_identifiers: list[str], active: bool = False):
+    def toggle_statuses(
+        cls,
+        object_identifiers: list[str],
+        active: bool = False,
+        **kwargs
+    ) -> UpdatedQuerySetAndCount:
         """
         Toggle statuses of attachments based on their `uid`.
         """
-        delete_status = AttachmentDeleteStatus.PENDING_DELETE if not active else None
-        Attachment.all_objects.filter(uid__in=object_identifiers).update(
-            delete_status=delete_status,
-            date_modified=timezone.now(),
+        if not active:
+            current_delete_status = None
+            new_delete_status = AttachmentDeleteStatus.PENDING_DELETE
+            subtract = True
+        else:
+            current_delete_status = AttachmentDeleteStatus.PENDING_DELETE
+            new_delete_status = None
+            subtract = False
+
+        queryset = Attachment.all_objects.filter(
+            uid__in=object_identifiers,
+            delete_status=current_delete_status
         )
+
+        with kc_transaction_atomic():
+            updated = queryset.update(
+                delete_status=new_delete_status,
+                date_modified=timezone.now(),
+            )
+            # We defer storage counter updates to run at the end of the
+            # transaction block to avoid holding row-level locks for the
+            # full duration of the transaction. This helps reduce contention
+            # when multiple attachments are being trashed or restored
+            # concurrently by different users.
+            bulk_update_attachment_storage_counters(
+                object_identifiers, subtract=subtract
+            )
+        return queryset, updated

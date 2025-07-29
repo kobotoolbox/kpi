@@ -684,8 +684,8 @@ def increment_index_in_filename(filename):
 
 
 def generate_attachments_zip_export(
-        export_type, extension, username, id_string, export_id=None,
-        filter_query=None):
+    export_type, extension, username, id_string, export_id=None, filter_query=None
+):
     xform = XForm.objects.get(user__username=username, id_string=id_string)
     attachments = Attachment.objects.filter(instance__xform=xform)
     basename = '%s_%s' % (id_string, datetime.now().strftime('%Y_%m_%d_%H_%M_%S'))

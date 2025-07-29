@@ -15,7 +15,8 @@ from .choices import InviteStatusChoices
 
 class InviteType(models.TextChoices):
     ORG_MEMBERSHIP = 'org-membership'
-    ORG_OWNERSHIP_TRANSFER = 'org-ownership-transfer'
+    # Not implemented yet:
+    # ORG_OWNERSHIP_TRANSFER = 'org-ownership-transfer'
     USER_OWNERSHIP_TRANSFER = 'user-ownership-transfer'
 
 

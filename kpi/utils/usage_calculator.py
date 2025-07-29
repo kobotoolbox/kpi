@@ -1,4 +1,5 @@
 from json import dumps, loads
+from math import inf
 
 from django.apps import apps
 from django.conf import settings
@@ -8,13 +9,15 @@ from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter, XForm
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
-from kobo.apps.organizations.types import NLPUsage
+from kobo.apps.organizations.types import NLPUsage, UsageBalance, UsageBalances
 from kobo.apps.organizations.utils import get_billing_dates
-from kobo.apps.stripe.utils import (
-    get_current_billing_period_dates_by_org,
-    requires_stripe,
+from kobo.apps.stripe.utils.import_management import requires_stripe
+from kobo.apps.stripe.utils.subscription_limits import (
+    get_organizations_effective_limits,
 )
+from kobo.apps.stripe.utils.billing_dates import get_current_billing_period_dates_by_org
 from kpi.utils.cache import CachedClass, cached_class_property
 
 
@@ -44,16 +47,33 @@ def get_submission_counts_in_date_range_by_user_id(
     return {row['user_id']: row['total'] for row in all_sub_counters}
 
 
+def calculate_usage_balance(limit: float, usage: int) -> UsageBalance | None:
+    if limit == inf:
+        return None
+    # Limits are calculated as floats because they can potentionally be inf.
+    # Aside from that case, however, they should always be integers
+    limit = int(limit)
+    return {
+        'effective_limit': limit,
+        'balance_value': limit - usage,
+        'balance_percent': int((usage / limit) * 100),
+        'exceeded': limit - usage < 0,
+    }
+
+
 @requires_stripe
 def get_submissions_for_current_billing_period_by_user_id(**kwargs) -> dict[int, int]:
     current_billing_dates_by_org = get_current_billing_period_dates_by_org()
     owner_by_org = {
-        org.id: org.owner.organization_user.user.id
-        for org in Organization.objects.filter(owner__isnull=False)
+        org_vals['id']: org_vals['owner__organization_user__user__id']
+        for org_vals in Organization.objects.values(
+            'id', 'owner__organization_user__user__id'
+        ).filter(owner__isnull=False)
     }
     current_billing_dates_by_owner = {
         owner_by_org[org_id]: dates
         for org_id, dates in current_billing_dates_by_org.items()
+        if org_id in owner_by_org
     }
     return get_submission_counts_in_date_range_by_user_id(
         current_billing_dates_by_owner
@@ -73,11 +93,11 @@ def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLP
         .filter(filters)
         .annotate(
             asr_seconds_current_period=Coalesce(
-                Sum('total_asr_seconds'),
+                Sum(f'total_{UsageType.ASR_SECONDS}'),
                 0,
             ),
             mt_characters_current_period=Coalesce(
-                Sum('total_mt_characters'),
+                Sum(f'total_{UsageType.MT_CHARACTERS}'),
                 0,
             ),
         )
@@ -85,8 +105,8 @@ def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLP
     results = {}
     for row in nlp_tracking:
         results[row['user_id']] = {
-            'seconds': row['asr_seconds_current_period'],
-            'characters': row['mt_characters_current_period'],
+            UsageType.ASR_SECONDS: row[f'{UsageType.ASR_SECONDS}_current_period'],
+            UsageType.MT_CHARACTERS: row[f'{UsageType.MT_CHARACTERS}_current_period'],
         }
     return results
 
@@ -97,12 +117,15 @@ def get_nlp_usage_for_current_billing_period_by_user_id(
 ) -> dict[int, NLPUsage]:
     current_billing_dates_by_org = get_current_billing_period_dates_by_org()
     owner_by_org = {
-        org.id: org.owner.organization_user.user.id
-        for org in Organization.objects.filter(owner__isnull=False)
+        org_vals['id']: org_vals['owner__organization_user__user__id']
+        for org_vals in Organization.objects.values(
+            'id', 'owner__organization_user__user__id'
+        ).filter(owner__isnull=False)
     }
     current_billing_dates_by_owner = {
         owner_by_org[org_id]: dates
         for org_id, dates in current_billing_dates_by_org.items()
+        if org_id in owner_by_org
     }
     return get_nlp_usage_in_date_range_by_user_id(current_billing_dates_by_owner)
 
@@ -129,21 +152,50 @@ class ServiceUsageCalculator(CachedClass):
         self.current_period_filter = Q(date__range=[self.current_period_start, now])
         self._setup_cache()
 
-    def get_nlp_usage_by_type(self, usage_key: str) -> int:
-        """Returns the usage for a given organization and usage key. The usage key
-        should be the value from the USAGE_LIMIT_MAP found in the stripe kobo app.
-        """
+    def get_nlp_usage_by_type(self, usage_type: UsageType) -> int:
+        """Returns the usage for a given organization and usage type"""
         nlp_usage = self.get_nlp_usage_counters()
 
         cached_usage = {
-            'asr_seconds': nlp_usage['asr_seconds_current_period'],
-            'mt_characters': nlp_usage['mt_characters_current_period'],
+            UsageType.ASR_SECONDS: nlp_usage[f'{UsageType.ASR_SECONDS}_current_period'],
+            UsageType.MT_CHARACTERS: nlp_usage[
+                f'{UsageType.MT_CHARACTERS}_current_period'
+            ],
         }
 
-        return cached_usage[usage_key]
+        return cached_usage[usage_type]
 
     def get_last_updated(self):
         return self._cache_last_updated()
+
+    @cached_class_property(key='usage_limits', serializer=dumps, deserializer=loads)
+    def get_usage_balances(self) -> UsageBalances:
+        """
+        Gets a dict of limit statuses using effective limits and current usage.
+        If a user has unlimited usage for a given usage type, that usage type
+        will have a value of None
+        """
+        limits = get_organizations_effective_limits([self.organization], True, True)
+        org_limits = limits[self.organization.id]
+
+        return {
+            UsageType.SUBMISSION: calculate_usage_balance(
+                limit=org_limits[f'{UsageType.SUBMISSION}_limit'],
+                usage=self.get_submission_counters()['current_period'],
+            ),
+            UsageType.STORAGE_BYTES: calculate_usage_balance(
+                limit=org_limits[f'{UsageType.STORAGE_BYTES}_limit'],
+                usage=self.get_storage_usage(),
+            ),
+            UsageType.ASR_SECONDS: calculate_usage_balance(
+                limit=org_limits[f'{UsageType.ASR_SECONDS}_limit'],
+                usage=self.get_nlp_usage_by_type(UsageType.ASR_SECONDS),
+            ),
+            UsageType.MT_CHARACTERS: calculate_usage_balance(
+                limit=org_limits[f'{UsageType.MT_CHARACTERS}_limit'],
+                usage=self.get_nlp_usage_by_type(UsageType.MT_CHARACTERS),
+            ),
+        }
 
     @cached_class_property(
         key='nlp_usage_counters', serializer=dumps, deserializer=loads
@@ -153,20 +205,30 @@ class ServiceUsageCalculator(CachedClass):
 
         nlp_tracking = (
             NLPUsageCounter.objects.only(
-                'date', 'total_asr_seconds', 'total_mt_characters'
+                'date',
+                f'total_{UsageType.ASR_SECONDS}',
+                f'total_{UsageType.MT_CHARACTERS}',
             )
             .filter(user_id=self._user_id)
             .aggregate(
                 asr_seconds_current_period=Coalesce(
-                    Sum('total_asr_seconds', filter=self.current_period_filter),
+                    Sum(
+                        f'total_{UsageType.ASR_SECONDS}',
+                        filter=self.current_period_filter,
+                    ),
                     0,
                 ),
                 mt_characters_current_period=Coalesce(
-                    Sum('total_mt_characters', filter=self.current_period_filter),
+                    Sum(
+                        f'total_{UsageType.MT_CHARACTERS}',
+                        filter=self.current_period_filter,
+                    ),
                     0,
                 ),
-                asr_seconds_all_time=Coalesce(Sum('total_asr_seconds'), 0),
-                mt_characters_all_time=Coalesce(Sum('total_mt_characters'), 0),
+                asr_seconds_all_time=Coalesce(Sum(f'total_{UsageType.ASR_SECONDS}'), 0),
+                mt_characters_all_time=Coalesce(
+                    Sum(f'total_{UsageType.MT_CHARACTERS}'), 0
+                ),
             )
         )
 

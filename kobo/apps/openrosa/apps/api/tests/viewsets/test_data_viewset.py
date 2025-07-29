@@ -50,7 +50,7 @@ class TestDataViewSet(TestBase):
         self._make_submissions()
         view = DataViewSet.as_view({'get': 'list'})
 
-        # Access the list endpoint as Bob.
+        # Access the list endpoint as Bob
         request = self.factory.get('/', **self.extra)
         response = view(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -321,23 +321,27 @@ class TestDataViewSet(TestBase):
         dataid = self.xform.instances.all().order_by('id')[0].pk
 
         data = {
-            '_attachments': [{'download_url': self.attachment.secure_url(),
-                               'download_small_url': self.attachment.secure_url('small'),
-                               'download_medium_url': self.attachment.secure_url('medium'),
-                               'download_large_url': self.attachment.secure_url('large'),
-                               'mimetype': self.attachment.mimetype,
-                               'instance': self.attachment.instance.pk,
-                               'filename': self.attachment.media_file.name,
-                               'id': self.attachment.pk,
-                               'uid': self.attachment.uid,
-                               'xform': self.xform.id}
-                              ],
+            '_attachments': [
+                {
+                    'download_url': self.attachment.secure_url(),
+                    'download_small_url': self.attachment.secure_url('small'),
+                    'download_medium_url': self.attachment.secure_url('medium'),
+                    'download_large_url': self.attachment.secure_url('large'),
+                    'mimetype': self.attachment.mimetype,
+                    'instance': self.attachment.instance.pk,
+                    'is_deleted': False,
+                    'filename': self.attachment.media_file.name,
+                    'media_file_basename': self.attachment.media_file_basename,
+                    'id': self.attachment.pk,
+                    'uid': self.attachment.uid,
+                    'xform': self.xform.id,
+                }
+            ],
             '_geolocation': [None, None],
             '_xform_id_string': 'transportation_2011_07_25',
-            'transport/available_transportation_types_to_referral_facility':
-            'none',
+            'transport/available_transportation_types_to_referral_facility': 'none',
             '_status': 'submitted_via_web',
-            '_id': dataid
+            '_id': dataid,
         }
         response_first_element = sorted(response.data, key=lambda x: x['_id'])[0]
         self.assertEqual(dict(response_first_element, **data),
@@ -432,3 +436,29 @@ class TestDataViewSet(TestBase):
         response = view(request, pk=self.xform.pk, format='xlsx')
         assert response.status_code == status.HTTP_200_OK
         assert response.headers['Content-Type'] == 'application/vnd.openxmlformats'
+
+    def test_query_counts(self):
+        self._make_submissions()
+        view = DataViewSet.as_view({'get': 'list'})
+        request = self.factory.get('/', **self.extra)
+        formid = self.xform.pk
+        with self.assertNumQueries(10):
+            view(request, pk=formid)
+        # test adding submissions does not increase query count
+        self._make_submissions()
+        self._make_submissions()
+        with self.assertNumQueries(10):
+            view(request, pk=formid)
+
+    def test_query_counts_with_attachments(self):
+        self._submit_transport_instance_w_attachment()
+        self._submit_transport_instance_w_attachment()
+        view = DataViewSet.as_view({'get': 'list'})
+        request = self.factory.get('/', **self.extra)
+        formid = self.xform.pk
+        with self.assertNumQueries(10):
+            view(request, pk=formid)
+        self._submit_transport_instance_w_attachment()
+        self._submit_transport_instance_w_attachment()
+        with self.assertNumQueries(10):
+            view(request, pk=formid)

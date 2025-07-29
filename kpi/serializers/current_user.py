@@ -37,6 +37,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     validated_password = serializers.SerializerMethodField()
     accepted_tos = serializers.SerializerMethodField()
     organization = serializers.SerializerMethodField()
+    extra_details__uid = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -48,9 +49,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'server_time',
             'date_joined',
             'projects_url',
-            'is_superuser',
             'gravatar',
-            'is_staff',
             'last_login',
             'extra_details',
             'current_password',
@@ -60,6 +59,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'validated_password',
             'accepted_tos',
             'organization',
+            'extra_details__uid',
         )
         read_only_fields = (
             'email',
@@ -133,6 +133,9 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             return True
 
         return extra_details.validated_password
+
+    def get_extra_details__uid(self, obj):
+        return obj.extra_details.uid
 
     def to_representation(self, obj):
         if obj.is_anonymous:

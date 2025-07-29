@@ -33,7 +33,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
     switch (field.name) {
       case 'name':
         return (
-          <Link to={ROUTES.FORM_SUMMARY.replace(':uid', props.asset.uid)} data-cy='asset'>
+          <Link to={ROUTES.FORM_SUMMARY.replace(':uid', props.asset.uid)}>
             <AssetName asset={props.asset} />
           </Link>
         )

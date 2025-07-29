@@ -4,6 +4,7 @@ import re
 
 from defusedxml import minidom
 
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     XFormInstanceParser,
     _xml_node_to_dict,
@@ -11,10 +12,12 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     get_deprecated_uuid_from_xml,
     get_meta_from_xml,
     get_uuid_from_xml,
+    get_xform_media_question_xpaths,
     xpath_from_xml_node,
 )
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.libs.utils.common_tags import XFORM_ID_STRING
+from kobo.apps.kobo_auth.shortcuts import User
 
 XML = 'xml'
 DICT = 'dict'
@@ -223,3 +226,21 @@ class TestXFormInstanceParser(TestBase):
                 import json
                 jfile_content = jfile.read()
                 self.assertEqual(jfile_content.strip(), json.dumps(dict_).strip())
+
+    def test_get_xform_media_question_xpaths(self):
+        xml_refs = [
+            'project_with_ref_after.xml',
+            'project_with_ref_before.xml',
+        ]
+        bob = User.objects.get(username='bob')
+        for xml_ref in xml_refs:
+            xml_path = self._fixture_path('signature', xml_ref)
+            with open(xml_path) as f:
+                xml_str = f.read()
+            id_string, _ = os.path.splitext(xml_ref)
+            xf = XForm.objects.create(xml=xml_str, user=bob, id_string=id_string)
+            expected = [
+                f'{id_string}/image',
+                f'{id_string}/signature',
+            ]
+            assert sorted(expected) == sorted(get_xform_media_question_xpaths(xf))

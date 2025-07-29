@@ -9,8 +9,13 @@ from django.test import override_settings
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
+from kobo.apps.openrosa.libs.utils.image_tools import image_url
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kobo.apps.trackers.utils import update_nlp_counter
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage
+)
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
@@ -536,6 +541,44 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             ) == 1
         )
 
+    @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
+    def test_thumbnails_are_deleted_after_transfer(self):
+        """
+        Test that image thumbnails are deleted from the original owner's storage
+        directory after a project is transferred to another user
+        """
+        self.client.login(username='someuser', password='someuser')
+
+        attachment = Attachment.objects.filter(
+            user__username='someuser',
+            mimetype='image/jpeg'
+        ).first()
+        filename = attachment.media_file.name.replace('.jpg', '')
+
+        # Trigger thumbnail creation
+        image_url(attachment, 'small')
+        for size in settings.THUMB_CONF.keys():
+            thumbnail = f'{filename}-{size}.jpg'
+            self.assertTrue(default_storage.exists(thumbnail))
+
+        payload = {
+            'recipient': self.absolute_reverse(
+                self._get_endpoint('user-kpi-detail'),
+                args=[self.anotheruser.username]
+            ),
+            'assets': [self.asset.uid]
+        }
+
+        with immediate_on_commit():
+            response = self.client.post(
+                self.invite_url, data=payload, format='json'
+            )
+        assert response.status_code == status.HTTP_201_CREATED
+
+        for size in settings.THUMB_CONF.keys():
+            thumbnail = f'{filename}-{size}.jpg'
+            self.assertFalse(default_storage.exists(thumbnail))
+
     @patch(
         'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
         MagicMock()
@@ -593,6 +636,93 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
                 {'_userform_id': original_userform_id}
             ) == 0
         )
+
+    @patch(
+        'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
+        MagicMock()
+    )
+    @patch(
+        'kobo.apps.project_ownership.tasks.move_attachments',
+        MagicMock()
+    )
+    @patch(
+        'kobo.apps.project_ownership.tasks.move_media_files',
+        MagicMock()
+    )
+    @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
+    def test_transfer_to_user_with_identical_id_string(self):
+
+        # This is not strictly an API test, but its logic overlaps significantly with
+        # other tests in this class. It is placed here to simplify code review and
+        # avoid duplicating shared logic.
+
+        content_source_asset = {
+            'survey': [
+                {
+                    'type': 'audio',
+                    'label': 'q1',
+                    'required': 'false',
+                },
+                {
+                    'type': 'file',
+                    'label': 'q2',
+                    'required': 'false',
+                },
+            ]
+        }
+        asset_someuser = Asset.objects.create(
+            content=content_source_asset,
+            owner=self.someuser,
+            asset_type='survey',
+        )
+        asset_another = Asset.objects.create(
+            content=content_source_asset,
+            owner=self.anotheruser,
+            asset_type='survey',
+        )
+
+        with patch.object(
+            XForm,
+            '_set_id_string',
+            lambda self: setattr(self, 'id_string', 'foo'),
+        ):
+            asset_someuser.deploy(backend='mock', active=True)
+            asset_another.deploy(backend='mock', active=True)
+
+        assert asset_someuser.deployment.xform.id_string == 'foo'
+        assert asset_another.deployment.xform.id_string == 'foo'
+
+        # Transfer the project from someuser to anotheruser
+        self.client.login(username='someuser', password='someuser')
+        payload = {
+            'recipient': self.absolute_reverse(
+                self._get_endpoint('user-kpi-detail'),
+                args=[self.anotheruser.username]
+            ),
+            'assets': [asset_someuser.uid]
+        }
+
+        with immediate_on_commit():
+            response = self.client.post(
+                self.invite_url, data=payload, format='json'
+            )
+        assert response.status_code == status.HTTP_201_CREATED
+
+        # anotheruser is the owner and should see the project
+        url = reverse(
+            self._get_endpoint('asset-detail'),
+            kwargs={'uid': asset_someuser.uid},
+        )
+        self.client.login(username='anotheruser', password='anotheruser')
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        asset_someuser.deployment._xform.refresh_from_db()
+        asset_another.deployment._xform.refresh_from_db()
+
+        assert asset_another.deployment.xform.id_string == 'foo'
+        # Make sure XForm id_string does not equal 'foo' anymore
+        assert asset_someuser.deployment.xform.id_string == asset_someuser.uid
 
 
 class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):

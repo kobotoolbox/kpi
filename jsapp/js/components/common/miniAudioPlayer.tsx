@@ -14,7 +14,6 @@ interface MiniAudioPlayerProps {
   /** Not adviseable when you display multiple players at once. */
   preload?: boolean
   mediaURL: string
-  'data-cy'?: string
 }
 
 interface MiniAudioPlayerState {
@@ -151,7 +150,6 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
           startIcon={this.state.isPlaying ? 'stop' : 'play'}
           size='s'
           onClick={this.onButtonClick.bind(this)}
-          data-cy='mini audio player playstop'
         />
 
         {this.state.totalTime > 0 && (
@@ -200,7 +198,7 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
     }
 
     return (
-      <bem.MiniAudioPlayer data-cy={this.props['data-cy']} m={modifiers} {...additionalProps}>
+      <bem.MiniAudioPlayer m={modifiers} {...additionalProps}>
         <audio
           ref={this.audioRef}
           src={this.props.mediaURL}
