@@ -14,7 +14,7 @@ def remove_kc_only_perm(apps, schema_editor):
     deleting = ObjectPermission.objects.filter(
         permission__codename=PERM_FROM_KC_ONLY
     )
-    print(f"Deleting {deleting.count()} ObjectPermission objects")
+    print(f'Deleting {deleting.count()} ObjectPermission objects')
     deleting.delete()
 
 
