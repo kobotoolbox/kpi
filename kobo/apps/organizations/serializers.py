@@ -332,6 +332,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
 
         return invites
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_invited_by(self, invite):
         return reverse(
             'user-kpi-detail',
@@ -339,6 +340,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             request=self.context['request'],
         )
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_url(self, obj):
         """
         Return the detail URL for the invite
