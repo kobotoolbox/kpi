@@ -20,7 +20,7 @@ def home(request):
 def modern_browsers(request):
     return TemplateResponse(request, 'modern_browsers.html')
 
-
+# DEPRECATED, remove with v1
 @api_view(['POST'])
 @authentication_classes([ApplicationTokenAuthentication])
 def authorized_application_authenticate_user(request):

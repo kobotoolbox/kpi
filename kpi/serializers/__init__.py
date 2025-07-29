@@ -1,4 +1,3 @@
-# coding: utf-8
 from .v1.asset import AssetListSerializer
 from .v1.asset import AssetSerializer
 from .v1.asset import AssetUrlListSerializer
@@ -15,6 +14,6 @@ from .v1.object_permission import ObjectPermissionNestedSerializer
 from .v1.object_permission import ObjectPermissionSerializer
 from .v1.tag import TagListSerializer
 from .v1.tag import TagSerializer
-from .create_user import CreateUserSerializer
+from .v1.create_user import CreateUserSerializer
 from .current_user import CurrentUserSerializer
 from .v1.user_asset_subscription import UserAssetSubscriptionSerializer

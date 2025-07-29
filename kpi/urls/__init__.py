@@ -1,4 +1,3 @@
-# coding: utf-8
 import private_storage.urls
 from django.conf import settings
 from django.urls import include, path, re_path
@@ -13,9 +12,10 @@ from kpi.views import (
 from kpi.views.current_user import CurrentUserViewSet
 from kpi.views.environment import EnvironmentView
 from kpi.views.token import TokenView
+from kpi.views.v2.authorized_application_user import AuthorizedApplicationUserViewSet
+from kpi.views.v2.logout import logout_from_all_devices
 from .router_api_v1 import router_api_v1
 from .router_api_v2 import router_api_v2, URL_NAMESPACE
-from ..views.v2.logout import logout_from_all_devices
 
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
@@ -36,10 +36,16 @@ urlpatterns = [
     path('', include('kobo.apps.accounts.urls')),
     path('', include('kobo.apps.service_health.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
-    re_path(
-        r'^authorized_application/authenticate_user/$',
+    # DEPRECATED, remove with v1
+    path(
+        'authorized_application/authenticate_user/',
         authorized_application_authenticate_user,
         name='authenticate_user',
+    ),
+    path(
+        'api/v2/authorized-application/authenticate_user/',
+        AuthorizedApplicationUserViewSet.as_view({'post': 'authenticate_user'}),
+        name='authorized-application-authenticate-user',
     ),
     path('modern_browsers/', modern_browsers),
     re_path(r'^i18n/', include('django.conf.urls.i18n')),

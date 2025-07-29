@@ -23,6 +23,7 @@ from kpi.views.v2.asset_permission_assignment import AssetPermissionAssignmentVi
 from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
 from kpi.views.v2.asset_usage import AssetUsageViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
+from kpi.views.v2.authorized_application_user import AuthorizedApplicationUserViewSet
 from kpi.views.v2.attachment import AttachmentViewSet
 from kpi.views.v2.data import DataViewSet
 from kpi.views.v2.export_task import ExportTaskViewSet
@@ -179,7 +180,8 @@ router_api_v2.registry.extend(language_router.registry)
 router_api_v2.registry.extend(audit_log_router.registry)
 
 
-# TODO migrate ViewSet below
-# router_api_v2.register(r'authorized_application/users',
-#                        AuthorizedApplicationUserViewSet,
-#                        basename='authorized_applications')
+router_api_v2.register(
+    r'authorized_application/users',
+    AuthorizedApplicationUserViewSet,
+    basename='authorized_applications',
+)
