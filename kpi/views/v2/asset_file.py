@@ -1,7 +1,7 @@
 # coding: utf-8
 from django.http import HttpResponseRedirect
 from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
 from private_storage.views import PrivateStorageDetailView
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -23,81 +23,12 @@ from kpi.utils.schema_extensions.response import (
     open_api_204_empty_response,
 )
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-
-
-class FileSchema(AutoSchema):
-    """
-    Custom schema used to inject OpenAPI examples for AssetViewSet at runtime.
-
-    We cannot use `@extend_schema(..., examples=...)` or `@extend_schema_view(...)`
-    directly for these examples because the values rely on variables
-    (e.g., `ASSET_URL_SCHEMA`) that trigger Django's URL resolver via `reverse()`.
-    Since those decorators are evaluated at module import time—before the full Django
-    application and URL config are guaranteed to be loaded—this leads to circular
-    import errors.
-
-    By overriding `get_operation()` here, we defer the evaluation of those dynamic
-    values until the OpenAPI schema is being generated (e.g., via `/api/v2/schema/`),
-    when all apps and routes are fully initialized. This ensures a clean, safe injection
-    of complex or reverse-dependent examples.
-
-    This class matches the `operationId` for the `POST /assets/` endpoint
-    to inject multiple request examples, such as referencing an asset or a source.
-    """
-
-    def get_operation(self, *args, **kwargs):
-
-        from kpi.schema_extensions.v2.files.schema import (
-            ASSET_URL_SCHEMA,
-            BASE64_METADATA_SCHEMA,
-            URL_METADATA_SCHEMA,
-            USER_URL_SCHEMA,
-        )
-
-        operation = super().get_operation(*args, **kwargs)
-
-        if not operation:
-            return None
-
-        if operation.get('operationId') == 'api_v2_assets_files_create':
-
-            operation['requestBody']['content']['application/json']['examples'] = {
-                'Binary': {
-                    'value': {
-                        'user': generate_example_from_schema(USER_URL_SCHEMA),
-                        'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
-                        'description': 'Description of the file',
-                        'file_type': 'image/png',
-                        'content': '<binary>',
-                    },
-                    'summary': 'Creating a file with binary content',
-                },
-                'Base64': {
-                    'value': {
-                        'user': generate_example_from_schema(USER_URL_SCHEMA),
-                        'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
-                        'description': 'Description of the file',
-                        'file_type': 'image/png',
-                        'base64Encoded': '<base64-encoded-string>',
-                        'metadata': generate_example_from_schema(
-                            BASE64_METADATA_SCHEMA
-                        ),
-                    },
-                    'summary': 'Creating a file with Base64 content',
-                },
-                'RemoteUrl': {
-                    'value': {
-                        'user': generate_example_from_schema(USER_URL_SCHEMA),
-                        'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
-                        'description': 'Description of the file',
-                        'file_type': 'image/png',
-                        'metadata': generate_example_from_schema(URL_METADATA_SCHEMA),
-                    },
-                    'summary': 'Creating a file with a remote url',
-                },
-            }
-
-        return operation
+from kpi.schema_extensions.v2.files.schema import (
+    ASSET_URL_SCHEMA,
+    BASE64_METADATA_SCHEMA,
+    URL_METADATA_SCHEMA,
+    USER_URL_SCHEMA,
+)
 
 
 @extend_schema(
@@ -112,6 +43,44 @@ class FileSchema(AutoSchema):
             require_auth=False,
             raise_access_forbidden=False,
         ),
+        examples=[
+            OpenApiExample(
+                name='Creating a file with binary content',
+                value={
+                    'user': generate_example_from_schema(USER_URL_SCHEMA),
+                    'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
+                    'description': 'Description of the file',
+                    'file_type': 'image/png',
+                    'content': '<binary>',
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                name='Creating a file with Base64 content',
+                value={
+                    'user': generate_example_from_schema(USER_URL_SCHEMA),
+                    'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
+                    'description': 'Description of the file',
+                    'file_type': 'image/png',
+                    'base64Encoded': '<base64-encoded-string>',
+                    'metadata': generate_example_from_schema(
+                        BASE64_METADATA_SCHEMA
+                    ),
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                name='Creating a file with a remote url',
+                value={
+                    'user': generate_example_from_schema(USER_URL_SCHEMA),
+                    'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
+                    'description': 'Description of the file',
+                    'file_type': 'image/png',
+                    'metadata': generate_example_from_schema(URL_METADATA_SCHEMA),
+                },
+                request_only=True,
+            ),
+        ],
     ),
     content=extend_schema(
         description=read_md('kpi', 'files/content.md'),
@@ -176,7 +145,6 @@ class AssetFileViewSet(
     - docs/api/v2/files/content.md
     """
 
-    schema = FileSchema()
     model = AssetFile
     lookup_field = 'uid'
     filter_backends = (RelatedAssetPermissionsFilter,)
