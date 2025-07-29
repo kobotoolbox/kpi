@@ -30,7 +30,7 @@ class TagSerializer(serializers.ModelSerializer):
     def _get_tag_url(self, obj):
         request = self.context.get('request', None)
         tag_uid, _ = TagUid.objects.get_or_create(tag=obj)
-        return reverse('tag-detail', args=(tag_uid.uid,), request=request)
+        return reverse('tags-detail', args=(tag_uid.uid,), request=request)
 
 
 class TagListSerializer(TagSerializer):
