@@ -30,8 +30,7 @@ jobs:
       - name: Enable auto-merge for Dependabot PRs of patch and minor updates
         if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' || steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
         # This requires auto-merge to be enabled in GitHub repo settings
-        # WIP: for now we only echo the command to see if the rest works correctly
-        run: echo "gh pr merge --auto --squash \"$PR_URL\""
+        run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
