@@ -3,8 +3,8 @@ from django.urls import reverse
 from rest_framework import status
 from taggit.models import Tag
 
-from kpi.models import Asset, TagUid
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.models import Asset, TagUid
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
@@ -16,12 +16,8 @@ class BaseTagTestCase(BaseTestCase):
 
     def setUp(self):
         self.client.login(username='someuser', password='someuser')
-        self.asset = Asset.objects.create(
-            owner=User.objects.get(username='someuser')
-        )
-        self.tag = Tag.objects.create(
-            name='tag_creation'
-        )
+        self.asset = Asset.objects.create(owner=User.objects.get(username='someuser'))
+        self.tag = Tag.objects.create(name='tag_creation')
         self.asset.tags.add(self.tag)
         self.tag_uid, _ = TagUid.objects.get_or_create(tag=self.tag)
         self.url = reverse(self._get_endpoint('tags-list'))
@@ -50,7 +46,9 @@ class TagDetailTestCase(BaseTagTestCase):
 
     def setUp(self):
         super().setUp()
-        self.url = reverse(self._get_endpoint('tags-detail'),kwargs={'taguid__uid': self.tag_uid.uid})
+        self.url = reverse(
+            self._get_endpoint('tags-detail'), kwargs={'taguid__uid': self.tag_uid.uid}
+        )
 
     @data(
         ('someuser',),

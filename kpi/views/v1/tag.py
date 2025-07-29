@@ -7,4 +7,5 @@ class TagViewSet(TagViewSetV2):
 
     **Please upgrade to latest release `/api/v2/tags/`**
     """
+
     pass

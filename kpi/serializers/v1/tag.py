@@ -1,7 +1,5 @@
-from kpi.serializers.v2.tag import (
-    TagSerializer as TagSerializerV2,
-    TagListSerializer as TagListSerializerV2,
-)
+from kpi.serializers.v2.tag import TagListSerializer as TagListSerializerV2
+from kpi.serializers.v2.tag import TagSerializer as TagSerializerV2
 
 
 class TagSerializer(TagSerializerV2):
