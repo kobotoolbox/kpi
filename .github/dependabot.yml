@@ -23,7 +23,6 @@ updates:
       - "dependencies"
     groups:
       minor-and-patch:
-        applies-to: security-updates
         patterns:
           - "*"
         update-types:
