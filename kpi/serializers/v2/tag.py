@@ -18,7 +18,7 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ('name', 'url', 'assets', 'parent', 'uid')
 
     def _get_parent_url(self, obj):
-        return reverse('tag-list', request=self.context.get('request', None))
+        return reverse('tags-list', request=self.context.get('request', None))
 
     def _get_assets(self, obj):
         request = self.context.get('request', None)
