@@ -98,6 +98,7 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
             require_auth=False,
             raise_access_forbidden=False,
         ),
+        operation_id='attachment_retrieve'
     ),
     thumb=extend_schema(
         description=read_md('kpi', 'asset_attachments/suffix.md'),
@@ -116,6 +117,7 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
                 description='ID of the attachment',
             ),
         ],
+        operation_id='attachment_format_retrieve'
     ),
 )
 class AttachmentViewSet(
