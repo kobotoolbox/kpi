@@ -441,6 +441,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     data_sharing = DataSharingOverload(required=False)
     paired_data = serializers.SerializerMethodField()
     project_ownership = serializers.SerializerMethodField()
+    kind = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset

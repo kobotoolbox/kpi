@@ -487,6 +487,15 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
 @extend_schema(
     tags=['history'],
+    parameters=[
+        OpenApiParameter(
+            name='parent_lookup_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent assets',
+        ),
+    ]
 )
 class ProjectHistoryLogViewSet(
     AuditLogViewSet, AssetNestedObjectViewsetMixin, NestedViewSetMixin

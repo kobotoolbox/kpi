@@ -1,6 +1,8 @@
 # coding: utf-8
 from django.contrib.auth.models import Permission
 from django.utils.translation import gettext as t
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.fields import empty
 from rest_framework.reverse import reverse
@@ -9,7 +11,6 @@ from kpi.models.asset import Asset
 from kpi.schema_extensions.v2.permissions.fields import (
     ContradictoryField,
     ImpliedField,
-    NameField,
     UrlField,
 )
 
@@ -17,9 +18,9 @@ from kpi.schema_extensions.v2.permissions.fields import (
 class PermissionSerializer(serializers.ModelSerializer):
 
     url = UrlField(lookup_field='codename', view_name='permission-detail')
-    implied = ImpliedField()
-    contradictory = ContradictoryField()
-    name = NameField()
+    implied = serializers.SerializerMethodField()
+    contradictory = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
 
     class Meta:
         model = Permission
@@ -47,6 +48,7 @@ class PermissionSerializer(serializers.ModelSerializer):
         self.__init_implied_permissions()
         self.__init_contradictory_permissions()
 
+    @extend_schema_field(ContradictoryField)
     def get_contradictory(self, permission):
         permission_key = self.__get_key(permission.content_type.app_label,
                                         permission.content_type.model)
@@ -57,9 +59,11 @@ class PermissionSerializer(serializers.ModelSerializer):
             return contradictory_permissions.get(permission.codename, [])
         return []
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_name(self, permission):
         return t(permission.name)
 
+    @extend_schema_field(ImpliedField)
     def get_implied(self, permission):
         permission_key = self.__get_key(permission.content_type.app_label,
                                         permission.content_type.model)

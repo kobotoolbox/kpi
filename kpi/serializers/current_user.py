@@ -156,6 +156,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
         return extra_details.validated_password
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_extra_details__uid(self, obj):
         return obj.extra_details.uid
 

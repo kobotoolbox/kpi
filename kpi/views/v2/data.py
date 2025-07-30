@@ -320,6 +320,7 @@ class DataViewSet(
                 }
             return Response(**response)
 
+    @extend_schema(exclude=True,)
     @action(
         detail=True,
         methods=['GET'],
@@ -339,6 +340,7 @@ class DataViewSet(
             )
         return self._handle_enketo_redirect(request, enketo_response, *args, **kwargs)
 
+    @extend_schema(exclude=True)
     @action(
         detail=True,
         methods=['GET'],
