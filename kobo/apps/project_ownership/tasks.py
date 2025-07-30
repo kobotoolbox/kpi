@@ -1,3 +1,5 @@
+import logging
+import time
 from datetime import timedelta
 
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
@@ -5,6 +7,7 @@ from celery.signals import task_failure, task_retry
 from constance import config
 from django.apps import apps
 from django.conf import settings
+from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as t
@@ -54,7 +57,6 @@ def async_task(transfer_id: int, async_task_type: str):
         status=TransferStatusChoices.IN_PROGRESS,
         status_type=async_task_type,
     )
-
     if async_task_type == TransferStatusTypeChoices.ATTACHMENTS:
         move_attachments(transfer)
     elif async_task_type == TransferStatusTypeChoices.MEDIA_FILES:
@@ -257,6 +259,7 @@ def task_restarter():
         affected all celery tasks across the app.
     """
     # Avoid circular import
+    logging.info('In Task restarter')
     TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
     resume_threshold = timezone.now() - timedelta(
         minutes=config.PROJECT_OWNERSHIP_RESUME_THRESHOLD
@@ -265,14 +268,29 @@ def task_restarter():
         minutes=config.PROJECT_OWNERSHIP_STUCK_THRESHOLD
     )
 
-    # Restart tasks that were stopped unintentionally.
+    restarted_transfers = []
+    for transfer_status in (TransferStatus.objects.filter(
+        date_modified__lte=resume_threshold,
+        date_created__gt=stuck_threshold,
+        status=TransferStatusChoices.PENDING,
+        status_type=TransferStatusTypeChoices.GLOBAL
+    )):
+        # restart any transfers that were left in pending but not picked up
+        transfer_status.transfer.transfer_project()
+        restarted_transfers.append(transfer_status.transfer)
+    logging.info(f'{restarted_transfers=}')
+
+    # Restart tasks that were stopped unintentionally after the transfer started
+    # PENDING tasks were never started so don't consider them "stuck"
     for transfer_status in (
         TransferStatus.objects.filter(
-            date_modified__lte=resume_threshold,
+            Q(date_modified__lte=resume_threshold,
             date_created__gt=stuck_threshold,
-            status=TransferStatusChoices.IN_PROGRESS,
+            status=TransferStatusChoices.IN_PROGRESS) |
+            Q(status=TransferStatusChoices.PENDING,
+              date_modified__lte=resume_threshold)
         )
-        .exclude(status_type=TransferStatusTypeChoices.GLOBAL)
+        .exclude(status_type=TransferStatusTypeChoices.GLOBAL, transfer__in=restarted_transfers)
         .order_by('date_modified')[:settings.MAX_RESTARTED_TASKS]
     ):
         async_task.delay(
