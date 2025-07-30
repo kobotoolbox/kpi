@@ -146,7 +146,7 @@ jobs:
     secrets: inherit
     with:
       topic: "${{ needs.version.outputs.version }} release"
-      content: ":working_on_it: Release branch updated, passed CI and deployed to beta. Please merge to main and update release notes (TODO: automate)"
+      content: ":working_on_it: Release branch updated, passed CI, deployed to beta, and merged forward. Please update release notes (TODO: automate)"
 
   on-failure:
     needs:

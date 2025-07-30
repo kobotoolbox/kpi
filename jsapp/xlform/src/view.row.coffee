@@ -190,7 +190,7 @@ module.exports = do ->
     _cleanupExpandedRender: ->
       @$('.card__settings').detach()
 
-    clone: (event) =>
+    clone: (event) ->
       parent = @model._parent
       model = @model
       if @model.get('type').get('typeId') in ['select_one', 'select_multiple']
@@ -200,7 +200,7 @@ module.exports = do ->
 
       @model.getSurvey().insert_row.call parent._parent, model, parent.models.indexOf(@model) + 1
 
-    addItemToLibrary: (evt) =>
+    addItemToLibrary: (evt) ->
       evt.stopPropagation()
       @ngScope?.addItemToLibrary @model, @model.getSurvey()._initialParams
 
@@ -224,7 +224,7 @@ module.exports = do ->
 
       return
 
-    deleteGroup: (evt) =>
+    deleteGroup: (evt) ->
       evt.preventDefault()
 
       # force delete is only used in test
@@ -256,14 +256,14 @@ module.exports = do ->
       )
       return
 
-    _deleteGroup: () =>
+    _deleteGroup: () ->
       @model.splitApart()
       @model._parent._parent.trigger('remove', @model)
       @surveyView.survey.trigger('change')
       @$el.detach()
       return
 
-    _deleteGroupWithContent: () =>
+    _deleteGroupWithContent: () ->
       # delete all group rows
       @model.rows.reset()
       # and the group itself
@@ -406,7 +406,7 @@ module.exports = do ->
 
       return @
 
-    add_group_to_library: (evt) =>
+    add_group_to_library: (evt) ->
       evt.stopPropagation()
       @ngScope?.addItemToLibrary(
         @model,
