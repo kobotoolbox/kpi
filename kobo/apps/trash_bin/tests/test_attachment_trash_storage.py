@@ -1,5 +1,3 @@
-import uuid
-
 from constance.test import override_config
 from django.test import TestCase
 from rest_framework import status
@@ -11,7 +9,7 @@ from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.project_ownership.utils import create_invite
 from kobo.apps.trash_bin.utils import move_to_trash, put_back
-from kpi.models import Asset
+from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 from kpi.tests.utils.transaction import immediate_on_commit
 
 
@@ -132,7 +130,9 @@ class AttachmentTrashStorageCountersTestCase(TestBase):
         self.user_profile.refresh_from_db()
 
 
-class TransferredProjectAttachmentTrashCounterTestCase(TestCase):
+class TransferredProjectAttachmentTrashCounterTestCase(
+    TestCase, AssetSubmissionTestMixin
+):
     """
     Tests that attachment counters update correctly when a transferred project's
     attachments are trashed and restored.
@@ -142,10 +142,11 @@ class TransferredProjectAttachmentTrashCounterTestCase(TestCase):
         self.new_owner = User.objects.create(username='new_owner')
         self.owner_profile = UserProfile.objects.create(user=self.owner)
         self.new_owner_profile = UserProfile.objects.create(user=self.new_owner)
+        self.asset, self.xform, self.instance, self.owner_profile, self.attachment = (
+            self._create_test_asset_and_submission(user=self.owner)
+        )
 
     def test_counters_are_updated_when_attachments_are_trashed_after_transfer(self):
-        self._create_asset_and_submission()
-
         # Initial state: attachment belongs to original owner
         xform_storage_init = self.xform.attachment_storage_bytes
         owner_storage_init = self.owner_profile.attachment_storage_bytes
@@ -217,41 +218,6 @@ class TransferredProjectAttachmentTrashCounterTestCase(TestCase):
         self.assertEqual(
             new_owner_storage_after_restore, new_owner_storage_after_transfer
         )
-
-    def _create_asset_and_submission(self):
-        """
-        Helper method to create an asset and its associated submission
-        with attachments
-        """
-        self.asset = Asset.objects.create(
-            asset_type='survey',
-            content={
-                'survey': [
-                    {'type': 'audio', 'label': 'q1', 'name': 'q1'},
-                ]
-            },
-            owner=self.owner
-        )
-        self.asset.save()
-        self.asset.deploy(backend='mock')
-
-        username = self.owner.username
-        submission = {
-            'q1': 'audio_conversion_test_clip.3gp',
-            '_uuid': str(uuid.uuid4()),
-            '_attachments': [
-                {
-                    'download_url': f'http://testserver/{username}/audio_conversion_test_clip.3gp',  # noqa: E501
-                    'filename': f'{username}/audio_conversion_test_clip.3gp',
-                    'mimetype': 'video/3gpp',
-                },
-            ],
-            '_submitted_by': username,
-        }
-        self.asset.deployment.mock_submissions([submission])
-        self.xform = self.asset.deployment.xform
-        self.attachment = self.xform.attachments.first()
-        self._refresh_all()
 
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def _transfer_project(self):

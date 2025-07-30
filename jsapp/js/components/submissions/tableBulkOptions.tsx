@@ -267,7 +267,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
           )}
 
         {Object.keys(this.props.selectedRows).length > 0 &&
-          (userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
+          (userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
             userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)) &&
           this.getSelectedSubmissionsWithAttachments().length > 0 && (
             <BulkDeleteMediaFiles

@@ -80,13 +80,13 @@ class SocialAppCustomData(models.Model):
     application with customization is treated as a "private" application."""
 
     social_app = models.OneToOneField(
-        "socialaccount.SocialApp",
+        'socialaccount.SocialApp',
         on_delete=models.CASCADE,
         primary_key=True,
-        related_name="custom_data",
+        related_name='custom_data',
     )
 
     is_public = models.BooleanField(default=False, help_text='Display social login on login page')
 
     def __str__(self):
-        return f"{self.social_app.name} Custom Data"
+        return f'{self.social_app.name} Custom Data'

@@ -19,10 +19,11 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
 from ..models import EmailStatus, MassEmailConfig, MassEmailJob, MassEmailRecord
 from ..tasks import (
+    PROCESSED_EMAILS_CACHE_KEY,
     MassEmailSender,
-    _send_emails,
     generate_mass_email_user_lists,
     render_template,
+    send_emails,
 )
 
 
@@ -60,13 +61,18 @@ class BaseMassEmailsTestCase(BaseTestCase):
             last_login=timezone.now() - timedelta(days=7),
             email='user3@test.com',
         )
-        self.cache_key = f'mass_emails_{timezone.now().date()}_emails'
+        self.cache_key = PROCESSED_EMAILS_CACHE_KEY.format(
+            key_date=timezone.now().date()
+        )
         cache.delete(self.cache_key)
 
-    def _create_email_config(self, name, template=None, frequency=-1):
+    def _create_email_config(
+        self, name, template=None, frequency=-1, date_created=None
+    ):
         """
         Helper function to create a MassEmailConfig
         """
+        date_created = date_created or timezone.now() - timedelta(days=1)
         return MassEmailConfig.objects.create(
             name=name,
             subject='Test Subject',
@@ -74,7 +80,7 @@ class BaseMassEmailsTestCase(BaseTestCase):
             live=True,
             query='users_inactive_for_365_days',
             frequency=frequency,
-            date_created=timezone.now() - timedelta(days=1),
+            date_created=date_created,
         )
 
     def _create_email_record(self, user, email_config, status, days_ago=0, job=None):
@@ -236,25 +242,49 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
     def test_cache_key_date_condensed_send_interval(
         self, current_minute, expected_minute
     ):
-        sender = MassEmailSender()
         current_time = datetime(
             year=2025, month=1, day=1, hour=1, minute=current_minute
         )
         expected_time = datetime(
             year=2025, month=1, day=1, hour=1, minute=expected_minute
         )
-        assert sender.get_cache_key_date(send_date=current_time) == expected_time
+        assert (
+            MassEmailSender.get_cache_key_date(send_date=current_time) == expected_time
+        )
 
     def test_send_recurring_emails_exits_when_incomplete_init(self):
         self._setup_common_test_data()
-        _send_emails()
+        send_emails()
         assert len(mail.outbox) == 0
 
     @override_settings(MAX_MASS_EMAILS_PER_DAY=100)
     def test_send_recurring_emails_when_initialized(self):
         self._setup_common_test_data()
         generate_mass_email_user_lists()
-        _send_emails()
+        send_emails()
+        assert len(mail.outbox) == 100
+
+    @override_settings(MAX_MASS_EMAILS_PER_DAY=100)
+    def test_send_recurring_emails_after_config_is_canceled(self):
+        self._setup_common_test_data()
+        generate_mass_email_user_lists()
+        # pretend a user set one of the configs to be no longer live
+        email_config = MassEmailConfig.objects.first()
+        email_config.live = False
+        email_config.save()
+
+        send_emails()
+        assert len(mail.outbox) == 100
+
+    @override_settings(MAX_MASS_EMAILS_PER_DAY=100)
+    def test_send_recurring_emails_after_config_is_added(self):
+        self._setup_common_test_data()
+        generate_mass_email_user_lists()
+        # pretend a user created a new config
+        self._create_email_config(
+            name='new config', template=self.template, date_created=timezone.now()
+        )
+        send_emails()
         assert len(mail.outbox) == 100
 
     @data(
@@ -307,48 +337,11 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
 
 @ddt
 class GenerateDailyEmailUserListTaskTestCase(BaseMassEmailsTestCase):
-    @data(
-        (EmailStatus.ENQUEUED, 1),
-        (EmailStatus.SENT, 0),
-        (EmailStatus.FAILED, 2),
-    )
-    @unpack
-    def test_one_time_email_with_existing_records(self, status, enqueued_count):
-        """
-        Test one-time email configs (frequency=-1) behave correctly
-
-        - If status is `ENQUEUED` or `SENT`, no new records should be created.
-        - If status is `FAILED`, new records should be created.
-        """
-        email_config = self._create_email_config('Test')
-        self._create_email_record(self.user1, email_config, status)
-
-        self.assertNotIn(email_config.id, cache.get(self.cache_key, set()))
-        generate_mass_email_user_lists()
-        records = MassEmailRecord.objects.filter(
-            email_job__email_config=email_config, status=EmailStatus.ENQUEUED
-        )
-        self.assertEqual(records.count(), enqueued_count)
-        self.assertIn(email_config.id, cache.get(self.cache_key))
-
-    def test_one_time_email_with_no_existing_records(self):
-        """
-        Test that new records are created when there are no existing records
-        """
-        email_config = self._create_email_config('Test')
-        self.assertNotIn(email_config.id, cache.get(self.cache_key, set()))
-        generate_mass_email_user_lists()
-
-        new_records = MassEmailRecord.objects.filter(
-            email_job__email_config=email_config, status=EmailStatus.ENQUEUED
-        )
-        self.assertEqual(new_records.count(), 2)
-        self.assertIn(email_config.id, cache.get(self.cache_key))
 
     @data(
-        (EmailStatus.ENQUEUED, 1, 1),
-        (EmailStatus.SENT, 1, 2),
-        (EmailStatus.FAILED, 1, 2),
+        (EmailStatus.ENQUEUED, -1, 1),
+        (EmailStatus.SENT, -1, 2),
+        (EmailStatus.FAILED, -1, 2),
         (EmailStatus.ENQUEUED, 2, 1),
         (EmailStatus.SENT, 2, 2),
         (EmailStatus.FAILED, 2, 2),
@@ -356,7 +349,7 @@ class GenerateDailyEmailUserListTaskTestCase(BaseMassEmailsTestCase):
     @unpack
     def test_recurring_email_scheduling(self, status, frequency, enqueued_count):
         """
-        Test that recurring email configs (frequency > 0) behave correctly
+        Test we don't enqueue records if there are already pending ones
         """
         email_config = self._create_email_config(
             'Test', frequency=frequency
@@ -430,43 +423,6 @@ class GenerateDailyEmailUserListTaskTestCase(BaseMassEmailsTestCase):
         self.assertEqual(user_included, expected_inclusion)
         self.assertEqual(email_records.count(), total_records)
         self.assertIn(email_config.id, cache.get(self.cache_key))
-
-    def test_task_skips_already_processed_configs_using_cache(self):
-        """
-        Test that `generate_mass_email_user_lists` uses the cached config IDs
-        to skip already processed email configs
-        """
-        email_config1 = self._create_email_config('Test A')
-        generate_mass_email_user_lists()
-
-        self.assertIn(email_config1.id, cache.get(self.cache_key))
-        config1_records = MassEmailRecord.objects.filter(
-            email_job__email_config=email_config1, status=EmailStatus.ENQUEUED
-        )
-        self.assertEqual(config1_records.count(), 2)
-
-        # Delete the records to simulate reprocessing of the config
-        config1_records.delete()
-        self.assertEqual(
-            MassEmailRecord.objects.filter(
-                email_job__email_config=email_config1
-            ).count(), 0
-        )
-
-        email_config2 = self._create_email_config('Test B')
-        generate_mass_email_user_lists()
-
-        self.assertIn(email_config2.id, cache.get(self.cache_key))
-        records = MassEmailRecord.objects.filter(
-            email_job__email_config=email_config2, status=EmailStatus.ENQUEUED
-        )
-        self.assertEqual(records.count(), 2)
-
-        # Confirm email_config1 was skipped and no new records were created
-        config1_reprocessed_records = MassEmailRecord.objects.filter(
-            email_job__email_config=email_config1
-        )
-        self.assertEqual(config1_reprocessed_records.count(), 0)
 
     def test_cache_expiry(self):
         """

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from django.db import models, transaction
+from django.db import models
 from django.db.utils import IntegrityError
 from django.utils import timezone
 
@@ -11,6 +11,7 @@ from kobo.apps.openrosa.apps.logger.models.attachment import (
 from kobo.apps.openrosa.apps.logger.utils.attachment import (
     bulk_update_attachment_storage_counters
 )
+from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import KpiUidField
 from . import BaseTrash
 from ..type_aliases import UpdatedQuerySetAndCount
@@ -76,10 +77,17 @@ class AttachmentTrash(BaseTrash):
             delete_status=current_delete_status
         )
 
-        with transaction.atomic():
-            bulk_update_attachment_storage_counters(queryset, subtract=subtract)
+        with kc_transaction_atomic():
             updated = queryset.update(
                 delete_status=new_delete_status,
                 date_modified=timezone.now(),
+            )
+            # We defer storage counter updates to run at the end of the
+            # transaction block to avoid holding row-level locks for the
+            # full duration of the transaction. This helps reduce contention
+            # when multiple attachments are being trashed or restored
+            # concurrently by different users.
+            bulk_update_attachment_storage_counters(
+                object_identifiers, subtract=subtract
             )
         return queryset, updated

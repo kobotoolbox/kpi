@@ -219,9 +219,7 @@ CONSTANCE_CONFIG = {
         'URL for "KoboToolbox Help Center"',
     ),
     'ACADEMY_URL': (
-        env.str(
-            'KOBO_ACADEMY_URL', 'https://academy.kobotoolbox.org/'
-        ),
+        env.str('KOBO_ACADEMY_URL', 'https://academy.kobotoolbox.org/'),
         'URL for "KoboToolbox Community Forum"',
     ),
     'COMMUNITY_URL': (
@@ -459,6 +457,16 @@ CONSTANCE_CONFIG = {
         'Number of days to keep attachments in trash after users (soft-)deleted '
         'them and before automatically hard-deleting them by the system',
         'positive_int',
+    ),
+    'AUTO_DELETE_ATTACHMENTS': (
+        False,
+        'Enable automatic deletion of attachments for users who have exceeded '
+        'their storage limits.'
+    ),
+    'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD': (
+        90,
+        'Number of days to keep attachments after the user has exceeded their '
+        'storage limits.'
     ),
     # Toggle for ZXCVBN
     'ENABLE_PASSWORD_ENTROPY_METER': (
@@ -760,6 +768,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ACCOUNT_TRASH_GRACE_PERIOD',
         'ATTACHMENT_TRASH_GRACE_PERIOD',
         'PROJECT_TRASH_GRACE_PERIOD',
+        'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD',
+        'AUTO_DELETE_ATTACHMENTS',
     ),
     'Regular maintenance settings': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
@@ -1261,7 +1271,7 @@ CELERY_BEAT_SCHEDULE = {
     'organization-invite-mark-as-expired': {
         'task': 'kobo.apps.organizations.tasks.mark_organization_invite_as_expired',
         'schedule': crontab(minute='*/30'),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
     # Schedule every 10 minutes
     'project-ownership-task-restarter': {
@@ -1281,6 +1291,13 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    # Schedule every 30 minutes
+    # ToDo: Uncomment when the task for auto-cleanup of attachments is ready (DEV-240)
+    # 'attachment-cleanup-for-users-exceeding-limits': {
+    #     'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
+    #     'schedule': crontab(minute='*/30'),
+    #     'options': {'queue': 'kpi_low_priority_queue'}
+    # },
     # Schedule every day at midnight UTC
     'project-ownership-garbage-collector': {
         'task': 'kobo.apps.project_ownership.tasks.garbage_collector',
@@ -1313,11 +1330,24 @@ CELERY_BEAT_SCHEDULE = {
     },
     'mass-emails-send': {
         'task': 'kobo.apps.mass_emails.tasks.send_emails',
-        'schedule': crontab(minute=0),
+        'schedule': crontab(minute=1),
         'options': {'queue': 'kpi_queue'},
     },
+    'mass-emails-enqueue-records': {
+        'task': 'kobo.apps.mass_emails.tasks.generate_mass_email_user_lists',
+        'schedule': crontab(minute=0),
+        'options': {'queue': 'kpi_queue'},
+    }
 }
 
+if STRIPE_ENABLED:
+    # Schedule to run once per celery timeout
+    # with a five minute buffer
+    CELERY_BEAT_SCHEDULE['update-exceeded-limit-counters'] = {
+        'task': 'kobo.apps.stripe.tasks.update_exceeded_limit_counters',
+        'schedule': timedelta(seconds=CELERY_TASK_TIME_LIMIT + (60 * 5)),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    }
 
 CELERY_BROKER_TRANSPORT_OPTIONS = {
     'fanout_patterns': True,
@@ -1424,6 +1454,11 @@ MASS_EMAILS_CONDENSE_SEND = env.bool('MASS_EMAILS_CONDENSE_SEND', False)
 if MASS_EMAILS_CONDENSE_SEND:
     CELERY_BEAT_SCHEDULE['mass-emails-send'] = {
         'task': 'kobo.apps.mass_emails.tasks.send_emails',
+        'schedule': crontab(minute='1-59/5'),
+        'options': {'queue': 'kpi_queue'},
+    }
+    CELERY_BEAT_SCHEDULE['mass-emails-enqueue-records'] = {
+        'task': 'kobo.apps.mass_emails.tasks.generate_mass_email_user_lists',
         'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_queue'},
     }

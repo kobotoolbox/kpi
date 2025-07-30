@@ -1,5 +1,5 @@
-from rest_framework.views import exception_handler
 from rest_framework.renderers import JSONRenderer
+from rest_framework.views import exception_handler
 
 from kpi.exceptions import RetryAfterAPIException
 from kpi.renderers import (

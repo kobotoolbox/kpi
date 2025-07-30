@@ -4,6 +4,7 @@ from django.db import transaction
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from organizations.base_admin import BaseOrganizationAdmin
+
 if settings.STRIPE_ENABLED:
     from djstripe.models import Price
 
@@ -61,7 +62,6 @@ class OrgAdmin(BaseOrganizationAdmin):
                         transaction.on_commit(
                             lambda: self._transfer_user_ownership(request, new_members)
                         )
-                        self._transfer_user_ownership(request, new_members)
                         self._delete_previous_organizations(
                             new_members, organization_id
                         )

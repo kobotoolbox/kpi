@@ -68,12 +68,12 @@ class OrganizationTestCase(TestCase):
         # someuser is the owner
 
         # Empty the name
-        assert self.organization.name == 'someuser’s organization'
+        assert self.organization.name == "someuser's organization"
         someuser_extra_details = self.someuser.extra_details
         someuser_extra_details.data['organization'] = ''
         someuser_extra_details.save()
         self.organization.refresh_from_db()
-        assert self.organization.name == 'someuser’s organization'
+        assert self.organization.name == "someuser's organization"
 
         # Update org settings
         someuser_extra_details = self.someuser.extra_details
@@ -82,7 +82,7 @@ class OrganizationTestCase(TestCase):
         someuser_extra_details.data['organization_type'] = 'commercial'
         someuser_extra_details.save()
         self.organization.refresh_from_db()
-        assert self.organization.name == 'someuser’s organization'
+        assert self.organization.name == "someuser's organization"
         assert self.organization.website == 'https://someuser.org/'
         assert self.organization.organization_type == 'non-profit'
 
@@ -94,7 +94,7 @@ class OrganizationTestCase(TestCase):
         someuser_extra_details.data['organization_type'] = 'none'
         anotheruser_extra_details.save()
         self.organization.refresh_from_db()
-        assert self.organization.name == 'someuser’s organization'
+        assert self.organization.name == "someuser's organization"
         assert self.organization.website == 'https://someuser.org/'
         assert self.organization.organization_type == 'non-profit'
 
@@ -105,7 +105,7 @@ class OrganizationTestCase(TestCase):
         assert organization.is_mmo is False
         assert organization.website == ''
         assert organization.organization_type == 'none'
-        assert organization.name == 'anotheruser’s organization'
+        assert organization.name == "anotheruser's organization"
 
         anotheruser_extra_details = self.anotheruser.extra_details
         anotheruser_extra_details.data['organization'] = 'AnotherUser Enterprises'
