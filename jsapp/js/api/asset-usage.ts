@@ -99,7 +99,7 @@ export const getAssetUsageListQueryOptions = <TData = Awaited<ReturnType<typeof 
     Awaited<ReturnType<typeof assetUsageList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetUsageListQueryResult = NonNullable<Awaited<ReturnType<typeof assetUsageList>>>
@@ -120,7 +120,7 @@ export function useAssetUsageList<TData = Awaited<ReturnType<typeof assetUsageLi
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetUsageList<TData = Awaited<ReturnType<typeof assetUsageList>>, TError = ErrorDetail>(
   params?: AssetUsageListParams,
   options?: {
@@ -136,7 +136,7 @@ export function useAssetUsageList<TData = Awaited<ReturnType<typeof assetUsageLi
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetUsageList<TData = Awaited<ReturnType<typeof assetUsageList>>, TError = ErrorDetail>(
   params?: AssetUsageListParams,
   options?: {
@@ -144,7 +144,7 @@ export function useAssetUsageList<TData = Awaited<ReturnType<typeof assetUsageLi
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetUsageList<TData = Awaited<ReturnType<typeof assetUsageList>>, TError = ErrorDetail>(
   params?: AssetUsageListParams,
@@ -153,11 +153,11 @@ export function useAssetUsageList<TData = Awaited<ReturnType<typeof assetUsageLi
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetUsageListQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

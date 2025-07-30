@@ -15,12 +15,15 @@
  * `template` - template
  * `collection` - collection
  */
-export enum AssetTypeEnum {
-  text = 'text',
-  empty = 'empty',
-  question = 'question',
-  block = 'block',
-  survey = 'survey',
-  template = 'template',
-  collection = 'collection',
-}
+export type AssetTypeEnum = (typeof AssetTypeEnum)[keyof typeof AssetTypeEnum]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const AssetTypeEnum = {
+  text: 'text',
+  empty: 'empty',
+  question: 'question',
+  block: 'block',
+  survey: 'survey',
+  template: 'template',
+  collection: 'collection',
+} as const

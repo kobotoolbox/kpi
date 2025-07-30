@@ -102,7 +102,7 @@ export const getUsersListQueryOptions = <TData = Awaited<ReturnType<typeof users
     Awaited<ReturnType<typeof usersList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type UsersListQueryResult = NonNullable<Awaited<ReturnType<typeof usersList>>>
@@ -119,7 +119,7 @@ export function useUsersList<TData = Awaited<ReturnType<typeof usersList>>, TErr
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useUsersList<TData = Awaited<ReturnType<typeof usersList>>, TError = ErrorDetail>(
   params?: UsersListParams,
   options?: {
@@ -135,7 +135,7 @@ export function useUsersList<TData = Awaited<ReturnType<typeof usersList>>, TErr
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useUsersList<TData = Awaited<ReturnType<typeof usersList>>, TError = ErrorDetail>(
   params?: UsersListParams,
   options?: {
@@ -143,7 +143,7 @@ export function useUsersList<TData = Awaited<ReturnType<typeof usersList>>, TErr
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useUsersList<TData = Awaited<ReturnType<typeof usersList>>, TError = ErrorDetail>(
   params?: UsersListParams,
@@ -152,11 +152,11 @@ export function useUsersList<TData = Awaited<ReturnType<typeof usersList>>, TErr
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getUsersListQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -222,7 +222,7 @@ export const getUsersRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof u
     Awaited<ReturnType<typeof usersRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type UsersRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof usersRetrieve>>>
@@ -243,7 +243,7 @@ export function useUsersRetrieve<TData = Awaited<ReturnType<typeof usersRetrieve
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useUsersRetrieve<TData = Awaited<ReturnType<typeof usersRetrieve>>, TError = ErrorObject>(
   username: string,
   options?: {
@@ -259,7 +259,7 @@ export function useUsersRetrieve<TData = Awaited<ReturnType<typeof usersRetrieve
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useUsersRetrieve<TData = Awaited<ReturnType<typeof usersRetrieve>>, TError = ErrorObject>(
   username: string,
   options?: {
@@ -267,7 +267,7 @@ export function useUsersRetrieve<TData = Awaited<ReturnType<typeof usersRetrieve
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useUsersRetrieve<TData = Awaited<ReturnType<typeof usersRetrieve>>, TError = ErrorObject>(
   username: string,
@@ -276,11 +276,11 @@ export function useUsersRetrieve<TData = Awaited<ReturnType<typeof usersRetrieve
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getUsersRetrieveQueryOptions(username, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -368,7 +368,7 @@ export const getUsersMigrateRetrieveQueryOptions = <
     Awaited<ReturnType<typeof usersMigrateRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type UsersMigrateRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof usersMigrateRetrieve>>>
@@ -389,7 +389,7 @@ export function useUsersMigrateRetrieve<TData = Awaited<ReturnType<typeof usersM
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useUsersMigrateRetrieve<TData = Awaited<ReturnType<typeof usersMigrateRetrieve>>, TError = ErrorDetail>(
   username: string,
   options?: {
@@ -405,7 +405,7 @@ export function useUsersMigrateRetrieve<TData = Awaited<ReturnType<typeof usersM
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useUsersMigrateRetrieve<TData = Awaited<ReturnType<typeof usersMigrateRetrieve>>, TError = ErrorDetail>(
   username: string,
   options?: {
@@ -413,7 +413,7 @@ export function useUsersMigrateRetrieve<TData = Awaited<ReturnType<typeof usersM
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useUsersMigrateRetrieve<TData = Awaited<ReturnType<typeof usersMigrateRetrieve>>, TError = ErrorDetail>(
   username: string,
@@ -422,11 +422,11 @@ export function useUsersMigrateRetrieve<TData = Awaited<ReturnType<typeof usersM
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getUsersMigrateRetrieveQueryOptions(username, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

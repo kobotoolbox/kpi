@@ -37,6 +37,8 @@ import { http, HttpResponse, delay } from 'msw'
 
 import type { PermissionAssignmentResponse } from './models/permissionAssignmentResponse'
 
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+
 /**
  * ## List permission assignments
 
@@ -109,7 +111,7 @@ export const getAssetsPermissionAssignmentsListQueryOptions = <
     Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsPermissionAssignmentsListQueryResult = NonNullable<
@@ -135,7 +137,7 @@ export function useAssetsPermissionAssignmentsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsPermissionAssignmentsList<
   TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>,
   TError = ErrorDetail | ErrorObject,
@@ -154,7 +156,7 @@ export function useAssetsPermissionAssignmentsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsPermissionAssignmentsList<
   TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>,
   TError = ErrorDetail | ErrorObject,
@@ -165,7 +167,7 @@ export function useAssetsPermissionAssignmentsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsPermissionAssignmentsList<
   TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>,
@@ -177,11 +179,11 @@ export function useAssetsPermissionAssignmentsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsPermissionAssignmentsListQueryOptions(parentLookupAsset, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -244,7 +246,7 @@ export const assetsPermissionAssignmentsCreate = async (
   return { data, status: res.status, headers: res.headers } as assetsPermissionAssignmentsCreateResponse
 }
 
-export const getAssetsPermissionAssignmentsCreateMutationOptions = <
+export const useAssetsPermissionAssignmentsCreateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -277,7 +279,9 @@ export const getAssetsPermissionAssignmentsCreateMutationOptions = <
     return assetsPermissionAssignmentsCreate(parentLookupAsset, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsPermissionAssignmentsCreateMutationResult = NonNullable<
@@ -303,7 +307,7 @@ export const useAssetsPermissionAssignmentsCreate = <TError = ErrorObject | Erro
   { parentLookupAsset: string; data: PermissionAssignmentCreateRequest },
   TContext
 > => {
-  const mutationOptions = getAssetsPermissionAssignmentsCreateMutationOptions(options)
+  const mutationOptions = useAssetsPermissionAssignmentsCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -381,7 +385,7 @@ export const getAssetsPermissionAssignmentsRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsPermissionAssignmentsRetrieveQueryResult = NonNullable<
@@ -408,7 +412,7 @@ export function useAssetsPermissionAssignmentsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsPermissionAssignmentsRetrieve<
   TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>,
   TError = ErrorDetail | ErrorObject,
@@ -428,7 +432,7 @@ export function useAssetsPermissionAssignmentsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsPermissionAssignmentsRetrieve<
   TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>,
   TError = ErrorDetail | ErrorObject,
@@ -440,7 +444,7 @@ export function useAssetsPermissionAssignmentsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsPermissionAssignmentsRetrieve<
   TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>,
@@ -453,11 +457,11 @@ export function useAssetsPermissionAssignmentsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsPermissionAssignmentsRetrieveQueryOptions(parentLookupAsset, uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -513,7 +517,7 @@ export const assetsPermissionAssignmentsDestroy = async (
   return { data, status: res.status, headers: res.headers } as assetsPermissionAssignmentsDestroyResponse
 }
 
-export const getAssetsPermissionAssignmentsDestroyMutationOptions = <
+export const useAssetsPermissionAssignmentsDestroyMutationOptions = <
   TError = ErrorDetail | ErrorObject,
   TContext = unknown,
 >(options?: {
@@ -546,7 +550,9 @@ export const getAssetsPermissionAssignmentsDestroyMutationOptions = <
     return assetsPermissionAssignmentsDestroy(parentLookupAsset, uid, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsPermissionAssignmentsDestroyMutationResult = NonNullable<
@@ -572,7 +578,7 @@ export const useAssetsPermissionAssignmentsDestroy = <TError = ErrorDetail | Err
   { parentLookupAsset: string; uid: string },
   TContext
 > => {
-  const mutationOptions = getAssetsPermissionAssignmentsDestroyMutationOptions(options)
+  const mutationOptions = useAssetsPermissionAssignmentsDestroyMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -625,7 +631,7 @@ export const assetsPermissionAssignmentsDeleteAllDestroy = async (
   return { data, status: res.status, headers: res.headers } as assetsPermissionAssignmentsDeleteAllDestroyResponse
 }
 
-export const getAssetsPermissionAssignmentsDeleteAllDestroyMutationOptions = <
+export const useAssetsPermissionAssignmentsDeleteAllDestroyMutationOptions = <
   TError = ErrorDetail | ErrorObject,
   TContext = unknown,
 >(options?: {
@@ -658,7 +664,9 @@ export const getAssetsPermissionAssignmentsDeleteAllDestroyMutationOptions = <
     return assetsPermissionAssignmentsDeleteAllDestroy(parentLookupAsset, uid, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsPermissionAssignmentsDeleteAllDestroyMutationResult = NonNullable<
@@ -684,7 +692,7 @@ export const useAssetsPermissionAssignmentsDeleteAllDestroy = <TError = ErrorDet
   { parentLookupAsset: string; uid: string },
   TContext
 > => {
-  const mutationOptions = getAssetsPermissionAssignmentsDeleteAllDestroyMutationOptions(options)
+  const mutationOptions = useAssetsPermissionAssignmentsDeleteAllDestroyMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -740,7 +748,7 @@ export const assetsPermissionAssignmentsBulkCreate = async (
   return { data, status: res.status, headers: res.headers } as assetsPermissionAssignmentsBulkCreateResponse
 }
 
-export const getAssetsPermissionAssignmentsBulkCreateMutationOptions = <
+export const useAssetsPermissionAssignmentsBulkCreateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -773,7 +781,9 @@ export const getAssetsPermissionAssignmentsBulkCreateMutationOptions = <
     return assetsPermissionAssignmentsBulkCreate(parentLookupAsset, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsPermissionAssignmentsBulkCreateMutationResult = NonNullable<
@@ -799,7 +809,7 @@ export const useAssetsPermissionAssignmentsBulkCreate = <TError = ErrorObject | 
   { parentLookupAsset: string; data: PermissionAssignmentBulkRequest[] },
   TContext
 > => {
-  const mutationOptions = getAssetsPermissionAssignmentsBulkCreateMutationOptions(options)
+  const mutationOptions = useAssetsPermissionAssignmentsBulkCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -856,7 +866,7 @@ export const assetsPermissionAssignmentsClonePartialUpdate = async (
   return { data, status: res.status, headers: res.headers } as assetsPermissionAssignmentsClonePartialUpdateResponse
 }
 
-export const getAssetsPermissionAssignmentsClonePartialUpdateMutationOptions = <
+export const useAssetsPermissionAssignmentsClonePartialUpdateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -889,7 +899,9 @@ export const getAssetsPermissionAssignmentsClonePartialUpdateMutationOptions = <
     return assetsPermissionAssignmentsClonePartialUpdate(parentLookupAsset, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsPermissionAssignmentsClonePartialUpdateMutationResult = NonNullable<
@@ -918,7 +930,7 @@ export const useAssetsPermissionAssignmentsClonePartialUpdate = <
   { parentLookupAsset: string; data: PatchedPermissionAssignmentCloneRequest },
   TContext
 > => {
-  const mutationOptions = getAssetsPermissionAssignmentsClonePartialUpdateMutationOptions(options)
+  const mutationOptions = useAssetsPermissionAssignmentsClonePartialUpdateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

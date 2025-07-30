@@ -47,6 +47,8 @@ import type { AssetBulkResponse } from './models/assetBulkResponse'
 
 import type { AssetMetadataResponse } from './models/assetMetadataResponse'
 
+import { AssetTypeEnum } from './models/assetTypeEnum'
+
 import type { AssetValidContentResponse } from './models/assetValidContentResponse'
 
 import type { ContentResponse } from './models/contentResponse'
@@ -58,6 +60,8 @@ import type { PaginatedAssetCountResponseList } from './models/paginatedAssetCou
 import type { PaginatedAssetList } from './models/paginatedAssetList'
 
 import type { ReportResponse } from './models/reportResponse'
+
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
 
 /**
  * ## Get user's assets
@@ -149,7 +153,7 @@ export const getAssetsListQueryOptions = <TData = Awaited<ReturnType<typeof asse
     Awaited<ReturnType<typeof assetsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsList>>>
@@ -170,7 +174,7 @@ export function useAssetsList<TData = Awaited<ReturnType<typeof assetsList>>, TE
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsList<TData = Awaited<ReturnType<typeof assetsList>>, TError = unknown>(
   params?: AssetsListParams,
   options?: {
@@ -186,7 +190,7 @@ export function useAssetsList<TData = Awaited<ReturnType<typeof assetsList>>, TE
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsList<TData = Awaited<ReturnType<typeof assetsList>>, TError = unknown>(
   params?: AssetsListParams,
   options?: {
@@ -194,7 +198,7 @@ export function useAssetsList<TData = Awaited<ReturnType<typeof assetsList>>, TE
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsList<TData = Awaited<ReturnType<typeof assetsList>>, TError = unknown>(
   params?: AssetsListParams,
@@ -203,11 +207,11 @@ export function useAssetsList<TData = Awaited<ReturnType<typeof assetsList>>, TE
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsListQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -279,7 +283,7 @@ export const assetsCreate = async (
   return { data, status: res.status, headers: res.headers } as assetsCreateResponse
 }
 
-export const getAssetsCreateMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useAssetsCreateMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsCreate>>,
     TError,
@@ -303,7 +307,9 @@ export const getAssetsCreateMutationOptions = <TError = ErrorObject | ErrorDetai
     return assetsCreate(data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsCreate>>>
@@ -322,7 +328,7 @@ export const useAssetsCreate = <TError = ErrorObject | ErrorDetail, TContext = u
   },
   queryClient?: QueryClient,
 ): UseMutationResult<Awaited<ReturnType<typeof assetsCreate>>, TError, { data: AssetCreateRequest }, TContext> => {
-  const mutationOptions = getAssetsCreateMutationOptions(options)
+  const mutationOptions = useAssetsCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -423,7 +429,7 @@ export const getAssetsCountsListQueryOptions = <
     Awaited<ReturnType<typeof assetsCountsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsCountsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsCountsList>>>
@@ -448,7 +454,7 @@ export function useAssetsCountsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsCountsList<
   TData = Awaited<ReturnType<typeof assetsCountsList>>,
   TError = ErrorDetail | ErrorObject,
@@ -468,7 +474,7 @@ export function useAssetsCountsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsCountsList<
   TData = Awaited<ReturnType<typeof assetsCountsList>>,
   TError = ErrorDetail | ErrorObject,
@@ -480,7 +486,7 @@ export function useAssetsCountsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsCountsList<
   TData = Awaited<ReturnType<typeof assetsCountsList>>,
@@ -493,11 +499,11 @@ export function useAssetsCountsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsCountsListQueryOptions(parentLookupAsset, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -578,7 +584,7 @@ export const getAssetsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof 
     Awaited<ReturnType<typeof assetsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsRetrieve>>>
@@ -600,7 +606,7 @@ export function useAssetsRetrieve<TData = Awaited<ReturnType<typeof assetsRetrie
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsRetrieve<TData = Awaited<ReturnType<typeof assetsRetrieve>>, TError = ErrorObject>(
   uid: string,
   params?: AssetsRetrieveParams,
@@ -617,7 +623,7 @@ export function useAssetsRetrieve<TData = Awaited<ReturnType<typeof assetsRetrie
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsRetrieve<TData = Awaited<ReturnType<typeof assetsRetrieve>>, TError = ErrorObject>(
   uid: string,
   params?: AssetsRetrieveParams,
@@ -626,7 +632,7 @@ export function useAssetsRetrieve<TData = Awaited<ReturnType<typeof assetsRetrie
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsRetrieve<TData = Awaited<ReturnType<typeof assetsRetrieve>>, TError = ErrorObject>(
   uid: string,
@@ -636,11 +642,11 @@ export function useAssetsRetrieve<TData = Awaited<ReturnType<typeof assetsRetrie
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsRetrieveQueryOptions(uid, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -707,7 +713,7 @@ export const assetsPartialUpdate = async (
   return { data, status: res.status, headers: res.headers } as assetsPartialUpdateResponse
 }
 
-export const getAssetsPartialUpdateMutationOptions = <
+export const useAssetsPartialUpdateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -740,7 +746,9 @@ export const getAssetsPartialUpdateMutationOptions = <
     return assetsPartialUpdate(uid, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsPartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPartialUpdate>>>
@@ -764,7 +772,7 @@ export const useAssetsPartialUpdate = <TError = ErrorObject | ErrorDetail, TCont
   { uid: string; data: PatchedAssetPatchRequest },
   TContext
 > => {
-  const mutationOptions = getAssetsPartialUpdateMutationOptions(options)
+  const mutationOptions = useAssetsPartialUpdateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -812,7 +820,7 @@ export const assetsDestroy = async (uid: string, options?: RequestInit): Promise
   return { data, status: res.status, headers: res.headers } as assetsDestroyResponse
 }
 
-export const getAssetsDestroyMutationOptions = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
+export const useAssetsDestroyMutationOptions = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof assetsDestroy>>, TError, { uid: string }, TContext>
   fetch?: RequestInit
 }): UseMutationOptions<Awaited<ReturnType<typeof assetsDestroy>>, TError, { uid: string }, TContext> => {
@@ -829,7 +837,9 @@ export const getAssetsDestroyMutationOptions = <TError = ErrorDetail | ErrorObje
     return assetsDestroy(uid, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDestroy>>>
@@ -843,7 +853,7 @@ export const useAssetsDestroy = <TError = ErrorDetail | ErrorObject, TContext = 
   },
   queryClient?: QueryClient,
 ): UseMutationResult<Awaited<ReturnType<typeof assetsDestroy>>, TError, { uid: string }, TContext> => {
-  const mutationOptions = getAssetsDestroyMutationOptions(options)
+  const mutationOptions = useAssetsDestroyMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -911,7 +921,7 @@ export const getAssetsContentRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetsContentRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsContentRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsContentRetrieve>>>
@@ -935,7 +945,7 @@ export function useAssetsContentRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsContentRetrieve<
   TData = Awaited<ReturnType<typeof assetsContentRetrieve>>,
   TError = ErrorObject,
@@ -954,7 +964,7 @@ export function useAssetsContentRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsContentRetrieve<
   TData = Awaited<ReturnType<typeof assetsContentRetrieve>>,
   TError = ErrorObject,
@@ -965,7 +975,7 @@ export function useAssetsContentRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsContentRetrieve<
   TData = Awaited<ReturnType<typeof assetsContentRetrieve>>,
@@ -977,11 +987,11 @@ export function useAssetsContentRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsContentRetrieveQueryOptions(uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -1057,7 +1067,7 @@ export const getAssetsReportsRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetsReportsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsReportsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsReportsRetrieve>>>
@@ -1081,7 +1091,7 @@ export function useAssetsReportsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsReportsRetrieve<
   TData = Awaited<ReturnType<typeof assetsReportsRetrieve>>,
   TError = ErrorObject,
@@ -1100,7 +1110,7 @@ export function useAssetsReportsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsReportsRetrieve<
   TData = Awaited<ReturnType<typeof assetsReportsRetrieve>>,
   TError = ErrorObject,
@@ -1111,7 +1121,7 @@ export function useAssetsReportsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsReportsRetrieve<
   TData = Awaited<ReturnType<typeof assetsReportsRetrieve>>,
@@ -1123,11 +1133,11 @@ export function useAssetsReportsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsReportsRetrieveQueryOptions(uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -1201,7 +1211,7 @@ export const getAssetsTableViewRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetsTableViewRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsTableViewRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsTableViewRetrieve>>>
@@ -1222,7 +1232,7 @@ export function useAssetsTableViewRetrieve<TData = Awaited<ReturnType<typeof ass
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsTableViewRetrieve<TData = Awaited<ReturnType<typeof assetsTableViewRetrieve>>, TError = void>(
   uid: string,
   options?: {
@@ -1238,7 +1248,7 @@ export function useAssetsTableViewRetrieve<TData = Awaited<ReturnType<typeof ass
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsTableViewRetrieve<TData = Awaited<ReturnType<typeof assetsTableViewRetrieve>>, TError = void>(
   uid: string,
   options?: {
@@ -1246,7 +1256,7 @@ export function useAssetsTableViewRetrieve<TData = Awaited<ReturnType<typeof ass
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsTableViewRetrieve<TData = Awaited<ReturnType<typeof assetsTableViewRetrieve>>, TError = void>(
   uid: string,
@@ -1255,11 +1265,11 @@ export function useAssetsTableViewRetrieve<TData = Awaited<ReturnType<typeof ass
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsTableViewRetrieveQueryOptions(uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -1333,7 +1343,7 @@ export const getAssetsValidContentRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetsValidContentRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsValidContentRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsValidContentRetrieve>>>
@@ -1357,7 +1367,7 @@ export function useAssetsValidContentRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsValidContentRetrieve<
   TData = Awaited<ReturnType<typeof assetsValidContentRetrieve>>,
   TError = ErrorObject,
@@ -1376,7 +1386,7 @@ export function useAssetsValidContentRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsValidContentRetrieve<
   TData = Awaited<ReturnType<typeof assetsValidContentRetrieve>>,
   TError = ErrorObject,
@@ -1387,7 +1397,7 @@ export function useAssetsValidContentRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsValidContentRetrieve<
   TData = Awaited<ReturnType<typeof assetsValidContentRetrieve>>,
@@ -1399,11 +1409,11 @@ export function useAssetsValidContentRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsValidContentRetrieveQueryOptions(uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -1474,7 +1484,7 @@ export const getAssetsXformRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetsXformRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsXformRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsXformRetrieve>>>
@@ -1495,7 +1505,7 @@ export function useAssetsXformRetrieve<TData = Awaited<ReturnType<typeof assetsX
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsXformRetrieve<TData = Awaited<ReturnType<typeof assetsXformRetrieve>>, TError = void>(
   uid: string,
   options?: {
@@ -1511,7 +1521,7 @@ export function useAssetsXformRetrieve<TData = Awaited<ReturnType<typeof assetsX
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsXformRetrieve<TData = Awaited<ReturnType<typeof assetsXformRetrieve>>, TError = void>(
   uid: string,
   options?: {
@@ -1519,7 +1529,7 @@ export function useAssetsXformRetrieve<TData = Awaited<ReturnType<typeof assetsX
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsXformRetrieve<TData = Awaited<ReturnType<typeof assetsXformRetrieve>>, TError = void>(
   uid: string,
@@ -1528,11 +1538,11 @@ export function useAssetsXformRetrieve<TData = Awaited<ReturnType<typeof assetsX
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsXformRetrieveQueryOptions(uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -1598,7 +1608,7 @@ export const getAssetsXlsRetrieveQueryOptions = <TData = Awaited<ReturnType<type
     Awaited<ReturnType<typeof assetsXlsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsXlsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsXlsRetrieve>>>
@@ -1619,7 +1629,7 @@ export function useAssetsXlsRetrieve<TData = Awaited<ReturnType<typeof assetsXls
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsXlsRetrieve<TData = Awaited<ReturnType<typeof assetsXlsRetrieve>>, TError = void>(
   uid: string,
   options?: {
@@ -1635,7 +1645,7 @@ export function useAssetsXlsRetrieve<TData = Awaited<ReturnType<typeof assetsXls
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsXlsRetrieve<TData = Awaited<ReturnType<typeof assetsXlsRetrieve>>, TError = void>(
   uid: string,
   options?: {
@@ -1643,7 +1653,7 @@ export function useAssetsXlsRetrieve<TData = Awaited<ReturnType<typeof assetsXls
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsXlsRetrieve<TData = Awaited<ReturnType<typeof assetsXlsRetrieve>>, TError = void>(
   uid: string,
@@ -1652,11 +1662,11 @@ export function useAssetsXlsRetrieve<TData = Awaited<ReturnType<typeof assetsXls
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsXlsRetrieveQueryOptions(uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -1712,7 +1722,7 @@ export const assetsBulkCreate = async (
   return { data, status: res.status, headers: res.headers } as assetsBulkCreateResponse
 }
 
-export const getAssetsBulkCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsBulkCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsBulkCreate>>,
     TError,
@@ -1736,7 +1746,9 @@ export const getAssetsBulkCreateMutationOptions = <TError = ErrorObject, TContex
     return assetsBulkCreate(data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsBulkCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsBulkCreate>>>
@@ -1755,7 +1767,7 @@ export const useAssetsBulkCreate = <TError = ErrorObject, TContext = unknown>(
   },
   queryClient?: QueryClient,
 ): UseMutationResult<Awaited<ReturnType<typeof assetsBulkCreate>>, TError, { data: AssetBulkRequest }, TContext> => {
-  const mutationOptions = getAssetsBulkCreateMutationOptions(options)
+  const mutationOptions = useAssetsBulkCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -1819,7 +1831,7 @@ export const getAssetsHashRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetsHashRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsHashRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHashRetrieve>>>
@@ -1839,7 +1851,7 @@ export function useAssetsHashRetrieve<TData = Awaited<ReturnType<typeof assetsHa
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsHashRetrieve<TData = Awaited<ReturnType<typeof assetsHashRetrieve>>, TError = ErrorDetail>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHashRetrieve>>, TError, TData>> &
@@ -1854,14 +1866,14 @@ export function useAssetsHashRetrieve<TData = Awaited<ReturnType<typeof assetsHa
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsHashRetrieve<TData = Awaited<ReturnType<typeof assetsHashRetrieve>>, TError = ErrorDetail>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHashRetrieve>>, TError, TData>>
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsHashRetrieve<TData = Awaited<ReturnType<typeof assetsHashRetrieve>>, TError = ErrorDetail>(
   options?: {
@@ -1869,11 +1881,11 @@ export function useAssetsHashRetrieve<TData = Awaited<ReturnType<typeof assetsHa
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsHashRetrieveQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -1934,7 +1946,7 @@ export const getAssetsMetadataRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetsMetadataRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsMetadataRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsMetadataRetrieve>>>
@@ -1954,7 +1966,7 @@ export function useAssetsMetadataRetrieve<TData = Awaited<ReturnType<typeof asse
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsMetadataRetrieve<TData = Awaited<ReturnType<typeof assetsMetadataRetrieve>>, TError = unknown>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsMetadataRetrieve>>, TError, TData>> &
@@ -1969,14 +1981,14 @@ export function useAssetsMetadataRetrieve<TData = Awaited<ReturnType<typeof asse
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsMetadataRetrieve<TData = Awaited<ReturnType<typeof assetsMetadataRetrieve>>, TError = unknown>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsMetadataRetrieve>>, TError, TData>>
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsMetadataRetrieve<TData = Awaited<ReturnType<typeof assetsMetadataRetrieve>>, TError = unknown>(
   options?: {
@@ -1984,11 +1996,11 @@ export function useAssetsMetadataRetrieve<TData = Awaited<ReturnType<typeof asse
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsMetadataRetrieveQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

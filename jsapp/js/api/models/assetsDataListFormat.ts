@@ -6,8 +6,11 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export enum AssetsDataListFormat {
-  geojson = 'geojson',
-  json = 'json',
-  xml = 'xml',
-}
+export type AssetsDataListFormat = (typeof AssetsDataListFormat)[keyof typeof AssetsDataListFormat]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const AssetsDataListFormat = {
+  geojson: 'geojson',
+  json: 'json',
+  xml: 'xml',
+} as const

@@ -35,6 +35,8 @@ import type { OpenRosaManifestResponse } from './models/openRosaManifestResponse
 
 import type { OpenRosaSubmissionResponse } from './models/openRosaSubmissionResponse'
 
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+
 /**
  * ## Implement part of the OpenRosa Form List API
 
@@ -103,7 +105,7 @@ export const getAssetSnapshotsFormListRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetSnapshotsFormListRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetSnapshotsFormListRetrieveQueryResult = NonNullable<
@@ -129,7 +131,7 @@ export function useAssetSnapshotsFormListRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetSnapshotsFormListRetrieve<
   TData = Awaited<ReturnType<typeof assetSnapshotsFormListRetrieve>>,
   TError = void,
@@ -148,7 +150,7 @@ export function useAssetSnapshotsFormListRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetSnapshotsFormListRetrieve<
   TData = Awaited<ReturnType<typeof assetSnapshotsFormListRetrieve>>,
   TError = void,
@@ -159,7 +161,7 @@ export function useAssetSnapshotsFormListRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetSnapshotsFormListRetrieve<
   TData = Awaited<ReturnType<typeof assetSnapshotsFormListRetrieve>>,
@@ -171,11 +173,11 @@ export function useAssetSnapshotsFormListRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetSnapshotsFormListRetrieveQueryOptions(uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -251,7 +253,7 @@ export const getAssetSnapshotsFormListRetrieve2QueryOptions = <
     Awaited<ReturnType<typeof assetSnapshotsFormListRetrieve2>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetSnapshotsFormListRetrieve2QueryResult = NonNullable<
@@ -277,7 +279,7 @@ export function useAssetSnapshotsFormListRetrieve2<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetSnapshotsFormListRetrieve2<
   TData = Awaited<ReturnType<typeof assetSnapshotsFormListRetrieve2>>,
   TError = void,
@@ -296,7 +298,7 @@ export function useAssetSnapshotsFormListRetrieve2<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetSnapshotsFormListRetrieve2<
   TData = Awaited<ReturnType<typeof assetSnapshotsFormListRetrieve2>>,
   TError = void,
@@ -307,7 +309,7 @@ export function useAssetSnapshotsFormListRetrieve2<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetSnapshotsFormListRetrieve2<
   TData = Awaited<ReturnType<typeof assetSnapshotsFormListRetrieve2>>,
@@ -319,11 +321,11 @@ export function useAssetSnapshotsFormListRetrieve2<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetSnapshotsFormListRetrieve2QueryOptions(uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -401,7 +403,7 @@ export const getAssetSnapshotsManifestRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetSnapshotsManifestRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetSnapshotsManifestRetrieveQueryResult = NonNullable<
@@ -427,7 +429,7 @@ export function useAssetSnapshotsManifestRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetSnapshotsManifestRetrieve<
   TData = Awaited<ReturnType<typeof assetSnapshotsManifestRetrieve>>,
   TError = void,
@@ -446,7 +448,7 @@ export function useAssetSnapshotsManifestRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetSnapshotsManifestRetrieve<
   TData = Awaited<ReturnType<typeof assetSnapshotsManifestRetrieve>>,
   TError = void,
@@ -457,7 +459,7 @@ export function useAssetSnapshotsManifestRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetSnapshotsManifestRetrieve<
   TData = Awaited<ReturnType<typeof assetSnapshotsManifestRetrieve>>,
@@ -469,11 +471,11 @@ export function useAssetSnapshotsManifestRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetSnapshotsManifestRetrieveQueryOptions(uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -551,7 +553,7 @@ export const getAssetSnapshotsManifestRetrieve2QueryOptions = <
     Awaited<ReturnType<typeof assetSnapshotsManifestRetrieve2>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetSnapshotsManifestRetrieve2QueryResult = NonNullable<
@@ -577,7 +579,7 @@ export function useAssetSnapshotsManifestRetrieve2<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetSnapshotsManifestRetrieve2<
   TData = Awaited<ReturnType<typeof assetSnapshotsManifestRetrieve2>>,
   TError = void,
@@ -596,7 +598,7 @@ export function useAssetSnapshotsManifestRetrieve2<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetSnapshotsManifestRetrieve2<
   TData = Awaited<ReturnType<typeof assetSnapshotsManifestRetrieve2>>,
   TError = void,
@@ -607,7 +609,7 @@ export function useAssetSnapshotsManifestRetrieve2<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetSnapshotsManifestRetrieve2<
   TData = Awaited<ReturnType<typeof assetSnapshotsManifestRetrieve2>>,
@@ -619,11 +621,11 @@ export function useAssetSnapshotsManifestRetrieve2<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetSnapshotsManifestRetrieve2QueryOptions(uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -680,7 +682,7 @@ export const assetSnapshotsSubmissionCreate = async (
   return { data, status: res.status, headers: res.headers } as assetSnapshotsSubmissionCreateResponse
 }
 
-export const getAssetSnapshotsSubmissionCreateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+export const useAssetSnapshotsSubmissionCreateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetSnapshotsSubmissionCreate>>,
     TError,
@@ -710,7 +712,9 @@ export const getAssetSnapshotsSubmissionCreateMutationOptions = <TError = ErrorD
     return assetSnapshotsSubmissionCreate(uid, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetSnapshotsSubmissionCreateMutationResult = NonNullable<
@@ -736,7 +740,7 @@ export const useAssetSnapshotsSubmissionCreate = <TError = ErrorDetail, TContext
   { uid: string; data: OpenRosaSubmissionRequest },
   TContext
 > => {
-  const mutationOptions = getAssetSnapshotsSubmissionCreateMutationOptions(options)
+  const mutationOptions = useAssetSnapshotsSubmissionCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -789,7 +793,7 @@ export const assetSnapshotsSubmissionCreate2 = async (
   return { data, status: res.status, headers: res.headers } as assetSnapshotsSubmissionCreate2Response
 }
 
-export const getAssetSnapshotsSubmissionCreate2MutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+export const useAssetSnapshotsSubmissionCreate2MutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetSnapshotsSubmissionCreate2>>,
     TError,
@@ -819,7 +823,9 @@ export const getAssetSnapshotsSubmissionCreate2MutationOptions = <TError = Error
     return assetSnapshotsSubmissionCreate2(uid, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetSnapshotsSubmissionCreate2MutationResult = NonNullable<
@@ -845,7 +851,7 @@ export const useAssetSnapshotsSubmissionCreate2 = <TError = ErrorDetail, TContex
   { uid: string; data: OpenRosaSubmissionRequest },
   TContext
 > => {
-  const mutationOptions = getAssetSnapshotsSubmissionCreate2MutationOptions(options)
+  const mutationOptions = useAssetSnapshotsSubmissionCreate2MutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

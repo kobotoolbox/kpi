@@ -39,6 +39,8 @@ import type { InviteResponse } from './models/inviteResponse'
 
 import type { PaginatedInviteResponseList } from './models/paginatedInviteResponseList'
 
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+
 /**
  * ## List of invites
 
@@ -126,7 +128,7 @@ export const getProjectOwnershipInvitesListQueryOptions = <
     Awaited<ReturnType<typeof projectOwnershipInvitesList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type ProjectOwnershipInvitesListQueryResult = NonNullable<
@@ -152,7 +154,7 @@ export function useProjectOwnershipInvitesList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectOwnershipInvitesList<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesList>>,
   TError = ErrorDetail,
@@ -171,7 +173,7 @@ export function useProjectOwnershipInvitesList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectOwnershipInvitesList<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesList>>,
   TError = ErrorDetail,
@@ -182,7 +184,7 @@ export function useProjectOwnershipInvitesList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useProjectOwnershipInvitesList<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesList>>,
@@ -194,11 +196,11 @@ export function useProjectOwnershipInvitesList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getProjectOwnershipInvitesListQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -259,7 +261,7 @@ export const projectOwnershipInvitesCreate = async (
   return { data, status: res.status, headers: res.headers } as projectOwnershipInvitesCreateResponse
 }
 
-export const getProjectOwnershipInvitesCreateMutationOptions = <
+export const useProjectOwnershipInvitesCreateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -292,7 +294,9 @@ export const getProjectOwnershipInvitesCreateMutationOptions = <
     return projectOwnershipInvitesCreate(data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type ProjectOwnershipInvitesCreateMutationResult = NonNullable<
@@ -318,7 +322,7 @@ export const useProjectOwnershipInvitesCreate = <TError = ErrorObject | ErrorDet
   { data: InviteCreatePayload },
   TContext
 > => {
-  const mutationOptions = getProjectOwnershipInvitesCreateMutationOptions(options)
+  const mutationOptions = useProjectOwnershipInvitesCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -396,7 +400,7 @@ export const getProjectOwnershipInvitesRetrieveQueryOptions = <
     Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type ProjectOwnershipInvitesRetrieveQueryResult = NonNullable<
@@ -422,7 +426,7 @@ export function useProjectOwnershipInvitesRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectOwnershipInvitesRetrieve<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>,
   TError = ErrorDetail | ErrorObject,
@@ -441,7 +445,7 @@ export function useProjectOwnershipInvitesRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectOwnershipInvitesRetrieve<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>,
   TError = ErrorDetail | ErrorObject,
@@ -452,7 +456,7 @@ export function useProjectOwnershipInvitesRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useProjectOwnershipInvitesRetrieve<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>,
@@ -464,11 +468,11 @@ export function useProjectOwnershipInvitesRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getProjectOwnershipInvitesRetrieveQueryOptions(uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -538,7 +542,7 @@ export const projectOwnershipInvitesPartialUpdate = async (
   return { data, status: res.status, headers: res.headers } as projectOwnershipInvitesPartialUpdateResponse
 }
 
-export const getProjectOwnershipInvitesPartialUpdateMutationOptions = <
+export const useProjectOwnershipInvitesPartialUpdateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -571,7 +575,9 @@ export const getProjectOwnershipInvitesPartialUpdateMutationOptions = <
     return projectOwnershipInvitesPartialUpdate(uid, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type ProjectOwnershipInvitesPartialUpdateMutationResult = NonNullable<
@@ -597,7 +603,7 @@ export const useProjectOwnershipInvitesPartialUpdate = <TError = ErrorObject | E
   { uid: string; data: PatchedInviteUpdatePayload },
   TContext
 > => {
-  const mutationOptions = getProjectOwnershipInvitesPartialUpdateMutationOptions(options)
+  const mutationOptions = useProjectOwnershipInvitesPartialUpdateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -648,7 +654,7 @@ export const projectOwnershipInvitesDestroy = async (
   return { data, status: res.status, headers: res.headers } as projectOwnershipInvitesDestroyResponse
 }
 
-export const getProjectOwnershipInvitesDestroyMutationOptions = <
+export const useProjectOwnershipInvitesDestroyMutationOptions = <
   TError = ErrorDetail | ErrorObject,
   TContext = unknown,
 >(options?: {
@@ -680,7 +686,9 @@ export const getProjectOwnershipInvitesDestroyMutationOptions = <
     return projectOwnershipInvitesDestroy(uid, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type ProjectOwnershipInvitesDestroyMutationResult = NonNullable<
@@ -701,7 +709,7 @@ export const useProjectOwnershipInvitesDestroy = <TError = ErrorDetail | ErrorOb
   },
   queryClient?: QueryClient,
 ): UseMutationResult<Awaited<ReturnType<typeof projectOwnershipInvitesDestroy>>, TError, { uid: string }, TContext> => {
-  const mutationOptions = getProjectOwnershipInvitesDestroyMutationOptions(options)
+  const mutationOptions = useProjectOwnershipInvitesDestroyMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

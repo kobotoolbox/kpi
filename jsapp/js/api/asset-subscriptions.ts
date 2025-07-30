@@ -35,6 +35,8 @@ import type { AssetSubscriptionResponse } from './models/assetSubscriptionRespon
 
 import type { PaginatedAssetSubscriptionResponseList } from './models/paginatedAssetSubscriptionResponseList'
 
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+
 /**
  * ## List all asset subscriptions of a user
 
@@ -106,7 +108,7 @@ export const getAssetSubscriptionsListQueryOptions = <
     Awaited<ReturnType<typeof assetSubscriptionsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetSubscriptionsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetSubscriptionsList>>>
@@ -127,7 +129,7 @@ export function useAssetSubscriptionsList<TData = Awaited<ReturnType<typeof asse
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetSubscriptionsList<TData = Awaited<ReturnType<typeof assetSubscriptionsList>>, TError = unknown>(
   params?: AssetSubscriptionsListParams,
   options?: {
@@ -143,7 +145,7 @@ export function useAssetSubscriptionsList<TData = Awaited<ReturnType<typeof asse
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetSubscriptionsList<TData = Awaited<ReturnType<typeof assetSubscriptionsList>>, TError = unknown>(
   params?: AssetSubscriptionsListParams,
   options?: {
@@ -151,7 +153,7 @@ export function useAssetSubscriptionsList<TData = Awaited<ReturnType<typeof asse
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetSubscriptionsList<TData = Awaited<ReturnType<typeof assetSubscriptionsList>>, TError = unknown>(
   params?: AssetSubscriptionsListParams,
@@ -160,11 +162,11 @@ export function useAssetSubscriptionsList<TData = Awaited<ReturnType<typeof asse
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetSubscriptionsListQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -217,7 +219,7 @@ export const assetSubscriptionsCreate = async (
   return { data, status: res.status, headers: res.headers } as assetSubscriptionsCreateResponse
 }
 
-export const getAssetSubscriptionsCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetSubscriptionsCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetSubscriptionsCreate>>,
     TError,
@@ -247,7 +249,9 @@ export const getAssetSubscriptionsCreateMutationOptions = <TError = ErrorObject,
     return assetSubscriptionsCreate(data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetSubscriptionsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetSubscriptionsCreate>>>
@@ -271,7 +275,7 @@ export const useAssetSubscriptionsCreate = <TError = ErrorObject, TContext = unk
   { data: AssetSubscriptionRequest },
   TContext
 > => {
-  const mutationOptions = getAssetSubscriptionsCreateMutationOptions(options)
+  const mutationOptions = useAssetSubscriptionsCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -341,7 +345,7 @@ export const getAssetSubscriptionsRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetSubscriptionsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>>
@@ -365,7 +369,7 @@ export function useAssetSubscriptionsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetSubscriptionsRetrieve<
   TData = Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>,
   TError = ErrorObject,
@@ -384,7 +388,7 @@ export function useAssetSubscriptionsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetSubscriptionsRetrieve<
   TData = Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>,
   TError = ErrorObject,
@@ -395,7 +399,7 @@ export function useAssetSubscriptionsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetSubscriptionsRetrieve<
   TData = Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>,
@@ -407,11 +411,11 @@ export function useAssetSubscriptionsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetSubscriptionsRetrieveQueryOptions(uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -462,7 +466,7 @@ export const assetSubscriptionsDestroy = async (
   return { data, status: res.status, headers: res.headers } as assetSubscriptionsDestroyResponse
 }
 
-export const getAssetSubscriptionsDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetSubscriptionsDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetSubscriptionsDestroy>>,
     TError,
@@ -486,7 +490,9 @@ export const getAssetSubscriptionsDestroyMutationOptions = <TError = ErrorObject
     return assetSubscriptionsDestroy(uid, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetSubscriptionsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetSubscriptionsDestroy>>>
@@ -505,7 +511,7 @@ export const useAssetSubscriptionsDestroy = <TError = ErrorObject, TContext = un
   },
   queryClient?: QueryClient,
 ): UseMutationResult<Awaited<ReturnType<typeof assetSubscriptionsDestroy>>, TError, { uid: string }, TContext> => {
-  const mutationOptions = getAssetSubscriptionsDestroyMutationOptions(options)
+  const mutationOptions = useAssetSubscriptionsDestroyMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

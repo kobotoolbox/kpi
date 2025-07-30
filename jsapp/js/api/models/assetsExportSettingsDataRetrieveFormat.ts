@@ -6,7 +6,11 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export enum AssetsExportSettingsDataRetrieveFormat {
-  csv = 'csv',
-  xlsx = 'xlsx',
-}
+export type AssetsExportSettingsDataRetrieveFormat =
+  (typeof AssetsExportSettingsDataRetrieveFormat)[keyof typeof AssetsExportSettingsDataRetrieveFormat]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const AssetsExportSettingsDataRetrieveFormat = {
+  csv: 'csv',
+  xlsx: 'xlsx',
+} as const

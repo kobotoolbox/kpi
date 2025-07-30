@@ -6,9 +6,12 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export enum AssetsRetrieveFormat {
-  json = 'json',
-  ssjson = 'ssjson',
-  xls = 'xls',
-  xml = 'xml',
-}
+export type AssetsRetrieveFormat = (typeof AssetsRetrieveFormat)[keyof typeof AssetsRetrieveFormat]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const AssetsRetrieveFormat = {
+  json: 'json',
+  ssjson: 'ssjson',
+  xls: 'xls',
+  xml: 'xml',
+} as const

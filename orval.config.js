@@ -22,9 +22,14 @@ module.exports = {
       override: {
         title: (title) => ``,
         operationName: operationName,
-        enumGenerationType: 'enum',
+        enumGenerationType: 'const',  // Weirdly, 'enum' generates wrong imports.
         query: {
           shouldSplitQueryKey: true,
+          mutationOptions: {
+            path: './jsapp/js/orval.config.customMutatorOptions.ts',
+            name: 'getCustomMutatorOptions',
+            // default: true
+          },
         }
       },
     },

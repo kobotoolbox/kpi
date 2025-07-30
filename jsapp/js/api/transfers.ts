@@ -167,7 +167,7 @@ export const getProjectOwnershipInvitesTransfersListQueryOptions = <
     Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type ProjectOwnershipInvitesTransfersListQueryResult = NonNullable<
@@ -194,7 +194,7 @@ export function useProjectOwnershipInvitesTransfersList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectOwnershipInvitesTransfersList<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>,
   TError = unknown,
@@ -214,7 +214,7 @@ export function useProjectOwnershipInvitesTransfersList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectOwnershipInvitesTransfersList<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>,
   TError = unknown,
@@ -226,7 +226,7 @@ export function useProjectOwnershipInvitesTransfersList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useProjectOwnershipInvitesTransfersList<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>,
@@ -239,11 +239,11 @@ export function useProjectOwnershipInvitesTransfersList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getProjectOwnershipInvitesTransfersListQueryOptions(parentLookupInviteUid, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -397,7 +397,7 @@ export const getProjectOwnershipInvitesTransfersRetrieveQueryOptions = <
     Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type ProjectOwnershipInvitesTransfersRetrieveQueryResult = NonNullable<
@@ -427,7 +427,7 @@ export function useProjectOwnershipInvitesTransfersRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectOwnershipInvitesTransfersRetrieve<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
   TError = unknown,
@@ -450,7 +450,7 @@ export function useProjectOwnershipInvitesTransfersRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectOwnershipInvitesTransfersRetrieve<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
   TError = unknown,
@@ -465,7 +465,7 @@ export function useProjectOwnershipInvitesTransfersRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useProjectOwnershipInvitesTransfersRetrieve<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
@@ -481,7 +481,7 @@ export function useProjectOwnershipInvitesTransfersRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getProjectOwnershipInvitesTransfersRetrieveQueryOptions(
     parentLookupInviteUid,
     uid,
@@ -490,7 +490,7 @@ export function useProjectOwnershipInvitesTransfersRetrieve<
   )
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

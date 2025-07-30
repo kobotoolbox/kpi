@@ -12,9 +12,12 @@
  * `error` - error
  * `complete` - complete
  */
-export enum StatusCefEnum {
-  created = 'created',
-  processing = 'processing',
-  error = 'error',
-  complete = 'complete',
-}
+export type StatusCefEnum = (typeof StatusCefEnum)[keyof typeof StatusCefEnum]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const StatusCefEnum = {
+  created: 'created',
+  processing: 'processing',
+  error: 'error',
+  complete: 'complete',
+} as const

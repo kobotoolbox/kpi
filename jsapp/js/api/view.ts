@@ -78,7 +78,7 @@ export const getViewDownloadSubmissionRetrieveQueryOptions = <
     Awaited<ReturnType<typeof viewDownloadSubmissionRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type ViewDownloadSubmissionRetrieveQueryResult = NonNullable<
@@ -103,7 +103,7 @@ export function useViewDownloadSubmissionRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useViewDownloadSubmissionRetrieve<
   TData = Awaited<ReturnType<typeof viewDownloadSubmissionRetrieve>>,
   TError = unknown,
@@ -121,7 +121,7 @@ export function useViewDownloadSubmissionRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useViewDownloadSubmissionRetrieve<
   TData = Awaited<ReturnType<typeof viewDownloadSubmissionRetrieve>>,
   TError = unknown,
@@ -131,7 +131,7 @@ export function useViewDownloadSubmissionRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useViewDownloadSubmissionRetrieve<
   TData = Awaited<ReturnType<typeof viewDownloadSubmissionRetrieve>>,
@@ -142,11 +142,11 @@ export function useViewDownloadSubmissionRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getViewDownloadSubmissionRetrieveQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -206,7 +206,7 @@ export const getViewSubmissionListListQueryOptions = <
     Awaited<ReturnType<typeof viewSubmissionListList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type ViewSubmissionListListQueryResult = NonNullable<Awaited<ReturnType<typeof viewSubmissionListList>>>
@@ -226,7 +226,7 @@ export function useViewSubmissionListList<TData = Awaited<ReturnType<typeof view
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useViewSubmissionListList<TData = Awaited<ReturnType<typeof viewSubmissionListList>>, TError = unknown>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof viewSubmissionListList>>, TError, TData>> &
@@ -241,14 +241,14 @@ export function useViewSubmissionListList<TData = Awaited<ReturnType<typeof view
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useViewSubmissionListList<TData = Awaited<ReturnType<typeof viewSubmissionListList>>, TError = unknown>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof viewSubmissionListList>>, TError, TData>>
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useViewSubmissionListList<TData = Awaited<ReturnType<typeof viewSubmissionListList>>, TError = unknown>(
   options?: {
@@ -256,11 +256,11 @@ export function useViewSubmissionListList<TData = Awaited<ReturnType<typeof view
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getViewSubmissionListListQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

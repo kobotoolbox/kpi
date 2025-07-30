@@ -29,6 +29,8 @@ import type { ErrorObject } from './models/errorObject'
 
 import { http, HttpResponse, delay } from 'msw'
 
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+
 /**
  * ## Delete a specific attachment of an Asset
 
@@ -73,7 +75,7 @@ export const assetsAttachmentsDestroy = async (
   return { data, status: res.status, headers: res.headers } as assetsAttachmentsDestroyResponse
 }
 
-export const getAssetsAttachmentsDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsAttachmentsDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsAttachmentsDestroy>>,
     TError,
@@ -103,7 +105,9 @@ export const getAssetsAttachmentsDestroyMutationOptions = <TError = ErrorObject,
     return assetsAttachmentsDestroy(parentLookupAsset, id, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsAttachmentsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsAttachmentsDestroy>>>
@@ -127,7 +131,7 @@ export const useAssetsAttachmentsDestroy = <TError = ErrorObject, TContext = unk
   { parentLookupAsset: string; id: string },
   TContext
 > => {
-  const mutationOptions = getAssetsAttachmentsDestroyMutationOptions(options)
+  const mutationOptions = useAssetsAttachmentsDestroyMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -200,7 +204,7 @@ export const assetsAttachmentsBulkDestroy = async (
   return { data, status: res.status, headers: res.headers } as assetsAttachmentsBulkDestroyResponse
 }
 
-export const getAssetsAttachmentsBulkDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsAttachmentsBulkDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>,
     TError,
@@ -230,7 +234,9 @@ export const getAssetsAttachmentsBulkDestroyMutationOptions = <TError = ErrorObj
     return assetsAttachmentsBulkDestroy(parentLookupAsset, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsAttachmentsBulkDestroyMutationResult = NonNullable<
@@ -256,7 +262,7 @@ export const useAssetsAttachmentsBulkDestroy = <TError = ErrorObject, TContext =
   { parentLookupAsset: string },
   TContext
 > => {
-  const mutationOptions = getAssetsAttachmentsBulkDestroyMutationOptions(options)
+  const mutationOptions = useAssetsAttachmentsBulkDestroyMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -377,7 +383,7 @@ export const getAssetsDataAttachmentsListQueryOptions = <
     Awaited<ReturnType<typeof assetsDataAttachmentsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsDataAttachmentsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDataAttachmentsList>>>
@@ -403,7 +409,7 @@ export function useAssetsDataAttachmentsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsDataAttachmentsList<
   TData = Awaited<ReturnType<typeof assetsDataAttachmentsList>>,
   TError = ErrorObject,
@@ -424,7 +430,7 @@ export function useAssetsDataAttachmentsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsDataAttachmentsList<
   TData = Awaited<ReturnType<typeof assetsDataAttachmentsList>>,
   TError = ErrorObject,
@@ -437,7 +443,7 @@ export function useAssetsDataAttachmentsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsDataAttachmentsList<
   TData = Awaited<ReturnType<typeof assetsDataAttachmentsList>>,
@@ -451,11 +457,11 @@ export function useAssetsDataAttachmentsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsDataAttachmentsListQueryOptions(parentLookupAsset, parentLookupData, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -592,7 +598,7 @@ export const getAssetsDataAttachmentsRetrieveQueryOptions = <
     enabled: !!(parentLookupAsset && parentLookupData && id),
     ...queryOptions,
   } as UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>, TError, TData> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 }
 
@@ -622,7 +628,7 @@ export function useAssetsDataAttachmentsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsDataAttachmentsRetrieve<
   TData = Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>,
   TError = ErrorObject,
@@ -644,7 +650,7 @@ export function useAssetsDataAttachmentsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsDataAttachmentsRetrieve<
   TData = Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>,
   TError = ErrorObject,
@@ -658,7 +664,7 @@ export function useAssetsDataAttachmentsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsDataAttachmentsRetrieve<
   TData = Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>,
@@ -673,7 +679,7 @@ export function useAssetsDataAttachmentsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsDataAttachmentsRetrieveQueryOptions(
     parentLookupAsset,
     parentLookupData,
@@ -683,7 +689,7 @@ export function useAssetsDataAttachmentsRetrieve<
   )
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -792,7 +798,7 @@ export const getAssetsDataAttachmentsRetrieve2QueryOptions = <
     enabled: !!(parentLookupAsset && parentLookupData && id && suffix),
     ...queryOptions,
   } as UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>, TError, TData> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 }
 
@@ -822,7 +828,7 @@ export function useAssetsDataAttachmentsRetrieve2<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsDataAttachmentsRetrieve2<
   TData = Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>,
   TError = ErrorObject,
@@ -844,7 +850,7 @@ export function useAssetsDataAttachmentsRetrieve2<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsDataAttachmentsRetrieve2<
   TData = Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>,
   TError = ErrorObject,
@@ -858,7 +864,7 @@ export function useAssetsDataAttachmentsRetrieve2<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsDataAttachmentsRetrieve2<
   TData = Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>,
@@ -873,7 +879,7 @@ export function useAssetsDataAttachmentsRetrieve2<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsDataAttachmentsRetrieve2QueryOptions(
     parentLookupAsset,
     parentLookupData,
@@ -883,7 +889,7 @@ export function useAssetsDataAttachmentsRetrieve2<
   )
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

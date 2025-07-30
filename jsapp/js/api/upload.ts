@@ -14,6 +14,8 @@ import { http, HttpResponse, delay } from 'msw'
 
 import type { XFormList } from './models/xFormList'
 
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+
 // https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497
 type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B
 
@@ -66,7 +68,7 @@ export const uploadCreate = async (
   return { data, status: res.status, headers: res.headers } as uploadCreateResponse
 }
 
-export const getUploadCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const useUploadCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof uploadCreate>>,
     TError,
@@ -95,7 +97,9 @@ export const getUploadCreateMutationOptions = <TError = unknown, TContext = unkn
     return uploadCreate(data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type UploadCreateMutationResult = NonNullable<Awaited<ReturnType<typeof uploadCreate>>>
@@ -114,7 +118,7 @@ export const useUploadCreate = <TError = unknown, TContext = unknown>(
   },
   queryClient?: QueryClient,
 ): UseMutationResult<Awaited<ReturnType<typeof uploadCreate>>, TError, { data: NonReadonly<XFormList> }, TContext> => {
-  const mutationOptions = getUploadCreateMutationOptions(options)
+  const mutationOptions = useUploadCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

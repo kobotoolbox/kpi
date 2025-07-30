@@ -6,8 +6,11 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export enum AssetsHooksLogsListStatus {
-  NUMBER_0 = 0,
-  NUMBER_1 = 1,
-  NUMBER_2 = 2,
-}
+export type AssetsHooksLogsListStatus = (typeof AssetsHooksLogsListStatus)[keyof typeof AssetsHooksLogsListStatus]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const AssetsHooksLogsListStatus = {
+  NUMBER_0: 0,
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+} as const

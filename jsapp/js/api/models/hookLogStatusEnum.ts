@@ -11,8 +11,11 @@
  * `1` - Pending
  * `2` - Success
  */
-export enum HookLogStatusEnum {
-  NUMBER_0 = 0,
-  NUMBER_1 = 1,
-  NUMBER_2 = 2,
-}
+export type HookLogStatusEnum = (typeof HookLogStatusEnum)[keyof typeof HookLogStatusEnum]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const HookLogStatusEnum = {
+  NUMBER_0: 0,
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+} as const

@@ -11,8 +11,11 @@
  * `view_asset` - view_asset
  * `view_submissions` - view_submissions
  */
-export enum PermissionsEnum {
-  change_metadata_asset = 'change_metadata_asset',
-  view_asset = 'view_asset',
-  view_submissions = 'view_submissions',
-}
+export type PermissionsEnum = (typeof PermissionsEnum)[keyof typeof PermissionsEnum]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const PermissionsEnum = {
+  change_metadata_asset: 'change_metadata_asset',
+  view_asset: 'view_asset',
+  view_submissions: 'view_submissions',
+} as const

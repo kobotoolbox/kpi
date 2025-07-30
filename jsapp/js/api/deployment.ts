@@ -33,7 +33,11 @@ import { faker } from '@faker-js/faker'
 
 import { http, HttpResponse, delay } from 'msw'
 
+import { AssetTypeEnum } from './models/assetTypeEnum'
+
 import type { DeploymentResponse } from './models/deploymentResponse'
+
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
 
 /**
  * ## Retrieve the existing deployment (if any)
@@ -101,7 +105,7 @@ export const getAssetsDeploymentRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetsDeploymentRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsDeploymentRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDeploymentRetrieve>>>
@@ -125,7 +129,7 @@ export function useAssetsDeploymentRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsDeploymentRetrieve<
   TData = Awaited<ReturnType<typeof assetsDeploymentRetrieve>>,
   TError = ErrorObject,
@@ -144,7 +148,7 @@ export function useAssetsDeploymentRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsDeploymentRetrieve<
   TData = Awaited<ReturnType<typeof assetsDeploymentRetrieve>>,
   TError = ErrorObject,
@@ -155,7 +159,7 @@ export function useAssetsDeploymentRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsDeploymentRetrieve<
   TData = Awaited<ReturnType<typeof assetsDeploymentRetrieve>>,
@@ -167,11 +171,11 @@ export function useAssetsDeploymentRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsDeploymentRetrieveQueryOptions(uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -231,7 +235,7 @@ export const assetsDeploymentCreate = async (
   return { data, status: res.status, headers: res.headers } as assetsDeploymentCreateResponse
 }
 
-export const getAssetsDeploymentCreateMutationOptions = <
+export const useAssetsDeploymentCreateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -264,7 +268,9 @@ export const getAssetsDeploymentCreateMutationOptions = <
     return assetsDeploymentCreate(uid, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsDeploymentCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDeploymentCreate>>>
@@ -288,7 +294,7 @@ export const useAssetsDeploymentCreate = <TError = ErrorObject | ErrorDetail, TC
   { uid: string; data: DeploymentCreateRequest },
   TContext
 > => {
-  const mutationOptions = getAssetsDeploymentCreateMutationOptions(options)
+  const mutationOptions = useAssetsDeploymentCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -346,7 +352,7 @@ export const assetsDeploymentPartialUpdate = async (
   return { data, status: res.status, headers: res.headers } as assetsDeploymentPartialUpdateResponse
 }
 
-export const getAssetsDeploymentPartialUpdateMutationOptions = <
+export const useAssetsDeploymentPartialUpdateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -379,7 +385,9 @@ export const getAssetsDeploymentPartialUpdateMutationOptions = <
     return assetsDeploymentPartialUpdate(uid, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsDeploymentPartialUpdateMutationResult = NonNullable<
@@ -405,7 +413,7 @@ export const useAssetsDeploymentPartialUpdate = <TError = ErrorObject | ErrorDet
   { uid: string; data: PatchedDeploymentPatchRequest },
   TContext
 > => {
-  const mutationOptions = getAssetsDeploymentPartialUpdateMutationOptions(options)
+  const mutationOptions = useAssetsDeploymentPartialUpdateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

@@ -119,7 +119,7 @@ export const getLanguagesListQueryOptions = <TData = Awaited<ReturnType<typeof l
     Awaited<ReturnType<typeof languagesList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type LanguagesListQueryResult = NonNullable<Awaited<ReturnType<typeof languagesList>>>
@@ -140,7 +140,7 @@ export function useLanguagesList<TData = Awaited<ReturnType<typeof languagesList
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useLanguagesList<TData = Awaited<ReturnType<typeof languagesList>>, TError = ErrorDetail>(
   params?: LanguagesListParams,
   options?: {
@@ -156,7 +156,7 @@ export function useLanguagesList<TData = Awaited<ReturnType<typeof languagesList
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useLanguagesList<TData = Awaited<ReturnType<typeof languagesList>>, TError = ErrorDetail>(
   params?: LanguagesListParams,
   options?: {
@@ -164,7 +164,7 @@ export function useLanguagesList<TData = Awaited<ReturnType<typeof languagesList
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useLanguagesList<TData = Awaited<ReturnType<typeof languagesList>>, TError = ErrorDetail>(
   params?: LanguagesListParams,
@@ -173,11 +173,11 @@ export function useLanguagesList<TData = Awaited<ReturnType<typeof languagesList
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getLanguagesListQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -256,7 +256,7 @@ export const getLanguagesRetrieveQueryOptions = <
     Awaited<ReturnType<typeof languagesRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type LanguagesRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof languagesRetrieve>>>
@@ -280,7 +280,7 @@ export function useLanguagesRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useLanguagesRetrieve<
   TData = Awaited<ReturnType<typeof languagesRetrieve>>,
   TError = ErrorDetail | ErrorObject,
@@ -299,7 +299,7 @@ export function useLanguagesRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useLanguagesRetrieve<
   TData = Awaited<ReturnType<typeof languagesRetrieve>>,
   TError = ErrorDetail | ErrorObject,
@@ -310,7 +310,7 @@ export function useLanguagesRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useLanguagesRetrieve<
   TData = Awaited<ReturnType<typeof languagesRetrieve>>,
@@ -322,11 +322,11 @@ export function useLanguagesRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getLanguagesRetrieveQueryOptions(code, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

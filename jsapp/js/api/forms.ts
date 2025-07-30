@@ -81,7 +81,7 @@ export const getFormsFormXmlRetrieve2QueryOptions = <
     Awaited<ReturnType<typeof formsFormXmlRetrieve2>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type FormsFormXmlRetrieve2QueryResult = NonNullable<Awaited<ReturnType<typeof formsFormXmlRetrieve2>>>
@@ -103,7 +103,7 @@ export function useFormsFormXmlRetrieve2<TData = Awaited<ReturnType<typeof forms
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useFormsFormXmlRetrieve2<TData = Awaited<ReturnType<typeof formsFormXmlRetrieve2>>, TError = unknown>(
   username: string,
   id: string,
@@ -120,7 +120,7 @@ export function useFormsFormXmlRetrieve2<TData = Awaited<ReturnType<typeof forms
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useFormsFormXmlRetrieve2<TData = Awaited<ReturnType<typeof formsFormXmlRetrieve2>>, TError = unknown>(
   username: string,
   id: string,
@@ -129,7 +129,7 @@ export function useFormsFormXmlRetrieve2<TData = Awaited<ReturnType<typeof forms
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useFormsFormXmlRetrieve2<TData = Awaited<ReturnType<typeof formsFormXmlRetrieve2>>, TError = unknown>(
   username: string,
@@ -139,11 +139,11 @@ export function useFormsFormXmlRetrieve2<TData = Awaited<ReturnType<typeof forms
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getFormsFormXmlRetrieve2QueryOptions(username, id, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -206,7 +206,7 @@ export const getFormsFormXmlRetrieveQueryOptions = <
     Awaited<ReturnType<typeof formsFormXmlRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type FormsFormXmlRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof formsFormXmlRetrieve>>>
@@ -227,7 +227,7 @@ export function useFormsFormXmlRetrieve<TData = Awaited<ReturnType<typeof formsF
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useFormsFormXmlRetrieve<TData = Awaited<ReturnType<typeof formsFormXmlRetrieve>>, TError = unknown>(
   id: string,
   options?: {
@@ -243,7 +243,7 @@ export function useFormsFormXmlRetrieve<TData = Awaited<ReturnType<typeof formsF
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useFormsFormXmlRetrieve<TData = Awaited<ReturnType<typeof formsFormXmlRetrieve>>, TError = unknown>(
   id: string,
   options?: {
@@ -251,7 +251,7 @@ export function useFormsFormXmlRetrieve<TData = Awaited<ReturnType<typeof formsF
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useFormsFormXmlRetrieve<TData = Awaited<ReturnType<typeof formsFormXmlRetrieve>>, TError = unknown>(
   id: string,
@@ -260,11 +260,11 @@ export function useFormsFormXmlRetrieve<TData = Awaited<ReturnType<typeof formsF
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getFormsFormXmlRetrieveQueryOptions(id, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

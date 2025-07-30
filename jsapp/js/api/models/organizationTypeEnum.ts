@@ -13,10 +13,13 @@
  * `commercial` - A commercial/for-profit company
  * `none` - I am not associated with any organization
  */
-export enum OrganizationTypeEnum {
-  'non-profit' = 'non-profit',
-  government = 'government',
-  educational = 'educational',
-  commercial = 'commercial',
-  none = 'none',
-}
+export type OrganizationTypeEnum = (typeof OrganizationTypeEnum)[keyof typeof OrganizationTypeEnum]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const OrganizationTypeEnum = {
+  'non-profit': 'non-profit',
+  government: 'government',
+  educational: 'educational',
+  commercial: 'commercial',
+  none: 'none',
+} as const
