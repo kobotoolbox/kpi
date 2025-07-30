@@ -197,4 +197,17 @@
   .animate-processing {
     animation: processing 1.5s infinite;
   }
+
+  .project-downloads__date-wrapper {
+    margin-left: 28px;
+    width: calc(100% - 28px);
+  }
+
+  .project-downloads__date-selector {
+    margin: 0 5px;
+    border: 1px solid colors.$kobo-gray-300;
+    padding: 2px 4px;
+    border-radius: 4px;
+    margin-top: 4px;
+  }
 }

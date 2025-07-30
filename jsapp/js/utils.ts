@@ -13,6 +13,8 @@ import moment from 'moment'
 import { Cookies } from 'react-cookie'
 import type { Toast, ToastOptions } from 'react-hot-toast'
 import { toast } from 'react-hot-toast'
+import type { Json } from './components/common/common.interfaces'
+import type { MongoQuery } from './dataInterface'
 
 export const LANGUAGE_COOKIE_NAME = 'django_language'
 
@@ -576,4 +578,23 @@ export function removeDefaultUuidPrefix(uuid: string) {
  */
 export function matchUuid(uuidA: string, uuidB: string) {
   return addDefaultUuidPrefix(uuidA) === addDefaultUuidPrefix(uuidB)
+}
+
+export function createDateQuery(startDate: string, endDate: string): MongoQuery {
+  // $and is necessary as repeating a json key is not valid
+  const andQuery: Json = []
+  if (startDate) {
+    if (!startDate.includes('T')) {
+      startDate = startDate + 'T00:00Z'
+    }
+    andQuery.push({ _submission_time: { $gt: startDate } })
+  }
+  if (endDate) {
+    if (!endDate.includes('T')) {
+      endDate = endDate + 'T23:59:59.999Z'
+    }
+    andQuery.push({ _submission_time: { $lt: endDate } })
+  }
+
+  return andQuery
 }

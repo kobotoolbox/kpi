@@ -1,59 +1,16 @@
-import calendar
-import functools
-from datetime import datetime
-from math import ceil, floor, inf
+from math import inf
 from typing import Optional
-from zoneinfo import ZoneInfo
 
-from dateutil.relativedelta import relativedelta
 from django.apps import apps
 from django.conf import settings
 from django.db.models import F, Max, Q, QuerySet, Window
 from django.db.models.functions import Coalesce
-from django.utils import timezone
 
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization, OrganizationUser
-from kobo.apps.organizations.types import BillingDates, UsageLimits
+from kobo.apps.organizations.types import UsageLimits
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
-
-
-def requires_stripe(func):
-    """
-    Decorator for methods that rely either on models from Stripe packages or
-    stripe-related database fields
-
-    Any method that calls a @requires_stripe-decorated method should either be
-    decorated itself, or enclose the method in an if settings.STRIPE_ENABLED block
-    """
-
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        if not settings.STRIPE_ENABLED:
-            raise NotImplementedError(
-                f'Cannot call {func.__name__} with stripe disabled'
-            )
-        else:
-            from djstripe.models import (
-                Charge,
-                PaymentIntent,
-                Price,
-                Product,
-                Subscription,
-            )
-
-            PlanAddOn = apps.get_model('stripe', 'PlanAddOn')
-
-            kwargs['product_model'] = Product
-            kwargs['subscription_model'] = Subscription
-            kwargs['price_model'] = Price
-            kwargs['charge_model'] = Charge
-            kwargs['payment_intent_model'] = PaymentIntent
-            kwargs['plan_add_on_model'] = PlanAddOn
-
-            return func(*args, **kwargs)
-
-    return wrapper
+from kobo.apps.stripe.utils.import_management import requires_stripe
 
 
 def _get_default_usage_limits():
@@ -72,6 +29,14 @@ def _get_subscription_metadata_fields_for_usage_type(usage_type: UsageType):
     )
 
 
+def get_default_add_on_limits():
+    return {
+        f'{UsageType.SUBMISSION}_limit': 0,
+        f'{UsageType.ASR_SECONDS}_limit': 0,
+        f'{UsageType.MT_CHARACTERS}_limit': 0,
+    }
+
+
 @requires_stripe
 def get_default_plan_name(**kwargs) -> Optional[str]:
     Product = kwargs['product_model']
@@ -82,238 +47,6 @@ def get_default_plan_name(**kwargs) -> Optional[str]:
     )
     if default_plan is not None:
         return default_plan['name']
-
-
-def generate_return_url(product_metadata):
-    """
-    Determine which frontend page Stripe should redirect users to
-    after they make a purchase or manage their account.
-    """
-    base_url = settings.KOBOFORM_URL + '/#/account/'
-    return_page = 'addons' if product_metadata['product_type'] == 'addon' else 'plan'
-    return base_url + return_page
-
-
-@requires_stripe
-def get_current_billing_period_dates_by_org(
-    orgs: list[Organization] = None, **kwargs
-) -> dict[str, BillingDates]:
-
-    now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
-    first_of_this_month = datetime(now.year, now.month, 1, tzinfo=ZoneInfo('UTC'))
-    first_of_next_month = first_of_this_month + relativedelta(months=1)
-
-    # check 1: look for active subscriptions
-    all_active_billing_dates = get_current_billing_period_dates_for_active_plans(orgs)
-
-    results = {}
-    already_seen = []
-    remaining_orgs = []
-    for org_id, dates in all_active_billing_dates.items():
-        results[org_id] = dates
-        already_seen.append(org_id)
-
-    # check 2: look for canceled subscriptions
-    if orgs is not None:
-        # if we're only looking for a specific list of orgs and we already have
-        # dates for all of them, return
-        remaining_orgs = [org for org in orgs if org.id not in already_seen]
-        if len(remaining_orgs) == 0:
-            return results
-        else:
-            # only look for canceled subscriptions for orgs in the list
-            # we didn't get active subs for
-            all_canceled_billing_dates = (
-                get_current_billing_period_dates_based_on_canceled_plans(
-                    orgs=remaining_orgs
-                )
-            )
-    else:
-        all_canceled_billing_dates = (
-            get_current_billing_period_dates_based_on_canceled_plans()
-        )
-
-    for org_id, dates in all_canceled_billing_dates.items():
-        # prioritize active subscriptions over canceled ones
-        results[org_id] = results.get(org_id) or dates
-        already_seen.append(org_id)
-
-    # default: beginning of this month and beginning of next month
-    if orgs is not None:
-        remaining_orgs = [org for org in remaining_orgs if org.id not in already_seen]
-        for remaining_org in remaining_orgs:
-            results[remaining_org.id] = {
-                'start': first_of_this_month,
-                'end': first_of_next_month,
-            }
-        return results
-
-    for org in Organization.objects.filter(~Q(id__in=already_seen)):
-        results[org.id] = {
-            'start': first_of_this_month,
-            'end': first_of_next_month,
-        }
-    return results
-
-
-@requires_stripe
-def get_current_billing_period_dates_based_on_canceled_plans(
-    orgs: list[Organization] = None, **kwargs
-) -> dict[str, BillingDates]:
-    """
-    Retrieve the current billing cycle based on the most recent canceled plan for
-    the provided organizations (not including addons). If no list of organizations is
-    provided, returns details for all canceled plans.
-
-    Example return dict:
-    {
-        'org1': {
-            'start': datetime(2025,01,10,..., UTC),
-            'end': datetime(2026,01,10,...,UTC),
-        }
-        ...
-    }
-    """
-    all_orgs = Organization.objects.prefetch_related('djstripe_customers')
-    if orgs is not None:
-        all_orgs = all_orgs.filter(id__in=[org.id for org in orgs])
-    all_cancellation_dates = (
-        all_orgs.filter(
-            djstripe_customers__subscriptions__status='canceled',
-            djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',  # noqa
-        )
-        .values('id')
-        .annotate(
-            anchor=Max(F('djstripe_customers__subscriptions__ended_at')),
-        )
-    )
-    result = {}
-    for res in all_cancellation_dates:
-        start, end = get_billing_dates_after_canceled_subscription(res['anchor'])
-        result[res['id']] = {'start': start, 'end': end}
-
-    return result
-
-
-@requires_stripe
-def get_billing_dates_after_canceled_subscription(
-    canceled_subscription_anchor: datetime, **kwargs
-):
-    now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
-    canceled_subscription_anchor = canceled_subscription_anchor.replace(
-        tzinfo=ZoneInfo('UTC')
-    )
-    period_end = canceled_subscription_anchor
-    # The goal below is to mimic Stripe's logic
-
-    # > A monthly subscription with a billing cycle anchor date of January 31
-    # > bills the last day of the month closest to the anchor date, so February 28
-    # > (or February 29 in a leap year), then March 31, April 30, and so on.
-
-    # Example: If a user cancels their plan on October 31,
-    # the billing periods should be structured as follows:
-
-    # | Month of Consultation | Billing Period   |
-    # |-----------------------|------------------|
-    # | November              | Oct 31 - Nov 30  |
-    # | December              | Nov 30 - Dec 31  |
-    # | January               | Dec 31 - Jan 31  |
-    # | February              | Jan 31 - Feb 28  |
-    # | March                 | Feb 28 - Mar 31  |
-    # | April                 | Mar 31 - Apr 30  |
-    # | May                   | Apr 30 - May 31  |
-    # etc...
-    cpt = 1
-    while period_end < now:
-        period_end = canceled_subscription_anchor + relativedelta(months=cpt)
-        cpt += 1
-
-    previous_month = period_end - relativedelta(months=1)
-    last_day_of_previous_month = calendar.monthrange(
-        previous_month.year, previous_month.month
-    )[1]
-    adjusted_start_day = min(
-        canceled_subscription_anchor.day, last_day_of_previous_month
-    )
-    period_start = previous_month.replace(day=adjusted_start_day)
-
-    # Avoid pushing billing cycle back to before cancellation date
-    period_start = max(period_start, canceled_subscription_anchor)
-    return period_start, period_end
-
-
-@requires_stripe
-def get_current_billing_period_dates_for_active_plans(
-    organizations: list[Organization] = None, **kwargs
-) -> dict[str, dict[str, datetime]]:
-    """
-    Retrieve the current billing cycle for the most recent active plan for
-    the provided organizations (not including addons). If no list of organizations is
-    provided, returns details for all active plans.
-
-    Example return dict:
-    {
-        'org1': {
-            'start': datetime(2025,01,10,..., UTC),
-            'end': datetime(2026,01,10,...,UTC),
-        }
-        ...
-    }
-    """
-    now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
-    first_of_this_month = datetime(now.year, now.month, 1, tzinfo=ZoneInfo('UTC'))
-    first_of_next_month = first_of_this_month + relativedelta(months=1)
-    orgs = Organization.objects.prefetch_related('djstripe_customers')
-    if organizations is not None:
-        orgs = orgs.filter(id__in=[org.id for org in organizations])
-
-    all_active_plans = (
-        orgs.filter(
-            djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
-            djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',  # noqa
-        )
-        .values(
-            org_id=F('id'),
-            anchor=F('djstripe_customers__subscriptions__billing_cycle_anchor'),
-            start=F('djstripe_customers__subscriptions__current_period_start'),
-            end=F('djstripe_customers__subscriptions__current_period_end'),
-            interval=F(
-                'djstripe_customers__subscriptions__items__price__recurring__interval'  # noqa: E501
-            ),
-            start_date=F('djstripe_customers__subscriptions__start_date'),
-        )
-        .annotate(
-            # find the most recent one
-            most_recent=Window(
-                expression=Max('start_date'),
-                partition_by=F('org_id'),
-                order_by='org_id',
-            )
-        )
-        .filter(
-            Q(start_date=F('most_recent'))
-            | (Q(start_date__isnull=True) & Q(most_recent__isnull=True))
-        )
-    )
-    results = {}
-    for res in all_active_plans:
-        dates = {}
-        if res['anchor'] is None:
-            dates['start'] = first_of_this_month
-            dates['end'] = first_of_next_month
-        else:
-            dates['start'] = res['start']
-            dates['end'] = res['end']
-        results[res['org_id']] = dates
-    return results
-
-
-def get_default_add_on_limits():
-    return {
-        f'{UsageType.SUBMISSION}_limit': 0,
-        f'{UsageType.ASR_SECONDS}_limit': 0,
-        f'{UsageType.MT_CHARACTERS}_limit': 0,
-    }
 
 
 @requires_stripe
@@ -560,6 +293,30 @@ def get_paid_subscription_limits(organization_ids: list[str], **kwargs) -> Query
     return most_recent_subs
 
 
+@requires_stripe
+def get_plan_name(org_user: OrganizationUser, **kwargs) -> str | None:
+    Subscription = kwargs['subscription_model']
+    subscriptions = Subscription.objects.filter(
+        customer__subscriber_id=org_user.organization.id,
+        status__in=ACTIVE_STRIPE_STATUSES,
+    )
+
+    unique_plans = set()
+    for subscription in subscriptions:
+        unique_plans.add(subscription.plan)
+
+    # Make sure plans come before addons
+    plan_list = sorted(
+        unique_plans,
+        key=lambda plan: plan.product.metadata.get('product_type', '') == 'plan',
+        reverse=True,
+    )
+    plan_name = ' and '.join([plan.product.name for plan in plan_list])
+    if plan_name is None or plan_name == '':
+        plan_name = get_default_plan_name()
+    return plan_name
+
+
 def determine_limit(
     usage_type: UsageType,
     plan_limit,
@@ -586,39 +343,3 @@ def determine_limit(
         if addon_limit > limit:
             limit = addon_limit
     return limit
-
-
-@requires_stripe
-def get_total_price_for_quantity(
-    price: 'djstripe.models.Price', quantity: int, **kwargs
-):
-    """
-    Calculate a total price (dividing and rounding as necessary) for an item quantity
-    and djstripe Price object
-    """
-    total_price = quantity
-    if price.transform_quantity:
-        total_price = total_price / price.transform_quantity['divide_by']
-        if price.transform_quantity['round'] == 'up':
-            total_price = ceil(total_price)
-        else:
-            total_price = floor(total_price)
-    return total_price * price.unit_amount
-
-
-@requires_stripe
-def get_plan_name(org_user: OrganizationUser, **kwargs) -> str | None:
-    Subscription = kwargs['subscription_model']
-    subscriptions = Subscription.objects.filter(
-        customer__subscriber_id=org_user.organization.id,
-        status__in=ACTIVE_STRIPE_STATUSES,
-    )
-
-    unique_plans = set()
-    for subscription in subscriptions:
-        unique_plans.add(subscription.plan)
-
-    plan_name = ' and '.join([plan.product.name for plan in unique_plans])
-    if plan_name is None or plan_name == '':
-        plan_name = get_default_plan_name()
-    return plan_name

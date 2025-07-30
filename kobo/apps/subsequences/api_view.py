@@ -1,22 +1,25 @@
 from copy import deepcopy
 
-from django.shortcuts import get_object_or_404
+from django.conf import settings
+from django.db.models import Q
+from django.shortcuts import Http404
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError as SchemaValidationError
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError as APIValidationError
 from rest_framework.response import Response
 
-
-from kobo.apps.openrosa.apps.logger.models import Instance
-
 from kobo.apps.audit_log.base_views import AuditLoggedApiView
 from kobo.apps.audit_log.models import AuditType
-
+from kobo.apps.openrosa.apps.logger.models import Instance
+from kobo.apps.organizations.constants import UsageType
+from kobo.apps.subsequences.constants import GOOGLETS, GOOGLETX
 from kobo.apps.subsequences.models import SubmissionExtras
 from kobo.apps.subsequences.utils.deprecation import get_sanitized_dict_keys
+from kpi.exceptions import UsageLimitExceededException
 from kpi.models import Asset
 from kpi.permissions import SubmissionPermission
+from kpi.utils.usage_calculator import ServiceUsageCalculator
 from kpi.views.environment import check_asr_mt_access_for_user
 
 
@@ -25,9 +28,7 @@ def _check_asr_mt_access_if_applicable(user, posted_data):
     # quotas and accounting
     MAGIC_STATUS_VALUE = 'requested'
     user_has_access = check_asr_mt_access_for_user(user)
-    if user_has_access:
-        return True
-    # Oops, no access. But did they request ASR/MT in the first place?
+
     for _, val in posted_data.items():
         # e.g.
         # {
@@ -41,7 +42,7 @@ def _check_asr_mt_access_if_applicable(user, posted_data):
         # }
         if not isinstance(val, dict):
             continue
-        for _, child_val in val.items():
+        for child_key, child_val in val.items():
             if not isinstance(child_val, dict):
                 continue
             try:
@@ -49,11 +50,25 @@ def _check_asr_mt_access_if_applicable(user, posted_data):
             except KeyError:
                 continue
             else:
-                if asr_mt_request:
+                if asr_mt_request and not user_has_access:
                     # This is temporary code, and anyone here is trying to
                     # abuse the API, so don't bother translators with the
                     # message string
                     raise PermissionDenied('ASR/MT features are not available')
+
+            if not settings.STRIPE_ENABLED:
+                return True
+
+            calculator = ServiceUsageCalculator(user)
+            balances = calculator.get_usage_balances()
+            if child_key == GOOGLETX:
+                balance = balances[UsageType.MT_CHARACTERS]
+                if balance and balance['exceeded']:
+                    raise UsageLimitExceededException()
+            if child_key == GOOGLETS:
+                balance = balances[UsageType.ASR_SECONDS]
+                if balance and balance['exceeded']:
+                    raise UsageLimitExceededException()
 
 
 class AdvancedSubmissionPermission(SubmissionPermission):
@@ -88,8 +103,8 @@ class AdvancedSubmissionView(AuditLoggedApiView):
             s_uuid = request.data.get('submission')
         else:
             s_uuid = request.query_params.get('submission')
-        if s_uuid is not None:
-            get_object_or_404(Instance, uuid=s_uuid)
+
+        self._validate_submission_or_404(s_uuid)
         return get_submission_processing(self.asset, s_uuid)
 
     def post(self, request, asset_uid, format=None):
@@ -99,13 +114,23 @@ class AdvancedSubmissionView(AuditLoggedApiView):
             validate(posted_data, schema)
         except SchemaValidationError as err:
             raise APIValidationError({'error': err})
+
         # ensure the submission exists
-        get_object_or_404(Instance, uuid=posted_data['submission'])
+        self._validate_submission_or_404(posted_data['submission'])
 
         _check_asr_mt_access_if_applicable(request.user, posted_data)
 
         submission = self.asset.update_submission_extra(posted_data)
         return Response(submission.content)
+
+    @staticmethod
+    def _validate_submission_or_404(s_uuid: str):
+        # TODO: Remove fallback check for `root_uuid=None` once
+        #  0005 long-running migration is complete
+        if not Instance.objects.filter(
+            Q(root_uuid=s_uuid) | Q(uuid=s_uuid, root_uuid__isnull=True)
+        ).exists():
+            raise Http404
 
 
 def get_submission_processing(asset, s_uuid):

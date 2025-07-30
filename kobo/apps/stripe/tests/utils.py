@@ -79,6 +79,12 @@ def generate_plan_subscription(
     if interval == 'year':
         period_offset = relativedelta(months=6)
 
+    subscription_metadata = {
+        'kpi_owner_username': organization.owner_user_object.username,
+        'kpi_owner_user_id': organization.owner_user_object.id,
+        'organization_id': organization.id,
+    }
+
     subscription_item = baker.make(
         SubscriptionItem, price=price, quantity=1, livemode=False, plan=plan
     )
@@ -93,6 +99,7 @@ def generate_plan_subscription(
         current_period_start=created_date - period_offset,
         start_date=created_date,
         plan=subscription_item.plan,
+        metadata=subscription_metadata,
     )
 
 

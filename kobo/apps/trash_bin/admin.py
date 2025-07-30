@@ -2,7 +2,9 @@ from django.contrib import admin, messages
 from django.db.models import F
 
 from kpi.models import Asset
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
+from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 
 from .exceptions import TrashTaskInProgressError
 from .models import TrashStatus
@@ -12,6 +14,49 @@ from .models.project import ProjectTrash
 from .mixins.admin import TrashMixin
 from .tasks import empty_account, empty_attachment, empty_project
 from .utils import put_back
+
+
+class AttachmentOwnerListFilter(admin.SimpleListFilter):
+    # Human-readable title which will be displayed in the
+    # right admin sidebar just above the filter options.
+    title = 'Attachment Owner'
+
+    # Parameter for the filter that will be used in the URL query.
+    parameter_name = 'attachment_owner'
+
+    def lookups(self, request, model_admin):
+        attachment_ids = (
+            model_admin.model.objects.values_list('attachment_id', flat=True)
+        )
+        attachment_owners = (
+            Attachment.all_objects.filter(pk__in=list(attachment_ids))
+            .select_related('user')
+            .values_list('user__pk', 'user__username')
+            .distinct()
+        )
+        return list(attachment_owners)
+
+    def queryset(self, request, queryset):
+        if self.value():
+            attachment_ids = Attachment.all_objects.filter(
+                user__pk=self.value()
+            ).values_list('pk', flat=True)
+            return queryset.filter(attachment_id__in=list(attachment_ids))
+        return queryset
+
+
+class ProjectOwnerListFilter(admin.SimpleListFilter):
+    title = 'Project Owner'
+    parameter_name = 'project_owner'
+
+    def lookups(self, request, model_admin):
+        users = User.objects.filter(assets__trash__isnull=False).distinct()
+        return [(user.pk, user.username) for user in users]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(asset__owner__pk=self.value())
+        return queryset
 
 
 class StatusListFilter(admin.SimpleListFilter):
@@ -96,7 +141,7 @@ class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
         'get_start_time',
         'get_failure_error',
     ]
-    list_filter = [StatusListFilter]
+    list_filter = [ProjectOwnerListFilter, StatusListFilter]
     search_fields = ['asset__name', 'asset__uid', 'request_author__username']
     ordering = ['-date_created', 'asset__name']
     actions = ['empty_trash', 'put_back']
@@ -164,7 +209,7 @@ class AttachmentTrashAdmin(TrashMixin, admin.ModelAdmin):
         'get_start_time',
         'get_failure_error',
     ]
-    list_filter = [StatusListFilter]
+    list_filter = [AttachmentOwnerListFilter, StatusListFilter]
     search_fields = ['attachment_id', 'request_author__username']
     ordering = ['-date_created']
     actions = ['empty_trash', 'put_back']
@@ -200,13 +245,12 @@ class AttachmentTrashAdmin(TrashMixin, admin.ModelAdmin):
             id__in=list(queryset.values_list('attachment_id', flat=True))
         ).annotate(
             attachment_uid=F('uid'), attachment_basename=F('media_file_basename')
-        ).values('pk', 'attachment_uid', 'attachment_basename')
-
-        AttachmentTrash.toggle_statuses(
-            [att['attachment_uid'] for att in attachments], active=True
-        )
+        ).values('pk', 'attachment_uid', 'attachment_basename', 'instance_id')
         try:
             put_back(request.user, attachments, 'attachment')
+            ParsedInstance.bulk_update_attachments(
+                list({att['instance_id'] for att in attachments})
+            )
         except TrashTaskInProgressError:
             self.message_user(
                 request,

@@ -1,6 +1,7 @@
 from rest_framework import mixins, viewsets
 from rest_framework.views import APIView
 
+from kpi.utils.log import logging
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -42,7 +43,14 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
     def initialize_request(self, request, *args, **kwargs):
         request = super().initialize_request(request, *args, **kwargs)
         request._request.log_type = self.log_type
-        request._request._data = request.data.copy()
+        try:
+            request._request._data = request.data.copy()
+        except TypeError as te:
+            # On multi-upload requests, Django uses TemporaryUploadedFile objects which
+            # cannot be copied. We don't currently have audit logs for these requests
+            # so catch it and ignore it
+            logging.error(f'Error copying request data: {te}')
+            request._request._data = {}
         if isinstance(self, AssetNestedObjectViewsetMixin):
             request._request.asset = self.asset
         return request
