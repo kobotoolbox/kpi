@@ -81,13 +81,17 @@ def get_uuid_from_xml(xml):
     return None
 
 
-def get_root_uuid_from_xml(xml):
+def get_root_uuid_from_xml(xml) -> tuple[str, bool]:
+    """
+    Returns the value of <meta/rootUuid> from the given XML. If that node is missing,
+    falls back to <meta/instanceID>. The boolean indicates whether a fallback was used.
+    """
     root_uuid = get_meta_from_xml(xml, 'rootUuid')
     if root_uuid:
-        return remove_uuid_prefix(root_uuid)
+        return remove_uuid_prefix(root_uuid), False
 
     # If no rootUuid, fall back to instanceID
-    return get_uuid_from_xml(xml)
+    return get_uuid_from_xml(xml), True
 
 
 def get_submission_date_from_xml(xml) -> Optional[datetime]:
@@ -107,11 +111,9 @@ def get_submission_date_from_xml(xml) -> Optional[datetime]:
 
 def get_deprecated_uuid_from_xml(xml):
     uuid = get_meta_from_xml(xml, 'deprecatedID')
-    regex = re.compile(r'uuid:(.*)')
     if uuid:
-        matches = regex.match(uuid)
-        if matches and len(matches.groups()) > 0:
-            return matches.groups()[0]
+        return remove_uuid_prefix(uuid)
+
     return None
 
 

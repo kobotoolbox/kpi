@@ -287,8 +287,17 @@ def trash_bin_task_failure(model: TrashBinModel, **kwargs):
     obj_trash_id = kwargs['args'][0]
     with transaction.atomic():
         obj_trash = model.objects.select_for_update().get(pk=obj_trash_id)
-        obj_trash.metadata['failure_error'] = str(exception)
-        obj_trash.status = TrashStatus.FAILED
+
+        error = str(exception)
+        # The task may be stopped abruptly without any traceback or clear exception.
+        # This can happen if the kernel kills it due to an OOM condition,
+        # or if Kubernetes terminates the pod (e.g., OOMKilled, failed  probes, etc.).
+        # In such cases, the exact error type is unknown.
+        if 'Worker exited prematurely' in error:
+            obj_trash.status = TrashStatus.IN_PROGRESS
+        else:
+            obj_trash.status = TrashStatus.FAILED
+        obj_trash.metadata['failure_error'] = error
         obj_trash.save(update_fields=['status', 'metadata', 'date_modified'])
 
 

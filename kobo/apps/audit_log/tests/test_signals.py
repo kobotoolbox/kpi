@@ -218,7 +218,7 @@ class ProjectHistoryLogsSignalsTestCase(BaseTestCase):
             {
                 'anotheruser': [
                     {
-                        'code': PERM_VIEW_SUBMISSIONS,
+                        'codename': PERM_VIEW_SUBMISSIONS,
                         'filters': [{'_submitted_by': 'someuser'}],
                     }
                 ]

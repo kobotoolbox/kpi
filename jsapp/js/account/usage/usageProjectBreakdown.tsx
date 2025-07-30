@@ -1,10 +1,10 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import prettyBytes from 'pretty-bytes'
 import { Link } from 'react-router-dom'
 import { useOrganizationQuery } from '#/account/organization/organizationQuery'
-import type { AssetUsage, AssetWithUsage } from '#/account/usage/usage.api'
-import { getOrgAssetUsage } from '#/account/usage/usage.api'
+import type { AssetUsage, AssetWithUsage } from '#/account/usage/assetUsage.api'
+import { getOrgAssetUsage } from '#/account/usage/assetUsage.api'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
@@ -16,7 +16,7 @@ import SortableProjectColumnHeader from '#/projects/projectsTable/sortableProjec
 import { ROUTES } from '#/router/routerConstants'
 import { convertSecondsToMinutes } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
-import { UsageContext } from './useUsage.hook'
+import { useBillingPeriod } from './useBillingPeriod'
 
 type ButtonType = 'back' | 'forward'
 
@@ -31,8 +31,8 @@ const ProjectBreakdown = () => {
   const [order, setOrder] = useState({})
   const [showIntervalBanner, setShowIntervalBanner] = useState(true)
   const [loading, setLoading] = useState(true)
-  const [usage] = useContext(UsageContext)
   const orgQuery = useOrganizationQuery()
+  const { billingPeriod } = useBillingPeriod()
 
   useEffect(() => {
     async function fetchData(orgId: string) {
@@ -151,7 +151,7 @@ const ProjectBreakdown = () => {
             <div className={styles.intervalBannerText}>
               {t(
                 'Submissions, transcription minutes, and translation characters reflect usage for the current ##INTERVAL## based on your plan settings.',
-              ).replace('##INTERVAL##', usage.trackingPeriod)}
+              ).replace('##INTERVAL##', billingPeriod === 'year' ? t('year') : t('month'))}
             </div>
           </div>
           <Button size='s' type='text' startIcon='close' onClick={dismissIntervalBanner} />

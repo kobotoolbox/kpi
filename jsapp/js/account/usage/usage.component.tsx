@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react'
 
+import { LoadingOverlay } from '@mantine/core'
 import cx from 'classnames'
 import { when } from 'mobx'
 import { useLocation } from 'react-router-dom'
@@ -8,17 +9,16 @@ import type { AccountLimitDetail, LimitAmount } from '#/account/stripe.types'
 import { Limits, USAGE_TYPE } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
 import UsageContainer from '#/account/usage/usageContainer'
-import { UsageContext } from '#/account/usage/useUsage.hook'
 import { YourPlan } from '#/account/usage/yourPlan.component'
-import LoadingSpinner from '#/components/common/loadingSpinner'
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
 import envStore from '#/envStore'
-import { useRefreshApiFetcher } from '#/hooks/useRefreshApiFetcher.hook'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
 import { convertSecondsToMinutes, formatDate } from '#/utils'
 import { OneTimeAddOnsContext } from '../useOneTimeAddonList.hook'
 import { ProductsContext } from '../useProducts.hook'
 import styles from './usage.module.scss'
+import { useBillingPeriod } from './useBillingPeriod'
+import { useServiceUsageQuery } from './useServiceUsageQuery'
 
 interface LimitState {
   storageByteRemainingLimit: LimitAmount
@@ -35,9 +35,7 @@ interface LimitState {
 
 export default function Usage() {
   const [products] = useContext(ProductsContext)
-  const [usage, loadUsage, usageStatus] = useContext(UsageContext)
   const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext)
-  useRefreshApiFetcher(loadUsage, usageStatus)
 
   const [limits, setLimits] = useState<LimitState>({
     storageByteRemainingLimit: Limits.unlimited,
@@ -52,13 +50,21 @@ export default function Usage() {
     stripeEnabled: false,
   })
 
+  const {
+    data: usageData,
+    isLoading: isUsageLoading,
+    isFetchedAfterMount: isUsageFetchedAfterMount,
+  } = useServiceUsageQuery({ shouldForceInvalidation: true })
+  const { billingPeriod } = useBillingPeriod()
+
   const location = useLocation()
 
   const dateRange = useMemo(() => {
-    const startDate = formatDate(usage.currentPeriodStart)
-    const endDate = formatDate(usage.currentPeriodEnd)
+    if (!usageData) return ''
+    const startDate = formatDate(usageData.currentPeriodStart)
+    const endDate = formatDate(usageData.currentPeriodEnd)
     return t('##start_date## to ##end_date##').replace('##start_date##', startDate).replace('##end_date##', endDate)
-  }, [usage.currentPeriodStart, usage.currentPeriodEnd, usage.trackingPeriod])
+  }, [usageData?.currentPeriodStart, usageData?.currentPeriodEnd])
 
   // check if stripe is enabled - if so, get limit data
   useEffect(() => {
@@ -146,12 +152,13 @@ export default function Usage() {
   }, [location])
 
   if (
-    usageStatus.pending ||
-    usageStatus.error ||
+    isUsageLoading ||
+    !isUsageFetchedAfterMount ||
+    !usageData ||
     !limits.isLoaded ||
     (limits.stripeEnabled && (!products.isLoaded || !oneTimeAddOnsContext.isLoaded))
   ) {
-    return <LoadingSpinner />
+    return <LoadingOverlay visible={true} />
   }
 
   return (
@@ -159,9 +166,9 @@ export default function Usage() {
       <LimitNotifications accountPage />
       <header className={styles.header}>
         <h2 className={styles.headerText}>{t('Your usage')}</h2>
-        {typeof usage.lastUpdated === 'string' && (
+        {typeof usageData.lastUpdated === 'string' && (
           <p className={styles.updated}>
-            {t('Last update: ##LAST_UPDATE_TIME##').replace('##LAST_UPDATE_TIME##', usage.lastUpdated)}
+            {t('Last update: ##LAST_UPDATE_TIME##').replace('##LAST_UPDATE_TIME##', usageData.lastUpdated)}
           </p>
         )}
       </header>
@@ -174,12 +181,12 @@ export default function Usage() {
               <time className={styles.date}>{dateRange}</time>
             </span>
             <UsageContainer
-              usage={usage.submissions}
+              usage={usageData.submissions}
               remainingLimit={limits.submissionsRemainingLimit}
               recurringLimit={limits.submissionsRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.SUBMISSIONS)}
               hasAddOnsLayout={hasAddOnsLayout}
-              period={usage.trackingPeriod}
+              period={billingPeriod}
               type={USAGE_TYPE.SUBMISSIONS}
             />
           </div>
@@ -189,12 +196,12 @@ export default function Usage() {
               <div className={styles.date}>{t('per account')}</div>
             </span>
             <UsageContainer
-              usage={usage.storage}
+              usage={usageData.storage}
               remainingLimit={limits.storageByteRemainingLimit}
               recurringLimit={limits.storageByteRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.STORAGE)}
               hasAddOnsLayout={hasAddOnsLayout}
-              period={usage.trackingPeriod}
+              period={billingPeriod}
               label={t('Total')}
               type={USAGE_TYPE.STORAGE}
             />
@@ -207,12 +214,12 @@ export default function Usage() {
               <time className={styles.date}>{dateRange}</time>
             </span>
             <UsageContainer
-              usage={usage.transcriptionMinutes}
+              usage={usageData.transcriptionMinutes}
               remainingLimit={limits.nlpMinuteRemainingLimit}
               recurringLimit={limits.nlpMinuteRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSCRIPTION)}
               hasAddOnsLayout={hasAddOnsLayout}
-              period={usage.trackingPeriod}
+              period={billingPeriod}
               type={USAGE_TYPE.TRANSCRIPTION}
             />
           </div>
@@ -222,12 +229,12 @@ export default function Usage() {
               <time className={styles.date}>{dateRange}</time>
             </span>
             <UsageContainer
-              usage={usage.translationChars}
+              usage={usageData.translationChars}
               remainingLimit={limits.nlpCharacterRemainingLimit}
               recurringLimit={limits.nlpCharacterRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSLATION)}
               hasAddOnsLayout={hasAddOnsLayout}
-              period={usage.trackingPeriod}
+              period={billingPeriod}
               type={USAGE_TYPE.TRANSLATION}
             />
           </div>

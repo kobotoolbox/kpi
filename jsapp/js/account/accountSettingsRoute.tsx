@@ -116,6 +116,11 @@ const AccountSettings = () => {
 
   const accountName = currentLoggedAccount?.username || ''
 
+  const helpArticleUrl =
+    envStore.data.support_url && envStore.data.support_url.includes('support.kobotoolbox.org')
+      ? envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
+      : envStore.data.support_url
+
   return (
     <bem.AccountSettings onSubmit={updateProfile}>
       <bem.AccountSettings__actions>
@@ -150,7 +155,7 @@ const AccountSettings = () => {
                     'This privacy feature is now a per-project setting. New projects will require authentication by default.',
                   )}
                   &nbsp;
-                  <a href={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL} target='_blank'>
+                  <a href={helpArticleUrl} target='_blank'>
                     {t('Learn more about these changes here.')}
                   </a>
                 </>

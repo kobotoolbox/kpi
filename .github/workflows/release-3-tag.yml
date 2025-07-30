@@ -1,0 +1,134 @@
+name: 'CD: tag'
+
+
+on:
+  push:
+    tags:
+      - v2.0**
+
+
+jobs:
+
+  darker:
+    uses: ./.github/workflows/darker.yml
+
+  pytest:
+    uses: ./.github/workflows/pytest.yml
+
+  npm-test:
+    uses: ./.github/workflows/npm-test.yml
+
+  version:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Formats the version number
+      id: version
+      run: |
+        set -xe
+        TAG=$GITHUB_REF
+        VERSION=$(echo "$TAG" | sed 's/v//')
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+  deploy-to-master:
+    runs-on: ubuntu-24.04
+    needs:
+      - darker
+      - pytest
+      - npm-test
+    if: |
+      !failure() &&
+      (needs.darker.result == 'skipped' || needs.darker.result == 'success') &&
+      (needs.pytest.result == 'skipped' || needs.pytest.result == 'success') &&
+      (needs.npm-test.result == 'skipped' || needs.npm-test.result == 'success')
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: deploy to master
+      run: |
+        echo 'TODO, for now deploy manually on kf.master.kbtdev'
+        ## see https://github.com/kobotoolbox/kobo-deployments
+        ## see https://chat.kobotoolbox.org/#narrow/stream/4-Kobo-Dev/topic/2.2E024.2E33.20Release/near/472818
+        ## Note: script does two things - deploys and updates docker-compose - see if can seperate that for easier reruns
+        ## Note: this server has lots of data, run migrations or smtg with a 1 minute timeout to flag if some migrations run too long
+        # pipenv shell
+        # fab update_kpi:$VERSION
+        # fab dev_deploy:master,kpi,$GITHUB_REF
+
+  bump:
+    runs-on: ubuntu-24.04
+    needs:
+      - darker
+      - pytest
+      - npm-test
+      - deploy-to-master
+    if: |
+      !failure() &&
+      (needs.darker.result == 'skipped' || needs.darker.result == 'success') &&
+      (needs.pytest.result == 'skipped' || needs.pytest.result == 'success') &&
+      (needs.npm-test.result == 'skipped' || needs.npm-test.result == 'success')
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Bump Kobotoolbox version in kobo-docker repo and tag it
+      run: |
+        echo 'TODO, lets test this later with a real release branch'
+        echo 'see for example https://github.com/kobotoolbox/kobo-docker/commit/8d964e51c8a82ae74f19154fc5e895ae1db6854d'
+
+    - name: Bump Kobotoolbox version in kobo-install repo and tag it
+      run: |
+        echo 'TODO, lets test this later with a real release branch'
+        echo 'see for example https://github.com/kobotoolbox/kobo-install/commit/90f63c477480c1f6771c3e9ff2295046b2d99dae'
+
+
+  queue-deploy-to-production:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: create Linear issue to deploy on Global
+      run: |
+        echo 'TODO, for now do it manually'
+
+    - name: create Linear issue to deploy on EU a day later
+      run: |
+        echo 'TODO, for now do it manually'
+
+    - name: create Linear issue to deploy on private servers a week later
+      run: |
+        echo 'TODO, for now do it manually'
+
+
+  notify:
+    needs:
+      - version
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "${{ needs.version.outputs.version }} release"
+      content: ":label: Release branch tagged and passes CI. Please deploy to master, bump and tag kobo-docker and kobo-install, and deploy to production. (TODO: automate)"
+
+
+  on-failure:
+    needs:
+      - version
+      - darker
+      - pytest
+      - npm-test
+      - deploy-to-master
+      - bump
+    if: |
+      failure() &&
+      (needs.version.result == 'failure' || needs.version.result == 'timed_out' ||
+      needs.darker.result == 'failure' || needs.darker.result == 'timed_out' ||
+      needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' ||
+      needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out' ||
+      needs.deploy-to-master.result == 'failure' || needs.deploy-to-master.result == 'timed_out' ||
+      needs.bump.result == 'failure' || needs.bump.result == 'timed_out')
+    secrets: inherit
+    uses: './.github/workflows/zulip.yml'
+    with:
+      topic: "${{ needs.version.outputs.version }} release"
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release candidate tagging failed."

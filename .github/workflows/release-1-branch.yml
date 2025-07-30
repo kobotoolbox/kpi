@@ -1,0 +1,113 @@
+name: 'CD: branch'
+
+on:
+  workflow_dispatch:
+  schedule:
+    # It's good to deploy early in week:
+    # - In the best case, will QA, tag and deploy on the same Tuesday or Wednesday.
+    # - In an ok case, will QA, tag and deploy on the next Monday-Wednesday.
+    # - In the worst case, the last chance is to deploy on after-next Monday.
+    - cron: '17 5 * * 2'
+
+jobs:
+
+
+  create-branch:
+    runs-on: ubuntu-24.04
+    outputs:
+      current_tag: ${{ steps.branches.outputs.current_tag }}
+      prev_tag: ${{ steps.branches.outputs.prev_tag }}
+      prev_released: ${{ steps.branches.outputs.prev_released }}
+    steps:
+
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: "0"
+
+    - name: check if week number is even
+      id: week
+      run: |
+        set -xe
+        if (( $(date +%V) % 2 == 0 )); then
+          echo "even=true" >> $GITHUB_OUTPUT
+          echo $GITHUB_OUTPUT
+        else
+          echo "even=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: create next RC branch
+      if: ${{ steps.week.outputs.even == 'true' }}
+      run: |
+        set -xe
+        NEW_VERSION="2.$(date +"%Y" | tail -c4).$(date +"%V")"
+        NEW_BRANCH="release/$NEW_VERSION"
+        git config user.name "GitHub Actions Bot"
+        git config user.email "github-actions-bot@kobotoolbox.org"
+        git checkout -b $NEW_BRANCH
+        git push origin $NEW_BRANCH
+
+    - name: find previous release branch
+      if: ${{ steps.week.outputs.even == 'true' }}
+      id: branches
+      run: ./.github/find_prev_release_branch.sh
+
+    - name: delete previous branch if unreleased
+      if: ${{ steps.week.outputs.even == 'true' && steps.branches.outputs.prev_released == 'false' }}
+      env:
+        prev_tag: ${{ steps.branches.outputs.prev_tag }}
+        prev_branch: ${{ steps.branches.outputs.prev_branch }}
+      run: |
+        echo "tag $prev_tag doesn't exist, thus the previous release was NOT released and let's delete the branch.."
+        git push origin :$prev_branch
+
+
+  changelog:
+    needs:
+      - create-branch
+    if: ${{ needs.create-branch.outputs.current_tag }}
+    runs-on: ubuntu-24.04
+    steps:
+    - name: create Linear ticket to track a draft of changelog
+      run: |
+        echo 'TODO, for now do it manually'
+
+
+  notify-prev:
+    needs:
+      - create-branch
+    if: ${{ needs.create-branch.outputs.prev_released == 'false' }}
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "${{ needs.create-branch.outputs.prev_tag }} release"
+      content: ":skip_forward: release branch deleted, because it wasn't released. Please continue in the next release."
+
+
+  notify-current:
+    needs:
+      - create-branch
+    if: ${{ needs.create-branch.outputs.current_tag }}
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "${{ needs.create-branch.outputs.current_tag }} release"
+      content: ":seedling: release branch created."
+
+
+  on-failure:
+    needs:
+      - create-branch
+      - changelog
+      - notify-prev
+      - notify-current
+    if: |
+      failure() && (
+      (needs.create-branch.result == 'failure' || needs.create-branch.result == 'timed_out') ||
+      (needs.changelog.result == 'failure' || needs.changelog.result == 'timed_out') ||
+      (needs.notify-prev.result == 'failure' || needs.notify-prev.result == 'timed_out') ||
+      (needs.notify-current.result == 'failure' || needs.notify-current.result == 'timed_out'))
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "${{ needs.create-branch.outputs.current_tag }} release"
+      content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) something went wrong."
