@@ -86,10 +86,6 @@ class BaseDeploymentBackend(abc.ABC):
     def backend_response(self):
         return self.get_data('backend_response', {})
 
-    @abc.abstractmethod
-    def bulk_assign_mapped_perms(self):
-        pass
-
     def bulk_update_submissions(
         self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs
     ) -> dict:
