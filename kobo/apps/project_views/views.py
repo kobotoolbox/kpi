@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models.query import QuerySet
 from django.http import Http404
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -45,6 +45,22 @@ from .serializers import ProjectViewSerializer
             ProjectViewAssetResponse(many=True),
             raise_access_forbidden=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='offset',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Paginate results with offset parameter',
+            ),
+            OpenApiParameter(
+                name='limit',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Paginate results with limit parameter',
+            ),
+        ],
     ),
     list=extend_schema(
         description=read_md('project_views', 'list.md'),
@@ -70,6 +86,22 @@ from .serializers import ProjectViewSerializer
             require_auth=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='offset',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Paginate results with offset parameter',
+            ),
+            OpenApiParameter(
+                name='limit',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Paginate results with limit parameter',
+            ),
+        ],
     ),
 )
 class ProjectViewViewSet(
