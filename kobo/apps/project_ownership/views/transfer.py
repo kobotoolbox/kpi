@@ -1,6 +1,6 @@
 from django.db.models import Prefetch
 from django.shortcuts import Http404
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets
 
 from kpi.permissions import IsAuthenticated
@@ -10,6 +10,15 @@ from ..serializers import TransferDetailSerializer
 
 @extend_schema(
     tags=['transfers'],
+    parameters=[
+        OpenApiParameter(
+            name='parent_lookup_invite_uid',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent invite',
+        ),
+    ],
 )
 class TransferViewSet(viewsets.ReadOnlyModelViewSet):
 

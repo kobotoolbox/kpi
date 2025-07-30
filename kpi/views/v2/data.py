@@ -6,7 +6,7 @@ import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
 from django.utils.translation import gettext_lazy as t
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from pymongo.errors import OperationFailure
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
@@ -72,6 +72,15 @@ from kpi.utils.xml import (
 
 @extend_schema(
     tags=['Data'],
+    parameters=[
+        OpenApiParameter(
+            name='parent_lookup_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent asset',
+        ),
+    ],
 )
 @extend_schema_view(
     destroy=extend_schema(
@@ -80,6 +89,15 @@ from kpi.utils.xml import (
         responses=open_api_204_empty_response(
             validate_payload=False, require_auth=False, raise_access_forbidden=False
         ),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the data',
+            ),
+        ],
     ),
     duplicate=extend_schema(
         description=read_md('kpi', 'data/duplicate.md'),
@@ -90,6 +108,15 @@ from kpi.utils.xml import (
             require_auth=False,
             raise_access_forbidden=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the data',
+            ),
+        ],
     ),
     list=extend_schema(
         description=read_md('kpi', 'data/list.md'),
@@ -110,6 +137,15 @@ from kpi.utils.xml import (
             require_auth=False,
             raise_access_forbidden=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the data',
+            ),
+        ],
     ),
 )
 class DataViewSet(
@@ -425,6 +461,15 @@ class DataViewSet(
             require_auth=False,
             raise_access_forbidden=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the data',
+            ),
+        ],
     )
     @extend_schema(
         methods=['DELETE'],
@@ -433,6 +478,15 @@ class DataViewSet(
         responses=open_api_204_empty_response(
             validate_payload=False, require_auth=False, raise_access_forbidden=False
         ),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the data',
+            ),
+        ],
     )
     @extend_schema(
         methods=['GET'],
@@ -444,6 +498,15 @@ class DataViewSet(
             require_auth=False,
             raise_access_forbidden=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the data',
+            ),
+        ],
     )
     @action(detail=True, methods=['GET', 'PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer],

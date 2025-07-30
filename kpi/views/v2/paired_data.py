@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.http import Http404
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from rest_framework import renderers
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -35,6 +35,15 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
 
 @extend_schema(
     tags=['Paired Data'],
+    parameters=[
+        OpenApiParameter(
+            name='parent_lookup_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent asset',
+        ),
+    ],
 )
 @extend_schema_view(
     create=extend_schema(
@@ -52,6 +61,15 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='paired_data_uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the paired data',
+            ),
+        ],
     ),
     external=extend_schema(
         description=read_md('kpi', 'paired_data/external.md'),
@@ -63,6 +81,15 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='paired_data_uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the paired data',
+            ),
+        ],
     ),
     list=extend_schema(
         description=read_md('kpi', 'paired_data/list.md'),
@@ -84,6 +111,15 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='paired_data_uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the paired data',
+            ),
+        ],
     ),
     partial_update=extend_schema(
         description=read_md('kpi', 'paired_data/update.md'),
@@ -93,6 +129,15 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
             require_auth=False,
             raise_access_forbidden=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='paired_data_uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the paired data',
+            ),
+        ],
     ),
 )
 class PairedDataViewset(

@@ -1,7 +1,8 @@
 # coding: utf-8
 from django.http import HttpResponseRedirect
 from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample, \
+    OpenApiParameter
 from private_storage.views import PrivateStorageDetailView
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -33,6 +34,15 @@ from kpi.schema_extensions.v2.files.schema import (
 
 @extend_schema(
     tags=['Files'],
+    parameters=[
+        OpenApiParameter(
+            name='parent_lookup_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent asset',
+        ),
+    ]
 )
 @extend_schema_view(
     create=extend_schema(

@@ -32,6 +32,22 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
 
 @extend_schema(
     tags=['Attachments'],
+    parameters=[
+        OpenApiParameter(
+            name='parent_lookup_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent asset',
+        ),
+        OpenApiParameter(
+            name='parent_lookup_data',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent data',
+        ),
+    ],
 )
 @extend_schema_view(
     list=extend_schema(
@@ -67,7 +83,14 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
                 type=OpenApiTypes.STR,
                 enum=['mp3'],
                 location=OpenApiParameter.QUERY,
-            )
+            ),
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the attachment',
+            ),
         ],
         responses=open_api_200_ok_response(
             description='Will return a content type with the type of the attachment as well as the attachment itself.',  # noqa
@@ -84,6 +107,15 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the attachment',
+            ),
+        ],
     ),
 )
 class AttachmentViewSet(
