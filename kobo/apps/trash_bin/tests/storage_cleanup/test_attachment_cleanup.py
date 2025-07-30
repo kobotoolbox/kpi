@@ -97,7 +97,9 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
         # Add 3 more attachments
         self._create_submissions_with_attachments(count=3)
 
-        all_attachments = Attachment.objects.filter(user=self.owner)
+        all_attachments = list(
+            Attachment.objects.filter(user=self.owner).order_by('date_created')
+        )
         total_size = sum(att.media_file_size for att in all_attachments)
 
         # Set up mock balance indicating user is exceeding limit
@@ -121,6 +123,9 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
 
         self.assertLessEqual(remaining_size, limit_bytes)
         self.assertEqual(remaining_attachments.count(), 1)
+
+        # Confirm the oldest attachments were deleted and the last one remains
+        self.assertEqual(remaining_attachments.first().pk, all_attachments[-1].pk)
 
         # Re-run the task and ensure no further deletions
         with patch(
@@ -197,29 +202,31 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
 
         # Manually acquire the lock to simulate another task running
         lock = cache.lock(lock_key, timeout=30)
-        acquired = lock.acquire(blocking_timeout=0)
-        self.assertTrue(acquired)
 
-        mock_balances = {
-            UsageType.STORAGE_BYTES: {
-                'effective_limit': 100000,
-                'balance_value': -50000,
-                'balance_percent': 150,
-                'exceeded': True,
-            },
-        }
-        with patch(
-            'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',  # noqa
-            return_value=mock_balances,
-        ):
+        try:
+            acquired = lock.acquire(blocking_timeout=0)
+            self.assertTrue(acquired)
 
+            mock_balances = {
+                UsageType.STORAGE_BYTES: {
+                    'effective_limit': 100000,
+                    'balance_value': -50000,
+                    'balance_percent': 150,
+                    'exceeded': True,
+                },
+            }
             with patch(
-                'kobo.apps.trash_bin.tasks.attachment.auto_delete_excess_attachments.delay'  # noqa
-            ) as mock_task:
-                schedule_auto_attachment_cleanup_for_users()
-                mock_task.assert_not_called()
+                'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',  # noqa
+                return_value=mock_balances,
+            ):
 
-        lock.release()
+                with patch(
+                    'kobo.apps.trash_bin.tasks.attachment.auto_delete_excess_attachments.delay'  # noqa
+                ) as mock_task:
+                    schedule_auto_attachment_cleanup_for_users()
+                    mock_task.assert_not_called()
+        finally:
+            lock.release()
 
     def _create_submissions_with_attachments(self, count=1):
         """
