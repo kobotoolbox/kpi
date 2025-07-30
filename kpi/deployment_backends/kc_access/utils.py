@@ -131,7 +131,7 @@ def grant_kc_model_level_perms(user: 'kobo_auth.User'):
 
 
 def set_kc_anonymous_permissions_xform_flags(
-    obj, kpi_codenames, xform_id, remove=False
+    obj, kpi_codenames, remove=False
 ):
     r"""
     Given a KPI object, one or more KPI permission codenames and the PK of
