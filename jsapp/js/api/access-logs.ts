@@ -39,6 +39,8 @@ import type { ExportListResponse } from './models/exportListResponse'
 
 import type { PaginatedAuditLogResponseList } from './models/paginatedAuditLogResponseList'
 
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+
 /**
  * ## List actions performed by users.
 
@@ -189,7 +191,7 @@ export const getAccessLogsListQueryOptions = <
     Awaited<ReturnType<typeof accessLogsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AccessLogsListQueryResult = NonNullable<Awaited<ReturnType<typeof accessLogsList>>>
@@ -213,7 +215,7 @@ export function useAccessLogsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAccessLogsList<
   TData = Awaited<ReturnType<typeof accessLogsList>>,
   TError = ErrorDetail | ErrorObject,
@@ -232,7 +234,7 @@ export function useAccessLogsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAccessLogsList<
   TData = Awaited<ReturnType<typeof accessLogsList>>,
   TError = ErrorDetail | ErrorObject,
@@ -243,7 +245,7 @@ export function useAccessLogsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAccessLogsList<
   TData = Awaited<ReturnType<typeof accessLogsList>>,
@@ -255,11 +257,11 @@ export function useAccessLogsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAccessLogsListQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -327,7 +329,7 @@ export const getAccessLogsExportListQueryOptions = <
     Awaited<ReturnType<typeof accessLogsExportList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AccessLogsExportListQueryResult = NonNullable<Awaited<ReturnType<typeof accessLogsExportList>>>
@@ -347,7 +349,7 @@ export function useAccessLogsExportList<TData = Awaited<ReturnType<typeof access
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAccessLogsExportList<TData = Awaited<ReturnType<typeof accessLogsExportList>>, TError = ErrorDetail>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsExportList>>, TError, TData>> &
@@ -362,14 +364,14 @@ export function useAccessLogsExportList<TData = Awaited<ReturnType<typeof access
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAccessLogsExportList<TData = Awaited<ReturnType<typeof accessLogsExportList>>, TError = ErrorDetail>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsExportList>>, TError, TData>>
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAccessLogsExportList<TData = Awaited<ReturnType<typeof accessLogsExportList>>, TError = ErrorDetail>(
   options?: {
@@ -377,11 +379,11 @@ export function useAccessLogsExportList<TData = Awaited<ReturnType<typeof access
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAccessLogsExportListQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -429,7 +431,7 @@ export const accessLogsExportCreate = async (options?: RequestInit): Promise<acc
   return { data, status: res.status, headers: res.headers } as accessLogsExportCreateResponse
 }
 
-export const getAccessLogsExportCreateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+export const useAccessLogsExportCreateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof accessLogsExportCreate>>, TError, void, TContext>
   fetch?: RequestInit
 }): UseMutationOptions<Awaited<ReturnType<typeof accessLogsExportCreate>>, TError, void, TContext> => {
@@ -444,7 +446,9 @@ export const getAccessLogsExportCreateMutationOptions = <TError = ErrorDetail, T
     return accessLogsExportCreate(fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AccessLogsExportCreateMutationResult = NonNullable<Awaited<ReturnType<typeof accessLogsExportCreate>>>
@@ -458,7 +462,7 @@ export const useAccessLogsExportCreate = <TError = ErrorDetail, TContext = unkno
   },
   queryClient?: QueryClient,
 ): UseMutationResult<Awaited<ReturnType<typeof accessLogsExportCreate>>, TError, void, TContext> => {
-  const mutationOptions = getAccessLogsExportCreateMutationOptions(options)
+  const mutationOptions = useAccessLogsExportCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -612,7 +616,7 @@ export const getAccessLogsMeListQueryOptions = <
     Awaited<ReturnType<typeof accessLogsMeList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AccessLogsMeListQueryResult = NonNullable<Awaited<ReturnType<typeof accessLogsMeList>>>
@@ -636,7 +640,7 @@ export function useAccessLogsMeList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAccessLogsMeList<
   TData = Awaited<ReturnType<typeof accessLogsMeList>>,
   TError = ErrorDetail | ErrorObject,
@@ -655,7 +659,7 @@ export function useAccessLogsMeList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAccessLogsMeList<
   TData = Awaited<ReturnType<typeof accessLogsMeList>>,
   TError = ErrorDetail | ErrorObject,
@@ -666,7 +670,7 @@ export function useAccessLogsMeList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAccessLogsMeList<
   TData = Awaited<ReturnType<typeof accessLogsMeList>>,
@@ -678,11 +682,11 @@ export function useAccessLogsMeList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAccessLogsMeListQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -750,7 +754,7 @@ export const getAccessLogsMeExportListQueryOptions = <
     Awaited<ReturnType<typeof accessLogsMeExportList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AccessLogsMeExportListQueryResult = NonNullable<Awaited<ReturnType<typeof accessLogsMeExportList>>>
@@ -773,7 +777,7 @@ export function useAccessLogsMeExportList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAccessLogsMeExportList<
   TData = Awaited<ReturnType<typeof accessLogsMeExportList>>,
   TError = ErrorDetail,
@@ -791,7 +795,7 @@ export function useAccessLogsMeExportList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAccessLogsMeExportList<
   TData = Awaited<ReturnType<typeof accessLogsMeExportList>>,
   TError = ErrorDetail,
@@ -801,7 +805,7 @@ export function useAccessLogsMeExportList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAccessLogsMeExportList<
   TData = Awaited<ReturnType<typeof accessLogsMeExportList>>,
@@ -812,11 +816,11 @@ export function useAccessLogsMeExportList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAccessLogsMeExportListQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -862,7 +866,7 @@ export const accessLogsMeExportCreate = async (options?: RequestInit): Promise<a
   return { data, status: res.status, headers: res.headers } as accessLogsMeExportCreateResponse
 }
 
-export const getAccessLogsMeExportCreateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+export const useAccessLogsMeExportCreateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof accessLogsMeExportCreate>>, TError, void, TContext>
   fetch?: RequestInit
 }): UseMutationOptions<Awaited<ReturnType<typeof accessLogsMeExportCreate>>, TError, void, TContext> => {
@@ -877,7 +881,9 @@ export const getAccessLogsMeExportCreateMutationOptions = <TError = ErrorDetail,
     return accessLogsMeExportCreate(fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AccessLogsMeExportCreateMutationResult = NonNullable<Awaited<ReturnType<typeof accessLogsMeExportCreate>>>
@@ -891,7 +897,7 @@ export const useAccessLogsMeExportCreate = <TError = ErrorDetail, TContext = unk
   },
   queryClient?: QueryClient,
 ): UseMutationResult<Awaited<ReturnType<typeof accessLogsMeExportCreate>>, TError, void, TContext> => {
-  const mutationOptions = getAccessLogsMeExportCreateMutationOptions(options)
+  const mutationOptions = useAccessLogsMeExportCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

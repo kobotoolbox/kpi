@@ -101,7 +101,7 @@ export const getPermissionsListQueryOptions = <TData = Awaited<ReturnType<typeof
     Awaited<ReturnType<typeof permissionsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type PermissionsListQueryResult = NonNullable<Awaited<ReturnType<typeof permissionsList>>>
@@ -122,7 +122,7 @@ export function usePermissionsList<TData = Awaited<ReturnType<typeof permissions
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function usePermissionsList<TData = Awaited<ReturnType<typeof permissionsList>>, TError = unknown>(
   params?: PermissionsListParams,
   options?: {
@@ -138,7 +138,7 @@ export function usePermissionsList<TData = Awaited<ReturnType<typeof permissions
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function usePermissionsList<TData = Awaited<ReturnType<typeof permissionsList>>, TError = unknown>(
   params?: PermissionsListParams,
   options?: {
@@ -146,7 +146,7 @@ export function usePermissionsList<TData = Awaited<ReturnType<typeof permissions
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function usePermissionsList<TData = Awaited<ReturnType<typeof permissionsList>>, TError = unknown>(
   params?: PermissionsListParams,
@@ -155,11 +155,11 @@ export function usePermissionsList<TData = Awaited<ReturnType<typeof permissions
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getPermissionsListQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -226,7 +226,7 @@ export const getPermissionsRetrieveQueryOptions = <
     Awaited<ReturnType<typeof permissionsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type PermissionsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof permissionsRetrieve>>>
@@ -247,7 +247,7 @@ export function usePermissionsRetrieve<TData = Awaited<ReturnType<typeof permiss
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function usePermissionsRetrieve<TData = Awaited<ReturnType<typeof permissionsRetrieve>>, TError = unknown>(
   codename: string,
   options?: {
@@ -263,7 +263,7 @@ export function usePermissionsRetrieve<TData = Awaited<ReturnType<typeof permiss
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function usePermissionsRetrieve<TData = Awaited<ReturnType<typeof permissionsRetrieve>>, TError = unknown>(
   codename: string,
   options?: {
@@ -271,7 +271,7 @@ export function usePermissionsRetrieve<TData = Awaited<ReturnType<typeof permiss
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function usePermissionsRetrieve<TData = Awaited<ReturnType<typeof permissionsRetrieve>>, TError = unknown>(
   codename: string,
@@ -280,11 +280,11 @@ export function usePermissionsRetrieve<TData = Awaited<ReturnType<typeof permiss
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getPermissionsRetrieveQueryOptions(codename, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

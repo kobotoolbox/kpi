@@ -35,6 +35,8 @@ import type { FilesResponse } from './models/filesResponse'
 
 import type { PaginatedFilesResponseList } from './models/paginatedFilesResponseList'
 
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+
 /**
  * ## Retrieve current asset files
 
@@ -118,7 +120,7 @@ export const getAssetsFilesListQueryOptions = <
     Awaited<ReturnType<typeof assetsFilesList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsFilesListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsFilesList>>>
@@ -140,7 +142,7 @@ export function useAssetsFilesList<TData = Awaited<ReturnType<typeof assetsFiles
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsFilesList<TData = Awaited<ReturnType<typeof assetsFilesList>>, TError = ErrorObject>(
   parentLookupAsset: string,
   params?: AssetsFilesListParams,
@@ -157,7 +159,7 @@ export function useAssetsFilesList<TData = Awaited<ReturnType<typeof assetsFiles
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsFilesList<TData = Awaited<ReturnType<typeof assetsFilesList>>, TError = ErrorObject>(
   parentLookupAsset: string,
   params?: AssetsFilesListParams,
@@ -166,7 +168,7 @@ export function useAssetsFilesList<TData = Awaited<ReturnType<typeof assetsFiles
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsFilesList<TData = Awaited<ReturnType<typeof assetsFilesList>>, TError = ErrorObject>(
   parentLookupAsset: string,
@@ -176,11 +178,11 @@ export function useAssetsFilesList<TData = Awaited<ReturnType<typeof assetsFiles
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsFilesListQueryOptions(parentLookupAsset, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -254,7 +256,7 @@ export const assetsFilesCreate = async (
   return { data, status: res.status, headers: res.headers } as assetsFilesCreateResponse
 }
 
-export const getAssetsFilesCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsFilesCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsFilesCreate>>,
     TError,
@@ -284,7 +286,9 @@ export const getAssetsFilesCreateMutationOptions = <TError = ErrorObject, TConte
     return assetsFilesCreate(parentLookupAsset, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsFilesCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsFilesCreate>>>
@@ -308,7 +312,7 @@ export const useAssetsFilesCreate = <TError = ErrorObject, TContext = unknown>(
   { parentLookupAsset: string; data: CreateFilePayload },
   TContext
 > => {
-  const mutationOptions = getAssetsFilesCreateMutationOptions(options)
+  const mutationOptions = useAssetsFilesCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -378,7 +382,7 @@ export const getAssetsFilesRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetsFilesRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsFilesRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsFilesRetrieve>>>
@@ -400,7 +404,7 @@ export function useAssetsFilesRetrieve<TData = Awaited<ReturnType<typeof assetsF
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsFilesRetrieve<TData = Awaited<ReturnType<typeof assetsFilesRetrieve>>, TError = ErrorObject>(
   parentLookupAsset: string,
   uid: string,
@@ -417,7 +421,7 @@ export function useAssetsFilesRetrieve<TData = Awaited<ReturnType<typeof assetsF
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsFilesRetrieve<TData = Awaited<ReturnType<typeof assetsFilesRetrieve>>, TError = ErrorObject>(
   parentLookupAsset: string,
   uid: string,
@@ -426,7 +430,7 @@ export function useAssetsFilesRetrieve<TData = Awaited<ReturnType<typeof assetsF
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsFilesRetrieve<TData = Awaited<ReturnType<typeof assetsFilesRetrieve>>, TError = ErrorObject>(
   parentLookupAsset: string,
@@ -436,11 +440,11 @@ export function useAssetsFilesRetrieve<TData = Awaited<ReturnType<typeof assetsF
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsFilesRetrieveQueryOptions(parentLookupAsset, uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -488,7 +492,7 @@ export const assetsFilesDestroy = async (
   return { data, status: res.status, headers: res.headers } as assetsFilesDestroyResponse
 }
 
-export const getAssetsFilesDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsFilesDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsFilesDestroy>>,
     TError,
@@ -518,7 +522,9 @@ export const getAssetsFilesDestroyMutationOptions = <TError = ErrorObject, TCont
     return assetsFilesDestroy(parentLookupAsset, uid, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsFilesDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsFilesDestroy>>>
@@ -542,7 +548,7 @@ export const useAssetsFilesDestroy = <TError = ErrorObject, TContext = unknown>(
   { parentLookupAsset: string; uid: string },
   TContext
 > => {
-  const mutationOptions = getAssetsFilesDestroyMutationOptions(options)
+  const mutationOptions = useAssetsFilesDestroyMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -614,7 +620,7 @@ export const getAssetsFilesContentRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetsFilesContentRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsFilesContentRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsFilesContentRetrieve>>>
@@ -639,7 +645,7 @@ export function useAssetsFilesContentRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsFilesContentRetrieve<
   TData = Awaited<ReturnType<typeof assetsFilesContentRetrieve>>,
   TError = ErrorObject,
@@ -659,7 +665,7 @@ export function useAssetsFilesContentRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsFilesContentRetrieve<
   TData = Awaited<ReturnType<typeof assetsFilesContentRetrieve>>,
   TError = ErrorObject,
@@ -671,7 +677,7 @@ export function useAssetsFilesContentRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsFilesContentRetrieve<
   TData = Awaited<ReturnType<typeof assetsFilesContentRetrieve>>,
@@ -684,11 +690,11 @@ export function useAssetsFilesContentRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsFilesContentRetrieveQueryOptions(parentLookupAsset, uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

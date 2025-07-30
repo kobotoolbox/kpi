@@ -108,7 +108,7 @@ export const getAssetsVersionsListQueryOptions = <
     Awaited<ReturnType<typeof assetsVersionsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsVersionsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsVersionsList>>>
@@ -130,7 +130,7 @@ export function useAssetsVersionsList<TData = Awaited<ReturnType<typeof assetsVe
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsVersionsList<TData = Awaited<ReturnType<typeof assetsVersionsList>>, TError = ErrorObject>(
   parentLookupAsset: string,
   params?: AssetsVersionsListParams,
@@ -147,7 +147,7 @@ export function useAssetsVersionsList<TData = Awaited<ReturnType<typeof assetsVe
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsVersionsList<TData = Awaited<ReturnType<typeof assetsVersionsList>>, TError = ErrorObject>(
   parentLookupAsset: string,
   params?: AssetsVersionsListParams,
@@ -156,7 +156,7 @@ export function useAssetsVersionsList<TData = Awaited<ReturnType<typeof assetsVe
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsVersionsList<TData = Awaited<ReturnType<typeof assetsVersionsList>>, TError = ErrorObject>(
   parentLookupAsset: string,
@@ -166,11 +166,11 @@ export function useAssetsVersionsList<TData = Awaited<ReturnType<typeof assetsVe
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsVersionsListQueryOptions(parentLookupAsset, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -248,7 +248,7 @@ export const getAssetsVersionsRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetsVersionsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsVersionsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsVersionsRetrieve>>>
@@ -273,7 +273,7 @@ export function useAssetsVersionsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsVersionsRetrieve<
   TData = Awaited<ReturnType<typeof assetsVersionsRetrieve>>,
   TError = ErrorObject,
@@ -293,7 +293,7 @@ export function useAssetsVersionsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsVersionsRetrieve<
   TData = Awaited<ReturnType<typeof assetsVersionsRetrieve>>,
   TError = ErrorObject,
@@ -305,7 +305,7 @@ export function useAssetsVersionsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsVersionsRetrieve<
   TData = Awaited<ReturnType<typeof assetsVersionsRetrieve>>,
@@ -318,11 +318,11 @@ export function useAssetsVersionsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsVersionsRetrieveQueryOptions(parentLookupAsset, uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

@@ -39,6 +39,8 @@ import type { InviteResponse } from './models/inviteResponse'
 
 import type { PaginatedInviteResponseList } from './models/paginatedInviteResponseList'
 
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+
 /**
  * ## List organization invites
 
@@ -122,7 +124,7 @@ export const getOrganizationsInvitesListQueryOptions = <
     Awaited<ReturnType<typeof organizationsInvitesList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type OrganizationsInvitesListQueryResult = NonNullable<Awaited<ReturnType<typeof organizationsInvitesList>>>
@@ -147,7 +149,7 @@ export function useOrganizationsInvitesList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizationsInvitesList<
   TData = Awaited<ReturnType<typeof organizationsInvitesList>>,
   TError = ErrorObject,
@@ -167,7 +169,7 @@ export function useOrganizationsInvitesList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizationsInvitesList<
   TData = Awaited<ReturnType<typeof organizationsInvitesList>>,
   TError = ErrorObject,
@@ -179,7 +181,7 @@ export function useOrganizationsInvitesList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useOrganizationsInvitesList<
   TData = Awaited<ReturnType<typeof organizationsInvitesList>>,
@@ -192,11 +194,11 @@ export function useOrganizationsInvitesList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getOrganizationsInvitesListQueryOptions(organizationId, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -252,7 +254,7 @@ export const organizationsInvitesCreate = async (
   return { data, status: res.status, headers: res.headers } as organizationsInvitesCreateResponse
 }
 
-export const getOrganizationsInvitesCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useOrganizationsInvitesCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsInvitesCreate>>,
     TError,
@@ -282,7 +284,9 @@ export const getOrganizationsInvitesCreateMutationOptions = <TError = ErrorObjec
     return organizationsInvitesCreate(organizationId, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type OrganizationsInvitesCreateMutationResult = NonNullable<
@@ -308,7 +312,7 @@ export const useOrganizationsInvitesCreate = <TError = ErrorObject, TContext = u
   { organizationId: string; data: InviteCreatePayload },
   TContext
 > => {
-  const mutationOptions = getOrganizationsInvitesCreateMutationOptions(options)
+  const mutationOptions = useOrganizationsInvitesCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -380,7 +384,7 @@ export const getOrganizationsInvitesRetrieveQueryOptions = <
     Awaited<ReturnType<typeof organizationsInvitesRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type OrganizationsInvitesRetrieveQueryResult = NonNullable<
@@ -407,7 +411,7 @@ export function useOrganizationsInvitesRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizationsInvitesRetrieve<
   TData = Awaited<ReturnType<typeof organizationsInvitesRetrieve>>,
   TError = ErrorObject,
@@ -427,7 +431,7 @@ export function useOrganizationsInvitesRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizationsInvitesRetrieve<
   TData = Awaited<ReturnType<typeof organizationsInvitesRetrieve>>,
   TError = ErrorObject,
@@ -439,7 +443,7 @@ export function useOrganizationsInvitesRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useOrganizationsInvitesRetrieve<
   TData = Awaited<ReturnType<typeof organizationsInvitesRetrieve>>,
@@ -452,11 +456,11 @@ export function useOrganizationsInvitesRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getOrganizationsInvitesRetrieveQueryOptions(organizationId, guid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -519,7 +523,7 @@ export const organizationsInvitesPartialUpdate = async (
   return { data, status: res.status, headers: res.headers } as organizationsInvitesPartialUpdateResponse
 }
 
-export const getOrganizationsInvitesPartialUpdateMutationOptions = <
+export const useOrganizationsInvitesPartialUpdateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -552,7 +556,9 @@ export const getOrganizationsInvitesPartialUpdateMutationOptions = <
     return organizationsInvitesPartialUpdate(organizationId, guid, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type OrganizationsInvitesPartialUpdateMutationResult = NonNullable<
@@ -578,7 +584,7 @@ export const useOrganizationsInvitesPartialUpdate = <TError = ErrorObject | Erro
   { organizationId: string; guid: string; data: PatchedInvitePatchPayload },
   TContext
 > => {
-  const mutationOptions = getOrganizationsInvitesPartialUpdateMutationOptions(options)
+  const mutationOptions = useOrganizationsInvitesPartialUpdateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -632,7 +638,7 @@ export const organizationsInvitesDestroy = async (
   return { data, status: res.status, headers: res.headers } as organizationsInvitesDestroyResponse
 }
 
-export const getOrganizationsInvitesDestroyMutationOptions = <
+export const useOrganizationsInvitesDestroyMutationOptions = <
   TError = ErrorDetail | ErrorObject,
   TContext = unknown,
 >(options?: {
@@ -665,7 +671,9 @@ export const getOrganizationsInvitesDestroyMutationOptions = <
     return organizationsInvitesDestroy(organizationId, guid, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type OrganizationsInvitesDestroyMutationResult = NonNullable<
@@ -691,7 +699,7 @@ export const useOrganizationsInvitesDestroy = <TError = ErrorDetail | ErrorObjec
   { organizationId: string; guid: string },
   TContext
 > => {
-  const mutationOptions = getOrganizationsInvitesDestroyMutationOptions(options)
+  const mutationOptions = useOrganizationsInvitesDestroyMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

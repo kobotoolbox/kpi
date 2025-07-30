@@ -37,6 +37,8 @@ import type { MemberListResponse } from './models/memberListResponse'
 
 import type { PaginatedMemberListResponseList } from './models/paginatedMemberListResponseList'
 
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+
 /**
  * ## List Members
 
@@ -122,7 +124,7 @@ export const getOrganizationsMembersListQueryOptions = <
     Awaited<ReturnType<typeof organizationsMembersList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type OrganizationsMembersListQueryResult = NonNullable<Awaited<ReturnType<typeof organizationsMembersList>>>
@@ -147,7 +149,7 @@ export function useOrganizationsMembersList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizationsMembersList<
   TData = Awaited<ReturnType<typeof organizationsMembersList>>,
   TError = ErrorObject,
@@ -167,7 +169,7 @@ export function useOrganizationsMembersList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizationsMembersList<
   TData = Awaited<ReturnType<typeof organizationsMembersList>>,
   TError = ErrorObject,
@@ -179,7 +181,7 @@ export function useOrganizationsMembersList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useOrganizationsMembersList<
   TData = Awaited<ReturnType<typeof organizationsMembersList>>,
@@ -192,11 +194,11 @@ export function useOrganizationsMembersList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getOrganizationsMembersListQueryOptions(organizationId, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -274,7 +276,7 @@ export const getOrganizationsMembersRetrieveQueryOptions = <
     Awaited<ReturnType<typeof organizationsMembersRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type OrganizationsMembersRetrieveQueryResult = NonNullable<
@@ -301,7 +303,7 @@ export function useOrganizationsMembersRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizationsMembersRetrieve<
   TData = Awaited<ReturnType<typeof organizationsMembersRetrieve>>,
   TError = ErrorObject,
@@ -321,7 +323,7 @@ export function useOrganizationsMembersRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizationsMembersRetrieve<
   TData = Awaited<ReturnType<typeof organizationsMembersRetrieve>>,
   TError = ErrorObject,
@@ -333,7 +335,7 @@ export function useOrganizationsMembersRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useOrganizationsMembersRetrieve<
   TData = Awaited<ReturnType<typeof organizationsMembersRetrieve>>,
@@ -346,11 +348,11 @@ export function useOrganizationsMembersRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getOrganizationsMembersRetrieveQueryOptions(organizationId, userUsername, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -415,7 +417,7 @@ export const organizationsMembersPartialUpdate = async (
   return { data, status: res.status, headers: res.headers } as organizationsMembersPartialUpdateResponse
 }
 
-export const getOrganizationsMembersPartialUpdateMutationOptions = <
+export const useOrganizationsMembersPartialUpdateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -448,7 +450,9 @@ export const getOrganizationsMembersPartialUpdateMutationOptions = <
     return organizationsMembersPartialUpdate(organizationId, userUsername, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type OrganizationsMembersPartialUpdateMutationResult = NonNullable<
@@ -474,7 +478,7 @@ export const useOrganizationsMembersPartialUpdate = <TError = ErrorObject | Erro
   { organizationId: string; userUsername: string; data: PatchedMemberPatchRequest },
   TContext
 > => {
-  const mutationOptions = getOrganizationsMembersPartialUpdateMutationOptions(options)
+  const mutationOptions = useOrganizationsMembersPartialUpdateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -528,7 +532,7 @@ export const organizationsMembersDestroy = async (
   return { data, status: res.status, headers: res.headers } as organizationsMembersDestroyResponse
 }
 
-export const getOrganizationsMembersDestroyMutationOptions = <
+export const useOrganizationsMembersDestroyMutationOptions = <
   TError = ErrorDetail | ErrorObject,
   TContext = unknown,
 >(options?: {
@@ -561,7 +565,9 @@ export const getOrganizationsMembersDestroyMutationOptions = <
     return organizationsMembersDestroy(organizationId, userUsername, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type OrganizationsMembersDestroyMutationResult = NonNullable<
@@ -587,7 +593,7 @@ export const useOrganizationsMembersDestroy = <TError = ErrorDetail | ErrorObjec
   { organizationId: string; userUsername: string },
   TContext
 > => {
-  const mutationOptions = getOrganizationsMembersDestroyMutationOptions(options)
+  const mutationOptions = useOrganizationsMembersDestroyMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

@@ -31,15 +31,21 @@ import { faker } from '@faker-js/faker'
 
 import { http, HttpResponse, delay } from 'msw'
 
+import { AssetTypeEnum } from './models/assetTypeEnum'
+
 import type { Organization } from './models/organization'
 
 import type { OrganizationServiceUsageResponse } from './models/organizationServiceUsageResponse'
+
+import { OrganizationTypeEnum } from './models/organizationTypeEnum'
 
 import type { PaginatedAssetList } from './models/paginatedAssetList'
 
 import type { PaginatedOrganizationAssetUsageResponseList } from './models/paginatedOrganizationAssetUsageResponseList'
 
 import type { PaginatedOrganizationList } from './models/paginatedOrganizationList'
+
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
 
 /**
  * ## List user's organizations
@@ -115,7 +121,7 @@ export const getOrganizationsListQueryOptions = <
     Awaited<ReturnType<typeof organizationsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type OrganizationsListQueryResult = NonNullable<Awaited<ReturnType<typeof organizationsList>>>
@@ -136,7 +142,7 @@ export function useOrganizationsList<TData = Awaited<ReturnType<typeof organizat
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizationsList<TData = Awaited<ReturnType<typeof organizationsList>>, TError = ErrorObject>(
   params?: OrganizationsListParams,
   options?: {
@@ -152,7 +158,7 @@ export function useOrganizationsList<TData = Awaited<ReturnType<typeof organizat
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizationsList<TData = Awaited<ReturnType<typeof organizationsList>>, TError = ErrorObject>(
   params?: OrganizationsListParams,
   options?: {
@@ -160,7 +166,7 @@ export function useOrganizationsList<TData = Awaited<ReturnType<typeof organizat
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useOrganizationsList<TData = Awaited<ReturnType<typeof organizationsList>>, TError = ErrorObject>(
   params?: OrganizationsListParams,
@@ -169,11 +175,11 @@ export function useOrganizationsList<TData = Awaited<ReturnType<typeof organizat
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getOrganizationsListQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -245,7 +251,7 @@ export const getOrganizationsRetrieveQueryOptions = <
     Awaited<ReturnType<typeof organizationsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type OrganizationsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof organizationsRetrieve>>>
@@ -269,7 +275,7 @@ export function useOrganizationsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizationsRetrieve<
   TData = Awaited<ReturnType<typeof organizationsRetrieve>>,
   TError = ErrorObject,
@@ -288,7 +294,7 @@ export function useOrganizationsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizationsRetrieve<
   TData = Awaited<ReturnType<typeof organizationsRetrieve>>,
   TError = ErrorObject,
@@ -299,7 +305,7 @@ export function useOrganizationsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useOrganizationsRetrieve<
   TData = Awaited<ReturnType<typeof organizationsRetrieve>>,
@@ -311,11 +317,11 @@ export function useOrganizationsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getOrganizationsRetrieveQueryOptions(id, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -367,7 +373,7 @@ export const organizationsPartialUpdate = async (
   return { data, status: res.status, headers: res.headers } as organizationsPartialUpdateResponse
 }
 
-export const getOrganizationsPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useOrganizationsPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsPartialUpdate>>,
     TError,
@@ -397,7 +403,9 @@ export const getOrganizationsPartialUpdateMutationOptions = <TError = ErrorObjec
     return organizationsPartialUpdate(id, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type OrganizationsPartialUpdateMutationResult = NonNullable<
@@ -423,7 +431,7 @@ export const useOrganizationsPartialUpdate = <TError = ErrorObject, TContext = u
   { id: string; data: PatchedOrganizationPatchPayload },
   TContext
 > => {
-  const mutationOptions = getOrganizationsPartialUpdateMutationOptions(options)
+  const mutationOptions = useOrganizationsPartialUpdateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -495,7 +503,7 @@ export const getOrganizationsAssetUsageRetrieveQueryOptions = <
     Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type OrganizationsAssetUsageRetrieveQueryResult = NonNullable<
@@ -521,7 +529,7 @@ export function useOrganizationsAssetUsageRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizationsAssetUsageRetrieve<
   TData = Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>,
   TError = ErrorObject,
@@ -540,7 +548,7 @@ export function useOrganizationsAssetUsageRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizationsAssetUsageRetrieve<
   TData = Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>,
   TError = ErrorObject,
@@ -551,7 +559,7 @@ export function useOrganizationsAssetUsageRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useOrganizationsAssetUsageRetrieve<
   TData = Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>,
@@ -563,11 +571,11 @@ export function useOrganizationsAssetUsageRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getOrganizationsAssetUsageRetrieveQueryOptions(id, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -650,7 +658,7 @@ export const getOrganizationsAssetsRetrieveQueryOptions = <
     Awaited<ReturnType<typeof organizationsAssetsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type OrganizationsAssetsRetrieveQueryResult = NonNullable<
@@ -676,7 +684,7 @@ export function useOrganizationsAssetsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizationsAssetsRetrieve<
   TData = Awaited<ReturnType<typeof organizationsAssetsRetrieve>>,
   TError = ErrorObject,
@@ -695,7 +703,7 @@ export function useOrganizationsAssetsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizationsAssetsRetrieve<
   TData = Awaited<ReturnType<typeof organizationsAssetsRetrieve>>,
   TError = ErrorObject,
@@ -706,7 +714,7 @@ export function useOrganizationsAssetsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useOrganizationsAssetsRetrieve<
   TData = Awaited<ReturnType<typeof organizationsAssetsRetrieve>>,
@@ -718,11 +726,11 @@ export function useOrganizationsAssetsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getOrganizationsAssetsRetrieveQueryOptions(id, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -804,7 +812,7 @@ export const getOrganizationsServiceUsageRetrieveQueryOptions = <
     Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type OrganizationsServiceUsageRetrieveQueryResult = NonNullable<
@@ -830,7 +838,7 @@ export function useOrganizationsServiceUsageRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizationsServiceUsageRetrieve<
   TData = Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>,
   TError = ErrorObject,
@@ -849,7 +857,7 @@ export function useOrganizationsServiceUsageRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useOrganizationsServiceUsageRetrieve<
   TData = Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>,
   TError = ErrorObject,
@@ -860,7 +868,7 @@ export function useOrganizationsServiceUsageRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useOrganizationsServiceUsageRetrieve<
   TData = Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>,
@@ -872,11 +880,11 @@ export function useOrganizationsServiceUsageRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getOrganizationsServiceUsageRetrieveQueryOptions(id, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

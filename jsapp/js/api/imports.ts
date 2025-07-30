@@ -35,6 +35,10 @@ import type { ImportTask } from './models/importTask'
 
 import type { PaginatedImportTaskListList } from './models/paginatedImportTaskListList'
 
+import { StatusCefEnum } from './models/statusCefEnum'
+
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+
 // https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497
 type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B
 
@@ -155,7 +159,7 @@ export const getImportsListQueryOptions = <TData = Awaited<ReturnType<typeof imp
     Awaited<ReturnType<typeof importsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type ImportsListQueryResult = NonNullable<Awaited<ReturnType<typeof importsList>>>
@@ -176,7 +180,7 @@ export function useImportsList<TData = Awaited<ReturnType<typeof importsList>>, 
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useImportsList<TData = Awaited<ReturnType<typeof importsList>>, TError = unknown>(
   params?: ImportsListParams,
   options?: {
@@ -192,7 +196,7 @@ export function useImportsList<TData = Awaited<ReturnType<typeof importsList>>, 
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useImportsList<TData = Awaited<ReturnType<typeof importsList>>, TError = unknown>(
   params?: ImportsListParams,
   options?: {
@@ -200,7 +204,7 @@ export function useImportsList<TData = Awaited<ReturnType<typeof importsList>>, 
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useImportsList<TData = Awaited<ReturnType<typeof importsList>>, TError = unknown>(
   params?: ImportsListParams,
@@ -209,11 +213,11 @@ export function useImportsList<TData = Awaited<ReturnType<typeof importsList>>, 
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getImportsListQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -308,7 +312,7 @@ export const importsCreate = async (
   return { data, status: res.status, headers: res.headers } as importsCreateResponse
 }
 
-export const getImportsCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const useImportsCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof importsCreate>>,
     TError,
@@ -338,7 +342,9 @@ export const getImportsCreateMutationOptions = <TError = unknown, TContext = unk
     return importsCreate(data, params, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type ImportsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof importsCreate>>>
@@ -362,7 +368,7 @@ export const useImportsCreate = <TError = unknown, TContext = unknown>(
   { data: NonReadonly<ImportTask>; params?: ImportsCreateParams },
   TContext
 > => {
-  const mutationOptions = getImportsCreateMutationOptions(options)
+  const mutationOptions = useImportsCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -474,7 +480,7 @@ export const getImportsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof
     Awaited<ReturnType<typeof importsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type ImportsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof importsRetrieve>>>
@@ -496,7 +502,7 @@ export function useImportsRetrieve<TData = Awaited<ReturnType<typeof importsRetr
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useImportsRetrieve<TData = Awaited<ReturnType<typeof importsRetrieve>>, TError = unknown>(
   uid: string,
   params?: ImportsRetrieveParams,
@@ -513,7 +519,7 @@ export function useImportsRetrieve<TData = Awaited<ReturnType<typeof importsRetr
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useImportsRetrieve<TData = Awaited<ReturnType<typeof importsRetrieve>>, TError = unknown>(
   uid: string,
   params?: ImportsRetrieveParams,
@@ -522,7 +528,7 @@ export function useImportsRetrieve<TData = Awaited<ReturnType<typeof importsRetr
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useImportsRetrieve<TData = Awaited<ReturnType<typeof importsRetrieve>>, TError = unknown>(
   uid: string,
@@ -532,11 +538,11 @@ export function useImportsRetrieve<TData = Awaited<ReturnType<typeof importsRetr
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getImportsRetrieveQueryOptions(uid, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

@@ -31,9 +31,13 @@ import { faker } from '@faker-js/faker'
 
 import { http, HttpResponse, delay } from 'msw'
 
+import { ActionEnum } from './models/actionEnum'
+
 import type { PaginatedAuditLogResponseList } from './models/paginatedAuditLogResponseList'
 
 import type { ProjectHistoryLog } from './models/projectHistoryLog'
+
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
 
 // https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497
 type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B
@@ -206,7 +210,7 @@ export const getAssetsHistoryListQueryOptions = <
     Awaited<ReturnType<typeof assetsHistoryList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsHistoryListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHistoryList>>>
@@ -231,7 +235,7 @@ export function useAssetsHistoryList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsHistoryList<
   TData = Awaited<ReturnType<typeof assetsHistoryList>>,
   TError = ErrorDetail | ErrorObject,
@@ -251,7 +255,7 @@ export function useAssetsHistoryList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsHistoryList<
   TData = Awaited<ReturnType<typeof assetsHistoryList>>,
   TError = ErrorDetail | ErrorObject,
@@ -263,7 +267,7 @@ export function useAssetsHistoryList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsHistoryList<
   TData = Awaited<ReturnType<typeof assetsHistoryList>>,
@@ -276,11 +280,11 @@ export function useAssetsHistoryList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsHistoryListQueryOptions(parentLookupAsset, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -632,7 +636,7 @@ export const getAssetsHistoryActionsRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsHistoryActionsRetrieveQueryResult = NonNullable<
@@ -658,7 +662,7 @@ export function useAssetsHistoryActionsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsHistoryActionsRetrieve<
   TData = Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>,
   TError = unknown,
@@ -677,7 +681,7 @@ export function useAssetsHistoryActionsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsHistoryActionsRetrieve<
   TData = Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>,
   TError = unknown,
@@ -688,7 +692,7 @@ export function useAssetsHistoryActionsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsHistoryActionsRetrieve<
   TData = Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>,
@@ -700,11 +704,11 @@ export function useAssetsHistoryActionsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsHistoryActionsRetrieveQueryOptions(parentLookupAsset, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -1034,7 +1038,7 @@ export const assetsHistoryExportCreate = async (
   return { data, status: res.status, headers: res.headers } as assetsHistoryExportCreateResponse
 }
 
-export const getAssetsHistoryExportCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const useAssetsHistoryExportCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHistoryExportCreate>>,
     TError,
@@ -1064,7 +1068,9 @@ export const getAssetsHistoryExportCreateMutationOptions = <TError = unknown, TC
     return assetsHistoryExportCreate(parentLookupAsset, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsHistoryExportCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHistoryExportCreate>>>
@@ -1088,7 +1094,7 @@ export const useAssetsHistoryExportCreate = <TError = unknown, TContext = unknow
   { parentLookupAsset: string; data: NonReadonly<ProjectHistoryLog> },
   TContext
 > => {
-  const mutationOptions = getAssetsHistoryExportCreateMutationOptions(options)
+  const mutationOptions = useAssetsHistoryExportCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

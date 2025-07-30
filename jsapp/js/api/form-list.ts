@@ -73,7 +73,7 @@ export const getFormListList2QueryOptions = <TData = Awaited<ReturnType<typeof f
     Awaited<ReturnType<typeof formListList2>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type FormListList2QueryResult = NonNullable<Awaited<ReturnType<typeof formListList2>>>
@@ -94,7 +94,7 @@ export function useFormListList2<TData = Awaited<ReturnType<typeof formListList2
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useFormListList2<TData = Awaited<ReturnType<typeof formListList2>>, TError = unknown>(
   username: string,
   options?: {
@@ -110,7 +110,7 @@ export function useFormListList2<TData = Awaited<ReturnType<typeof formListList2
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useFormListList2<TData = Awaited<ReturnType<typeof formListList2>>, TError = unknown>(
   username: string,
   options?: {
@@ -118,7 +118,7 @@ export function useFormListList2<TData = Awaited<ReturnType<typeof formListList2
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useFormListList2<TData = Awaited<ReturnType<typeof formListList2>>, TError = unknown>(
   username: string,
@@ -127,11 +127,11 @@ export function useFormListList2<TData = Awaited<ReturnType<typeof formListList2
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getFormListList2QueryOptions(username, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -188,7 +188,7 @@ export const getFormListListQueryOptions = <
     Awaited<ReturnType<typeof formListList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type FormListListQueryResult = NonNullable<Awaited<ReturnType<typeof formListList>>>
@@ -208,7 +208,7 @@ export function useFormListList<TData = Awaited<ReturnType<typeof formListList>>
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useFormListList<TData = Awaited<ReturnType<typeof formListList>>, TError = unknown>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof formListList>>, TError, TData>> &
@@ -223,14 +223,14 @@ export function useFormListList<TData = Awaited<ReturnType<typeof formListList>>
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useFormListList<TData = Awaited<ReturnType<typeof formListList>>, TError = unknown>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof formListList>>, TError, TData>>
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useFormListList<TData = Awaited<ReturnType<typeof formListList>>, TError = unknown>(
   options?: {
@@ -238,11 +238,11 @@ export function useFormListList<TData = Awaited<ReturnType<typeof formListList>>
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getFormListListQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

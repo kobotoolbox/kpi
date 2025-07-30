@@ -10,7 +10,10 @@
  * * `no_auth` - no_auth
  * `basic_auth` - basic_auth
  */
-export enum AuthLevelEnum {
-  no_auth = 'no_auth',
-  basic_auth = 'basic_auth',
-}
+export type AuthLevelEnum = (typeof AuthLevelEnum)[keyof typeof AuthLevelEnum]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const AuthLevelEnum = {
+  no_auth: 'no_auth',
+  basic_auth: 'basic_auth',
+} as const

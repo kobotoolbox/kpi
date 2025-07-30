@@ -6,7 +6,11 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export enum ProjectOwnershipInvitesTransfersRetrieveFormat {
-  json = 'json',
-  xml = 'xml',
-}
+export type ProjectOwnershipInvitesTransfersRetrieveFormat =
+  (typeof ProjectOwnershipInvitesTransfersRetrieveFormat)[keyof typeof ProjectOwnershipInvitesTransfersRetrieveFormat]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProjectOwnershipInvitesTransfersRetrieveFormat = {
+  json: 'json',
+  xml: 'xml',
+} as const

@@ -6,6 +6,10 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export enum AssetsDataAttachmentsListFormat {
-  mp3 = 'mp3',
-}
+export type AssetsDataAttachmentsListFormat =
+  (typeof AssetsDataAttachmentsListFormat)[keyof typeof AssetsDataAttachmentsListFormat]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const AssetsDataAttachmentsListFormat = {
+  mp3: 'mp3',
+} as const

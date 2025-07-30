@@ -146,7 +146,7 @@ export const getTranscriptionServicesListQueryOptions = <
     Awaited<ReturnType<typeof transcriptionServicesList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type TranscriptionServicesListQueryResult = NonNullable<Awaited<ReturnType<typeof transcriptionServicesList>>>
@@ -170,7 +170,7 @@ export function useTranscriptionServicesList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useTranscriptionServicesList<
   TData = Awaited<ReturnType<typeof transcriptionServicesList>>,
   TError = unknown,
@@ -189,7 +189,7 @@ export function useTranscriptionServicesList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useTranscriptionServicesList<
   TData = Awaited<ReturnType<typeof transcriptionServicesList>>,
   TError = unknown,
@@ -200,7 +200,7 @@ export function useTranscriptionServicesList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useTranscriptionServicesList<
   TData = Awaited<ReturnType<typeof transcriptionServicesList>>,
@@ -212,11 +212,11 @@ export function useTranscriptionServicesList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getTranscriptionServicesListQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -345,7 +345,7 @@ export const getTranscriptionServicesRetrieveQueryOptions = <
     Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type TranscriptionServicesRetrieveQueryResult = NonNullable<
@@ -372,7 +372,7 @@ export function useTranscriptionServicesRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useTranscriptionServicesRetrieve<
   TData = Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
   TError = unknown,
@@ -392,7 +392,7 @@ export function useTranscriptionServicesRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useTranscriptionServicesRetrieve<
   TData = Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
   TError = unknown,
@@ -404,7 +404,7 @@ export function useTranscriptionServicesRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useTranscriptionServicesRetrieve<
   TData = Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
@@ -417,11 +417,11 @@ export function useTranscriptionServicesRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getTranscriptionServicesRetrieveQueryOptions(code, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

@@ -180,7 +180,7 @@ export const getAuditLogsListQueryOptions = <
     Awaited<ReturnType<typeof auditLogsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AuditLogsListQueryResult = NonNullable<Awaited<ReturnType<typeof auditLogsList>>>
@@ -201,7 +201,7 @@ export function useAuditLogsList<TData = Awaited<ReturnType<typeof auditLogsList
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAuditLogsList<TData = Awaited<ReturnType<typeof auditLogsList>>, TError = ErrorDetail | ErrorObject>(
   params?: AuditLogsListParams,
   options?: {
@@ -217,7 +217,7 @@ export function useAuditLogsList<TData = Awaited<ReturnType<typeof auditLogsList
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAuditLogsList<TData = Awaited<ReturnType<typeof auditLogsList>>, TError = ErrorDetail | ErrorObject>(
   params?: AuditLogsListParams,
   options?: {
@@ -225,7 +225,7 @@ export function useAuditLogsList<TData = Awaited<ReturnType<typeof auditLogsList
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAuditLogsList<TData = Awaited<ReturnType<typeof auditLogsList>>, TError = ErrorDetail | ErrorObject>(
   params?: AuditLogsListParams,
@@ -234,11 +234,11 @@ export function useAuditLogsList<TData = Awaited<ReturnType<typeof auditLogsList
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAuditLogsListQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

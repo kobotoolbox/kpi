@@ -6,7 +6,11 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export enum ProjectViewsExportRetrieveFormat {
-  json = 'json',
-  xml = 'xml',
-}
+export type ProjectViewsExportRetrieveFormat =
+  (typeof ProjectViewsExportRetrieveFormat)[keyof typeof ProjectViewsExportRetrieveFormat]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProjectViewsExportRetrieveFormat = {
+  json: 'json',
+  xml: 'xml',
+} as const

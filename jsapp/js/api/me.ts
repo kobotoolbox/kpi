@@ -33,6 +33,8 @@ import { http, HttpResponse, delay } from 'msw'
 
 import type { MeListResponse } from './models/meListResponse'
 
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+
 // https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497
 type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B
 
@@ -108,7 +110,7 @@ export const getMeRetrieveQueryOptions = <
     Awaited<ReturnType<typeof meRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type MeRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof meRetrieve>>>
@@ -128,7 +130,7 @@ export function useMeRetrieve<TData = Awaited<ReturnType<typeof meRetrieve>>, TE
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useMeRetrieve<TData = Awaited<ReturnType<typeof meRetrieve>>, TError = ErrorDetail>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meRetrieve>>, TError, TData>> &
@@ -143,14 +145,14 @@ export function useMeRetrieve<TData = Awaited<ReturnType<typeof meRetrieve>>, TE
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useMeRetrieve<TData = Awaited<ReturnType<typeof meRetrieve>>, TError = ErrorDetail>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meRetrieve>>, TError, TData>>
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useMeRetrieve<TData = Awaited<ReturnType<typeof meRetrieve>>, TError = ErrorDetail>(
   options?: {
@@ -158,11 +160,11 @@ export function useMeRetrieve<TData = Awaited<ReturnType<typeof meRetrieve>>, TE
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getMeRetrieveQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -219,7 +221,7 @@ export const mePartialUpdate = async (
   return { data, status: res.status, headers: res.headers } as mePartialUpdateResponse
 }
 
-export const getMePartialUpdateMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useMePartialUpdateMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof mePartialUpdate>>,
     TError,
@@ -249,7 +251,9 @@ export const getMePartialUpdateMutationOptions = <TError = ErrorObject | ErrorDe
     return mePartialUpdate(data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type MePartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof mePartialUpdate>>>
@@ -273,7 +277,7 @@ export const useMePartialUpdate = <TError = ErrorObject | ErrorDetail, TContext 
   { data: NonReadonly<PatchedCurrentUser> },
   TContext
 > => {
-  const mutationOptions = getMePartialUpdateMutationOptions(options)
+  const mutationOptions = useMePartialUpdateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -327,7 +331,7 @@ export const meDestroy = async (options?: RequestInit): Promise<meDestroyRespons
   return { data, status: res.status, headers: res.headers } as meDestroyResponse
 }
 
-export const getMeDestroyMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const useMeDestroyMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof meDestroy>>, TError, void, TContext>
   fetch?: RequestInit
 }): UseMutationOptions<Awaited<ReturnType<typeof meDestroy>>, TError, void, TContext> => {
@@ -342,7 +346,9 @@ export const getMeDestroyMutationOptions = <TError = ErrorObject | ErrorDetail, 
     return meDestroy(fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type MeDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof meDestroy>>>
@@ -356,7 +362,7 @@ export const useMeDestroy = <TError = ErrorObject | ErrorDetail, TContext = unkn
   },
   queryClient?: QueryClient,
 ): UseMutationResult<Awaited<ReturnType<typeof meDestroy>>, TError, void, TContext> => {
-  const mutationOptions = getMeDestroyMutationOptions(options)
+  const mutationOptions = useMeDestroyMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

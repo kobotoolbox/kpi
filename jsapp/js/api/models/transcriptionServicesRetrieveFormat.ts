@@ -6,7 +6,11 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export enum TranscriptionServicesRetrieveFormat {
-  json = 'json',
-  xml = 'xml',
-}
+export type TranscriptionServicesRetrieveFormat =
+  (typeof TranscriptionServicesRetrieveFormat)[keyof typeof TranscriptionServicesRetrieveFormat]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const TranscriptionServicesRetrieveFormat = {
+  json: 'json',
+  xml: 'xml',
+} as const

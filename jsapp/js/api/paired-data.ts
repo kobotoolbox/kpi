@@ -39,6 +39,8 @@ import type { PaginatedPairedDataResponseList } from './models/paginatedPairedDa
 
 import type { PairedDataResponse } from './models/pairedDataResponse'
 
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+
 // https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497
 type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B
 
@@ -138,7 +140,7 @@ export const getAssetsPairedDataListQueryOptions = <
     Awaited<ReturnType<typeof assetsPairedDataList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsPairedDataListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataList>>>
@@ -160,7 +162,7 @@ export function useAssetsPairedDataList<TData = Awaited<ReturnType<typeof assets
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsPairedDataList<TData = Awaited<ReturnType<typeof assetsPairedDataList>>, TError = ErrorObject>(
   parentLookupAsset: string,
   params?: AssetsPairedDataListParams,
@@ -177,7 +179,7 @@ export function useAssetsPairedDataList<TData = Awaited<ReturnType<typeof assets
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsPairedDataList<TData = Awaited<ReturnType<typeof assetsPairedDataList>>, TError = ErrorObject>(
   parentLookupAsset: string,
   params?: AssetsPairedDataListParams,
@@ -186,7 +188,7 @@ export function useAssetsPairedDataList<TData = Awaited<ReturnType<typeof assets
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsPairedDataList<TData = Awaited<ReturnType<typeof assetsPairedDataList>>, TError = ErrorObject>(
   parentLookupAsset: string,
@@ -196,11 +198,11 @@ export function useAssetsPairedDataList<TData = Awaited<ReturnType<typeof assets
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsPairedDataListQueryOptions(parentLookupAsset, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -258,7 +260,7 @@ export const assetsPairedDataCreate = async (
   return { data, status: res.status, headers: res.headers } as assetsPairedDataCreateResponse
 }
 
-export const getAssetsPairedDataCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsPairedDataCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPairedDataCreate>>,
     TError,
@@ -288,7 +290,9 @@ export const getAssetsPairedDataCreateMutationOptions = <TError = ErrorObject, T
     return assetsPairedDataCreate(parentLookupAsset, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsPairedDataCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataCreate>>>
@@ -312,7 +316,7 @@ export const useAssetsPairedDataCreate = <TError = ErrorObject, TContext = unkno
   { parentLookupAsset: string; data: NonReadonly<PairedData> },
   TContext
 > => {
-  const mutationOptions = getAssetsPairedDataCreateMutationOptions(options)
+  const mutationOptions = useAssetsPairedDataCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -384,7 +388,7 @@ export const getAssetsPairedDataRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetsPairedDataRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsPairedDataRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>>
@@ -409,7 +413,7 @@ export function useAssetsPairedDataRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsPairedDataRetrieve<
   TData = Awaited<ReturnType<typeof assetsPairedDataRetrieve>>,
   TError = ErrorObject,
@@ -429,7 +433,7 @@ export function useAssetsPairedDataRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsPairedDataRetrieve<
   TData = Awaited<ReturnType<typeof assetsPairedDataRetrieve>>,
   TError = ErrorObject,
@@ -441,7 +445,7 @@ export function useAssetsPairedDataRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsPairedDataRetrieve<
   TData = Awaited<ReturnType<typeof assetsPairedDataRetrieve>>,
@@ -454,11 +458,11 @@ export function useAssetsPairedDataRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsPairedDataRetrieveQueryOptions(parentLookupAsset, pairedDataUid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -513,7 +517,7 @@ export const assetsPairedDataPartialUpdate = async (
   return { data, status: res.status, headers: res.headers } as assetsPairedDataPartialUpdateResponse
 }
 
-export const getAssetsPairedDataPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsPairedDataPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>,
     TError,
@@ -543,7 +547,9 @@ export const getAssetsPairedDataPartialUpdateMutationOptions = <TError = ErrorOb
     return assetsPairedDataPartialUpdate(parentLookupAsset, pairedDataUid, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsPairedDataPartialUpdateMutationResult = NonNullable<
@@ -569,7 +575,7 @@ export const useAssetsPairedDataPartialUpdate = <TError = ErrorObject, TContext 
   { parentLookupAsset: string; pairedDataUid: string; data: PatchedPairedDataPatchPayload },
   TContext
 > => {
-  const mutationOptions = getAssetsPairedDataPartialUpdateMutationOptions(options)
+  const mutationOptions = useAssetsPairedDataPartialUpdateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -615,7 +621,7 @@ export const assetsPairedDataDestroy = async (
   return { data, status: res.status, headers: res.headers } as assetsPairedDataDestroyResponse
 }
 
-export const getAssetsPairedDataDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsPairedDataDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPairedDataDestroy>>,
     TError,
@@ -645,7 +651,9 @@ export const getAssetsPairedDataDestroyMutationOptions = <TError = ErrorObject, 
     return assetsPairedDataDestroy(parentLookupAsset, pairedDataUid, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsPairedDataDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataDestroy>>>
@@ -669,7 +677,7 @@ export const useAssetsPairedDataDestroy = <TError = ErrorObject, TContext = unkn
   { parentLookupAsset: string; pairedDataUid: string },
   TContext
 > => {
-  const mutationOptions = getAssetsPairedDataDestroyMutationOptions(options)
+  const mutationOptions = useAssetsPairedDataDestroyMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -746,7 +754,7 @@ export const getAssetsPairedDataExternalRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsPairedDataExternalRetrieveQueryResult = NonNullable<
@@ -773,7 +781,7 @@ export function useAssetsPairedDataExternalRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsPairedDataExternalRetrieve<
   TData = Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>,
   TError = ErrorObject,
@@ -793,7 +801,7 @@ export function useAssetsPairedDataExternalRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsPairedDataExternalRetrieve<
   TData = Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>,
   TError = ErrorObject,
@@ -805,7 +813,7 @@ export function useAssetsPairedDataExternalRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsPairedDataExternalRetrieve<
   TData = Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>,
@@ -818,11 +826,11 @@ export function useAssetsPairedDataExternalRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsPairedDataExternalRetrieveQueryOptions(parentLookupAsset, pairedDataUid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

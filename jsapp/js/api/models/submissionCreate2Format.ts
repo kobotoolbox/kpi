@@ -6,7 +6,10 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export enum SubmissionCreate2Format {
-  json = 'json',
-  xml = 'xml',
-}
+export type SubmissionCreate2Format = (typeof SubmissionCreate2Format)[keyof typeof SubmissionCreate2Format]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SubmissionCreate2Format = {
+  json: 'json',
+  xml: 'xml',
+} as const

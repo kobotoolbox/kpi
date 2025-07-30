@@ -49,6 +49,8 @@ import type { DataValidationStatusUpdateResponse } from './models/dataValidation
 
 import type { PaginatedDataResponseList } from './models/paginatedDataResponseList'
 
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+
 /**
  * ## List of submissions for a specific asset
 
@@ -179,7 +181,7 @@ export const getAssetsDataListQueryOptions = <TData = Awaited<ReturnType<typeof 
     Awaited<ReturnType<typeof assetsDataList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsDataListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDataList>>>
@@ -201,7 +203,7 @@ export function useAssetsDataList<TData = Awaited<ReturnType<typeof assetsDataLi
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsDataList<TData = Awaited<ReturnType<typeof assetsDataList>>, TError = ErrorObject>(
   parentLookupAsset: string,
   params?: AssetsDataListParams,
@@ -218,7 +220,7 @@ export function useAssetsDataList<TData = Awaited<ReturnType<typeof assetsDataLi
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsDataList<TData = Awaited<ReturnType<typeof assetsDataList>>, TError = ErrorObject>(
   parentLookupAsset: string,
   params?: AssetsDataListParams,
@@ -227,7 +229,7 @@ export function useAssetsDataList<TData = Awaited<ReturnType<typeof assetsDataLi
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsDataList<TData = Awaited<ReturnType<typeof assetsDataList>>, TError = ErrorObject>(
   parentLookupAsset: string,
@@ -237,11 +239,11 @@ export function useAssetsDataList<TData = Awaited<ReturnType<typeof assetsDataLi
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsDataListQueryOptions(parentLookupAsset, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -360,7 +362,7 @@ export const getAssetsDataRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetsDataRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsDataRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDataRetrieve>>>
@@ -383,7 +385,7 @@ export function useAssetsDataRetrieve<TData = Awaited<ReturnType<typeof assetsDa
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsDataRetrieve<TData = Awaited<ReturnType<typeof assetsDataRetrieve>>, TError = ErrorObject>(
   parentLookupAsset: string,
   id: string,
@@ -401,7 +403,7 @@ export function useAssetsDataRetrieve<TData = Awaited<ReturnType<typeof assetsDa
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsDataRetrieve<TData = Awaited<ReturnType<typeof assetsDataRetrieve>>, TError = ErrorObject>(
   parentLookupAsset: string,
   id: string,
@@ -411,7 +413,7 @@ export function useAssetsDataRetrieve<TData = Awaited<ReturnType<typeof assetsDa
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsDataRetrieve<TData = Awaited<ReturnType<typeof assetsDataRetrieve>>, TError = ErrorObject>(
   parentLookupAsset: string,
@@ -422,11 +424,11 @@ export function useAssetsDataRetrieve<TData = Awaited<ReturnType<typeof assetsDa
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsDataRetrieveQueryOptions(parentLookupAsset, id, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -474,7 +476,7 @@ export const assetsDataDestroy = async (
   return { data, status: res.status, headers: res.headers } as assetsDataDestroyResponse
 }
 
-export const getAssetsDataDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsDataDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDataDestroy>>,
     TError,
@@ -504,7 +506,9 @@ export const getAssetsDataDestroyMutationOptions = <TError = ErrorObject, TConte
     return assetsDataDestroy(parentLookupAsset, id, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsDataDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDataDestroy>>>
@@ -528,7 +532,7 @@ export const useAssetsDataDestroy = <TError = ErrorObject, TContext = unknown>(
   { parentLookupAsset: string; id: string },
   TContext
 > => {
-  const mutationOptions = getAssetsDataDestroyMutationOptions(options)
+  const mutationOptions = useAssetsDataDestroyMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -578,7 +582,7 @@ export const assetsDataDuplicateCreate = async (
   return { data, status: res.status, headers: res.headers } as assetsDataDuplicateCreateResponse
 }
 
-export const getAssetsDataDuplicateCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsDataDuplicateCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDataDuplicateCreate>>,
     TError,
@@ -608,7 +612,9 @@ export const getAssetsDataDuplicateCreateMutationOptions = <TError = ErrorObject
     return assetsDataDuplicateCreate(parentLookupAsset, id, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsDataDuplicateCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDataDuplicateCreate>>>
@@ -632,7 +638,7 @@ export const useAssetsDataDuplicateCreate = <TError = ErrorObject, TContext = un
   { parentLookupAsset: string; id: string; data: DataBulkDelete },
   TContext
 > => {
-  const mutationOptions = getAssetsDataDuplicateCreateMutationOptions(options)
+  const mutationOptions = useAssetsDataDuplicateCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -705,7 +711,7 @@ export const getAssetsDataValidationStatusRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsDataValidationStatusRetrieveQueryResult = NonNullable<
@@ -732,7 +738,7 @@ export function useAssetsDataValidationStatusRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsDataValidationStatusRetrieve<
   TData = Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>,
   TError = ErrorObject,
@@ -752,7 +758,7 @@ export function useAssetsDataValidationStatusRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsDataValidationStatusRetrieve<
   TData = Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>,
   TError = ErrorObject,
@@ -764,7 +770,7 @@ export function useAssetsDataValidationStatusRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsDataValidationStatusRetrieve<
   TData = Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>,
@@ -777,11 +783,11 @@ export function useAssetsDataValidationStatusRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsDataValidationStatusRetrieveQueryOptions(parentLookupAsset, id, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -841,7 +847,7 @@ export const assetsDataValidationStatusPartialUpdate = async (
   return { data, status: res.status, headers: res.headers } as assetsDataValidationStatusPartialUpdateResponse
 }
 
-export const getAssetsDataValidationStatusPartialUpdateMutationOptions = <
+export const useAssetsDataValidationStatusPartialUpdateMutationOptions = <
   TError = ErrorObject,
   TContext = unknown,
 >(options?: {
@@ -874,7 +880,9 @@ export const getAssetsDataValidationStatusPartialUpdateMutationOptions = <
     return assetsDataValidationStatusPartialUpdate(parentLookupAsset, id, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsDataValidationStatusPartialUpdateMutationResult = NonNullable<
@@ -900,7 +908,7 @@ export const useAssetsDataValidationStatusPartialUpdate = <TError = ErrorObject,
   { parentLookupAsset: string; id: string; data: PatchedDataValidationStatusUpdatePayload },
   TContext
 > => {
-  const mutationOptions = getAssetsDataValidationStatusPartialUpdateMutationOptions(options)
+  const mutationOptions = useAssetsDataValidationStatusPartialUpdateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -946,7 +954,7 @@ export const assetsDataValidationStatusDestroy = async (
   return { data, status: res.status, headers: res.headers } as assetsDataValidationStatusDestroyResponse
 }
 
-export const getAssetsDataValidationStatusDestroyMutationOptions = <
+export const useAssetsDataValidationStatusDestroyMutationOptions = <
   TError = ErrorObject,
   TContext = unknown,
 >(options?: {
@@ -979,7 +987,9 @@ export const getAssetsDataValidationStatusDestroyMutationOptions = <
     return assetsDataValidationStatusDestroy(parentLookupAsset, id, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsDataValidationStatusDestroyMutationResult = NonNullable<
@@ -1005,7 +1015,7 @@ export const useAssetsDataValidationStatusDestroy = <TError = ErrorObject, TCont
   { parentLookupAsset: string; id: string },
   TContext
 > => {
-  const mutationOptions = getAssetsDataValidationStatusDestroyMutationOptions(options)
+  const mutationOptions = useAssetsDataValidationStatusDestroyMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -1067,7 +1077,7 @@ export const assetsDataBulkPartialUpdate = async (
   return { data, status: res.status, headers: res.headers } as assetsDataBulkPartialUpdateResponse
 }
 
-export const getAssetsDataBulkPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsDataBulkPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDataBulkPartialUpdate>>,
     TError,
@@ -1097,7 +1107,9 @@ export const getAssetsDataBulkPartialUpdateMutationOptions = <TError = ErrorObje
     return assetsDataBulkPartialUpdate(parentLookupAsset, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsDataBulkPartialUpdateMutationResult = NonNullable<
@@ -1123,7 +1135,7 @@ export const useAssetsDataBulkPartialUpdate = <TError = ErrorObject, TContext = 
   { parentLookupAsset: string; data: PatchedDataBulkUpdate },
   TContext
 > => {
-  const mutationOptions = getAssetsDataBulkPartialUpdateMutationOptions(options)
+  const mutationOptions = useAssetsDataBulkPartialUpdateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -1194,7 +1206,7 @@ export const assetsDataBulkDestroy = async (
   return { data, status: res.status, headers: res.headers } as assetsDataBulkDestroyResponse
 }
 
-export const getAssetsDataBulkDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsDataBulkDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDataBulkDestroy>>,
     TError,
@@ -1224,7 +1236,9 @@ export const getAssetsDataBulkDestroyMutationOptions = <TError = ErrorObject, TC
     return assetsDataBulkDestroy(parentLookupAsset, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsDataBulkDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDataBulkDestroy>>>
@@ -1248,7 +1262,7 @@ export const useAssetsDataBulkDestroy = <TError = ErrorObject, TContext = unknow
   { parentLookupAsset: string },
   TContext
 > => {
-  const mutationOptions = getAssetsDataBulkDestroyMutationOptions(options)
+  const mutationOptions = useAssetsDataBulkDestroyMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -1311,7 +1325,7 @@ export const assetsDataValidationStatusesPartialUpdate = async (
   return { data, status: res.status, headers: res.headers } as assetsDataValidationStatusesPartialUpdateResponse
 }
 
-export const getAssetsDataValidationStatusesPartialUpdateMutationOptions = <
+export const useAssetsDataValidationStatusesPartialUpdateMutationOptions = <
   TError = ErrorObject,
   TContext = unknown,
 >(options?: {
@@ -1344,7 +1358,9 @@ export const getAssetsDataValidationStatusesPartialUpdateMutationOptions = <
     return assetsDataValidationStatusesPartialUpdate(parentLookupAsset, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsDataValidationStatusesPartialUpdateMutationResult = NonNullable<
@@ -1370,7 +1386,7 @@ export const useAssetsDataValidationStatusesPartialUpdate = <TError = ErrorObjec
   { parentLookupAsset: string; data: PatchedDataValidationStatusesUpdatePayload },
   TContext
 > => {
-  const mutationOptions = getAssetsDataValidationStatusesPartialUpdateMutationOptions(options)
+  const mutationOptions = useAssetsDataValidationStatusesPartialUpdateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -1448,7 +1464,7 @@ export const assetsDataValidationStatusesDestroy = async (
   return { data, status: res.status, headers: res.headers } as assetsDataValidationStatusesDestroyResponse
 }
 
-export const getAssetsDataValidationStatusesDestroyMutationOptions = <
+export const useAssetsDataValidationStatusesDestroyMutationOptions = <
   TError = ErrorObject,
   TContext = unknown,
 >(options?: {
@@ -1481,7 +1497,9 @@ export const getAssetsDataValidationStatusesDestroyMutationOptions = <
     return assetsDataValidationStatusesDestroy(parentLookupAsset, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsDataValidationStatusesDestroyMutationResult = NonNullable<
@@ -1507,7 +1525,7 @@ export const useAssetsDataValidationStatusesDestroy = <TError = ErrorObject, TCo
   { parentLookupAsset: string },
   TContext
 > => {
-  const mutationOptions = getAssetsDataValidationStatusesDestroyMutationOptions(options)
+  const mutationOptions = useAssetsDataValidationStatusesDestroyMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

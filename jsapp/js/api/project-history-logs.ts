@@ -35,6 +35,8 @@ import type { ExportHistoryResponse } from './models/exportHistoryResponse'
 
 import type { PaginatedProjectHistoryLogResponseList } from './models/paginatedProjectHistoryLogResponseList'
 
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+
 /**
  * ## List all project history logs for all projects.
 
@@ -317,7 +319,7 @@ export const getProjectHistoryLogsListQueryOptions = <
     Awaited<ReturnType<typeof projectHistoryLogsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type ProjectHistoryLogsListQueryResult = NonNullable<Awaited<ReturnType<typeof projectHistoryLogsList>>>
@@ -341,7 +343,7 @@ export function useProjectHistoryLogsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectHistoryLogsList<
   TData = Awaited<ReturnType<typeof projectHistoryLogsList>>,
   TError = ErrorDetail | ErrorObject,
@@ -360,7 +362,7 @@ export function useProjectHistoryLogsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectHistoryLogsList<
   TData = Awaited<ReturnType<typeof projectHistoryLogsList>>,
   TError = ErrorDetail | ErrorObject,
@@ -371,7 +373,7 @@ export function useProjectHistoryLogsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useProjectHistoryLogsList<
   TData = Awaited<ReturnType<typeof projectHistoryLogsList>>,
@@ -383,11 +385,11 @@ export function useProjectHistoryLogsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getProjectHistoryLogsListQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -465,7 +467,7 @@ export const getProjectHistoryLogsExportRetrieveQueryOptions = <
     Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type ProjectHistoryLogsExportRetrieveQueryResult = NonNullable<
@@ -490,7 +492,7 @@ export function useProjectHistoryLogsExportRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectHistoryLogsExportRetrieve<
   TData = Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>,
   TError = ErrorDetail | ErrorObject,
@@ -508,7 +510,7 @@ export function useProjectHistoryLogsExportRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectHistoryLogsExportRetrieve<
   TData = Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>,
   TError = ErrorDetail | ErrorObject,
@@ -518,7 +520,7 @@ export function useProjectHistoryLogsExportRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useProjectHistoryLogsExportRetrieve<
   TData = Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>,
@@ -529,11 +531,11 @@ export function useProjectHistoryLogsExportRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getProjectHistoryLogsExportRetrieveQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -587,7 +589,7 @@ export const projectHistoryLogsExportCreate = async (
   return { data, status: res.status, headers: res.headers } as projectHistoryLogsExportCreateResponse
 }
 
-export const getProjectHistoryLogsExportCreateMutationOptions = <
+export const useProjectHistoryLogsExportCreateMutationOptions = <
   TError = ErrorDetail | ErrorObject,
   TContext = unknown,
 >(options?: {
@@ -605,7 +607,9 @@ export const getProjectHistoryLogsExportCreateMutationOptions = <
     return projectHistoryLogsExportCreate(fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type ProjectHistoryLogsExportCreateMutationResult = NonNullable<
@@ -621,7 +625,7 @@ export const useProjectHistoryLogsExportCreate = <TError = ErrorDetail | ErrorOb
   },
   queryClient?: QueryClient,
 ): UseMutationResult<Awaited<ReturnType<typeof projectHistoryLogsExportCreate>>, TError, void, TContext> => {
-  const mutationOptions = getProjectHistoryLogsExportCreateMutationOptions(options)
+  const mutationOptions = useProjectHistoryLogsExportCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

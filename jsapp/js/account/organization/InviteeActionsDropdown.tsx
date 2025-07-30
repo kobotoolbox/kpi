@@ -22,9 +22,9 @@ export default function InviteeActionsDropdown({
 
   const orgInvitesPatchMutation = useOrganizationsInvitesPartialUpdate({
     mutation: {
-      onSettled(data, error, variables, context) {
+      // onSettled(data, error, variables, context) {
 
-      },
+      // },
     }
   })
   const orgInvitesDestroyMutation = useOrganizationsInvitesDestroy()

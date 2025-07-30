@@ -83,7 +83,7 @@ export const getXformsMediaRetrieve2QueryOptions = <
     Awaited<ReturnType<typeof xformsMediaRetrieve2>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type XformsMediaRetrieve2QueryResult = NonNullable<Awaited<ReturnType<typeof xformsMediaRetrieve2>>>
@@ -106,7 +106,7 @@ export function useXformsMediaRetrieve2<TData = Awaited<ReturnType<typeof xforms
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useXformsMediaRetrieve2<TData = Awaited<ReturnType<typeof xformsMediaRetrieve2>>, TError = unknown>(
   username: string,
   id: string,
@@ -124,7 +124,7 @@ export function useXformsMediaRetrieve2<TData = Awaited<ReturnType<typeof xforms
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useXformsMediaRetrieve2<TData = Awaited<ReturnType<typeof xformsMediaRetrieve2>>, TError = unknown>(
   username: string,
   id: string,
@@ -134,7 +134,7 @@ export function useXformsMediaRetrieve2<TData = Awaited<ReturnType<typeof xforms
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useXformsMediaRetrieve2<TData = Awaited<ReturnType<typeof xformsMediaRetrieve2>>, TError = unknown>(
   username: string,
@@ -145,11 +145,11 @@ export function useXformsMediaRetrieve2<TData = Awaited<ReturnType<typeof xforms
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getXformsMediaRetrieve2QueryOptions(username, id, metadata, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -214,7 +214,7 @@ export const getXformsMediaRetrieveQueryOptions = <
     Awaited<ReturnType<typeof xformsMediaRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type XformsMediaRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof xformsMediaRetrieve>>>
@@ -236,7 +236,7 @@ export function useXformsMediaRetrieve<TData = Awaited<ReturnType<typeof xformsM
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useXformsMediaRetrieve<TData = Awaited<ReturnType<typeof xformsMediaRetrieve>>, TError = unknown>(
   id: string,
   metadata: string,
@@ -253,7 +253,7 @@ export function useXformsMediaRetrieve<TData = Awaited<ReturnType<typeof xformsM
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useXformsMediaRetrieve<TData = Awaited<ReturnType<typeof xformsMediaRetrieve>>, TError = unknown>(
   id: string,
   metadata: string,
@@ -262,7 +262,7 @@ export function useXformsMediaRetrieve<TData = Awaited<ReturnType<typeof xformsM
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useXformsMediaRetrieve<TData = Awaited<ReturnType<typeof xformsMediaRetrieve>>, TError = unknown>(
   id: string,
@@ -272,11 +272,11 @@ export function useXformsMediaRetrieve<TData = Awaited<ReturnType<typeof xformsM
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getXformsMediaRetrieveQueryOptions(id, metadata, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

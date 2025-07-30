@@ -37,11 +37,13 @@ import { faker } from '@faker-js/faker'
 
 import { http, HttpResponse, delay } from 'msw'
 
+import { AuthLevelEnum } from './models/authLevelEnum'
+
+import { ExportTypeEnum } from './models/exportTypeEnum'
+
 import type { Hook } from './models/hook'
 
 import type { HookLog } from './models/hookLog'
-
-import type { HookLogStatusEnum } from './models/hookLogStatusEnum'
 
 import type { HookRetryResponse } from './models/hookRetryResponse'
 
@@ -50,6 +52,8 @@ import type { LogsRetryResponse } from './models/logsRetryResponse'
 import type { PaginatedHookList } from './models/paginatedHookList'
 
 import type { PaginatedHookLogList } from './models/paginatedHookLogList'
+
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
 
 // https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497
 type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B
@@ -148,7 +152,7 @@ export const getAssetsHooksListQueryOptions = <
     Awaited<ReturnType<typeof assetsHooksList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsHooksListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHooksList>>>
@@ -170,7 +174,7 @@ export function useAssetsHooksList<TData = Awaited<ReturnType<typeof assetsHooks
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsHooksList<TData = Awaited<ReturnType<typeof assetsHooksList>>, TError = ErrorObject>(
   parentLookupAsset: string,
   params?: AssetsHooksListParams,
@@ -187,7 +191,7 @@ export function useAssetsHooksList<TData = Awaited<ReturnType<typeof assetsHooks
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsHooksList<TData = Awaited<ReturnType<typeof assetsHooksList>>, TError = ErrorObject>(
   parentLookupAsset: string,
   params?: AssetsHooksListParams,
@@ -196,7 +200,7 @@ export function useAssetsHooksList<TData = Awaited<ReturnType<typeof assetsHooks
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsHooksList<TData = Awaited<ReturnType<typeof assetsHooksList>>, TError = ErrorObject>(
   parentLookupAsset: string,
@@ -206,11 +210,11 @@ export function useAssetsHooksList<TData = Awaited<ReturnType<typeof assetsHooks
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsHooksListQueryOptions(parentLookupAsset, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -290,7 +294,7 @@ export const assetsHooksCreate = async (
   return { data, status: res.status, headers: res.headers } as assetsHooksCreateResponse
 }
 
-export const getAssetsHooksCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsHooksCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksCreate>>,
     TError,
@@ -320,7 +324,9 @@ export const getAssetsHooksCreateMutationOptions = <TError = ErrorObject, TConte
     return assetsHooksCreate(parentLookupAsset, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsHooksCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHooksCreate>>>
@@ -344,7 +350,7 @@ export const useAssetsHooksCreate = <TError = ErrorObject, TContext = unknown>(
   { parentLookupAsset: string; data: NonReadonly<Hook> },
   TContext
 > => {
-  const mutationOptions = getAssetsHooksCreateMutationOptions(options)
+  const mutationOptions = useAssetsHooksCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -467,7 +473,7 @@ export const getAssetsHooksLogsListQueryOptions = <
     Awaited<ReturnType<typeof assetsHooksLogsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsHooksLogsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHooksLogsList>>>
@@ -493,7 +499,7 @@ export function useAssetsHooksLogsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsHooksLogsList<
   TData = Awaited<ReturnType<typeof assetsHooksLogsList>>,
   TError = ErrorDetail | ErrorObject,
@@ -514,7 +520,7 @@ export function useAssetsHooksLogsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsHooksLogsList<
   TData = Awaited<ReturnType<typeof assetsHooksLogsList>>,
   TError = ErrorDetail | ErrorObject,
@@ -527,7 +533,7 @@ export function useAssetsHooksLogsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsHooksLogsList<
   TData = Awaited<ReturnType<typeof assetsHooksLogsList>>,
@@ -541,11 +547,11 @@ export function useAssetsHooksLogsList<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsHooksLogsListQueryOptions(parentLookupAsset, parentLookupHook, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -636,7 +642,7 @@ export const getAssetsHooksLogsRetrieveQueryOptions = <
     enabled: !!(parentLookupAsset && parentLookupHook && uid),
     ...queryOptions,
   } as UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>, TError, TData> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 }
 
@@ -663,7 +669,7 @@ export function useAssetsHooksLogsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsHooksLogsRetrieve<
   TData = Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>,
   TError = ErrorDetail | ErrorObject,
@@ -684,7 +690,7 @@ export function useAssetsHooksLogsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsHooksLogsRetrieve<
   TData = Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>,
   TError = ErrorDetail | ErrorObject,
@@ -697,7 +703,7 @@ export function useAssetsHooksLogsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsHooksLogsRetrieve<
   TData = Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>,
@@ -711,11 +717,11 @@ export function useAssetsHooksLogsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsHooksLogsRetrieveQueryOptions(parentLookupAsset, parentLookupHook, uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -779,7 +785,7 @@ export const assetsHooksLogsRetryPartialUpdate = async (
   return { data, status: res.status, headers: res.headers } as assetsHooksLogsRetryPartialUpdateResponse
 }
 
-export const getAssetsHooksLogsRetryPartialUpdateMutationOptions = <
+export const useAssetsHooksLogsRetryPartialUpdateMutationOptions = <
   TError = ErrorDetail | ErrorObject,
   TContext = unknown,
 >(options?: {
@@ -812,7 +818,9 @@ export const getAssetsHooksLogsRetryPartialUpdateMutationOptions = <
     return assetsHooksLogsRetryPartialUpdate(parentLookupAsset, parentLookupHook, uid, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsHooksLogsRetryPartialUpdateMutationResult = NonNullable<
@@ -838,7 +846,7 @@ export const useAssetsHooksLogsRetryPartialUpdate = <TError = ErrorDetail | Erro
   { parentLookupAsset: string; parentLookupHook: string; uid: string; data: NonReadonly<PatchedHookLog> },
   TContext
 > => {
-  const mutationOptions = getAssetsHooksLogsRetryPartialUpdateMutationOptions(options)
+  const mutationOptions = useAssetsHooksLogsRetryPartialUpdateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -908,7 +916,7 @@ export const getAssetsHooksRetrieveQueryOptions = <
     Awaited<ReturnType<typeof assetsHooksRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type AssetsHooksRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHooksRetrieve>>>
@@ -930,7 +938,7 @@ export function useAssetsHooksRetrieve<TData = Awaited<ReturnType<typeof assetsH
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsHooksRetrieve<TData = Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError = ErrorObject>(
   parentLookupAsset: string,
   uid: string,
@@ -947,7 +955,7 @@ export function useAssetsHooksRetrieve<TData = Awaited<ReturnType<typeof assetsH
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useAssetsHooksRetrieve<TData = Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError = ErrorObject>(
   parentLookupAsset: string,
   uid: string,
@@ -956,7 +964,7 @@ export function useAssetsHooksRetrieve<TData = Awaited<ReturnType<typeof assetsH
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useAssetsHooksRetrieve<TData = Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError = ErrorObject>(
   parentLookupAsset: string,
@@ -966,11 +974,11 @@ export function useAssetsHooksRetrieve<TData = Awaited<ReturnType<typeof assetsH
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAssetsHooksRetrieveQueryOptions(parentLookupAsset, uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -1023,7 +1031,7 @@ export const assetsHooksPartialUpdate = async (
   return { data, status: res.status, headers: res.headers } as assetsHooksPartialUpdateResponse
 }
 
-export const getAssetsHooksPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsHooksPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksPartialUpdate>>,
     TError,
@@ -1053,7 +1061,9 @@ export const getAssetsHooksPartialUpdateMutationOptions = <TError = ErrorObject,
     return assetsHooksPartialUpdate(parentLookupAsset, uid, data, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsHooksPartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHooksPartialUpdate>>>
@@ -1077,7 +1087,7 @@ export const useAssetsHooksPartialUpdate = <TError = ErrorObject, TContext = unk
   { parentLookupAsset: string; uid: string; data: NonReadonly<PatchedHook> },
   TContext
 > => {
-  const mutationOptions = getAssetsHooksPartialUpdateMutationOptions(options)
+  const mutationOptions = useAssetsHooksPartialUpdateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -1121,7 +1131,7 @@ export const assetsHooksDestroy = async (
   return { data, status: res.status, headers: res.headers } as assetsHooksDestroyResponse
 }
 
-export const getAssetsHooksDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsHooksDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksDestroy>>,
     TError,
@@ -1151,7 +1161,9 @@ export const getAssetsHooksDestroyMutationOptions = <TError = ErrorObject, TCont
     return assetsHooksDestroy(parentLookupAsset, uid, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsHooksDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHooksDestroy>>>
@@ -1175,7 +1187,7 @@ export const useAssetsHooksDestroy = <TError = ErrorObject, TContext = unknown>(
   { parentLookupAsset: string; uid: string },
   TContext
 > => {
-  const mutationOptions = getAssetsHooksDestroyMutationOptions(options)
+  const mutationOptions = useAssetsHooksDestroyMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -1225,7 +1237,7 @@ export const assetsHooksRetryPartialUpdate = async (
   return { data, status: res.status, headers: res.headers } as assetsHooksRetryPartialUpdateResponse
 }
 
-export const getAssetsHooksRetryPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsHooksRetryPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksRetryPartialUpdate>>,
     TError,
@@ -1255,7 +1267,9 @@ export const getAssetsHooksRetryPartialUpdateMutationOptions = <TError = ErrorOb
     return assetsHooksRetryPartialUpdate(parentLookupAsset, uid, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type AssetsHooksRetryPartialUpdateMutationResult = NonNullable<
@@ -1281,7 +1295,7 @@ export const useAssetsHooksRetryPartialUpdate = <TError = ErrorObject, TContext 
   { parentLookupAsset: string; uid: string },
   TContext
 > => {
-  const mutationOptions = getAssetsHooksRetryPartialUpdateMutationOptions(options)
+  const mutationOptions = useAssetsHooksRetryPartialUpdateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -1376,7 +1390,7 @@ export const getApiV2AssetsHooksLogsListResponseMock = (
     uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
     submission_id: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
     tries: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
-    status: faker.helpers.arrayElement([0, 1, 2] as HookLogStatusEnum[]),
+    status: faker.helpers.arrayElement([0, 1, 2] as const),
     status_str: faker.string.alpha({ length: { min: 10, max: 20 } }),
     status_code: faker.helpers.arrayElement([
       faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
@@ -1393,7 +1407,7 @@ export const getApiV2AssetsHooksLogsRetrieveResponseMock = (overrideResponse: Pa
   uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
   submission_id: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
   tries: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
-  status: faker.helpers.arrayElement([0, 1, 2] as HookLogStatusEnum[]),
+  status: faker.helpers.arrayElement([0, 1, 2] as const),
   status_str: faker.string.alpha({ length: { min: 10, max: 20 } }),
   status_code: faker.helpers.arrayElement([
     faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),

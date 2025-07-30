@@ -14,6 +14,8 @@ import type { SubmissionCreateParams } from './models/submissionCreateParams'
 
 import { http, HttpResponse, delay } from 'msw'
 
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+
 /**
  * Implements OpenRosa Api [FormSubmissionAPI](        https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI)
 
@@ -100,7 +102,7 @@ export const submissionCreate2 = async (
   return { data, status: res.status, headers: res.headers } as submissionCreate2Response
 }
 
-export const getSubmissionCreate2MutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const useSubmissionCreate2MutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof submissionCreate2>>,
     TError,
@@ -130,7 +132,9 @@ export const getSubmissionCreate2MutationOptions = <TError = unknown, TContext =
     return submissionCreate2(username, params, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type SubmissionCreate2MutationResult = NonNullable<Awaited<ReturnType<typeof submissionCreate2>>>
@@ -154,7 +158,7 @@ export const useSubmissionCreate2 = <TError = unknown, TContext = unknown>(
   { username: string; params?: SubmissionCreate2Params },
   TContext
 > => {
-  const mutationOptions = getSubmissionCreate2MutationOptions(options)
+  const mutationOptions = useSubmissionCreate2MutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -243,7 +247,7 @@ export const submissionCreate = async (
   return { data, status: res.status, headers: res.headers } as submissionCreateResponse
 }
 
-export const getSubmissionCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const useSubmissionCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof submissionCreate>>,
     TError,
@@ -273,7 +277,9 @@ export const getSubmissionCreateMutationOptions = <TError = unknown, TContext = 
     return submissionCreate(params, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type SubmissionCreateMutationResult = NonNullable<Awaited<ReturnType<typeof submissionCreate>>>
@@ -297,7 +303,7 @@ export const useSubmissionCreate = <TError = unknown, TContext = unknown>(
   { params?: SubmissionCreateParams },
   TContext
 > => {
-  const mutationOptions = getSubmissionCreateMutationOptions(options)
+  const mutationOptions = useSubmissionCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

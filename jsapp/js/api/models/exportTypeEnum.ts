@@ -10,7 +10,10 @@
  * * `xml` - xml
  * `json` - json
  */
-export enum ExportTypeEnum {
-  xml = 'xml',
-  json = 'json',
-}
+export type ExportTypeEnum = (typeof ExportTypeEnum)[keyof typeof ExportTypeEnum]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ExportTypeEnum = {
+  xml: 'xml',
+  json: 'json',
+} as const

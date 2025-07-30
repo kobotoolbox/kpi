@@ -91,7 +91,7 @@ export const getServiceUsageListQueryOptions = <
     Awaited<ReturnType<typeof serviceUsageList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type ServiceUsageListQueryResult = NonNullable<Awaited<ReturnType<typeof serviceUsageList>>>
@@ -111,7 +111,7 @@ export function useServiceUsageList<TData = Awaited<ReturnType<typeof serviceUsa
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useServiceUsageList<TData = Awaited<ReturnType<typeof serviceUsageList>>, TError = ErrorDetail>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof serviceUsageList>>, TError, TData>> &
@@ -126,14 +126,14 @@ export function useServiceUsageList<TData = Awaited<ReturnType<typeof serviceUsa
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useServiceUsageList<TData = Awaited<ReturnType<typeof serviceUsageList>>, TError = ErrorDetail>(
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof serviceUsageList>>, TError, TData>>
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useServiceUsageList<TData = Awaited<ReturnType<typeof serviceUsageList>>, TError = ErrorDetail>(
   options?: {
@@ -141,11 +141,11 @@ export function useServiceUsageList<TData = Awaited<ReturnType<typeof serviceUsa
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getServiceUsageListQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

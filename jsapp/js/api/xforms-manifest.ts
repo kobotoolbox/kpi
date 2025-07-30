@@ -81,7 +81,7 @@ export const getXformsManifestRetrieve2QueryOptions = <
     Awaited<ReturnType<typeof xformsManifestRetrieve2>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type XformsManifestRetrieve2QueryResult = NonNullable<Awaited<ReturnType<typeof xformsManifestRetrieve2>>>
@@ -106,7 +106,7 @@ export function useXformsManifestRetrieve2<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useXformsManifestRetrieve2<
   TData = Awaited<ReturnType<typeof xformsManifestRetrieve2>>,
   TError = unknown,
@@ -126,7 +126,7 @@ export function useXformsManifestRetrieve2<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useXformsManifestRetrieve2<
   TData = Awaited<ReturnType<typeof xformsManifestRetrieve2>>,
   TError = unknown,
@@ -138,7 +138,7 @@ export function useXformsManifestRetrieve2<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useXformsManifestRetrieve2<
   TData = Awaited<ReturnType<typeof xformsManifestRetrieve2>>,
@@ -151,11 +151,11 @@ export function useXformsManifestRetrieve2<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getXformsManifestRetrieve2QueryOptions(username, id, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -218,7 +218,7 @@ export const getXformsManifestRetrieveQueryOptions = <
     Awaited<ReturnType<typeof xformsManifestRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type XformsManifestRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof xformsManifestRetrieve>>>
@@ -239,7 +239,7 @@ export function useXformsManifestRetrieve<TData = Awaited<ReturnType<typeof xfor
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useXformsManifestRetrieve<TData = Awaited<ReturnType<typeof xformsManifestRetrieve>>, TError = unknown>(
   id: string,
   options?: {
@@ -255,7 +255,7 @@ export function useXformsManifestRetrieve<TData = Awaited<ReturnType<typeof xfor
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useXformsManifestRetrieve<TData = Awaited<ReturnType<typeof xformsManifestRetrieve>>, TError = unknown>(
   id: string,
   options?: {
@@ -263,7 +263,7 @@ export function useXformsManifestRetrieve<TData = Awaited<ReturnType<typeof xfor
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useXformsManifestRetrieve<TData = Awaited<ReturnType<typeof xformsManifestRetrieve>>, TError = unknown>(
   id: string,
@@ -272,11 +272,11 @@ export function useXformsManifestRetrieve<TData = Awaited<ReturnType<typeof xfor
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getXformsManifestRetrieveQueryOptions(id, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey

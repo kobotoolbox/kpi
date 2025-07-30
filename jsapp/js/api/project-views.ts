@@ -39,7 +39,11 @@ import { http, HttpResponse, delay } from 'msw'
 
 import type { PaginatedProjectViewList } from './models/paginatedProjectViewList'
 
+import { PermissionsEnum } from './models/permissionsEnum'
+
 import type { ProjectView } from './models/projectView'
+
+import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
 
 // https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497
 type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B
@@ -120,7 +124,7 @@ export const getProjectViewsListQueryOptions = <TData = Awaited<ReturnType<typeo
     Awaited<ReturnType<typeof projectViewsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type ProjectViewsListQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsList>>>
@@ -141,7 +145,7 @@ export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectVie
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectViewsList>>, TError = unknown>(
   params?: ProjectViewsListParams,
   options?: {
@@ -157,7 +161,7 @@ export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectVie
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectViewsList>>, TError = unknown>(
   params?: ProjectViewsListParams,
   options?: {
@@ -165,7 +169,7 @@ export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectVie
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectViewsList>>, TError = unknown>(
   params?: ProjectViewsListParams,
@@ -174,11 +178,11 @@ export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectVie
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getProjectViewsListQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -255,7 +259,7 @@ export const getProjectViewsRetrieveQueryOptions = <
     Awaited<ReturnType<typeof projectViewsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type ProjectViewsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsRetrieve>>>
@@ -277,7 +281,7 @@ export function useProjectViewsRetrieve<TData = Awaited<ReturnType<typeof projec
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectViewsRetrieve<TData = Awaited<ReturnType<typeof projectViewsRetrieve>>, TError = unknown>(
   uid: string,
   params?: ProjectViewsRetrieveParams,
@@ -294,7 +298,7 @@ export function useProjectViewsRetrieve<TData = Awaited<ReturnType<typeof projec
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectViewsRetrieve<TData = Awaited<ReturnType<typeof projectViewsRetrieve>>, TError = unknown>(
   uid: string,
   params?: ProjectViewsRetrieveParams,
@@ -303,7 +307,7 @@ export function useProjectViewsRetrieve<TData = Awaited<ReturnType<typeof projec
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useProjectViewsRetrieve<TData = Awaited<ReturnType<typeof projectViewsRetrieve>>, TError = unknown>(
   uid: string,
@@ -313,11 +317,11 @@ export function useProjectViewsRetrieve<TData = Awaited<ReturnType<typeof projec
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getProjectViewsRetrieveQueryOptions(uid, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -404,7 +408,7 @@ export const getProjectViewsExportRetrieveQueryOptions = <
     Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type ProjectViewsExportRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsExportRetrieve>>>
@@ -430,7 +434,7 @@ export function useProjectViewsExportRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectViewsExportRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
   TError = unknown,
@@ -451,7 +455,7 @@ export function useProjectViewsExportRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectViewsExportRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
   TError = unknown,
@@ -464,7 +468,7 @@ export function useProjectViewsExportRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useProjectViewsExportRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
@@ -478,11 +482,11 @@ export function useProjectViewsExportRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getProjectViewsExportRetrieveQueryOptions(uid, objType, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -541,7 +545,7 @@ export const projectViewsExportCreate = async (
   return { data, status: res.status, headers: res.headers } as projectViewsExportCreateResponse
 }
 
-export const getProjectViewsExportCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const useProjectViewsExportCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof projectViewsExportCreate>>,
     TError,
@@ -571,7 +575,9 @@ export const getProjectViewsExportCreateMutationOptions = <TError = unknown, TCo
     return projectViewsExportCreate(uid, objType, data, params, fetchOptions)
   }
 
-  return { mutationFn, ...mutationOptions }
+  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
 }
 
 export type ProjectViewsExportCreateMutationResult = NonNullable<Awaited<ReturnType<typeof projectViewsExportCreate>>>
@@ -595,7 +601,7 @@ export const useProjectViewsExportCreate = <TError = unknown, TContext = unknown
   { uid: string; objType: string; data: NonReadonly<ProjectView>; params?: ProjectViewsExportCreateParams },
   TContext
 > => {
-  const mutationOptions = getProjectViewsExportCreateMutationOptions(options)
+  const mutationOptions = useProjectViewsExportCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -668,7 +674,7 @@ export const getProjectViewsAssetsRetrieveQueryOptions = <
     Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type ProjectViewsAssetsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>>
@@ -693,7 +699,7 @@ export function useProjectViewsAssetsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectViewsAssetsRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
   TError = unknown,
@@ -713,7 +719,7 @@ export function useProjectViewsAssetsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectViewsAssetsRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
   TError = unknown,
@@ -725,7 +731,7 @@ export function useProjectViewsAssetsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useProjectViewsAssetsRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
@@ -738,11 +744,11 @@ export function useProjectViewsAssetsRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getProjectViewsAssetsRetrieveQueryOptions(uid, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
@@ -819,7 +825,7 @@ export const getProjectViewsUsersRetrieveQueryOptions = <
     Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData> }
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type ProjectViewsUsersRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>>
@@ -844,7 +850,7 @@ export function useProjectViewsUsersRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectViewsUsersRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
   TError = unknown,
@@ -864,7 +870,7 @@ export function useProjectViewsUsersRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectViewsUsersRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
   TError = unknown,
@@ -876,7 +882,7 @@ export function useProjectViewsUsersRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> }
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
 export function useProjectViewsUsersRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
@@ -889,11 +895,11 @@ export function useProjectViewsUsersRetrieve<
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getProjectViewsUsersRetrieveQueryOptions(uid, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData>
+    queryKey: DataTag<QueryKey, TData, TError>
   }
 
   query.queryKey = queryOptions.queryKey
