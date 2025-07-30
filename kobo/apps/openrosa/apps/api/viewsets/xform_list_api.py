@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema_view, extend_schema
 from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.request import Request
@@ -132,6 +133,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
         return queryset
 
+    @extend_schema(exclude=True)
     def list(self, request, *args, **kwargs):
 
         object_list = self.filter_queryset(self.get_queryset())
@@ -144,6 +146,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         )
         return Response(serializer.data, headers=self.get_openrosa_headers())
 
+    @extend_schema(exclude=True)
     def retrieve(self, request, *args, **kwargs):
         xform = self.get_object()
 
