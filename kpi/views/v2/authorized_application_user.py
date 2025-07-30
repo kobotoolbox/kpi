@@ -1,5 +1,4 @@
-from rest_framework import exceptions
-from rest_framework import viewsets, mixins
+from rest_framework import exceptions, mixins, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -13,7 +12,7 @@ from kpi.serializers import AuthorizedApplicationUserSerializer
 from kpi.serializers.v2.create_user import CreateUserSerializer
 
 
-class  AuthorizedApplicationUserViewSet(
+class AuthorizedApplicationUserViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
     authentication_classes = [ApplicationTokenAuthentication]
@@ -47,7 +46,7 @@ class  AuthorizedApplicationUserViewSet(
             'is_active',
             'is_superuser',
             'last_login',
-            'date_joined'
+            'date_joined',
         )
         for attribute in user_attributes_to_return:
             response_data[attribute] = getattr(user, attribute)

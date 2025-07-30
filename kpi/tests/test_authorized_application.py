@@ -2,8 +2,8 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from ddt import data, ddt, unpack
-from freezegun import freeze_time
 from django.urls import reverse
+from freezegun import freeze_time
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -68,7 +68,7 @@ class AuthorizedApplicationUserTestCase(BaseTestCase):
             'johndoe',
             'testpass123',
             status.HTTP_401_UNAUTHORIZED,
-            {'HTTP_AUTHORIZATION': 'Token BadToken'}
+            {'HTTP_AUTHORIZATION': 'Token BadToken'},
         ),  # wrong key
         ('janedoe', 'testpass123', status.HTTP_403_FORBIDDEN, None),  # unknown user
         ('johndoe', 'wrongpassword', status.HTTP_403_FORBIDDEN, None),  # bad password
