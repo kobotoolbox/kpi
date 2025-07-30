@@ -1162,6 +1162,7 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'has_deployment',
             'deployment__active',
             'deployment__submission_count',
+            'deployment__uuid',
             'deployment_status',
             'asset_type',
             'downloads',
