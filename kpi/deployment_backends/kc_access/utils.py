@@ -146,6 +146,10 @@ def set_kc_anonymous_permissions_xform_flags(
     :param remove: If `True`, apply the Boolean `not` operator to each
         value in `KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS`
     """
+    xform_id = _get_xform_id_for_asset(obj)
+
+    if xform_id is None:
+        return
     if not settings.KOBOCAT_URL or not settings.KOBOCAT_INTERNAL_URL:
         return
     try:

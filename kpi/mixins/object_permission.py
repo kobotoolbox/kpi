@@ -20,9 +20,7 @@ from kpi.constants import (
     PERM_FROM_KC_ONLY,
     PREFIX_PARTIAL_PERMS,
 )
-from kpi.deployment_backends.kc_access.utils import (
-    _get_xform_id_for_asset,
-    kc_transaction_atomic,
+from kpi.deployment_backends.kc_access.utils import
     set_kc_anonymous_permissions_xform_flags,
 )
 from kpi.models.object_permission import ObjectPermission
@@ -87,7 +85,6 @@ class ObjectPermissionMixin:
         return assignable_permissions
 
     @transaction.atomic
-    @kc_transaction_atomic
     def copy_permissions_from(self, source_object):
         """
         Copies permissions from `source_object` to `self` object.
@@ -499,8 +496,7 @@ class ObjectPermissionMixin:
 
         # Handle KoboCat xform flags for the anonymous user
         if not deny and is_anonymous:
-            if xform_id := _get_xform_id_for_asset(self):
-                set_kc_anonymous_permissions_xform_flags(self, codename, xform_id)
+            set_kc_anonymous_permissions_xform_flags(self, codename, xform_id)
 
         # Resolve implied permissions, e.g. granting change implies granting
         # view
@@ -646,7 +642,6 @@ class ObjectPermissionMixin:
         return fn(perm in perms for perm in self.get_perms(user_obj))
 
     @transaction.atomic
-    @kc_transaction_atomic
     def remove_perm(self, user_obj, perm, defer_recalc=False):
         """
         Revoke the given `perm` on this object from `user_obj`. By default,
@@ -719,10 +714,9 @@ class ObjectPermissionMixin:
         is_anonymous = is_user_anonymous(user_obj)
         # Handle KoboCat xform flags for the anonymous user
         if is_anonymous:
-            if xform_id := _get_xform_id_for_asset(self):
-                set_kc_anonymous_permissions_xform_flags(
-                    self, codename, xform_id, remove=True
-                )
+            set_kc_anonymous_permissions_xform_flags(
+                self, codename, xform_id, remove=True
+            )
 
     def _update_partial_permissions(
         self,
