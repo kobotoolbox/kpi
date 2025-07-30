@@ -134,7 +134,7 @@ export const importsList = async (params?: ImportsListParams, options?: RequestI
 }
 
 export const getImportsListQueryKey = (params?: ImportsListParams) => {
-  return [`/api/v2/imports/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'imports', ...(params ? [params] : [])] as const
 }
 
 export const getImportsListQueryOptions = <TData = Awaited<ReturnType<typeof importsList>>, TError = unknown>(
@@ -452,7 +452,7 @@ export const importsRetrieve = async (
 }
 
 export const getImportsRetrieveQueryKey = (uid: string, params?: ImportsRetrieveParams) => {
-  return [`/api/v2/imports/${uid}/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'imports', uid, ...(params ? [params] : [])] as const
 }
 
 export const getImportsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof importsRetrieve>>, TError = unknown>(

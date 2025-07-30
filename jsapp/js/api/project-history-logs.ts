@@ -293,7 +293,7 @@ export const projectHistoryLogsList = async (
 }
 
 export const getProjectHistoryLogsListQueryKey = (params?: ProjectHistoryLogsListParams) => {
-  return [`/api/v2/project-history-logs/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'project-history-logs', ...(params ? [params] : [])] as const
 }
 
 export const getProjectHistoryLogsListQueryOptions = <
@@ -444,7 +444,7 @@ export const projectHistoryLogsExportRetrieve = async (
 }
 
 export const getProjectHistoryLogsExportRetrieveQueryKey = () => {
-  return [`/api/v2/project-history-logs/export/`] as const
+  return ['api', 'v2', 'project-history-logs', 'export'] as const
 }
 
 export const getProjectHistoryLogsExportRetrieveQueryOptions = <

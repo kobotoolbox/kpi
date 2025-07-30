@@ -56,7 +56,7 @@ export const xformsManifestRetrieve2 = async (
 }
 
 export const getXformsManifestRetrieve2QueryKey = (username: string, id: string) => {
-  return [`/${username}/xformsManifest/${id}`] as const
+  return [username, 'xformsManifest', id] as const
 }
 
 export const getXformsManifestRetrieve2QueryOptions = <
@@ -194,7 +194,7 @@ export const xformsManifestRetrieve = async (
 }
 
 export const getXformsManifestRetrieveQueryKey = (id: string) => {
-  return [`/xformsManifest/${id}`] as const
+  return ['xformsManifest', id] as const
 }
 
 export const getXformsManifestRetrieveQueryOptions = <

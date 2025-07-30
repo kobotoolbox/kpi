@@ -57,7 +57,7 @@ export const viewDownloadSubmissionRetrieve = async (
 }
 
 export const getViewDownloadSubmissionRetrieveQueryKey = () => {
-  return [`/view/downloadSubmission`] as const
+  return ['view', 'downloadSubmission'] as const
 }
 
 export const getViewDownloadSubmissionRetrieveQueryOptions = <
@@ -185,7 +185,7 @@ export const viewSubmissionListList = async (options?: RequestInit): Promise<vie
 }
 
 export const getViewSubmissionListListQueryKey = () => {
-  return [`/view/submissionList`] as const
+  return ['view', 'submissionList'] as const
 }
 
 export const getViewSubmissionListListQueryOptions = <

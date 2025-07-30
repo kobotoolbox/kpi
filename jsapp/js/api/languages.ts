@@ -98,7 +98,7 @@ export const languagesList = async (
 }
 
 export const getLanguagesListQueryKey = (params?: LanguagesListParams) => {
-  return [`/api/v2/languages/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'languages', ...(params ? [params] : [])] as const
 }
 
 export const getLanguagesListQueryOptions = <TData = Awaited<ReturnType<typeof languagesList>>, TError = ErrorDetail>(
@@ -232,7 +232,7 @@ export const languagesRetrieve = async (code: string, options?: RequestInit): Pr
 }
 
 export const getLanguagesRetrieveQueryKey = (code: string) => {
-  return [`/api/v2/languages/${code}/`] as const
+  return ['api', 'v2', 'languages', code] as const
 }
 
 export const getLanguagesRetrieveQueryOptions = <

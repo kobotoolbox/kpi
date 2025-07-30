@@ -165,7 +165,7 @@ export const accessLogsList = async (
 }
 
 export const getAccessLogsListQueryKey = (params?: AccessLogsListParams) => {
-  return [`/api/v2/access-logs/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'access-logs', ...(params ? [params] : [])] as const
 }
 
 export const getAccessLogsListQueryOptions = <
@@ -306,7 +306,7 @@ export const accessLogsExportList = async (options?: RequestInit): Promise<acces
 }
 
 export const getAccessLogsExportListQueryKey = () => {
-  return [`/api/v2/access-logs/export/`] as const
+  return ['api', 'v2', 'access-logs', 'export'] as const
 }
 
 export const getAccessLogsExportListQueryOptions = <
@@ -588,7 +588,7 @@ export const accessLogsMeList = async (
 }
 
 export const getAccessLogsMeListQueryKey = (params?: AccessLogsMeListParams) => {
-  return [`/api/v2/access-logs/me/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'access-logs', 'me', ...(params ? [params] : [])] as const
 }
 
 export const getAccessLogsMeListQueryOptions = <
@@ -729,7 +729,7 @@ export const accessLogsMeExportList = async (options?: RequestInit): Promise<acc
 }
 
 export const getAccessLogsMeExportListQueryKey = () => {
-  return [`/api/v2/access-logs/me/export/`] as const
+  return ['api', 'v2', 'access-logs', 'me', 'export'] as const
 }
 
 export const getAccessLogsMeExportListQueryOptions = <

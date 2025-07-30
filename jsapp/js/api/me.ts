@@ -87,7 +87,7 @@ export const meRetrieve = async (options?: RequestInit): Promise<meRetrieveRespo
 }
 
 export const getMeRetrieveQueryKey = () => {
-  return [`/me/`] as const
+  return ['me'] as const
 }
 
 export const getMeRetrieveQueryOptions = <

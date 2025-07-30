@@ -78,7 +78,7 @@ export const assetUsageList = async (
 }
 
 export const getAssetUsageListQueryKey = (params?: AssetUsageListParams) => {
-  return [`/api/v2/asset_usage/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'asset_usage', ...(params ? [params] : [])] as const
 }
 
 export const getAssetUsageListQueryOptions = <TData = Awaited<ReturnType<typeof assetUsageList>>, TError = ErrorDetail>(

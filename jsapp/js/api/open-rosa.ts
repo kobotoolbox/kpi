@@ -79,7 +79,7 @@ export const assetSnapshotsFormListRetrieve = async (
 }
 
 export const getAssetSnapshotsFormListRetrieveQueryKey = (uid: string) => {
-  return [`/api/v2/asset_snapshots/${uid}/formList`] as const
+  return ['api', 'v2', 'asset_snapshots', uid, 'formList'] as const
 }
 
 export const getAssetSnapshotsFormListRetrieveQueryOptions = <
@@ -227,7 +227,7 @@ export const assetSnapshotsFormListRetrieve2 = async (
 }
 
 export const getAssetSnapshotsFormListRetrieve2QueryKey = (uid: string) => {
-  return [`/api/v2/asset_snapshots/${uid}/formList/`] as const
+  return ['api', 'v2', 'asset_snapshots', uid, 'formList'] as const
 }
 
 export const getAssetSnapshotsFormListRetrieve2QueryOptions = <
@@ -377,7 +377,7 @@ export const assetSnapshotsManifestRetrieve = async (
 }
 
 export const getAssetSnapshotsManifestRetrieveQueryKey = (uid: string) => {
-  return [`/api/v2/asset_snapshots/${uid}/manifest`] as const
+  return ['api', 'v2', 'asset_snapshots', uid, 'manifest'] as const
 }
 
 export const getAssetSnapshotsManifestRetrieveQueryOptions = <
@@ -527,7 +527,7 @@ export const assetSnapshotsManifestRetrieve2 = async (
 }
 
 export const getAssetSnapshotsManifestRetrieve2QueryKey = (uid: string) => {
-  return [`/api/v2/asset_snapshots/${uid}/manifest/`] as const
+  return ['api', 'v2', 'asset_snapshots', uid, 'manifest'] as const
 }
 
 export const getAssetSnapshotsManifestRetrieve2QueryOptions = <

@@ -122,7 +122,7 @@ export const translationServicesList = async (
 }
 
 export const getTranslationServicesListQueryKey = (params?: TranslationServicesListParams) => {
-  return [`/api/v2/translation-services/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'translation-services', ...(params ? [params] : [])] as const
 }
 
 export const getTranslationServicesListQueryOptions = <
@@ -317,7 +317,7 @@ export const translationServicesRetrieve = async (
 }
 
 export const getTranslationServicesRetrieveQueryKey = (code: string, params?: TranslationServicesRetrieveParams) => {
-  return [`/api/v2/translation-services/${code}/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'translation-services', code, ...(params ? [params] : [])] as const
 }
 
 export const getTranslationServicesRetrieveQueryOptions = <

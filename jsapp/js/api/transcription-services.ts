@@ -122,7 +122,7 @@ export const transcriptionServicesList = async (
 }
 
 export const getTranscriptionServicesListQueryKey = (params?: TranscriptionServicesListParams) => {
-  return [`/api/v2/transcription-services/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'transcription-services', ...(params ? [params] : [])] as const
 }
 
 export const getTranscriptionServicesListQueryOptions = <
@@ -320,7 +320,7 @@ export const getTranscriptionServicesRetrieveQueryKey = (
   code: string,
   params?: TranscriptionServicesRetrieveParams,
 ) => {
-  return [`/api/v2/transcription-services/${code}/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'transcription-services', code, ...(params ? [params] : [])] as const
 }
 
 export const getTranscriptionServicesRetrieveQueryOptions = <

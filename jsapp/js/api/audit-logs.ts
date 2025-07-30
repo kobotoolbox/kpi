@@ -156,7 +156,7 @@ export const auditLogsList = async (
 }
 
 export const getAuditLogsListQueryKey = (params?: AuditLogsListParams) => {
-  return [`/api/v2/audit-logs/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'audit-logs', ...(params ? [params] : [])] as const
 }
 
 export const getAuditLogsListQueryOptions = <

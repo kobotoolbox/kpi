@@ -123,7 +123,7 @@ export const assetsHooksList = async (
 }
 
 export const getAssetsHooksListQueryKey = (parentLookupAsset: string, params?: AssetsHooksListParams) => {
-  return [`/api/v2/assets/${parentLookupAsset}/hooks/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'hooks', ...(params ? [params] : [])] as const
 }
 
 export const getAssetsHooksListQueryOptions = <
@@ -432,7 +432,16 @@ export const getAssetsHooksLogsListQueryKey = (
   parentLookupHook: string,
   params?: AssetsHooksLogsListParams,
 ) => {
-  return [`/api/v2/assets/${parentLookupAsset}/hooks/${parentLookupHook}/logs/`, ...(params ? [params] : [])] as const
+  return [
+    'api',
+    'v2',
+    'assets',
+    parentLookupAsset,
+    'hooks',
+    parentLookupHook,
+    'logs',
+    ...(params ? [params] : []),
+  ] as const
 }
 
 export const getAssetsHooksLogsListQueryOptions = <
@@ -598,7 +607,7 @@ export const getAssetsHooksLogsRetrieveQueryKey = (
   parentLookupHook: string,
   uid: string,
 ) => {
-  return [`/api/v2/assets/${parentLookupAsset}/hooks/${parentLookupHook}/logs/${uid}/`] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'hooks', parentLookupHook, 'logs', uid] as const
 }
 
 export const getAssetsHooksLogsRetrieveQueryOptions = <
@@ -874,7 +883,7 @@ export const assetsHooksRetrieve = async (
 }
 
 export const getAssetsHooksRetrieveQueryKey = (parentLookupAsset: string, uid: string) => {
-  return [`/api/v2/assets/${parentLookupAsset}/hooks/${uid}/`] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'hooks', uid] as const
 }
 
 export const getAssetsHooksRetrieveQueryOptions = <

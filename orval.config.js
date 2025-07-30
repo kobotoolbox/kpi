@@ -23,6 +23,9 @@ module.exports = {
         title: (title) => ``,
         operationName: operationName,
         enumGenerationType: 'enum',
+        query: {
+          shouldSplitQueryKey: true,
+        }
       },
     },
     input: {

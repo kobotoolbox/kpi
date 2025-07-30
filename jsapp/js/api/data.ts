@@ -157,7 +157,7 @@ export const assetsDataList = async (
 }
 
 export const getAssetsDataListQueryKey = (parentLookupAsset: string, params?: AssetsDataListParams) => {
-  return [`/api/v2/assets/${parentLookupAsset}/data/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'data', ...(params ? [params] : [])] as const
 }
 
 export const getAssetsDataListQueryOptions = <TData = Awaited<ReturnType<typeof assetsDataList>>, TError = ErrorObject>(
@@ -334,7 +334,7 @@ export const getAssetsDataRetrieveQueryKey = (
   id: string,
   params?: AssetsDataRetrieveParams,
 ) => {
-  return [`/api/v2/assets/${parentLookupAsset}/data/${id}/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'data', id, ...(params ? [params] : [])] as const
 }
 
 export const getAssetsDataRetrieveQueryOptions = <
@@ -680,7 +680,7 @@ export const assetsDataValidationStatusRetrieve = async (
 }
 
 export const getAssetsDataValidationStatusRetrieveQueryKey = (parentLookupAsset: string, id: string) => {
-  return [`/api/v2/assets/${parentLookupAsset}/data/${id}/validation_status/`] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'data', id, 'validation_status'] as const
 }
 
 export const getAssetsDataValidationStatusRetrieveQueryOptions = <

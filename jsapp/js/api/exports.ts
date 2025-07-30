@@ -110,7 +110,7 @@ export const assetsExportsList = async (
 }
 
 export const getAssetsExportsListQueryKey = (parentLookupAsset: string, params?: AssetsExportsListParams) => {
-  return [`/api/v2/assets/${parentLookupAsset}/exports/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'exports', ...(params ? [params] : [])] as const
 }
 
 export const getAssetsExportsListQueryOptions = <
@@ -408,7 +408,7 @@ export const assetsExportsRetrieve = async (
 }
 
 export const getAssetsExportsRetrieveQueryKey = (parentLookupAsset: string, uid: string) => {
-  return [`/api/v2/assets/${parentLookupAsset}/exports/${uid}/`] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'exports', uid] as const
 }
 
 export const getAssetsExportsRetrieveQueryOptions = <

@@ -80,7 +80,7 @@ export const permissionsList = async (
 }
 
 export const getPermissionsListQueryKey = (params?: PermissionsListParams) => {
-  return [`/api/v2/permissions/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'permissions', ...(params ? [params] : [])] as const
 }
 
 export const getPermissionsListQueryOptions = <TData = Awaited<ReturnType<typeof permissionsList>>, TError = unknown>(
@@ -202,7 +202,7 @@ export const permissionsRetrieve = async (
 }
 
 export const getPermissionsRetrieveQueryKey = (codename: string) => {
-  return [`/api/v2/permissions/${codename}/`] as const
+  return ['api', 'v2', 'permissions', codename] as const
 }
 
 export const getPermissionsRetrieveQueryOptions = <

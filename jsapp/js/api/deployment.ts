@@ -77,7 +77,7 @@ export const assetsDeploymentRetrieve = async (
 }
 
 export const getAssetsDeploymentRetrieveQueryKey = (uid: string) => {
-  return [`/api/v2/assets/${uid}/deployment/`] as const
+  return ['api', 'v2', 'assets', uid, 'deployment'] as const
 }
 
 export const getAssetsDeploymentRetrieveQueryOptions = <

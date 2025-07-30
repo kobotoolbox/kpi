@@ -133,7 +133,15 @@ export const getProjectOwnershipInvitesTransfersListQueryKey = (
   parentLookupInviteUid: string,
   params?: ProjectOwnershipInvitesTransfersListParams,
 ) => {
-  return [`/api/v2/project-ownership/invites/${parentLookupInviteUid}/transfers/`, ...(params ? [params] : [])] as const
+  return [
+    'api',
+    'v2',
+    'project-ownership',
+    'invites',
+    parentLookupInviteUid,
+    'transfers',
+    ...(params ? [params] : []),
+  ] as const
 }
 
 export const getProjectOwnershipInvitesTransfersListQueryOptions = <
@@ -352,7 +360,13 @@ export const getProjectOwnershipInvitesTransfersRetrieveQueryKey = (
   params?: ProjectOwnershipInvitesTransfersRetrieveParams,
 ) => {
   return [
-    `/api/v2/project-ownership/invites/${parentLookupInviteUid}/transfers/${uid}/`,
+    'api',
+    'v2',
+    'project-ownership',
+    'invites',
+    parentLookupInviteUid,
+    'transfers',
+    uid,
     ...(params ? [params] : []),
   ] as const
 }

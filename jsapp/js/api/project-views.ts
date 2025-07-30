@@ -99,7 +99,7 @@ export const projectViewsList = async (
 }
 
 export const getProjectViewsListQueryKey = (params?: ProjectViewsListParams) => {
-  return [`/api/v2/project-views/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'project-views', ...(params ? [params] : [])] as const
 }
 
 export const getProjectViewsListQueryOptions = <TData = Awaited<ReturnType<typeof projectViewsList>>, TError = unknown>(
@@ -230,7 +230,7 @@ export const projectViewsRetrieve = async (
 }
 
 export const getProjectViewsRetrieveQueryKey = (uid: string, params?: ProjectViewsRetrieveParams) => {
-  return [`/api/v2/project-views/${uid}/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'project-views', uid, ...(params ? [params] : [])] as const
 }
 
 export const getProjectViewsRetrieveQueryOptions = <
@@ -378,7 +378,7 @@ export const getProjectViewsExportRetrieveQueryKey = (
   objType: string,
   params?: ProjectViewsExportRetrieveParams,
 ) => {
-  return [`/api/v2/project-views/${uid}/${objType}/export/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'project-views', uid, objType, 'export', ...(params ? [params] : [])] as const
 }
 
 export const getProjectViewsExportRetrieveQueryOptions = <
@@ -643,7 +643,7 @@ export const projectViewsAssetsRetrieve = async (
 }
 
 export const getProjectViewsAssetsRetrieveQueryKey = (uid: string, params?: ProjectViewsAssetsRetrieveParams) => {
-  return [`/api/v2/project-views/${uid}/assets/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'project-views', uid, 'assets', ...(params ? [params] : [])] as const
 }
 
 export const getProjectViewsAssetsRetrieveQueryOptions = <
@@ -794,7 +794,7 @@ export const projectViewsUsersRetrieve = async (
 }
 
 export const getProjectViewsUsersRetrieveQueryKey = (uid: string, params?: ProjectViewsUsersRetrieveParams) => {
-  return [`/api/v2/project-views/${uid}/users/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'project-views', uid, 'users', ...(params ? [params] : [])] as const
 }
 
 export const getProjectViewsUsersRetrieveQueryOptions = <

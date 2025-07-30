@@ -99,7 +99,7 @@ export const getAssetsExportSettingsListQueryKey = (
   parentLookupAsset: string,
   params?: AssetsExportSettingsListParams,
 ) => {
-  return [`/api/v2/assets/${parentLookupAsset}/export-settings/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'export-settings', ...(params ? [params] : [])] as const
 }
 
 export const getAssetsExportSettingsListQueryOptions = <
@@ -394,7 +394,7 @@ export const assetsExportSettingsRetrieve = async (
 }
 
 export const getAssetsExportSettingsRetrieveQueryKey = (parentLookupAsset: string, uid: string) => {
-  return [`/api/v2/assets/${parentLookupAsset}/export-settings/${uid}/`] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'export-settings', uid] as const
 }
 
 export const getAssetsExportSettingsRetrieveQueryOptions = <
@@ -788,7 +788,16 @@ export const getAssetsExportSettingsDataRetrieveQueryKey = (
   uid: string,
   params: AssetsExportSettingsDataRetrieveParams,
 ) => {
-  return [`/api/v2/assets/${parentLookupAsset}/export-settings/${uid}/data/`, ...(params ? [params] : [])] as const
+  return [
+    'api',
+    'v2',
+    'assets',
+    parentLookupAsset,
+    'export-settings',
+    uid,
+    'data',
+    ...(params ? [params] : []),
+  ] as const
 }
 
 export const getAssetsExportSettingsDataRetrieveQueryOptions = <

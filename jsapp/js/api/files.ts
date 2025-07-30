@@ -93,7 +93,7 @@ export const assetsFilesList = async (
 }
 
 export const getAssetsFilesListQueryKey = (parentLookupAsset: string, params?: AssetsFilesListParams) => {
-  return [`/api/v2/assets/${parentLookupAsset}/files/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'files', ...(params ? [params] : [])] as const
 }
 
 export const getAssetsFilesListQueryOptions = <
@@ -353,7 +353,7 @@ export const assetsFilesRetrieve = async (
 }
 
 export const getAssetsFilesRetrieveQueryKey = (parentLookupAsset: string, uid: string) => {
-  return [`/api/v2/assets/${parentLookupAsset}/files/${uid}/`] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'files', uid] as const
 }
 
 export const getAssetsFilesRetrieveQueryOptions = <
@@ -589,7 +589,7 @@ export const assetsFilesContentRetrieve = async (
 }
 
 export const getAssetsFilesContentRetrieveQueryKey = (parentLookupAsset: string, uid: string) => {
-  return [`/api/v2/assets/${parentLookupAsset}/files/${uid}/content/`] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'files', uid, 'content'] as const
 }
 
 export const getAssetsFilesContentRetrieveQueryOptions = <

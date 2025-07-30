@@ -97,7 +97,7 @@ export const getOrganizationsMembersListQueryKey = (
   organizationId: string,
   params?: OrganizationsMembersListParams,
 ) => {
-  return [`/api/v2/organizations/${organizationId}/members/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'organizations', organizationId, 'members', ...(params ? [params] : [])] as const
 }
 
 export const getOrganizationsMembersListQueryOptions = <
@@ -249,7 +249,7 @@ export const organizationsMembersRetrieve = async (
 }
 
 export const getOrganizationsMembersRetrieveQueryKey = (organizationId: string, userUsername: string) => {
-  return [`/api/v2/organizations/${organizationId}/members/${userUsername}/`] as const
+  return ['api', 'v2', 'organizations', organizationId, 'members', userUsername] as const
 }
 
 export const getOrganizationsMembersRetrieveQueryOptions = <

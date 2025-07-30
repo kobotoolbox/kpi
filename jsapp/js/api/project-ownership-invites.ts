@@ -102,7 +102,7 @@ export const projectOwnershipInvitesList = async (
 }
 
 export const getProjectOwnershipInvitesListQueryKey = (params?: ProjectOwnershipInvitesListParams) => {
-  return [`/api/v2/project-ownership/invites/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'project-ownership', 'invites', ...(params ? [params] : [])] as const
 }
 
 export const getProjectOwnershipInvitesListQueryOptions = <
@@ -372,7 +372,7 @@ export const projectOwnershipInvitesRetrieve = async (
 }
 
 export const getProjectOwnershipInvitesRetrieveQueryKey = (uid: string) => {
-  return [`/api/v2/project-ownership/invites/${uid}/`] as const
+  return ['api', 'v2', 'project-ownership', 'invites', uid] as const
 }
 
 export const getProjectOwnershipInvitesRetrieveQueryOptions = <

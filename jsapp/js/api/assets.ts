@@ -128,7 +128,7 @@ export const assetsList = async (params?: AssetsListParams, options?: RequestIni
 }
 
 export const getAssetsListQueryKey = (params?: AssetsListParams) => {
-  return [`/api/v2/assets/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'assets', ...(params ? [params] : [])] as const
 }
 
 export const getAssetsListQueryOptions = <TData = Awaited<ReturnType<typeof assetsList>>, TError = unknown>(
@@ -398,7 +398,7 @@ export const assetsCountsList = async (
 }
 
 export const getAssetsCountsListQueryKey = (parentLookupAsset: string, params?: AssetsCountsListParams) => {
-  return [`/api/v2/assets/${parentLookupAsset}/counts/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'counts', ...(params ? [params] : [])] as const
 }
 
 export const getAssetsCountsListQueryOptions = <
@@ -556,7 +556,7 @@ export const assetsRetrieve = async (
 }
 
 export const getAssetsRetrieveQueryKey = (uid: string, params?: AssetsRetrieveParams) => {
-  return [`/api/v2/assets/${uid}/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'assets', uid, ...(params ? [params] : [])] as const
 }
 
 export const getAssetsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsRetrieve>>, TError = ErrorObject>(
@@ -887,7 +887,7 @@ export const assetsContentRetrieve = async (
 }
 
 export const getAssetsContentRetrieveQueryKey = (uid: string) => {
-  return [`/api/v2/assets/${uid}/content/`] as const
+  return ['api', 'v2', 'assets', uid, 'content'] as const
 }
 
 export const getAssetsContentRetrieveQueryOptions = <
@@ -1033,7 +1033,7 @@ export const assetsReportsRetrieve = async (
 }
 
 export const getAssetsReportsRetrieveQueryKey = (uid: string) => {
-  return [`/api/v2/assets/${uid}/reports/`] as const
+  return ['api', 'v2', 'assets', uid, 'reports'] as const
 }
 
 export const getAssetsReportsRetrieveQueryOptions = <
@@ -1177,7 +1177,7 @@ export const assetsTableViewRetrieve = async (
 }
 
 export const getAssetsTableViewRetrieveQueryKey = (uid: string) => {
-  return [`/api/v2/assets/${uid}/table_view/`] as const
+  return ['api', 'v2', 'assets', uid, 'table_view'] as const
 }
 
 export const getAssetsTableViewRetrieveQueryOptions = <
@@ -1309,7 +1309,7 @@ export const assetsValidContentRetrieve = async (
 }
 
 export const getAssetsValidContentRetrieveQueryKey = (uid: string) => {
-  return [`/api/v2/assets/${uid}/valid_content/`] as const
+  return ['api', 'v2', 'assets', uid, 'valid_content'] as const
 }
 
 export const getAssetsValidContentRetrieveQueryOptions = <
@@ -1450,7 +1450,7 @@ export const assetsXformRetrieve = async (uid: string, options?: RequestInit): P
 }
 
 export const getAssetsXformRetrieveQueryKey = (uid: string) => {
-  return [`/api/v2/assets/${uid}/xform/`] as const
+  return ['api', 'v2', 'assets', uid, 'xform'] as const
 }
 
 export const getAssetsXformRetrieveQueryOptions = <
@@ -1577,7 +1577,7 @@ export const assetsXlsRetrieve = async (uid: string, options?: RequestInit): Pro
 }
 
 export const getAssetsXlsRetrieveQueryKey = (uid: string) => {
-  return [`/api/v2/assets/${uid}/xls/`] as const
+  return ['api', 'v2', 'assets', uid, 'xls'] as const
 }
 
 export const getAssetsXlsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsXlsRetrieve>>, TError = void>(
@@ -1798,7 +1798,7 @@ export const assetsHashRetrieve = async (options?: RequestInit): Promise<assetsH
 }
 
 export const getAssetsHashRetrieveQueryKey = () => {
-  return [`/api/v2/assets/hash/`] as const
+  return ['api', 'v2', 'assets', 'hash'] as const
 }
 
 export const getAssetsHashRetrieveQueryOptions = <
@@ -1913,7 +1913,7 @@ export const assetsMetadataRetrieve = async (options?: RequestInit): Promise<ass
 }
 
 export const getAssetsMetadataRetrieveQueryKey = () => {
-  return [`/api/v2/assets/metadata/`] as const
+  return ['api', 'v2', 'assets', 'metadata'] as const
 }
 
 export const getAssetsMetadataRetrieveQueryOptions = <

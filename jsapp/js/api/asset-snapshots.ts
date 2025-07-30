@@ -91,7 +91,7 @@ export const assetSnapshotsList = async (
 }
 
 export const getAssetSnapshotsListQueryKey = (params?: AssetSnapshotsListParams) => {
-  return [`/api/v2/asset_snapshots/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'asset_snapshots', ...(params ? [params] : [])] as const
 }
 
 export const getAssetSnapshotsListQueryOptions = <
@@ -363,7 +363,7 @@ export const assetSnapshotsRetrieve = async (
 }
 
 export const getAssetSnapshotsRetrieveQueryKey = (uid: string, params?: AssetSnapshotsRetrieveParams) => {
-  return [`/api/v2/asset_snapshots/${uid}/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'asset_snapshots', uid, ...(params ? [params] : [])] as const
 }
 
 export const getAssetSnapshotsRetrieveQueryOptions = <
@@ -599,7 +599,7 @@ export const assetSnapshotsPreviewRetrieve = async (
 }
 
 export const getAssetSnapshotsPreviewRetrieveQueryKey = (uid: string) => {
-  return [`/api/v2/asset_snapshots/${uid}/preview/`] as const
+  return ['api', 'v2', 'asset_snapshots', uid, 'preview'] as const
 }
 
 export const getAssetSnapshotsPreviewRetrieveQueryOptions = <
@@ -747,7 +747,7 @@ export const assetSnapshotsXformRetrieve = async (
 }
 
 export const getAssetSnapshotsXformRetrieveQueryKey = (uid: string) => {
-  return [`/api/v2/asset_snapshots/${uid}/xform/`] as const
+  return ['api', 'v2', 'asset_snapshots', uid, 'xform'] as const
 }
 
 export const getAssetSnapshotsXformRetrieveQueryOptions = <
@@ -898,7 +898,7 @@ export const assetSnapshotsXmlWithDisclaimerRetrieve = async (
 }
 
 export const getAssetSnapshotsXmlWithDisclaimerRetrieveQueryKey = (uid: string) => {
-  return [`/api/v2/asset_snapshots/${uid}/xml_with_disclaimer/`] as const
+  return ['api', 'v2', 'asset_snapshots', uid, 'xml_with_disclaimer'] as const
 }
 
 export const getAssetSnapshotsXmlWithDisclaimerRetrieveQueryOptions = <

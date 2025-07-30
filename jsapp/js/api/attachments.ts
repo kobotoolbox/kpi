@@ -342,7 +342,13 @@ export const getAssetsDataAttachmentsListQueryKey = (
   params: AssetsDataAttachmentsListParams,
 ) => {
   return [
-    `/api/v2/assets/${parentLookupAsset}/data/${parentLookupData}/attachments/`,
+    'api',
+    'v2',
+    'assets',
+    parentLookupAsset,
+    'data',
+    parentLookupData,
+    'attachments',
     ...(params ? [params] : []),
   ] as const
 }
@@ -547,7 +553,14 @@ export const getAssetsDataAttachmentsRetrieveQueryKey = (
   params?: AssetsDataAttachmentsRetrieveParams,
 ) => {
   return [
-    `/api/v2/assets/${parentLookupAsset}/data/${parentLookupData}/attachments/${id}/`,
+    'api',
+    'v2',
+    'assets',
+    parentLookupAsset,
+    'data',
+    parentLookupData,
+    'attachments',
+    id,
     ...(params ? [params] : []),
   ] as const
 }
@@ -749,7 +762,7 @@ export const getAssetsDataAttachmentsRetrieve2QueryKey = (
   id: string,
   suffix: string,
 ) => {
-  return [`/api/v2/assets/${parentLookupAsset}/data/${parentLookupData}/attachments/${id}/${suffix}/`] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'data', parentLookupData, 'attachments', id, suffix] as const
 }
 
 export const getAssetsDataAttachmentsRetrieve2QueryOptions = <

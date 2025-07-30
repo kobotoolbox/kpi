@@ -113,7 +113,7 @@ export const assetsPairedDataList = async (
 }
 
 export const getAssetsPairedDataListQueryKey = (parentLookupAsset: string, params?: AssetsPairedDataListParams) => {
-  return [`/api/v2/assets/${parentLookupAsset}/paired-data/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'paired-data', ...(params ? [params] : [])] as const
 }
 
 export const getAssetsPairedDataListQueryOptions = <
@@ -359,7 +359,7 @@ export const assetsPairedDataRetrieve = async (
 }
 
 export const getAssetsPairedDataRetrieveQueryKey = (parentLookupAsset: string, pairedDataUid: string) => {
-  return [`/api/v2/assets/${parentLookupAsset}/paired-data/${pairedDataUid}/`] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'paired-data', pairedDataUid] as const
 }
 
 export const getAssetsPairedDataRetrieveQueryOptions = <
@@ -720,7 +720,7 @@ export const assetsPairedDataExternalRetrieve = async (
 }
 
 export const getAssetsPairedDataExternalRetrieveQueryKey = (parentLookupAsset: string, pairedDataUid: string) => {
-  return [`/api/v2/assets/${parentLookupAsset}/paired-data/${pairedDataUid}/external/`] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'paired-data', pairedDataUid, 'external'] as const
 }
 
 export const getAssetsPairedDataExternalRetrieveQueryOptions = <

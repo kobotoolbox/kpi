@@ -181,7 +181,7 @@ export const assetsHistoryList = async (
 }
 
 export const getAssetsHistoryListQueryKey = (parentLookupAsset: string, params?: AssetsHistoryListParams) => {
-  return [`/api/v2/assets/${parentLookupAsset}/history/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'history', ...(params ? [params] : [])] as const
 }
 
 export const getAssetsHistoryListQueryOptions = <
@@ -608,7 +608,7 @@ export const assetsHistoryActionsRetrieve = async (
 }
 
 export const getAssetsHistoryActionsRetrieveQueryKey = (parentLookupAsset: string) => {
-  return [`/api/v2/assets/${parentLookupAsset}/history/actions/`] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'history', 'actions'] as const
 }
 
 export const getAssetsHistoryActionsRetrieveQueryOptions = <

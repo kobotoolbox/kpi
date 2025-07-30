@@ -81,7 +81,7 @@ export const usersList = async (params?: UsersListParams, options?: RequestInit)
 }
 
 export const getUsersListQueryKey = (params?: UsersListParams) => {
-  return [`/api/v2/users/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'users', ...(params ? [params] : [])] as const
 }
 
 export const getUsersListQueryOptions = <TData = Awaited<ReturnType<typeof usersList>>, TError = ErrorDetail>(
@@ -201,7 +201,7 @@ export const usersRetrieve = async (username: string, options?: RequestInit): Pr
 }
 
 export const getUsersRetrieveQueryKey = (username: string) => {
-  return [`/api/v2/users/${username}/`] as const
+  return ['api', 'v2', 'users', username] as const
 }
 
 export const getUsersRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof usersRetrieve>>, TError = ErrorObject>(
@@ -344,7 +344,7 @@ export const usersMigrateRetrieve = async (
 }
 
 export const getUsersMigrateRetrieveQueryKey = (username: string) => {
-  return [`/api/v2/users/${username}/migrate/`] as const
+  return ['api', 'v2', 'users', username, 'migrate'] as const
 }
 
 export const getUsersMigrateRetrieveQueryOptions = <

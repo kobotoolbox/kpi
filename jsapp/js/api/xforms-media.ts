@@ -57,7 +57,7 @@ export const xformsMediaRetrieve2 = async (
 }
 
 export const getXformsMediaRetrieve2QueryKey = (username: string, id: string, metadata: string) => {
-  return [`/${username}/xformsMedia/${id}/${metadata}`] as const
+  return [username, 'xformsMedia', id, metadata] as const
 }
 
 export const getXformsMediaRetrieve2QueryOptions = <
@@ -189,7 +189,7 @@ export const xformsMediaRetrieve = async (
 }
 
 export const getXformsMediaRetrieveQueryKey = (id: string, metadata: string) => {
-  return [`/xformsMedia/${id}/${metadata}`] as const
+  return ['xformsMedia', id, metadata] as const
 }
 
 export const getXformsMediaRetrieveQueryOptions = <

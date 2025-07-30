@@ -70,7 +70,7 @@ export const serviceUsageList = async (options?: RequestInit): Promise<serviceUs
 }
 
 export const getServiceUsageListQueryKey = () => {
-  return [`/api/v2/service_usage/`] as const
+  return ['api', 'v2', 'service_usage'] as const
 }
 
 export const getServiceUsageListQueryOptions = <

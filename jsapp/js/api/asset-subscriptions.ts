@@ -82,7 +82,7 @@ export const assetSubscriptionsList = async (
 }
 
 export const getAssetSubscriptionsListQueryKey = (params?: AssetSubscriptionsListParams) => {
-  return [`/api/v2/asset_subscriptions/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'asset_subscriptions', ...(params ? [params] : [])] as const
 }
 
 export const getAssetSubscriptionsListQueryOptions = <
@@ -317,7 +317,7 @@ export const assetSubscriptionsRetrieve = async (
 }
 
 export const getAssetSubscriptionsRetrieveQueryKey = (uid: string) => {
-  return [`/api/v2/asset_subscriptions/${uid}/`] as const
+  return ['api', 'v2', 'asset_subscriptions', uid] as const
 }
 
 export const getAssetSubscriptionsRetrieveQueryOptions = <

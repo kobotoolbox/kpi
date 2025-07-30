@@ -52,7 +52,7 @@ export const formListList2 = async (username: string, options?: RequestInit): Pr
 }
 
 export const getFormListList2QueryKey = (username: string) => {
-  return [`/${username}/formList`] as const
+  return [username, 'formList'] as const
 }
 
 export const getFormListList2QueryOptions = <TData = Awaited<ReturnType<typeof formListList2>>, TError = unknown>(
@@ -167,7 +167,7 @@ export const formListList = async (options?: RequestInit): Promise<formListListR
 }
 
 export const getFormListListQueryKey = () => {
-  return [`/formList`] as const
+  return ['formList'] as const
 }
 
 export const getFormListListQueryOptions = <

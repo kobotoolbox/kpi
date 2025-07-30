@@ -91,7 +91,7 @@ export const organizationsList = async (
 }
 
 export const getOrganizationsListQueryKey = (params?: OrganizationsListParams) => {
-  return [`/api/v2/organizations/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'organizations', ...(params ? [params] : [])] as const
 }
 
 export const getOrganizationsListQueryOptions = <
@@ -221,7 +221,7 @@ export const organizationsRetrieve = async (
 }
 
 export const getOrganizationsRetrieveQueryKey = (id: string) => {
-  return [`/api/v2/organizations/${id}/`] as const
+  return ['api', 'v2', 'organizations', id] as const
 }
 
 export const getOrganizationsRetrieveQueryOptions = <
@@ -471,7 +471,7 @@ export const organizationsAssetUsageRetrieve = async (
 }
 
 export const getOrganizationsAssetUsageRetrieveQueryKey = (id: string) => {
-  return [`/api/v2/organizations/${id}/asset_usage/`] as const
+  return ['api', 'v2', 'organizations', id, 'asset_usage'] as const
 }
 
 export const getOrganizationsAssetUsageRetrieveQueryOptions = <
@@ -626,7 +626,7 @@ export const organizationsAssetsRetrieve = async (
 }
 
 export const getOrganizationsAssetsRetrieveQueryKey = (id: string) => {
-  return [`/api/v2/organizations/${id}/assets/`] as const
+  return ['api', 'v2', 'organizations', id, 'assets'] as const
 }
 
 export const getOrganizationsAssetsRetrieveQueryOptions = <
@@ -780,7 +780,7 @@ export const organizationsServiceUsageRetrieve = async (
 }
 
 export const getOrganizationsServiceUsageRetrieveQueryKey = (id: string) => {
-  return [`/api/v2/organizations/${id}/service_usage/`] as const
+  return ['api', 'v2', 'organizations', id, 'service_usage'] as const
 }
 
 export const getOrganizationsServiceUsageRetrieveQueryOptions = <

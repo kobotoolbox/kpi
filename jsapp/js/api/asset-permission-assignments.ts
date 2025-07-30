@@ -85,7 +85,7 @@ export const assetsPermissionAssignmentsList = async (
 }
 
 export const getAssetsPermissionAssignmentsListQueryKey = (parentLookupAsset: string) => {
-  return [`/api/v2/assets/${parentLookupAsset}/permission-assignments/`] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'permission-assignments'] as const
 }
 
 export const getAssetsPermissionAssignmentsListQueryOptions = <
@@ -356,7 +356,7 @@ export const assetsPermissionAssignmentsRetrieve = async (
 }
 
 export const getAssetsPermissionAssignmentsRetrieveQueryKey = (parentLookupAsset: string, uid: string) => {
-  return [`/api/v2/assets/${parentLookupAsset}/permission-assignments/${uid}/`] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'permission-assignments', uid] as const
 }
 
 export const getAssetsPermissionAssignmentsRetrieveQueryOptions = <

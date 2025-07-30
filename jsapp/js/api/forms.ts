@@ -56,7 +56,7 @@ export const formsFormXmlRetrieve2 = async (
 }
 
 export const getFormsFormXmlRetrieve2QueryKey = (username: string, id: string) => {
-  return [`/${username}/forms/${id}/form.xml`] as const
+  return [username, 'forms', id, 'form.xml'] as const
 }
 
 export const getFormsFormXmlRetrieve2QueryOptions = <
@@ -182,7 +182,7 @@ export const formsFormXmlRetrieve = async (
 }
 
 export const getFormsFormXmlRetrieveQueryKey = (id: string) => {
-  return [`/forms/${id}/form.xml`] as const
+  return ['forms', id, 'form.xml'] as const
 }
 
 export const getFormsFormXmlRetrieveQueryOptions = <

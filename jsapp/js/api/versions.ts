@@ -83,7 +83,7 @@ export const assetsVersionsList = async (
 }
 
 export const getAssetsVersionsListQueryKey = (parentLookupAsset: string, params?: AssetsVersionsListParams) => {
-  return [`/api/v2/assets/${parentLookupAsset}/versions/`, ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'versions', ...(params ? [params] : [])] as const
 }
 
 export const getAssetsVersionsListQueryOptions = <
@@ -223,7 +223,7 @@ export const assetsVersionsRetrieve = async (
 }
 
 export const getAssetsVersionsRetrieveQueryKey = (parentLookupAsset: string, uid: string) => {
-  return [`/api/v2/assets/${parentLookupAsset}/versions/${uid}/`] as const
+  return ['api', 'v2', 'assets', parentLookupAsset, 'versions', uid] as const
 }
 
 export const getAssetsVersionsRetrieveQueryOptions = <
