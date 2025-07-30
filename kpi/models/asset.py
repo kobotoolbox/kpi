@@ -11,7 +11,6 @@ from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import models, transaction
 from django.db.models import F, Prefetch, Q
 from django.utils.translation import gettext_lazy as t
-from django_request_cache import cache_for_request
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
@@ -263,9 +262,7 @@ class Asset(
         blank=True,
         db_index=True
     )
-    created_by = models.CharField(
-        max_length=150, null=True, blank=True, db_index=True
-    )
+    created_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
     last_modified_by = models.CharField(
         max_length=150, null=True, blank=True, db_index=True
     )
@@ -565,7 +562,7 @@ class Asset(
             try:
                 xpath = qual_question['xpath']
             except KeyError:
-                xpath = qpath_to_xpath(qual_question['qpath'], self)
+                xpath = self.get_xpath_from_qpath(qual_question['qpath'])
 
             field = dict(
                 label=qual_question['labels']['_default'],
@@ -665,11 +662,27 @@ class Asset(
             content, self.advanced_features, url=url
         )
 
-    @cache_for_request
-    def get_attachment_xpaths(self, deployed: bool = True) -> Optional[list]:
-        version = (
-            self.latest_deployed_version if deployed else self.latest_version
-        )
+    def get_all_attachment_xpaths(self) -> list:
+
+        # We previously used `cache_for_request`, but it provides no benefit in Celery
+        # tasks. A "protected" property on the Asset instance now serves the same
+        # purpose during its lifecycle.
+        if (
+            _all_attachment_xpaths := getattr(self, '_all_attachment_xpaths', None)
+        ) is not None:
+            return _all_attachment_xpaths
+
+        # return deployed versions first
+        versions = self.asset_versions.filter(deployed=True).order_by('-date_modified')
+        xpaths = set()
+        for version in versions:
+            if xpaths_from_version := self.get_attachment_xpaths_from_version(version):
+                xpaths.update(xpaths_from_version)
+
+        setattr(self, '_all_attachment_xpaths', list(xpaths))
+        return self._all_attachment_xpaths
+
+    def get_attachment_xpaths_from_version(self, version=None) -> Optional[list]:
 
         if version:
             content = version.to_formpack_schema()['content']
@@ -681,7 +694,7 @@ class Asset(
         def _get_xpaths(survey_: dict) -> Optional[list]:
             """
             Returns an empty list if no questions that take attachments are
-            present. Returns `None` if XPath are missing from the survey
+            present. Returns `None` if XPaths are missing from the survey
             content
             """
             xpaths = []
@@ -693,12 +706,15 @@ class Asset(
                 except KeyError:
                     return None
                 xpaths.append(xpath)
+
             return xpaths
 
         if xpaths := _get_xpaths(survey):
             return xpaths
 
+        # Inject missing `$xpath` properties
         self._insert_xpath(content)
+
         return _get_xpaths(survey)
 
     def get_filters_for_partial_perm(
@@ -825,6 +841,23 @@ class Asset(
 
         return None
 
+    def get_xpath_from_qpath(self, qpath: str) -> str:
+
+        # We could have used `cache_for_request` in the `qpath_to_xpath` utility,
+        # but it provides no benefit in Celery tasks.
+        # Instead, we use a "protected" property on the Asset model to cache the result
+        # during the lifetime of the asset instance.
+        qpaths_xpaths_mapping = getattr(self, '_qpaths_xpaths_mapping', {})
+
+        try:
+            xpath = qpaths_xpaths_mapping[qpath]
+        except KeyError:
+            qpaths_xpaths_mapping[qpath] = qpath_to_xpath(qpath, self)
+            xpath = qpaths_xpaths_mapping[qpath]
+
+        setattr(self, '_qpaths_xpaths_mapping', qpaths_xpaths_mapping)
+        return xpath
+
     @property
     def has_advanced_features(self):
         if self.advanced_features is None:
@@ -910,6 +943,9 @@ class Asset(
         super().refresh_from_db(using=using, fields=fields)
         # Refresh hidden fields too
         self.__copy_hidden_fields(fields)
+        # reset caching fields
+        self._qpaths_xpaths_mapping = {}
+        self._all_attachment_xpaths = None
 
     def rename_translation(self, _from, _to):
         if not self._has_translations(self.content, 2):

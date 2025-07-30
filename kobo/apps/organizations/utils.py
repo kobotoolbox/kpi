@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
-from kobo.apps.stripe.utils import get_current_billing_period_dates_by_org
+from kobo.apps.stripe.utils.billing_dates import get_current_billing_period_dates_by_org
 from kpi.models.object_permission import ObjectPermission
 
 

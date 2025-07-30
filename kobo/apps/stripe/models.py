@@ -5,8 +5,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import IntegerField, Q, Sum
 from django.db.models.functions import Cast, Coalesce
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from djstripe.enums import PaymentIntentStatus
 from djstripe.models import Charge, Price, Subscription
 
@@ -14,7 +12,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
-from kobo.apps.stripe.utils import get_default_add_on_limits
+from kobo.apps.stripe.utils.subscription_limits import get_default_add_on_limits
 from kpi.fields import KpiUidField
 from kpi.utils.django_orm_helper import DeductUsageValue
 
@@ -304,11 +302,6 @@ class PlanAddOn(models.Model):
         tag, this property will return an empty list.
         """
         return self.product.metadata.get('valid_tags', '').split(',')
-
-
-@receiver(post_save, sender=Charge)
-def make_add_on_for_charge(sender, instance, created, **kwargs):
-    PlanAddOn.create_or_update_one_time_add_on(instance)
 
 
 class ExceededLimitCounter(models.Model):

@@ -67,7 +67,7 @@ def add_assigned_partial_perms(sender, instance, user, perms, **kwargs):
     request = _initialize_request()
     if not request or instance.asset_type != ASSET_TYPE_SURVEY:
         return
-    perms_as_list_of_dicts = [{'code': k, 'filters': v} for k, v in perms.items()]
+    perms_as_list_of_dicts = [{'codename': k, 'filters': v} for k, v in perms.items()]
     # partial permissions are replaced rather than added
     request.partial_permissions_added[user.username] = perms_as_list_of_dicts
 

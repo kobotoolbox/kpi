@@ -15,7 +15,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import get_soft_deleted_attachme
 
 class Command(BaseCommand):
 
-    help = "Soft delete orphan attachments, i.e: Hide them in API responses"
+    help = 'Soft delete orphan attachments, i.e: Hide them in API responses'
 
     def add_arguments(self, parser):
         parser.add_argument(

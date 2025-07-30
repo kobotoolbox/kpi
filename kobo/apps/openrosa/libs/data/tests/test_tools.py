@@ -1,14 +1,18 @@
-# coding: utf-8
 import os
-from datetime import datetime, timedelta, date
+from datetime import date, datetime
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 from django.conf import settings
+from freezegun import freeze_time
 
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
-from kobo.apps.openrosa.libs.data.query import get_form_submissions_grouped_by_field,\
-    get_date_fields, get_field_records
+from kobo.apps.openrosa.libs.data.query import (
+    get_date_fields,
+    get_field_records,
+    get_form_submissions_grouped_by_field,
+)
 
 
 class TestTools(TestBase):
@@ -35,14 +39,15 @@ class TestTools(TestBase):
             self.assertEqual([field, count_key], sorted(result.keys()))
             self.assertEqual(result[count_key], count)
 
-    @patch('django.utils.timezone.now')
-    @patch('kobo.apps.openrosa.apps.logger.models.instance.submission_time')
-    def test_get_form_submissions_grouped_by_field_datetime_to_date(
-            self, mock_date_created, mock_time):
-        now = datetime(2014, 1, 1)
-        mock_time.side_effect = lambda: now
-        mock_date_created.return_value = now
-        self._make_submissions()
+    def test_get_form_submissions_grouped_by_field_datetime_to_date(self):
+        frozen_datetime_now = datetime(
+            year=2014,
+            month=1,
+            day=1,
+            tzinfo=ZoneInfo('UTC'),
+        )
+        with freeze_time(frozen_datetime_now):
+            self._make_submissions()
 
         count_key = 'count'
         fields = ['_submission_time']
@@ -55,7 +60,7 @@ class TestTools(TestBase):
 
             self.assertEqual([field, count_key], sorted(result.keys()))
 
-            expected_now = now.date()
+            expected_now = frozen_datetime_now.date()
             if not isinstance(result[field], date):
                 expected_now = str(expected_now)
 
@@ -66,9 +71,7 @@ class TestTools(TestBase):
     def test_get_form_submissions_two_xforms(self, mock_time):
         mock_time.return_value = datetime.now()
         self._make_submissions()
-        self._publish_xls_file(os.path.join(
-            "fixtures",
-            "gps", "gps.xls"))
+        self._publish_xls_file(os.path.join('fixtures', 'gps', 'gps.xls'))
 
         first_xform = self.xform
         self.xform = self.user.xforms.all().order_by('-pk')[0]
@@ -111,9 +114,7 @@ class TestTools(TestBase):
     def test_get_form_submissions_xform_no_submissions(self, mock_time):
         mock_time.return_value = datetime.now()
         self._make_submissions()
-        self._publish_xls_file(os.path.join(
-            "fixtures",
-            "gps", "gps.xls"))
+        self._publish_xls_file(os.path.join('fixtures', 'gps', 'gps.xls'))
 
         self.xform = self.user.xforms.all().order_by('-pk')[0]
 

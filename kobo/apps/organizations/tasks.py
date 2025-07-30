@@ -73,9 +73,7 @@ def mark_organization_invite_as_expired():
         template_variables = {
             'username': invite.invited_by.username,
             'recipient': (
-                invite.invitee.username
-                if invite.invitee
-                else invite.invitee_identifier
+                invite.invitee.username if invite.invitee else invite.invitee_identifier
             ),
             'organization': invite.organization.name,
             'base_url': settings.KOBOFORM_URL,
@@ -87,9 +85,7 @@ def mark_organization_invite_as_expired():
                 plain_text_content_or_template='emails/expired_org_invite.txt',
                 template_variables=template_variables,
                 html_content_or_template='emails/expired_org_invite.html',
-                language=(
-                    invite.invited_by.extra_details.data.get('last_ui_language')
-                )
+                language=(invite.invited_by.extra_details.data.get('last_ui_language')),
             )
         )
 

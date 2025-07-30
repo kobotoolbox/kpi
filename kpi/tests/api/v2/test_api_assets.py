@@ -63,6 +63,12 @@ class AssetListApiTests(BaseAssetTestCase):
         """
         self.create_asset()
 
+    def test_last_modified_by_field_not_assigned(self):
+        extra_data = {'last_modified_by': 'anotheruser'}
+        response = self.create_asset(**extra_data)
+        assert response.data['last_modified_by'] == response.data['owner__username']
+        assert response.data['last_modified_by'] != 'anotheruser'
+
     def test_delete_asset(self):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
@@ -1423,6 +1429,25 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
             response.data['project_ownership']['status']
             == InviteStatusChoices.EXPIRED
         )
+
+    def test_cannot_modified_last_modified_by(self):
+        assert self.asset.last_modified_by == self.asset.owner.username
+        anotheruser = User.objects.get(username='anotheruser')
+        assert self.asset.owner != anotheruser.username
+        self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
+        payload = {
+            'last_modified_by': 'bob'
+        }
+        self.client.force_login(anotheruser)
+        response = self.client.patch(
+            self.asset_url,
+            data=payload,
+            format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        self.asset.refresh_from_db()
+        assert response.data['last_modified_by'] == anotheruser.username
+        assert self.asset.last_modified_by == anotheruser.username
 
 
 class AssetsXmlExportApiTests(KpiTestCase):

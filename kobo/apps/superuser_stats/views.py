@@ -1,23 +1,23 @@
 # coding: utf-8
 import re
-from datetime import datetime, date
+from datetime import date, datetime
 
 from django.contrib.auth.decorators import user_passes_test
 from django.core.files.storage import default_storage
-from django.http import HttpResponse, StreamingHttpResponse, Http404
+from django.http import Http404, HttpResponse, StreamingHttpResponse
 from django.urls import reverse
 from django.utils import timezone
 
 from kobo.settings.base import KOBOFORM_URL
 from .tasks import (
-    generate_country_report,
     generate_continued_usage_report,
+    generate_country_report,
     generate_domain_report,
     generate_forms_count_by_submission_range,
     generate_media_storage_report,
-    generate_user_statistics_report,
     generate_user_details_report,
     generate_user_report,
+    generate_user_statistics_report,
 )
 
 
