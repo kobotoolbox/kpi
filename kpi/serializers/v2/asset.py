@@ -338,6 +338,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployment__links = serializers.SerializerMethodField()
     deployment__data_download_links = serializers.SerializerMethodField()
     deployment__submission_count = serializers.SerializerMethodField()
+    deployment__encrypted = serializers.SerializerMethodField()
+    deployment__last_submission_time = serializers.SerializerMethodField()
     deployment_status = serializers.SerializerMethodField()
     data = serializers.SerializerMethodField()
 
@@ -376,6 +378,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'deployment__active',
                   'deployment__data_download_links',
                   'deployment__submission_count',
+                  'deployment__last_submission_time',
+                  'deployment__encrypted',
                   'deployment_status',
                   'report_styles',
                   'report_custom',
@@ -629,11 +633,23 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         else:
             return {}
 
+    def get_deployment__encrypted(self, obj):
+        if obj.has_deployment:
+            return obj.deployment.is_encrypted
+        else:
+            return False
+
     def get_deployment__data_download_links(self, obj):
         if obj.has_deployment:
             return obj.deployment.get_data_download_links()
         else:
             return {}
+
+    def get_deployment__last_submission_time(self, obj):
+        if obj.has_deployment:
+            return obj.deployment.last_submission_time
+        else:
+            return None
 
     def get_deployment__submission_count(self, obj):
         if not obj.has_deployment:
@@ -1154,6 +1170,8 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'has_deployment',
             'deployment__active',
             'deployment__submission_count',
+            'deployment__encrypted',
+            'deployment__last_submission_time',
             'deployment_status',
             'asset_type',
             'downloads',
