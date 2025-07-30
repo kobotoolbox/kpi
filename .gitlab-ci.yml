@@ -22,18 +22,16 @@ build:
 deploy-beta:
   stage: deploy
   image:
-    name: alpine/helm:3.12.0
+    name: alpine/helm
     entrypoint: [""]
   script:
     - helm -n kobo-dev upgrade beta oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${CI_COMMIT_SHORT_SHA} --reuse-values
   environment:
     name: beta
     url: https://kf.beta.kobotoolbox.org
-  only:
-    refs:
-      - public-beta
-    variables:
-      - $CI_COMMIT_REF_PROTECTED
+  rules:
+    - if: $CI_COMMIT_BRANCH == "public-beta"
+
 
 deploy-staging:
   stage: deploy
@@ -63,7 +61,5 @@ pages:
   artifacts:
     paths:
       - public
-  only:
-    refs:
-      - main
-      - storybook
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "storybook"
