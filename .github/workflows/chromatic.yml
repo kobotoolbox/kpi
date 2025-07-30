@@ -58,7 +58,7 @@ jobs:
           ref: "main"
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.17.0
+          node-version: 20.18.1
       - name: Install dependencies
         run: npm ci
       - name: Run Chromatic
