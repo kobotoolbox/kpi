@@ -53,7 +53,7 @@ router_api_v1.register(r'asset_snapshots', AssetSnapshotViewSet)
 router_api_v1.register(
     r'asset_subscriptions', UserAssetSubscriptionViewSet)
 router_api_v1.register(r'users', UserViewSet, basename='user-kpi')
-router_api_v1.register(r'tags', TagViewSet)
+router_api_v1.register(r'tags', TagViewSet, basename='tags')
 router_api_v1.register(r'permissions', ObjectPermissionViewSet)
 router_api_v1.register(r'reports', ReportsViewSet, basename='reports')
 router_api_v1.register(r'imports', ImportTaskViewSet)
