@@ -269,7 +269,7 @@ def task_restarter():
         date_modified__lte=resume_threshold,
         status=TransferStatusChoices.PENDING,
         status_type=TransferStatusTypeChoices.GLOBAL,
-    ):
+    )[: settings.MAX_RESTARTED_TRANSFERS]:
         # restart any transfers that were left in pending but not picked up
         transfer_status.transfer.transfer_project()
         restarted_transfers.append(transfer_status.transfer)

@@ -3,9 +3,10 @@ from unittest.mock import call, patch
 
 from constance.test import override_config
 from ddt import data, ddt, unpack
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from freezegun import freeze_time
+from model_bakery import baker
 
 from kpi.models import Asset
 from ...kobo_auth.shortcuts import User
@@ -31,9 +32,10 @@ class ProjectOwnershipTasksTestCase(TestCase):
         self.anotheruser = User.objects.get(username='anotheruser')
         self.asset = Asset.objects.get(pk=1)
 
-    def create_standard_transfer(self):
+    def create_standard_transfer(self, asset=None):
+        transfer_asset = asset or self.asset
         invite = Invite.objects.create(sender=self.someuser, recipient=self.anotheruser)
-        return Transfer.objects.create(invite=invite, asset=self.asset)
+        return Transfer.objects.create(invite=invite, asset=transfer_asset)
 
     def test_task_restarter_restarts_pending_transfers(self):
         # we don't count pending transfers as "stuck", so they can be created before
@@ -135,3 +137,22 @@ class ProjectOwnershipTasksTestCase(TestCase):
             task_restarter()
 
         patched_task.assert_not_called()
+
+    @override_settings(MAX_RESTARTED_TRANSFERS=2)
+    @override_settings(MAX_RESTARTED_TASKS=2)
+    def test_task_restarter_limits_number_of_restarts(self):
+        assets = [baker.make(Asset, owner=self.someuser, uid=f'a{i}') for i in range(6)]
+        with freeze_time(timezone.now() - timedelta(minutes=8)):
+            # create 3 pending transfers and 3 in progress with pending tasks
+            for i, asset in enumerate(assets):
+                transfer = self.create_standard_transfer(assets[i])
+                if i >= 3:
+                    transfer.status = TransferStatusChoices.IN_PROGRESS
+                    transfer.save()
+        with patch.object(Transfer, 'transfer_project') as patched_transfer:
+            with patch(
+                'kobo.apps.project_ownership.tasks.async_task.delay'
+            ) as patched_task:
+                task_restarter()
+        assert len(patched_task.call_args_list) == 2
+        assert len(patched_transfer.call_args_list) == 2
