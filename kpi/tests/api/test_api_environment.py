@@ -128,6 +128,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
                 constance.config.PROJECT_HISTORY_LOG_LIFESPAN
             ),
             'use_team_label': constance.config.USE_TEAM_LABEL,
+            'usage_limit_enforcement': constance.config.USAGE_LIMIT_ENFORCEMENT,
         }
         if settings.STRIPE_ENABLED:
             from djstripe.models import APIKey
@@ -322,7 +323,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
     def test_social_apps(self):
         # GET mutates state, call it first to test num queries later
         self.client.get(self.url, format='json')
-        queries = FuzzyInt(18, 29)
+        queries = FuzzyInt(18, 30)
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -341,7 +342,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
     def test_social_apps_no_custom_data(self):
         SocialAppCustomData.objects.all().delete()
         self.client.get(self.url, format='json')
-        queries = FuzzyInt(18, 29)
+        queries = FuzzyInt(18, 30)
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
 
