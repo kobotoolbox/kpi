@@ -72,7 +72,7 @@ from kpi.schema_extensions.v2.files.schema import (
                     'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
                     'description': 'Description of the file',
                     'file_type': 'image/png',
-                    'base64Encoded': '<base64-encoded-string>',
+                    'base64Encoded': 'SGVsbG8sIFdvcmxkIQ',
                     'metadata': generate_example_from_schema(
                         BASE64_METADATA_SCHEMA
                     ),
