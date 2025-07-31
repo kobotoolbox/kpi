@@ -39,7 +39,6 @@ from .schema_extensions.v2.audit_logs.serializers import (
     AuditLogResponse,
     ExportHistoryResponse,
     ProjectHistoryLogResponse,
-    feature/api-documentation
 )
 from .serializers import (
     AccessLogSerializer,
