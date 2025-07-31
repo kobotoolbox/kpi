@@ -244,7 +244,7 @@ class SubmissionEditTestCaseMixin:
 
         # Submit the edited XML
         url = reverse(
-            self._get_endpoint('assetsnapshot-submission-alias'),
+            self._get_endpoint('assetsnapshot-submission-openrosa'),
             args=(snapshot.uid,),
         )
 

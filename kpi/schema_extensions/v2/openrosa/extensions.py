@@ -37,7 +37,7 @@ class OpenRosaManifestURLFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
-            'api_v2:assetsnapshot-manifest-alias',
+            'api_v2:assetsnapshot-manifest-openrosa',
             uid='sEMPghTguZsxj4rn4s9dvS',
         )
 
@@ -66,7 +66,7 @@ class OpenRosaXFormFieldExtension(OpenApiSerializerFieldExtension):
                     uid='sEMPghTguZsxj4rn4s9dvS',
                 ),
                 'manifestUrl': build_url_type(
-                    'api_v2:assetsnapshot-manifest-alias',
+                    'api_v2:assetsnapshot-manifest-openrosa',
                     uid='sEMPghTguZsxj4rn4s9dvS',
                 ),
             }

@@ -33,7 +33,7 @@ from kpi.views.v2.user import UserViewSet
 from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
 
 
-class ExtendedDefaultRouterWithPathAliases(ExtendedDefaultRouter):
+class OpenRosaCompatibleExtendedRouter(ExtendedDefaultRouter):
     """
     Historically, all of this application's endpoints have used trailing
     slashes (the DRF default). Requests missing their trailing slashes have
@@ -54,6 +54,11 @@ class ExtendedDefaultRouterWithPathAliases(ExtendedDefaultRouter):
             'assetsnapshot-manifest': 'asset_snapshots/<uid>/manifest',
             'assetsnapshot-submission': 'asset_snapshots/<uid>/submission',
         }
+
+        # Remove the original urls matching the names
+        original_urls = [url for url in urls if url.name not in names_to_alias_paths]
+
+        # Add only alias versions
         alias_urls = []
         for url in urls:
             if url.name in names_to_alias_paths:
@@ -61,15 +66,15 @@ class ExtendedDefaultRouterWithPathAliases(ExtendedDefaultRouter):
                 # only consider the first match
                 del names_to_alias_paths[url.name]
                 alias_urls.append(
-                    path(alias_paths, url.callback, name=f'{url.name}-alias')
+                    path(alias_paths, url.callback, name=f'{url.name}-openrosa')
                 )
-        urls.extend(alias_urls)
-        return urls
+        original_urls.extend(alias_urls)
+        return original_urls
 
 
 URL_NAMESPACE = 'api_v2'
 
-router_api_v2 = ExtendedDefaultRouterWithPathAliases()
+router_api_v2 = OpenRosaCompatibleExtendedRouter()
 asset_routes = router_api_v2.register(r'assets', AssetViewSet, basename='asset')
 
 asset_routes.register(r'counts',
