@@ -1,8 +1,8 @@
-@use "scss/breakpoints";
-@use "scss/_variables";
-@use "scss/z-indexes";
-@use "scss/colors";
-@use "scss/mixins";
+@use 'scss/breakpoints';
+@use 'scss/_variables';
+@use 'scss/z-indexes';
+@use 'scss/colors';
+@use 'scss/mixins';
 
 // TODO: This file is too big and it lost it's original purpose.
 // It was supposed to be a general form view layout (AKA "the content"), but
@@ -137,7 +137,7 @@ $side-tabs-width-mobile: 70px;
       // left border is detached from horizontal lines,
       // so we need to make it a separate element
       &::before {
-        content: "";
+        content: '';
         position: absolute;
         width: 4px;
         height: 100%;
@@ -374,7 +374,7 @@ $side-tabs-width-mobile: 70px;
         display: inline;
 
         &:not(:last-child)::after {
-          content: ", ";
+          content: ', ';
         }
       }
     }

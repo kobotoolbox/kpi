@@ -1,7 +1,7 @@
-@use "scss/colors";
-@use "scss/_variables";
-@use "scss/libs/_mdl";
-@use "scss/mixins";
+@use 'scss/colors';
+@use 'scss/_variables';
+@use 'scss/libs/_mdl';
+@use 'scss/mixins';
 
 $s-flexed-row-button-width: 100px;
 $s-flexed-row-select-width: 200px;
@@ -27,9 +27,7 @@ $s-gray-row-spacing: 10px;
 }
 
 .copy-team-permissions {
-  &.copy-team-permissions--opened
-    .copy-team-permissions-opener
-    .k-icon::before {
+  &.copy-team-permissions--opened .copy-team-permissions-opener .k-icon::before {
     transform: rotate(-90deg);
   }
 
@@ -105,7 +103,7 @@ $s-gray-row-spacing: 10px;
       display: inline;
 
       &:not(:last-of-type)::after {
-        content: " · ";
+        content: ' · ';
       }
     }
   }
@@ -177,7 +175,7 @@ $s-gray-row-spacing: 10px;
     }
   }
 
-  > input[type="text"] {
+  > input[type='text'] {
     flex: 1;
     padding: $s-gray-row-spacing;
     height: 40px;
