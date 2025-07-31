@@ -171,6 +171,7 @@ class AssetSnapshotSchema(AutoSchema):
             error_media_type='text/html',
         ),
         tags=['OpenRosa'],
+        exclude=True,
     ),
     manifest=extend_schema(
         description=read_md('kpi', 'openrosa/manifest.md'),
@@ -183,6 +184,7 @@ class AssetSnapshotSchema(AutoSchema):
             error_media_type='text/html',
         ),
         tags=['OpenRosa'],
+        exclude=True,
     ),
     submission=extend_schema(
         description=read_md('kpi', 'openrosa/submission.md'),
@@ -195,6 +197,7 @@ class AssetSnapshotSchema(AutoSchema):
             raise_not_found=False,
         ),
         tags=['OpenRosa'],
+        exclude=True,
     ),
     preview=extend_schema(
         description=read_md('kpi', 'asset_snapshots/preview.md'),
