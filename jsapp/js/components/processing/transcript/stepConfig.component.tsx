@@ -19,7 +19,9 @@ export default function StepConfig() {
   const { data: serviceUsageData } = useServiceUsageQuery()
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
   const usageLimitBlock = useMemo(
-    () => serviceUsageData?.limitExceedList.includes(UsageLimitTypes.TRANSCRIPTION) && envStore.data.usage_limit_enforcement,
+    () =>
+      serviceUsageData?.limitExceedList.includes(UsageLimitTypes.TRANSCRIPTION) &&
+      envStore.data.usage_limit_enforcement,
     [serviceUsageData?.limitExceedList, envStore.data.usage_limit_enforcement],
   )
   const { billingPeriod } = useBillingPeriod()
