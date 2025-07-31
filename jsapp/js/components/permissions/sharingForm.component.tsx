@@ -25,7 +25,6 @@ import { stores } from '#/stores'
 import sessionStore from '#/stores/session'
 import { replaceBracketsWithLink } from '#/textUtils'
 import { ANON_USERNAME, ANON_USERNAME_URL } from '#/users/utils'
-import LimitNotifications from '../usageLimits/limitNotifications.component'
 import CopyTeamPermissions from './copyTeamPermissions.component'
 import { parseBackendData, parseUserWithPermsList } from './permParser'
 import type { UserWithPerms } from './permParser'
@@ -201,122 +200,118 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
 
     return (
       <bem.FormModal m='sharing-form'>
-        <LimitNotifications />
+        <bem.Modal__subheader dir='auto'>
+          <AssetName asset={this.state.asset} />
+        </bem.Modal__subheader>
 
-        <bem.FormModal__item m='form-container'>
-          <bem.Modal__subheader dir='auto'>
-            <AssetName asset={this.state.asset} />
-          </bem.Modal__subheader>
-
-          {isRequireAuthWarningVisible && (
-            <bem.FormModal__item>
-              <InlineMessage
-                type='warning'
-                icon='alert'
-                message={
-                  <span
-                    dangerouslySetInnerHTML={{
-                      __html: replaceBracketsWithLink(
-                        t(
-                          'Anyone can see this blank form and add submissions to it ' +
-                            'because you have not set [your account] to require authentication.',
-                        ),
-                        `/#${ACCOUNT_ROUTES.ACCOUNT_SETTINGS}`,
+        {isRequireAuthWarningVisible && (
+          <bem.FormModal__item>
+            <InlineMessage
+              type='warning'
+              icon='alert'
+              message={
+                <span
+                  dangerouslySetInnerHTML={{
+                    __html: replaceBracketsWithLink(
+                      t(
+                        'Anyone can see this blank form and add submissions to it ' +
+                          'because you have not set [your account] to require authentication.',
                       ),
-                    }}
-                  />
-                }
+                      `/#${ACCOUNT_ROUTES.ACCOUNT_SETTINGS}`,
+                    ),
+                  }}
+                />
+              }
+            />
+          </bem.FormModal__item>
+        )}
+
+        {/* list of users and their permissions */}
+        <bem.FormModal__item m='who-has-access'>
+          <h2>{t('Who has access')}</h2>
+
+          {this.state.permissions.map((perm) => {
+            // don't show anonymous user permissions in UI
+            if (perm.user.name === ANON_USERNAME || !this.state.asset) {
+              return null
+            }
+            return (
+              <UserPermissionRow
+                key={`perm.${this.props.assetUid}.${perm.user.name}`}
+                asset={this.state.asset}
+                userCanEditPerms={isManagingPossible}
+                nonOwnerPerms={this.state.nonOwnerPerms}
+                assignablePerms={this.state.assignablePerms}
+                permissions={perm.permissions}
+                isUserOwner={perm.user.isOwner}
+                isPendingOwner={this.isPendingOwner(perm.user.name)}
+                username={this.getOwnerOrOrgLabel(perm.user.name, perm.user.isOwner)}
+              />
+            )
+          })}
+          {this.renderPendingOwner(isManagingPossible)}
+
+          {!this.state.isAddUserEditorVisible && (
+            <Button
+              type='primary'
+              isDisabled={!isManagingPossible}
+              size='l'
+              onClick={this.toggleAddUserEditor.bind(this)}
+              label={t('Add user')}
+            />
+          )}
+
+          {this.state.isAddUserEditorVisible && (
+            <bem.FormModal__item m={['gray-row', 'copy-team-permissions']}>
+              <Button
+                type='text'
+                size='l'
+                startIcon='close'
+                className='user-permissions-editor-closer'
+                onClick={this.toggleAddUserEditor.bind(this)}
+              />
+
+              <UserAssetPermsEditor
+                asset={this.state.asset}
+                assignablePerms={this.state.assignablePerms}
+                nonOwnerPerms={this.state.nonOwnerPerms}
+                onSubmitEnd={this.onPermissionsEditorSubmitEnd.bind(this)}
               />
             </bem.FormModal__item>
           )}
-
-          {/* list of users and their permissions */}
-          <bem.FormModal__item m='who-has-access'>
-            <h2>{t('Who has access')}</h2>
-
-            {this.state.permissions.map((perm) => {
-              // don't show anonymous user permissions in UI
-              if (perm.user.name === ANON_USERNAME || !this.state.asset) {
-                return null
-              }
-              return (
-                <UserPermissionRow
-                  key={`perm.${this.props.assetUid}.${perm.user.name}`}
-                  asset={this.state.asset}
-                  userCanEditPerms={isManagingPossible}
-                  nonOwnerPerms={this.state.nonOwnerPerms}
-                  assignablePerms={this.state.assignablePerms}
-                  permissions={perm.permissions}
-                  isUserOwner={perm.user.isOwner}
-                  isPendingOwner={this.isPendingOwner(perm.user.name)}
-                  username={this.getOwnerOrOrgLabel(perm.user.name, perm.user.isOwner)}
-                />
-              )
-            })}
-            {this.renderPendingOwner(isManagingPossible)}
-
-            {!this.state.isAddUserEditorVisible && (
-              <Button
-                type='primary'
-                isDisabled={!isManagingPossible}
-                size='l'
-                onClick={this.toggleAddUserEditor.bind(this)}
-                label={t('Add user')}
-              />
-            )}
-
-            {this.state.isAddUserEditorVisible && (
-              <bem.FormModal__item m={['gray-row', 'copy-team-permissions']}>
-                <Button
-                  type='text'
-                  size='l'
-                  startIcon='close'
-                  className='user-permissions-editor-closer'
-                  onClick={this.toggleAddUserEditor.bind(this)}
-                />
-
-                <UserAssetPermsEditor
-                  asset={this.state.asset}
-                  assignablePerms={this.state.assignablePerms}
-                  nonOwnerPerms={this.state.nonOwnerPerms}
-                  onSubmitEnd={this.onPermissionsEditorSubmitEnd.bind(this)}
-                />
-              </bem.FormModal__item>
-            )}
-          </bem.FormModal__item>
-
-          {/* public sharing settings */}
-          {assetType === ASSET_TYPES.survey.id && (
-            <>
-              <bem.FormModal__item m='share-settings'>
-                <PublicShareSettings
-                  publicPerms={this.state.publicPerms}
-                  assetUid={this.props.assetUid}
-                  deploymentActive={this.state.asset.deployment__active}
-                  userCanShare={isManagingPossible}
-                />
-              </bem.FormModal__item>
-            </>
-          )}
-
-          {/* copying permissions from other assets */}
-          {isManagingPossible && (
-            <>
-              {assetType !== ASSET_TYPES.collection.id && this.state.allAssetsCount === 0 && (
-                <>
-                  <bem.Modal__hr />
-                  {t('Waiting for all projects to load…')}
-                </>
-              )}
-              {assetType !== ASSET_TYPES.collection.id && this.state.allAssetsCount >= 2 && (
-                <>
-                  <bem.Modal__hr />
-                  <CopyTeamPermissions assetUid={this.props.assetUid} />
-                </>
-              )}
-            </>
-          )}
         </bem.FormModal__item>
+
+        {/* public sharing settings */}
+        {assetType === ASSET_TYPES.survey.id && (
+          <>
+            <bem.FormModal__item m='share-settings'>
+              <PublicShareSettings
+                publicPerms={this.state.publicPerms}
+                assetUid={this.props.assetUid}
+                deploymentActive={this.state.asset.deployment__active}
+                userCanShare={isManagingPossible}
+              />
+            </bem.FormModal__item>
+          </>
+        )}
+
+        {/* copying permissions from other assets */}
+        {isManagingPossible && (
+          <>
+            {assetType !== ASSET_TYPES.collection.id && this.state.allAssetsCount === 0 && (
+              <>
+                <bem.Modal__hr />
+                {t('Waiting for all projects to load…')}
+              </>
+            )}
+            {assetType !== ASSET_TYPES.collection.id && this.state.allAssetsCount >= 2 && (
+              <>
+                <bem.Modal__hr />
+                <CopyTeamPermissions assetUid={this.props.assetUid} />
+              </>
+            )}
+          </>
+        )}
       </bem.FormModal>
     )
   }
