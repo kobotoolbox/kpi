@@ -6,6 +6,9 @@ source /etc/profile
 
 cd "${KPI_SRC_DIR}"
 
+# Ensure proper ownership of logs directory
+chown -R "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_LOGS_DIR}"
+
 AUTOSCALE_MIN="${CELERY_AUTOSCALE_MIN:-2}"
 AUTOSCALE_MAX="${CELERY_AUTOSCALE_MAX:-6}"
 

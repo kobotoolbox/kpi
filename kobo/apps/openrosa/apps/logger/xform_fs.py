@@ -11,6 +11,15 @@ class XFormInstanceFS:
         self.xform_id = re.sub(".xml", "", self.filename)
 
     @property
+    def attachments(self):
+        if not hasattr(self, '_attachments'):
+            self._attachments = []
+            for path in glob.glob(os.path.join(self.directory, "*")):
+                if path != self.path:
+                    self._attachments.append(path)
+        return self._attachments
+
+    @property
     def photos(self):
         if not hasattr(self, '_photos'):
             available_photos = glob.glob(os.path.join(self.directory, "*.jpg"))
