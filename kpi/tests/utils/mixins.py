@@ -195,15 +195,12 @@ class SubmissionEditTestCaseMixin:
             content_type='application/json',
         )
 
-        submission_edit_link_url_legacy = reverse(
+        submission_edit_link_url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
-        )
-        submission_edit_link_url = submission_edit_link_url_legacy.replace(
-            'edit', 'enketo/edit'
         )
 
         response = self.client.get(submission_edit_link_url, {'format': 'json'})

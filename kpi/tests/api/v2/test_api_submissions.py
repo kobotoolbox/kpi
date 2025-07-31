@@ -1199,20 +1199,30 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
 
         self._add_submissions()
         self.submission = self.submissions_submitted_by_someuser[0]
-        self.submission_url_legacy = reverse(
+
+        # Several URLs share the same viewname 'submission-enketo-edit' because
+        # of aliases. Django returns the last match - which is "/enketo/edit/"
+        self.submission_url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
-        self.submission_url = self.submission_url_legacy.replace(
-            'edit', 'enketo/edit'
+        self.submission_url_legacy = reverse(
+            self._get_endpoint('submission-enketo-edit-legacy'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.submission['_id'],
+            },
         )
-        self.submission_redirect_url = self.submission_url_legacy.replace(
-            'edit', 'enketo/redirect/edit'
+        self.submission_redirect_url = reverse(
+            self._get_endpoint('submission-enketo-edit-redirect'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.submission['_id'],
+            },
         )
-        assert 'redirect' in self.submission_redirect_url
 
     @responses.activate
     def test_get_legacy_edit_link_submission_as_owner(self):
@@ -1263,9 +1273,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
             content_type='application/json',
         )
 
-        response = self.client.get(
-            self.submission_redirect_url, {'format': 'json'}
-        )
+        response = self.client.get(self.submission_redirect_url, {'format': 'json'})
         assert response.status_code == status.HTTP_302_FOUND
         assert (
             response.url
@@ -1961,10 +1969,12 @@ class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase
                 'pk': self.submission['_id'],
             },
         )
-        self.submission_view_redirect_url = (
-            self.submission_view_link_url.replace(
-                '/enketo/view/', '/enketo/redirect/view/'
-            )
+        self.submission_view_redirect_url = reverse(
+            self._get_endpoint('submission-enketo-view-redirect'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.submission['_id'],
+            },
         )
         assert 'redirect' in self.submission_view_redirect_url
 
