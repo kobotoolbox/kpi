@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
-from kpi.constants import ASSET_TYPE_SURVEY
-from kpi.models import Asset
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
+
+# from kpi.schema_extensions.v2.assets.schema import ASSET_URL_SCHEMA
 from .fields import DataField, FieldFields, SourceField, SourceNameField, URLField
 
 ExternalResponse = inline_serializer_class(
@@ -16,13 +16,7 @@ ExternalResponse = inline_serializer_class(
 PairedDataResponse = inline_serializer_class(
     name='PairedDataResponse',
     fields={
-        'source': SourceField(
-            lookup_field='uid',
-            queryset=Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY),
-            view_name='asset-detail',
-            required=True,
-            style={'base_template': 'input.html'},
-        ),
+        'source': SourceField(),
         'source__name': SourceNameField(),
         'fields': FieldFields(),
         'filename': serializers.CharField(),
