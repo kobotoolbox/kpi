@@ -142,7 +142,6 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.apps.viewer.app.ViewerConfig',
     'kobo.apps.openrosa.apps.main.app.MainConfig',
     'kobo.apps.openrosa.apps.api',
-    'guardian',
     'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
     'kobo.apps.long_running_migrations.app.LongRunningMigrationAppConfig',
@@ -1329,10 +1328,6 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
 
 CELERY_TASK_DEFAULT_QUEUE = 'kpi_queue'
 
-if 'KOBOCAT_URL' in os.environ:
-    SYNC_KOBOCAT_PERMISSIONS = (
-        os.environ.get('SYNC_KOBOCAT_PERMISSIONS', 'True') == 'True')
-
 CELERY_BROKER_URL = os.environ.get(
     'CELERY_BROKER_URL',
     os.environ.get('KPI_BROKER_URL', 'redis://change-me.invalid:6379/1'),
@@ -1824,9 +1819,6 @@ USE_THOUSAND_SEPARATOR = True
 
 DIGEST_NONCE_BACKEND = 'kobo.apps.openrosa.apps.django_digest_backends.cache.RedisCacheNonceStorage'  # noqa
 
-# Needed to get ANONYMOUS_USER = -1
-GUARDIAN_GET_INIT_ANONYMOUS_USER = 'kobo.apps.openrosa.apps.main.models.user_profile.get_anonymous_user_instance'  # noqa
-
 KPI_HOOK_ENDPOINT_PATTERN = '/api/v2/assets/{asset_uid}/hook-signal/'
 
 # TODO Validate if `'PKCE_REQUIRED': False` is required in KPI
@@ -1893,10 +1885,6 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'application/x-zip-compressed',
     'application/geo+json',
 ]
-
-# Silence Django Guardian warning. Authentication backend is hooked, but
-# Django Guardian does not recognize it because it is extended
-SILENCED_SYSTEM_CHECKS = ['guardian.W001']
 
 DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
 
