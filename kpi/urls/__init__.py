@@ -1,4 +1,3 @@
-# coding: utf-8
 import private_storage.urls
 from django.conf import settings
 from django.urls import include, path, re_path
@@ -14,7 +13,7 @@ from kpi.views.current_user import CurrentUserViewSet
 from kpi.views.environment import EnvironmentView
 from kpi.views.token import TokenView
 from .router_api_v1 import router_api_v1
-from .router_api_v2 import router_api_v2, URL_NAMESPACE
+from .router_api_v2 import urls_patterns as router_api_v2_urls, URL_NAMESPACE
 from ..views.v2.logout import logout_from_all_devices
 
 
@@ -32,7 +31,7 @@ urlpatterns = [
         'delete': 'destroy',
     }), name='currentuser-detail'),
     re_path(r'^', include(router_api_v1.urls)),
-    re_path(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
+    re_path(r'^api/v2/', include((router_api_v2_urls, URL_NAMESPACE))),
     path('', include('kobo.apps.accounts.urls')),
     path('', include('kobo.apps.service_health.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),

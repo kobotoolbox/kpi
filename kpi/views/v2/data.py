@@ -289,7 +289,7 @@ class DataViewSet(
         methods=['GET'],
         renderer_classes=[renderers.JSONRenderer],
         permission_classes=[EditLinkSubmissionPermission],
-        url_path='((enketo/)|(enketo/redirect/))?edit',
+        url_path='enketo/edit',
     )
     def enketo_edit(self, request, pk, *args, **kwargs):
         submission_id = positive_int(pk)
@@ -308,7 +308,7 @@ class DataViewSet(
         methods=['GET'],
         renderer_classes=[renderers.JSONRenderer],
         permission_classes=[ViewSubmissionPermission],
-        url_path='enketo/(redirect/)?view',
+        url_path='enketo/view',
     )
     def enketo_view(self, request, pk, *args, **kwargs):
         submission_id = positive_int(pk)
