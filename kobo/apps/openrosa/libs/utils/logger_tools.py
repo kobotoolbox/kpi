@@ -16,7 +16,6 @@ from xml.etree import ElementTree as ET
 from xml.parsers.expat import ExpatError
 from zoneinfo import ZoneInfo
 
-import constance
 from dict2xml import dict2xml
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -207,11 +206,7 @@ def create_instance(
     xml_hash = Instance.get_hash(xml)
     xform = get_xform_from_submission(xml, username, uuid)
     check_submission_permissions(request, xform)
-    if (
-        settings.STRIPE_ENABLED
-        and constance.config.USAGE_LIMIT_ENFORCEMENT
-        and check_usage_limits
-    ):
+    if settings.STRIPE_ENABLED and check_usage_limits:
         calculator = ServiceUsageCalculator(xform.user)
         balances = calculator.get_usage_balances()
         for usage_type in [UsageType.STORAGE_BYTES, UsageType.SUBMISSION]:

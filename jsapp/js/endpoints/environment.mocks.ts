@@ -21,7 +21,6 @@ const environmentResponse: EnvironmentResponse = {
   frontend_min_retry_time: 2,
   frontend_max_retry_time: 120,
   use_team_label: true,
-  usage_limit_enforcement: false,
   free_tier_display: {
     name: null,
     feature_list: [],

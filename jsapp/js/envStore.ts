@@ -21,7 +21,6 @@ export interface EnvironmentResponse {
   interface_languages: string[][]
   submission_placeholder: string
   use_team_label: boolean
-  usage_limit_enforcement: boolean
   frontend_min_retry_time: number
   frontend_max_retry_time: number
   asr_mt_features_enabled: boolean
@@ -109,7 +108,6 @@ export class EnvStoreData {
   public submission_placeholder = ''
   public use_team_label = true
   public asr_mt_features_enabled = false
-  public usage_limit_enforcement = false
   public mfa_localized_help_text = ''
   public mfa_enabled = false
   public mfa_per_user_availability = false
@@ -209,7 +207,6 @@ class EnvStore {
     this.data.user_metadata_fields = response.user_metadata_fields
     this.data.submission_placeholder = response.submission_placeholder
     this.data.use_team_label = response.use_team_label
-    this.data.usage_limit_enforcement = response.usage_limit_enforcement
     this.data.mfa_localized_help_text = response.mfa_localized_help_text
     this.data.mfa_enabled = response.mfa_enabled
     this.data.mfa_per_user_availability = response.mfa_per_user_availability
