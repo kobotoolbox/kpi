@@ -219,7 +219,7 @@ class UserListSerializer(UserSerializer):
             }
 
         except Exception as e:
-            logging.error(f"Error fetching subscriptions for user {user.id}: {e}")
+            logging.error(f'Error fetching subscriptions for user {user.id}: {e}')
             return []
 
         from djstripe.models import Subscription
@@ -237,7 +237,7 @@ class UserListSerializer(UserSerializer):
         try:
             return obj.emailaddress_set.filter(primary=True, verified=True).exists()
         except Exception as e:
-            logging.error(f"Error checking validated email for user {obj.id}: {e}")
+            logging.error(f'Error checking validated email for user {obj.id}: {e}')
         return False
 
     def get_validated_password(self, user):
