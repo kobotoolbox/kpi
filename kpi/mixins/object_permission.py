@@ -8,7 +8,6 @@ from typing import Optional
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.aggregates import ArrayAgg
 from django.db import models, transaction
 from django_request_cache import cache_for_request
 from rest_framework import serializers
@@ -22,9 +21,8 @@ from kpi.constants import (
     PREFIX_PARTIAL_PERMS,
 )
 from kpi.deployment_backends.kc_access.utils import (
-    assign_applicable_kc_permissions,
     kc_transaction_atomic,
-    remove_applicable_kc_permissions,
+    set_kc_anonymous_permissions_xform_flags,
 )
 from kpi.models.object_permission import ObjectPermission
 from kpi.utils.object_permission import (
@@ -102,34 +100,6 @@ class ObjectPermissionMixin:
         if type(source_object) is type(self):
             # First delete all permissions of the target asset (except owner's).
             perm_queryset = self.permissions.exclude(user_id=self.owner_id)
-            # The bulk delete below (i.e.: `perm_queryset.delete()`) does not
-            # remove permissions in KoBoCAT.
-            # We could loop through `self.permissions` and call `remove_perm`
-            # for each permission but it would have probably a performance hit
-            # with assets with lots of permissions.
-            # Let's use PostgreSQL specific function `ArrayAgg` to retrieve all
-            # codenames at once.
-
-            # It relies on the fact that permissions are synced in KoBoCAT and KPI.
-            # If any permissions are present in KoBoCAT but not in KPI, these
-            # permissions will not be deleted and will have to be deleted manually
-            # with KoBoCAT.
-
-            user_codenames = (
-                ObjectPermission.objects.filter(asset_id=self.pk, deny=False)
-                .exclude(user_id=self.owner_id)
-                .values('user_id')
-                .annotate(
-                    all_codenames=ArrayAgg(
-                        'permission__codename', distinct=True
-                    )
-                )
-            )
-            for user_codename in user_codenames:
-                remove_applicable_kc_permissions(
-                    self, user_codename['user_id'], user_codename['all_codenames']
-                )
-
             # Remove all permissions from the asset (except the owner's)
             perm_queryset.delete()
 
@@ -442,22 +412,21 @@ class ObjectPermissionMixin:
 
     @transaction.atomic
     @kc_transaction_atomic
-    def assign_perm(self, user_obj, perm, deny=False, defer_recalc=False,
-                    skip_kc=False, partial_perms=None):
+    def assign_perm(
+        self, user_obj, perm, deny=False, defer_recalc=False, partial_perms=None
+    ):
         r"""
-            Assign `user_obj` the given `perm` on this object, or break
-            inheritance from a parent object. By default, recalculate
-            descendant objects' permissions and apply any applicable KC
-            permissions.
-            :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
-            :param perm: str. The `codename` of the `Permission`
-            :param deny: bool. When `True`, break inheritance from parent object
-            :param defer_recalc: bool. When `True`, skip recalculating
-                descendants
-            :param skip_kc: bool. When `True`, skip assignment of applicable KC
-                permissions
-            :param partial_perms: dict. Filters used to narrow down query for
-              partial permissions
+        Assign `user_obj` the given `perm` on this object, or break
+        inheritance from a parent object. By default, recalculate
+        descendant objects' permissions and apply any applicable KC
+        permissions.
+        :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
+        :param perm: str. The `codename` of the `Permission`
+        :param deny: bool. When `True`, break inheritance from parent object
+        :param defer_recalc: bool. When `True`, skip recalculating
+            descendants
+        :param partial_perms: dict. Filters used to narrow down query for
+          partial permissions
         """
         app_label, codename = perm_parse(perm, self)
         assignable_permissions = self.get_assignable_permissions()
@@ -509,14 +478,8 @@ class ObjectPermissionMixin:
                 permission__codename__in=self.CONTRADICTORY_PERMISSIONS.get(perm),
             )
         contradictory_perms = existing_perms.filter(contradictory_filters)
-        contradictory_codenames = list(contradictory_perms.values_list(
-            'permission__codename', flat=True))
-
         contradictory_perms.delete()
-        # Check if any KC permissions should be removed as well
-        if deny and not skip_kc:
-            remove_applicable_kc_permissions(
-                self, user_obj, contradictory_codenames)
+
         # Create the new permission
         new_permission = ObjectPermission.objects.create(
             asset=self,
@@ -532,9 +495,11 @@ class ObjectPermissionMixin:
             codename=codename,
             deny=deny,
         )
-        # Assign any applicable KC permissions
-        if not deny and not skip_kc:
-            assign_applicable_kc_permissions(self, user_obj, codename)
+
+        # Handle KoboCat xform flags for the anonymous user
+        if not deny and is_anonymous:
+            set_kc_anonymous_permissions_xform_flags(self, codename)
+
         # Resolve implied permissions, e.g. granting change implies granting
         # view
         implied_perms = self.get_implied_perms(
@@ -680,24 +645,22 @@ class ObjectPermissionMixin:
 
     @transaction.atomic
     @kc_transaction_atomic
-    def remove_perm(self, user_obj, perm, defer_recalc=False, skip_kc=False):
+    def remove_perm(self, user_obj, perm, defer_recalc=False):
         """
-            Revoke the given `perm` on this object from `user_obj`. By default,
-            recalculate descendant objects' permissions and remove any
-            applicable KC permissions.  May delete granted permissions or add
-            deny permissions as appropriate:
-            Current access      Action
-            ==============      ======
-            None                None
-            Direct              Remove direct permission
-            Inherited           Add deny permission
-            Direct & Inherited  Remove direct permission; add deny permission
-            :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
-            :param perm str: The `codename` of the `Permission`
-            :param defer_recalc bool: When `True`, skip recalculating
-                descendants
-            :param skip_kc bool: When `True`, skip assignment of applicable KC
-                permissions
+        Revoke the given `perm` on this object from `user_obj`. By default,
+        recalculate descendant objects' permissions and remove any
+        applicable KC permissions.  May delete granted permissions or add
+        deny permissions as appropriate:
+        Current access      Action
+        ==============      ======
+        None                None
+        Direct              Remove direct permission
+        Inherited           Add deny permission
+        Direct & Inherited  Remove direct permission; add deny permission
+        :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
+        :param perm str: The `codename` of the `Permission`
+        :param defer_recalc bool: When `True`, skip recalculating
+            descendants
         """
         user_obj = get_database_user(user_obj)
         app_label, codename = perm_parse(perm, self)
@@ -741,10 +704,6 @@ class ObjectPermissionMixin:
                 codename=codename,
             )
 
-        # Remove any applicable KC permissions
-        if not skip_kc:
-            remove_applicable_kc_permissions(self, user_obj, codename)
-
         # We might have been called by ourself to assign a related
         # permission. In that case, don't recalculate here.
         if defer_recalc:
@@ -754,6 +713,13 @@ class ObjectPermissionMixin:
 
         # Recalculate all descendants
         self.recalculate_descendants_perms()
+
+        is_anonymous = is_user_anonymous(user_obj)
+        # Handle KoboCat xform flags for the anonymous user
+        if is_anonymous:
+            set_kc_anonymous_permissions_xform_flags(
+                self, codename, remove=True
+            )
 
     def _update_partial_permissions(
         self,

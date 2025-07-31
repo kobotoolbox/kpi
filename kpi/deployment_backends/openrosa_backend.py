@@ -79,7 +79,7 @@ from kpi.utils.object_permission import get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
-from .kc_access.utils import assign_applicable_kc_permissions, kc_transaction_atomic
+from .kc_access.utils import kc_transaction_atomic
 
 
 class OpenRosaDeploymentBackend(BaseDeploymentBackend):
@@ -102,27 +102,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             return self.xform.attachment_storage_bytes
         except (InvalidXFormException, MissingXFormException):
             return 0
-
-    def bulk_assign_mapped_perms(self):
-        """
-        Bulk assign all KoBoCAT permissions related to KPI permissions.
-        Useful to assign permissions retroactively upon deployment.
-        Beware: it only adds permissions, it does not remove or sync permissions.
-        """
-        users_with_perms = self.asset.get_users_with_perms(attach_perms=True)
-
-        # if only the owner has permissions, no need to go further
-        if (
-            len(users_with_perms) == 1
-            and list(users_with_perms)[0].id == self.asset.owner_id
-        ):
-            return
-
-        with kc_transaction_atomic():
-            for user, perms in users_with_perms.items():
-                if user.id == self.asset.owner_id:
-                    continue
-                assign_applicable_kc_permissions(self.asset, user, perms)
 
     def calculated_submission_count(
         self, user: settings.AUTH_USER_MODEL, **kwargs

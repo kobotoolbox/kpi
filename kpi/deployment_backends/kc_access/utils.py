@@ -1,18 +1,14 @@
 from contextlib import contextmanager
-from typing import Union
 
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser, Permission
+from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.db import ProgrammingError, transaction
-from django.db.models import Model
-from guardian.models import UserObjectPermission
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.utils.database import use_db
 from kpi.utils.log import logging
-from kpi.utils.permissions import is_user_anonymous
 
 
 def safe_kc_read(func):
@@ -135,7 +131,7 @@ def grant_kc_model_level_perms(user: 'kobo_auth.User'):
 
 
 def set_kc_anonymous_permissions_xform_flags(
-    obj, kpi_codenames, xform_id, remove=False
+    obj, kpi_codenames, remove=False
 ):
     r"""
     Given a KPI object, one or more KPI permission codenames and the PK of
@@ -150,6 +146,10 @@ def set_kc_anonymous_permissions_xform_flags(
     :param remove: If `True`, apply the Boolean `not` operator to each
         value in `KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS`
     """
+    xform_id = _get_xform_id_for_asset(obj)
+
+    if xform_id is None:
+        return
     if not settings.KOBOCAT_URL or not settings.KOBOCAT_INTERNAL_URL:
         return
     try:
@@ -176,154 +176,6 @@ def set_kc_anonymous_permissions_xform_flags(
     # Write to the KC database
     XForm = obj.deployment.xform.__class__  # noqa - avoid circular imports
     XForm.objects.filter(pk=xform_id).update(**xform_updates)
-
-
-def assign_applicable_kc_permissions(
-    obj: Model,
-    user: Union[AnonymousUser, User, int],
-    kpi_codenames: Union[str, list]
-):
-    """
-    Assign the `user` the applicable KC permissions to `obj`, if any
-    exists, given one KPI permission codename as a single string or many
-    codenames as an iterable. If `obj` is not a :py:class:`Asset` or does
-    not have a deployment, take no action.
-    """
-    if not obj._meta.model_name == 'asset':
-        return
-    permissions = _get_applicable_kc_permissions(obj, kpi_codenames)
-    if not permissions:
-        return
-    xform_id = _get_xform_id_for_asset(obj)
-    if not xform_id:
-        return
-
-    # Retrieve primary key from user object and use it on subsequent queryset.
-    # It avoids loading the object when `user` is passed as an integer.
-    if not isinstance(user, int):
-        if is_user_anonymous(user):
-            user_id = settings.ANONYMOUS_USER_ID
-        else:
-            user_id = user.pk
-    else:
-        user_id = user
-
-    if user_id == settings.ANONYMOUS_USER_ID:
-        return set_kc_anonymous_permissions_xform_flags(
-            obj, kpi_codenames, xform_id
-        )
-
-    xform_content_type = ContentType.objects.using(settings.OPENROSA_DB_ALIAS).get(
-        **obj.KC_CONTENT_TYPE_KWARGS
-    )
-
-    kc_permissions_already_assigned = (
-        UserObjectPermission.objects.using(settings.OPENROSA_DB_ALIAS)
-        .filter(
-            user_id=user_id,
-            permission__in=permissions,
-            object_pk=xform_id,
-        )
-        .values_list('permission__codename', flat=True)
-    )
-    permissions_to_create = []
-    for permission in permissions:
-        if permission.codename in kc_permissions_already_assigned:
-            continue
-        permissions_to_create.append(
-            UserObjectPermission(
-                user_id=user_id,
-                permission=permission,
-                object_pk=xform_id,
-                content_type=xform_content_type,
-            )
-        )
-    UserObjectPermission.objects.using(settings.OPENROSA_DB_ALIAS).bulk_create(
-        permissions_to_create
-    )
-
-
-def remove_applicable_kc_permissions(
-    obj: Model,
-    user: Union[AnonymousUser, User, int],
-    kpi_codenames: Union[str, list]
-):
-    """
-    Remove the `user` the applicable KC permissions from `obj`, if any
-    exists, given one KPI permission codename as a single string or many
-    codenames as an iterable. If `obj` is not a :py:class:`Asset` or does
-    not have a deployment, take no action.
-    """
-
-    if not obj._meta.model_name == 'asset':
-        return
-    permissions = _get_applicable_kc_permissions(obj, kpi_codenames)
-    if not permissions:
-        return
-    xform_id = _get_xform_id_for_asset(obj)
-    if not xform_id:
-        return
-
-    # Retrieve primary key from user object and use it on subsequent queryset.
-    # It avoids loading the object when `user` is passed as an integer.
-    if not isinstance(user, int):
-        if is_user_anonymous(user):
-            user_id = settings.ANONYMOUS_USER_ID
-        else:
-            user_id = user.pk
-    else:
-        user_id = user
-
-    if user_id == settings.ANONYMOUS_USER_ID:
-        return set_kc_anonymous_permissions_xform_flags(
-            obj, kpi_codenames, xform_id, remove=True
-        )
-
-    content_type_kwargs = _get_content_type_kwargs_for_related(obj)
-    UserObjectPermission.objects.using(settings.OPENROSA_DB_ALIAS).filter(
-        user_id=user_id, permission__in=permissions, object_pk=xform_id,
-        # `permission` has a FK to `ContentType`, but I'm paranoid
-        **content_type_kwargs
-    ).delete()
-
-
-def reset_kc_permissions(
-    obj: Model,
-    user: Union[AnonymousUser, User, int],
-):
-    """
-    Remove the `user` all KC permissions from `obj`, if any
-    exists.
-    This should not called without a subsequent call of
-    `assign_applicable_kc_permissions()`
-    """
-
-    if not obj._meta.model_name == 'asset':
-        return
-    xform_id = _get_xform_id_for_asset(obj)
-    if not xform_id:
-        return
-
-    # Retrieve primary key from user object and use it on subsequent queryset.
-    # It avoids loading the object when `user` is passed as an integer.
-    if not isinstance(user, int):
-        if is_user_anonymous(user):
-            user_id = settings.ANONYMOUS_USER_ID
-        else:
-            user_id = user.pk
-    else:
-        user_id = user
-
-    if user_id == settings.ANONYMOUS_USER_ID:
-        raise NotImplementedError
-
-    content_type_kwargs = _get_content_type_kwargs_for_related(obj)
-    UserObjectPermission.objects.using(settings.OPENROSA_DB_ALIAS).filter(
-        user_id=user_id,
-        object_pk=xform_id,
-        # `permission` has a FK to `ContentType`, but I'm paranoid
-        **content_type_kwargs
-    ).delete()
 
 
 def delete_kc_user(username: str):
