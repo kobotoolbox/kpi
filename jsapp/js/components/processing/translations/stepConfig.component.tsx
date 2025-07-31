@@ -18,10 +18,9 @@ export default function StepConfig() {
   const { data: serviceUsageData } = useServiceUsageQuery()
 
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
-  const usageLimitBlack = useMemo(
-    () =>
-      serviceUsageData?.limitExceedList.includes(UsageLimitTypes.TRANSLATION) && envStore.data.usage_limit_enforcement,
-    [serviceUsageData?.limitExceedList, envStore.data.usage_limit_enforcement],
+  const isOverLimit = useMemo(
+    () => serviceUsageData?.limitExceedList.includes(UsageLimitTypes.TRANSLATION),
+    [serviceUsageData?.limitExceedList],
   )
   const { billingPeriod } = useBillingPeriod()
 
@@ -80,7 +79,7 @@ export default function StepConfig() {
   }
 
   function onAutomaticButtonClick() {
-    if (usageLimitBlack) {
+    if (isOverLimit) {
       setIsLimitBlockModalOpen(true)
     } else {
       selectModeAuto()

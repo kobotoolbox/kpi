@@ -1,6 +1,5 @@
 from copy import deepcopy
 
-import constance
 from django.conf import settings
 from django.db.models import Q
 from django.shortcuts import Http404
@@ -57,10 +56,7 @@ def _check_asr_mt_access_if_applicable(user, posted_data):
                     # message string
                     raise PermissionDenied('ASR/MT features are not available')
 
-            if (
-                not settings.STRIPE_ENABLED
-                or not constance.config.USAGE_LIMIT_ENFORCEMENT
-            ):
+            if not settings.STRIPE_ENABLED:
                 return True
 
             calculator = ServiceUsageCalculator(user)
