@@ -83,7 +83,7 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
             raise_access_forbidden=False,
             validate_payload=False,
         ),
-        operation_id='attachment-thumbnail'
+        operation_id='attachment-thumbnail',
     ),
 )
 class AttachmentViewSet(

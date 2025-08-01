@@ -198,6 +198,9 @@ class SubmissionEditApiTests(test_api_submissions.SubmissionEditApiTests):
     def test_get_multiple_edit_links_and_attempt_submit_edits(self):
         pass
 
-class SubmissionValidationStatusApiTests(test_api_submissions.SubmissionValidationStatusApiTests):  # noqa: E501
+
+class SubmissionValidationStatusApiTests(
+    test_api_submissions.SubmissionValidationStatusApiTests
+):
 
     URL_NAMESPACE = None

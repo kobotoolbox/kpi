@@ -9,13 +9,11 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kpi.models.asset_file import AssetFile
 from kpi.tests.utils.mock import (
     enketo_edit_instance_response,
     enketo_view_instance_response,
-)
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
-    remove_uuid_prefix,
 )
 from kpi.utils.xml import (
     edit_submission_xml,

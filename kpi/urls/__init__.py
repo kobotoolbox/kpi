@@ -4,18 +4,14 @@ from django.urls import include, path, re_path
 from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
-from kpi.views import (
-    authorized_application_authenticate_user,
-    home,
-    modern_browsers,
-)
+from kpi.views import authorized_application_authenticate_user, home, modern_browsers
 from kpi.views.current_user import CurrentUserViewSet
 from kpi.views.environment import EnvironmentView
 from kpi.views.token import TokenView
-from .router_api_v1 import urls_patterns as router_api_v1_urls
-from .router_api_v2 import urls_patterns as router_api_v2_urls, URL_NAMESPACE
 from ..views.v2.logout import logout_from_all_devices
-
+from .router_api_v1 import urls_patterns as router_api_v1_urls
+from .router_api_v2 import URL_NAMESPACE
+from .router_api_v2 import urls_patterns as router_api_v2_urls
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See

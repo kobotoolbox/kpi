@@ -1,9 +1,8 @@
 from django.urls import include, path, re_path
 from rest_framework import routers
 
-from .views import EmailAddressViewSet, SocialAccountViewSet
 from .tos import TOSView
-
+from .views import EmailAddressViewSet, SocialAccountViewSet
 
 router = routers.SimpleRouter()
 router.register(r'emails', EmailAddressViewSet)
