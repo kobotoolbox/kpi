@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as t
 
+from formpack.utils.ordered_collection import OrderedDefaultdict
 from kobo.celery import celery_app
 from kpi.utils.mailer import EmailMessage, Mailer
 from .exceptions import AsyncTaskException, TransferStillPendingException
@@ -258,22 +259,16 @@ def task_restarter():
     """
     # Avoid circular import
     TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
+    Transfer = apps.get_model('project_ownership', 'Transfer')  # noqa
+
     resume_threshold = timezone.now() - timedelta(
         minutes=config.PROJECT_OWNERSHIP_RESUME_THRESHOLD
     )
     stuck_threshold = timezone.now() - timedelta(
         minutes=config.PROJECT_OWNERSHIP_STUCK_THRESHOLD
     )
-    restarted_transfers = []
-    for transfer_status in TransferStatus.objects.filter(
-        date_modified__lte=resume_threshold,
-        status=TransferStatusChoices.PENDING,
-        status_type=TransferStatusTypeChoices.GLOBAL,
-    )[: settings.MAX_RESTARTED_TRANSFERS]:
-        # restart any transfers that were left in pending but not picked up
-        transfer_status.transfer.transfer_project()
-        restarted_transfers.append(transfer_status.transfer)
 
+    tasks_by_transfer = OrderedDefaultdict(dict)
     # Restart tasks that were stopped unintentionally after the transfer started
     # PENDING tasks were never started so don't consider them "stuck" even if they are
     # very old
@@ -291,16 +286,44 @@ def task_restarter():
         date_modified__lte=resume_threshold,
     ) & ~Q(status_type=TransferStatusTypeChoices.ATTACHMENTS)
 
-    for transfer_status in (
-        TransferStatus.objects.filter(stopped_in_progress_tasks | still_pending_tasks)
-        .exclude(
-            Q(status_type=TransferStatusTypeChoices.GLOBAL)
-            |
-            # filter out any we might already restart via the transfer
-            Q(transfer__in=restarted_transfers)
-        )
-        .order_by('date_modified')[: settings.MAX_RESTARTED_TASKS]
-    ):
-        async_task.delay(
-            transfer_status.transfer.pk, transfer_status.status_type
-        )
+    for transfer_status in TransferStatus.objects.filter(
+        stopped_in_progress_tasks | still_pending_tasks
+    ).order_by('-date_modified'):
+        transfer_id = transfer_status.transfer_id
+        if transfer_status.status_type == TransferStatusTypeChoices.GLOBAL:
+            if transfer_status.status == TransferStatusChoices.PENDING:
+                tasks_by_transfer[transfer_id]['pending_full_transfer'] = True
+                # we will want to handle full transfers after individual restart tasks
+                tasks_by_transfer.move_to_end(transfer_id)
+        else:
+            if tasks_by_transfer.get('pending_full_transfer'):
+                # if we know we'll need to transfer the whole project don't bother adding individual task restarts
+                continue
+            tasks = tasks_by_transfer[transfer_id].get('types_to_restart', [])
+            tasks.append(transfer_status.status_type)
+            tasks_by_transfer[transfer_id]['types_to_restart'] = tasks
+            # move transfers with the oldest pending/in progress tasks to the top
+            tasks_by_transfer.move_to_end(transfer_id, last=False)
+
+    full_transfers = 0
+    restarted_tasks = 0
+
+    # since tasks_by_transfer is ordered, we'll process the ones that don't need the full restart first
+    for transfer_id, status_dict in tasks_by_transfer.items():
+        if (
+            full_transfers >= settings.MAX_RESTARTED_TRANSFERS
+            and restarted_tasks >= settings.MAX_RESTARTED_TASKS
+        ):
+            break
+        # whole transfer process needs to be restarted
+        if status_dict.get('pending_full_transfer', False):
+            if full_transfers < settings.MAX_RESTARTED_TRANSFERS:
+                transfer = Transfer.objects.get(id=transfer_id)
+                transfer.transfer_project()
+                full_transfers += 1
+        # just restart individual tasks
+        else:
+            for status_type in status_dict.get('types_to_restart', []):
+                if restarted_tasks < settings.MAX_RESTARTED_TASKS:
+                    async_task.delay(transfer_id, status_type)
+                    restarted_tasks += 1

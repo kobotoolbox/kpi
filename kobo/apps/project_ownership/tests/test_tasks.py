@@ -105,23 +105,18 @@ class ProjectOwnershipTasksTestCase(TestCase):
         )
         assert len(patched_task.call_args_list) == 3
 
-    # in progress, too old, too recent
+    # in progress, time_delta (15 for a task that is too old,
+    # 2 for a task that is too recent)
     @data(
-        (True, True, False),
-        (True, False, True),
+        (True, 15),
+        (True, 2),
         # old pending tasks are tested elsewhere
-        (False, False, True),
+        (False, 2),
     )
     @unpack
     def test_task_restarter_ignores_tasks_too_old_or_too_new(
-        self, in_progress, too_old, too_recent
+        self, in_progress, time_delta
     ):
-        if too_recent:
-            time_delta = 2
-        elif too_old:
-            time_delta = 15
-        else:
-            time_delta = 0
         with freeze_time(timezone.now() - timedelta(minutes=time_delta)):
             transfer = self.create_standard_transfer()
             if in_progress:
