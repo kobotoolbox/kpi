@@ -1,8 +1,12 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import views, generics
 
 from . import openrosa_drf_settings
 
-
+@extend_schema(
+    tags=['OpenRosa'],
+    exclude=True
+)
 class OpenRosaAPIView(views.APIView):
 
     renderer_classes = openrosa_drf_settings.DEFAULT_RENDERER_CLASSES

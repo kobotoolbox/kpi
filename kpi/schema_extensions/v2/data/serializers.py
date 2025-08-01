@@ -52,7 +52,7 @@ DataResponse = inline_serializer_class(
         '_attachments': DataAttachmentField(),
         '_status': serializers.CharField(),
         '_geolocation': EmptyListField(),
-        '_submission_time': serializers.TimeField(),
+        '_submission_time': serializers.DateField(),
         '_tags': EmptyListField(),
         'Notes': EmptyListField(),
         '_validation_status': EmptyObjectField(),
@@ -77,7 +77,7 @@ DataValidationStatusUpdatePayload = inline_serializer_class(
 DataValidationStatusUpdateResponse = inline_serializer_class(
     name='DataValidationStatusUpdateResponse',
     fields={
-        'timestamp': serializers.TimeField(),
+        'timestamp': serializers.DateField(),
         'uid': serializers.CharField(),
         'by_whom': serializers.CharField(),
         'label': serializers.CharField(),

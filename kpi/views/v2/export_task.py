@@ -1,5 +1,5 @@
 # coding: utf-8
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from rest_framework import filters, renderers
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -25,6 +25,15 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 @extend_schema(
     tags=['Exports'],
+    parameters=[
+        OpenApiParameter(
+            name='parent_lookup_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent asset',
+        ),
+    ],
 )
 @extend_schema_view(
     create=extend_schema(
@@ -41,6 +50,15 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             require_auth=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the export task',
+            ),
+        ],
     ),
     list=extend_schema(
         description=read_md('kpi', 'export_tasks/list.md'),
@@ -60,6 +78,15 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             require_auth=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the export task',
+            ),
+        ],
     ),
     update=extend_schema(
         exclude=True,

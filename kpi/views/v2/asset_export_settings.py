@@ -29,6 +29,15 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 @extend_schema(
     tags=['Export Settings'],
+    parameters=[
+        OpenApiParameter(
+            name='parent_lookup_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent asset',
+        ),
+    ],
 )
 @extend_schema_view(
     create=extend_schema(
@@ -50,6 +59,13 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
                 enum=['csv', 'xlsx'],
                 location=OpenApiParameter.QUERY,
             ),
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the export-settings',
+            ),
         ],
         responses=open_api_200_ok_response(
             description='Will return a content type with the type of the attachment as well as the attachment itself.',  # noqa
@@ -64,6 +80,15 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the export-settings',
+            ),
+        ],
     ),
     list=extend_schema(
         description=read_md('kpi', 'export_settings/list.md'),
@@ -82,6 +107,15 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             validate_payload=False,
             raise_access_forbidden=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the export-settings',
+            ),
+        ],
     ),
     partial_update=extend_schema(
         description=read_md('kpi', 'export_settings/update.md'),
@@ -91,6 +125,15 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             require_auth=False,
             raise_access_forbidden=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the export-settings',
+            ),
+        ],
     ),
     update=extend_schema(
         exclude=True,

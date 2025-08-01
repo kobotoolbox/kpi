@@ -6,15 +6,15 @@ class CodenameField(serializers.CharField):
     pass
 
 
-class ContradictoryField(serializers.SerializerMethodField):
+class ContradictoryField(serializers.ListField):
     pass
 
 
-class ImpliedField(serializers.SerializerMethodField):
+class ImpliedField(serializers.ListField):
     pass
 
 
-class NameField(serializers.SerializerMethodField):
+class NameField(serializers.CharField):
     pass
 
 

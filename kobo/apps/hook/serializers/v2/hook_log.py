@@ -1,4 +1,5 @@
 # coding: utf-8
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
@@ -34,8 +35,9 @@ class HookLogSerializer(serializers.ModelSerializer):
             'date_modified',
         )
 
-    url = HookLogURLField()
+    url = serializers.SerializerMethodField()
 
+    @extend_schema_field(HookLogURLField)
     def get_url(self, hook_log):
         hook = hook_log.hook
         return reverse('hook-log-detail',

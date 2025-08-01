@@ -94,7 +94,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             OpenApiExample(
                 name='Create partial permission',
                 value={
-                    'name': generate_example_from_schema(USER_URL_SCHEMA),
+                    'user': generate_example_from_schema(USER_URL_SCHEMA),
                     'partial_permission': generate_example_from_schema(
                         ASSET_PARTIAL_PERMISSION_ASSIGNMENT_SCHEMA
                     ),

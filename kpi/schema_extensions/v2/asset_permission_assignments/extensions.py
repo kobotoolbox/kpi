@@ -61,6 +61,7 @@ class AssetPermissionCreateAssignmentSerializerExtension(OpenApiSerializerExtens
                         'permission',
                         'user',
                     ],
+                    additionalProperties=False,
                     properties={
                         'permission': PERMISSION_URL_SCHEMA,
                         'user': USER_URL_SCHEMA,

@@ -1,7 +1,7 @@
 # coding: utf-8
 from django.utils.translation import gettext as t
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -22,6 +22,22 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 @extend_schema(
     tags=['Rest Services'],
+    parameters=[
+        OpenApiParameter(
+            name='parent_lookup_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent assets',
+        ),
+        OpenApiParameter(
+            name='parent_lookup_hook',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent hook',
+        ),
+    ],
 )
 @extend_schema_view(
     list=extend_schema(

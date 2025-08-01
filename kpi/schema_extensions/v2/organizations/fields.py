@@ -2,11 +2,11 @@ from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 
 
-class AssetField(serializers.SerializerMethodField):
+class AssetField(serializers.JSONField):
     pass
 
 
-class AssetUsageField(serializers.SerializerMethodField):
+class AssetUsageField(serializers.JSONField):
     pass
 
 
@@ -14,11 +14,7 @@ class BalanceField(serializers.JSONField):
     pass
 
 
-class IsOwnerField(serializers.SerializerMethodField):
-    pass
-
-
-class MembersField(serializers.SerializerMethodField):
+class MembersField(serializers.URLField):
     pass
 
 
@@ -30,11 +26,7 @@ class NlpUsageCurrentPeriod(serializers.JSONField):
     pass
 
 
-class RequestUserRoleField(serializers.SerializerMethodField):
-    pass
-
-
-class ServiceUsageField(serializers.SerializerMethodField):
+class ServiceUsageField(serializers.URLField):
     pass
 
 
@@ -46,5 +38,5 @@ class TotalSubmissionCountField(serializers.JSONField):
     pass
 
 
-class UrlField(HyperlinkedIdentityField):
+class UrlField(serializers.URLField):
     pass

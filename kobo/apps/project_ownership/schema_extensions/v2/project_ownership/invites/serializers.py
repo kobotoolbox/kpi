@@ -8,16 +8,16 @@ from .fields import (
     TransferField,
 )
 
-InviteCreatePayload = inline_serializer_class(
-    name='InviteCreatePayload',
+ProjectInviteCreatePayload = inline_serializer_class(
+    name='ProjectInviteCreatePayload',
     fields={
         'recipient': RecipientSenderUrlField(),
         'assets': InviteAssetField(),
     },
 )
 
-InviteResponse = inline_serializer_class(
-    name='InviteResponse',
+ProjectInviteResponse = inline_serializer_class(
+    name='ProjectInviteResponse',
     fields={
         'url': InviteUrlField(),
         'sender |  recipient': RecipientSenderUrlField(),
