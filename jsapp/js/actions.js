@@ -445,7 +445,12 @@ actions.resources.loadAsset.listen((params, refresh = false) => {
     // earlier than anticipated.
     setTimeout(() => {
       // we have a cache entry, use that
-      actions.resources.loadAsset.completed(assetCache[params.id])
+      // HACKHACK: sometimes it is possible for `actions.resources.loadAsset` to be called with `refresh: true` at
+      // the actual moment of `setTimeout` being execuded, resulting in `assetCache[params.id]` being `'pending'`. Let's
+      // make a sanity triple check. Without it `assetParserUtils` will fail at `parseTags` function causing a crash…
+      if (assetCache[params.id] !== 'pending') {
+        actions.resources.loadAsset.completed(assetCache[params.id])
+      }
     }, 0)
   }
   // the cache entry for this asset is currently loading, do nothing
