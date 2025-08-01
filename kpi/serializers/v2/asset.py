@@ -656,7 +656,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     @extend_schema_field(OpenApiTypes.STR)
     def get_kind(self, obj):
-        return Asset.kind
+        return obj.kind
 
     @extend_schema_field(DownloadsField)
     def get_embeds(self, obj):
