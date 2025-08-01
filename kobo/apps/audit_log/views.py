@@ -500,6 +500,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
         responses=open_api_200_ok_response(
             HistoryActionResponse,
             require_auth=False,
+            validate_payload=False,
         ),
     ),
     export=extend_schema(
