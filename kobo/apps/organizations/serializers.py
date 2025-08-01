@@ -35,6 +35,10 @@ from kpi.schema_extensions.v2.organizations.fields import (
 from kpi.utils.cache import void_cache_for_request
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.placeholders import replace_placeholders
+from kpi.utils.schema_extensions.fields import (
+    HyperlinkedIdentityFieldWithSchemaField,
+    ReadOnlyFieldWithSchemaField,
+)
 from .constants import (
     INVITE_ALREADY_ACCEPTED_ERROR,
     INVITE_ALREADY_EXISTS_ERROR,
@@ -49,15 +53,6 @@ from .constants import (
 )
 from .tasks import transfer_member_data_ownership_to_org
 
-
-@extend_schema_field(OpenApiTypes.STR)
-class ExtraDetailOverload(serializers.ReadOnlyField):
-    pass
-
-
-@extend_schema_field(UrlField)
-class UrlFieldOverload(HyperlinkedIdentityField):
-    pass
 
 class OrganizationUserSerializer(serializers.ModelSerializer):
     invite = serializers.SerializerMethodField()
@@ -75,7 +70,8 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         source='created', format='%Y-%m-%dT%H:%M:%SZ'
     )
     user__username = serializers.ReadOnlyField(source='user.username')
-    user__extra_details__name = ExtraDetailOverload(
+    user__extra_details__name = ReadOnlyFieldWithSchemaField(
+        schema_field=OpenApiTypes.STR,
         source='user.extra_details.data.name'
     )
     user__email = serializers.ReadOnlyField(source='user.email')
@@ -184,7 +180,9 @@ class OrganizationSerializer(serializers.ModelSerializer):
     members = serializers.SerializerMethodField()
     request_user_role = serializers.SerializerMethodField()
     service_usage = serializers.SerializerMethodField()
-    url = UrlFieldOverload(lookup_field='id', view_name='organizations-detail')
+    url = HyperlinkedIdentityFieldWithSchemaField(
+        schema_field=UrlField, lookup_field='id', view_name='organizations-detail'
+    )
     website = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
