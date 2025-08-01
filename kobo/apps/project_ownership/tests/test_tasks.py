@@ -151,3 +151,13 @@ class ProjectOwnershipTasksTestCase(TestCase):
                 task_restarter()
         assert len(patched_task.call_args_list) == 2
         assert len(patched_transfer.call_args_list) == 2
+
+    def test_query_count(self):
+        assets = [baker.make(Asset, owner=self.someuser, uid=f'a{i}') for i in range(6)]
+        with freeze_time(timezone.now() - timedelta(minutes=8)):
+            # create multiple pending transfers
+            for i, asset in enumerate(assets):
+                self.create_standard_transfer(assets[i])
+        with self.assertNumQueries(1348):
+            with patch('kobo.apps.project_ownership.models.transfer.async_task.delay'):
+                task_restarter()

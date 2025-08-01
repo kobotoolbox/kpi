@@ -304,8 +304,10 @@ def task_restarter():
             tasks_by_transfer[transfer_id].append(transfer_status.status_type)
 
     full_transfer_pks = list(full_transfer_pks)
-    transfers_to_restart = Transfer.objects.filter(
-        pk__in=full_transfer_pks[: settings.MAX_RESTARTED_TRANSFERS]
+    transfers_to_restart = (
+        Transfer.objects.defer('asset__content')
+        .filter(pk__in=full_transfer_pks[:settings.MAX_RESTARTED_TRANSFERS])
+        .select_related('invite', 'invite__sender', 'invite__recipient', 'asset')
     )
 
     # transform {'transfer_pk': ['attachments', 'media_files']...}
@@ -314,9 +316,9 @@ def task_restarter():
         [(pk, status_type) for status_type in tasks_by_transfer[pk]]
         for pk in tasks_by_transfer
     ]
-    all_tasks_to_restart = list(itertools.chain(*all_tasks_to_restart))[
-        : settings.MAX_RESTARTED_TASKS
-    ]
+    all_tasks_to_restart = list(
+        itertools.chain(*all_tasks_to_restart)
+    )[:settings.MAX_RESTARTED_TASKS]
 
     for transfer_id, status_type in all_tasks_to_restart:
         async_task.delay(transfer_id, status_type)
