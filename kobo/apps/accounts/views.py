@@ -1,14 +1,36 @@
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 from kpi.permissions import IsAuthenticated
+from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
+    open_api_201_created_response
 from kpi.versioning import APIV2Versioning
 from .mixins import MultipleFieldLookupMixin
 from .serializers import EmailAddressSerializer, SocialAccountSerializer
 
 
+@extend_schema(
+    tags=['Me'],
+)
+@extend_schema_view(
+    list=extend_schema(
+        description='list',
+        responses=open_api_200_ok_response(
+            EmailAddressSerializer,
+        )
+    ),
+    create=extend_schema(
+        description='create',
+        responses=open_api_201_created_response(
+            EmailAddressSerializer,
+        )
+    )
+)
 class EmailAddressViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
@@ -29,6 +51,9 @@ class EmailAddressViewSet(
     serializer_class = EmailAddressSerializer
     permission_classes = (IsAuthenticated,)
     versioning_class = APIV2Versioning
+    renderer_classes = [
+        JSONRenderer,
+    ]
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)
