@@ -122,7 +122,7 @@ INSTALLED_APPS = (
     'kobo.apps.service_health',
     'kobo.apps.subsequences',
     'constance',
-    'kobo.apps.hook',
+    'kobo.apps.hook.apps.HookAppConfig',
     'django_celery_beat',
     'corsheaders',
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
@@ -130,8 +130,8 @@ INSTALLED_APPS = (
     'kobo.apps.help',
     'trench',
     'kobo.apps.accounts.mfa.apps.MfaAppConfig',
-    'kobo.apps.languages.LanguageAppConfig',
-    'kobo.apps.project_views.ProjectViewAppConfig',
+    'kobo.apps.project_views.apps.ProjectViewAppConfig',
+    'kobo.apps.languages.apps.LanguageAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
     'kobo.apps.mass_emails.MassEmailsConfig',
     'kobo.apps.trackers.TrackersConfig',
@@ -146,6 +146,7 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
     'kobo.apps.long_running_migrations.app.LongRunningMigrationAppConfig',
+    'drf_spectacular',
 )
 
 MIDDLEWARE = [
@@ -984,12 +985,32 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_RENDERER_CLASSES': [
        'rest_framework.renderers.JSONRenderer',
-       'rest_framework.renderers.BrowsableAPIRenderer',
        'kpi.renderers.XMLRenderer',
     ],
     'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIAutoVersioning',
     # Cannot be placed in kpi.exceptions.py because of circular imports
     'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_CONTENT_NEGOTIATION_CLASS': 'kpi.negotiation.DefaultContentNegotiation',
+}
+
+# Settings for the API documentation using drf-spectacular
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'KoboToolbox API',
+    'DESCRIPTION': 'Powerful and intuitive data collection tools to make an impact',
+    'VERSION': '2.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'PREPROCESSING_HOOKS': [
+        'kpi.utils.spectacular_processing.pre_processing_filtering'
+    ],
+    'SWAGGER_UI_FAVICON_HREF': '/static/favicon.png',
+    'SWAGGER_UI_SETTINGS': {
+        'filter': True,
+    },
+    'AUTHENTICATION_WHITELIST': [
+        'kpi.authentication.BasicAuthentication',
+        'kpi.authentication.TokenAuthentication',
+    ],
 }
 
 OPENROSA_REST_FRAMEWORK = {
