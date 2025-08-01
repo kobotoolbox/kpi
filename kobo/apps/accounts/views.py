@@ -24,6 +24,9 @@ from .serializers import EmailAddressSerializer, SocialAccountSerializer
         description=read_md('accounts', 'emails/list.md'),
         responses=open_api_200_ok_response(
             EmailAddressSerializer,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
     create=extend_schema(
@@ -31,6 +34,8 @@ from .serializers import EmailAddressSerializer, SocialAccountSerializer
         request={'application/json': EmailRequestPayload},
         responses=open_api_201_created_response(
             EmailAddressSerializer,
+            raise_not_found=False,
+            raise_access_forbidden=False,
         )
     )
 )
