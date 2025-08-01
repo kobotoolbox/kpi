@@ -1,4 +1,3 @@
-# coding: utf-8
 from typing import Optional, Union
 
 from django.conf import settings
@@ -98,7 +97,7 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
             require_auth=False,
             raise_access_forbidden=False,
         ),
-        operation_id='attachment_retrieve'
+        operation_id='attachment_retrieve',
     ),
     thumb=extend_schema(
         description=read_md('kpi', 'asset_attachments/suffix.md'),
@@ -117,7 +116,7 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
                 description='ID of the attachment',
             ),
         ],
-        operation_id='attachment_format_retrieve'
+        operation_id='attachment-thumbnail',
     ),
 )
 class AttachmentViewSet(
@@ -164,7 +163,7 @@ class AttachmentViewSet(
     @action(
         detail=True,
         methods=['GET'],
-        url_path=f'(?P<suffix>({thumbnail_suffixes_pattern}))'
+        url_path=f'(?P<suffix>({thumbnail_suffixes_pattern}))',
     )
     def thumb(self, request, pk, suffix, *args, **kwargs):
         if suffix != 'original':
