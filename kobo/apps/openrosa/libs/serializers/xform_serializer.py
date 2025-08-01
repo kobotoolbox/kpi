@@ -13,6 +13,7 @@ from kobo.apps.openrosa.libs.serializers.fields.boolean_field import BooleanFiel
 from kobo.apps.openrosa.libs.serializers.metadata_serializer import MetaDataSerializer
 from kobo.apps.openrosa.libs.serializers.tag_list_serializer import TagListSerializer
 from kobo.apps.openrosa.libs.utils.decorators import check_obj
+from kpi.utils.schema_extensions.fields import ReadOnlyFieldWithSchemaField
 
 
 class XFormSerializer(serializers.HyperlinkedModelSerializer):
@@ -96,29 +97,20 @@ class XFormSerializer(serializers.HyperlinkedModelSerializer):
         return []
 
 
-@extend_schema_field(OpenApiTypes.STR)
-class DescriptionTextOverload(serializers.ReadOnlyField):
-    pass
-
-
-@extend_schema_field(OpenApiTypes.STR)
-class FormIdOverload(serializers.ReadOnlyField):
-    pass
-
-
-@extend_schema_field(OpenApiTypes.STR)
-class NameOverload(serializers.ReadOnlyField):
-    pass
-
-
 class XFormListSerializer(serializers.Serializer):
 
-    formID = FormIdOverload(source='id_string')
-    name = NameOverload(source='title')
+    formID = ReadOnlyFieldWithSchemaField(
+        schema_field=OpenApiTypes.STR, source='id_string'
+    )
+    name = ReadOnlyFieldWithSchemaField(
+        schema_field=OpenApiTypes.STR, source='title'
+    )
     majorMinorVersion = serializers.SerializerMethodField('get_version')
     version = serializers.SerializerMethodField()
     hash = serializers.SerializerMethodField()
-    descriptionText = DescriptionTextOverload(source='description')
+    descriptionText = ReadOnlyFieldWithSchemaField(
+        schema_field=OpenApiTypes.STR, source='description'
+    )
     downloadUrl = serializers.SerializerMethodField('get_url')
     manifestUrl = serializers.SerializerMethodField('get_manifest_url')
 
