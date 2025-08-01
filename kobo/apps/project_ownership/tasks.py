@@ -303,7 +303,6 @@ def task_restarter():
                 continue
             tasks_by_transfer[transfer_id].append(transfer_status.status_type)
 
-
     full_transfer_pks = list(full_transfer_pks)
     transfers_to_restart = Transfer.objects.filter(
         pk__in=full_transfer_pks[: settings.MAX_RESTARTED_TRANSFERS]
