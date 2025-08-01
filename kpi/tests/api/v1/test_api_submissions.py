@@ -194,6 +194,9 @@ class SubmissionEditApiTests(test_api_submissions.SubmissionEditApiTests):
     def test_edit_submission_twice(self):
         pass
 
+    @pytest.mark.skip(reason='Only usable in v2')
+    def test_get_multiple_edit_links_and_attempt_submit_edits(self):
+        pass
 
 class SubmissionValidationStatusApiTests(test_api_submissions.SubmissionValidationStatusApiTests):  # noqa: E501
 
