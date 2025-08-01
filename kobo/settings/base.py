@@ -130,8 +130,8 @@ INSTALLED_APPS = (
     'kobo.apps.help',
     'trench',
     'kobo.apps.accounts.mfa.apps.MfaAppConfig',
+    'kobo.apps.project_views.apps.ProjectViewAppConfig',
     'kobo.apps.languages.apps.LanguageAppConfig',
-    'kobo.apps.project_views.ProjectViewAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
     'kobo.apps.mass_emails.MassEmailsConfig',
     'kobo.apps.trackers.TrackersConfig',
@@ -1369,6 +1369,14 @@ CELERY_BEAT_SCHEDULE = {
     }
 }
 
+if STRIPE_ENABLED:
+    # Schedule to run once per celery timeout
+    # with a five minute buffer
+    CELERY_BEAT_SCHEDULE['update-exceeded-limit-counters'] = {
+        'task': 'kobo.apps.stripe.tasks.update_exceeded_limit_counters',
+        'schedule': timedelta(seconds=CELERY_TASK_TIME_LIMIT + (60 * 5)),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    }
 
 CELERY_BROKER_TRANSPORT_OPTIONS = {
     'fanout_patterns': True,
