@@ -10,6 +10,7 @@ from kpi.permissions import IsAuthenticated
 from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
     open_api_201_created_response
 from kpi.versioning import APIV2Versioning
+from .extend_schemas.api.v2.emails.serializers import EmailRequestPayload
 from .mixins import MultipleFieldLookupMixin
 from .serializers import EmailAddressSerializer, SocialAccountSerializer
 
@@ -26,6 +27,7 @@ from .serializers import EmailAddressSerializer, SocialAccountSerializer
     ),
     create=extend_schema(
         description='create',
+        request={'application/json': EmailRequestPayload},
         responses=open_api_201_created_response(
             EmailAddressSerializer,
         )
