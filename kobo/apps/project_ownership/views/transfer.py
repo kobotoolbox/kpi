@@ -25,7 +25,6 @@ from ..serializers import TransferDetailSerializer
         responses=open_api_200_ok_response(
             TransferListResponse,
             validate_payload=False,
-            require_auth=False,
         )
     ),
 )
