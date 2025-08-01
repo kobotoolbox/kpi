@@ -45,6 +45,13 @@ from kpi.fields import WritableJSONField, RelativePrefixHyperlinkedRelatedField,
     PaginatedApiField
 from kpi.models import Asset, AssetVersion, ObjectPermission, UserAssetSubscription
 from kpi.models.asset import AssetDeploymentStatus
+from kpi.utils.schema_extensions.fields import (
+    ReadOnlyFieldWithSchemaField,
+    WriteableJsonWithSchemaField,
+    RelativePrefixHyperlinkedRelatedFieldWithSchemaField,
+    PaginatedApiFieldWithSchemaField,
+    HyperlinkedIdentityFieldWithSchemaField,
+)
 from kpi.utils.object_permission import (
     get_cached_code_names,
     get_database_user,
@@ -93,73 +100,6 @@ from .asset_export_settings import AssetExportSettingsSerializer
 from .asset_file import AssetFileSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
 from .asset_version import AssetVersionListSerializer
-
-
-@extend_schema_field(AdvancedFeatureField)
-class AdvancedFeatureOverload(WritableAdvancedFeaturesField):
-    pass
-
-
-@extend_schema_field(AssetHyperlinkedURLField)
-class AssetUrlField(HyperlinkedIdentityField):
-    pass
-
-
-@extend_schema_field(ContentField)
-class ContentFieldOverload(WritableJSONField):
-    pass
-
-
-@extend_schema_field(DataSharingField)
-class DataSharingOverload(WritableJSONField):
-    pass
-
-@extend_schema_field(DeployedVersionsField)
-class DeployedVersionsOverload(PaginatedApiField):
-    pass
-
-@extend_schema_field(HasDeploymentField)
-class HasDeploymentOverload(serializers.ReadOnlyField):
-    pass
-
-
-@extend_schema_field(MapCustomField)
-class MapCustomOverload(WritableJSONField):
-    pass
-
-
-@extend_schema_field(MapStylesField)
-class MapStylesOverload(WritableJSONField):
-    pass
-
-
-@extend_schema_field(UserURLRelativeHyperlinkedRelatedField)
-class OwnerUrlField(RelativePrefixHyperlinkedRelatedField):
-    pass
-
-
-@extend_schema_field(ReportCustomField)
-class ReportCustomOverload(WritableJSONField):
-    pass
-
-
-@extend_schema_field(ReportStyleField)
-class ReportStylesFieldOverload(WritableJSONField):
-    pass
-
-
-@extend_schema_field(ParentURLField)
-class ParentURLOverload(RelativePrefixHyperlinkedRelatedField):
-    pass
-
-@extend_schema_field(SettingsField)
-class SettingsFieldOverload(WritableJSONField):
-    pass
-
-
-@extend_schema_field(SummaryField)
-class SummaryOverload(serializers.ReadOnlyField):
-    pass
 
 
 class AssetBulkActionsSerializer(serializers.Serializer):
@@ -379,29 +319,57 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
-    owner = OwnerUrlField(
+    owner = RelativePrefixHyperlinkedRelatedFieldWithSchemaField(
+        schema_field=UserURLRelativeHyperlinkedRelatedField,
         view_name='user-kpi-detail', lookup_field='username', read_only=True)
     owner__username = serializers.ReadOnlyField(source='owner.username')
     owner_label = serializers.SerializerMethodField()
-    url = AssetUrlField(lookup_field='uid', view_name='asset-detail')
+    url = HyperlinkedIdentityFieldWithSchemaField(
+        schema_field=AssetHyperlinkedURLField,
+        lookup_field='uid',
+        view_name='asset-detail'
+    )
     asset_type = serializers.ChoiceField(choices=ASSET_TYPES)
-    settings = SettingsFieldOverload(required=False, allow_blank=True)
-    content = ContentFieldOverload(required=False)
-    report_styles = ReportStylesFieldOverload(required=False)
-    report_custom = ReportCustomOverload(required=False)
-    map_styles = MapStylesOverload(required=False)
-    map_custom = MapCustomOverload(required=False)
-    advanced_features = AdvancedFeatureOverload(required=False)
+    settings = WriteableJsonWithSchemaField(
+        schema_field=SettingsField,
+        required=False,
+        allow_blank=True
+    )
+    content = WriteableJsonWithSchemaField(
+        schema_field=ContentField,
+        required=False
+    )
+    report_styles = WriteableJsonWithSchemaField(
+        schema_field=ReportStyleField,
+        required=False
+    )
+    report_custom = WriteableJsonWithSchemaField(
+        schema_field=ReportCustomField,
+        required=False
+    )
+    map_styles = WriteableJsonWithSchemaField(
+        schema_field=MapStylesField,
+        required=False
+    )
+    map_custom = WriteableJsonWithSchemaField(
+        schema_field=MapCustomField,
+        required=False
+    )
+    advanced_features = WriteableJsonWithSchemaField(
+        schema_field=AdvancedFeatureField,
+        required=False
+    )
     advanced_submission_schema = serializers.SerializerMethodField()
     files = serializers.SerializerMethodField()
     analysis_form_json = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
-    summary = SummaryOverload()
+    summary = ReadOnlyFieldWithSchemaField(schema_field=SummaryField)
     xform_link = serializers.SerializerMethodField()
     version_count = serializers.SerializerMethodField()
     downloads = serializers.SerializerMethodField()
     embeds = serializers.SerializerMethodField()
-    parent = ParentURLOverload(
+    parent = RelativePrefixHyperlinkedRelatedFieldWithSchemaField(
+        schema_field=ParentURLField,
         lookup_field='uid',
         queryset=Asset.objects.filter(asset_type=ASSET_TYPE_COLLECTION),
         view_name='asset-detail',
@@ -418,9 +386,13 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.CharField(read_only=True)
     version__content_hash = serializers.CharField(read_only=True)
-    has_deployment = HasDeploymentOverload(read_only=True)
+    has_deployment = ReadOnlyFieldWithSchemaField(
+        schema_field=HasDeploymentField,
+        read_only=True
+    )
     deployed_version_id = serializers.SerializerMethodField()
-    deployed_versions = DeployedVersionsOverload(
+    deployed_versions = PaginatedApiFieldWithSchemaField(
+        schema_field=DeployedVersionsField,
         serializer_class=AssetVersionListSerializer,
         # Higher-than-normal limit since the client doesn't yet know how to
         # request more than the first page
@@ -438,7 +410,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     subscribers_count = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     access_types = serializers.SerializerMethodField()
-    data_sharing = DataSharingOverload(required=False)
+    data_sharing = WriteableJsonWithSchemaField(
+        schema_field=DataSharingField,
+        required=False
+    )
     paired_data = serializers.SerializerMethodField()
     project_ownership = serializers.SerializerMethodField()
     kind = serializers.SerializerMethodField()
