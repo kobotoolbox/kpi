@@ -9,8 +9,10 @@ from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.trash_bin.utils import move_to_trash
-from kpi.schema_extensions.v2.me.serializers import CurrentUserDeleteRequest, \
-    MeListResponse
+from kpi.schema_extensions.v2.me.serializers import (
+    CurrentUserDeleteRequest,
+    MeListResponse,
+)
 from kpi.serializers import CurrentUserSerializer
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (

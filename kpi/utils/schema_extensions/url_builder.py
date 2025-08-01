@@ -21,7 +21,7 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'assetsnapshot-detail': '/api/v2/asset_snapshots/{uid}/',
         'assetsnapshot-preview': '/api/v2/asset_snapshots/{uid}/preview/',
         'assetsnapshot-xml-with-disclaimer': '/api/v2/asset_snapshots/{uid}/xml_with_disclaimer/',  # noqa
-        'assetsnapshot-manifest-alias': '/api/v2/asset_snapshots/{uid}/manifest/',
+        'assetsnapshot-manifest-openrosa': '/api/v2/asset_snapshots/{uid}/manifest/',
         'userassetsubscription-detail': '/api/v2/asset_subscription/{uid}/',
         'asset-version-detail': '/api/v2/assets/{parent_lookup_asset}/versions/{uid}/',
         'asset-xform': '/api/v2/assets/{uid}/xform/',

@@ -4,6 +4,7 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.response import Response
 
 from kpi.permissions import IsAuthenticated
+from kpi.versioning import APIV2Versioning
 from .mixins import MultipleFieldLookupMixin
 from .serializers import EmailAddressSerializer, SocialAccountSerializer
 
@@ -27,6 +28,7 @@ class EmailAddressViewSet(
     queryset = EmailAddress.objects.all()
     serializer_class = EmailAddressSerializer
     permission_classes = (IsAuthenticated,)
+    versioning_class = APIV2Versioning
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)
@@ -45,11 +47,12 @@ class SocialAccountViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
-    lookup_value_regex = r"(?P<provider>[^/.]+)/(?P<uid>[-\w]+)"
+    lookup_value_regex = r'(?P<provider>[^/.]+)/(?P<uid>[-\w]+)'
     lookup_fields = ['provider', 'uid']
     queryset = SocialAccount.objects.all()
     serializer_class = SocialAccountSerializer
     permission_classes = (IsAuthenticated,)
+    versioning_class = APIV2Versioning
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)
