@@ -31,7 +31,6 @@ class TermsOfServiceAPITestCase(BaseTestCase):
             ]
         )
 
-
     @data(
         ('adminuser', status.HTTP_200_OK),
         ('someuser', status.HTTP_200_OK),
