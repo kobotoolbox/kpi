@@ -1,4 +1,4 @@
-# Endpoint deprecation as of release 2.025.14h
+# Endpoint deprecation as of release 2.025.29
 
 ⚠️ The deprecated endpoints listed below will be permanently removed with the first release of 2026, scheduled for the week of **January 19, 2026**.
 
