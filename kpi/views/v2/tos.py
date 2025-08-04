@@ -7,6 +7,7 @@ from kpi.serializers.v2.tos import TermsOfServiceSerializer
 
 class TermsOfServiceViewSet(viewsets.ReadOnlyModelViewSet):
     """
+    TBC, Terms of service readonly endpoint
     """
 
     queryset = SitewideMessage.objects.filter(slug__startswith='terms_of_service')

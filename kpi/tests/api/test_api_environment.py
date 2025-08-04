@@ -345,12 +345,17 @@ class EnvironmentTests(BaseTestCase):
         self.assertNotContains(response, 'app.name')
 
     def test_tos_sitewide_message(self):
-        # Check that fixtures properly stores terms of service
+        """
+        Check that fixtures properly stores terms of service
+        """
+
+        # Validate environment
         response = self.client.get(self.url, format='json')
         assert response.status_code == status.HTTP_200_OK
         assert not response.data['terms_of_service__sitewidemessage__exists']
 
-        # Create SitewideMessage object and check that it properly updates terms of service
+        # Create SitewideMessage object and check that it properly updates terms
+        # of service
         SitewideMessage.objects.create(
             slug='terms_of_service',
             body='tos agreement',
