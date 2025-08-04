@@ -1,3 +1,3 @@
 ## Import file
 
-_**Note**: this endpoints is expecting a multipart/form-data_
+_**Note**: this endpoint is expecting a multipart/form-data_
