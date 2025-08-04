@@ -33,6 +33,7 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'attachment-detail': '/api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/{pk}',  # noqa
         'attachment-thumb': '/api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/{pk}/{suffix}/',  # noqa
         'paired-data-detail': '/api/v2/assets/{parent_lookup_asset}/paired-data/{paired_data_uid}',  # noqa
+        'project-ownership-transfer-detail': '/api/v2/project-ownership/invites/{parent_lookup_invite_uid}/transfers/{uid}/',  # noqa
         'asset-reports': '/api/v2/assets/{uid}/reports/',
         'asset-export-settings-detail': '/api/v2/assets/{parent_lookup_asset}/export-settings/{uid}/',  # noqa
         'asset-export-settings-detail-format': '/api/v2/assets/{parent_lookup_asset}/export-settings/{uid}/data.{format}',  # noqa
