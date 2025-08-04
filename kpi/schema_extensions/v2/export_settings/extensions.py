@@ -7,6 +7,7 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
+from kpi.schema_extensions.v2.generic.schema import GENERIC_ARRAY_SCHEMA
 
 
 class CreatePayloadFieldExtensions(OpenApiSerializerFieldExtension):
@@ -21,7 +22,7 @@ class CreatePayloadFieldExtensions(OpenApiSerializerFieldExtension):
                 'lang': build_basic_type(OpenApiTypes.BOOL),
                 'multiple_select': build_basic_type(OpenApiTypes.STR),
                 'types': build_basic_type(OpenApiTypes.STR),
-                'fields': build_array_type(schema={}),
+                'fields': GENERIC_ARRAY_SCHEMA,
                 'flatten': build_basic_type(OpenApiTypes.BOOL),
                 'xls_types_as_text': build_basic_type(OpenApiTypes.BOOL),
                 'include_media_url': build_basic_type(OpenApiTypes.BOOL),
@@ -81,7 +82,7 @@ class ExportSettingsFieldExtensions(OpenApiSerializerFieldExtension):
             properties={
                 'lang': build_basic_type(OpenApiTypes.STR),
                 'type': build_basic_type(OpenApiTypes.STR),
-                'fields': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
+                'fields': GENERIC_ARRAY_SCHEMA,
                 'group_sep': build_basic_type(OpenApiTypes.STR),
                 'multiple_select': build_basic_type(OpenApiTypes.STR),
                 'include_media_url': build_basic_type(OpenApiTypes.BOOL),
@@ -104,7 +105,7 @@ class UpdatePayloadFieldExtension(OpenApiSerializerFieldExtension):
                 'lang': build_basic_type(OpenApiTypes.STR),
                 'multiple_select': build_basic_type(OpenApiTypes.STR),
                 'type': build_basic_type(OpenApiTypes.STR),
-                'fields': build_array_type(schema={}),
+                'fields': GENERIC_ARRAY_SCHEMA,
             }
         )
 

@@ -7,6 +7,7 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
+from kpi.schema_extensions.v2.generic.schema import GENERIC_ARRAY_SCHEMA
 
 
 class AssetURLFieldExtension(OpenApiSerializerFieldExtension):
@@ -31,7 +32,7 @@ class PendingUidsFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kobo.apps.hook.schema_extensions.v2.hooks.fields.PendingUidsField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_array_type(schema=build_basic_type(OpenApiTypes.STR))
+        return GENERIC_ARRAY_SCHEMA
 
 
 class SettingsFieldExtension(OpenApiSerializerFieldExtension):
@@ -56,4 +57,4 @@ class SubsetFieldsFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kobo.apps.hook.schema_extensions.v2.hooks.fields.SubsetFieldsField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_array_type(schema=build_basic_type(OpenApiTypes.STR))
+        return GENERIC_ARRAY_SCHEMA

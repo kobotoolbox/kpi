@@ -6,6 +6,10 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
+from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_ARRAY_SCHEMA,
+    USER_URL_SCHEMA,
+)
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
@@ -67,12 +71,8 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
                         ),
                         'country_codes': build_object_type(
                             properties={
-                                'added': build_array_type(
-                                    schema=build_basic_type(OpenApiTypes.STR)
-                                ),
-                                'removed': build_array_type(
-                                    schema=build_basic_type(OpenApiTypes.STR)
-                                ),
+                                'added': GENERIC_ARRAY_SCHEMA,
+                                'removed': GENERIC_ARRAY_SCHEMA,
                             }
                         ),
                         'data-table': build_object_type(
@@ -133,8 +133,8 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
                 ),
                 'shared_fields': build_object_type(
                     properties={
-                        'added': build_array_type(build_basic_type(OpenApiTypes.STR)),
-                        'removed': build_array_type(build_basic_type(OpenApiTypes.STR)),
+                        'added': GENERIC_ARRAY_SCHEMA,
+                        'removed': GENERIC_ARRAY_SCHEMA,
                     }
                 ),
             }
@@ -147,4 +147,4 @@ class UserUrlFieldExtension(OpenApiSerializerFieldExtension):
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type('user-kpi-detail', username='bob')
+        return USER_URL_SCHEMA

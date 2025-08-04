@@ -7,6 +7,9 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
+from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_ARRAY_SCHEMA
+)
 
 
 class AssetLanguageFieldExtension(OpenApiSerializerFieldExtension):
@@ -15,7 +18,7 @@ class AssetLanguageFieldExtension(OpenApiSerializerFieldExtension):
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_array_type(schema=build_basic_type(OpenApiTypes.STR))
+        return GENERIC_ARRAY_SCHEMA
 
 
 class AssetSettingsFieldExtension(OpenApiSerializerFieldExtension):
@@ -43,9 +46,7 @@ class AssetSettingsFieldExtension(OpenApiSerializerFieldExtension):
                 'description': build_basic_type(OpenApiTypes.STR),
                 'collects_pii': build_basic_type(OpenApiTypes.STR),
                 'organization': build_basic_type(OpenApiTypes.STR),
-                'country_codes': build_array_type(
-                    schema=build_basic_type(OpenApiTypes.STR)
-                ),
+                'country_codes': GENERIC_ARRAY_SCHEMA,
                 'operational_purpose': build_basic_type(OpenApiTypes.STR),
             }
         )
@@ -111,7 +112,7 @@ class GenericListFieldExtension(OpenApiSerializerFieldExtension):
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_array_type(schema=build_basic_type(OpenApiTypes.STR))
+        return GENERIC_ARRAY_SCHEMA
 
 
 class UrlFieldExtension(OpenApiSerializerFieldExtension):
@@ -144,12 +145,8 @@ class UserMetadataFieldExtension(OpenApiSerializerFieldExtension):
                         'my_project_view_name': build_object_type(
                             properties={
                                 'order': build_object_type(properties={}),
-                                'fields': build_array_type(
-                                    schema=build_basic_type(OpenApiTypes.STR)
-                                ),
-                                'filters': build_array_type(
-                                    schema=build_basic_type(OpenApiTypes.STR)
-                                ),
+                                'fields': GENERIC_ARRAY_SCHEMA,
+                                'filters': GENERIC_ARRAY_SCHEMA,
                             }
                         )
                     }

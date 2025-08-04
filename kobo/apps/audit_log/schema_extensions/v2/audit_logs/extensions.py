@@ -1,12 +1,14 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import (
-    build_array_type,
     build_basic_type,
     build_object_type,
 )
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
+from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_ARRAY_SCHEMA
+)
 
 
 class MetadataFieldExtension(OpenApiSerializerFieldExtension):
@@ -58,12 +60,8 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
                         ),
                         'country_codes': build_object_type(
                             properties={
-                                'added': build_array_type(
-                                    schema=build_basic_type(OpenApiTypes.STR)
-                                ),
-                                'removed': build_array_type(
-                                    schema=build_basic_type(OpenApiTypes.STR)
-                                ),
+                                'added': GENERIC_ARRAY_SCHEMA,
+                                'removed': GENERIC_ARRAY_SCHEMA,
                             }
                         ),
                         'data-table': build_object_type(
@@ -94,12 +92,8 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
                 ),
                 'permissions': build_object_type(
                     properties={
-                        'added': build_array_type(
-                            schema=build_basic_type(OpenApiTypes.STR)
-                        ),
-                        'removed': build_array_type(
-                            schema=build_basic_type(OpenApiTypes.STR)
-                        ),
+                        'added': GENERIC_ARRAY_SCHEMA,
+                        'removed': GENERIC_ARRAY_SCHEMA,
                         'username': build_basic_type(OpenApiTypes.STR),
                     }
                 ),
@@ -125,8 +119,8 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
                 ),
                 'shared_fields': build_object_type(
                     properties={
-                        'added': build_array_type(build_basic_type(OpenApiTypes.STR)),
-                        'removed': build_array_type(build_basic_type(OpenApiTypes.STR)),
+                        'added': GENERIC_ARRAY_SCHEMA,
+                        'removed': GENERIC_ARRAY_SCHEMA,
                     }
                 ),
             }
@@ -146,7 +140,7 @@ class ProjectHistoryMetadataFieldExtension(OpenApiSerializerFieldExtension):
                 'log_subtype': build_basic_type(OpenApiTypes.STR),
                 'paired-data': build_object_type(
                     properties={
-                        'fields': build_array_type(build_basic_type(OpenApiTypes.STR)),
+                        'fields': GENERIC_ARRAY_SCHEMA,
                         'source_uid': build_basic_type(OpenApiTypes.STR),
                         'source_name': build_basic_type(OpenApiTypes.STR),
                     }
@@ -194,12 +188,8 @@ class ProjectHistoryMetadataFieldExtension(OpenApiSerializerFieldExtension):
                         ),
                         'country_codes': build_object_type(
                             properties={
-                                'added': build_array_type(
-                                    schema=build_basic_type(OpenApiTypes.STR)
-                                ),
-                                'removed': build_array_type(
-                                    schema=build_basic_type(OpenApiTypes.STR)
-                                ),
+                                'added': GENERIC_ARRAY_SCHEMA,
+                                'removed': GENERIC_ARRAY_SCHEMA,
                             }
                         ),
                         'data-table': build_object_type(
@@ -224,12 +214,8 @@ class ProjectHistoryMetadataFieldExtension(OpenApiSerializerFieldExtension):
                 ),
                 'permissions': build_object_type(
                     properties={
-                        'added': build_array_type(
-                            schema=build_basic_type(OpenApiTypes.STR)
-                        ),
-                        'removed': build_array_type(
-                            schema=build_basic_type(OpenApiTypes.STR)
-                        ),
+                        'added': GENERIC_ARRAY_SCHEMA,
+                        'removed': GENERIC_ARRAY_SCHEMA,
                         'username': build_basic_type(OpenApiTypes.STR),
                     }
                 ),
@@ -257,8 +243,8 @@ class ProjectHistoryMetadataFieldExtension(OpenApiSerializerFieldExtension):
                 ),
                 'shared_fields': build_object_type(
                     properties={
-                        'added': build_array_type(build_basic_type(OpenApiTypes.STR)),
-                        'removed': build_array_type(build_basic_type(OpenApiTypes.STR)),
+                        'added': GENERIC_ARRAY_SCHEMA,
+                        'removed': GENERIC_ARRAY_SCHEMA,
                     }
                 ),
             }

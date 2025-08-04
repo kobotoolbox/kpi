@@ -7,7 +7,9 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
-
+from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_ARRAY_SCHEMA,
+)
 
 class ContentFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.versions.fields.ContentField'
@@ -19,14 +21,10 @@ class ContentFieldExtension(OpenApiSerializerFieldExtension):
                 'survey': build_array_type(
                     schema=build_object_type(
                         properties={
-                            'hint': build_array_type(
-                                schema=build_basic_type(OpenApiTypes.STR),
-                            ),
+                            'hint': GENERIC_ARRAY_SCHEMA,
                             'type': build_basic_type(OpenApiTypes.STR),
                             '$kuid': build_basic_type(OpenApiTypes.STR),
-                            'label': build_array_type(
-                                schema=build_basic_type(OpenApiTypes.STR),
-                            ),
+                            'label': GENERIC_ARRAY_SCHEMA,
                             '$xpath': build_basic_type(OpenApiTypes.STR),
                             'required': build_basic_type(OpenApiTypes.BOOL),
                             '$autoname': build_basic_type(OpenApiTypes.STR),
@@ -38,12 +36,8 @@ class ContentFieldExtension(OpenApiSerializerFieldExtension):
                         'default_language': build_basic_type(OpenApiTypes.STR),
                     }
                 ),
-                'translated': build_array_type(
-                    schema=build_basic_type(OpenApiTypes.STR),
-                ),
-                'translation': build_array_type(
-                    schema=build_basic_type(OpenApiTypes.STR),
-                ),
+                'translated': GENERIC_ARRAY_SCHEMA,
+                'translation': GENERIC_ARRAY_SCHEMA,
             }
         )
 

@@ -7,6 +7,10 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
+from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_ARRAY_SCHEMA,
+    USER_URL_SCHEMA,
+)
 
 
 class CeleryTaskExtension(OpenApiSerializerFieldExtension):
@@ -38,12 +42,8 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
                         'kobo_my_project': build_object_type(
                             properties={
                                 'order': build_object_type(properties={}),
-                                'fields': build_array_type(
-                                    schema=build_basic_type(OpenApiTypes.STR),
-                                ),
-                                'filters': build_array_type(
-                                    schema=build_basic_type(OpenApiTypes.STR),
-                                ),
+                                'fields': GENERIC_ARRAY_SCHEMA,
+                                'filters': GENERIC_ARRAY_SCHEMA,
                             }
                         )
                     }
@@ -56,7 +56,4 @@ class UrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.users.fields.UrlField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type(
-            'user-kpi-detail',
-            username='bob'
-        )
+        return USER_URL_SCHEMA
