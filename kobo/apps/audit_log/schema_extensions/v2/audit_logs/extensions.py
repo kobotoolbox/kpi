@@ -7,7 +7,8 @@ from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
 from kpi.schema_extensions.v2.generic.schema import (
-    GENERIC_ARRAY_SCHEMA
+    GENERIC_ARRAY_SCHEMA,
+    USER_URL_SCHEMA,
 )
 
 
@@ -257,4 +258,4 @@ class UserFieldExtension(OpenApiSerializerFieldExtension):
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type('api_v2:user-kpi-detail', username='bob')
+        return USER_URL_SCHEMA

@@ -8,6 +8,7 @@ from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
 from kpi.schema_extensions.v2.generic.schema import (
+    ASSET_URL_SCHEMA,
     GENERIC_ARRAY_SCHEMA,
     USER_URL_SCHEMA,
 )
@@ -47,9 +48,7 @@ class TransferFieldExtension(OpenApiSerializerFieldExtension):
                         parent_lookup_invite_uid='poi52fGkwDjQeZkUxcaou39q',
                         uid='pot54pTqM5qwKdZ4wnNdiwDY',
                     ),
-                    'asset': build_url_type(
-                        'api_v2:asset-detail', uid='a8rg3w7ZNL5Nwj7iHzKiyX'
-                    ),
+                    'asset': ASSET_URL_SCHEMA,
                     'status': build_basic_type(OpenApiTypes.STR),
                     'error': build_basic_type(OpenApiTypes.STR),
                     'date_modified': build_basic_type(OpenApiTypes.DATETIME),

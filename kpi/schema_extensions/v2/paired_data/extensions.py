@@ -7,6 +7,9 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
+from kpi.schema_extensions.v2.generic.schema import (
+    ASSET_URL_SCHEMA,
+)
 
 
 class DataFieldExtension(OpenApiSerializerFieldExtension):
@@ -40,7 +43,7 @@ class SourceFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.paired_data.fields.SourceField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type('api_v2:asset-detail', uid='a5owyo85mHyFazzgsZK45c')
+        return ASSET_URL_SCHEMA
 
 
 class SourceNameFieldExtension(OpenApiSerializerFieldExtension):
