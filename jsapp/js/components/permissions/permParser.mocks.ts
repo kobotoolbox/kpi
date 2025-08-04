@@ -325,7 +325,8 @@ const assetWithMultiplePartial: PaginatedResponse<PermissionResponse> = {
         },
         {
           url: '/api/v2/permissions/delete_submissions/',
-          filters: [{ _submitted_by: { $in: ['kate', 'joshua'] } }],
+          // This is an alternative way of getting list of two users that sometimes we receive from BE
+          filters: [{ _submitted_by: 'kate' }, { _submitted_by: 'joshua' }],
         },
         // This permission is the OR one, which is not supported by Front-end
         // code and should be treated as AND
