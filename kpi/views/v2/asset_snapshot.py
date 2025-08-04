@@ -25,7 +25,7 @@ from kpi.renderers import (
     OpenRosaManifestRenderer,
     XMLRenderer,
 )
-from kpi.schema_extensions.v2.assets.schema import ASSET_URL_SCHEMA
+from kpi.schema_extensions.v2.generic.schema import ASSET_URL_SCHEMA
 from kpi.schema_extensions.v2.asset_snapshots.schema import (
     ASSET_SNAPSHOT_DETAILS_SCHEMA,
     ASSET_SNAPSHOT_SOURCE_SCHEMA,
