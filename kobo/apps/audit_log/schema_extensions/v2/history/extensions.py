@@ -25,44 +25,47 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
         return build_object_type(
             properties={
                 'source': build_basic_type(OpenApiTypes.STR),
-                'ip_address': build_basic_type(OpenApiTypes.STR),
-                'asset_uid': build_basic_type(OpenApiTypes.STR),
-                'log_subtype': build_basic_type(OpenApiTypes.STR),
-                'project_owner': build_basic_type(OpenApiTypes.STR),
-                'latest_version_uid': build_basic_type(OpenApiTypes.STR),
-                'latest_deployed_version_uid': build_basic_type(OpenApiTypes.STR),
-                'asset-file': build_object_type(
-                    properties={
-                        'uid': build_basic_type(OpenApiTypes.STR),
-                        'filename': build_basic_type(OpenApiTypes.STR),
-                        'md5_hash': build_basic_type(OpenApiTypes.STR),
-                        'download_url': build_url_type(
-                            'api_v2:asset-file-detail',
-                            parent_lookup_asset='a3C9wWefqZVkChNLKqqXVZ',
-                            uid='afSa8PqnoYe8vJqkrsGz3oN',
-                        ),
-                    }
-                ),
-                'permissions': build_object_type(
-                    properties={
-                        'username': build_basic_type(OpenApiTypes.STR),
-                        'added': build_array_type(
-                            schema=build_basic_type(OpenApiTypes.STR)
-                        ),
-                        'removed': build_array_type(
-                            schema=build_basic_type(OpenApiTypes.STR)
-                        ),
-                    }
-                ),
                 'settings': build_object_type(
                     properties={
-                        'description': build_object_type(
+                        'sector': build_object_type(
                             properties={
-                                'old': build_basic_type(OpenApiTypes.STR),
-                                'new': build_basic_type(OpenApiTypes.STR),
+                                'new': build_object_type(
+                                    properties={
+                                        'label': build_basic_type(OpenApiTypes.STR),
+                                        'value': build_basic_type(OpenApiTypes.STR),
+                                    }
+                                ),
+                                'old': build_object_type(
+                                    properties={
+                                        'label': build_basic_type(OpenApiTypes.STR),
+                                        'value': build_basic_type(OpenApiTypes.STR),
+                                    }
+                                ),
                             }
                         ),
-                        'countries': build_object_type(
+                        'country': build_object_type(
+                            properties={
+                                'added': build_object_type(
+                                    properties={
+                                        'label': build_basic_type(OpenApiTypes.STR),
+                                        'value': build_basic_type(OpenApiTypes.STR),
+                                    }
+                                ),
+                                'removed': build_object_type(
+                                    properties={
+                                        'label': build_basic_type(OpenApiTypes.STR),
+                                        'value': build_basic_type(OpenApiTypes.STR),
+                                    }
+                                ),
+                            }
+                        ),
+                        'description': build_object_type(
+                            properties={
+                                'new': build_basic_type(OpenApiTypes.STR),
+                                'old': build_basic_type(OpenApiTypes.STR),
+                            }
+                        ),
+                        'country_codes': build_object_type(
                             properties={
                                 'added': build_array_type(
                                     schema=build_basic_type(OpenApiTypes.STR)
@@ -72,6 +75,66 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
                                 ),
                             }
                         ),
+                        'data-table': build_object_type(
+                            properties={
+                                'new': build_object_type(
+                                    properties={}
+                                ),
+                                'old': build_object_type(
+                                    properties={}
+                                ),
+                            }
+                        ),
+                    }
+                ),
+                'asset_uid': build_basic_type(OpenApiTypes.STR),
+                'ip_address': build_basic_type(OpenApiTypes.STR),
+                'log_subtype': build_basic_type(OpenApiTypes.STR),
+                'project_owner': build_basic_type(OpenApiTypes.STR),
+                'latest_version_uid': build_basic_type(OpenApiTypes.STR),
+                'asset-files': build_object_type(
+                    properties={
+                        'uid': build_basic_type(OpenApiTypes.STR),
+                        'filename': build_basic_type(OpenApiTypes.STR),
+                        'md5_hash': build_basic_type(OpenApiTypes.STR),
+                        'download_url': build_basic_type(OpenApiTypes.STR),
+                    }
+                ),
+                'permissions': build_object_type(
+                    properties={
+                        'added': build_array_type(
+                            schema=build_basic_type(OpenApiTypes.STR)
+                        ),
+                        'removed': build_array_type(
+                            schema=build_basic_type(OpenApiTypes.STR)
+                        ),
+                        'username': build_basic_type(OpenApiTypes.STR),
+                    }
+                ),
+                'latest_deployed_version_uid': build_basic_type(OpenApiTypes.STR),
+                'submission': build_object_type(
+                    properties={
+                        'root_uuid': build_basic_type(OpenApiTypes.STR),
+                        'submitted_by': build_basic_type(OpenApiTypes.STR),
+                    }
+                ),
+                'hook': build_object_type(
+                    properties={
+                        'uid': build_basic_type(OpenApiTypes.STR),
+                        'active': build_basic_type(OpenApiTypes.BOOL),
+                        'endpoint': build_basic_type(OpenApiTypes.BOOL),
+                    }
+                ),
+                'name': build_object_type(
+                    properties={
+                        'new': build_basic_type(OpenApiTypes.STR),
+                        'old': build_basic_type(OpenApiTypes.STR),
+                    }
+                ),
+                'shared_fields': build_object_type(
+                    properties={
+                        'added': build_array_type(build_basic_type(OpenApiTypes.STR)),
+                        'removed': build_array_type(build_basic_type(OpenApiTypes.STR)),
                     }
                 ),
             }
