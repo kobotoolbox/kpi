@@ -14,10 +14,65 @@ import type {
   CheckboxNamePartialByUsers,
   PermissionCodename,
 } from './permConstants'
-import type { PermsFormData } from './permParser'
+import type { PermsFormData, PermsFormDataPartialWithUsername } from './permParser'
 import type { AssignablePermsMap } from './sharingForm.component'
 import type { UserAssetPermsEditorState } from './userAssetPermsEditor.component'
 import { getPartialByResponsesQuestionName, getPartialByResponsesValueName, getPartialByUsersListName } from './utils'
+
+/**
+ * This is `UserAssetPermsEditorState` with all possible properties having falsy
+ * values.
+ */
+export const EMPTY_EDITOR_STATE: UserAssetPermsEditorState = {
+  isSubmitPending: false,
+  isEditingUsername: false,
+  isCheckingUsername: false,
+  username: '',
+  formView: false,
+  formViewDisabled: false,
+  formEdit: false,
+  formEditDisabled: false,
+  formManage: false,
+  formManageDisabled: false,
+  submissionsView: false,
+  submissionsViewDisabled: false,
+  submissionsViewPartialByUsers: false,
+  submissionsViewPartialByUsersDisabled: false,
+  submissionsViewPartialByUsersList: [],
+  submissionsViewPartialByResponses: false,
+  submissionsViewPartialByResponsesDisabled: false,
+  submissionsViewPartialByResponsesQuestion: null,
+  submissionsViewPartialByResponsesValue: '',
+  submissionsAdd: false,
+  submissionsAddDisabled: false,
+  submissionsEdit: false,
+  submissionsEditDisabled: false,
+  submissionsEditPartialByUsers: false,
+  submissionsEditPartialByUsersDisabled: false,
+  submissionsEditPartialByUsersList: [],
+  submissionsEditPartialByResponses: false,
+  submissionsEditPartialByResponsesDisabled: false,
+  submissionsEditPartialByResponsesQuestion: null,
+  submissionsEditPartialByResponsesValue: '',
+  submissionsValidate: false,
+  submissionsValidateDisabled: false,
+  submissionsValidatePartialByUsers: false,
+  submissionsValidatePartialByUsersDisabled: false,
+  submissionsValidatePartialByUsersList: [],
+  submissionsValidatePartialByResponses: false,
+  submissionsValidatePartialByResponsesDisabled: false,
+  submissionsValidatePartialByResponsesQuestion: null,
+  submissionsValidatePartialByResponsesValue: '',
+  submissionsDelete: false,
+  submissionsDeleteDisabled: false,
+  submissionsDeletePartialByUsers: false,
+  submissionsDeletePartialByUsersDisabled: false,
+  submissionsDeletePartialByUsersList: [],
+  submissionsDeletePartialByResponses: false,
+  submissionsDeletePartialByResponsesDisabled: false,
+  submissionsDeletePartialByResponsesQuestion: null,
+  submissionsDeletePartialByResponsesValue: '',
+}
 
 /**
  * Returns a list of checkboxes that applies for given permission. Because
@@ -184,8 +239,8 @@ export function isPartialByResponsesValid(
 /**
  * Returns only the properties for assignable permissions
  */
-export function getFormData(stateObj: UserAssetPermsEditorState, assignablePerms: AssignablePermsMap): PermsFormData {
-  const output: PermsFormData = {
+export function getFormData(stateObj: UserAssetPermsEditorState, assignablePerms: AssignablePermsMap) {
+  const output: PermsFormDataPartialWithUsername = {
     // We always include username
     username: stateObj.username,
   }

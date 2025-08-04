@@ -10,6 +10,7 @@ import type {
   PermissionCodename,
 } from './permConstants'
 import { CHECKBOX_PERM_PAIRS, PARTIAL_BY_RESPONSES_PERM_PAIRS, PARTIAL_BY_USERS_PERM_PAIRS } from './permConstants'
+import { EMPTY_EDITOR_STATE } from './userAssetPermsEditor.utils'
 import {
   getCheckboxNameByPermission,
   getPartialByResponsesCheckboxName,
@@ -24,35 +25,39 @@ import {
 export interface PermsFormData {
   /** Who give permissions to */
   username: string
-  formView?: boolean
-  formEdit?: boolean
-  formManage?: boolean
-  submissionsAdd?: boolean
-  submissionsView?: boolean
-  submissionsViewPartialByUsers?: boolean
-  submissionsViewPartialByUsersList?: string[]
-  submissionsViewPartialByResponses?: boolean
-  submissionsViewPartialByResponsesQuestion?: string
-  submissionsViewPartialByResponsesValue?: string
-  submissionsEdit?: boolean
-  submissionsEditPartialByUsers?: boolean
-  submissionsEditPartialByUsersList?: string[]
-  submissionsEditPartialByResponses?: boolean
-  submissionsEditPartialByResponsesQuestion?: string
-  submissionsEditPartialByResponsesValue?: string
-  submissionsDelete?: boolean
-  submissionsDeletePartialByUsers?: boolean
-  submissionsDeletePartialByUsersList?: string[]
-  submissionsDeletePartialByResponses?: boolean
-  submissionsDeletePartialByResponsesQuestion?: string
-  submissionsDeletePartialByResponsesValue?: string
-  submissionsValidate?: boolean
-  submissionsValidatePartialByUsers?: boolean
-  submissionsValidatePartialByUsersList?: string[]
-  submissionsValidatePartialByResponses?: boolean
-  submissionsValidatePartialByResponsesQuestion?: string
-  submissionsValidatePartialByResponsesValue?: string
+  formView: boolean
+  formEdit: boolean
+  formManage: boolean
+  submissionsAdd: boolean
+  submissionsView: boolean
+  submissionsViewPartialByUsers: boolean
+  submissionsViewPartialByUsersList: string[]
+  submissionsViewPartialByResponses: boolean
+  submissionsViewPartialByResponsesQuestion: string | null
+  submissionsViewPartialByResponsesValue: string
+  submissionsEdit: boolean
+  submissionsEditPartialByUsers: boolean
+  submissionsEditPartialByUsersList: string[]
+  submissionsEditPartialByResponses: boolean
+  submissionsEditPartialByResponsesQuestion: string | null
+  submissionsEditPartialByResponsesValue: string
+  submissionsDelete: boolean
+  submissionsDeletePartialByUsers: boolean
+  submissionsDeletePartialByUsersList: string[]
+  submissionsDeletePartialByResponses: boolean
+  submissionsDeletePartialByResponsesQuestion: string | null
+  submissionsDeletePartialByResponsesValue: string
+  submissionsValidate: boolean
+  submissionsValidatePartialByUsers: boolean
+  submissionsValidatePartialByUsersList: string[]
+  submissionsValidatePartialByResponses: boolean
+  submissionsValidatePartialByResponsesQuestion: string | null
+  submissionsValidatePartialByResponsesValue: string
 }
+
+// This is `PermsFormData` with everything partial except username, because for most of the code only the username is
+// required to be present.
+export type PermsFormDataPartialWithUsername = Partial<PermsFormData> & { username: string }
 
 export interface UserWithPerms {
   user: {
@@ -214,7 +219,7 @@ export function removeImpliedPerms(parsed: PermissionBase[]): PermissionBase[] {
  * Builds (from form data) an object that Back-end endpoints can understand.
  * Removes contradictory and implied permissions from final output.
  */
-export function parseFormData(data: PermsFormData): PermissionBase[] {
+export function parseFormData(data: PermsFormDataPartialWithUsername): PermissionBase[] {
   let parsed = []
 
   // We need to gather all partial permissions first, because they end up as
@@ -308,8 +313,8 @@ export function parseFormData(data: PermsFormData): PermissionBase[] {
  * functions are ensuring that (see `applyValidityRules` function from
  * `userAssetPermsEditor.utils.ts` file).
  */
-export function buildFormData(permissions: PermissionResponse[], username?: string): PermsFormData {
-  const formData: PermsFormData = {
+export function buildFormData(permissions: PermissionResponse[], username?: string) {
+  const formData: PermsFormDataPartialWithUsername = {
     username: username || '',
   }
 
