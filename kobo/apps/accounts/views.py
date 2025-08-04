@@ -11,7 +11,7 @@ from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response, \
     open_api_201_created_response
 from kpi.versioning import APIV2Versioning
-from .extend_schemas.api.v2.emails.serializers import EmailRequestPayload
+from .extend_schemas.api.v2.email.serializers import EmailRequestPayload
 from .mixins import MultipleFieldLookupMixin
 from .serializers import EmailAddressSerializer, SocialAccountSerializer
 
@@ -21,7 +21,7 @@ from .serializers import EmailAddressSerializer, SocialAccountSerializer
 )
 @extend_schema_view(
     list=extend_schema(
-        description=read_md('accounts', 'emails/list.md'),
+        description=read_md('accounts', 'email/list.md'),
         responses=open_api_200_ok_response(
             EmailAddressSerializer,
             raise_not_found=False,
@@ -30,7 +30,7 @@ from .serializers import EmailAddressSerializer, SocialAccountSerializer
         )
     ),
     create=extend_schema(
-        description=read_md('accounts', 'emails/create.md'),
+        description=read_md('accounts', 'email/create.md'),
         request={'application/json': EmailRequestPayload},
         responses=open_api_201_created_response(
             EmailAddressSerializer,
