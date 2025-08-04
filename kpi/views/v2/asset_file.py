@@ -25,9 +25,11 @@ from kpi.utils.schema_extensions.response import (
 )
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.schema_extensions.v2.files.schema import (
-    ASSET_URL_SCHEMA,
     BASE64_METADATA_SCHEMA,
     URL_METADATA_SCHEMA,
+)
+from kpi.schema_extensions.v2.generic.schema import (
+    ASSET_URL_SCHEMA,
     USER_URL_SCHEMA,
 )
 

@@ -7,10 +7,12 @@ from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
 from .schema import (
-    ASSET_URL_SCHEMA,
     BASE64_METADATA_SCHEMA,
     FILE_URL_SCHEMA,
     URL_METADATA_SCHEMA,
+)
+from kpi.schema_extensions.v2.generic.schema import (
+    ASSET_URL_SCHEMA,
     USER_URL_SCHEMA,
 )
 

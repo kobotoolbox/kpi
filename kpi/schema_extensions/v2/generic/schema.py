@@ -9,8 +9,6 @@ Generic schemas to avoid redundancy
 
 ASSET_URL_SCHEMA = build_url_type('api_v2:asset-detail', uid='a3C9wWefqZVkChNLKqqXVZ')
 
-USER_URL_SCHEMA = build_url_type('api_v2:user-kpi-detail', username='bob')
-
 BALANCE_FIELDS_SCHEMA = build_object_type(
     properties={
         'effective_limit': build_basic_type(OpenApiTypes.INT),
@@ -19,3 +17,5 @@ BALANCE_FIELDS_SCHEMA = build_object_type(
         'exceeded': build_basic_type(OpenApiTypes.INT),
     }
 )
+
+USER_URL_SCHEMA = build_url_type('api_v2:user-kpi-detail', username='bob')
