@@ -19,7 +19,7 @@ const TOS_SLUG_TRANSLATED = `${TOS_SLUG}_<language>`
 
 const ME_ENDPOINT = '/me/'
 const TOS_ACCEPT_ENDPOINT = '/me/tos/'
-const SITEWIDE_MESSAGES_ENDPOINT = '/sitewide_messages/'
+const TOS_MESSAGES_ENDPOINT = '/api/v2/terms-of-service/'
 
 interface MePatchFailResponse {
   responseJSON: {
@@ -28,12 +28,13 @@ interface MePatchFailResponse {
 }
 
 interface SitewideMessage {
+  url: string
   slug: string
   /** HTML or Markdown code. For TOS Announcement this will definitely be HTML. */
   body: string
 }
 
-type SitewideMessagesResponse = PaginatedResponse<SitewideMessage>
+type SitewideMessagesResponse = SitewideMessage[]
 
 /**
  * This form displays a TOS announcement message together with user metadata
@@ -59,13 +60,13 @@ export default function TOSForm() {
   useEffect(() => {
     const getTOS = async () => {
       try {
-        const response = await fetchGet<SitewideMessagesResponse>(SITEWIDE_MESSAGES_ENDPOINT)
+        const response = await fetchGet<SitewideMessagesResponse>(TOS_MESSAGES_ENDPOINT)
 
         // First we try to find and set the translated TOS message, if not present
         // we go with fallback. Otherwise we will display an error.
         const translatedSlug = TOS_SLUG_TRANSLATED.replace('<language>', currentLang())
-        const translatedMessage = response.results.find((item) => item.slug === translatedSlug)
-        const fallbackMessage = response.results.find((item) => item.slug === TOS_SLUG)
+        const translatedMessage = response.find((item) => item.slug === translatedSlug)
+        const fallbackMessage = response.find((item) => item.slug === TOS_SLUG)
         if (translatedMessage) {
           setAnnouncementMessage(translatedMessage.body)
         } else if (fallbackMessage) {
