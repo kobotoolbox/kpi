@@ -10,13 +10,6 @@ HistoryActionResponse = inline_serializer_class(
     },
 )
 
-HistoryExportPayload = inline_serializer_class(
-    name='historyExportPayload',
-    fields={
-        'notifyAboutError': serializers.BooleanField(),
-    },
-)
-
 HistoryExportResponse = inline_serializer_class(
     name='historyExportResponse',
     fields={

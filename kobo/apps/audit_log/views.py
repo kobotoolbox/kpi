@@ -31,7 +31,6 @@ from .schema_extensions.v2.access_logs.serializers import (
 )
 from .schema_extensions.v2.history.serializers import (
     HistoryActionResponse,
-    HistoryExportPayload,
     HistoryExportResponse,
     HistoryListResponse,
 )
@@ -505,7 +504,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     ),
     export=extend_schema(
         description=read_md('audit_log', 'history/export.md'),
-        request={'application/json': HistoryExportPayload},
+        request=None,
         responses=open_api_202_accepted_response(
             HistoryExportResponse,
             require_auth=False,
