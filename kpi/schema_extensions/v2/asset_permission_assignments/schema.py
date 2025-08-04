@@ -45,6 +45,3 @@ ASSET_PARTIAL_PERMISSION_ASSIGNMENT_SCHEMA = build_array_type(
         }
     )
 )
-
-
-USER_URL_SCHEMA = build_url_type('api_v2:user-kpi-detail', username='bob')
