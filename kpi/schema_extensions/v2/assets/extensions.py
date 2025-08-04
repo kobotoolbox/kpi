@@ -18,12 +18,11 @@ from .schema import (
     ASSET_NAME_SCHEMA,
     ASSET_SETTINGS_SCHEMA,
     ASSET_TYPE_SCHEMA,
-    ASSET_URL_SCHEMA,
     BULK_ACTION_SCHEMA,
     BULK_ASSET_UIDS_SCHEMA,
     BULK_CONFIRM_SCHEMA,
 )
-
+from kpi.schema_extensions.v2.generic.schema import (ASSET_URL_SCHEMA)
 
 class AccessTypeFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AccessTypeField'
