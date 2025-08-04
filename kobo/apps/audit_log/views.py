@@ -29,6 +29,11 @@ from .schema_extensions.v2.access_logs.serializers import (
     ExportCreateResponse,
     ExportListResponse,
 )
+from .schema_extensions.v2.history.serializers import (
+    HistoryActionResponse,
+    HistoryExportResponse,
+    HistoryListResponse,
+)
 from .schema_extensions.v2.audit_logs.serializers import (
     AuditLogResponse,
     ExportHistoryResponse,
@@ -486,7 +491,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
 
 @extend_schema(
-    tags=['history'],
+    tags=['History'],
     parameters=[
         OpenApiParameter(
             name='parent_lookup_asset',
@@ -497,41 +502,49 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
         ),
     ]
 )
+@extend_schema_view(
+    actions=extend_schema(
+        description=read_md('audit_log', 'history/action.md'),
+        responses=open_api_200_ok_response(
+            HistoryActionResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
+    ),
+    export=extend_schema(
+        description=read_md('audit_log', 'history/export.md'),
+        request=None,
+        responses=open_api_202_accepted_response(
+            HistoryExportResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
+    ),
+    list=extend_schema(
+        description=read_md('audit_log', 'history/list.md'),
+        responses=open_api_200_ok_response(
+            HistoryListResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
+    ),
+)
 class ProjectHistoryLogViewSet(
     AuditLogViewSet, AssetNestedObjectViewsetMixin, NestedViewSetMixin
 ):
-    __doc__ = (
-        generate_ph_view_set_logstring(
-            'Lists all project history logs for a single project. Only available to'
-            " those with 'manage_asset' permissions.",
-            '/api/v2/assets/<code>{asset_uid}</code>/history/',
-            '/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/history/',
-            False,
-        )
-        + """
-    ### Actions
-
-    Retrieves distinct actions performed on the asset.
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/history/actions
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/axpCMM5zWS6kWpHv9Vg/history/actions
-
-    > Response 200
-
-    >       {
-    >           "actions": [
-    >               "update-name",
-    >               "update-content",
-    >               "deploy",
-    >               ...
-    >           ]
-    >       }
     """
-    )
+    ViewSet for managing the current project's history
+
+    Available actions:
+    - action        → GET   /api/v2/asset/{parent_lookup_asset}/history/action/
+    - export        → POST  /api/v2/asset/{parent_lookup_asset}/history/
+    - list          → GET   /api/v2/asset/{parent_lookup_asset}/history/
+
+    Documentation:
+    - docs/api/v2/history/action.md
+    - docs/api/v2/history/export.md
+    - docs/api/v2/history/list.md
+    """
 
     serializer_class = ProjectHistoryLogSerializer
     model = ProjectHistoryLog
