@@ -18,9 +18,11 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
-import type { TranslationServicesListParams } from './models/translationServicesListParams'
+import type { ErrorDetail } from './models/errorDetail'
 
-import type { TranslationServicesRetrieveParams } from './models/translationServicesRetrieveParams'
+import type { ErrorObject } from './models/errorObject'
+
+import type { TranslationServicesListParams } from './models/translationServicesListParams'
 
 import { faker } from '@faker-js/faker'
 
@@ -31,60 +33,33 @@ import type { PaginatedTranslationServiceList } from './models/paginatedTranslat
 import type { TranslationService } from './models/translationService'
 
 /**
- * Lists the translation services accessible to requesting (authenticated) user.
-
-<pre class="prettyprint">
-<b>GET</b> /api/v2/translation-services/
-</pre>
-
-> Example
->
->       curl -X GET https://[kpi]/api/v2/translation-services/
+ * ## List the translation services accessible to requesting (authenticated) user.
 
 Search can be made with `q` parameter to search for the term in names and codes.
 
-> Example
->
->       curl -X GET https://[kpi]/api/v2/translation-services/?q=goo
->       {
->           "count": 1
->           "next": ...
->           "previous": ...
->           "results": [
->               {
->                   "name": "Google",
->                   "code": "goog",
->               }
->           ]
->       }
-
-Results are order by name.
+Results are ordered by name.
 
 
-## Get one translation service
-
-* `code` - is the unique identifier of a specific language
-
-<pre class="prettyprint">
-<b>GET</b> /api/v2/translation-services/<code>{code}</code>/
-</pre>
-
-> Example
->
->       curl -X GET https://[kpi]/api/v2/translation-services/goog/
->       {
->           "name": "Google",
->           "code": "goog",
->       }
-
-### CURRENT ENDPOINT
  */
 export type translationServicesListResponse200 = {
   data: PaginatedTranslationServiceList
   status: 200
 }
 
-export type translationServicesListResponseComposite = translationServicesListResponse200
+export type translationServicesListResponse400 = {
+  data: ErrorObject
+  status: 400
+}
+
+export type translationServicesListResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type translationServicesListResponseComposite =
+  | translationServicesListResponse200
+  | translationServicesListResponse400
+  | translationServicesListResponse401
 
 export type translationServicesListResponse = translationServicesListResponseComposite & {
   headers: Headers
@@ -127,7 +102,7 @@ export const getTranslationServicesListQueryKey = (params?: TranslationServicesL
 
 export const getTranslationServicesListQueryOptions = <
   TData = Awaited<ReturnType<typeof translationServicesList>>,
-  TError = unknown,
+  TError = ErrorObject | ErrorDetail,
 >(
   params?: TranslationServicesListParams,
   options?: {
@@ -150,11 +125,11 @@ export const getTranslationServicesListQueryOptions = <
 }
 
 export type TranslationServicesListQueryResult = NonNullable<Awaited<ReturnType<typeof translationServicesList>>>
-export type TranslationServicesListQueryError = unknown
+export type TranslationServicesListQueryError = ErrorObject | ErrorDetail
 
 export function useTranslationServicesList<
   TData = Awaited<ReturnType<typeof translationServicesList>>,
-  TError = unknown,
+  TError = ErrorObject | ErrorDetail,
 >(
   params: undefined | TranslationServicesListParams,
   options: {
@@ -173,7 +148,7 @@ export function useTranslationServicesList<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useTranslationServicesList<
   TData = Awaited<ReturnType<typeof translationServicesList>>,
-  TError = unknown,
+  TError = ErrorObject | ErrorDetail,
 >(
   params?: TranslationServicesListParams,
   options?: {
@@ -192,7 +167,7 @@ export function useTranslationServicesList<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useTranslationServicesList<
   TData = Awaited<ReturnType<typeof translationServicesList>>,
-  TError = unknown,
+  TError = ErrorObject | ErrorDetail,
 >(
   params?: TranslationServicesListParams,
   options?: {
@@ -204,7 +179,7 @@ export function useTranslationServicesList<
 
 export function useTranslationServicesList<
   TData = Awaited<ReturnType<typeof translationServicesList>>,
-  TError = unknown,
+  TError = ErrorObject | ErrorDetail,
 >(
   params?: TranslationServicesListParams,
   options?: {
@@ -225,87 +200,44 @@ export function useTranslationServicesList<
 }
 
 /**
- * Lists the translation services accessible to requesting (authenticated) user.
-
-<pre class="prettyprint">
-<b>GET</b> /api/v2/translation-services/
-</pre>
-
-> Example
->
->       curl -X GET https://[kpi]/api/v2/translation-services/
-
-Search can be made with `q` parameter to search for the term in names and codes.
-
-> Example
->
->       curl -X GET https://[kpi]/api/v2/translation-services/?q=goo
->       {
->           "count": 1
->           "next": ...
->           "previous": ...
->           "results": [
->               {
->                   "name": "Google",
->                   "code": "goog",
->               }
->           ]
->       }
-
-Results are order by name.
-
-
-## Get one translation service
+ * ## Retrieve a translation service
 
 * `code` - is the unique identifier of a specific language
 
-<pre class="prettyprint">
-<b>GET</b> /api/v2/translation-services/<code>{code}</code>/
-</pre>
-
-> Example
->
->       curl -X GET https://[kpi]/api/v2/translation-services/goog/
->       {
->           "name": "Google",
->           "code": "goog",
->       }
-
-### CURRENT ENDPOINT
  */
 export type translationServicesRetrieveResponse200 = {
   data: TranslationService
   status: 200
 }
 
-export type translationServicesRetrieveResponseComposite = translationServicesRetrieveResponse200
+export type translationServicesRetrieveResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type translationServicesRetrieveResponse404 = {
+  data: ErrorObject
+  status: 404
+}
+
+export type translationServicesRetrieveResponseComposite =
+  | translationServicesRetrieveResponse200
+  | translationServicesRetrieveResponse401
+  | translationServicesRetrieveResponse404
 
 export type translationServicesRetrieveResponse = translationServicesRetrieveResponseComposite & {
   headers: Headers
 }
 
-export const getTranslationServicesRetrieveUrl = (code: string, params?: TranslationServicesRetrieveParams) => {
-  const normalizedParams = new URLSearchParams()
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
-    }
-  })
-
-  const stringifiedParams = normalizedParams.toString()
-
-  return stringifiedParams.length > 0
-    ? `/api/v2/translation-services/${code}/?${stringifiedParams}`
-    : `/api/v2/translation-services/${code}/`
+export const getTranslationServicesRetrieveUrl = (code: string) => {
+  return `/api/v2/translation-services/${code}/`
 }
 
 export const translationServicesRetrieve = async (
   code: string,
-  params?: TranslationServicesRetrieveParams,
   options?: RequestInit,
 ): Promise<translationServicesRetrieveResponse> => {
-  const res = await fetch(getTranslationServicesRetrieveUrl(code, params), {
+  const res = await fetch(getTranslationServicesRetrieveUrl(code), {
     ...options,
     method: 'GET',
   })
@@ -316,16 +248,15 @@ export const translationServicesRetrieve = async (
   return { data, status: res.status, headers: res.headers } as translationServicesRetrieveResponse
 }
 
-export const getTranslationServicesRetrieveQueryKey = (code: string, params?: TranslationServicesRetrieveParams) => {
-  return ['api', 'v2', 'translation-services', code, ...(params ? [params] : [])] as const
+export const getTranslationServicesRetrieveQueryKey = (code: string) => {
+  return ['api', 'v2', 'translation-services', code] as const
 }
 
 export const getTranslationServicesRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof translationServicesRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   code: string,
-  params?: TranslationServicesRetrieveParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof translationServicesRetrieve>>, TError, TData>>
     fetch?: RequestInit
@@ -333,10 +264,10 @@ export const getTranslationServicesRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, fetch: fetchOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getTranslationServicesRetrieveQueryKey(code, params)
+  const queryKey = queryOptions?.queryKey ?? getTranslationServicesRetrieveQueryKey(code)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof translationServicesRetrieve>>> = ({ signal }) =>
-    translationServicesRetrieve(code, params, { signal, ...fetchOptions })
+    translationServicesRetrieve(code, { signal, ...fetchOptions })
 
   return { queryKey, queryFn, enabled: !!code, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof translationServicesRetrieve>>,
@@ -348,14 +279,13 @@ export const getTranslationServicesRetrieveQueryOptions = <
 export type TranslationServicesRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof translationServicesRetrieve>>
 >
-export type TranslationServicesRetrieveQueryError = unknown
+export type TranslationServicesRetrieveQueryError = ErrorDetail | ErrorObject
 
 export function useTranslationServicesRetrieve<
   TData = Awaited<ReturnType<typeof translationServicesRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   code: string,
-  params: undefined | TranslationServicesRetrieveParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof translationServicesRetrieve>>, TError, TData>> &
       Pick<
@@ -372,10 +302,9 @@ export function useTranslationServicesRetrieve<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useTranslationServicesRetrieve<
   TData = Awaited<ReturnType<typeof translationServicesRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   code: string,
-  params?: TranslationServicesRetrieveParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof translationServicesRetrieve>>, TError, TData>> &
       Pick<
@@ -392,10 +321,9 @@ export function useTranslationServicesRetrieve<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useTranslationServicesRetrieve<
   TData = Awaited<ReturnType<typeof translationServicesRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   code: string,
-  params?: TranslationServicesRetrieveParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof translationServicesRetrieve>>, TError, TData>>
     fetch?: RequestInit
@@ -405,17 +333,16 @@ export function useTranslationServicesRetrieve<
 
 export function useTranslationServicesRetrieve<
   TData = Awaited<ReturnType<typeof translationServicesRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   code: string,
-  params?: TranslationServicesRetrieveParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof translationServicesRetrieve>>, TError, TData>>
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getTranslationServicesRetrieveQueryOptions(code, params, options)
+  const queryOptions = getTranslationServicesRetrieveQueryOptions(code, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>

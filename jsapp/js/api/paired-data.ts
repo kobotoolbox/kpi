@@ -39,7 +39,7 @@ import type { PaginatedPairedDataResponseList } from './models/paginatedPairedDa
 
 import type { PairedDataResponse } from './models/pairedDataResponse'
 
-import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
 
 // https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497
 type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B
@@ -290,7 +290,7 @@ export const useAssetsPairedDataCreateMutationOptions = <TError = ErrorObject, T
     return assetsPairedDataCreate(parentLookupAsset, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -547,7 +547,7 @@ export const useAssetsPairedDataPartialUpdateMutationOptions = <TError = ErrorOb
     return assetsPairedDataPartialUpdate(parentLookupAsset, pairedDataUid, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -651,7 +651,7 @@ export const useAssetsPairedDataDestroyMutationOptions = <TError = ErrorObject, 
     return assetsPairedDataDestroy(parentLookupAsset, pairedDataUid, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }

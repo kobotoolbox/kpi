@@ -26,8 +26,8 @@ module.exports = {
         query: {
           shouldSplitQueryKey: true,
           mutationOptions: {
-            path: './jsapp/js/orval.config.customMutatorOptions.ts',
-            name: 'getCustomMutatorOptions',
+            path: './jsapp/js/orval.mutationOptions.ts',
+            name: 'koboCustomOrvalMutationOptions',
             // default: true
           },
         }

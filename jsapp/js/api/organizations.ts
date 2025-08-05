@@ -45,7 +45,7 @@ import type { PaginatedOrganizationAssetUsageResponseList } from './models/pagin
 
 import type { PaginatedOrganizationList } from './models/paginatedOrganizationList'
 
-import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
 
 /**
  * ## List user's organizations
@@ -403,7 +403,7 @@ export const useOrganizationsPartialUpdateMutationOptions = <TError = ErrorObjec
     return organizationsPartialUpdate(id, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }

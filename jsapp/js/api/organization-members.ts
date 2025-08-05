@@ -37,7 +37,7 @@ import type { MemberListResponse } from './models/memberListResponse'
 
 import type { PaginatedMemberListResponseList } from './models/paginatedMemberListResponseList'
 
-import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
 
 /**
  * ## List Members
@@ -450,7 +450,7 @@ export const useOrganizationsMembersPartialUpdateMutationOptions = <
     return organizationsMembersPartialUpdate(organizationId, userUsername, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -565,7 +565,7 @@ export const useOrganizationsMembersDestroyMutationOptions = <
     return organizationsMembersDestroy(organizationId, userUsername, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }

@@ -21,6 +21,12 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
+import type { AssetsDataEditRetrieveParams } from './models/assetsDataEditRetrieveParams'
+
+import type { AssetsDataEnketoRedirectEditRetrieveParams } from './models/assetsDataEnketoRedirectEditRetrieveParams'
+
+import type { AssetsDataEnketoRedirectViewRetrieveParams } from './models/assetsDataEnketoRedirectViewRetrieveParams'
+
 import type { AssetsDataListParams } from './models/assetsDataListParams'
 
 import type { AssetsDataRetrieveParams } from './models/assetsDataRetrieveParams'
@@ -49,7 +55,7 @@ import type { DataValidationStatusUpdateResponse } from './models/dataValidation
 
 import type { PaginatedDataResponseList } from './models/paginatedDataResponseList'
 
-import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
 
 /**
  * ## List of submissions for a specific asset
@@ -506,7 +512,7 @@ export const useAssetsDataDestroyMutationOptions = <TError = ErrorObject, TConte
     return assetsDataDestroy(parentLookupAsset, id, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -612,7 +618,7 @@ export const useAssetsDataDuplicateCreateMutationOptions = <TError = ErrorObject
     return assetsDataDuplicateCreate(parentLookupAsset, id, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -642,6 +648,1144 @@ export const useAssetsDataDuplicateCreate = <TError = ErrorObject, TContext = un
 
   return useMutation(mutationOptions, queryClient)
 }
+/**
+ * Viewset for managing the current user's data
+
+Available actions:
+- bulk                  → DELETE /api/v2/assets/
+- bulk                  → PATCH /api/v2/asset_usage/
+- delete                → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}
+- duplicate             → POST /api/v2/asset_usage/{parent_lookup_asset}/data/duplicate  # noqa
+- list                  → GET /api/v2/asset_usage/{parent_lookup_asset}/data
+- retrieve              → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}
+- validation_status     → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
+- validation_status     → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
+- validation_status     → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
+- validation_statuses   → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
+- validation_statuses   → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
+
+Documentation:
+- docs/api/v2/data/bulk_delete.md
+- docs/api/v2/data/bulk_update.md
+- docs/api/v2/data/delete.md
+- docs/api/v2/data/duplicate.md
+- docs/api/v2/data/list.md
+- docs/api/v2/data/retrieve.md
+- docs/api/v2/data/validation_status_delete.md
+- docs/api/v2/data/validation_status_retrieve.md
+- docs/api/v2/data/validation_status_update.md
+- docs/api/v2/data/validation_statuses_delete.md
+- docs/api/v2/data/validation_statuses_update.md
+
+
+## CRUD
+**It is not allowed to create submissions with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint**
+
+
+**It is not possible to update a submission directly with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint.  # noqa
+Instead, it returns the URL where the instance can be opened in Enketo for editing in the UI._
+
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/edit/?return_url=false
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/edit/?return_url=false
+To redirect (HTTP 302) to the Enketo editing URL, use the `…/enketo/redirect/edit/` endpoint:
+
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/redirect/edit/?return_url=false
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/redirect/edit/?return_url=false
+View-only version of current submission
+
+Return a URL to display the filled submission in view-only mode in the Enketo UI.
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/view/
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/view/
+To redirect (HTTP 302) to the Enketo viewing URL, use the `…/enketo/redirect/view/` endpoint:
+
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/redirect/view/?return_url=false
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/redirect/view/?return_url=false
+ */
+export type assetsDataEditRetrieveResponse200 = {
+  data: void
+  status: 200
+}
+
+export type assetsDataEditRetrieveResponseComposite = assetsDataEditRetrieveResponse200
+
+export type assetsDataEditRetrieveResponse = assetsDataEditRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsDataEditRetrieveUrl = (
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEditRetrieveParams,
+) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${parentLookupAsset}/data/${id}/edit/?${stringifiedParams}`
+    : `/api/v2/assets/${parentLookupAsset}/data/${id}/edit/`
+}
+
+export const assetsDataEditRetrieve = async (
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEditRetrieveParams,
+  options?: RequestInit,
+): Promise<assetsDataEditRetrieveResponse> => {
+  const res = await fetch(getAssetsDataEditRetrieveUrl(parentLookupAsset, id, params), {
+    ...options,
+    method: 'GET',
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  const data: assetsDataEditRetrieveResponse['data'] = body ? JSON.parse(body) : {}
+
+  return { data, status: res.status, headers: res.headers } as assetsDataEditRetrieveResponse
+}
+
+export const getAssetsDataEditRetrieveQueryKey = (
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEditRetrieveParams,
+) => {
+  return ['api', 'v2', 'assets', parentLookupAsset, 'data', id, 'edit', ...(params ? [params] : [])] as const
+}
+
+export const getAssetsDataEditRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsDataEditRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEditRetrieveParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEditRetrieve>>, TError, TData>>
+    fetch?: RequestInit
+  },
+) => {
+  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsDataEditRetrieveQueryKey(parentLookupAsset, id, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataEditRetrieve>>> = ({ signal }) =>
+    assetsDataEditRetrieve(parentLookupAsset, id, params, { signal, ...fetchOptions })
+
+  return { queryKey, queryFn, enabled: !!(parentLookupAsset && id), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsDataEditRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AssetsDataEditRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDataEditRetrieve>>>
+export type AssetsDataEditRetrieveQueryError = unknown
+
+export function useAssetsDataEditRetrieve<TData = Awaited<ReturnType<typeof assetsDataEditRetrieve>>, TError = unknown>(
+  parentLookupAsset: string,
+  id: string,
+  params: undefined | AssetsDataEditRetrieveParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEditRetrieve>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof assetsDataEditRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof assetsDataEditRetrieve>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAssetsDataEditRetrieve<TData = Awaited<ReturnType<typeof assetsDataEditRetrieve>>, TError = unknown>(
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEditRetrieveParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEditRetrieve>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof assetsDataEditRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof assetsDataEditRetrieve>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAssetsDataEditRetrieve<TData = Awaited<ReturnType<typeof assetsDataEditRetrieve>>, TError = unknown>(
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEditRetrieveParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEditRetrieve>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useAssetsDataEditRetrieve<TData = Awaited<ReturnType<typeof assetsDataEditRetrieve>>, TError = unknown>(
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEditRetrieveParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEditRetrieve>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAssetsDataEditRetrieveQueryOptions(parentLookupAsset, id, params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * Viewset for managing the current user's data
+
+Available actions:
+- bulk                  → DELETE /api/v2/assets/
+- bulk                  → PATCH /api/v2/asset_usage/
+- delete                → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}
+- duplicate             → POST /api/v2/asset_usage/{parent_lookup_asset}/data/duplicate  # noqa
+- list                  → GET /api/v2/asset_usage/{parent_lookup_asset}/data
+- retrieve              → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}
+- validation_status     → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
+- validation_status     → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
+- validation_status     → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
+- validation_statuses   → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
+- validation_statuses   → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
+
+Documentation:
+- docs/api/v2/data/bulk_delete.md
+- docs/api/v2/data/bulk_update.md
+- docs/api/v2/data/delete.md
+- docs/api/v2/data/duplicate.md
+- docs/api/v2/data/list.md
+- docs/api/v2/data/retrieve.md
+- docs/api/v2/data/validation_status_delete.md
+- docs/api/v2/data/validation_status_retrieve.md
+- docs/api/v2/data/validation_status_update.md
+- docs/api/v2/data/validation_statuses_delete.md
+- docs/api/v2/data/validation_statuses_update.md
+
+
+## CRUD
+**It is not allowed to create submissions with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint**
+
+
+**It is not possible to update a submission directly with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint.  # noqa
+Instead, it returns the URL where the instance can be opened in Enketo for editing in the UI._
+
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/edit/?return_url=false
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/edit/?return_url=false
+To redirect (HTTP 302) to the Enketo editing URL, use the `…/enketo/redirect/edit/` endpoint:
+
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/redirect/edit/?return_url=false
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/redirect/edit/?return_url=false
+View-only version of current submission
+
+Return a URL to display the filled submission in view-only mode in the Enketo UI.
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/view/
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/view/
+To redirect (HTTP 302) to the Enketo viewing URL, use the `…/enketo/redirect/view/` endpoint:
+
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/redirect/view/?return_url=false
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/redirect/view/?return_url=false
+ */
+export type assetsDataEnketoEditRetrieveResponse200 = {
+  data: void
+  status: 200
+}
+
+export type assetsDataEnketoEditRetrieveResponseComposite = assetsDataEnketoEditRetrieveResponse200
+
+export type assetsDataEnketoEditRetrieveResponse = assetsDataEnketoEditRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsDataEnketoEditRetrieveUrl = (parentLookupAsset: string, id: string) => {
+  return `/api/v2/assets/${parentLookupAsset}/data/${id}/enketo/edit/`
+}
+
+export const assetsDataEnketoEditRetrieve = async (
+  parentLookupAsset: string,
+  id: string,
+  options?: RequestInit,
+): Promise<assetsDataEnketoEditRetrieveResponse> => {
+  const res = await fetch(getAssetsDataEnketoEditRetrieveUrl(parentLookupAsset, id), {
+    ...options,
+    method: 'GET',
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  const data: assetsDataEnketoEditRetrieveResponse['data'] = body ? JSON.parse(body) : {}
+
+  return { data, status: res.status, headers: res.headers } as assetsDataEnketoEditRetrieveResponse
+}
+
+export const getAssetsDataEnketoEditRetrieveQueryKey = (parentLookupAsset: string, id: string) => {
+  return ['api', 'v2', 'assets', parentLookupAsset, 'data', id, 'enketo', 'edit'] as const
+}
+
+export const getAssetsDataEnketoEditRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>, TError, TData>>
+    fetch?: RequestInit
+  },
+) => {
+  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsDataEnketoEditRetrieveQueryKey(parentLookupAsset, id)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>> = ({ signal }) =>
+    assetsDataEnketoEditRetrieve(parentLookupAsset, id, { signal, ...fetchOptions })
+
+  return { queryKey, queryFn, enabled: !!(parentLookupAsset && id), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AssetsDataEnketoEditRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>
+>
+export type AssetsDataEnketoEditRetrieveQueryError = unknown
+
+export function useAssetsDataEnketoEditRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAssetsDataEnketoEditRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAssetsDataEnketoEditRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useAssetsDataEnketoEditRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAssetsDataEnketoEditRetrieveQueryOptions(parentLookupAsset, id, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * Viewset for managing the current user's data
+
+Available actions:
+- bulk                  → DELETE /api/v2/assets/
+- bulk                  → PATCH /api/v2/asset_usage/
+- delete                → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}
+- duplicate             → POST /api/v2/asset_usage/{parent_lookup_asset}/data/duplicate  # noqa
+- list                  → GET /api/v2/asset_usage/{parent_lookup_asset}/data
+- retrieve              → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}
+- validation_status     → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
+- validation_status     → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
+- validation_status     → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
+- validation_statuses   → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
+- validation_statuses   → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
+
+Documentation:
+- docs/api/v2/data/bulk_delete.md
+- docs/api/v2/data/bulk_update.md
+- docs/api/v2/data/delete.md
+- docs/api/v2/data/duplicate.md
+- docs/api/v2/data/list.md
+- docs/api/v2/data/retrieve.md
+- docs/api/v2/data/validation_status_delete.md
+- docs/api/v2/data/validation_status_retrieve.md
+- docs/api/v2/data/validation_status_update.md
+- docs/api/v2/data/validation_statuses_delete.md
+- docs/api/v2/data/validation_statuses_update.md
+
+
+## CRUD
+**It is not allowed to create submissions with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint**
+
+
+**It is not possible to update a submission directly with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint.  # noqa
+Instead, it returns the URL where the instance can be opened in Enketo for editing in the UI._
+
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/edit/?return_url=false
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/edit/?return_url=false
+To redirect (HTTP 302) to the Enketo editing URL, use the `…/enketo/redirect/edit/` endpoint:
+
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/redirect/edit/?return_url=false
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/redirect/edit/?return_url=false
+View-only version of current submission
+
+Return a URL to display the filled submission in view-only mode in the Enketo UI.
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/view/
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/view/
+To redirect (HTTP 302) to the Enketo viewing URL, use the `…/enketo/redirect/view/` endpoint:
+
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/redirect/view/?return_url=false
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/redirect/view/?return_url=false
+ */
+export type assetsDataEnketoRedirectEditRetrieveResponse200 = {
+  data: void
+  status: 200
+}
+
+export type assetsDataEnketoRedirectEditRetrieveResponseComposite = assetsDataEnketoRedirectEditRetrieveResponse200
+
+export type assetsDataEnketoRedirectEditRetrieveResponse = assetsDataEnketoRedirectEditRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsDataEnketoRedirectEditRetrieveUrl = (
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEnketoRedirectEditRetrieveParams,
+) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${parentLookupAsset}/data/${id}/enketo/redirect/edit/?${stringifiedParams}`
+    : `/api/v2/assets/${parentLookupAsset}/data/${id}/enketo/redirect/edit/`
+}
+
+export const assetsDataEnketoRedirectEditRetrieve = async (
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEnketoRedirectEditRetrieveParams,
+  options?: RequestInit,
+): Promise<assetsDataEnketoRedirectEditRetrieveResponse> => {
+  const res = await fetch(getAssetsDataEnketoRedirectEditRetrieveUrl(parentLookupAsset, id, params), {
+    ...options,
+    method: 'GET',
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  const data: assetsDataEnketoRedirectEditRetrieveResponse['data'] = body ? JSON.parse(body) : {}
+
+  return { data, status: res.status, headers: res.headers } as assetsDataEnketoRedirectEditRetrieveResponse
+}
+
+export const getAssetsDataEnketoRedirectEditRetrieveQueryKey = (
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEnketoRedirectEditRetrieveParams,
+) => {
+  return [
+    'api',
+    'v2',
+    'assets',
+    parentLookupAsset,
+    'data',
+    id,
+    'enketo',
+    'redirect',
+    'edit',
+    ...(params ? [params] : []),
+  ] as const
+}
+
+export const getAssetsDataEnketoRedirectEditRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEnketoRedirectEditRetrieveParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>, TError, TData>>
+    fetch?: RequestInit
+  },
+) => {
+  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+
+  const queryKey =
+    queryOptions?.queryKey ?? getAssetsDataEnketoRedirectEditRetrieveQueryKey(parentLookupAsset, id, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>> = ({ signal }) =>
+    assetsDataEnketoRedirectEditRetrieve(parentLookupAsset, id, params, { signal, ...fetchOptions })
+
+  return { queryKey, queryFn, enabled: !!(parentLookupAsset && id), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AssetsDataEnketoRedirectEditRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>
+>
+export type AssetsDataEnketoRedirectEditRetrieveQueryError = unknown
+
+export function useAssetsDataEnketoRedirectEditRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  params: undefined | AssetsDataEnketoRedirectEditRetrieveParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAssetsDataEnketoRedirectEditRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEnketoRedirectEditRetrieveParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAssetsDataEnketoRedirectEditRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEnketoRedirectEditRetrieveParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useAssetsDataEnketoRedirectEditRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEnketoRedirectEditRetrieveParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAssetsDataEnketoRedirectEditRetrieveQueryOptions(parentLookupAsset, id, params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * Viewset for managing the current user's data
+
+Available actions:
+- bulk                  → DELETE /api/v2/assets/
+- bulk                  → PATCH /api/v2/asset_usage/
+- delete                → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}
+- duplicate             → POST /api/v2/asset_usage/{parent_lookup_asset}/data/duplicate  # noqa
+- list                  → GET /api/v2/asset_usage/{parent_lookup_asset}/data
+- retrieve              → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}
+- validation_status     → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
+- validation_status     → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
+- validation_status     → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
+- validation_statuses   → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
+- validation_statuses   → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
+
+Documentation:
+- docs/api/v2/data/bulk_delete.md
+- docs/api/v2/data/bulk_update.md
+- docs/api/v2/data/delete.md
+- docs/api/v2/data/duplicate.md
+- docs/api/v2/data/list.md
+- docs/api/v2/data/retrieve.md
+- docs/api/v2/data/validation_status_delete.md
+- docs/api/v2/data/validation_status_retrieve.md
+- docs/api/v2/data/validation_status_update.md
+- docs/api/v2/data/validation_statuses_delete.md
+- docs/api/v2/data/validation_statuses_update.md
+
+
+## CRUD
+**It is not allowed to create submissions with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint**
+
+
+**It is not possible to update a submission directly with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint.  # noqa
+Instead, it returns the URL where the instance can be opened in Enketo for editing in the UI._
+
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/edit/?return_url=false
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/edit/?return_url=false
+To redirect (HTTP 302) to the Enketo editing URL, use the `…/enketo/redirect/edit/` endpoint:
+
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/redirect/edit/?return_url=false
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/redirect/edit/?return_url=false
+View-only version of current submission
+
+Return a URL to display the filled submission in view-only mode in the Enketo UI.
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/view/
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/view/
+To redirect (HTTP 302) to the Enketo viewing URL, use the `…/enketo/redirect/view/` endpoint:
+
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/redirect/view/?return_url=false
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/redirect/view/?return_url=false
+ */
+export type assetsDataEnketoRedirectViewRetrieveResponse200 = {
+  data: void
+  status: 200
+}
+
+export type assetsDataEnketoRedirectViewRetrieveResponseComposite = assetsDataEnketoRedirectViewRetrieveResponse200
+
+export type assetsDataEnketoRedirectViewRetrieveResponse = assetsDataEnketoRedirectViewRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsDataEnketoRedirectViewRetrieveUrl = (
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEnketoRedirectViewRetrieveParams,
+) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${parentLookupAsset}/data/${id}/enketo/redirect/view/?${stringifiedParams}`
+    : `/api/v2/assets/${parentLookupAsset}/data/${id}/enketo/redirect/view/`
+}
+
+export const assetsDataEnketoRedirectViewRetrieve = async (
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEnketoRedirectViewRetrieveParams,
+  options?: RequestInit,
+): Promise<assetsDataEnketoRedirectViewRetrieveResponse> => {
+  const res = await fetch(getAssetsDataEnketoRedirectViewRetrieveUrl(parentLookupAsset, id, params), {
+    ...options,
+    method: 'GET',
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  const data: assetsDataEnketoRedirectViewRetrieveResponse['data'] = body ? JSON.parse(body) : {}
+
+  return { data, status: res.status, headers: res.headers } as assetsDataEnketoRedirectViewRetrieveResponse
+}
+
+export const getAssetsDataEnketoRedirectViewRetrieveQueryKey = (
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEnketoRedirectViewRetrieveParams,
+) => {
+  return [
+    'api',
+    'v2',
+    'assets',
+    parentLookupAsset,
+    'data',
+    id,
+    'enketo',
+    'redirect',
+    'view',
+    ...(params ? [params] : []),
+  ] as const
+}
+
+export const getAssetsDataEnketoRedirectViewRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEnketoRedirectViewRetrieveParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>, TError, TData>>
+    fetch?: RequestInit
+  },
+) => {
+  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+
+  const queryKey =
+    queryOptions?.queryKey ?? getAssetsDataEnketoRedirectViewRetrieveQueryKey(parentLookupAsset, id, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>> = ({ signal }) =>
+    assetsDataEnketoRedirectViewRetrieve(parentLookupAsset, id, params, { signal, ...fetchOptions })
+
+  return { queryKey, queryFn, enabled: !!(parentLookupAsset && id), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AssetsDataEnketoRedirectViewRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>
+>
+export type AssetsDataEnketoRedirectViewRetrieveQueryError = unknown
+
+export function useAssetsDataEnketoRedirectViewRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  params: undefined | AssetsDataEnketoRedirectViewRetrieveParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAssetsDataEnketoRedirectViewRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEnketoRedirectViewRetrieveParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAssetsDataEnketoRedirectViewRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEnketoRedirectViewRetrieveParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useAssetsDataEnketoRedirectViewRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  params?: AssetsDataEnketoRedirectViewRetrieveParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAssetsDataEnketoRedirectViewRetrieveQueryOptions(parentLookupAsset, id, params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * Viewset for managing the current user's data
+
+Available actions:
+- bulk                  → DELETE /api/v2/assets/
+- bulk                  → PATCH /api/v2/asset_usage/
+- delete                → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}
+- duplicate             → POST /api/v2/asset_usage/{parent_lookup_asset}/data/duplicate  # noqa
+- list                  → GET /api/v2/asset_usage/{parent_lookup_asset}/data
+- retrieve              → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}
+- validation_status     → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
+- validation_status     → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
+- validation_status     → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
+- validation_statuses   → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
+- validation_statuses   → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
+
+Documentation:
+- docs/api/v2/data/bulk_delete.md
+- docs/api/v2/data/bulk_update.md
+- docs/api/v2/data/delete.md
+- docs/api/v2/data/duplicate.md
+- docs/api/v2/data/list.md
+- docs/api/v2/data/retrieve.md
+- docs/api/v2/data/validation_status_delete.md
+- docs/api/v2/data/validation_status_retrieve.md
+- docs/api/v2/data/validation_status_update.md
+- docs/api/v2/data/validation_statuses_delete.md
+- docs/api/v2/data/validation_statuses_update.md
+
+
+## CRUD
+**It is not allowed to create submissions with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint**
+
+
+**It is not possible to update a submission directly with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint.  # noqa
+Instead, it returns the URL where the instance can be opened in Enketo for editing in the UI._
+
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/edit/?return_url=false
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/edit/?return_url=false
+To redirect (HTTP 302) to the Enketo editing URL, use the `…/enketo/redirect/edit/` endpoint:
+
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/redirect/edit/?return_url=false
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/redirect/edit/?return_url=false
+View-only version of current submission
+
+Return a URL to display the filled submission in view-only mode in the Enketo UI.
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/view/
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/view/
+To redirect (HTTP 302) to the Enketo viewing URL, use the `…/enketo/redirect/view/` endpoint:
+
+<pre class="prettyprint">
+<b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/redirect/view/?return_url=false
+</pre>
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/redirect/view/?return_url=false
+ */
+export type assetsDataEnketoViewRetrieveResponse200 = {
+  data: void
+  status: 200
+}
+
+export type assetsDataEnketoViewRetrieveResponseComposite = assetsDataEnketoViewRetrieveResponse200
+
+export type assetsDataEnketoViewRetrieveResponse = assetsDataEnketoViewRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsDataEnketoViewRetrieveUrl = (parentLookupAsset: string, id: string) => {
+  return `/api/v2/assets/${parentLookupAsset}/data/${id}/enketo/view/`
+}
+
+export const assetsDataEnketoViewRetrieve = async (
+  parentLookupAsset: string,
+  id: string,
+  options?: RequestInit,
+): Promise<assetsDataEnketoViewRetrieveResponse> => {
+  const res = await fetch(getAssetsDataEnketoViewRetrieveUrl(parentLookupAsset, id), {
+    ...options,
+    method: 'GET',
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  const data: assetsDataEnketoViewRetrieveResponse['data'] = body ? JSON.parse(body) : {}
+
+  return { data, status: res.status, headers: res.headers } as assetsDataEnketoViewRetrieveResponse
+}
+
+export const getAssetsDataEnketoViewRetrieveQueryKey = (parentLookupAsset: string, id: string) => {
+  return ['api', 'v2', 'assets', parentLookupAsset, 'data', id, 'enketo', 'view'] as const
+}
+
+export const getAssetsDataEnketoViewRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>, TError, TData>>
+    fetch?: RequestInit
+  },
+) => {
+  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsDataEnketoViewRetrieveQueryKey(parentLookupAsset, id)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>> = ({ signal }) =>
+    assetsDataEnketoViewRetrieve(parentLookupAsset, id, { signal, ...fetchOptions })
+
+  return { queryKey, queryFn, enabled: !!(parentLookupAsset && id), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AssetsDataEnketoViewRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>
+>
+export type AssetsDataEnketoViewRetrieveQueryError = unknown
+
+export function useAssetsDataEnketoViewRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAssetsDataEnketoViewRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAssetsDataEnketoViewRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useAssetsDataEnketoViewRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>,
+  TError = unknown,
+>(
+  parentLookupAsset: string,
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAssetsDataEnketoViewRetrieveQueryOptions(parentLookupAsset, id, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
 /**
  * ## Get validation statuses
 Retrieves the validation status of a submission.
@@ -880,7 +2024,7 @@ export const useAssetsDataValidationStatusPartialUpdateMutationOptions = <
     return assetsDataValidationStatusPartialUpdate(parentLookupAsset, id, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -987,7 +2131,7 @@ export const useAssetsDataValidationStatusDestroyMutationOptions = <
     return assetsDataValidationStatusDestroy(parentLookupAsset, id, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -1107,7 +2251,7 @@ export const useAssetsDataBulkPartialUpdateMutationOptions = <TError = ErrorObje
     return assetsDataBulkPartialUpdate(parentLookupAsset, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -1236,7 +2380,7 @@ export const useAssetsDataBulkDestroyMutationOptions = <TError = ErrorObject, TC
     return assetsDataBulkDestroy(parentLookupAsset, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -1358,7 +2502,7 @@ export const useAssetsDataValidationStatusesPartialUpdateMutationOptions = <
     return assetsDataValidationStatusesPartialUpdate(parentLookupAsset, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -1497,7 +2641,7 @@ export const useAssetsDataValidationStatusesDestroyMutationOptions = <
     return assetsDataValidationStatusesDestroy(parentLookupAsset, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -1753,6 +2897,66 @@ export const getApiV2AssetsDataDuplicateCreateMockHandler = (
   })
 }
 
+export const getApiV2AssetsDataEditRetrieveMockHandler = (
+  overrideResponse?: void | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<void> | void),
+) => {
+  return http.get('*/api/v2/assets/:parentLookupAsset/data/:id/edit/', async (info) => {
+    await delay(1000)
+    if (typeof overrideResponse === 'function') {
+      await overrideResponse(info)
+    }
+    return new HttpResponse(null, { status: 200 })
+  })
+}
+
+export const getApiV2AssetsDataEnketoEditRetrieveMockHandler = (
+  overrideResponse?: void | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<void> | void),
+) => {
+  return http.get('*/api/v2/assets/:parentLookupAsset/data/:id/enketo/edit/', async (info) => {
+    await delay(1000)
+    if (typeof overrideResponse === 'function') {
+      await overrideResponse(info)
+    }
+    return new HttpResponse(null, { status: 200 })
+  })
+}
+
+export const getApiV2AssetsDataEnketoRedirectEditRetrieveMockHandler = (
+  overrideResponse?: void | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<void> | void),
+) => {
+  return http.get('*/api/v2/assets/:parentLookupAsset/data/:id/enketo/redirect/edit/', async (info) => {
+    await delay(1000)
+    if (typeof overrideResponse === 'function') {
+      await overrideResponse(info)
+    }
+    return new HttpResponse(null, { status: 200 })
+  })
+}
+
+export const getApiV2AssetsDataEnketoRedirectViewRetrieveMockHandler = (
+  overrideResponse?: void | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<void> | void),
+) => {
+  return http.get('*/api/v2/assets/:parentLookupAsset/data/:id/enketo/redirect/view/', async (info) => {
+    await delay(1000)
+    if (typeof overrideResponse === 'function') {
+      await overrideResponse(info)
+    }
+    return new HttpResponse(null, { status: 200 })
+  })
+}
+
+export const getApiV2AssetsDataEnketoViewRetrieveMockHandler = (
+  overrideResponse?: void | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<void> | void),
+) => {
+  return http.get('*/api/v2/assets/:parentLookupAsset/data/:id/enketo/view/', async (info) => {
+    await delay(1000)
+    if (typeof overrideResponse === 'function') {
+      await overrideResponse(info)
+    }
+    return new HttpResponse(null, { status: 200 })
+  })
+}
+
 export const getApiV2AssetsDataValidationStatusRetrieveMockHandler = (
   overrideResponse?:
     | DataValidationStatusUpdateResponse
@@ -1883,6 +3087,11 @@ export const getDataMock = () => [
   getApiV2AssetsDataRetrieveMockHandler(),
   getApiV2AssetsDataDestroyMockHandler(),
   getApiV2AssetsDataDuplicateCreateMockHandler(),
+  getApiV2AssetsDataEditRetrieveMockHandler(),
+  getApiV2AssetsDataEnketoEditRetrieveMockHandler(),
+  getApiV2AssetsDataEnketoRedirectEditRetrieveMockHandler(),
+  getApiV2AssetsDataEnketoRedirectViewRetrieveMockHandler(),
+  getApiV2AssetsDataEnketoViewRetrieveMockHandler(),
   getApiV2AssetsDataValidationStatusRetrieveMockHandler(),
   getApiV2AssetsDataValidationStatusPartialUpdateMockHandler(),
   getApiV2AssetsDataValidationStatusDestroyMockHandler(),

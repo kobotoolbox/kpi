@@ -37,7 +37,7 @@ import { AssetTypeEnum } from './models/assetTypeEnum'
 
 import type { DeploymentResponse } from './models/deploymentResponse'
 
-import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
 
 /**
  * ## Retrieve the existing deployment (if any)
@@ -268,7 +268,7 @@ export const useAssetsDeploymentCreateMutationOptions = <
     return assetsDeploymentCreate(uid, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -385,7 +385,7 @@ export const useAssetsDeploymentPartialUpdateMutationOptions = <
     return assetsDeploymentPartialUpdate(uid, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }

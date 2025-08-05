@@ -5,10 +5,8 @@
  * Powerful and intuitive data collection tools to make an impact
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { ProjectViewsListFormat } from './projectViewsListFormat'
 
 export type ProjectViewsListParams = {
-  format?: ProjectViewsListFormat
   /**
    * Number of results to return per page.
    */

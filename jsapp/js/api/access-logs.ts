@@ -39,7 +39,7 @@ import type { ExportListResponse } from './models/exportListResponse'
 
 import type { PaginatedAuditLogResponseList } from './models/paginatedAuditLogResponseList'
 
-import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
 
 /**
  * ## List actions performed by users.
@@ -446,7 +446,7 @@ export const useAccessLogsExportCreateMutationOptions = <TError = ErrorDetail, T
     return accessLogsExportCreate(fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -881,7 +881,7 @@ export const useAccessLogsMeExportCreateMutationOptions = <TError = ErrorDetail,
     return accessLogsMeExportCreate(fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }

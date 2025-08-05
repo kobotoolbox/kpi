@@ -37,7 +37,7 @@ import { http, HttpResponse, delay } from 'msw'
 
 import type { PermissionAssignmentResponse } from './models/permissionAssignmentResponse'
 
-import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
 
 /**
  * ## List permission assignments
@@ -279,7 +279,7 @@ export const useAssetsPermissionAssignmentsCreateMutationOptions = <
     return assetsPermissionAssignmentsCreate(parentLookupAsset, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -550,7 +550,7 @@ export const useAssetsPermissionAssignmentsDestroyMutationOptions = <
     return assetsPermissionAssignmentsDestroy(parentLookupAsset, uid, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -664,7 +664,7 @@ export const useAssetsPermissionAssignmentsDeleteAllDestroyMutationOptions = <
     return assetsPermissionAssignmentsDeleteAllDestroy(parentLookupAsset, uid, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -781,7 +781,7 @@ export const useAssetsPermissionAssignmentsBulkCreateMutationOptions = <
     return assetsPermissionAssignmentsBulkCreate(parentLookupAsset, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -899,7 +899,7 @@ export const useAssetsPermissionAssignmentsClonePartialUpdateMutationOptions = <
     return assetsPermissionAssignmentsClonePartialUpdate(parentLookupAsset, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }

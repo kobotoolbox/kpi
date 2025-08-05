@@ -25,15 +25,33 @@ import type { ErrorDetail } from './models/errorDetail'
 
 import type { ErrorObject } from './models/errorObject'
 
+import type { MeEmailsCreateParams } from './models/meEmailsCreateParams'
+
+import type { MeEmailsListParams } from './models/meEmailsListParams'
+
+import type { MeSocialAccountsDestroyParams } from './models/meSocialAccountsDestroyParams'
+
+import type { MeSocialAccountsListParams } from './models/meSocialAccountsListParams'
+
+import type { MeSocialAccountsRetrieveParams } from './models/meSocialAccountsRetrieveParams'
+
 import type { PatchedCurrentUser } from './models/patchedCurrentUser'
 
 import { faker } from '@faker-js/faker'
 
 import { http, HttpResponse, delay } from 'msw'
 
+import type { EmailAddress } from './models/emailAddress'
+
 import type { MeListResponse } from './models/meListResponse'
 
-import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+import type { PaginatedEmailAddressList } from './models/paginatedEmailAddressList'
+
+import type { PaginatedSocialAccountList } from './models/paginatedSocialAccountList'
+
+import type { SocialAccount } from './models/socialAccount'
+
+import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
 
 // https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497
 type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B
@@ -251,7 +269,7 @@ export const useMePartialUpdateMutationOptions = <TError = ErrorObject | ErrorDe
     return mePartialUpdate(data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -346,7 +364,7 @@ export const useMeDestroyMutationOptions = <TError = ErrorObject | ErrorDetail, 
     return meDestroy(fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -363,6 +381,691 @@ export const useMeDestroy = <TError = ErrorObject | ErrorDetail, TContext = unkn
   queryClient?: QueryClient,
 ): UseMutationResult<Awaited<ReturnType<typeof meDestroy>>, TError, void, TContext> => {
   const mutationOptions = useMeDestroyMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
+ * View and change email. Allow only 1 primary/confirmed email.
+
+Set a new email: POST a new email address. The new email will be unverified
+and replace existing unverfied, non-primary emails. New email is not usable
+until verified.
+
+Delete unconfirmed email: DELETE with no body will delete any existing
+non-primary/non-verified emails.
+ */
+export type meEmailsListResponse200 = {
+  data: PaginatedEmailAddressList
+  status: 200
+}
+
+export type meEmailsListResponseComposite = meEmailsListResponse200
+
+export type meEmailsListResponse = meEmailsListResponseComposite & {
+  headers: Headers
+}
+
+export const getMeEmailsListUrl = (params?: MeEmailsListParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0 ? `/me/emails/?${stringifiedParams}` : `/me/emails/`
+}
+
+export const meEmailsList = async (
+  params?: MeEmailsListParams,
+  options?: RequestInit,
+): Promise<meEmailsListResponse> => {
+  const res = await fetch(getMeEmailsListUrl(params), {
+    ...options,
+    method: 'GET',
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  const data: meEmailsListResponse['data'] = body ? JSON.parse(body) : {}
+
+  return { data, status: res.status, headers: res.headers } as meEmailsListResponse
+}
+
+export const getMeEmailsListQueryKey = (params?: MeEmailsListParams) => {
+  return ['me', 'emails', ...(params ? [params] : [])] as const
+}
+
+export const getMeEmailsListQueryOptions = <TData = Awaited<ReturnType<typeof meEmailsList>>, TError = unknown>(
+  params?: MeEmailsListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meEmailsList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+) => {
+  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getMeEmailsListQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof meEmailsList>>> = ({ signal }) =>
+    meEmailsList(params, { signal, ...fetchOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof meEmailsList>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type MeEmailsListQueryResult = NonNullable<Awaited<ReturnType<typeof meEmailsList>>>
+export type MeEmailsListQueryError = unknown
+
+export function useMeEmailsList<TData = Awaited<ReturnType<typeof meEmailsList>>, TError = unknown>(
+  params: undefined | MeEmailsListParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof meEmailsList>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof meEmailsList>>,
+          TError,
+          Awaited<ReturnType<typeof meEmailsList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMeEmailsList<TData = Awaited<ReturnType<typeof meEmailsList>>, TError = unknown>(
+  params?: MeEmailsListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meEmailsList>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof meEmailsList>>,
+          TError,
+          Awaited<ReturnType<typeof meEmailsList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMeEmailsList<TData = Awaited<ReturnType<typeof meEmailsList>>, TError = unknown>(
+  params?: MeEmailsListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meEmailsList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useMeEmailsList<TData = Awaited<ReturnType<typeof meEmailsList>>, TError = unknown>(
+  params?: MeEmailsListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meEmailsList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getMeEmailsListQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * View and change email. Allow only 1 primary/confirmed email.
+
+Set a new email: POST a new email address. The new email will be unverified
+and replace existing unverfied, non-primary emails. New email is not usable
+until verified.
+
+Delete unconfirmed email: DELETE with no body will delete any existing
+non-primary/non-verified emails.
+ */
+export type meEmailsCreateResponse201 = {
+  data: EmailAddress
+  status: 201
+}
+
+export type meEmailsCreateResponseComposite = meEmailsCreateResponse201
+
+export type meEmailsCreateResponse = meEmailsCreateResponseComposite & {
+  headers: Headers
+}
+
+export const getMeEmailsCreateUrl = (params?: MeEmailsCreateParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0 ? `/me/emails/?${stringifiedParams}` : `/me/emails/`
+}
+
+export const meEmailsCreate = async (
+  emailAddress: NonReadonly<EmailAddress>,
+  params?: MeEmailsCreateParams,
+  options?: RequestInit,
+): Promise<meEmailsCreateResponse> => {
+  const res = await fetch(getMeEmailsCreateUrl(params), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(emailAddress),
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  const data: meEmailsCreateResponse['data'] = body ? JSON.parse(body) : {}
+
+  return { data, status: res.status, headers: res.headers } as meEmailsCreateResponse
+}
+
+export const useMeEmailsCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof meEmailsCreate>>,
+    TError,
+    { data: NonReadonly<EmailAddress>; params?: MeEmailsCreateParams },
+    TContext
+  >
+  fetch?: RequestInit
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof meEmailsCreate>>,
+  TError,
+  { data: NonReadonly<EmailAddress>; params?: MeEmailsCreateParams },
+  TContext
+> => {
+  const mutationKey = ['meEmailsCreate']
+  const { mutation: mutationOptions, fetch: fetchOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, fetch: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof meEmailsCreate>>,
+    { data: NonReadonly<EmailAddress>; params?: MeEmailsCreateParams }
+  > = (props) => {
+    const { data, params } = props ?? {}
+
+    return meEmailsCreate(data, params, fetchOptions)
+  }
+
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
+}
+
+export type MeEmailsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof meEmailsCreate>>>
+export type MeEmailsCreateMutationBody = NonReadonly<EmailAddress>
+export type MeEmailsCreateMutationError = unknown
+
+export const useMeEmailsCreate = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof meEmailsCreate>>,
+      TError,
+      { data: NonReadonly<EmailAddress>; params?: MeEmailsCreateParams },
+      TContext
+    >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof meEmailsCreate>>,
+  TError,
+  { data: NonReadonly<EmailAddress>; params?: MeEmailsCreateParams },
+  TContext
+> => {
+  const mutationOptions = useMeEmailsCreateMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
+ * Apply this mixin to any view or viewset to enable multi-field lookups
+based on a `lookup_fields` attribute, instead of the default single-field lookup
+(`lookup_field`).
+
+⚠️ Warning:
+Make sure to declare the route using `.as_view()` so that `lookup_value_regex` is
+properly applied. Avoid using DRF's automatic routers, which rely on the default
+`lookup_field = 'pk'`.
+ */
+export type meSocialAccountsListResponse200 = {
+  data: PaginatedSocialAccountList
+  status: 200
+}
+
+export type meSocialAccountsListResponseComposite = meSocialAccountsListResponse200
+
+export type meSocialAccountsListResponse = meSocialAccountsListResponseComposite & {
+  headers: Headers
+}
+
+export const getMeSocialAccountsListUrl = (params?: MeSocialAccountsListParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0 ? `/me/social-accounts/?${stringifiedParams}` : `/me/social-accounts/`
+}
+
+export const meSocialAccountsList = async (
+  params?: MeSocialAccountsListParams,
+  options?: RequestInit,
+): Promise<meSocialAccountsListResponse> => {
+  const res = await fetch(getMeSocialAccountsListUrl(params), {
+    ...options,
+    method: 'GET',
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  const data: meSocialAccountsListResponse['data'] = body ? JSON.parse(body) : {}
+
+  return { data, status: res.status, headers: res.headers } as meSocialAccountsListResponse
+}
+
+export const getMeSocialAccountsListQueryKey = (params?: MeSocialAccountsListParams) => {
+  return ['me', 'social-accounts', ...(params ? [params] : [])] as const
+}
+
+export const getMeSocialAccountsListQueryOptions = <
+  TData = Awaited<ReturnType<typeof meSocialAccountsList>>,
+  TError = unknown,
+>(
+  params?: MeSocialAccountsListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+) => {
+  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getMeSocialAccountsListQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof meSocialAccountsList>>> = ({ signal }) =>
+    meSocialAccountsList(params, { signal, ...fetchOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof meSocialAccountsList>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type MeSocialAccountsListQueryResult = NonNullable<Awaited<ReturnType<typeof meSocialAccountsList>>>
+export type MeSocialAccountsListQueryError = unknown
+
+export function useMeSocialAccountsList<TData = Awaited<ReturnType<typeof meSocialAccountsList>>, TError = unknown>(
+  params: undefined | MeSocialAccountsListParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsList>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof meSocialAccountsList>>,
+          TError,
+          Awaited<ReturnType<typeof meSocialAccountsList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMeSocialAccountsList<TData = Awaited<ReturnType<typeof meSocialAccountsList>>, TError = unknown>(
+  params?: MeSocialAccountsListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsList>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof meSocialAccountsList>>,
+          TError,
+          Awaited<ReturnType<typeof meSocialAccountsList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMeSocialAccountsList<TData = Awaited<ReturnType<typeof meSocialAccountsList>>, TError = unknown>(
+  params?: MeSocialAccountsListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useMeSocialAccountsList<TData = Awaited<ReturnType<typeof meSocialAccountsList>>, TError = unknown>(
+  params?: MeSocialAccountsListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getMeSocialAccountsListQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * Apply this mixin to any view or viewset to enable multi-field lookups
+based on a `lookup_fields` attribute, instead of the default single-field lookup
+(`lookup_field`).
+
+⚠️ Warning:
+Make sure to declare the route using `.as_view()` so that `lookup_value_regex` is
+properly applied. Avoid using DRF's automatic routers, which rely on the default
+`lookup_field = 'pk'`.
+ */
+export type meSocialAccountsRetrieveResponse200 = {
+  data: SocialAccount
+  status: 200
+}
+
+export type meSocialAccountsRetrieveResponseComposite = meSocialAccountsRetrieveResponse200
+
+export type meSocialAccountsRetrieveResponse = meSocialAccountsRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getMeSocialAccountsRetrieveUrl = (
+  provider: string,
+  uid: string,
+  params?: MeSocialAccountsRetrieveParams,
+) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/me/social-accounts/${provider}/${uid}/?${stringifiedParams}`
+    : `/me/social-accounts/${provider}/${uid}/`
+}
+
+export const meSocialAccountsRetrieve = async (
+  provider: string,
+  uid: string,
+  params?: MeSocialAccountsRetrieveParams,
+  options?: RequestInit,
+): Promise<meSocialAccountsRetrieveResponse> => {
+  const res = await fetch(getMeSocialAccountsRetrieveUrl(provider, uid, params), {
+    ...options,
+    method: 'GET',
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  const data: meSocialAccountsRetrieveResponse['data'] = body ? JSON.parse(body) : {}
+
+  return { data, status: res.status, headers: res.headers } as meSocialAccountsRetrieveResponse
+}
+
+export const getMeSocialAccountsRetrieveQueryKey = (
+  provider: string,
+  uid: string,
+  params?: MeSocialAccountsRetrieveParams,
+) => {
+  return ['me', 'social-accounts', provider, uid, ...(params ? [params] : [])] as const
+}
+
+export const getMeSocialAccountsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
+  TError = unknown,
+>(
+  provider: string,
+  uid: string,
+  params?: MeSocialAccountsRetrieveParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>, TError, TData>>
+    fetch?: RequestInit
+  },
+) => {
+  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getMeSocialAccountsRetrieveQueryKey(provider, uid, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>> = ({ signal }) =>
+    meSocialAccountsRetrieve(provider, uid, params, { signal, ...fetchOptions })
+
+  return { queryKey, queryFn, enabled: !!(provider && uid), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type MeSocialAccountsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>>
+export type MeSocialAccountsRetrieveQueryError = unknown
+
+export function useMeSocialAccountsRetrieve<
+  TData = Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
+  TError = unknown,
+>(
+  provider: string,
+  uid: string,
+  params: undefined | MeSocialAccountsRetrieveParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof meSocialAccountsRetrieve>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMeSocialAccountsRetrieve<
+  TData = Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
+  TError = unknown,
+>(
+  provider: string,
+  uid: string,
+  params?: MeSocialAccountsRetrieveParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof meSocialAccountsRetrieve>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMeSocialAccountsRetrieve<
+  TData = Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
+  TError = unknown,
+>(
+  provider: string,
+  uid: string,
+  params?: MeSocialAccountsRetrieveParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useMeSocialAccountsRetrieve<
+  TData = Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
+  TError = unknown,
+>(
+  provider: string,
+  uid: string,
+  params?: MeSocialAccountsRetrieveParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getMeSocialAccountsRetrieveQueryOptions(provider, uid, params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * Apply this mixin to any view or viewset to enable multi-field lookups
+based on a `lookup_fields` attribute, instead of the default single-field lookup
+(`lookup_field`).
+
+⚠️ Warning:
+Make sure to declare the route using `.as_view()` so that `lookup_value_regex` is
+properly applied. Avoid using DRF's automatic routers, which rely on the default
+`lookup_field = 'pk'`.
+ */
+export type meSocialAccountsDestroyResponse204 = {
+  data: void
+  status: 204
+}
+
+export type meSocialAccountsDestroyResponseComposite = meSocialAccountsDestroyResponse204
+
+export type meSocialAccountsDestroyResponse = meSocialAccountsDestroyResponseComposite & {
+  headers: Headers
+}
+
+export const getMeSocialAccountsDestroyUrl = (
+  provider: string,
+  uid: string,
+  params?: MeSocialAccountsDestroyParams,
+) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/me/social-accounts/${provider}/${uid}/?${stringifiedParams}`
+    : `/me/social-accounts/${provider}/${uid}/`
+}
+
+export const meSocialAccountsDestroy = async (
+  provider: string,
+  uid: string,
+  params?: MeSocialAccountsDestroyParams,
+  options?: RequestInit,
+): Promise<meSocialAccountsDestroyResponse> => {
+  const res = await fetch(getMeSocialAccountsDestroyUrl(provider, uid, params), {
+    ...options,
+    method: 'DELETE',
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  const data: meSocialAccountsDestroyResponse['data'] = body ? JSON.parse(body) : {}
+
+  return { data, status: res.status, headers: res.headers } as meSocialAccountsDestroyResponse
+}
+
+export const useMeSocialAccountsDestroyMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
+    TError,
+    { provider: string; uid: string; params?: MeSocialAccountsDestroyParams },
+    TContext
+  >
+  fetch?: RequestInit
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
+  TError,
+  { provider: string; uid: string; params?: MeSocialAccountsDestroyParams },
+  TContext
+> => {
+  const mutationKey = ['meSocialAccountsDestroy']
+  const { mutation: mutationOptions, fetch: fetchOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, fetch: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
+    { provider: string; uid: string; params?: MeSocialAccountsDestroyParams }
+  > = (props) => {
+    const { provider, uid, params } = props ?? {}
+
+    return meSocialAccountsDestroy(provider, uid, params, fetchOptions)
+  }
+
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
+
+  return customOptions
+}
+
+export type MeSocialAccountsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof meSocialAccountsDestroy>>>
+
+export type MeSocialAccountsDestroyMutationError = unknown
+
+export const useMeSocialAccountsDestroy = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
+      TError,
+      { provider: string; uid: string; params?: MeSocialAccountsDestroyParams },
+      TContext
+    >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
+  TError,
+  { provider: string; uid: string; params?: MeSocialAccountsDestroyParams },
+  TContext
+> => {
+  const mutationOptions = useMeSocialAccountsDestroyMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -467,6 +1170,56 @@ export const getMePartialUpdateResponseMock = (overrideResponse: Partial<MeListR
   ...overrideResponse,
 })
 
+export const getMeEmailsListResponseMock = (
+  overrideResponse: Partial<PaginatedEmailAddressList> = {},
+): PaginatedEmailAddressList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    primary: faker.datatype.boolean(),
+    email: faker.internet.email(),
+    verified: faker.datatype.boolean(),
+  })),
+  ...overrideResponse,
+})
+
+export const getMeEmailsCreateResponseMock = (overrideResponse: Partial<EmailAddress> = {}): EmailAddress => ({
+  primary: faker.datatype.boolean(),
+  email: faker.internet.email(),
+  verified: faker.datatype.boolean(),
+  ...overrideResponse,
+})
+
+export const getMeSocialAccountsListResponseMock = (
+  overrideResponse: Partial<PaginatedSocialAccountList> = {},
+): PaginatedSocialAccountList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    provider: faker.string.alpha({ length: { min: 10, max: 200 } }),
+    uid: faker.string.alpha({ length: { min: 10, max: 191 } }),
+    last_login: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    email: faker.internet.email(),
+    username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  })),
+  ...overrideResponse,
+})
+
+export const getMeSocialAccountsRetrieveResponseMock = (
+  overrideResponse: Partial<SocialAccount> = {},
+): SocialAccount => ({
+  provider: faker.string.alpha({ length: { min: 10, max: 200 } }),
+  uid: faker.string.alpha({ length: { min: 10, max: 191 } }),
+  last_login: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  email: faker.internet.email(),
+  username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+})
+
 export const getMeRetrieveMockHandler = (
   overrideResponse?:
     | MeListResponse
@@ -520,4 +1273,113 @@ export const getMeDestroyMockHandler = (
     return new HttpResponse(null, { status: 204 })
   })
 }
-export const getMeMock = () => [getMeRetrieveMockHandler(), getMePartialUpdateMockHandler(), getMeDestroyMockHandler()]
+
+export const getMeEmailsListMockHandler = (
+  overrideResponse?:
+    | PaginatedEmailAddressList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedEmailAddressList> | PaginatedEmailAddressList),
+) => {
+  return http.get('*/me/emails/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getMeEmailsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getMeEmailsCreateMockHandler = (
+  overrideResponse?:
+    | EmailAddress
+    | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<EmailAddress> | EmailAddress),
+) => {
+  return http.post('*/me/emails/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getMeEmailsCreateResponseMock(),
+      ),
+      { status: 201, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getMeSocialAccountsListMockHandler = (
+  overrideResponse?:
+    | PaginatedSocialAccountList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedSocialAccountList> | PaginatedSocialAccountList),
+) => {
+  return http.get('*/me/social-accounts/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getMeSocialAccountsListResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getMeSocialAccountsRetrieveMockHandler = (
+  overrideResponse?:
+    | SocialAccount
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SocialAccount> | SocialAccount),
+) => {
+  return http.get('*/me/social-accounts/:provider/:uid/', async (info) => {
+    await delay(1000)
+
+    return new HttpResponse(
+      JSON.stringify(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getMeSocialAccountsRetrieveResponseMock(),
+      ),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )
+  })
+}
+
+export const getMeSocialAccountsDestroyMockHandler = (
+  overrideResponse?: void | ((info: Parameters<Parameters<typeof http.delete>[1]>[0]) => Promise<void> | void),
+) => {
+  return http.delete('*/me/social-accounts/:provider/:uid/', async (info) => {
+    await delay(1000)
+    if (typeof overrideResponse === 'function') {
+      await overrideResponse(info)
+    }
+    return new HttpResponse(null, { status: 204 })
+  })
+}
+export const getMeMock = () => [
+  getMeRetrieveMockHandler(),
+  getMePartialUpdateMockHandler(),
+  getMeDestroyMockHandler(),
+  getMeEmailsListMockHandler(),
+  getMeEmailsCreateMockHandler(),
+  getMeSocialAccountsListMockHandler(),
+  getMeSocialAccountsRetrieveMockHandler(),
+  getMeSocialAccountsDestroyMockHandler(),
+]

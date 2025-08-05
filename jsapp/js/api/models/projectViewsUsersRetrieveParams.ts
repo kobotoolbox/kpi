@@ -5,8 +5,14 @@
  * Powerful and intuitive data collection tools to make an impact
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { ProjectViewsUsersRetrieveFormat } from './projectViewsUsersRetrieveFormat'
 
 export type ProjectViewsUsersRetrieveParams = {
-  format?: ProjectViewsUsersRetrieveFormat
+  /**
+   * Paginate results with limit parameter
+   */
+  limit?: number
+  /**
+   * Paginate results with offset parameter
+   */
+  offset?: number
 }

@@ -18,332 +18,55 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
-import type { ProjectOwnershipInvitesTransfersListParams } from './models/projectOwnershipInvitesTransfersListParams'
+import type { ErrorDetail } from './models/errorDetail'
 
-import type { ProjectOwnershipInvitesTransfersRetrieveParams } from './models/projectOwnershipInvitesTransfersRetrieveParams'
+import type { ErrorObject } from './models/errorObject'
 
 import { faker } from '@faker-js/faker'
 
 import { http, HttpResponse, delay } from 'msw'
 
-import type { PaginatedTransferDetailList } from './models/paginatedTransferDetailList'
-
-import type { TransferDetail } from './models/transferDetail'
+import type { TransferListResponse } from './models/transferListResponse'
 
 /**
- * ## List of transfers
+ * ## Retrieve transfer details
 
-<span class='label label-danger'>Not implemented</span> Refer to invite list instead.
-
-## Transfer detail
-
-It provides more details on error
-
-<pre class="prettyprint">
-<b>GET</b> /api/v2/project-ownership/invites/&lt;invite_uid&gt;/transfers/&lt;transfer_uid&gt;/
-</pre>
-
-> Example
->
->       curl -X GET https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/
-
-<pre class="prettyprint">
-<b>HTTP 200 OK</b>
-{
-   "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
-   "asset": "https://[kpi]/api/v2/assets/a8rg3w7ZNL5Nwj7iHzKiyX/",
-   "status": "in_progress",
-   "error": null,
-   "date_modified": "2023-12-14T21:17:29Z",
-   "statuses": [
-        {
-            "status": "success",
-            "status_type": "submissions",
-            "error": null
-        },
-        {
-            "status": "success",
-            "status_type": "media_files",
-            "error": null
-        },
-        {
-            "status": "in_progress",
-            "status_type": "attachments",
-            "error": null
-        },
-        {
-            "status": "in_progress",
-            "status_type": "global",
-            "error": null
-        }
-    ]
-}
-</pre>
-
-
-### CURRENT ENDPOINT
- */
-export type projectOwnershipInvitesTransfersListResponse200 = {
-  data: PaginatedTransferDetailList
-  status: 200
-}
-
-export type projectOwnershipInvitesTransfersListResponseComposite = projectOwnershipInvitesTransfersListResponse200
-
-export type projectOwnershipInvitesTransfersListResponse = projectOwnershipInvitesTransfersListResponseComposite & {
-  headers: Headers
-}
-
-export const getProjectOwnershipInvitesTransfersListUrl = (
-  parentLookupInviteUid: string,
-  params?: ProjectOwnershipInvitesTransfersListParams,
-) => {
-  const normalizedParams = new URLSearchParams()
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
-    }
-  })
-
-  const stringifiedParams = normalizedParams.toString()
-
-  return stringifiedParams.length > 0
-    ? `/api/v2/project-ownership/invites/${parentLookupInviteUid}/transfers/?${stringifiedParams}`
-    : `/api/v2/project-ownership/invites/${parentLookupInviteUid}/transfers/`
-}
-
-export const projectOwnershipInvitesTransfersList = async (
-  parentLookupInviteUid: string,
-  params?: ProjectOwnershipInvitesTransfersListParams,
-  options?: RequestInit,
-): Promise<projectOwnershipInvitesTransfersListResponse> => {
-  const res = await fetch(getProjectOwnershipInvitesTransfersListUrl(parentLookupInviteUid, params), {
-    ...options,
-    method: 'GET',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: projectOwnershipInvitesTransfersListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as projectOwnershipInvitesTransfersListResponse
-}
-
-export const getProjectOwnershipInvitesTransfersListQueryKey = (
-  parentLookupInviteUid: string,
-  params?: ProjectOwnershipInvitesTransfersListParams,
-) => {
-  return [
-    'api',
-    'v2',
-    'project-ownership',
-    'invites',
-    parentLookupInviteUid,
-    'transfers',
-    ...(params ? [params] : []),
-  ] as const
-}
-
-export const getProjectOwnershipInvitesTransfersListQueryOptions = <
-  TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>,
-  TError = unknown,
->(
-  parentLookupInviteUid: string,
-  params?: ProjectOwnershipInvitesTransfersListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
-
-  const queryKey =
-    queryOptions?.queryKey ?? getProjectOwnershipInvitesTransfersListQueryKey(parentLookupInviteUid, params)
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>> = ({ signal }) =>
-    projectOwnershipInvitesTransfersList(parentLookupInviteUid, params, { signal, ...fetchOptions })
-
-  return { queryKey, queryFn, enabled: !!parentLookupInviteUid, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ProjectOwnershipInvitesTransfersListQueryResult = NonNullable<
-  Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>
->
-export type ProjectOwnershipInvitesTransfersListQueryError = unknown
-
-export function useProjectOwnershipInvitesTransfersList<
-  TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>,
-  TError = unknown,
->(
-  parentLookupInviteUid: string,
-  params: undefined | ProjectOwnershipInvitesTransfersListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>,
-          TError,
-          Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectOwnershipInvitesTransfersList<
-  TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>,
-  TError = unknown,
->(
-  parentLookupInviteUid: string,
-  params?: ProjectOwnershipInvitesTransfersListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>,
-          TError,
-          Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectOwnershipInvitesTransfersList<
-  TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>,
-  TError = unknown,
->(
-  parentLookupInviteUid: string,
-  params?: ProjectOwnershipInvitesTransfersListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useProjectOwnershipInvitesTransfersList<
-  TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>,
-  TError = unknown,
->(
-  parentLookupInviteUid: string,
-  params?: ProjectOwnershipInvitesTransfersListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getProjectOwnershipInvitesTransfersListQueryOptions(parentLookupInviteUid, params, options)
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
-
-  query.queryKey = queryOptions.queryKey
-
-  return query
-}
-
-/**
- * ## List of transfers
-
-<span class='label label-danger'>Not implemented</span> Refer to invite list instead.
-
-## Transfer detail
-
-It provides more details on error
-
-<pre class="prettyprint">
-<b>GET</b> /api/v2/project-ownership/invites/&lt;invite_uid&gt;/transfers/&lt;transfer_uid&gt;/
-</pre>
-
-> Example
->
->       curl -X GET https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/
-
-<pre class="prettyprint">
-<b>HTTP 200 OK</b>
-{
-   "url": "https://[kpi]/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/",
-   "asset": "https://[kpi]/api/v2/assets/a8rg3w7ZNL5Nwj7iHzKiyX/",
-   "status": "in_progress",
-   "error": null,
-   "date_modified": "2023-12-14T21:17:29Z",
-   "statuses": [
-        {
-            "status": "success",
-            "status_type": "submissions",
-            "error": null
-        },
-        {
-            "status": "success",
-            "status_type": "media_files",
-            "error": null
-        },
-        {
-            "status": "in_progress",
-            "status_type": "attachments",
-            "error": null
-        },
-        {
-            "status": "in_progress",
-            "status_type": "global",
-            "error": null
-        }
-    ]
-}
-</pre>
-
-
-### CURRENT ENDPOINT
  */
 export type projectOwnershipInvitesTransfersRetrieveResponse200 = {
-  data: TransferDetail
+  data: TransferListResponse
   status: 200
+}
+
+export type projectOwnershipInvitesTransfersRetrieveResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type projectOwnershipInvitesTransfersRetrieveResponse404 = {
+  data: ErrorObject
+  status: 404
 }
 
 export type projectOwnershipInvitesTransfersRetrieveResponseComposite =
-  projectOwnershipInvitesTransfersRetrieveResponse200
+  | projectOwnershipInvitesTransfersRetrieveResponse200
+  | projectOwnershipInvitesTransfersRetrieveResponse401
+  | projectOwnershipInvitesTransfersRetrieveResponse404
 
 export type projectOwnershipInvitesTransfersRetrieveResponse =
   projectOwnershipInvitesTransfersRetrieveResponseComposite & {
     headers: Headers
   }
 
-export const getProjectOwnershipInvitesTransfersRetrieveUrl = (
-  parentLookupInviteUid: string,
-  uid: string,
-  params?: ProjectOwnershipInvitesTransfersRetrieveParams,
-) => {
-  const normalizedParams = new URLSearchParams()
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
-    }
-  })
-
-  const stringifiedParams = normalizedParams.toString()
-
-  return stringifiedParams.length > 0
-    ? `/api/v2/project-ownership/invites/${parentLookupInviteUid}/transfers/${uid}/?${stringifiedParams}`
-    : `/api/v2/project-ownership/invites/${parentLookupInviteUid}/transfers/${uid}/`
+export const getProjectOwnershipInvitesTransfersRetrieveUrl = (parentLookupInviteUid: string, uid: string) => {
+  return `/api/v2/project-ownership/invites/${parentLookupInviteUid}/transfers/${uid}/`
 }
 
 export const projectOwnershipInvitesTransfersRetrieve = async (
   parentLookupInviteUid: string,
   uid: string,
-  params?: ProjectOwnershipInvitesTransfersRetrieveParams,
   options?: RequestInit,
 ): Promise<projectOwnershipInvitesTransfersRetrieveResponse> => {
-  const res = await fetch(getProjectOwnershipInvitesTransfersRetrieveUrl(parentLookupInviteUid, uid, params), {
+  const res = await fetch(getProjectOwnershipInvitesTransfersRetrieveUrl(parentLookupInviteUid, uid), {
     ...options,
     method: 'GET',
   })
@@ -354,30 +77,16 @@ export const projectOwnershipInvitesTransfersRetrieve = async (
   return { data, status: res.status, headers: res.headers } as projectOwnershipInvitesTransfersRetrieveResponse
 }
 
-export const getProjectOwnershipInvitesTransfersRetrieveQueryKey = (
-  parentLookupInviteUid: string,
-  uid: string,
-  params?: ProjectOwnershipInvitesTransfersRetrieveParams,
-) => {
-  return [
-    'api',
-    'v2',
-    'project-ownership',
-    'invites',
-    parentLookupInviteUid,
-    'transfers',
-    uid,
-    ...(params ? [params] : []),
-  ] as const
+export const getProjectOwnershipInvitesTransfersRetrieveQueryKey = (parentLookupInviteUid: string, uid: string) => {
+  return ['api', 'v2', 'project-ownership', 'invites', parentLookupInviteUid, 'transfers', uid] as const
 }
 
 export const getProjectOwnershipInvitesTransfersRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   parentLookupInviteUid: string,
   uid: string,
-  params?: ProjectOwnershipInvitesTransfersRetrieveParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
@@ -388,10 +97,10 @@ export const getProjectOwnershipInvitesTransfersRetrieveQueryOptions = <
   const { query: queryOptions, fetch: fetchOptions } = options ?? {}
 
   const queryKey =
-    queryOptions?.queryKey ?? getProjectOwnershipInvitesTransfersRetrieveQueryKey(parentLookupInviteUid, uid, params)
+    queryOptions?.queryKey ?? getProjectOwnershipInvitesTransfersRetrieveQueryKey(parentLookupInviteUid, uid)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>> = ({ signal }) =>
-    projectOwnershipInvitesTransfersRetrieve(parentLookupInviteUid, uid, params, { signal, ...fetchOptions })
+    projectOwnershipInvitesTransfersRetrieve(parentLookupInviteUid, uid, { signal, ...fetchOptions })
 
   return { queryKey, queryFn, enabled: !!(parentLookupInviteUid && uid), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
@@ -403,15 +112,14 @@ export const getProjectOwnershipInvitesTransfersRetrieveQueryOptions = <
 export type ProjectOwnershipInvitesTransfersRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>
 >
-export type ProjectOwnershipInvitesTransfersRetrieveQueryError = unknown
+export type ProjectOwnershipInvitesTransfersRetrieveQueryError = ErrorDetail | ErrorObject
 
 export function useProjectOwnershipInvitesTransfersRetrieve<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   parentLookupInviteUid: string,
   uid: string,
-  params: undefined | ProjectOwnershipInvitesTransfersRetrieveParams,
   options: {
     query: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
@@ -430,11 +138,10 @@ export function useProjectOwnershipInvitesTransfersRetrieve<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectOwnershipInvitesTransfersRetrieve<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   parentLookupInviteUid: string,
   uid: string,
-  params?: ProjectOwnershipInvitesTransfersRetrieveParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
@@ -453,11 +160,10 @@ export function useProjectOwnershipInvitesTransfersRetrieve<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectOwnershipInvitesTransfersRetrieve<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   parentLookupInviteUid: string,
   uid: string,
-  params?: ProjectOwnershipInvitesTransfersRetrieveParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
@@ -469,11 +175,10 @@ export function useProjectOwnershipInvitesTransfersRetrieve<
 
 export function useProjectOwnershipInvitesTransfersRetrieve<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   parentLookupInviteUid: string,
   uid: string,
-  params?: ProjectOwnershipInvitesTransfersRetrieveParams,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
@@ -482,12 +187,7 @@ export function useProjectOwnershipInvitesTransfersRetrieve<
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getProjectOwnershipInvitesTransfersRetrieveQueryOptions(
-    parentLookupInviteUid,
-    uid,
-    params,
-    options,
-  )
+  const queryOptions = getProjectOwnershipInvitesTransfersRetrieveQueryOptions(parentLookupInviteUid, uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -498,64 +198,26 @@ export function useProjectOwnershipInvitesTransfersRetrieve<
   return query
 }
 
-export const getApiV2ProjectOwnershipInvitesTransfersListResponseMock = (
-  overrideResponse: Partial<PaginatedTransferDetailList> = {},
-): PaginatedTransferDetailList => ({
-  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
-  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
-  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
-  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-    url: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    asset: faker.internet.url(),
-    status: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    date_modified: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    statuses: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-      [faker.string.alphanumeric(5)]: {},
-    })),
-  })),
-  ...overrideResponse,
-})
-
 export const getApiV2ProjectOwnershipInvitesTransfersRetrieveResponseMock = (
-  overrideResponse: Partial<TransferDetail> = {},
-): TransferDetail => ({
-  url: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  overrideResponse: Partial<TransferListResponse> = {},
+): TransferListResponse => ({
+  url: faker.internet.url(),
   asset: faker.internet.url(),
   status: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  date_modified: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  error: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
   statuses: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-    [faker.string.alphanumeric(5)]: {},
+    status: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    status_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    error: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
   })),
   ...overrideResponse,
 })
-
-export const getApiV2ProjectOwnershipInvitesTransfersListMockHandler = (
-  overrideResponse?:
-    | PaginatedTransferDetailList
-    | ((
-        info: Parameters<Parameters<typeof http.get>[1]>[0],
-      ) => Promise<PaginatedTransferDetailList> | PaginatedTransferDetailList),
-) => {
-  return http.get('*/api/v2/project-ownership/invites/:parentLookupInviteUid/transfers/', async (info) => {
-    await delay(1000)
-
-    return new HttpResponse(
-      JSON.stringify(
-        overrideResponse !== undefined
-          ? typeof overrideResponse === 'function'
-            ? await overrideResponse(info)
-            : overrideResponse
-          : getApiV2ProjectOwnershipInvitesTransfersListResponseMock(),
-      ),
-      { status: 200, headers: { 'Content-Type': 'application/json' } },
-    )
-  })
-}
 
 export const getApiV2ProjectOwnershipInvitesTransfersRetrieveMockHandler = (
   overrideResponse?:
-    | TransferDetail
-    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TransferDetail> | TransferDetail),
+    | TransferListResponse
+    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<TransferListResponse> | TransferListResponse),
 ) => {
   return http.get('*/api/v2/project-ownership/invites/:parentLookupInviteUid/transfers/:uid/', async (info) => {
     await delay(1000)
@@ -572,7 +234,4 @@ export const getApiV2ProjectOwnershipInvitesTransfersRetrieveMockHandler = (
     )
   })
 }
-export const getTransfersMock = () => [
-  getApiV2ProjectOwnershipInvitesTransfersListMockHandler(),
-  getApiV2ProjectOwnershipInvitesTransfersRetrieveMockHandler(),
-]
+export const getTransfersMock = () => [getApiV2ProjectOwnershipInvitesTransfersRetrieveMockHandler()]

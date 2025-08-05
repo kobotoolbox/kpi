@@ -85,7 +85,7 @@ const JSON_HEADER = 'application/json'
 //   500 // half second
 // );
 
-type FetchHttpMethod = 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE'
+export type FetchHttpMethod = 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE'
 
 export interface FetchDataOptions {
   /**
@@ -118,7 +118,7 @@ export interface FetchDataOptions {
   includeHeaders?: boolean
 }
 
-const fetchData = async <T>(
+export const fetchData = async <T>(
   /**
    * If you have full url to be called, remember to use `prependRootUrl` option.
    */

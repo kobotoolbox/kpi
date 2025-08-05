@@ -39,7 +39,7 @@ import type { InviteResponse } from './models/inviteResponse'
 
 import type { PaginatedInviteResponseList } from './models/paginatedInviteResponseList'
 
-import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
 
 /**
  * ## List organization invites
@@ -284,7 +284,7 @@ export const useOrganizationsInvitesCreateMutationOptions = <TError = ErrorObjec
     return organizationsInvitesCreate(organizationId, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -556,7 +556,7 @@ export const useOrganizationsInvitesPartialUpdateMutationOptions = <
     return organizationsInvitesPartialUpdate(organizationId, guid, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -671,7 +671,7 @@ export const useOrganizationsInvitesDestroyMutationOptions = <
     return organizationsInvitesDestroy(organizationId, guid, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }

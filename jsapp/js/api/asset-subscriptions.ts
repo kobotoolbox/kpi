@@ -35,7 +35,7 @@ import type { AssetSubscriptionResponse } from './models/assetSubscriptionRespon
 
 import type { PaginatedAssetSubscriptionResponseList } from './models/paginatedAssetSubscriptionResponseList'
 
-import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
 
 /**
  * ## List all asset subscriptions of a user
@@ -249,7 +249,7 @@ export const useAssetSubscriptionsCreateMutationOptions = <TError = ErrorObject,
     return assetSubscriptionsCreate(data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -490,7 +490,7 @@ export const useAssetSubscriptionsDestroyMutationOptions = <TError = ErrorObject
     return assetSubscriptionsDestroy(uid, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }

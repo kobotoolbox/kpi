@@ -41,7 +41,7 @@ import type { OpenRosaXFormResponse } from './models/openRosaXFormResponse'
 
 import type { PaginatedAssetSnapshotResponseList } from './models/paginatedAssetSnapshotResponseList'
 
-import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
 
 /**
  * ## List all snapshots for every asset of a user
@@ -272,7 +272,7 @@ export const useAssetSnapshotsCreateMutationOptions = <
     return assetSnapshotsCreate(data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -541,7 +541,7 @@ export const useAssetSnapshotsDestroyMutationOptions = <
     return assetSnapshotsDestroy(uid, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }

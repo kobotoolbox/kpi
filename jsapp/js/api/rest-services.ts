@@ -53,7 +53,7 @@ import type { PaginatedHookList } from './models/paginatedHookList'
 
 import type { PaginatedHookLogList } from './models/paginatedHookLogList'
 
-import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
 
 // https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497
 type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B
@@ -324,7 +324,7 @@ export const useAssetsHooksCreateMutationOptions = <TError = ErrorObject, TConte
     return assetsHooksCreate(parentLookupAsset, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -818,7 +818,7 @@ export const useAssetsHooksLogsRetryPartialUpdateMutationOptions = <
     return assetsHooksLogsRetryPartialUpdate(parentLookupAsset, parentLookupHook, uid, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -1061,7 +1061,7 @@ export const useAssetsHooksPartialUpdateMutationOptions = <TError = ErrorObject,
     return assetsHooksPartialUpdate(parentLookupAsset, uid, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -1161,7 +1161,7 @@ export const useAssetsHooksDestroyMutationOptions = <TError = ErrorObject, TCont
     return assetsHooksDestroy(parentLookupAsset, uid, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -1267,7 +1267,7 @@ export const useAssetsHooksRetryPartialUpdateMutationOptions = <TError = ErrorOb
     return assetsHooksRetryPartialUpdate(parentLookupAsset, uid, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }

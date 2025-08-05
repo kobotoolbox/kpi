@@ -29,7 +29,7 @@ import type { ErrorObject } from './models/errorObject'
 
 import { http, HttpResponse, delay } from 'msw'
 
-import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
 
 /**
  * ## Delete a specific attachment of an Asset
@@ -105,7 +105,7 @@ export const useAssetsAttachmentsDestroyMutationOptions = <TError = ErrorObject,
     return assetsAttachmentsDestroy(parentLookupAsset, id, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -234,7 +234,7 @@ export const useAssetsAttachmentsBulkDestroyMutationOptions = <TError = ErrorObj
     return assetsAttachmentsBulkDestroy(parentLookupAsset, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -717,25 +717,23 @@ curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/
 ```
 
  */
-export type assetsDataAttachmentsRetrieve2Response200 = {
+export type attachmentThumbnailResponse200 = {
   data: void
   status: 200
 }
 
-export type assetsDataAttachmentsRetrieve2Response404 = {
+export type attachmentThumbnailResponse404 = {
   data: ErrorObject
   status: 404
 }
 
-export type assetsDataAttachmentsRetrieve2ResponseComposite =
-  | assetsDataAttachmentsRetrieve2Response200
-  | assetsDataAttachmentsRetrieve2Response404
+export type attachmentThumbnailResponseComposite = attachmentThumbnailResponse200 | attachmentThumbnailResponse404
 
-export type assetsDataAttachmentsRetrieve2Response = assetsDataAttachmentsRetrieve2ResponseComposite & {
+export type attachmentThumbnailResponse = attachmentThumbnailResponseComposite & {
   headers: Headers
 }
 
-export const getAssetsDataAttachmentsRetrieve2Url = (
+export const getAttachmentThumbnailUrl = (
   parentLookupAsset: string,
   parentLookupData: string,
   id: string,
@@ -744,25 +742,25 @@ export const getAssetsDataAttachmentsRetrieve2Url = (
   return `/api/v2/assets/${parentLookupAsset}/data/${parentLookupData}/attachments/${id}/${suffix}/`
 }
 
-export const assetsDataAttachmentsRetrieve2 = async (
+export const attachmentThumbnail = async (
   parentLookupAsset: string,
   parentLookupData: string,
   id: string,
   suffix: string,
   options?: RequestInit,
-): Promise<assetsDataAttachmentsRetrieve2Response> => {
-  const res = await fetch(getAssetsDataAttachmentsRetrieve2Url(parentLookupAsset, parentLookupData, id, suffix), {
+): Promise<attachmentThumbnailResponse> => {
+  const res = await fetch(getAttachmentThumbnailUrl(parentLookupAsset, parentLookupData, id, suffix), {
     ...options,
     method: 'GET',
   })
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsDataAttachmentsRetrieve2Response['data'] = body ? JSON.parse(body) : {}
+  const data: attachmentThumbnailResponse['data'] = body ? JSON.parse(body) : {}
 
-  return { data, status: res.status, headers: res.headers } as assetsDataAttachmentsRetrieve2Response
+  return { data, status: res.status, headers: res.headers } as attachmentThumbnailResponse
 }
 
-export const getAssetsDataAttachmentsRetrieve2QueryKey = (
+export const getAttachmentThumbnailQueryKey = (
   parentLookupAsset: string,
   parentLookupData: string,
   id: string,
@@ -771,8 +769,8 @@ export const getAssetsDataAttachmentsRetrieve2QueryKey = (
   return ['api', 'v2', 'assets', parentLookupAsset, 'data', parentLookupData, 'attachments', id, suffix] as const
 }
 
-export const getAssetsDataAttachmentsRetrieve2QueryOptions = <
-  TData = Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>,
+export const getAttachmentThumbnailQueryOptions = <
+  TData = Awaited<ReturnType<typeof attachmentThumbnail>>,
   TError = ErrorObject,
 >(
   parentLookupAsset: string,
@@ -780,48 +778,43 @@ export const getAssetsDataAttachmentsRetrieve2QueryOptions = <
   id: string,
   suffix: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>, TError, TData>>
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData>>
     fetch?: RequestInit
   },
 ) => {
   const { query: queryOptions, fetch: fetchOptions } = options ?? {}
 
   const queryKey =
-    queryOptions?.queryKey ?? getAssetsDataAttachmentsRetrieve2QueryKey(parentLookupAsset, parentLookupData, id, suffix)
+    queryOptions?.queryKey ?? getAttachmentThumbnailQueryKey(parentLookupAsset, parentLookupData, id, suffix)
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>> = ({ signal }) =>
-    assetsDataAttachmentsRetrieve2(parentLookupAsset, parentLookupData, id, suffix, { signal, ...fetchOptions })
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof attachmentThumbnail>>> = ({ signal }) =>
+    attachmentThumbnail(parentLookupAsset, parentLookupData, id, suffix, { signal, ...fetchOptions })
 
   return {
     queryKey,
     queryFn,
     enabled: !!(parentLookupAsset && parentLookupData && id && suffix),
     ...queryOptions,
-  } as UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>, TError, TData> & {
+  } as UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData> & {
     queryKey: DataTag<QueryKey, TData, TError>
   }
 }
 
-export type AssetsDataAttachmentsRetrieve2QueryResult = NonNullable<
-  Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>
->
-export type AssetsDataAttachmentsRetrieve2QueryError = ErrorObject
+export type AttachmentThumbnailQueryResult = NonNullable<Awaited<ReturnType<typeof attachmentThumbnail>>>
+export type AttachmentThumbnailQueryError = ErrorObject
 
-export function useAssetsDataAttachmentsRetrieve2<
-  TData = Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>,
-  TError = ErrorObject,
->(
+export function useAttachmentThumbnail<TData = Awaited<ReturnType<typeof attachmentThumbnail>>, TError = ErrorObject>(
   parentLookupAsset: string,
   parentLookupData: string,
   id: string,
   suffix: string,
   options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>, TError, TData>> &
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData>> &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>,
+          Awaited<ReturnType<typeof attachmentThumbnail>>,
           TError,
-          Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>
+          Awaited<ReturnType<typeof attachmentThumbnail>>
         >,
         'initialData'
       >
@@ -829,21 +822,18 @@ export function useAssetsDataAttachmentsRetrieve2<
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsDataAttachmentsRetrieve2<
-  TData = Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>,
-  TError = ErrorObject,
->(
+export function useAttachmentThumbnail<TData = Awaited<ReturnType<typeof attachmentThumbnail>>, TError = ErrorObject>(
   parentLookupAsset: string,
   parentLookupData: string,
   id: string,
   suffix: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>, TError, TData>> &
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData>> &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>,
+          Awaited<ReturnType<typeof attachmentThumbnail>>,
           TError,
-          Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>
+          Awaited<ReturnType<typeof attachmentThumbnail>>
         >,
         'initialData'
       >
@@ -851,42 +841,30 @@ export function useAssetsDataAttachmentsRetrieve2<
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsDataAttachmentsRetrieve2<
-  TData = Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>,
-  TError = ErrorObject,
->(
+export function useAttachmentThumbnail<TData = Awaited<ReturnType<typeof attachmentThumbnail>>, TError = ErrorObject>(
   parentLookupAsset: string,
   parentLookupData: string,
   id: string,
   suffix: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>, TError, TData>>
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData>>
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useAssetsDataAttachmentsRetrieve2<
-  TData = Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>,
-  TError = ErrorObject,
->(
+export function useAttachmentThumbnail<TData = Awaited<ReturnType<typeof attachmentThumbnail>>, TError = ErrorObject>(
   parentLookupAsset: string,
   parentLookupData: string,
   id: string,
   suffix: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve2>>, TError, TData>>
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData>>
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAssetsDataAttachmentsRetrieve2QueryOptions(
-    parentLookupAsset,
-    parentLookupData,
-    id,
-    suffix,
-    options,
-  )
+  const queryOptions = getAttachmentThumbnailQueryOptions(parentLookupAsset, parentLookupData, id, suffix, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -945,7 +923,7 @@ export const getApiV2AssetsDataAttachmentsRetrieveMockHandler = (
   })
 }
 
-export const getApiV2AssetsDataAttachmentsRetrieve2MockHandler = (
+export const getAttachmentThumbnailMockHandler = (
   overrideResponse?: void | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<void> | void),
 ) => {
   return http.get(
@@ -964,5 +942,5 @@ export const getAttachmentsMock = () => [
   getApiV2AssetsAttachmentsBulkDestroyMockHandler(),
   getApiV2AssetsDataAttachmentsListMockHandler(),
   getApiV2AssetsDataAttachmentsRetrieveMockHandler(),
-  getApiV2AssetsDataAttachmentsRetrieve2MockHandler(),
+  getAttachmentThumbnailMockHandler(),
 ]

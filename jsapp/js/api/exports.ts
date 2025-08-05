@@ -37,7 +37,7 @@ import type { ExportResponse } from './models/exportResponse'
 
 import type { PaginatedExportResponseList } from './models/paginatedExportResponseList'
 
-import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
 
 /**
  * ## List of export tasks endpoints
@@ -333,7 +333,7 @@ export const useAssetsExportsCreateMutationOptions = <
     return assetsExportsCreate(parentLookupAsset, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -600,7 +600,7 @@ export const useAssetsExportsDestroyMutationOptions = <
     return assetsExportsDestroy(parentLookupAsset, uid, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }

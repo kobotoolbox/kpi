@@ -35,7 +35,7 @@ import type { ExportHistoryResponse } from './models/exportHistoryResponse'
 
 import type { PaginatedProjectHistoryLogResponseList } from './models/paginatedProjectHistoryLogResponseList'
 
-import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
 
 /**
  * ## List all project history logs for all projects.
@@ -607,7 +607,7 @@ export const useProjectHistoryLogsExportCreateMutationOptions = <
     return projectHistoryLogsExportCreate(fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }

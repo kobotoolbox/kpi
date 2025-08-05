@@ -2,8 +2,14 @@ import type { ReactNode } from 'react'
 
 import { Group, LoadingOverlay, Menu, Modal, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { useOrganizationsInvitesDestroy, useOrganizationsInvitesPartialUpdate } from '#/api/organization-invites'
+import {
+  getOrganizationsInvitesListQueryKey,
+  getOrganizationsInvitesRetrieveQueryKey,
+  useOrganizationsInvitesDestroy,
+  useOrganizationsInvitesPartialUpdate,
+} from '#/api/organization-invites'
 import ButtonNew from '#/components/common/ButtonNew'
+import { queryClient } from '#/query/queryClient'
 import { notify } from '#/utils'
 import type { MemberInvite } from './membersInviteQuery'
 import { MemberInviteStatus } from './membersInviteQuery'
@@ -12,9 +18,11 @@ import { MemberInviteStatus } from './membersInviteQuery'
  * A dropdown with all actions that can be taken towards an organization invitee.
  */
 export default function InviteeActionsDropdown({
+  orgId,
   target,
   invite,
 }: {
+  orgId: string,
   target: ReactNode
   invite: MemberInvite
 }) {
@@ -22,18 +30,30 @@ export default function InviteeActionsDropdown({
 
   const orgInvitesPatchMutation = useOrganizationsInvitesPartialUpdate({
     mutation: {
-      // onSettled(data, error, variables, context) {
-
-      // },
-    }
+      onSuccess: (_data, variables) => {
+        queryClient.invalidateQueries({ queryKey: getOrganizationsInvitesListQueryKey(variables.organizationId) })
+        queryClient.invalidateQueries({
+          queryKey: getOrganizationsInvitesRetrieveQueryKey(variables.organizationId, variables.guid),
+        })
+      },
+    },
   })
-  const orgInvitesDestroyMutation = useOrganizationsInvitesDestroy()
+  const orgInvitesDestroyMutation = useOrganizationsInvitesDestroy({
+    mutation: {
+      onSuccess: (_data, variables) => {
+        queryClient.invalidateQueries({ queryKey: getOrganizationsInvitesListQueryKey(variables.organizationId) })
+        queryClient.invalidateQueries({
+          queryKey: getOrganizationsInvitesRetrieveQueryKey(variables.organizationId, variables.guid),
+        })
+      },
+    },
+  })
 
   const resendInvitation = async () => {
     try {
       await orgInvitesPatchMutation.mutateAsync({
-        organizationId: '',
-        guid: invite.url,
+        organizationId: orgId,
+        guid: invite.invitee,
         data: {
           status: MemberInviteStatus.resent,
         },

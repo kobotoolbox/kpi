@@ -18,9 +18,11 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
-import type { TranscriptionServicesListParams } from './models/transcriptionServicesListParams'
+import type { ErrorDetail } from './models/errorDetail'
 
-import type { TranscriptionServicesRetrieveParams } from './models/transcriptionServicesRetrieveParams'
+import type { ErrorObject } from './models/errorObject'
+
+import type { TranscriptionServicesListParams } from './models/transcriptionServicesListParams'
 
 import { faker } from '@faker-js/faker'
 
@@ -31,60 +33,26 @@ import type { PaginatedTranscriptionServiceList } from './models/paginatedTransc
 import type { TranscriptionService } from './models/transcriptionService'
 
 /**
- * Lists the transcription services accessible to requesting (authenticated) user.
-
-<pre class="prettyprint">
-<b>GET</b> /api/v2/transcription-services/
-</pre>
-
-> Example
->
->       curl -X GET https://[kpi]/api/v2/transcription-services/
+ * ## List the transcription services accessible to requesting user.
 
 Search can be made with `q` parameter to search for the term in names and codes.
 
-> Example
->
->       curl -X GET https://[kpi]/api/v2/transcription-services/?q=goo
->       {
->           "count": 1
->           "next": ...
->           "previous": ...
->           "results": [
->               {
->                   "name": "Google",
->                   "code": "goog",
->               }
->           ]
->       }
-
 Results are order by name.
 
-
-## Get one transcription service
-
-* `code` - is the unique identifier of a specific language
-
-<pre class="prettyprint">
-<b>GET</b> /api/v2/transcription-services/<code>{code}</code>/
-</pre>
-
-> Example
->
->       curl -X GET https://[kpi]/api/v2/transcription-services/goog/
->       {
->           "name": "Google",
->           "code": "goog",
->       }
-
-### CURRENT ENDPOINT
  */
 export type transcriptionServicesListResponse200 = {
   data: PaginatedTranscriptionServiceList
   status: 200
 }
 
-export type transcriptionServicesListResponseComposite = transcriptionServicesListResponse200
+export type transcriptionServicesListResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type transcriptionServicesListResponseComposite =
+  | transcriptionServicesListResponse200
+  | transcriptionServicesListResponse401
 
 export type transcriptionServicesListResponse = transcriptionServicesListResponseComposite & {
   headers: Headers
@@ -127,7 +95,7 @@ export const getTranscriptionServicesListQueryKey = (params?: TranscriptionServi
 
 export const getTranscriptionServicesListQueryOptions = <
   TData = Awaited<ReturnType<typeof transcriptionServicesList>>,
-  TError = unknown,
+  TError = ErrorDetail,
 >(
   params?: TranscriptionServicesListParams,
   options?: {
@@ -150,11 +118,11 @@ export const getTranscriptionServicesListQueryOptions = <
 }
 
 export type TranscriptionServicesListQueryResult = NonNullable<Awaited<ReturnType<typeof transcriptionServicesList>>>
-export type TranscriptionServicesListQueryError = unknown
+export type TranscriptionServicesListQueryError = ErrorDetail
 
 export function useTranscriptionServicesList<
   TData = Awaited<ReturnType<typeof transcriptionServicesList>>,
-  TError = unknown,
+  TError = ErrorDetail,
 >(
   params: undefined | TranscriptionServicesListParams,
   options: {
@@ -173,7 +141,7 @@ export function useTranscriptionServicesList<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useTranscriptionServicesList<
   TData = Awaited<ReturnType<typeof transcriptionServicesList>>,
-  TError = unknown,
+  TError = ErrorDetail,
 >(
   params?: TranscriptionServicesListParams,
   options?: {
@@ -192,7 +160,7 @@ export function useTranscriptionServicesList<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useTranscriptionServicesList<
   TData = Awaited<ReturnType<typeof transcriptionServicesList>>,
-  TError = unknown,
+  TError = ErrorDetail,
 >(
   params?: TranscriptionServicesListParams,
   options?: {
@@ -204,7 +172,7 @@ export function useTranscriptionServicesList<
 
 export function useTranscriptionServicesList<
   TData = Awaited<ReturnType<typeof transcriptionServicesList>>,
-  TError = unknown,
+  TError = ErrorDetail,
 >(
   params?: TranscriptionServicesListParams,
   options?: {
@@ -225,87 +193,44 @@ export function useTranscriptionServicesList<
 }
 
 /**
- * Lists the transcription services accessible to requesting (authenticated) user.
-
-<pre class="prettyprint">
-<b>GET</b> /api/v2/transcription-services/
-</pre>
-
-> Example
->
->       curl -X GET https://[kpi]/api/v2/transcription-services/
-
-Search can be made with `q` parameter to search for the term in names and codes.
-
-> Example
->
->       curl -X GET https://[kpi]/api/v2/transcription-services/?q=goo
->       {
->           "count": 1
->           "next": ...
->           "previous": ...
->           "results": [
->               {
->                   "name": "Google",
->                   "code": "goog",
->               }
->           ]
->       }
-
-Results are order by name.
-
-
-## Get one transcription service
+ * ## retrieve a transcription service
 
 * `code` - is the unique identifier of a specific language
 
-<pre class="prettyprint">
-<b>GET</b> /api/v2/transcription-services/<code>{code}</code>/
-</pre>
-
-> Example
->
->       curl -X GET https://[kpi]/api/v2/transcription-services/goog/
->       {
->           "name": "Google",
->           "code": "goog",
->       }
-
-### CURRENT ENDPOINT
  */
 export type transcriptionServicesRetrieveResponse200 = {
   data: TranscriptionService
   status: 200
 }
 
-export type transcriptionServicesRetrieveResponseComposite = transcriptionServicesRetrieveResponse200
+export type transcriptionServicesRetrieveResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type transcriptionServicesRetrieveResponse404 = {
+  data: ErrorObject
+  status: 404
+}
+
+export type transcriptionServicesRetrieveResponseComposite =
+  | transcriptionServicesRetrieveResponse200
+  | transcriptionServicesRetrieveResponse401
+  | transcriptionServicesRetrieveResponse404
 
 export type transcriptionServicesRetrieveResponse = transcriptionServicesRetrieveResponseComposite & {
   headers: Headers
 }
 
-export const getTranscriptionServicesRetrieveUrl = (code: string, params?: TranscriptionServicesRetrieveParams) => {
-  const normalizedParams = new URLSearchParams()
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
-    }
-  })
-
-  const stringifiedParams = normalizedParams.toString()
-
-  return stringifiedParams.length > 0
-    ? `/api/v2/transcription-services/${code}/?${stringifiedParams}`
-    : `/api/v2/transcription-services/${code}/`
+export const getTranscriptionServicesRetrieveUrl = (code: string) => {
+  return `/api/v2/transcription-services/${code}/`
 }
 
 export const transcriptionServicesRetrieve = async (
   code: string,
-  params?: TranscriptionServicesRetrieveParams,
   options?: RequestInit,
 ): Promise<transcriptionServicesRetrieveResponse> => {
-  const res = await fetch(getTranscriptionServicesRetrieveUrl(code, params), {
+  const res = await fetch(getTranscriptionServicesRetrieveUrl(code), {
     ...options,
     method: 'GET',
   })
@@ -316,19 +241,15 @@ export const transcriptionServicesRetrieve = async (
   return { data, status: res.status, headers: res.headers } as transcriptionServicesRetrieveResponse
 }
 
-export const getTranscriptionServicesRetrieveQueryKey = (
-  code: string,
-  params?: TranscriptionServicesRetrieveParams,
-) => {
-  return ['api', 'v2', 'transcription-services', code, ...(params ? [params] : [])] as const
+export const getTranscriptionServicesRetrieveQueryKey = (code: string) => {
+  return ['api', 'v2', 'transcription-services', code] as const
 }
 
 export const getTranscriptionServicesRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   code: string,
-  params?: TranscriptionServicesRetrieveParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError, TData>>
     fetch?: RequestInit
@@ -336,10 +257,10 @@ export const getTranscriptionServicesRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, fetch: fetchOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getTranscriptionServicesRetrieveQueryKey(code, params)
+  const queryKey = queryOptions?.queryKey ?? getTranscriptionServicesRetrieveQueryKey(code)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>> = ({ signal }) =>
-    transcriptionServicesRetrieve(code, params, { signal, ...fetchOptions })
+    transcriptionServicesRetrieve(code, { signal, ...fetchOptions })
 
   return { queryKey, queryFn, enabled: !!code, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
@@ -351,14 +272,13 @@ export const getTranscriptionServicesRetrieveQueryOptions = <
 export type TranscriptionServicesRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof transcriptionServicesRetrieve>>
 >
-export type TranscriptionServicesRetrieveQueryError = unknown
+export type TranscriptionServicesRetrieveQueryError = ErrorDetail | ErrorObject
 
 export function useTranscriptionServicesRetrieve<
   TData = Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   code: string,
-  params: undefined | TranscriptionServicesRetrieveParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError, TData>> &
       Pick<
@@ -375,10 +295,9 @@ export function useTranscriptionServicesRetrieve<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useTranscriptionServicesRetrieve<
   TData = Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   code: string,
-  params?: TranscriptionServicesRetrieveParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError, TData>> &
       Pick<
@@ -395,10 +314,9 @@ export function useTranscriptionServicesRetrieve<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useTranscriptionServicesRetrieve<
   TData = Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   code: string,
-  params?: TranscriptionServicesRetrieveParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError, TData>>
     fetch?: RequestInit
@@ -408,17 +326,16 @@ export function useTranscriptionServicesRetrieve<
 
 export function useTranscriptionServicesRetrieve<
   TData = Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   code: string,
-  params?: TranscriptionServicesRetrieveParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError, TData>>
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getTranscriptionServicesRetrieveQueryOptions(code, params, options)
+  const queryOptions = getTranscriptionServicesRetrieveQueryOptions(code, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>

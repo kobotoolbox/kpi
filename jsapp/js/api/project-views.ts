@@ -21,15 +21,13 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
+import type { ErrorDetail } from './models/errorDetail'
+
+import type { ErrorObject } from './models/errorObject'
+
 import type { ProjectViewsAssetsRetrieveParams } from './models/projectViewsAssetsRetrieveParams'
 
-import type { ProjectViewsExportCreateParams } from './models/projectViewsExportCreateParams'
-
-import type { ProjectViewsExportRetrieveParams } from './models/projectViewsExportRetrieveParams'
-
 import type { ProjectViewsListParams } from './models/projectViewsListParams'
-
-import type { ProjectViewsRetrieveParams } from './models/projectViewsRetrieveParams'
 
 import type { ProjectViewsUsersRetrieveParams } from './models/projectViewsUsersRetrieveParams'
 
@@ -37,37 +35,35 @@ import { faker } from '@faker-js/faker'
 
 import { http, HttpResponse, delay } from 'msw'
 
-import type { PaginatedProjectViewList } from './models/paginatedProjectViewList'
+import type { PaginatedProjectViewAssetResponseList } from './models/paginatedProjectViewAssetResponseList'
 
-import { PermissionsEnum } from './models/permissionsEnum'
+import type { PaginatedProjectViewListResponseList } from './models/paginatedProjectViewListResponseList'
 
-import type { ProjectView } from './models/projectView'
+import type { PaginatedProjectViewUserResponseList } from './models/paginatedProjectViewUserResponseList'
 
-import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+import type { ProjectViewExportCreateResponse } from './models/projectViewExportCreateResponse'
 
-// https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497
-type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B
+import type { ProjectViewExportResponse } from './models/projectViewExportResponse'
 
-type WritableKeys<T> = {
-  [P in keyof T]-?: IfEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, P>
-}[keyof T]
+import type { ProjectViewListResponse } from './models/projectViewListResponse'
 
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never
-type DistributeReadOnlyOverUnions<T> = T extends any ? NonReadonly<T> : never
+import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
 
-type Writable<T> = Pick<T, WritableKeys<T>>
-type NonReadonly<T> = [T] extends [UnionToIntersection<T>]
-  ? {
-      [P in keyof Writable<T>]: T[P] extends object ? NonReadonly<NonNullable<T[P]>> : T[P]
-    }
-  : DistributeReadOnlyOverUnions<T>
+/**
+ * ## List project views for current user
 
+ */
 export type projectViewsListResponse200 = {
-  data: PaginatedProjectViewList
+  data: PaginatedProjectViewListResponseList
   status: 200
 }
 
-export type projectViewsListResponseComposite = projectViewsListResponse200
+export type projectViewsListResponse403 = {
+  data: ErrorDetail
+  status: 403
+}
+
+export type projectViewsListResponseComposite = projectViewsListResponse200 | projectViewsListResponse403
 
 export type projectViewsListResponse = projectViewsListResponseComposite & {
   headers: Headers
@@ -106,7 +102,10 @@ export const getProjectViewsListQueryKey = (params?: ProjectViewsListParams) => 
   return ['api', 'v2', 'project-views', ...(params ? [params] : [])] as const
 }
 
-export const getProjectViewsListQueryOptions = <TData = Awaited<ReturnType<typeof projectViewsList>>, TError = unknown>(
+export const getProjectViewsListQueryOptions = <
+  TData = Awaited<ReturnType<typeof projectViewsList>>,
+  TError = ErrorDetail,
+>(
   params?: ProjectViewsListParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsList>>, TError, TData>>
@@ -128,9 +127,9 @@ export const getProjectViewsListQueryOptions = <TData = Awaited<ReturnType<typeo
 }
 
 export type ProjectViewsListQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsList>>>
-export type ProjectViewsListQueryError = unknown
+export type ProjectViewsListQueryError = ErrorDetail
 
-export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectViewsList>>, TError = unknown>(
+export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectViewsList>>, TError = ErrorDetail>(
   params: undefined | ProjectViewsListParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsList>>, TError, TData>> &
@@ -146,7 +145,7 @@ export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectVie
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectViewsList>>, TError = unknown>(
+export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectViewsList>>, TError = ErrorDetail>(
   params?: ProjectViewsListParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsList>>, TError, TData>> &
@@ -162,7 +161,7 @@ export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectVie
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectViewsList>>, TError = unknown>(
+export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectViewsList>>, TError = ErrorDetail>(
   params?: ProjectViewsListParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsList>>, TError, TData>>
@@ -171,7 +170,7 @@ export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectVie
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectViewsList>>, TError = unknown>(
+export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectViewsList>>, TError = ErrorDetail>(
   params?: ProjectViewsListParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsList>>, TError, TData>>
@@ -190,39 +189,43 @@ export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectVie
   return query
 }
 
+/**
+ * ## Retrieve project view of a shared project to current user
+
+ */
 export type projectViewsRetrieveResponse200 = {
-  data: ProjectView
+  data: ProjectViewListResponse
   status: 200
 }
 
-export type projectViewsRetrieveResponseComposite = projectViewsRetrieveResponse200
+export type projectViewsRetrieveResponse403 = {
+  data: ErrorDetail
+  status: 403
+}
+
+export type projectViewsRetrieveResponse404 = {
+  data: ErrorObject
+  status: 404
+}
+
+export type projectViewsRetrieveResponseComposite =
+  | projectViewsRetrieveResponse200
+  | projectViewsRetrieveResponse403
+  | projectViewsRetrieveResponse404
 
 export type projectViewsRetrieveResponse = projectViewsRetrieveResponseComposite & {
   headers: Headers
 }
 
-export const getProjectViewsRetrieveUrl = (uid: string, params?: ProjectViewsRetrieveParams) => {
-  const normalizedParams = new URLSearchParams()
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
-    }
-  })
-
-  const stringifiedParams = normalizedParams.toString()
-
-  return stringifiedParams.length > 0
-    ? `/api/v2/project-views/${uid}/?${stringifiedParams}`
-    : `/api/v2/project-views/${uid}/`
+export const getProjectViewsRetrieveUrl = (uid: string) => {
+  return `/api/v2/project-views/${uid}/`
 }
 
 export const projectViewsRetrieve = async (
   uid: string,
-  params?: ProjectViewsRetrieveParams,
   options?: RequestInit,
 ): Promise<projectViewsRetrieveResponse> => {
-  const res = await fetch(getProjectViewsRetrieveUrl(uid, params), {
+  const res = await fetch(getProjectViewsRetrieveUrl(uid), {
     ...options,
     method: 'GET',
   })
@@ -233,16 +236,15 @@ export const projectViewsRetrieve = async (
   return { data, status: res.status, headers: res.headers } as projectViewsRetrieveResponse
 }
 
-export const getProjectViewsRetrieveQueryKey = (uid: string, params?: ProjectViewsRetrieveParams) => {
-  return ['api', 'v2', 'project-views', uid, ...(params ? [params] : [])] as const
+export const getProjectViewsRetrieveQueryKey = (uid: string) => {
+  return ['api', 'v2', 'project-views', uid] as const
 }
 
 export const getProjectViewsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectViewsRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   uid: string,
-  params?: ProjectViewsRetrieveParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsRetrieve>>, TError, TData>>
     fetch?: RequestInit
@@ -250,10 +252,10 @@ export const getProjectViewsRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, fetch: fetchOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getProjectViewsRetrieveQueryKey(uid, params)
+  const queryKey = queryOptions?.queryKey ?? getProjectViewsRetrieveQueryKey(uid)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsRetrieve>>> = ({ signal }) =>
-    projectViewsRetrieve(uid, params, { signal, ...fetchOptions })
+    projectViewsRetrieve(uid, { signal, ...fetchOptions })
 
   return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectViewsRetrieve>>,
@@ -263,11 +265,13 @@ export const getProjectViewsRetrieveQueryOptions = <
 }
 
 export type ProjectViewsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsRetrieve>>>
-export type ProjectViewsRetrieveQueryError = unknown
+export type ProjectViewsRetrieveQueryError = ErrorDetail | ErrorObject
 
-export function useProjectViewsRetrieve<TData = Awaited<ReturnType<typeof projectViewsRetrieve>>, TError = unknown>(
+export function useProjectViewsRetrieve<
+  TData = Awaited<ReturnType<typeof projectViewsRetrieve>>,
+  TError = ErrorDetail | ErrorObject,
+>(
   uid: string,
-  params: undefined | ProjectViewsRetrieveParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsRetrieve>>, TError, TData>> &
       Pick<
@@ -282,9 +286,11 @@ export function useProjectViewsRetrieve<TData = Awaited<ReturnType<typeof projec
   },
   queryClient?: QueryClient,
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectViewsRetrieve<TData = Awaited<ReturnType<typeof projectViewsRetrieve>>, TError = unknown>(
+export function useProjectViewsRetrieve<
+  TData = Awaited<ReturnType<typeof projectViewsRetrieve>>,
+  TError = ErrorDetail | ErrorObject,
+>(
   uid: string,
-  params?: ProjectViewsRetrieveParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsRetrieve>>, TError, TData>> &
       Pick<
@@ -299,9 +305,11 @@ export function useProjectViewsRetrieve<TData = Awaited<ReturnType<typeof projec
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectViewsRetrieve<TData = Awaited<ReturnType<typeof projectViewsRetrieve>>, TError = unknown>(
+export function useProjectViewsRetrieve<
+  TData = Awaited<ReturnType<typeof projectViewsRetrieve>>,
+  TError = ErrorDetail | ErrorObject,
+>(
   uid: string,
-  params?: ProjectViewsRetrieveParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsRetrieve>>, TError, TData>>
     fetch?: RequestInit
@@ -309,16 +317,18 @@ export function useProjectViewsRetrieve<TData = Awaited<ReturnType<typeof projec
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 
-export function useProjectViewsRetrieve<TData = Awaited<ReturnType<typeof projectViewsRetrieve>>, TError = unknown>(
+export function useProjectViewsRetrieve<
+  TData = Awaited<ReturnType<typeof projectViewsRetrieve>>,
+  TError = ErrorDetail | ErrorObject,
+>(
   uid: string,
-  params?: ProjectViewsRetrieveParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsRetrieve>>, TError, TData>>
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getProjectViewsRetrieveQueryOptions(uid, params, options)
+  const queryOptions = getProjectViewsRetrieveQueryOptions(uid, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -329,44 +339,47 @@ export function useProjectViewsRetrieve<TData = Awaited<ReturnType<typeof projec
   return query
 }
 
+/**
+ * ## Retrieve an export for the requested object
+
+* Note: `{obj_type}` can either be `users` or `assets`
+
+
+ */
 export type projectViewsExportRetrieveResponse200 = {
-  data: ProjectView
+  data: ProjectViewExportResponse
   status: 200
 }
 
-export type projectViewsExportRetrieveResponseComposite = projectViewsExportRetrieveResponse200
+export type projectViewsExportRetrieveResponse400 = {
+  data: ErrorObject
+  status: 400
+}
+
+export type projectViewsExportRetrieveResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type projectViewsExportRetrieveResponseComposite =
+  | projectViewsExportRetrieveResponse200
+  | projectViewsExportRetrieveResponse400
+  | projectViewsExportRetrieveResponse401
 
 export type projectViewsExportRetrieveResponse = projectViewsExportRetrieveResponseComposite & {
   headers: Headers
 }
 
-export const getProjectViewsExportRetrieveUrl = (
-  uid: string,
-  objType: string,
-  params?: ProjectViewsExportRetrieveParams,
-) => {
-  const normalizedParams = new URLSearchParams()
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
-    }
-  })
-
-  const stringifiedParams = normalizedParams.toString()
-
-  return stringifiedParams.length > 0
-    ? `/api/v2/project-views/${uid}/${objType}/export/?${stringifiedParams}`
-    : `/api/v2/project-views/${uid}/${objType}/export/`
+export const getProjectViewsExportRetrieveUrl = (uid: string, objType: string) => {
+  return `/api/v2/project-views/${uid}/${objType}/export/`
 }
 
 export const projectViewsExportRetrieve = async (
   uid: string,
   objType: string,
-  params?: ProjectViewsExportRetrieveParams,
   options?: RequestInit,
 ): Promise<projectViewsExportRetrieveResponse> => {
-  const res = await fetch(getProjectViewsExportRetrieveUrl(uid, objType, params), {
+  const res = await fetch(getProjectViewsExportRetrieveUrl(uid, objType), {
     ...options,
     method: 'GET',
   })
@@ -377,21 +390,16 @@ export const projectViewsExportRetrieve = async (
   return { data, status: res.status, headers: res.headers } as projectViewsExportRetrieveResponse
 }
 
-export const getProjectViewsExportRetrieveQueryKey = (
-  uid: string,
-  objType: string,
-  params?: ProjectViewsExportRetrieveParams,
-) => {
-  return ['api', 'v2', 'project-views', uid, objType, 'export', ...(params ? [params] : [])] as const
+export const getProjectViewsExportRetrieveQueryKey = (uid: string, objType: string) => {
+  return ['api', 'v2', 'project-views', uid, objType, 'export'] as const
 }
 
 export const getProjectViewsExportRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
-  TError = unknown,
+  TError = ErrorObject | ErrorDetail,
 >(
   uid: string,
   objType: string,
-  params?: ProjectViewsExportRetrieveParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsExportRetrieve>>, TError, TData>>
     fetch?: RequestInit
@@ -399,10 +407,10 @@ export const getProjectViewsExportRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, fetch: fetchOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getProjectViewsExportRetrieveQueryKey(uid, objType, params)
+  const queryKey = queryOptions?.queryKey ?? getProjectViewsExportRetrieveQueryKey(uid, objType)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsExportRetrieve>>> = ({ signal }) =>
-    projectViewsExportRetrieve(uid, objType, params, { signal, ...fetchOptions })
+    projectViewsExportRetrieve(uid, objType, { signal, ...fetchOptions })
 
   return { queryKey, queryFn, enabled: !!(uid && objType), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
@@ -412,15 +420,14 @@ export const getProjectViewsExportRetrieveQueryOptions = <
 }
 
 export type ProjectViewsExportRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsExportRetrieve>>>
-export type ProjectViewsExportRetrieveQueryError = unknown
+export type ProjectViewsExportRetrieveQueryError = ErrorObject | ErrorDetail
 
 export function useProjectViewsExportRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
-  TError = unknown,
+  TError = ErrorObject | ErrorDetail,
 >(
   uid: string,
   objType: string,
-  params: undefined | ProjectViewsExportRetrieveParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsExportRetrieve>>, TError, TData>> &
       Pick<
@@ -437,11 +444,10 @@ export function useProjectViewsExportRetrieve<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectViewsExportRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
-  TError = unknown,
+  TError = ErrorObject | ErrorDetail,
 >(
   uid: string,
   objType: string,
-  params?: ProjectViewsExportRetrieveParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsExportRetrieve>>, TError, TData>> &
       Pick<
@@ -458,11 +464,10 @@ export function useProjectViewsExportRetrieve<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectViewsExportRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
-  TError = unknown,
+  TError = ErrorObject | ErrorDetail,
 >(
   uid: string,
   objType: string,
-  params?: ProjectViewsExportRetrieveParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsExportRetrieve>>, TError, TData>>
     fetch?: RequestInit
@@ -472,18 +477,17 @@ export function useProjectViewsExportRetrieve<
 
 export function useProjectViewsExportRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
-  TError = unknown,
+  TError = ErrorObject | ErrorDetail,
 >(
   uid: string,
   objType: string,
-  params?: ProjectViewsExportRetrieveParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsExportRetrieve>>, TError, TData>>
     fetch?: RequestInit
   },
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getProjectViewsExportRetrieveQueryOptions(uid, objType, params, options)
+  const queryOptions = getProjectViewsExportRetrieveQueryOptions(uid, objType, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -494,49 +498,48 @@ export function useProjectViewsExportRetrieve<
   return query
 }
 
+/**
+ * ## Create an export for the requested object
+
+* Note: `{obj_type}` can either be `users` or `assets`
+
+ */
 export type projectViewsExportCreateResponse200 = {
-  data: ProjectView
+  data: ProjectViewExportCreateResponse
   status: 200
 }
 
-export type projectViewsExportCreateResponseComposite = projectViewsExportCreateResponse200
+export type projectViewsExportCreateResponse400 = {
+  data: ErrorObject
+  status: 400
+}
+
+export type projectViewsExportCreateResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type projectViewsExportCreateResponseComposite =
+  | projectViewsExportCreateResponse200
+  | projectViewsExportCreateResponse400
+  | projectViewsExportCreateResponse401
 
 export type projectViewsExportCreateResponse = projectViewsExportCreateResponseComposite & {
   headers: Headers
 }
 
-export const getProjectViewsExportCreateUrl = (
-  uid: string,
-  objType: string,
-  params?: ProjectViewsExportCreateParams,
-) => {
-  const normalizedParams = new URLSearchParams()
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
-    }
-  })
-
-  const stringifiedParams = normalizedParams.toString()
-
-  return stringifiedParams.length > 0
-    ? `/api/v2/project-views/${uid}/${objType}/export/?${stringifiedParams}`
-    : `/api/v2/project-views/${uid}/${objType}/export/`
+export const getProjectViewsExportCreateUrl = (uid: string, objType: string) => {
+  return `/api/v2/project-views/${uid}/${objType}/export/`
 }
 
 export const projectViewsExportCreate = async (
   uid: string,
   objType: string,
-  projectView: NonReadonly<ProjectView>,
-  params?: ProjectViewsExportCreateParams,
   options?: RequestInit,
 ): Promise<projectViewsExportCreateResponse> => {
-  const res = await fetch(getProjectViewsExportCreateUrl(uid, objType, params), {
+  const res = await fetch(getProjectViewsExportCreateUrl(uid, objType), {
     ...options,
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(projectView),
   })
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text()
@@ -545,18 +548,21 @@ export const projectViewsExportCreate = async (
   return { data, status: res.status, headers: res.headers } as projectViewsExportCreateResponse
 }
 
-export const useProjectViewsExportCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const useProjectViewsExportCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof projectViewsExportCreate>>,
     TError,
-    { uid: string; objType: string; data: NonReadonly<ProjectView>; params?: ProjectViewsExportCreateParams },
+    { uid: string; objType: string },
     TContext
   >
   fetch?: RequestInit
 }): UseMutationOptions<
   Awaited<ReturnType<typeof projectViewsExportCreate>>,
   TError,
-  { uid: string; objType: string; data: NonReadonly<ProjectView>; params?: ProjectViewsExportCreateParams },
+  { uid: string; objType: string },
   TContext
 > => {
   const mutationKey = ['projectViewsExportCreate']
@@ -568,28 +574,28 @@ export const useProjectViewsExportCreateMutationOptions = <TError = unknown, TCo
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof projectViewsExportCreate>>,
-    { uid: string; objType: string; data: NonReadonly<ProjectView>; params?: ProjectViewsExportCreateParams }
+    { uid: string; objType: string }
   > = (props) => {
-    const { uid, objType, data, params } = props ?? {}
+    const { uid, objType } = props ?? {}
 
-    return projectViewsExportCreate(uid, objType, data, params, fetchOptions)
+    return projectViewsExportCreate(uid, objType, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
 
 export type ProjectViewsExportCreateMutationResult = NonNullable<Awaited<ReturnType<typeof projectViewsExportCreate>>>
-export type ProjectViewsExportCreateMutationBody = NonReadonly<ProjectView>
-export type ProjectViewsExportCreateMutationError = unknown
 
-export const useProjectViewsExportCreate = <TError = unknown, TContext = unknown>(
+export type ProjectViewsExportCreateMutationError = ErrorObject | ErrorDetail
+
+export const useProjectViewsExportCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof projectViewsExportCreate>>,
       TError,
-      { uid: string; objType: string; data: NonReadonly<ProjectView>; params?: ProjectViewsExportCreateParams },
+      { uid: string; objType: string },
       TContext
     >
     fetch?: RequestInit
@@ -598,19 +604,36 @@ export const useProjectViewsExportCreate = <TError = unknown, TContext = unknown
 ): UseMutationResult<
   Awaited<ReturnType<typeof projectViewsExportCreate>>,
   TError,
-  { uid: string; objType: string; data: NonReadonly<ProjectView>; params?: ProjectViewsExportCreateParams },
+  { uid: string; objType: string },
   TContext
 > => {
   const mutationOptions = useProjectViewsExportCreateMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
+/**
+ * ## Retrieve assets available in project view
+
+ */
 export type projectViewsAssetsRetrieveResponse200 = {
-  data: ProjectView
+  data: PaginatedProjectViewAssetResponseList
   status: 200
 }
 
-export type projectViewsAssetsRetrieveResponseComposite = projectViewsAssetsRetrieveResponse200
+export type projectViewsAssetsRetrieveResponse400 = {
+  data: ErrorObject
+  status: 400
+}
+
+export type projectViewsAssetsRetrieveResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type projectViewsAssetsRetrieveResponseComposite =
+  | projectViewsAssetsRetrieveResponse200
+  | projectViewsAssetsRetrieveResponse400
+  | projectViewsAssetsRetrieveResponse401
 
 export type projectViewsAssetsRetrieveResponse = projectViewsAssetsRetrieveResponseComposite & {
   headers: Headers
@@ -654,7 +677,7 @@ export const getProjectViewsAssetsRetrieveQueryKey = (uid: string, params?: Proj
 
 export const getProjectViewsAssetsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
-  TError = unknown,
+  TError = ErrorObject | ErrorDetail,
 >(
   uid: string,
   params?: ProjectViewsAssetsRetrieveParams,
@@ -678,11 +701,11 @@ export const getProjectViewsAssetsRetrieveQueryOptions = <
 }
 
 export type ProjectViewsAssetsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>>
-export type ProjectViewsAssetsRetrieveQueryError = unknown
+export type ProjectViewsAssetsRetrieveQueryError = ErrorObject | ErrorDetail
 
 export function useProjectViewsAssetsRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
-  TError = unknown,
+  TError = ErrorObject | ErrorDetail,
 >(
   uid: string,
   params: undefined | ProjectViewsAssetsRetrieveParams,
@@ -702,7 +725,7 @@ export function useProjectViewsAssetsRetrieve<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectViewsAssetsRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
-  TError = unknown,
+  TError = ErrorObject | ErrorDetail,
 >(
   uid: string,
   params?: ProjectViewsAssetsRetrieveParams,
@@ -722,7 +745,7 @@ export function useProjectViewsAssetsRetrieve<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectViewsAssetsRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
-  TError = unknown,
+  TError = ErrorObject | ErrorDetail,
 >(
   uid: string,
   params?: ProjectViewsAssetsRetrieveParams,
@@ -735,7 +758,7 @@ export function useProjectViewsAssetsRetrieve<
 
 export function useProjectViewsAssetsRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
-  TError = unknown,
+  TError = ErrorObject | ErrorDetail,
 >(
   uid: string,
   params?: ProjectViewsAssetsRetrieveParams,
@@ -756,12 +779,29 @@ export function useProjectViewsAssetsRetrieve<
   return query
 }
 
+/**
+ * ## Retrieve users available in project view
+
+ */
 export type projectViewsUsersRetrieveResponse200 = {
-  data: ProjectView
+  data: PaginatedProjectViewUserResponseList
   status: 200
 }
 
-export type projectViewsUsersRetrieveResponseComposite = projectViewsUsersRetrieveResponse200
+export type projectViewsUsersRetrieveResponse403 = {
+  data: ErrorDetail
+  status: 403
+}
+
+export type projectViewsUsersRetrieveResponse404 = {
+  data: ErrorObject
+  status: 404
+}
+
+export type projectViewsUsersRetrieveResponseComposite =
+  | projectViewsUsersRetrieveResponse200
+  | projectViewsUsersRetrieveResponse403
+  | projectViewsUsersRetrieveResponse404
 
 export type projectViewsUsersRetrieveResponse = projectViewsUsersRetrieveResponseComposite & {
   headers: Headers
@@ -805,7 +845,7 @@ export const getProjectViewsUsersRetrieveQueryKey = (uid: string, params?: Proje
 
 export const getProjectViewsUsersRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   uid: string,
   params?: ProjectViewsUsersRetrieveParams,
@@ -829,11 +869,11 @@ export const getProjectViewsUsersRetrieveQueryOptions = <
 }
 
 export type ProjectViewsUsersRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>>
-export type ProjectViewsUsersRetrieveQueryError = unknown
+export type ProjectViewsUsersRetrieveQueryError = ErrorDetail | ErrorObject
 
 export function useProjectViewsUsersRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   uid: string,
   params: undefined | ProjectViewsUsersRetrieveParams,
@@ -853,7 +893,7 @@ export function useProjectViewsUsersRetrieve<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectViewsUsersRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   uid: string,
   params?: ProjectViewsUsersRetrieveParams,
@@ -873,7 +913,7 @@ export function useProjectViewsUsersRetrieve<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useProjectViewsUsersRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   uid: string,
   params?: ProjectViewsUsersRetrieveParams,
@@ -886,7 +926,7 @@ export function useProjectViewsUsersRetrieve<
 
 export function useProjectViewsUsersRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail | ErrorObject,
 >(
   uid: string,
   params?: ProjectViewsUsersRetrieveParams,
@@ -908,25 +948,25 @@ export function useProjectViewsUsersRetrieve<
 }
 
 export const getApiV2ProjectViewsListResponseMock = (
-  overrideResponse: Partial<PaginatedProjectViewList> = {},
-): PaginatedProjectViewList => ({
+  overrideResponse: Partial<PaginatedProjectViewListResponseList> = {},
+): PaginatedProjectViewListResponseList => ({
   count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-    uid: faker.string.alpha({ length: { min: 10, max: 23 } }),
-    name: faker.string.alpha({ length: { min: 10, max: 200 } }),
-    url: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    assets: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
-    assets_export: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    users: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-      faker.string.alpha({ length: { min: 10, max: 20 } }),
-    ),
-    users_export: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    uid: faker.string.alpha({ length: { min: 10, max: 32 } }),
+    name: faker.internet.url(),
+    url: faker.internet.url(),
+    assets: faker.internet.url(),
+    assets_export: faker.internet.url(),
+    users: faker.internet.url(),
+    users_export: faker.internet.url(),
     countries: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.string.alpha({ length: { min: 10, max: 20 } }),
     ),
-    permissions: faker.helpers.arrayElement([faker.helpers.arrayElements(Object.values(PermissionsEnum)), undefined]),
+    permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
     assigned_users: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
       faker.string.alpha({ length: { min: 10, max: 20 } }),
     ),
@@ -934,20 +974,22 @@ export const getApiV2ProjectViewsListResponseMock = (
   ...overrideResponse,
 })
 
-export const getApiV2ProjectViewsRetrieveResponseMock = (overrideResponse: Partial<ProjectView> = {}): ProjectView => ({
-  uid: faker.string.alpha({ length: { min: 10, max: 23 } }),
-  name: faker.string.alpha({ length: { min: 10, max: 200 } }),
-  url: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  assets: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
-  assets_export: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  users: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ),
-  users_export: faker.string.alpha({ length: { min: 10, max: 20 } }),
+export const getApiV2ProjectViewsRetrieveResponseMock = (
+  overrideResponse: Partial<ProjectViewListResponse> = {},
+): ProjectViewListResponse => ({
+  uid: faker.string.alpha({ length: { min: 10, max: 32 } }),
+  name: faker.internet.url(),
+  url: faker.internet.url(),
+  assets: faker.internet.url(),
+  assets_export: faker.internet.url(),
+  users: faker.internet.url(),
+  users_export: faker.internet.url(),
   countries: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
     faker.string.alpha({ length: { min: 10, max: 20 } }),
   ),
-  permissions: faker.helpers.arrayElement([faker.helpers.arrayElements(Object.values(PermissionsEnum)), undefined]),
+  permissions: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+    faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ),
   assigned_users: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
     faker.string.alpha({ length: { min: 10, max: 20 } }),
   ),
@@ -955,99 +997,145 @@ export const getApiV2ProjectViewsRetrieveResponseMock = (overrideResponse: Parti
 })
 
 export const getApiV2ProjectViewsExportRetrieveResponseMock = (
-  overrideResponse: Partial<ProjectView> = {},
-): ProjectView => ({
-  uid: faker.string.alpha({ length: { min: 10, max: 23 } }),
-  name: faker.string.alpha({ length: { min: 10, max: 200 } }),
-  url: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  assets: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
-  assets_export: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  users: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ),
-  users_export: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  countries: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ),
-  permissions: faker.helpers.arrayElement([faker.helpers.arrayElements(Object.values(PermissionsEnum)), undefined]),
-  assigned_users: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ),
+  overrideResponse: Partial<ProjectViewExportResponse> = {},
+): ProjectViewExportResponse => ({
+  status: faker.string.alpha({ length: { min: 10, max: 32 } }),
+  result: faker.internet.url(),
   ...overrideResponse,
 })
 
 export const getApiV2ProjectViewsExportCreateResponseMock = (
-  overrideResponse: Partial<ProjectView> = {},
-): ProjectView => ({
-  uid: faker.string.alpha({ length: { min: 10, max: 23 } }),
-  name: faker.string.alpha({ length: { min: 10, max: 200 } }),
-  url: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  assets: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
-  assets_export: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  users: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ),
-  users_export: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  countries: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ),
-  permissions: faker.helpers.arrayElement([faker.helpers.arrayElements(Object.values(PermissionsEnum)), undefined]),
-  assigned_users: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ),
+  overrideResponse: Partial<ProjectViewExportCreateResponse> = {},
+): ProjectViewExportCreateResponse => ({
+  status: faker.string.alpha({ length: { min: 10, max: 32 } }),
   ...overrideResponse,
 })
 
 export const getApiV2ProjectViewsAssetsRetrieveResponseMock = (
-  overrideResponse: Partial<ProjectView> = {},
-): ProjectView => ({
-  uid: faker.string.alpha({ length: { min: 10, max: 23 } }),
-  name: faker.string.alpha({ length: { min: 10, max: 200 } }),
-  url: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  assets: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
-  assets_export: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  users: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ),
-  users_export: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  countries: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ),
-  permissions: faker.helpers.arrayElement([faker.helpers.arrayElements(Object.values(PermissionsEnum)), undefined]),
-  assigned_users: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ),
+  overrideResponse: Partial<PaginatedProjectViewAssetResponseList> = {},
+): PaginatedProjectViewAssetResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    url: faker.internet.url(),
+    date_created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    date_modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    date_deployed: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    owner: faker.internet.url(),
+    owner__username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    owner__email: faker.internet.email(),
+    owner__name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    owner__organization: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    settings: {
+      sector: faker.helpers.arrayElement([
+        {
+          label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        },
+        undefined,
+      ]),
+      country: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          label: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+          value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+        })),
+        undefined,
+      ]),
+      description: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      collects_pii: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      organization: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      country_codes: faker.helpers.arrayElement([
+        Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+          faker.string.alpha({ length: { min: 10, max: 20 } }),
+        ),
+        undefined,
+      ]),
+      operational_purpose: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+      ]),
+    },
+    languages: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+    ),
+    has_deployment: faker.datatype.boolean(),
+    deployment__active: faker.datatype.boolean(),
+    deployment__submission_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    deployment_status: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    asset_type: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    downloads: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+      format: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      url: faker.helpers.arrayElement([faker.internet.url(), undefined]),
+    })),
+    owner_label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  })),
   ...overrideResponse,
 })
 
 export const getApiV2ProjectViewsUsersRetrieveResponseMock = (
-  overrideResponse: Partial<ProjectView> = {},
-): ProjectView => ({
-  uid: faker.string.alpha({ length: { min: 10, max: 23 } }),
-  name: faker.string.alpha({ length: { min: 10, max: 200 } }),
-  url: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  assets: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({})),
-  assets_export: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  users: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ),
-  users_export: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  countries: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ),
-  permissions: faker.helpers.arrayElement([faker.helpers.arrayElements(Object.values(PermissionsEnum)), undefined]),
-  assigned_users: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
-    faker.string.alpha({ length: { min: 10, max: 20 } }),
-  ),
+  overrideResponse: Partial<PaginatedProjectViewUserResponseList> = {},
+): PaginatedProjectViewUserResponseList => ({
+  count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    id: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    is_superuser: faker.datatype.boolean(),
+    date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    last_login: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    is_active: faker.datatype.boolean(),
+    email: faker.internet.email(),
+    asset_count: faker.number.int({ min: undefined, max: undefined, multipleOf: undefined }),
+    metadata: {
+      city: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      sector: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      country: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      organization: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      last_ui_language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      organization_type: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      organization_website: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        undefined,
+      ]),
+      project_view_settings: faker.helpers.arrayElement([
+        {
+          my_project_view_name: faker.helpers.arrayElement([
+            {
+              order: faker.helpers.arrayElement([{}, undefined]),
+              fields: faker.helpers.arrayElement([
+                Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                  faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ),
+                undefined,
+              ]),
+              filters: faker.helpers.arrayElement([
+                Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                  faker.string.alpha({ length: { min: 10, max: 20 } }),
+                ),
+                undefined,
+              ]),
+            },
+            undefined,
+          ]),
+        },
+        undefined,
+      ]),
+    },
+  })),
   ...overrideResponse,
 })
 
 export const getApiV2ProjectViewsListMockHandler = (
   overrideResponse?:
-    | PaginatedProjectViewList
+    | PaginatedProjectViewListResponseList
     | ((
         info: Parameters<Parameters<typeof http.get>[1]>[0],
-      ) => Promise<PaginatedProjectViewList> | PaginatedProjectViewList),
+      ) => Promise<PaginatedProjectViewListResponseList> | PaginatedProjectViewListResponseList),
 ) => {
   return http.get('*/api/v2/project-views/', async (info) => {
     await delay(1000)
@@ -1067,8 +1155,10 @@ export const getApiV2ProjectViewsListMockHandler = (
 
 export const getApiV2ProjectViewsRetrieveMockHandler = (
   overrideResponse?:
-    | ProjectView
-    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ProjectView> | ProjectView),
+    | ProjectViewListResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<ProjectViewListResponse> | ProjectViewListResponse),
 ) => {
   return http.get('*/api/v2/project-views/:uid/', async (info) => {
     await delay(1000)
@@ -1088,8 +1178,10 @@ export const getApiV2ProjectViewsRetrieveMockHandler = (
 
 export const getApiV2ProjectViewsExportRetrieveMockHandler = (
   overrideResponse?:
-    | ProjectView
-    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ProjectView> | ProjectView),
+    | ProjectViewExportResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<ProjectViewExportResponse> | ProjectViewExportResponse),
 ) => {
   return http.get('*/api/v2/project-views/:uid/:objType/export/', async (info) => {
     await delay(1000)
@@ -1109,8 +1201,10 @@ export const getApiV2ProjectViewsExportRetrieveMockHandler = (
 
 export const getApiV2ProjectViewsExportCreateMockHandler = (
   overrideResponse?:
-    | ProjectView
-    | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ProjectView> | ProjectView),
+    | ProjectViewExportCreateResponse
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0],
+      ) => Promise<ProjectViewExportCreateResponse> | ProjectViewExportCreateResponse),
 ) => {
   return http.post('*/api/v2/project-views/:uid/:objType/export/', async (info) => {
     await delay(1000)
@@ -1130,8 +1224,10 @@ export const getApiV2ProjectViewsExportCreateMockHandler = (
 
 export const getApiV2ProjectViewsAssetsRetrieveMockHandler = (
   overrideResponse?:
-    | ProjectView
-    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ProjectView> | ProjectView),
+    | PaginatedProjectViewAssetResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedProjectViewAssetResponseList> | PaginatedProjectViewAssetResponseList),
 ) => {
   return http.get('*/api/v2/project-views/:uid/assets/', async (info) => {
     await delay(1000)
@@ -1151,8 +1247,10 @@ export const getApiV2ProjectViewsAssetsRetrieveMockHandler = (
 
 export const getApiV2ProjectViewsUsersRetrieveMockHandler = (
   overrideResponse?:
-    | ProjectView
-    | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ProjectView> | ProjectView),
+    | PaginatedProjectViewUserResponseList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedProjectViewUserResponseList> | PaginatedProjectViewUserResponseList),
 ) => {
   return http.get('*/api/v2/project-views/:uid/users/', async (info) => {
     await delay(1000)

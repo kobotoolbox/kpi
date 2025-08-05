@@ -61,7 +61,7 @@ import type { PaginatedAssetList } from './models/paginatedAssetList'
 
 import type { ReportResponse } from './models/reportResponse'
 
-import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
 
 /**
  * ## Get user's assets
@@ -307,7 +307,7 @@ export const useAssetsCreateMutationOptions = <TError = ErrorObject | ErrorDetai
     return assetsCreate(data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -746,7 +746,7 @@ export const useAssetsPartialUpdateMutationOptions = <
     return assetsPartialUpdate(uid, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -837,7 +837,7 @@ export const useAssetsDestroyMutationOptions = <TError = ErrorDetail | ErrorObje
     return assetsDestroy(uid, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -1746,7 +1746,7 @@ export const useAssetsBulkCreateMutationOptions = <TError = ErrorObject, TContex
     return assetsBulkCreate(data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }

@@ -35,7 +35,7 @@ import type { FilesResponse } from './models/filesResponse'
 
 import type { PaginatedFilesResponseList } from './models/paginatedFilesResponseList'
 
-import { getCustomMutatorOptions } from '../orval.config.customMutatorOptions'
+import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
 
 /**
  * ## Retrieve current asset files
@@ -286,7 +286,7 @@ export const useAssetsFilesCreateMutationOptions = <TError = ErrorObject, TConte
     return assetsFilesCreate(parentLookupAsset, data, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }
@@ -522,7 +522,7 @@ export const useAssetsFilesDestroyMutationOptions = <TError = ErrorObject, TCont
     return assetsFilesDestroy(parentLookupAsset, uid, fetchOptions)
   }
 
-  const customOptions = getCustomMutatorOptions({ ...mutationOptions, mutationFn })
+  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
 
   return customOptions
 }

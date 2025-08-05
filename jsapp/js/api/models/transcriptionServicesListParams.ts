@@ -5,10 +5,8 @@
  * Powerful and intuitive data collection tools to make an impact
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { TranscriptionServicesListFormat } from './transcriptionServicesListFormat'
 
 export type TranscriptionServicesListParams = {
-  format?: TranscriptionServicesListFormat
   /**
    * Number of results to return per page.
    */
@@ -17,4 +15,5 @@ export type TranscriptionServicesListParams = {
    * The initial index from which to return the results.
    */
   offset?: number
+  q?: string
 }
