@@ -1,4 +1,5 @@
 import type { PaginatedResponse, PermissionResponse, PermissionsConfigResponse } from '#/dataInterface'
+import { PermsFormData } from './permParser'
 
 /**
  * Mock permissions endpoints responses for tests.
@@ -350,6 +351,113 @@ const assetWithMultiplePartial: PaginatedResponse<PermissionResponse> = {
       label: 'View form',
     },
   ],
+}
+
+export const assetWithMultiplePartial2: PaginatedResponse<PermissionResponse> = {
+  count: 3,
+  next: null,
+  previous: null,
+  results: [
+    {
+      url: '/api/v2/assets/aqKcKVFdBVASFVo8azcdVp/permission-assignments/pSCPox6uspwYqroYvE7eXR/',
+      user: '/api/v2/users/kate/',
+      permission: '/api/v2/permissions/add_submissions/',
+      label: 'Add submissions',
+    },
+    {
+      url: '/api/v2/assets/aqKcKVFdBVASFVo8azcdVp/permission-assignments/p653D7wz6zXYuRBtpPpTGB/',
+      user: '/api/v2/users/kate/',
+      permission: '/api/v2/permissions/partial_submissions/',
+      partial_permissions: [
+        {
+          url: '/api/v2/permissions/add_submissions/',
+          filters: [
+            {
+              _submitted_by: 'bob',
+            },
+          ],
+        },
+        {
+          url: '/api/v2/permissions/view_submissions/',
+          filters: [
+            {
+              _submitted_by: 'bob',
+            },
+          ],
+        },
+        {
+          url: '/api/v2/permissions/change_submissions/',
+          filters: [
+            {
+              _submitted_by: 'bob',
+            },
+          ],
+        },
+        {
+          url: '/api/v2/permissions/delete_submissions/',
+          filters: [
+            {
+              _submitted_by: 'bob',
+            },
+          ],
+        },
+        {
+          url: '/api/v2/permissions/validate_submissions/',
+          filters: [
+            {
+              _submitted_by: 'bob',
+            },
+          ],
+        },
+      ],
+      label: {
+        default: 'Act on submissions only from specific users',
+        view_submissions: 'View submissions only from specific users',
+        change_submissions: 'Edit submissions only from specific users',
+        delete_submissions: 'Delete submissions only from specific users',
+        validate_submissions: 'Validate submissions only from specific users',
+      },
+    },
+    {
+      url: '/api/v2/assets/aqKcKVFdBVASFVo8azcdVp/permission-assignments/phRMBc7b2uxrVEspoJRxXN/',
+      user: '/api/v2/users/kate/',
+      permission: '/api/v2/permissions/view_asset/',
+      label: 'View form',
+    },
+  ],
+}
+
+// This is the `buildFormData` output for user "kate"
+export const assetWithMultiplePartial2_formData_kate: PermsFormData = {
+  username: 'kate',
+  formView: true,
+  formEdit: false,
+  formManage: false,
+  submissionsView: false,
+  submissionsViewPartialByUsers: false,
+  submissionsViewPartialByUsersList: ['bob'],
+  submissionsViewPartialByResponses: false,
+  submissionsViewPartialByResponsesQuestion: null,
+  submissionsViewPartialByResponsesValue: '',
+  submissionsAdd: true,
+  submissionsEdit: false,
+  submissionsEditPartialByUsers: true,
+  submissionsEditPartialByUsersList: ['bob'],
+  submissionsEditPartialByResponses: false,
+  submissionsEditPartialByResponsesQuestion: null,
+  submissionsEditPartialByResponsesValue: '',
+  submissionsValidate: false,
+  submissionsValidatePartialByUsers: true,
+  submissionsValidatePartialByUsersList: ['bob'],
+  submissionsValidatePartialByResponses: false,
+  submissionsValidatePartialByResponsesQuestion: null,
+  submissionsValidatePartialByResponsesValue: '',
+  submissionsDelete: false,
+  submissionsDeletePartialByUsers: true,
+  submissionsDeletePartialByUsersList: ['bob'],
+  submissionsDeletePartialByResponses: false,
+  submissionsDeletePartialByResponsesQuestion: null,
+  submissionsDeletePartialByResponsesValue: '',
 }
 
 export const endpoints = {

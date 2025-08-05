@@ -9,7 +9,7 @@ import {
   removeImpliedPerms,
   sortParseBackendOutput,
 } from './permParser'
-import { endpoints } from './permParser.mocks'
+import { assetWithMultiplePartial2, assetWithMultiplePartial2_formData_kate, endpoints } from './permParser.mocks'
 
 describe('permParser', () => {
   beforeEach(() => {
@@ -358,6 +358,23 @@ describe('permParser', () => {
         submissionsValidatePartialByResponsesQuestion: 'What_is_your_fav_animal',
         submissionsValidatePartialByResponsesValue: 'Racoon',
       })
+    })
+
+    it('should build proper form data for multiple partial "by users" permissions', () => {
+      const testUser = 'kate'
+
+      const usersWithPerms = parseBackendData(
+        assetWithMultiplePartial2.results,
+        assetWithMultiplePartial2.results[0].user,
+      )
+
+      // Get testUser permissions
+      const testUserPerms = usersWithPerms.find((item) => item.user.name === testUser)?.permissions || []
+
+      // Build the data again for the testUser
+      const builtFormData = buildFormData(testUserPerms, testUser)
+
+      chai.expect(builtFormData).to.deep.equal(assetWithMultiplePartial2_formData_kate)
     })
 
     it('should work with "by responses" permission with empty value', () => {
