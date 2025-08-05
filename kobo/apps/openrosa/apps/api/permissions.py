@@ -40,15 +40,6 @@ class ObjectPermissionsWithViewRestricted(DjangoObjectPermissions):
     https://www.django-rest-framework.org/api-guide/permissions/#djangoobjectpermissions
     """
 
-    asset_perms_map = {
-        'GET': [PERM_VIEW_ASSET],
-        'OPTIONS': [PERM_VIEW_ASSET],
-        'HEAD': [PERM_VIEW_ASSET],
-        'PUT': [PERM_CHANGE_ASSET],
-        'PATCH': [PERM_CHANGE_ASSET],
-        'DELETE': [PERM_DELETE_ASSET],
-    }
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Do NOT mutate `perms_map` from the parent class! Doing so will affect
@@ -69,7 +60,6 @@ class ObjectPermissionsWithViewRestricted(DjangoObjectPermissions):
             if not hasattr(self, 'APP_LABEL')
             else self.APP_LABEL
         )
-
         model_name = (
             model_cls._meta.model_name
             if not hasattr(self, 'MODEL_NAME')
@@ -88,12 +78,8 @@ class ObjectPermissionsWithViewRestricted(DjangoObjectPermissions):
 
 
 class XFormPermissions(ObjectPermissionsWithViewRestricted):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Do NOT mutate `perms_map` from the parent class! Doing so will affect
-        # *every* instance of `DjangoObjectPermissions` and all its subclasses
-        self.perms_map = deepcopy(self.asset_perms_map)
+    APP_LABEL = 'kpi'
+    MODEL_NAME = 'asset'
 
     def has_permission(self, request, view):
         # Allow anonymous users to access shared data
@@ -131,13 +117,15 @@ class XFormPermissions(ObjectPermissionsWithViewRestricted):
 
 
 class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
+    APP_LABEL = 'kpi'
+    MODEL_NAME = 'asset'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Those who can edit submissions can also delete them, following the
         # behavior of `kobo.apps.openrosa.apps.main.views.delete_data`
         self.perms_map = deepcopy(self.perms_map)
-        self.perms_map['DELETE'] = [PERM_DELETE_SUBMISSIONS]
+        self.perms_map['DELETE'] = [f'kpi.{PERM_DELETE_SUBMISSIONS}']
 
     def has_permission(self, request, view):
         lookup_field = view.lookup_field
@@ -180,17 +168,17 @@ class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
         #  - Remove this kludgy solution
         perms_actions_map = {
             'bulk_delete': {
-                'DELETE': [PERM_DELETE_SUBMISSIONS],
+                'DELETE': [f'kpi.{PERM_DELETE_SUBMISSIONS}'],
             },
             'bulk_validation_status': {
-                'PATCH': [PERM_VALIDATE_SUBMISSIONS],
+                'PATCH': [f'kpi.{PERM_VALIDATE_SUBMISSIONS}'],
             },
             'labels': {
-                'DELETE': [PERM_CHANGE_ASSET]
+                'DELETE': [f'kpi.{PERM_CHANGE_ASSET}']
             },
             'validation_status': {
-                'DELETE': [PERM_VALIDATE_SUBMISSIONS],
-                'PATCH': [PERM_VALIDATE_SUBMISSIONS],
+                'DELETE': [f'kpi.{PERM_VALIDATE_SUBMISSIONS}'],
+                'PATCH': [f'kpi.{PERM_VALIDATE_SUBMISSIONS}'],
             },
         }
 
@@ -218,8 +206,8 @@ class MetaDataObjectPermissions(ObjectPermissionsWithViewRestricted):
     # they can edit MetaData objects with 'change_asset'.
     # DRF get the app label and the model name from the queryset, so we
     # override them the find a match among user's Asset permissions.
-    APP_LABEL = 'logger'
-    MODEL_NAME = 'xform'
+    APP_LABEL = 'kpi'
+    MODEL_NAME = 'asset'
 
     def __init__(self, *args, **kwargs):
         super(MetaDataObjectPermissions, self).__init__(
@@ -280,9 +268,9 @@ class AttachmentObjectPermissions(DjangoObjectPermissions):
         # The default `perms_map` does not include GET, OPTIONS, PATCH or HEAD.
         # See http://www.django-rest-framework.org/api-guide/filtering/#djangoobjectpermissionsfilter  # noqa
         self.perms_map = deepcopy(DjangoObjectPermissions.perms_map)
-        self.perms_map['GET'] = [PERM_VIEW_ASSET]
-        self.perms_map['OPTIONS'] = [PERM_VIEW_ASSET]
-        self.perms_map['HEAD'] = [PERM_VIEW_ASSET]
+        self.perms_map['GET'] = ['kpi.view_asset']
+        self.perms_map['OPTIONS'] = ['kpi.view_asset']
+        self.perms_map['HEAD'] = ['kpi.view_asset']
         return super().__init__(*args, **kwargs)
 
     def has_permission(self, request, view):
@@ -303,17 +291,16 @@ class AttachmentObjectPermissions(DjangoObjectPermissions):
 
 
 class NoteObjectPermissions(DjangoObjectPermissions):
-
     authenticated_users_only = False
 
     def __init__(self, *args, **kwargs):
         self.perms_map = deepcopy(self.perms_map)
-        self.perms_map['GET'] = [PERM_VIEW_ASSET]
-        self.perms_map['OPTIONS'] = [PERM_VIEW_ASSET]
-        self.perms_map['HEAD'] = [PERM_VIEW_ASSET]
-        self.perms_map['PATCH'] = [PERM_CHANGE_ASSET]
-        self.perms_map['POST'] = [PERM_CHANGE_ASSET]
-        self.perms_map['DELETE'] = [PERM_CHANGE_ASSET]
+        self.perms_map['GET'] = ['kpi.view_asset']
+        self.perms_map['OPTIONS'] = ['kpi.view_asset']
+        self.perms_map['HEAD'] = ['kpi.view_asset']
+        self.perms_map['PATCH'] = ['kpi.change_asset']
+        self.perms_map['POST'] = ['kpi.change_asset']
+        self.perms_map['DELETE'] = ['kpi.change_asset']
 
         return super().__init__(*args, **kwargs)
 
