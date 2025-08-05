@@ -15,6 +15,7 @@ from kpi.schema_extensions.v2.generic.schema import (
     ASSET_URL_SCHEMA,
     USER_URL_SCHEMA,
     GENERIC_OBJECT_SCHEMA,
+    GENERIC_STRING_SCHEMA,
 )
 
 
@@ -55,9 +56,9 @@ class FileCreateRequestSerializerExtension(OpenApiSerializerExtension):
                     properties={
                         'user': USER_URL_SCHEMA,
                         'asset': ASSET_URL_SCHEMA,
-                        'description': build_basic_type(OpenApiTypes.STR),
-                        'file_type': build_basic_type(OpenApiTypes.STR),
-                        'content': build_basic_type(OpenApiTypes.STR),
+                        'description': GENERIC_STRING_SCHEMA,
+                        'file_type': GENERIC_STRING_SCHEMA,
+                        'content': GENERIC_STRING_SCHEMA,
                     },
                 ),
                 build_object_type(
@@ -72,9 +73,9 @@ class FileCreateRequestSerializerExtension(OpenApiSerializerExtension):
                     properties={
                         'user': USER_URL_SCHEMA,
                         'asset': ASSET_URL_SCHEMA,
-                        'description': build_basic_type(OpenApiTypes.STR),
-                        'file_type': build_basic_type(OpenApiTypes.STR),
-                        'base64Encoded': build_basic_type(OpenApiTypes.STR),
+                        'description': GENERIC_STRING_SCHEMA,
+                        'file_type': GENERIC_STRING_SCHEMA,
+                        'base64Encoded': GENERIC_STRING_SCHEMA,
                         'metadata': BASE64_METADATA_SCHEMA,
                     },
                 ),
@@ -89,8 +90,8 @@ class FileCreateRequestSerializerExtension(OpenApiSerializerExtension):
                     properties={
                         'user': USER_URL_SCHEMA,
                         'asset': ASSET_URL_SCHEMA,
-                        'description': build_basic_type(OpenApiTypes.STR),
-                        'file_type': build_basic_type(OpenApiTypes.STR),
+                        'description': GENERIC_STRING_SCHEMA,
+                        'file_type': GENERIC_STRING_SCHEMA,
                         'metadata': URL_METADATA_SCHEMA,
                     },
                 ),
@@ -118,9 +119,9 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'hash': build_basic_type(OpenApiTypes.STR),
-                'filename': build_basic_type(OpenApiTypes.STR),
-                'mimetype': build_basic_type(OpenApiTypes.STR),
+                'hash': GENERIC_STRING_SCHEMA,
+                'filename': GENERIC_STRING_SCHEMA,
+                'mimetype': GENERIC_STRING_SCHEMA,
             }
         )
 

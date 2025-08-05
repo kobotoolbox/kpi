@@ -7,14 +7,18 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from kpi.schema_extensions.v2.generic.schema import GENERIC_ARRAY_SCHEMA
+from kpi.schema_extensions.v2.generic.schema import (
+    ASSET_URL_SCHEMA,
+    GENERIC_ARRAY_SCHEMA,
+    GENERIC_STRING_SCHEMA,
+)
 
 
 class AssetURLFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kobo.apps.hook.schema_extensions.v2.hooks.fields.UrlField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type('api_v2:asset-detail', uid='a3C9wWefqZVkChNLKqqXVZ')
+        return ASSET_URL_SCHEMA
 
 
 class LogsUrlFieldExtension(OpenApiSerializerFieldExtension):
@@ -41,12 +45,12 @@ class SettingsFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'password': build_basic_type(OpenApiTypes.STR),
-                'username': build_basic_type(OpenApiTypes.STR),
+                'password': GENERIC_STRING_SCHEMA,
+                'username': GENERIC_STRING_SCHEMA,
                 'custom_headers': build_object_type(
                     properties={
-                        'value_field': build_basic_type(OpenApiTypes.STR),
-                        'value_field_2': build_basic_type(OpenApiTypes.STR),
+                        'value_field': GENERIC_STRING_SCHEMA,
+                        'value_field_2': GENERIC_STRING_SCHEMA,
                     }
                 ),
             }

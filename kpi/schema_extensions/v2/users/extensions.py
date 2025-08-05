@@ -11,6 +11,7 @@ from kpi.schema_extensions.v2.generic.schema import (
     GENERIC_ARRAY_SCHEMA,
     USER_URL_SCHEMA,
     GENERIC_OBJECT_SCHEMA,
+    GENERIC_STRING_SCHEMA,
 )
 
 
@@ -31,13 +32,13 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'name': build_basic_type(OpenApiTypes.STR),
-                'sector': build_basic_type(OpenApiTypes.STR),
-                'country': build_basic_type(OpenApiTypes.STR),
-                'organization': build_basic_type(OpenApiTypes.STR),
-                'last_ui_language': build_basic_type(OpenApiTypes.STR),
-                'organization_type': build_basic_type(OpenApiTypes.STR),
-                'organization_website': build_basic_type(OpenApiTypes.STR),
+                'name': GENERIC_STRING_SCHEMA,
+                'sector': GENERIC_STRING_SCHEMA,
+                'country': GENERIC_STRING_SCHEMA,
+                'organization': GENERIC_STRING_SCHEMA,
+                'last_ui_language': GENERIC_STRING_SCHEMA,
+                'organization_type': GENERIC_STRING_SCHEMA,
+                'organization_website': GENERIC_STRING_SCHEMA,
                 'project_views_settings': build_object_type(
                     properties={
                         'kobo_my_project': build_object_type(

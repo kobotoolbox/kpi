@@ -7,7 +7,7 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from kpi.schema_extensions.v2.generic.schema import ASSET_URL_SCHEMA
+from kpi.schema_extensions.v2.generic.schema import ASSET_URL_SCHEMA, GENERIC_STRING_SCHEMA
 
 class AssetUrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kobo.apps.project_ownership.schema_extensions.v2.project_ownership.transfers.fields.AssetUrlField'  # noqa
@@ -23,9 +23,9 @@ class StatusesFieldExtension(OpenApiSerializerFieldExtension):
         return build_array_type(
             schema=build_object_type(
                 properties={
-                    'status': build_basic_type(OpenApiTypes.STR),
-                    'status_type': build_basic_type(OpenApiTypes.STR),
-                    'error':  build_basic_type(OpenApiTypes.STR),
+                    'status': GENERIC_STRING_SCHEMA,
+                    'status_type': GENERIC_STRING_SCHEMA,
+                    'error':  GENERIC_STRING_SCHEMA,
                 }
             )
         )

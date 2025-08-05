@@ -11,6 +11,7 @@ from kpi.schema_extensions.v2.generic.schema import (
     GENERIC_ARRAY_SCHEMA,
     ASSET_URL_SCHEMA,
     GENERIC_OBJECT_SCHEMA,
+    GENERIC_STRING_SCHEMA,
 )
 
 class DataFieldExtension(OpenApiSerializerFieldExtension):
@@ -19,13 +20,13 @@ class DataFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'lang': build_basic_type(OpenApiTypes.STR),
-                'name': build_basic_type(OpenApiTypes.STR),
-                'type': build_basic_type(OpenApiTypes.STR),
+                'lang': GENERIC_STRING_SCHEMA,
+                'name': GENERIC_STRING_SCHEMA,
+                'type': GENERIC_STRING_SCHEMA,
                 'fields': GENERIC_ARRAY_SCHEMA,
                 'source': ASSET_URL_SCHEMA,
-                'group_sep': build_basic_type(OpenApiTypes.STR),
-                'multiple_select': build_basic_type(OpenApiTypes.STR),
+                'group_sep': GENERIC_STRING_SCHEMA,
+                'multiple_select': GENERIC_STRING_SCHEMA,
                 'include_media_url': build_basic_type(OpenApiTypes.BOOL),
                 'hierarchy_in_labels': build_basic_type(OpenApiTypes.BOOL),
                 'processing_time_seconds': build_basic_type(OpenApiTypes.FLOAT),

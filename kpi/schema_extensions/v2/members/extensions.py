@@ -4,6 +4,7 @@ from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
 from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_STRING_SCHEMA,
     USER_URL_SCHEMA,
 )
 
@@ -20,11 +21,11 @@ class InviteFieldExtension(OpenApiSerializerFieldExtension):
                     guid='f3ba00b2-372b-4283-9d57-adbe7d5b1bf1',
                 ),
                 'invited_by': USER_URL_SCHEMA,
-                'status': build_basic_type(OpenApiTypes.STR),
-                'invitee_role': build_basic_type(OpenApiTypes.STR),
+                'status': GENERIC_STRING_SCHEMA,
+                'invitee_role': GENERIC_STRING_SCHEMA,
                 'created': build_basic_type(OpenApiTypes.DATETIME),
                 'modified': build_basic_type(OpenApiTypes.DATETIME),
-                'invitee': build_basic_type(OpenApiTypes.STR),
+                'invitee': GENERIC_STRING_SCHEMA,
             }
         )
 

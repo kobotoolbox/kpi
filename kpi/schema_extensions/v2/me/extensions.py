@@ -6,7 +6,10 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from kpi.schema_extensions.v2.generic.schema import GENERIC_OBJECT_SCHEMA
+from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_OBJECT_SCHEMA,
+    GENERIC_STRING_SCHEMA,
+)
 
 class ExtraDetailField(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.me.fields.ExtraDetailField'
@@ -14,21 +17,21 @@ class ExtraDetailField(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'bio': build_basic_type(OpenApiTypes.STR),
-                'city': build_basic_type(OpenApiTypes.STR),
-                'name': build_basic_type(OpenApiTypes.STR),
-                'sector': build_basic_type(OpenApiTypes.STR),
-                'country': build_basic_type(OpenApiTypes.STR),
-                'twitter': build_basic_type(OpenApiTypes.STR),
-                'linkedin': build_basic_type(OpenApiTypes.STR),
-                'instagram': build_basic_type(OpenApiTypes.STR),
-                'organization': build_basic_type(OpenApiTypes.STR),
-                'last_ui_language': build_basic_type(OpenApiTypes.STR),
-                'organization_type': build_basic_type(OpenApiTypes.STR),
-                'organization_website': build_basic_type(OpenApiTypes.STR),
+                'bio': GENERIC_STRING_SCHEMA,
+                'city': GENERIC_STRING_SCHEMA,
+                'name': GENERIC_STRING_SCHEMA,
+                'sector': GENERIC_STRING_SCHEMA,
+                'country': GENERIC_STRING_SCHEMA,
+                'twitter': GENERIC_STRING_SCHEMA,
+                'linkedin': GENERIC_STRING_SCHEMA,
+                'instagram': GENERIC_STRING_SCHEMA,
+                'organization': GENERIC_STRING_SCHEMA,
+                'last_ui_language': GENERIC_STRING_SCHEMA,
+                'organization_type': GENERIC_STRING_SCHEMA,
+                'organization_website': GENERIC_STRING_SCHEMA,
                 'project_views_settings': GENERIC_OBJECT_SCHEMA,
                 'require_auth': build_basic_type(OpenApiTypes.BOOL),
-                'newsletter_subscription': build_basic_type(OpenApiTypes.STR),
+                'newsletter_subscription': GENERIC_STRING_SCHEMA,
             }
         )
 
@@ -54,8 +57,8 @@ class OrganizationFieldExtension(OpenApiSerializerFieldExtension):
                     'api_v2:organizations-detail',
                     id='orgzeph7Ub8tVmJ82JBbH96n',
                 ),
-                'name': build_basic_type(OpenApiTypes.STR),
-                'uid': build_basic_type(OpenApiTypes.STR),
+                'name': GENERIC_STRING_SCHEMA,
+                'uid': GENERIC_STRING_SCHEMA,
             }
         )
 
@@ -74,12 +77,12 @@ class SocialAccountFieldExtension(OpenApiSerializerFieldExtension):
         return build_array_type(
             schema=build_object_type(
                 properties={
-                    'provider': build_basic_type(OpenApiTypes.STR),
-                    'uid': build_basic_type(OpenApiTypes.STR),
+                    'provider': GENERIC_STRING_SCHEMA,
+                    'uid': GENERIC_STRING_SCHEMA,
                     'last_joined': build_basic_type(OpenApiTypes.DATETIME),
                     'date_joined': build_basic_type(OpenApiTypes.DATETIME),
                     'email': build_basic_type(OpenApiTypes.EMAIL),
-                    'username': build_basic_type(OpenApiTypes.STR),
+                    'username': GENERIC_STRING_SCHEMA,
                 }
             )
         )

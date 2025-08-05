@@ -11,6 +11,7 @@ from kpi.schema_extensions.v2.generic.schema import (
     ASSET_URL_SCHEMA,
     GENERIC_ARRAY_SCHEMA,
     USER_URL_SCHEMA,
+    GENERIC_STRING_SCHEMA,
 )
 
 class InviteAssetFieldExtension(OpenApiSerializerFieldExtension):
@@ -49,8 +50,8 @@ class TransferFieldExtension(OpenApiSerializerFieldExtension):
                         uid='pot54pTqM5qwKdZ4wnNdiwDY',
                     ),
                     'asset': ASSET_URL_SCHEMA,
-                    'status': build_basic_type(OpenApiTypes.STR),
-                    'error': build_basic_type(OpenApiTypes.STR),
+                    'status': GENERIC_STRING_SCHEMA,
+                    'error': GENERIC_STRING_SCHEMA,
                     'date_modified': build_basic_type(OpenApiTypes.DATETIME),
                 }
             )
