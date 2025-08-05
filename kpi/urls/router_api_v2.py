@@ -23,12 +23,15 @@ from kpi.views.v2.asset_usage import AssetUsageViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
 from kpi.views.v2.attachment import AttachmentViewSet
 from kpi.views.v2.attachment_delete import AttachmentDeleteViewSet
+from kpi.views.v2.authorized_application_user import AuthorizedApplicationUserViewSet
 from kpi.views.v2.data import DataViewSet
 from kpi.views.v2.export_task import ExportTaskViewSet
 from kpi.views.v2.import_task import ImportTaskViewSet
 from kpi.views.v2.paired_data import PairedDataViewset
 from kpi.views.v2.permission import PermissionViewSet
 from kpi.views.v2.service_usage import ServiceUsageViewSet
+from kpi.views.v2.tag import TagViewSet
+from kpi.views.v2.tos import TermsOfServiceViewSet
 from kpi.views.v2.user import UserViewSet
 from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
 
@@ -182,6 +185,10 @@ router_api_v2.register(r'service_usage',
                        ServiceUsageViewSet, basename='service-usage')
 router_api_v2.register(r'users', UserViewSet, basename='user-kpi')
 
+router_api_v2.register(r'tags', TagViewSet, basename='tags')
+router_api_v2.register(
+    r'terms-of-service', TermsOfServiceViewSet, basename='terms-of-service'
+)
 
 # Merge django apps routers with API v2 router
 # All routes are under `/api/v2/` within the same namespace.
@@ -190,12 +197,11 @@ router_api_v2.registry.extend(language_router.registry)
 router_api_v2.registry.extend(audit_log_router.registry)
 
 
-# TODO migrate ViewSet below
-# router_api_v2.register(r'sitewide_messages', SitewideMessageViewSet)
-#
-# router_api_v2.register(r'authorized_application/users',
-#                        AuthorizedApplicationUserViewSet,
-#                        basename='authorized_applications')
+router_api_v2.register(
+    r'authorized_application/users',
+    AuthorizedApplicationUserViewSet,
+    basename='authorized_applications',
+)
 
 
 # Create aliases here instead of using complex regex patterns in the `url_path`
