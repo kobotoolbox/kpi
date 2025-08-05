@@ -1,12 +1,7 @@
-from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from rest_framework import serializers
 
-from .fields import (
-    AssetListField,
-    TagUrlField,
-    ParentUrlField,
-)
-
+from kpi.utils.schema_extensions.serializers import inline_serializer_class
+from .fields import AssetListField, ParentUrlField, TagUrlField
 
 TagListResponse = inline_serializer_class(
     name='TagListResponse',

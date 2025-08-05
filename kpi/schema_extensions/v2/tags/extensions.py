@@ -9,10 +9,7 @@ class AssetListFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_array_type(
-            schema=build_url_type(
-                'api_v2:asset-detail',
-                uid='a5owyo85mHyFazzgsZK45c'
-            )
+            schema=build_url_type('api_v2:asset-detail', uid='a5owyo85mHyFazzgsZK45c')
         )
 
 
@@ -20,16 +17,11 @@ class TagUrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.tags.fields.TagUrlField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type(
-            'tags-detail',
-            taguid__uid='tg3c5giitsQUMCJNNoDEpQ'
-        )
+        return build_url_type('tags-detail', taguid__uid='tg3c5giitsQUMCJNNoDEpQ')
 
 
 class ParentUrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.tags.fields.ParentUrlField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type(
-            'tags-list'
-        )
+        return build_url_type('tags-list')

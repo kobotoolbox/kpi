@@ -7,16 +7,17 @@ from taggit.models import Tag
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.filters import SearchFilter
 from kpi.models import Asset
-from kpi.schema_extensions.v2.tags.serializers import TagListResponse, TagRetrieveResponse
+from kpi.schema_extensions.v2.tags.serializers import (
+    TagListResponse,
+    TagRetrieveResponse,
+)
 from kpi.serializers.v2.tag import TagListSerializer, TagSerializer
 from kpi.utils.object_permission import get_database_user, get_objects_for_user
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
 
 
-@extend_schema(
-    tags=['Tags']
-)
+@extend_schema(tags=['Tags'])
 @extend_schema_view(
     list=extend_schema(
         description=read_md('kpi', 'tags/list.md'),
@@ -25,7 +26,7 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
             raise_not_found=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'tags/retrieve.md'),
@@ -33,7 +34,7 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
             TagRetrieveResponse,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
 )
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -56,7 +57,6 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     - docs/api/v2/tags/list.md
     - docs/api/v2/tags/retrieve.md
     """
-
 
     def get_queryset(self, *args, **kwargs):
         user = get_database_user(self.request.user)

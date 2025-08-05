@@ -5,8 +5,8 @@ from rest_framework.reverse import reverse
 from taggit.models import Tag
 
 from kpi.models import Asset, TagUid
+from kpi.schema_extensions.v2.tags.fields import ParentUrlField, TagUrlField
 
-from kpi.schema_extensions.v2.tags.fields import TagUrlField, ParentUrlField
 
 class TagSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
