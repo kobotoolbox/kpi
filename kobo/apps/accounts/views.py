@@ -94,6 +94,20 @@ class SocialAccountViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
+    """
+    Viewset for managing current user's socials
+
+    Available actions:
+    - destroy        → DELETE   /me/social-accounts/{provider}/{uid}/
+    - list           → GET      /me/social-accounts/
+    - retrieve       → GET      /me/social-accounts/{provider}/{uid}/
+
+    Documentation:
+    - docs/api/v2/social/destroy.md
+    - docs/api/v2/social/list.md
+    - docs/api/v2/social/retrieve.md
+    """
+
     lookup_value_regex = r'(?P<provider>[^/.]+)/(?P<uid>[-\w]+)'
     lookup_fields = ['provider', 'uid']
     queryset = SocialAccount.objects.all()
