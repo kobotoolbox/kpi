@@ -22,7 +22,9 @@ from .schema import (
     BULK_ASSET_UIDS_SCHEMA,
     BULK_CONFIRM_SCHEMA,
 )
-from kpi.schema_extensions.v2.generic.schema import (ASSET_URL_SCHEMA, GENERIC_ARRAY_SCHEMA)
+from kpi.schema_extensions.v2.generic.schema import (ASSET_URL_SCHEMA,
+                                                     GENERIC_ARRAY_SCHEMA,
+                                                     USER_URL_SCHEMA)
 
 class AccessTypeFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AccessTypeField'
@@ -432,7 +434,7 @@ class UserURLRelativeHyperlinkedRelatedFieldExtension(OpenApiSerializerFieldExte
     target_class = 'kpi.schema_extensions.v2.assets.fields.UserURLRelativeHyperlinkedRelatedField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type('api_v2:user-kpi-detail', username='bob')
+        return USER_URL_SCHEMA
 
 
 class PairedDataURLFieldExtension(OpenApiSerializerFieldExtension):

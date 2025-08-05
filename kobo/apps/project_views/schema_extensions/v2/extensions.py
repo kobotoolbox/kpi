@@ -8,7 +8,7 @@ from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
 from kpi.schema_extensions.v2.generic.schema import (
-    GENERIC_ARRAY_SCHEMA
+    GENERIC_ARRAY_SCHEMA, LABEL_VALUE_OBJECT_SCHEMA
 )
 
 
@@ -29,19 +29,9 @@ class AssetSettingsFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'sector': build_object_type(
-                    properties={
-                        'label': build_basic_type(OpenApiTypes.STR),
-                        'value': build_basic_type(OpenApiTypes.STR),
-                    }
-                ),
+                'sector': LABEL_VALUE_OBJECT_SCHEMA,
                 'country': build_array_type(
-                    schema=build_object_type(
-                        properties={
-                            'label': build_basic_type(OpenApiTypes.STR),
-                            'value': build_basic_type(OpenApiTypes.STR),
-                        }
-                    )
+                    schema=LABEL_VALUE_OBJECT_SCHEMA
                 ),
                 'description': build_basic_type(OpenApiTypes.STR),
                 'collects_pii': build_basic_type(OpenApiTypes.STR),

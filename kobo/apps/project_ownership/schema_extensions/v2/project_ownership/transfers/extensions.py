@@ -7,16 +7,13 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
-
+from kpi.schema_extensions.v2.generic.schema import ASSET_URL_SCHEMA
 
 class AssetUrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kobo.apps.project_ownership.schema_extensions.v2.project_ownership.transfers.fields.AssetUrlField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type(
-            'api_v2:assets-detail',
-            uid='aTPPUDScaFZkvBzd8FyK4Q'
-        )
+        return ASSET_URL_SCHEMA
 
 
 class StatusesFieldExtension(OpenApiSerializerFieldExtension):

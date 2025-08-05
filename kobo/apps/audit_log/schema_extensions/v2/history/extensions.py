@@ -8,7 +8,7 @@ from drf_spectacular.types import OpenApiTypes
 
 from kpi.schema_extensions.v2.generic.schema import (
     GENERIC_ARRAY_SCHEMA,
-    USER_URL_SCHEMA,
+    USER_URL_SCHEMA, LABEL_VALUE_OBJECT_SCHEMA,
 )
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
@@ -33,34 +33,14 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
                     properties={
                         'sector': build_object_type(
                             properties={
-                                'new': build_object_type(
-                                    properties={
-                                        'label': build_basic_type(OpenApiTypes.STR),
-                                        'value': build_basic_type(OpenApiTypes.STR),
-                                    }
-                                ),
-                                'old': build_object_type(
-                                    properties={
-                                        'label': build_basic_type(OpenApiTypes.STR),
-                                        'value': build_basic_type(OpenApiTypes.STR),
-                                    }
-                                ),
+                                'new': LABEL_VALUE_OBJECT_SCHEMA,
+                                'old': LABEL_VALUE_OBJECT_SCHEMA,
                             }
                         ),
                         'country': build_object_type(
                             properties={
-                                'added': build_object_type(
-                                    properties={
-                                        'label': build_basic_type(OpenApiTypes.STR),
-                                        'value': build_basic_type(OpenApiTypes.STR),
-                                    }
-                                ),
-                                'removed': build_object_type(
-                                    properties={
-                                        'label': build_basic_type(OpenApiTypes.STR),
-                                        'value': build_basic_type(OpenApiTypes.STR),
-                                    }
-                                ),
+                                'added': LABEL_VALUE_OBJECT_SCHEMA,
+                                'removed': LABEL_VALUE_OBJECT_SCHEMA,
                             }
                         ),
                         'description': build_object_type(
