@@ -9,7 +9,10 @@ module.exports = {
       schemas: './models',
       clean: true,
 
-      client: 'react-query',
+      client: (generatorClients) => {
+        // Note: With a "custom" client schema gets generated with simpler types and is more readable.
+        return generatorClients['react-query']
+      },
       httpClient: 'fetch',
       namingConvention: 'PamelCase',
       mock: true,
@@ -23,13 +26,12 @@ module.exports = {
         title: (title) => ``,
         operationName: operationName,
         enumGenerationType: 'const',  // Weirdly, 'enum' generates wrong imports.
+        mutator: {
+          path: '../orval.mutator.ts',
+          name: 'fetchWithKoboAuth',
+        },
         query: {
           shouldSplitQueryKey: true,
-          mutationOptions: {
-            path: './jsapp/js/orval.mutationOptions.ts',
-            name: 'koboCustomOrvalMutationOptions',
-            // default: true
-          },
         }
       },
     },

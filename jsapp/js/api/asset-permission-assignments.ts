@@ -7,16 +7,10 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
   MutationFunction,
-  QueryClient,
   QueryFunction,
   QueryKey,
-  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
@@ -37,7 +31,9 @@ import { http, HttpResponse, delay } from 'msw'
 
 import type { PermissionAssignmentResponse } from './models/permissionAssignmentResponse'
 
-import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List permission assignments
@@ -75,15 +71,13 @@ export const assetsPermissionAssignmentsList = async (
   parentLookupAsset: string,
   options?: RequestInit,
 ): Promise<assetsPermissionAssignmentsListResponse> => {
-  const res = await fetch(getAssetsPermissionAssignmentsListUrl(parentLookupAsset), {
-    ...options,
-    method: 'GET',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsPermissionAssignmentsListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsPermissionAssignmentsListResponse
+  return fetchWithKoboAuth<assetsPermissionAssignmentsListResponse>(
+    getAssetsPermissionAssignmentsListUrl(parentLookupAsset),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
 export const getAssetsPermissionAssignmentsListQueryKey = (parentLookupAsset: string) => {
@@ -96,22 +90,22 @@ export const getAssetsPermissionAssignmentsListQueryOptions = <
 >(
   parentLookupAsset: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAssetsPermissionAssignmentsListQueryKey(parentLookupAsset)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>> = ({ signal }) =>
-    assetsPermissionAssignmentsList(parentLookupAsset, { signal, ...fetchOptions })
+    assetsPermissionAssignmentsList(parentLookupAsset, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!parentLookupAsset, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsPermissionAssignmentsListQueryResult = NonNullable<
@@ -124,67 +118,14 @@ export function useAssetsPermissionAssignmentsList<
   TError = ErrorDetail | ErrorObject,
 >(
   parentLookupAsset: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>,
-          TError,
-          Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsPermissionAssignmentsList<
-  TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  parentLookupAsset: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>,
-          TError,
-          Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsPermissionAssignmentsList<
-  TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  parentLookupAsset: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetsPermissionAssignmentsList<
-  TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  parentLookupAsset: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetsPermissionAssignmentsListQueryOptions(parentLookupAsset, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -233,20 +174,18 @@ export const assetsPermissionAssignmentsCreate = async (
   permissionAssignmentCreateRequest: PermissionAssignmentCreateRequest,
   options?: RequestInit,
 ): Promise<assetsPermissionAssignmentsCreateResponse> => {
-  const res = await fetch(getAssetsPermissionAssignmentsCreateUrl(parentLookupAsset), {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(permissionAssignmentCreateRequest),
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsPermissionAssignmentsCreateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsPermissionAssignmentsCreateResponse
+  return fetchWithKoboAuth<assetsPermissionAssignmentsCreateResponse>(
+    getAssetsPermissionAssignmentsCreateUrl(parentLookupAsset),
+    {
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(permissionAssignmentCreateRequest),
+    },
+  )
 }
 
-export const useAssetsPermissionAssignmentsCreateMutationOptions = <
+export const getAssetsPermissionAssignmentsCreateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -256,7 +195,7 @@ export const useAssetsPermissionAssignmentsCreateMutationOptions = <
     { parentLookupAsset: string; data: PermissionAssignmentCreateRequest },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsPermissionAssignmentsCreate>>,
   TError,
@@ -264,11 +203,11 @@ export const useAssetsPermissionAssignmentsCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['assetsPermissionAssignmentsCreate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsPermissionAssignmentsCreate>>,
@@ -276,12 +215,10 @@ export const useAssetsPermissionAssignmentsCreateMutationOptions = <
   > = (props) => {
     const { parentLookupAsset, data } = props ?? {}
 
-    return assetsPermissionAssignmentsCreate(parentLookupAsset, data, fetchOptions)
+    return assetsPermissionAssignmentsCreate(parentLookupAsset, data, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetsPermissionAssignmentsCreateMutationResult = NonNullable<
@@ -290,26 +227,18 @@ export type AssetsPermissionAssignmentsCreateMutationResult = NonNullable<
 export type AssetsPermissionAssignmentsCreateMutationBody = PermissionAssignmentCreateRequest
 export type AssetsPermissionAssignmentsCreateMutationError = ErrorObject | ErrorDetail
 
-export const useAssetsPermissionAssignmentsCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof assetsPermissionAssignmentsCreate>>,
-      TError,
-      { parentLookupAsset: string; data: PermissionAssignmentCreateRequest },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof assetsPermissionAssignmentsCreate>>,
-  TError,
-  { parentLookupAsset: string; data: PermissionAssignmentCreateRequest },
-  TContext
-> => {
-  const mutationOptions = useAssetsPermissionAssignmentsCreateMutationOptions(options)
+export const useAssetsPermissionAssignmentsCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsCreate>>,
+    TError,
+    { parentLookupAsset: string; data: PermissionAssignmentCreateRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetsPermissionAssignmentsCreateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Retrieve assignments
@@ -348,15 +277,13 @@ export const assetsPermissionAssignmentsRetrieve = async (
   uid: string,
   options?: RequestInit,
 ): Promise<assetsPermissionAssignmentsRetrieveResponse> => {
-  const res = await fetch(getAssetsPermissionAssignmentsRetrieveUrl(parentLookupAsset, uid), {
-    ...options,
-    method: 'GET',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsPermissionAssignmentsRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsPermissionAssignmentsRetrieveResponse
+  return fetchWithKoboAuth<assetsPermissionAssignmentsRetrieveResponse>(
+    getAssetsPermissionAssignmentsRetrieveUrl(parentLookupAsset, uid),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
 export const getAssetsPermissionAssignmentsRetrieveQueryKey = (parentLookupAsset: string, uid: string) => {
@@ -370,22 +297,22 @@ export const getAssetsPermissionAssignmentsRetrieveQueryOptions = <
   parentLookupAsset: string,
   uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAssetsPermissionAssignmentsRetrieveQueryKey(parentLookupAsset, uid)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>> = ({ signal }) =>
-    assetsPermissionAssignmentsRetrieve(parentLookupAsset, uid, { signal, ...fetchOptions })
+    assetsPermissionAssignmentsRetrieve(parentLookupAsset, uid, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!(parentLookupAsset && uid), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsPermissionAssignmentsRetrieveQueryResult = NonNullable<
@@ -399,70 +326,14 @@ export function useAssetsPermissionAssignmentsRetrieve<
 >(
   parentLookupAsset: string,
   uid: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsPermissionAssignmentsRetrieve<
-  TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  parentLookupAsset: string,
-  uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsPermissionAssignmentsRetrieve<
-  TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  parentLookupAsset: string,
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetsPermissionAssignmentsRetrieve<
-  TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  parentLookupAsset: string,
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetsPermissionAssignmentsRetrieveQueryOptions(parentLookupAsset, uid, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -506,18 +377,16 @@ export const assetsPermissionAssignmentsDestroy = async (
   uid: string,
   options?: RequestInit,
 ): Promise<assetsPermissionAssignmentsDestroyResponse> => {
-  const res = await fetch(getAssetsPermissionAssignmentsDestroyUrl(parentLookupAsset, uid), {
-    ...options,
-    method: 'DELETE',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsPermissionAssignmentsDestroyResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsPermissionAssignmentsDestroyResponse
+  return fetchWithKoboAuth<assetsPermissionAssignmentsDestroyResponse>(
+    getAssetsPermissionAssignmentsDestroyUrl(parentLookupAsset, uid),
+    {
+      ...options,
+      method: 'DELETE',
+    },
+  )
 }
 
-export const useAssetsPermissionAssignmentsDestroyMutationOptions = <
+export const getAssetsPermissionAssignmentsDestroyMutationOptions = <
   TError = ErrorDetail | ErrorObject,
   TContext = unknown,
 >(options?: {
@@ -527,7 +396,7 @@ export const useAssetsPermissionAssignmentsDestroyMutationOptions = <
     { parentLookupAsset: string; uid: string },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsPermissionAssignmentsDestroy>>,
   TError,
@@ -535,11 +404,11 @@ export const useAssetsPermissionAssignmentsDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['assetsPermissionAssignmentsDestroy']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsPermissionAssignmentsDestroy>>,
@@ -547,12 +416,10 @@ export const useAssetsPermissionAssignmentsDestroyMutationOptions = <
   > = (props) => {
     const { parentLookupAsset, uid } = props ?? {}
 
-    return assetsPermissionAssignmentsDestroy(parentLookupAsset, uid, fetchOptions)
+    return assetsPermissionAssignmentsDestroy(parentLookupAsset, uid, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetsPermissionAssignmentsDestroyMutationResult = NonNullable<
@@ -561,26 +428,21 @@ export type AssetsPermissionAssignmentsDestroyMutationResult = NonNullable<
 
 export type AssetsPermissionAssignmentsDestroyMutationError = ErrorDetail | ErrorObject
 
-export const useAssetsPermissionAssignmentsDestroy = <TError = ErrorDetail | ErrorObject, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof assetsPermissionAssignmentsDestroy>>,
-      TError,
-      { parentLookupAsset: string; uid: string },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof assetsPermissionAssignmentsDestroy>>,
-  TError,
-  { parentLookupAsset: string; uid: string },
-  TContext
-> => {
-  const mutationOptions = useAssetsPermissionAssignmentsDestroyMutationOptions(options)
+export const useAssetsPermissionAssignmentsDestroy = <
+  TError = ErrorDetail | ErrorObject,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsDestroy>>,
+    TError,
+    { parentLookupAsset: string; uid: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetsPermissionAssignmentsDestroyMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Remove all permission assignments
@@ -620,18 +482,16 @@ export const assetsPermissionAssignmentsDeleteAllDestroy = async (
   uid: string,
   options?: RequestInit,
 ): Promise<assetsPermissionAssignmentsDeleteAllDestroyResponse> => {
-  const res = await fetch(getAssetsPermissionAssignmentsDeleteAllDestroyUrl(parentLookupAsset, uid), {
-    ...options,
-    method: 'DELETE',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsPermissionAssignmentsDeleteAllDestroyResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsPermissionAssignmentsDeleteAllDestroyResponse
+  return fetchWithKoboAuth<assetsPermissionAssignmentsDeleteAllDestroyResponse>(
+    getAssetsPermissionAssignmentsDeleteAllDestroyUrl(parentLookupAsset, uid),
+    {
+      ...options,
+      method: 'DELETE',
+    },
+  )
 }
 
-export const useAssetsPermissionAssignmentsDeleteAllDestroyMutationOptions = <
+export const getAssetsPermissionAssignmentsDeleteAllDestroyMutationOptions = <
   TError = ErrorDetail | ErrorObject,
   TContext = unknown,
 >(options?: {
@@ -641,7 +501,7 @@ export const useAssetsPermissionAssignmentsDeleteAllDestroyMutationOptions = <
     { parentLookupAsset: string; uid: string },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsPermissionAssignmentsDeleteAllDestroy>>,
   TError,
@@ -649,11 +509,11 @@ export const useAssetsPermissionAssignmentsDeleteAllDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['assetsPermissionAssignmentsDeleteAllDestroy']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsPermissionAssignmentsDeleteAllDestroy>>,
@@ -661,12 +521,10 @@ export const useAssetsPermissionAssignmentsDeleteAllDestroyMutationOptions = <
   > = (props) => {
     const { parentLookupAsset, uid } = props ?? {}
 
-    return assetsPermissionAssignmentsDeleteAllDestroy(parentLookupAsset, uid, fetchOptions)
+    return assetsPermissionAssignmentsDeleteAllDestroy(parentLookupAsset, uid, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetsPermissionAssignmentsDeleteAllDestroyMutationResult = NonNullable<
@@ -675,26 +533,21 @@ export type AssetsPermissionAssignmentsDeleteAllDestroyMutationResult = NonNulla
 
 export type AssetsPermissionAssignmentsDeleteAllDestroyMutationError = ErrorDetail | ErrorObject
 
-export const useAssetsPermissionAssignmentsDeleteAllDestroy = <TError = ErrorDetail | ErrorObject, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof assetsPermissionAssignmentsDeleteAllDestroy>>,
-      TError,
-      { parentLookupAsset: string; uid: string },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof assetsPermissionAssignmentsDeleteAllDestroy>>,
-  TError,
-  { parentLookupAsset: string; uid: string },
-  TContext
-> => {
-  const mutationOptions = useAssetsPermissionAssignmentsDeleteAllDestroyMutationOptions(options)
+export const useAssetsPermissionAssignmentsDeleteAllDestroy = <
+  TError = ErrorDetail | ErrorObject,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsDeleteAllDestroy>>,
+    TError,
+    { parentLookupAsset: string; uid: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetsPermissionAssignmentsDeleteAllDestroyMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Assign multiple permissions at once
@@ -735,20 +588,18 @@ export const assetsPermissionAssignmentsBulkCreate = async (
   permissionAssignmentBulkRequest: PermissionAssignmentBulkRequest[],
   options?: RequestInit,
 ): Promise<assetsPermissionAssignmentsBulkCreateResponse> => {
-  const res = await fetch(getAssetsPermissionAssignmentsBulkCreateUrl(parentLookupAsset), {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(permissionAssignmentBulkRequest),
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsPermissionAssignmentsBulkCreateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsPermissionAssignmentsBulkCreateResponse
+  return fetchWithKoboAuth<assetsPermissionAssignmentsBulkCreateResponse>(
+    getAssetsPermissionAssignmentsBulkCreateUrl(parentLookupAsset),
+    {
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(permissionAssignmentBulkRequest),
+    },
+  )
 }
 
-export const useAssetsPermissionAssignmentsBulkCreateMutationOptions = <
+export const getAssetsPermissionAssignmentsBulkCreateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -758,7 +609,7 @@ export const useAssetsPermissionAssignmentsBulkCreateMutationOptions = <
     { parentLookupAsset: string; data: PermissionAssignmentBulkRequest[] },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkCreate>>,
   TError,
@@ -766,11 +617,11 @@ export const useAssetsPermissionAssignmentsBulkCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['assetsPermissionAssignmentsBulkCreate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkCreate>>,
@@ -778,12 +629,10 @@ export const useAssetsPermissionAssignmentsBulkCreateMutationOptions = <
   > = (props) => {
     const { parentLookupAsset, data } = props ?? {}
 
-    return assetsPermissionAssignmentsBulkCreate(parentLookupAsset, data, fetchOptions)
+    return assetsPermissionAssignmentsBulkCreate(parentLookupAsset, data, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetsPermissionAssignmentsBulkCreateMutationResult = NonNullable<
@@ -792,26 +641,21 @@ export type AssetsPermissionAssignmentsBulkCreateMutationResult = NonNullable<
 export type AssetsPermissionAssignmentsBulkCreateMutationBody = PermissionAssignmentBulkRequest[]
 export type AssetsPermissionAssignmentsBulkCreateMutationError = ErrorObject | ErrorDetail
 
-export const useAssetsPermissionAssignmentsBulkCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkCreate>>,
-      TError,
-      { parentLookupAsset: string; data: PermissionAssignmentBulkRequest[] },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkCreate>>,
-  TError,
-  { parentLookupAsset: string; data: PermissionAssignmentBulkRequest[] },
-  TContext
-> => {
-  const mutationOptions = useAssetsPermissionAssignmentsBulkCreateMutationOptions(options)
+export const useAssetsPermissionAssignmentsBulkCreate = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkCreate>>,
+    TError,
+    { parentLookupAsset: string; data: PermissionAssignmentBulkRequest[] },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetsPermissionAssignmentsBulkCreateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Clone permission assignments from another asset using uid
@@ -853,20 +697,18 @@ export const assetsPermissionAssignmentsClonePartialUpdate = async (
   patchedPermissionAssignmentCloneRequest: PatchedPermissionAssignmentCloneRequest,
   options?: RequestInit,
 ): Promise<assetsPermissionAssignmentsClonePartialUpdateResponse> => {
-  const res = await fetch(getAssetsPermissionAssignmentsClonePartialUpdateUrl(parentLookupAsset), {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(patchedPermissionAssignmentCloneRequest),
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsPermissionAssignmentsClonePartialUpdateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsPermissionAssignmentsClonePartialUpdateResponse
+  return fetchWithKoboAuth<assetsPermissionAssignmentsClonePartialUpdateResponse>(
+    getAssetsPermissionAssignmentsClonePartialUpdateUrl(parentLookupAsset),
+    {
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(patchedPermissionAssignmentCloneRequest),
+    },
+  )
 }
 
-export const useAssetsPermissionAssignmentsClonePartialUpdateMutationOptions = <
+export const getAssetsPermissionAssignmentsClonePartialUpdateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -876,7 +718,7 @@ export const useAssetsPermissionAssignmentsClonePartialUpdateMutationOptions = <
     { parentLookupAsset: string; data: PatchedPermissionAssignmentCloneRequest },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsPermissionAssignmentsClonePartialUpdate>>,
   TError,
@@ -884,11 +726,11 @@ export const useAssetsPermissionAssignmentsClonePartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['assetsPermissionAssignmentsClonePartialUpdate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsPermissionAssignmentsClonePartialUpdate>>,
@@ -896,12 +738,10 @@ export const useAssetsPermissionAssignmentsClonePartialUpdateMutationOptions = <
   > = (props) => {
     const { parentLookupAsset, data } = props ?? {}
 
-    return assetsPermissionAssignmentsClonePartialUpdate(parentLookupAsset, data, fetchOptions)
+    return assetsPermissionAssignmentsClonePartialUpdate(parentLookupAsset, data, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetsPermissionAssignmentsClonePartialUpdateMutationResult = NonNullable<
@@ -913,26 +753,18 @@ export type AssetsPermissionAssignmentsClonePartialUpdateMutationError = ErrorOb
 export const useAssetsPermissionAssignmentsClonePartialUpdate = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof assetsPermissionAssignmentsClonePartialUpdate>>,
-      TError,
-      { parentLookupAsset: string; data: PatchedPermissionAssignmentCloneRequest },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof assetsPermissionAssignmentsClonePartialUpdate>>,
-  TError,
-  { parentLookupAsset: string; data: PatchedPermissionAssignmentCloneRequest },
-  TContext
-> => {
-  const mutationOptions = useAssetsPermissionAssignmentsClonePartialUpdateMutationOptions(options)
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsClonePartialUpdate>>,
+    TError,
+    { parentLookupAsset: string; data: PatchedPermissionAssignmentCloneRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetsPermissionAssignmentsClonePartialUpdateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 
 export const getApiV2AssetsPermissionAssignmentsListResponseMock = (): PermissionAssignmentResponse[] =>

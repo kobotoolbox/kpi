@@ -6,17 +6,7 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import { useQuery } from '@tanstack/react-query'
-import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
-  QueryClient,
-  QueryFunction,
-  QueryKey,
-  UndefinedInitialDataOptions,
-  UseQueryOptions,
-  UseQueryResult,
-} from '@tanstack/react-query'
+import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
 
 import type { ErrorDetail } from './models/errorDetail'
 
@@ -27,6 +17,10 @@ import { faker } from '@faker-js/faker'
 import { http, HttpResponse, delay } from 'msw'
 
 import type { TransferListResponse } from './models/transferListResponse'
+
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## Retrieve transfer details
@@ -66,15 +60,13 @@ export const projectOwnershipInvitesTransfersRetrieve = async (
   uid: string,
   options?: RequestInit,
 ): Promise<projectOwnershipInvitesTransfersRetrieveResponse> => {
-  const res = await fetch(getProjectOwnershipInvitesTransfersRetrieveUrl(parentLookupInviteUid, uid), {
-    ...options,
-    method: 'GET',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: projectOwnershipInvitesTransfersRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as projectOwnershipInvitesTransfersRetrieveResponse
+  return fetchWithKoboAuth<projectOwnershipInvitesTransfersRetrieveResponse>(
+    getProjectOwnershipInvitesTransfersRetrieveUrl(parentLookupInviteUid, uid),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
 export const getProjectOwnershipInvitesTransfersRetrieveQueryKey = (parentLookupInviteUid: string, uid: string) => {
@@ -88,25 +80,23 @@ export const getProjectOwnershipInvitesTransfersRetrieveQueryOptions = <
   parentLookupInviteUid: string,
   uid: string,
   options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
-    >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey =
     queryOptions?.queryKey ?? getProjectOwnershipInvitesTransfersRetrieveQueryKey(parentLookupInviteUid, uid)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>> = ({ signal }) =>
-    projectOwnershipInvitesTransfersRetrieve(parentLookupInviteUid, uid, { signal, ...fetchOptions })
+    projectOwnershipInvitesTransfersRetrieve(parentLookupInviteUid, uid, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!(parentLookupInviteUid && uid), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type ProjectOwnershipInvitesTransfersRetrieveQueryResult = NonNullable<
@@ -120,78 +110,14 @@ export function useProjectOwnershipInvitesTransfersRetrieve<
 >(
   parentLookupInviteUid: string,
   uid: string,
-  options: {
-    query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectOwnershipInvitesTransfersRetrieve<
-  TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  parentLookupInviteUid: string,
-  uid: string,
   options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectOwnershipInvitesTransfersRetrieve<
-  TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  parentLookupInviteUid: string,
-  uid: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useProjectOwnershipInvitesTransfersRetrieve<
-  TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  parentLookupInviteUid: string,
-  uid: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getProjectOwnershipInvitesTransfersRetrieveQueryOptions(parentLookupInviteUid, uid, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 

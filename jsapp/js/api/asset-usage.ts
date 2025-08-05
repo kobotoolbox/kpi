@@ -6,17 +6,7 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import { useQuery } from '@tanstack/react-query'
-import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
-  QueryClient,
-  QueryFunction,
-  QueryKey,
-  UndefinedInitialDataOptions,
-  UseQueryOptions,
-  UseQueryResult,
-} from '@tanstack/react-query'
+import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
 
 import type { AssetUsageListParams } from './models/assetUsageListParams'
 
@@ -27,6 +17,10 @@ import { faker } from '@faker-js/faker'
 import { http, HttpResponse, delay } from 'msw'
 
 import type { PaginatedAssetUsageResponseList } from './models/paginatedAssetUsageResponseList'
+
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## Get user's asset usage
@@ -66,15 +60,10 @@ export const assetUsageList = async (
   params?: AssetUsageListParams,
   options?: RequestInit,
 ): Promise<assetUsageListResponse> => {
-  const res = await fetch(getAssetUsageListUrl(params), {
+  return fetchWithKoboAuth<assetUsageListResponse>(getAssetUsageListUrl(params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetUsageListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetUsageListResponse
 }
 
 export const getAssetUsageListQueryKey = (params?: AssetUsageListParams) => {
@@ -84,81 +73,37 @@ export const getAssetUsageListQueryKey = (params?: AssetUsageListParams) => {
 export const getAssetUsageListQueryOptions = <TData = Awaited<ReturnType<typeof assetUsageList>>, TError = ErrorDetail>(
   params?: AssetUsageListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetUsageList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetUsageList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAssetUsageListQueryKey(params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetUsageList>>> = ({ signal }) =>
-    assetUsageList(params, { signal, ...fetchOptions })
+    assetUsageList(params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetUsageList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AssetUsageListQueryResult = NonNullable<Awaited<ReturnType<typeof assetUsageList>>>
 export type AssetUsageListQueryError = ErrorDetail
 
 export function useAssetUsageList<TData = Awaited<ReturnType<typeof assetUsageList>>, TError = ErrorDetail>(
-  params: undefined | AssetUsageListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetUsageList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetUsageList>>,
-          TError,
-          Awaited<ReturnType<typeof assetUsageList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetUsageList<TData = Awaited<ReturnType<typeof assetUsageList>>, TError = ErrorDetail>(
   params?: AssetUsageListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetUsageList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetUsageList>>,
-          TError,
-          Awaited<ReturnType<typeof assetUsageList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetUsageList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetUsageList<TData = Awaited<ReturnType<typeof assetUsageList>>, TError = ErrorDetail>(
-  params?: AssetUsageListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetUsageList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetUsageList<TData = Awaited<ReturnType<typeof assetUsageList>>, TError = ErrorDetail>(
-  params?: AssetUsageListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetUsageList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetUsageListQueryOptions(params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 

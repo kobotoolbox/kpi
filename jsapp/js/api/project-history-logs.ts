@@ -7,16 +7,10 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
   MutationFunction,
-  QueryClient,
   QueryFunction,
   QueryKey,
-  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
@@ -35,7 +29,9 @@ import type { ExportHistoryResponse } from './models/exportHistoryResponse'
 
 import type { PaginatedProjectHistoryLogResponseList } from './models/paginatedProjectHistoryLogResponseList'
 
-import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List all project history logs for all projects.
@@ -283,15 +279,10 @@ export const projectHistoryLogsList = async (
   params?: ProjectHistoryLogsListParams,
   options?: RequestInit,
 ): Promise<projectHistoryLogsListResponse> => {
-  const res = await fetch(getProjectHistoryLogsListUrl(params), {
+  return fetchWithKoboAuth<projectHistoryLogsListResponse>(getProjectHistoryLogsListUrl(params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: projectHistoryLogsListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as projectHistoryLogsListResponse
 }
 
 export const getProjectHistoryLogsListQueryKey = (params?: ProjectHistoryLogsListParams) => {
@@ -304,22 +295,22 @@ export const getProjectHistoryLogsListQueryOptions = <
 >(
   params?: ProjectHistoryLogsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectHistoryLogsList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectHistoryLogsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getProjectHistoryLogsListQueryKey(params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectHistoryLogsList>>> = ({ signal }) =>
-    projectHistoryLogsList(params, { signal, ...fetchOptions })
+    projectHistoryLogsList(params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectHistoryLogsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type ProjectHistoryLogsListQueryResult = NonNullable<Awaited<ReturnType<typeof projectHistoryLogsList>>>
@@ -329,68 +320,15 @@ export function useProjectHistoryLogsList<
   TData = Awaited<ReturnType<typeof projectHistoryLogsList>>,
   TError = ErrorDetail | ErrorObject,
 >(
-  params: undefined | ProjectHistoryLogsListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectHistoryLogsList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectHistoryLogsList>>,
-          TError,
-          Awaited<ReturnType<typeof projectHistoryLogsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectHistoryLogsList<
-  TData = Awaited<ReturnType<typeof projectHistoryLogsList>>,
-  TError = ErrorDetail | ErrorObject,
->(
   params?: ProjectHistoryLogsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectHistoryLogsList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectHistoryLogsList>>,
-          TError,
-          Awaited<ReturnType<typeof projectHistoryLogsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectHistoryLogsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectHistoryLogsList<
-  TData = Awaited<ReturnType<typeof projectHistoryLogsList>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  params?: ProjectHistoryLogsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectHistoryLogsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useProjectHistoryLogsList<
-  TData = Awaited<ReturnType<typeof projectHistoryLogsList>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  params?: ProjectHistoryLogsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectHistoryLogsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getProjectHistoryLogsListQueryOptions(params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -434,15 +372,10 @@ export const getProjectHistoryLogsExportRetrieveUrl = () => {
 export const projectHistoryLogsExportRetrieve = async (
   options?: RequestInit,
 ): Promise<projectHistoryLogsExportRetrieveResponse> => {
-  const res = await fetch(getProjectHistoryLogsExportRetrieveUrl(), {
+  return fetchWithKoboAuth<projectHistoryLogsExportRetrieveResponse>(getProjectHistoryLogsExportRetrieveUrl(), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: projectHistoryLogsExportRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as projectHistoryLogsExportRetrieveResponse
 }
 
 export const getProjectHistoryLogsExportRetrieveQueryKey = () => {
@@ -453,21 +386,21 @@ export const getProjectHistoryLogsExportRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>,
   TError = ErrorDetail | ErrorObject,
 >(options?: {
-  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>, TError, TData>>
-  fetch?: RequestInit
+  query?: UseQueryOptions<Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getProjectHistoryLogsExportRetrieveQueryKey()
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>> = ({ signal }) =>
-    projectHistoryLogsExportRetrieve({ signal, ...fetchOptions })
+    projectHistoryLogsExportRetrieve({ signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type ProjectHistoryLogsExportRetrieveQueryResult = NonNullable<
@@ -478,65 +411,13 @@ export type ProjectHistoryLogsExportRetrieveQueryError = ErrorDetail | ErrorObje
 export function useProjectHistoryLogsExportRetrieve<
   TData = Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>,
   TError = ErrorDetail | ErrorObject,
->(
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectHistoryLogsExportRetrieve<
-  TData = Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectHistoryLogsExportRetrieve<
-  TData = Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useProjectHistoryLogsExportRetrieve<
-  TData = Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getProjectHistoryLogsExportRetrieveQueryOptions(options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -578,38 +459,31 @@ export const getProjectHistoryLogsExportCreateUrl = () => {
 export const projectHistoryLogsExportCreate = async (
   options?: RequestInit,
 ): Promise<projectHistoryLogsExportCreateResponse> => {
-  const res = await fetch(getProjectHistoryLogsExportCreateUrl(), {
+  return fetchWithKoboAuth<projectHistoryLogsExportCreateResponse>(getProjectHistoryLogsExportCreateUrl(), {
     ...options,
     method: 'POST',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: projectHistoryLogsExportCreateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as projectHistoryLogsExportCreateResponse
 }
 
-export const useProjectHistoryLogsExportCreateMutationOptions = <
+export const getProjectHistoryLogsExportCreateMutationOptions = <
   TError = ErrorDetail | ErrorObject,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof projectHistoryLogsExportCreate>>, TError, void, TContext>
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<Awaited<ReturnType<typeof projectHistoryLogsExportCreate>>, TError, void, TContext> => {
   const mutationKey = ['projectHistoryLogsExportCreate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof projectHistoryLogsExportCreate>>, void> = () => {
-    return projectHistoryLogsExportCreate(fetchOptions)
+    return projectHistoryLogsExportCreate(requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type ProjectHistoryLogsExportCreateMutationResult = NonNullable<
@@ -618,16 +492,13 @@ export type ProjectHistoryLogsExportCreateMutationResult = NonNullable<
 
 export type ProjectHistoryLogsExportCreateMutationError = ErrorDetail | ErrorObject
 
-export const useProjectHistoryLogsExportCreate = <TError = ErrorDetail | ErrorObject, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<Awaited<ReturnType<typeof projectHistoryLogsExportCreate>>, TError, void, TContext>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<Awaited<ReturnType<typeof projectHistoryLogsExportCreate>>, TError, void, TContext> => {
-  const mutationOptions = useProjectHistoryLogsExportCreateMutationOptions(options)
+export const useProjectHistoryLogsExportCreate = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof projectHistoryLogsExportCreate>>, TError, void, TContext>
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getProjectHistoryLogsExportCreateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 
 export const getApiV2ProjectHistoryLogsListResponseMock = (

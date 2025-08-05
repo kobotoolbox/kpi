@@ -7,16 +7,10 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
   MutationFunction,
-  QueryClient,
   QueryFunction,
   QueryKey,
-  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
@@ -39,7 +33,9 @@ import type { ExportListResponse } from './models/exportListResponse'
 
 import type { PaginatedAuditLogResponseList } from './models/paginatedAuditLogResponseList'
 
-import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List actions performed by users.
@@ -155,15 +151,10 @@ export const accessLogsList = async (
   params?: AccessLogsListParams,
   options?: RequestInit,
 ): Promise<accessLogsListResponse> => {
-  const res = await fetch(getAccessLogsListUrl(params), {
+  return fetchWithKoboAuth<accessLogsListResponse>(getAccessLogsListUrl(params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: accessLogsListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as accessLogsListResponse
 }
 
 export const getAccessLogsListQueryKey = (params?: AccessLogsListParams) => {
@@ -176,22 +167,22 @@ export const getAccessLogsListQueryOptions = <
 >(
   params?: AccessLogsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof accessLogsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAccessLogsListQueryKey(params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof accessLogsList>>> = ({ signal }) =>
-    accessLogsList(params, { signal, ...fetchOptions })
+    accessLogsList(params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof accessLogsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AccessLogsListQueryResult = NonNullable<Awaited<ReturnType<typeof accessLogsList>>>
@@ -201,68 +192,15 @@ export function useAccessLogsList<
   TData = Awaited<ReturnType<typeof accessLogsList>>,
   TError = ErrorDetail | ErrorObject,
 >(
-  params: undefined | AccessLogsListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof accessLogsList>>,
-          TError,
-          Awaited<ReturnType<typeof accessLogsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAccessLogsList<
-  TData = Awaited<ReturnType<typeof accessLogsList>>,
-  TError = ErrorDetail | ErrorObject,
->(
   params?: AccessLogsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof accessLogsList>>,
-          TError,
-          Awaited<ReturnType<typeof accessLogsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof accessLogsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAccessLogsList<
-  TData = Awaited<ReturnType<typeof accessLogsList>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  params?: AccessLogsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAccessLogsList<
-  TData = Awaited<ReturnType<typeof accessLogsList>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  params?: AccessLogsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAccessLogsListQueryOptions(params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -296,15 +234,10 @@ export const getAccessLogsExportListUrl = () => {
 }
 
 export const accessLogsExportList = async (options?: RequestInit): Promise<accessLogsExportListResponse> => {
-  const res = await fetch(getAccessLogsExportListUrl(), {
+  return fetchWithKoboAuth<accessLogsExportListResponse>(getAccessLogsExportListUrl(), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: accessLogsExportListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as accessLogsExportListResponse
 }
 
 export const getAccessLogsExportListQueryKey = () => {
@@ -315,76 +248,36 @@ export const getAccessLogsExportListQueryOptions = <
   TData = Awaited<ReturnType<typeof accessLogsExportList>>,
   TError = ErrorDetail,
 >(options?: {
-  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsExportList>>, TError, TData>>
-  fetch?: RequestInit
+  query?: UseQueryOptions<Awaited<ReturnType<typeof accessLogsExportList>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAccessLogsExportListQueryKey()
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof accessLogsExportList>>> = ({ signal }) =>
-    accessLogsExportList({ signal, ...fetchOptions })
+    accessLogsExportList({ signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof accessLogsExportList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AccessLogsExportListQueryResult = NonNullable<Awaited<ReturnType<typeof accessLogsExportList>>>
 export type AccessLogsExportListQueryError = ErrorDetail
 
-export function useAccessLogsExportList<TData = Awaited<ReturnType<typeof accessLogsExportList>>, TError = ErrorDetail>(
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsExportList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof accessLogsExportList>>,
-          TError,
-          Awaited<ReturnType<typeof accessLogsExportList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAccessLogsExportList<TData = Awaited<ReturnType<typeof accessLogsExportList>>, TError = ErrorDetail>(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsExportList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof accessLogsExportList>>,
-          TError,
-          Awaited<ReturnType<typeof accessLogsExportList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAccessLogsExportList<TData = Awaited<ReturnType<typeof accessLogsExportList>>, TError = ErrorDetail>(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsExportList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAccessLogsExportList<TData = Awaited<ReturnType<typeof accessLogsExportList>>, TError = ErrorDetail>(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsExportList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useAccessLogsExportList<
+  TData = Awaited<ReturnType<typeof accessLogsExportList>>,
+  TError = ErrorDetail,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof accessLogsExportList>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAccessLogsExportListQueryOptions(options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -420,51 +313,41 @@ export const getAccessLogsExportCreateUrl = () => {
 }
 
 export const accessLogsExportCreate = async (options?: RequestInit): Promise<accessLogsExportCreateResponse> => {
-  const res = await fetch(getAccessLogsExportCreateUrl(), {
+  return fetchWithKoboAuth<accessLogsExportCreateResponse>(getAccessLogsExportCreateUrl(), {
     ...options,
     method: 'POST',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: accessLogsExportCreateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as accessLogsExportCreateResponse
 }
 
-export const useAccessLogsExportCreateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+export const getAccessLogsExportCreateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof accessLogsExportCreate>>, TError, void, TContext>
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<Awaited<ReturnType<typeof accessLogsExportCreate>>, TError, void, TContext> => {
   const mutationKey = ['accessLogsExportCreate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof accessLogsExportCreate>>, void> = () => {
-    return accessLogsExportCreate(fetchOptions)
+    return accessLogsExportCreate(requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AccessLogsExportCreateMutationResult = NonNullable<Awaited<ReturnType<typeof accessLogsExportCreate>>>
 
 export type AccessLogsExportCreateMutationError = ErrorDetail
 
-export const useAccessLogsExportCreate = <TError = ErrorDetail, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<Awaited<ReturnType<typeof accessLogsExportCreate>>, TError, void, TContext>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<Awaited<ReturnType<typeof accessLogsExportCreate>>, TError, void, TContext> => {
-  const mutationOptions = useAccessLogsExportCreateMutationOptions(options)
+export const useAccessLogsExportCreate = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof accessLogsExportCreate>>, TError, void, TContext>
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAccessLogsExportCreateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## List actions performed by users.
@@ -580,15 +463,10 @@ export const accessLogsMeList = async (
   params?: AccessLogsMeListParams,
   options?: RequestInit,
 ): Promise<accessLogsMeListResponse> => {
-  const res = await fetch(getAccessLogsMeListUrl(params), {
+  return fetchWithKoboAuth<accessLogsMeListResponse>(getAccessLogsMeListUrl(params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: accessLogsMeListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as accessLogsMeListResponse
 }
 
 export const getAccessLogsMeListQueryKey = (params?: AccessLogsMeListParams) => {
@@ -601,22 +479,22 @@ export const getAccessLogsMeListQueryOptions = <
 >(
   params?: AccessLogsMeListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAccessLogsMeListQueryKey(params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof accessLogsMeList>>> = ({ signal }) =>
-    accessLogsMeList(params, { signal, ...fetchOptions })
+    accessLogsMeList(params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof accessLogsMeList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AccessLogsMeListQueryResult = NonNullable<Awaited<ReturnType<typeof accessLogsMeList>>>
@@ -626,68 +504,15 @@ export function useAccessLogsMeList<
   TData = Awaited<ReturnType<typeof accessLogsMeList>>,
   TError = ErrorDetail | ErrorObject,
 >(
-  params: undefined | AccessLogsMeListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof accessLogsMeList>>,
-          TError,
-          Awaited<ReturnType<typeof accessLogsMeList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAccessLogsMeList<
-  TData = Awaited<ReturnType<typeof accessLogsMeList>>,
-  TError = ErrorDetail | ErrorObject,
->(
   params?: AccessLogsMeListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof accessLogsMeList>>,
-          TError,
-          Awaited<ReturnType<typeof accessLogsMeList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAccessLogsMeList<
-  TData = Awaited<ReturnType<typeof accessLogsMeList>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  params?: AccessLogsMeListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAccessLogsMeList<
-  TData = Awaited<ReturnType<typeof accessLogsMeList>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  params?: AccessLogsMeListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAccessLogsMeListQueryOptions(params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -721,15 +546,10 @@ export const getAccessLogsMeExportListUrl = () => {
 }
 
 export const accessLogsMeExportList = async (options?: RequestInit): Promise<accessLogsMeExportListResponse> => {
-  const res = await fetch(getAccessLogsMeExportListUrl(), {
+  return fetchWithKoboAuth<accessLogsMeExportListResponse>(getAccessLogsMeExportListUrl(), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: accessLogsMeExportListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as accessLogsMeExportListResponse
 }
 
 export const getAccessLogsMeExportListQueryKey = () => {
@@ -740,21 +560,21 @@ export const getAccessLogsMeExportListQueryOptions = <
   TData = Awaited<ReturnType<typeof accessLogsMeExportList>>,
   TError = ErrorDetail,
 >(options?: {
-  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeExportList>>, TError, TData>>
-  fetch?: RequestInit
+  query?: UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeExportList>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAccessLogsMeExportListQueryKey()
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof accessLogsMeExportList>>> = ({ signal }) =>
-    accessLogsMeExportList({ signal, ...fetchOptions })
+    accessLogsMeExportList({ signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof accessLogsMeExportList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AccessLogsMeExportListQueryResult = NonNullable<Awaited<ReturnType<typeof accessLogsMeExportList>>>
@@ -763,65 +583,13 @@ export type AccessLogsMeExportListQueryError = ErrorDetail
 export function useAccessLogsMeExportList<
   TData = Awaited<ReturnType<typeof accessLogsMeExportList>>,
   TError = ErrorDetail,
->(
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeExportList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof accessLogsMeExportList>>,
-          TError,
-          Awaited<ReturnType<typeof accessLogsMeExportList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAccessLogsMeExportList<
-  TData = Awaited<ReturnType<typeof accessLogsMeExportList>>,
-  TError = ErrorDetail,
->(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeExportList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof accessLogsMeExportList>>,
-          TError,
-          Awaited<ReturnType<typeof accessLogsMeExportList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAccessLogsMeExportList<
-  TData = Awaited<ReturnType<typeof accessLogsMeExportList>>,
-  TError = ErrorDetail,
->(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeExportList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAccessLogsMeExportList<
-  TData = Awaited<ReturnType<typeof accessLogsMeExportList>>,
-  TError = ErrorDetail,
->(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeExportList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeExportList>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAccessLogsMeExportListQueryOptions(options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -855,51 +623,41 @@ export const getAccessLogsMeExportCreateUrl = () => {
 }
 
 export const accessLogsMeExportCreate = async (options?: RequestInit): Promise<accessLogsMeExportCreateResponse> => {
-  const res = await fetch(getAccessLogsMeExportCreateUrl(), {
+  return fetchWithKoboAuth<accessLogsMeExportCreateResponse>(getAccessLogsMeExportCreateUrl(), {
     ...options,
     method: 'POST',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: accessLogsMeExportCreateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as accessLogsMeExportCreateResponse
 }
 
-export const useAccessLogsMeExportCreateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+export const getAccessLogsMeExportCreateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof accessLogsMeExportCreate>>, TError, void, TContext>
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<Awaited<ReturnType<typeof accessLogsMeExportCreate>>, TError, void, TContext> => {
   const mutationKey = ['accessLogsMeExportCreate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof accessLogsMeExportCreate>>, void> = () => {
-    return accessLogsMeExportCreate(fetchOptions)
+    return accessLogsMeExportCreate(requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AccessLogsMeExportCreateMutationResult = NonNullable<Awaited<ReturnType<typeof accessLogsMeExportCreate>>>
 
 export type AccessLogsMeExportCreateMutationError = ErrorDetail
 
-export const useAccessLogsMeExportCreate = <TError = ErrorDetail, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<Awaited<ReturnType<typeof accessLogsMeExportCreate>>, TError, void, TContext>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<Awaited<ReturnType<typeof accessLogsMeExportCreate>>, TError, void, TContext> => {
-  const mutationOptions = useAccessLogsMeExportCreateMutationOptions(options)
+export const useAccessLogsMeExportCreate = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof accessLogsMeExportCreate>>, TError, void, TContext>
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAccessLogsMeExportCreateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 
 export const getApiV2AccessLogsListResponseMock = (

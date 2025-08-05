@@ -7,16 +7,10 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
   MutationFunction,
-  QueryClient,
   QueryFunction,
   QueryKey,
-  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
@@ -37,7 +31,7 @@ import type { PaginatedImportTaskListList } from './models/paginatedImportTaskLi
 
 import { StatusCefEnum } from './models/statusCefEnum'
 
-import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
+import { fetchWithKoboAuth } from '../orval.mutator'
 
 // https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497
 type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B
@@ -55,6 +49,8 @@ type NonReadonly<T> = [T] extends [UnionToIntersection<T>]
       [P in keyof Writable<T>]: T[P] extends object ? NonReadonly<NonNullable<T[P]>> : T[P]
     }
   : DistributeReadOnlyOverUnions<T>
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List of imported files
@@ -126,15 +122,10 @@ export const getImportsListUrl = (params?: ImportsListParams) => {
 }
 
 export const importsList = async (params?: ImportsListParams, options?: RequestInit): Promise<importsListResponse> => {
-  const res = await fetch(getImportsListUrl(params), {
+  return fetchWithKoboAuth<importsListResponse>(getImportsListUrl(params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: importsListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as importsListResponse
 }
 
 export const getImportsListQueryKey = (params?: ImportsListParams) => {
@@ -144,81 +135,37 @@ export const getImportsListQueryKey = (params?: ImportsListParams) => {
 export const getImportsListQueryOptions = <TData = Awaited<ReturnType<typeof importsList>>, TError = unknown>(
   params?: ImportsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof importsList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof importsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getImportsListQueryKey(params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof importsList>>> = ({ signal }) =>
-    importsList(params, { signal, ...fetchOptions })
+    importsList(params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof importsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type ImportsListQueryResult = NonNullable<Awaited<ReturnType<typeof importsList>>>
 export type ImportsListQueryError = unknown
 
 export function useImportsList<TData = Awaited<ReturnType<typeof importsList>>, TError = unknown>(
-  params: undefined | ImportsListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof importsList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof importsList>>,
-          TError,
-          Awaited<ReturnType<typeof importsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useImportsList<TData = Awaited<ReturnType<typeof importsList>>, TError = unknown>(
   params?: ImportsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof importsList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof importsList>>,
-          TError,
-          Awaited<ReturnType<typeof importsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof importsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useImportsList<TData = Awaited<ReturnType<typeof importsList>>, TError = unknown>(
-  params?: ImportsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof importsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useImportsList<TData = Awaited<ReturnType<typeof importsList>>, TError = unknown>(
-  params?: ImportsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof importsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getImportsListQueryOptions(params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -299,27 +246,22 @@ export const importsCreate = async (
   params?: ImportsCreateParams,
   options?: RequestInit,
 ): Promise<importsCreateResponse> => {
-  const res = await fetch(getImportsCreateUrl(params), {
+  return fetchWithKoboAuth<importsCreateResponse>(getImportsCreateUrl(params), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(importTask),
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: importsCreateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as importsCreateResponse
 }
 
-export const useImportsCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getImportsCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof importsCreate>>,
     TError,
     { data: NonReadonly<ImportTask>; params?: ImportsCreateParams },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof importsCreate>>,
   TError,
@@ -327,11 +269,11 @@ export const useImportsCreateMutationOptions = <TError = unknown, TContext = unk
   TContext
 > => {
   const mutationKey = ['importsCreate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof importsCreate>>,
@@ -339,38 +281,28 @@ export const useImportsCreateMutationOptions = <TError = unknown, TContext = unk
   > = (props) => {
     const { data, params } = props ?? {}
 
-    return importsCreate(data, params, fetchOptions)
+    return importsCreate(data, params, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type ImportsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof importsCreate>>>
 export type ImportsCreateMutationBody = NonReadonly<ImportTask>
 export type ImportsCreateMutationError = unknown
 
-export const useImportsCreate = <TError = unknown, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof importsCreate>>,
-      TError,
-      { data: NonReadonly<ImportTask>; params?: ImportsCreateParams },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof importsCreate>>,
-  TError,
-  { data: NonReadonly<ImportTask>; params?: ImportsCreateParams },
-  TContext
-> => {
-  const mutationOptions = useImportsCreateMutationOptions(options)
+export const useImportsCreate = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof importsCreate>>,
+    TError,
+    { data: NonReadonly<ImportTask>; params?: ImportsCreateParams },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getImportsCreateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## List of imported files
@@ -446,15 +378,10 @@ export const importsRetrieve = async (
   params?: ImportsRetrieveParams,
   options?: RequestInit,
 ): Promise<importsRetrieveResponse> => {
-  const res = await fetch(getImportsRetrieveUrl(uid, params), {
+  return fetchWithKoboAuth<importsRetrieveResponse>(getImportsRetrieveUrl(uid, params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: importsRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as importsRetrieveResponse
 }
 
 export const getImportsRetrieveQueryKey = (uid: string, params?: ImportsRetrieveParams) => {
@@ -465,22 +392,22 @@ export const getImportsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof
   uid: string,
   params?: ImportsRetrieveParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof importsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof importsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getImportsRetrieveQueryKey(uid, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof importsRetrieve>>> = ({ signal }) =>
-    importsRetrieve(uid, params, { signal, ...fetchOptions })
+    importsRetrieve(uid, params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof importsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type ImportsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof importsRetrieve>>>
@@ -488,62 +415,15 @@ export type ImportsRetrieveQueryError = unknown
 
 export function useImportsRetrieve<TData = Awaited<ReturnType<typeof importsRetrieve>>, TError = unknown>(
   uid: string,
-  params: undefined | ImportsRetrieveParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof importsRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof importsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof importsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useImportsRetrieve<TData = Awaited<ReturnType<typeof importsRetrieve>>, TError = unknown>(
-  uid: string,
   params?: ImportsRetrieveParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof importsRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof importsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof importsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof importsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useImportsRetrieve<TData = Awaited<ReturnType<typeof importsRetrieve>>, TError = unknown>(
-  uid: string,
-  params?: ImportsRetrieveParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof importsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useImportsRetrieve<TData = Awaited<ReturnType<typeof importsRetrieve>>, TError = unknown>(
-  uid: string,
-  params?: ImportsRetrieveParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof importsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getImportsRetrieveQueryOptions(uid, params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 

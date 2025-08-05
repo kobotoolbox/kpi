@@ -6,17 +6,7 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import { useQuery } from '@tanstack/react-query'
-import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
-  QueryClient,
-  QueryFunction,
-  QueryKey,
-  UndefinedInitialDataOptions,
-  UseQueryOptions,
-  UseQueryResult,
-} from '@tanstack/react-query'
+import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
 
 import type { AssetsVersionsListParams } from './models/assetsVersionsListParams'
 
@@ -29,6 +19,10 @@ import { http, HttpResponse, delay } from 'msw'
 import type { PaginatedVersionListResponseList } from './models/paginatedVersionListResponseList'
 
 import type { VersionRetrieveResponse } from './models/versionRetrieveResponse'
+
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List the versions of forms
@@ -71,15 +65,10 @@ export const assetsVersionsList = async (
   params?: AssetsVersionsListParams,
   options?: RequestInit,
 ): Promise<assetsVersionsListResponse> => {
-  const res = await fetch(getAssetsVersionsListUrl(parentLookupAsset, params), {
+  return fetchWithKoboAuth<assetsVersionsListResponse>(getAssetsVersionsListUrl(parentLookupAsset, params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsVersionsListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsVersionsListResponse
 }
 
 export const getAssetsVersionsListQueryKey = (parentLookupAsset: string, params?: AssetsVersionsListParams) => {
@@ -93,22 +82,22 @@ export const getAssetsVersionsListQueryOptions = <
   parentLookupAsset: string,
   params?: AssetsVersionsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAssetsVersionsListQueryKey(parentLookupAsset, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsVersionsList>>> = ({ signal }) =>
-    assetsVersionsList(parentLookupAsset, params, { signal, ...fetchOptions })
+    assetsVersionsList(parentLookupAsset, params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!parentLookupAsset, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsVersionsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsVersionsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsVersionsList>>>
@@ -116,62 +105,15 @@ export type AssetsVersionsListQueryError = ErrorObject
 
 export function useAssetsVersionsList<TData = Awaited<ReturnType<typeof assetsVersionsList>>, TError = ErrorObject>(
   parentLookupAsset: string,
-  params: undefined | AssetsVersionsListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsVersionsList>>,
-          TError,
-          Awaited<ReturnType<typeof assetsVersionsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsVersionsList<TData = Awaited<ReturnType<typeof assetsVersionsList>>, TError = ErrorObject>(
-  parentLookupAsset: string,
   params?: AssetsVersionsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsVersionsList>>,
-          TError,
-          Awaited<ReturnType<typeof assetsVersionsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsVersionsList<TData = Awaited<ReturnType<typeof assetsVersionsList>>, TError = ErrorObject>(
-  parentLookupAsset: string,
-  params?: AssetsVersionsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetsVersionsList<TData = Awaited<ReturnType<typeof assetsVersionsList>>, TError = ErrorObject>(
-  parentLookupAsset: string,
-  params?: AssetsVersionsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetsVersionsListQueryOptions(parentLookupAsset, params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -211,15 +153,10 @@ export const assetsVersionsRetrieve = async (
   uid: string,
   options?: RequestInit,
 ): Promise<assetsVersionsRetrieveResponse> => {
-  const res = await fetch(getAssetsVersionsRetrieveUrl(parentLookupAsset, uid), {
+  return fetchWithKoboAuth<assetsVersionsRetrieveResponse>(getAssetsVersionsRetrieveUrl(parentLookupAsset, uid), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsVersionsRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsVersionsRetrieveResponse
 }
 
 export const getAssetsVersionsRetrieveQueryKey = (parentLookupAsset: string, uid: string) => {
@@ -233,22 +170,22 @@ export const getAssetsVersionsRetrieveQueryOptions = <
   parentLookupAsset: string,
   uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAssetsVersionsRetrieveQueryKey(parentLookupAsset, uid)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsVersionsRetrieve>>> = ({ signal }) =>
-    assetsVersionsRetrieve(parentLookupAsset, uid, { signal, ...fetchOptions })
+    assetsVersionsRetrieve(parentLookupAsset, uid, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!(parentLookupAsset && uid), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsVersionsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsVersionsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsVersionsRetrieve>>>
@@ -260,70 +197,14 @@ export function useAssetsVersionsRetrieve<
 >(
   parentLookupAsset: string,
   uid: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsVersionsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetsVersionsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsVersionsRetrieve<
-  TData = Awaited<ReturnType<typeof assetsVersionsRetrieve>>,
-  TError = ErrorObject,
->(
-  parentLookupAsset: string,
-  uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsVersionsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetsVersionsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsVersionsRetrieve<
-  TData = Awaited<ReturnType<typeof assetsVersionsRetrieve>>,
-  TError = ErrorObject,
->(
-  parentLookupAsset: string,
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetsVersionsRetrieve<
-  TData = Awaited<ReturnType<typeof assetsVersionsRetrieve>>,
-  TError = ErrorObject,
->(
-  parentLookupAsset: string,
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetsVersionsRetrieveQueryOptions(parentLookupAsset, uid, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 

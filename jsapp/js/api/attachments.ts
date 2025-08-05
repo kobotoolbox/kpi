@@ -7,16 +7,10 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
   MutationFunction,
-  QueryClient,
   QueryFunction,
   QueryKey,
-  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
@@ -29,7 +23,9 @@ import type { ErrorObject } from './models/errorObject'
 
 import { http, HttpResponse, delay } from 'msw'
 
-import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## Delete a specific attachment of an Asset
@@ -64,25 +60,20 @@ export const assetsAttachmentsDestroy = async (
   id: string,
   options?: RequestInit,
 ): Promise<assetsAttachmentsDestroyResponse> => {
-  const res = await fetch(getAssetsAttachmentsDestroyUrl(parentLookupAsset, id), {
+  return fetchWithKoboAuth<assetsAttachmentsDestroyResponse>(getAssetsAttachmentsDestroyUrl(parentLookupAsset, id), {
     ...options,
     method: 'DELETE',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsAttachmentsDestroyResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsAttachmentsDestroyResponse
 }
 
-export const useAssetsAttachmentsDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsAttachmentsDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsAttachmentsDestroy>>,
     TError,
     { parentLookupAsset: string; id: string },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsAttachmentsDestroy>>,
   TError,
@@ -90,11 +81,11 @@ export const useAssetsAttachmentsDestroyMutationOptions = <TError = ErrorObject,
   TContext
 > => {
   const mutationKey = ['assetsAttachmentsDestroy']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsAttachmentsDestroy>>,
@@ -102,38 +93,28 @@ export const useAssetsAttachmentsDestroyMutationOptions = <TError = ErrorObject,
   > = (props) => {
     const { parentLookupAsset, id } = props ?? {}
 
-    return assetsAttachmentsDestroy(parentLookupAsset, id, fetchOptions)
+    return assetsAttachmentsDestroy(parentLookupAsset, id, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetsAttachmentsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsAttachmentsDestroy>>>
 
 export type AssetsAttachmentsDestroyMutationError = ErrorObject
 
-export const useAssetsAttachmentsDestroy = <TError = ErrorObject, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof assetsAttachmentsDestroy>>,
-      TError,
-      { parentLookupAsset: string; id: string },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof assetsAttachmentsDestroy>>,
-  TError,
-  { parentLookupAsset: string; id: string },
-  TContext
-> => {
-  const mutationOptions = useAssetsAttachmentsDestroyMutationOptions(options)
+export const useAssetsAttachmentsDestroy = <TError = ErrorObject, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAttachmentsDestroy>>,
+    TError,
+    { parentLookupAsset: string; id: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetsAttachmentsDestroyMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Delete all attachments from a list of submissions
@@ -193,25 +174,23 @@ export const assetsAttachmentsBulkDestroy = async (
   parentLookupAsset: string,
   options?: RequestInit,
 ): Promise<assetsAttachmentsBulkDestroyResponse> => {
-  const res = await fetch(getAssetsAttachmentsBulkDestroyUrl(parentLookupAsset), {
-    ...options,
-    method: 'DELETE',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsAttachmentsBulkDestroyResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsAttachmentsBulkDestroyResponse
+  return fetchWithKoboAuth<assetsAttachmentsBulkDestroyResponse>(
+    getAssetsAttachmentsBulkDestroyUrl(parentLookupAsset),
+    {
+      ...options,
+      method: 'DELETE',
+    },
+  )
 }
 
-export const useAssetsAttachmentsBulkDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsAttachmentsBulkDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>,
     TError,
     { parentLookupAsset: string },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>,
   TError,
@@ -219,11 +198,11 @@ export const useAssetsAttachmentsBulkDestroyMutationOptions = <TError = ErrorObj
   TContext
 > => {
   const mutationKey = ['assetsAttachmentsBulkDestroy']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>,
@@ -231,12 +210,10 @@ export const useAssetsAttachmentsBulkDestroyMutationOptions = <TError = ErrorObj
   > = (props) => {
     const { parentLookupAsset } = props ?? {}
 
-    return assetsAttachmentsBulkDestroy(parentLookupAsset, fetchOptions)
+    return assetsAttachmentsBulkDestroy(parentLookupAsset, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetsAttachmentsBulkDestroyMutationResult = NonNullable<
@@ -245,26 +222,18 @@ export type AssetsAttachmentsBulkDestroyMutationResult = NonNullable<
 
 export type AssetsAttachmentsBulkDestroyMutationError = ErrorObject
 
-export const useAssetsAttachmentsBulkDestroy = <TError = ErrorObject, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>,
-      TError,
-      { parentLookupAsset: string },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>,
-  TError,
-  { parentLookupAsset: string },
-  TContext
-> => {
-  const mutationOptions = useAssetsAttachmentsBulkDestroyMutationOptions(options)
+export const useAssetsAttachmentsBulkDestroy = <TError = ErrorObject, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>,
+    TError,
+    { parentLookupAsset: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetsAttachmentsBulkDestroyMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Get an asset's attachment using xpath
@@ -331,15 +300,13 @@ export const assetsDataAttachmentsList = async (
   params: AssetsDataAttachmentsListParams,
   options?: RequestInit,
 ): Promise<assetsDataAttachmentsListResponse> => {
-  const res = await fetch(getAssetsDataAttachmentsListUrl(parentLookupAsset, parentLookupData, params), {
-    ...options,
-    method: 'GET',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsDataAttachmentsListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsDataAttachmentsListResponse
+  return fetchWithKoboAuth<assetsDataAttachmentsListResponse>(
+    getAssetsDataAttachmentsListUrl(parentLookupAsset, parentLookupData, params),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
 export const getAssetsDataAttachmentsListQueryKey = (
@@ -367,23 +334,23 @@ export const getAssetsDataAttachmentsListQueryOptions = <
   parentLookupData: string,
   params: AssetsDataAttachmentsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey =
     queryOptions?.queryKey ?? getAssetsDataAttachmentsListQueryKey(parentLookupAsset, parentLookupData, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataAttachmentsList>>> = ({ signal }) =>
-    assetsDataAttachmentsList(parentLookupAsset, parentLookupData, params, { signal, ...fetchOptions })
+    assetsDataAttachmentsList(parentLookupAsset, parentLookupData, params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!(parentLookupAsset && parentLookupData), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsDataAttachmentsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsDataAttachmentsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDataAttachmentsList>>>
@@ -396,73 +363,14 @@ export function useAssetsDataAttachmentsList<
   parentLookupAsset: string,
   parentLookupData: string,
   params: AssetsDataAttachmentsListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsDataAttachmentsList>>,
-          TError,
-          Awaited<ReturnType<typeof assetsDataAttachmentsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsDataAttachmentsList<
-  TData = Awaited<ReturnType<typeof assetsDataAttachmentsList>>,
-  TError = ErrorObject,
->(
-  parentLookupAsset: string,
-  parentLookupData: string,
-  params: AssetsDataAttachmentsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsDataAttachmentsList>>,
-          TError,
-          Awaited<ReturnType<typeof assetsDataAttachmentsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsDataAttachmentsList<
-  TData = Awaited<ReturnType<typeof assetsDataAttachmentsList>>,
-  TError = ErrorObject,
->(
-  parentLookupAsset: string,
-  parentLookupData: string,
-  params: AssetsDataAttachmentsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetsDataAttachmentsList<
-  TData = Awaited<ReturnType<typeof assetsDataAttachmentsList>>,
-  TError = ErrorObject,
->(
-  parentLookupAsset: string,
-  parentLookupData: string,
-  params: AssetsDataAttachmentsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetsDataAttachmentsListQueryOptions(parentLookupAsset, parentLookupData, params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -541,15 +449,13 @@ export const assetsDataAttachmentsRetrieve = async (
   params?: AssetsDataAttachmentsRetrieveParams,
   options?: RequestInit,
 ): Promise<assetsDataAttachmentsRetrieveResponse> => {
-  const res = await fetch(getAssetsDataAttachmentsRetrieveUrl(parentLookupAsset, parentLookupData, id, params), {
-    ...options,
-    method: 'GET',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsDataAttachmentsRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsDataAttachmentsRetrieveResponse
+  return fetchWithKoboAuth<assetsDataAttachmentsRetrieveResponse>(
+    getAssetsDataAttachmentsRetrieveUrl(parentLookupAsset, parentLookupData, id, params),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
 export const getAssetsDataAttachmentsRetrieveQueryKey = (
@@ -580,17 +486,17 @@ export const getAssetsDataAttachmentsRetrieveQueryOptions = <
   id: string,
   params?: AssetsDataAttachmentsRetrieveParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey =
     queryOptions?.queryKey ?? getAssetsDataAttachmentsRetrieveQueryKey(parentLookupAsset, parentLookupData, id, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>> = ({ signal }) =>
-    assetsDataAttachmentsRetrieve(parentLookupAsset, parentLookupData, id, params, { signal, ...fetchOptions })
+    assetsDataAttachmentsRetrieve(parentLookupAsset, parentLookupData, id, params, { signal, ...requestOptions })
 
   return {
     queryKey,
@@ -598,7 +504,7 @@ export const getAssetsDataAttachmentsRetrieveQueryOptions = <
     enabled: !!(parentLookupAsset && parentLookupData && id),
     ...queryOptions,
   } as UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>, TError, TData> & {
-    queryKey: DataTag<QueryKey, TData, TError>
+    queryKey: QueryKey
   }
 }
 
@@ -614,72 +520,12 @@ export function useAssetsDataAttachmentsRetrieve<
   parentLookupAsset: string,
   parentLookupData: string,
   id: string,
-  params: undefined | AssetsDataAttachmentsRetrieveParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsDataAttachmentsRetrieve<
-  TData = Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>,
-  TError = ErrorObject,
->(
-  parentLookupAsset: string,
-  parentLookupData: string,
-  id: string,
   params?: AssetsDataAttachmentsRetrieveParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsDataAttachmentsRetrieve<
-  TData = Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>,
-  TError = ErrorObject,
->(
-  parentLookupAsset: string,
-  parentLookupData: string,
-  id: string,
-  params?: AssetsDataAttachmentsRetrieveParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetsDataAttachmentsRetrieve<
-  TData = Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>,
-  TError = ErrorObject,
->(
-  parentLookupAsset: string,
-  parentLookupData: string,
-  id: string,
-  params?: AssetsDataAttachmentsRetrieveParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDataAttachmentsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetsDataAttachmentsRetrieveQueryOptions(
     parentLookupAsset,
     parentLookupData,
@@ -688,9 +534,7 @@ export function useAssetsDataAttachmentsRetrieve<
     options,
   )
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -749,15 +593,13 @@ export const attachmentThumbnail = async (
   suffix: string,
   options?: RequestInit,
 ): Promise<attachmentThumbnailResponse> => {
-  const res = await fetch(getAttachmentThumbnailUrl(parentLookupAsset, parentLookupData, id, suffix), {
-    ...options,
-    method: 'GET',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: attachmentThumbnailResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as attachmentThumbnailResponse
+  return fetchWithKoboAuth<attachmentThumbnailResponse>(
+    getAttachmentThumbnailUrl(parentLookupAsset, parentLookupData, id, suffix),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
 export const getAttachmentThumbnailQueryKey = (
@@ -778,26 +620,24 @@ export const getAttachmentThumbnailQueryOptions = <
   id: string,
   suffix: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey =
     queryOptions?.queryKey ?? getAttachmentThumbnailQueryKey(parentLookupAsset, parentLookupData, id, suffix)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof attachmentThumbnail>>> = ({ signal }) =>
-    attachmentThumbnail(parentLookupAsset, parentLookupData, id, suffix, { signal, ...fetchOptions })
+    attachmentThumbnail(parentLookupAsset, parentLookupData, id, suffix, { signal, ...requestOptions })
 
   return {
     queryKey,
     queryFn,
     enabled: !!(parentLookupAsset && parentLookupData && id && suffix),
     ...queryOptions,
-  } as UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  } as UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData> & { queryKey: QueryKey }
 }
 
 export type AttachmentThumbnailQueryResult = NonNullable<Awaited<ReturnType<typeof attachmentThumbnail>>>
@@ -808,67 +648,14 @@ export function useAttachmentThumbnail<TData = Awaited<ReturnType<typeof attachm
   parentLookupData: string,
   id: string,
   suffix: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof attachmentThumbnail>>,
-          TError,
-          Awaited<ReturnType<typeof attachmentThumbnail>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAttachmentThumbnail<TData = Awaited<ReturnType<typeof attachmentThumbnail>>, TError = ErrorObject>(
-  parentLookupAsset: string,
-  parentLookupData: string,
-  id: string,
-  suffix: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof attachmentThumbnail>>,
-          TError,
-          Awaited<ReturnType<typeof attachmentThumbnail>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAttachmentThumbnail<TData = Awaited<ReturnType<typeof attachmentThumbnail>>, TError = ErrorObject>(
-  parentLookupAsset: string,
-  parentLookupData: string,
-  id: string,
-  suffix: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAttachmentThumbnail<TData = Awaited<ReturnType<typeof attachmentThumbnail>>, TError = ErrorObject>(
-  parentLookupAsset: string,
-  parentLookupData: string,
-  id: string,
-  suffix: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof attachmentThumbnail>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAttachmentThumbnailQueryOptions(parentLookupAsset, parentLookupData, id, suffix, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 

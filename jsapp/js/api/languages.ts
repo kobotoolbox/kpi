@@ -6,17 +6,7 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import { useQuery } from '@tanstack/react-query'
-import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
-  QueryClient,
-  QueryFunction,
-  QueryKey,
-  UndefinedInitialDataOptions,
-  UseQueryOptions,
-  UseQueryResult,
-} from '@tanstack/react-query'
+import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
 
 import type { ErrorDetail } from './models/errorDetail'
 
@@ -31,6 +21,10 @@ import { http, HttpResponse, delay } from 'msw'
 import type { Language } from './models/language'
 
 import type { PaginatedLanguageListList } from './models/paginatedLanguageListList'
+
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List the languages accessible to requesting (authenticated) user.
@@ -86,15 +80,10 @@ export const languagesList = async (
   params?: LanguagesListParams,
   options?: RequestInit,
 ): Promise<languagesListResponse> => {
-  const res = await fetch(getLanguagesListUrl(params), {
+  return fetchWithKoboAuth<languagesListResponse>(getLanguagesListUrl(params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: languagesListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as languagesListResponse
 }
 
 export const getLanguagesListQueryKey = (params?: LanguagesListParams) => {
@@ -104,81 +93,37 @@ export const getLanguagesListQueryKey = (params?: LanguagesListParams) => {
 export const getLanguagesListQueryOptions = <TData = Awaited<ReturnType<typeof languagesList>>, TError = ErrorDetail>(
   params?: LanguagesListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof languagesList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof languagesList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getLanguagesListQueryKey(params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof languagesList>>> = ({ signal }) =>
-    languagesList(params, { signal, ...fetchOptions })
+    languagesList(params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof languagesList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type LanguagesListQueryResult = NonNullable<Awaited<ReturnType<typeof languagesList>>>
 export type LanguagesListQueryError = ErrorDetail
 
 export function useLanguagesList<TData = Awaited<ReturnType<typeof languagesList>>, TError = ErrorDetail>(
-  params: undefined | LanguagesListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof languagesList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof languagesList>>,
-          TError,
-          Awaited<ReturnType<typeof languagesList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useLanguagesList<TData = Awaited<ReturnType<typeof languagesList>>, TError = ErrorDetail>(
   params?: LanguagesListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof languagesList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof languagesList>>,
-          TError,
-          Awaited<ReturnType<typeof languagesList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof languagesList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useLanguagesList<TData = Awaited<ReturnType<typeof languagesList>>, TError = ErrorDetail>(
-  params?: LanguagesListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof languagesList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useLanguagesList<TData = Awaited<ReturnType<typeof languagesList>>, TError = ErrorDetail>(
-  params?: LanguagesListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof languagesList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getLanguagesListQueryOptions(params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -220,15 +165,10 @@ export const getLanguagesRetrieveUrl = (code: string) => {
 }
 
 export const languagesRetrieve = async (code: string, options?: RequestInit): Promise<languagesRetrieveResponse> => {
-  const res = await fetch(getLanguagesRetrieveUrl(code), {
+  return fetchWithKoboAuth<languagesRetrieveResponse>(getLanguagesRetrieveUrl(code), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: languagesRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as languagesRetrieveResponse
 }
 
 export const getLanguagesRetrieveQueryKey = (code: string) => {
@@ -241,22 +181,22 @@ export const getLanguagesRetrieveQueryOptions = <
 >(
   code: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof languagesRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof languagesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getLanguagesRetrieveQueryKey(code)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof languagesRetrieve>>> = ({ signal }) =>
-    languagesRetrieve(code, { signal, ...fetchOptions })
+    languagesRetrieve(code, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!code, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof languagesRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type LanguagesRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof languagesRetrieve>>>
@@ -267,67 +207,14 @@ export function useLanguagesRetrieve<
   TError = ErrorDetail | ErrorObject,
 >(
   code: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof languagesRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof languagesRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof languagesRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useLanguagesRetrieve<
-  TData = Awaited<ReturnType<typeof languagesRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  code: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof languagesRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof languagesRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof languagesRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof languagesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useLanguagesRetrieve<
-  TData = Awaited<ReturnType<typeof languagesRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  code: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof languagesRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useLanguagesRetrieve<
-  TData = Awaited<ReturnType<typeof languagesRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  code: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof languagesRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getLanguagesRetrieveQueryOptions(code, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 

@@ -7,16 +7,10 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
   MutationFunction,
-  QueryClient,
   QueryFunction,
   QueryKey,
-  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
@@ -39,7 +33,9 @@ import type { InviteResponse } from './models/inviteResponse'
 
 import type { PaginatedInviteResponseList } from './models/paginatedInviteResponseList'
 
-import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List of invites
@@ -92,15 +88,10 @@ export const projectOwnershipInvitesList = async (
   params?: ProjectOwnershipInvitesListParams,
   options?: RequestInit,
 ): Promise<projectOwnershipInvitesListResponse> => {
-  const res = await fetch(getProjectOwnershipInvitesListUrl(params), {
+  return fetchWithKoboAuth<projectOwnershipInvitesListResponse>(getProjectOwnershipInvitesListUrl(params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: projectOwnershipInvitesListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as projectOwnershipInvitesListResponse
 }
 
 export const getProjectOwnershipInvitesListQueryKey = (params?: ProjectOwnershipInvitesListParams) => {
@@ -113,22 +104,22 @@ export const getProjectOwnershipInvitesListQueryOptions = <
 >(
   params?: ProjectOwnershipInvitesListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getProjectOwnershipInvitesListQueryKey(params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectOwnershipInvitesList>>> = ({ signal }) =>
-    projectOwnershipInvitesList(params, { signal, ...fetchOptions })
+    projectOwnershipInvitesList(params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectOwnershipInvitesList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type ProjectOwnershipInvitesListQueryResult = NonNullable<
@@ -140,68 +131,15 @@ export function useProjectOwnershipInvitesList<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesList>>,
   TError = ErrorDetail,
 >(
-  params: undefined | ProjectOwnershipInvitesListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectOwnershipInvitesList>>,
-          TError,
-          Awaited<ReturnType<typeof projectOwnershipInvitesList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectOwnershipInvitesList<
-  TData = Awaited<ReturnType<typeof projectOwnershipInvitesList>>,
-  TError = ErrorDetail,
->(
   params?: ProjectOwnershipInvitesListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectOwnershipInvitesList>>,
-          TError,
-          Awaited<ReturnType<typeof projectOwnershipInvitesList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectOwnershipInvitesList<
-  TData = Awaited<ReturnType<typeof projectOwnershipInvitesList>>,
-  TError = ErrorDetail,
->(
-  params?: ProjectOwnershipInvitesListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useProjectOwnershipInvitesList<
-  TData = Awaited<ReturnType<typeof projectOwnershipInvitesList>>,
-  TError = ErrorDetail,
->(
-  params?: ProjectOwnershipInvitesListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getProjectOwnershipInvitesListQueryOptions(params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -248,20 +186,15 @@ export const projectOwnershipInvitesCreate = async (
   inviteCreatePayload: InviteCreatePayload,
   options?: RequestInit,
 ): Promise<projectOwnershipInvitesCreateResponse> => {
-  const res = await fetch(getProjectOwnershipInvitesCreateUrl(), {
+  return fetchWithKoboAuth<projectOwnershipInvitesCreateResponse>(getProjectOwnershipInvitesCreateUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(inviteCreatePayload),
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: projectOwnershipInvitesCreateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as projectOwnershipInvitesCreateResponse
 }
 
-export const useProjectOwnershipInvitesCreateMutationOptions = <
+export const getProjectOwnershipInvitesCreateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -271,7 +204,7 @@ export const useProjectOwnershipInvitesCreateMutationOptions = <
     { data: InviteCreatePayload },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof projectOwnershipInvitesCreate>>,
   TError,
@@ -279,11 +212,11 @@ export const useProjectOwnershipInvitesCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['projectOwnershipInvitesCreate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof projectOwnershipInvitesCreate>>,
@@ -291,12 +224,10 @@ export const useProjectOwnershipInvitesCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {}
 
-    return projectOwnershipInvitesCreate(data, fetchOptions)
+    return projectOwnershipInvitesCreate(data, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type ProjectOwnershipInvitesCreateMutationResult = NonNullable<
@@ -305,26 +236,18 @@ export type ProjectOwnershipInvitesCreateMutationResult = NonNullable<
 export type ProjectOwnershipInvitesCreateMutationBody = InviteCreatePayload
 export type ProjectOwnershipInvitesCreateMutationError = ErrorObject | ErrorDetail
 
-export const useProjectOwnershipInvitesCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof projectOwnershipInvitesCreate>>,
-      TError,
-      { data: InviteCreatePayload },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof projectOwnershipInvitesCreate>>,
-  TError,
-  { data: InviteCreatePayload },
-  TContext
-> => {
-  const mutationOptions = useProjectOwnershipInvitesCreateMutationOptions(options)
+export const useProjectOwnershipInvitesCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof projectOwnershipInvitesCreate>>,
+    TError,
+    { data: InviteCreatePayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getProjectOwnershipInvitesCreateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Invite detail
@@ -364,15 +287,10 @@ export const projectOwnershipInvitesRetrieve = async (
   uid: string,
   options?: RequestInit,
 ): Promise<projectOwnershipInvitesRetrieveResponse> => {
-  const res = await fetch(getProjectOwnershipInvitesRetrieveUrl(uid), {
+  return fetchWithKoboAuth<projectOwnershipInvitesRetrieveResponse>(getProjectOwnershipInvitesRetrieveUrl(uid), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: projectOwnershipInvitesRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as projectOwnershipInvitesRetrieveResponse
 }
 
 export const getProjectOwnershipInvitesRetrieveQueryKey = (uid: string) => {
@@ -385,22 +303,22 @@ export const getProjectOwnershipInvitesRetrieveQueryOptions = <
 >(
   uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getProjectOwnershipInvitesRetrieveQueryKey(uid)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>> = ({ signal }) =>
-    projectOwnershipInvitesRetrieve(uid, { signal, ...fetchOptions })
+    projectOwnershipInvitesRetrieve(uid, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type ProjectOwnershipInvitesRetrieveQueryResult = NonNullable<
@@ -413,67 +331,14 @@ export function useProjectOwnershipInvitesRetrieve<
   TError = ErrorDetail | ErrorObject,
 >(
   uid: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectOwnershipInvitesRetrieve<
-  TData = Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectOwnershipInvitesRetrieve<
-  TData = Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useProjectOwnershipInvitesRetrieve<
-  TData = Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getProjectOwnershipInvitesRetrieveQueryOptions(uid, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -529,20 +394,18 @@ export const projectOwnershipInvitesPartialUpdate = async (
   patchedInviteUpdatePayload: PatchedInviteUpdatePayload,
   options?: RequestInit,
 ): Promise<projectOwnershipInvitesPartialUpdateResponse> => {
-  const res = await fetch(getProjectOwnershipInvitesPartialUpdateUrl(uid), {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(patchedInviteUpdatePayload),
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: projectOwnershipInvitesPartialUpdateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as projectOwnershipInvitesPartialUpdateResponse
+  return fetchWithKoboAuth<projectOwnershipInvitesPartialUpdateResponse>(
+    getProjectOwnershipInvitesPartialUpdateUrl(uid),
+    {
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(patchedInviteUpdatePayload),
+    },
+  )
 }
 
-export const useProjectOwnershipInvitesPartialUpdateMutationOptions = <
+export const getProjectOwnershipInvitesPartialUpdateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -552,7 +415,7 @@ export const useProjectOwnershipInvitesPartialUpdateMutationOptions = <
     { uid: string; data: PatchedInviteUpdatePayload },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof projectOwnershipInvitesPartialUpdate>>,
   TError,
@@ -560,11 +423,11 @@ export const useProjectOwnershipInvitesPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['projectOwnershipInvitesPartialUpdate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof projectOwnershipInvitesPartialUpdate>>,
@@ -572,12 +435,10 @@ export const useProjectOwnershipInvitesPartialUpdateMutationOptions = <
   > = (props) => {
     const { uid, data } = props ?? {}
 
-    return projectOwnershipInvitesPartialUpdate(uid, data, fetchOptions)
+    return projectOwnershipInvitesPartialUpdate(uid, data, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type ProjectOwnershipInvitesPartialUpdateMutationResult = NonNullable<
@@ -586,26 +447,21 @@ export type ProjectOwnershipInvitesPartialUpdateMutationResult = NonNullable<
 export type ProjectOwnershipInvitesPartialUpdateMutationBody = PatchedInviteUpdatePayload
 export type ProjectOwnershipInvitesPartialUpdateMutationError = ErrorObject | ErrorDetail
 
-export const useProjectOwnershipInvitesPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof projectOwnershipInvitesPartialUpdate>>,
-      TError,
-      { uid: string; data: PatchedInviteUpdatePayload },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof projectOwnershipInvitesPartialUpdate>>,
-  TError,
-  { uid: string; data: PatchedInviteUpdatePayload },
-  TContext
-> => {
-  const mutationOptions = useProjectOwnershipInvitesPartialUpdateMutationOptions(options)
+export const useProjectOwnershipInvitesPartialUpdate = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof projectOwnershipInvitesPartialUpdate>>,
+    TError,
+    { uid: string; data: PatchedInviteUpdatePayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getProjectOwnershipInvitesPartialUpdateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Delete invite
@@ -643,18 +499,13 @@ export const projectOwnershipInvitesDestroy = async (
   uid: string,
   options?: RequestInit,
 ): Promise<projectOwnershipInvitesDestroyResponse> => {
-  const res = await fetch(getProjectOwnershipInvitesDestroyUrl(uid), {
+  return fetchWithKoboAuth<projectOwnershipInvitesDestroyResponse>(getProjectOwnershipInvitesDestroyUrl(uid), {
     ...options,
     method: 'DELETE',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: projectOwnershipInvitesDestroyResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as projectOwnershipInvitesDestroyResponse
 }
 
-export const useProjectOwnershipInvitesDestroyMutationOptions = <
+export const getProjectOwnershipInvitesDestroyMutationOptions = <
   TError = ErrorDetail | ErrorObject,
   TContext = unknown,
 >(options?: {
@@ -664,7 +515,7 @@ export const useProjectOwnershipInvitesDestroyMutationOptions = <
     { uid: string },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof projectOwnershipInvitesDestroy>>,
   TError,
@@ -672,23 +523,21 @@ export const useProjectOwnershipInvitesDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['projectOwnershipInvitesDestroy']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof projectOwnershipInvitesDestroy>>, { uid: string }> = (
     props,
   ) => {
     const { uid } = props ?? {}
 
-    return projectOwnershipInvitesDestroy(uid, fetchOptions)
+    return projectOwnershipInvitesDestroy(uid, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type ProjectOwnershipInvitesDestroyMutationResult = NonNullable<
@@ -697,21 +546,18 @@ export type ProjectOwnershipInvitesDestroyMutationResult = NonNullable<
 
 export type ProjectOwnershipInvitesDestroyMutationError = ErrorDetail | ErrorObject
 
-export const useProjectOwnershipInvitesDestroy = <TError = ErrorDetail | ErrorObject, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof projectOwnershipInvitesDestroy>>,
-      TError,
-      { uid: string },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<Awaited<ReturnType<typeof projectOwnershipInvitesDestroy>>, TError, { uid: string }, TContext> => {
-  const mutationOptions = useProjectOwnershipInvitesDestroyMutationOptions(options)
+export const useProjectOwnershipInvitesDestroy = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof projectOwnershipInvitesDestroy>>,
+    TError,
+    { uid: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getProjectOwnershipInvitesDestroyMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 
 export const getApiV2ProjectOwnershipInvitesListResponseMock = (

@@ -6,17 +6,7 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import { useQuery } from '@tanstack/react-query'
-import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
-  QueryClient,
-  QueryFunction,
-  QueryKey,
-  UndefinedInitialDataOptions,
-  UseQueryOptions,
-  UseQueryResult,
-} from '@tanstack/react-query'
+import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
 
 import type { PermissionsListParams } from './models/permissionsListParams'
 
@@ -27,6 +17,10 @@ import { http, HttpResponse, delay } from 'msw'
 import type { PaginatedPermissionResponseList } from './models/paginatedPermissionResponseList'
 
 import type { PermissionResponse } from './models/permissionResponse'
+
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List all assignable permissions for `Asset`
@@ -68,15 +62,10 @@ export const permissionsList = async (
   params?: PermissionsListParams,
   options?: RequestInit,
 ): Promise<permissionsListResponse> => {
-  const res = await fetch(getPermissionsListUrl(params), {
+  return fetchWithKoboAuth<permissionsListResponse>(getPermissionsListUrl(params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: permissionsListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as permissionsListResponse
 }
 
 export const getPermissionsListQueryKey = (params?: PermissionsListParams) => {
@@ -86,81 +75,37 @@ export const getPermissionsListQueryKey = (params?: PermissionsListParams) => {
 export const getPermissionsListQueryOptions = <TData = Awaited<ReturnType<typeof permissionsList>>, TError = unknown>(
   params?: PermissionsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof permissionsList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof permissionsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getPermissionsListQueryKey(params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof permissionsList>>> = ({ signal }) =>
-    permissionsList(params, { signal, ...fetchOptions })
+    permissionsList(params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof permissionsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type PermissionsListQueryResult = NonNullable<Awaited<ReturnType<typeof permissionsList>>>
 export type PermissionsListQueryError = unknown
 
 export function usePermissionsList<TData = Awaited<ReturnType<typeof permissionsList>>, TError = unknown>(
-  params: undefined | PermissionsListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof permissionsList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof permissionsList>>,
-          TError,
-          Awaited<ReturnType<typeof permissionsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function usePermissionsList<TData = Awaited<ReturnType<typeof permissionsList>>, TError = unknown>(
   params?: PermissionsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof permissionsList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof permissionsList>>,
-          TError,
-          Awaited<ReturnType<typeof permissionsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof permissionsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function usePermissionsList<TData = Awaited<ReturnType<typeof permissionsList>>, TError = unknown>(
-  params?: PermissionsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof permissionsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function usePermissionsList<TData = Awaited<ReturnType<typeof permissionsList>>, TError = unknown>(
-  params?: PermissionsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof permissionsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getPermissionsListQueryOptions(params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -190,15 +135,10 @@ export const permissionsRetrieve = async (
   codename: string,
   options?: RequestInit,
 ): Promise<permissionsRetrieveResponse> => {
-  const res = await fetch(getPermissionsRetrieveUrl(codename), {
+  return fetchWithKoboAuth<permissionsRetrieveResponse>(getPermissionsRetrieveUrl(codename), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: permissionsRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as permissionsRetrieveResponse
 }
 
 export const getPermissionsRetrieveQueryKey = (codename: string) => {
@@ -211,22 +151,22 @@ export const getPermissionsRetrieveQueryOptions = <
 >(
   codename: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof permissionsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof permissionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getPermissionsRetrieveQueryKey(codename)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof permissionsRetrieve>>> = ({ signal }) =>
-    permissionsRetrieve(codename, { signal, ...fetchOptions })
+    permissionsRetrieve(codename, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!codename, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof permissionsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type PermissionsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof permissionsRetrieve>>>
@@ -234,58 +174,14 @@ export type PermissionsRetrieveQueryError = unknown
 
 export function usePermissionsRetrieve<TData = Awaited<ReturnType<typeof permissionsRetrieve>>, TError = unknown>(
   codename: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof permissionsRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof permissionsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof permissionsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function usePermissionsRetrieve<TData = Awaited<ReturnType<typeof permissionsRetrieve>>, TError = unknown>(
-  codename: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof permissionsRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof permissionsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof permissionsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof permissionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function usePermissionsRetrieve<TData = Awaited<ReturnType<typeof permissionsRetrieve>>, TError = unknown>(
-  codename: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof permissionsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function usePermissionsRetrieve<TData = Awaited<ReturnType<typeof permissionsRetrieve>>, TError = unknown>(
-  codename: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof permissionsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getPermissionsRetrieveQueryOptions(codename, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 

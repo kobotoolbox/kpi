@@ -6,17 +6,7 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import { useQuery } from '@tanstack/react-query'
-import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
-  QueryClient,
-  QueryFunction,
-  QueryKey,
-  UndefinedInitialDataOptions,
-  UseQueryOptions,
-  UseQueryResult,
-} from '@tanstack/react-query'
+import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
 
 import type { ErrorDetail } from './models/errorDetail'
 
@@ -25,6 +15,10 @@ import { faker } from '@faker-js/faker'
 import { http, HttpResponse, delay } from 'msw'
 
 import type { ServiceUsageResponse } from './models/serviceUsageResponse'
+
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * <span class='label label-warning'>⚠️ Deprecated</span>
@@ -58,15 +52,10 @@ export const getServiceUsageListUrl = () => {
 }
 
 export const serviceUsageList = async (options?: RequestInit): Promise<serviceUsageListResponse> => {
-  const res = await fetch(getServiceUsageListUrl(), {
+  return fetchWithKoboAuth<serviceUsageListResponse>(getServiceUsageListUrl(), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: serviceUsageListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as serviceUsageListResponse
 }
 
 export const getServiceUsageListQueryKey = () => {
@@ -77,76 +66,36 @@ export const getServiceUsageListQueryOptions = <
   TData = Awaited<ReturnType<typeof serviceUsageList>>,
   TError = ErrorDetail,
 >(options?: {
-  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof serviceUsageList>>, TError, TData>>
-  fetch?: RequestInit
+  query?: UseQueryOptions<Awaited<ReturnType<typeof serviceUsageList>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getServiceUsageListQueryKey()
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof serviceUsageList>>> = ({ signal }) =>
-    serviceUsageList({ signal, ...fetchOptions })
+    serviceUsageList({ signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof serviceUsageList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type ServiceUsageListQueryResult = NonNullable<Awaited<ReturnType<typeof serviceUsageList>>>
 export type ServiceUsageListQueryError = ErrorDetail
 
-export function useServiceUsageList<TData = Awaited<ReturnType<typeof serviceUsageList>>, TError = ErrorDetail>(
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof serviceUsageList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof serviceUsageList>>,
-          TError,
-          Awaited<ReturnType<typeof serviceUsageList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useServiceUsageList<TData = Awaited<ReturnType<typeof serviceUsageList>>, TError = ErrorDetail>(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof serviceUsageList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof serviceUsageList>>,
-          TError,
-          Awaited<ReturnType<typeof serviceUsageList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useServiceUsageList<TData = Awaited<ReturnType<typeof serviceUsageList>>, TError = ErrorDetail>(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof serviceUsageList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useServiceUsageList<TData = Awaited<ReturnType<typeof serviceUsageList>>, TError = ErrorDetail>(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof serviceUsageList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useServiceUsageList<
+  TData = Awaited<ReturnType<typeof serviceUsageList>>,
+  TError = ErrorDetail,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof serviceUsageList>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getServiceUsageListQueryOptions(options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 

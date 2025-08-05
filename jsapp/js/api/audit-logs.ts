@@ -6,17 +6,7 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import { useQuery } from '@tanstack/react-query'
-import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
-  QueryClient,
-  QueryFunction,
-  QueryKey,
-  UndefinedInitialDataOptions,
-  UseQueryOptions,
-  UseQueryResult,
-} from '@tanstack/react-query'
+import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
 
 import type { AuditLogsListParams } from './models/auditLogsListParams'
 
@@ -29,6 +19,10 @@ import { faker } from '@faker-js/faker'
 import { http, HttpResponse, delay } from 'msw'
 
 import type { PaginatedAuditLogResponseList } from './models/paginatedAuditLogResponseList'
+
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List actions performed by users.
@@ -144,15 +138,10 @@ export const auditLogsList = async (
   params?: AuditLogsListParams,
   options?: RequestInit,
 ): Promise<auditLogsListResponse> => {
-  const res = await fetch(getAuditLogsListUrl(params), {
+  return fetchWithKoboAuth<auditLogsListResponse>(getAuditLogsListUrl(params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: auditLogsListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as auditLogsListResponse
 }
 
 export const getAuditLogsListQueryKey = (params?: AuditLogsListParams) => {
@@ -165,81 +154,37 @@ export const getAuditLogsListQueryOptions = <
 >(
   params?: AuditLogsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof auditLogsList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof auditLogsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAuditLogsListQueryKey(params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof auditLogsList>>> = ({ signal }) =>
-    auditLogsList(params, { signal, ...fetchOptions })
+    auditLogsList(params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof auditLogsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AuditLogsListQueryResult = NonNullable<Awaited<ReturnType<typeof auditLogsList>>>
 export type AuditLogsListQueryError = ErrorDetail | ErrorObject
 
 export function useAuditLogsList<TData = Awaited<ReturnType<typeof auditLogsList>>, TError = ErrorDetail | ErrorObject>(
-  params: undefined | AuditLogsListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof auditLogsList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof auditLogsList>>,
-          TError,
-          Awaited<ReturnType<typeof auditLogsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuditLogsList<TData = Awaited<ReturnType<typeof auditLogsList>>, TError = ErrorDetail | ErrorObject>(
   params?: AuditLogsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof auditLogsList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof auditLogsList>>,
-          TError,
-          Awaited<ReturnType<typeof auditLogsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof auditLogsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuditLogsList<TData = Awaited<ReturnType<typeof auditLogsList>>, TError = ErrorDetail | ErrorObject>(
-  params?: AuditLogsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof auditLogsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAuditLogsList<TData = Awaited<ReturnType<typeof auditLogsList>>, TError = ErrorDetail | ErrorObject>(
-  params?: AuditLogsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof auditLogsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAuditLogsListQueryOptions(params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 

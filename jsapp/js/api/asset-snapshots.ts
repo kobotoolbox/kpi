@@ -7,16 +7,10 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
   MutationFunction,
-  QueryClient,
   QueryFunction,
   QueryKey,
-  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
@@ -41,7 +35,9 @@ import type { OpenRosaXFormResponse } from './models/openRosaXFormResponse'
 
 import type { PaginatedAssetSnapshotResponseList } from './models/paginatedAssetSnapshotResponseList'
 
-import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List all snapshots for every asset of a user
@@ -81,15 +77,10 @@ export const assetSnapshotsList = async (
   params?: AssetSnapshotsListParams,
   options?: RequestInit,
 ): Promise<assetSnapshotsListResponse> => {
-  const res = await fetch(getAssetSnapshotsListUrl(params), {
+  return fetchWithKoboAuth<assetSnapshotsListResponse>(getAssetSnapshotsListUrl(params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetSnapshotsListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetSnapshotsListResponse
 }
 
 export const getAssetSnapshotsListQueryKey = (params?: AssetSnapshotsListParams) => {
@@ -102,81 +93,37 @@ export const getAssetSnapshotsListQueryOptions = <
 >(
   params?: AssetSnapshotsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAssetSnapshotsListQueryKey(params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetSnapshotsList>>> = ({ signal }) =>
-    assetSnapshotsList(params, { signal, ...fetchOptions })
+    assetSnapshotsList(params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetSnapshotsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AssetSnapshotsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetSnapshotsList>>>
 export type AssetSnapshotsListQueryError = ErrorDetail
 
 export function useAssetSnapshotsList<TData = Awaited<ReturnType<typeof assetSnapshotsList>>, TError = ErrorDetail>(
-  params: undefined | AssetSnapshotsListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetSnapshotsList>>,
-          TError,
-          Awaited<ReturnType<typeof assetSnapshotsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetSnapshotsList<TData = Awaited<ReturnType<typeof assetSnapshotsList>>, TError = ErrorDetail>(
   params?: AssetSnapshotsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetSnapshotsList>>,
-          TError,
-          Awaited<ReturnType<typeof assetSnapshotsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetSnapshotsList<TData = Awaited<ReturnType<typeof assetSnapshotsList>>, TError = ErrorDetail>(
-  params?: AssetSnapshotsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetSnapshotsList<TData = Awaited<ReturnType<typeof assetSnapshotsList>>, TError = ErrorDetail>(
-  params?: AssetSnapshotsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetSnapshotsListQueryOptions(params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -226,20 +173,15 @@ export const assetSnapshotsCreate = async (
   assetSnapshotCreateRequest: AssetSnapshotCreateRequest,
   options?: RequestInit,
 ): Promise<assetSnapshotsCreateResponse> => {
-  const res = await fetch(getAssetSnapshotsCreateUrl(), {
+  return fetchWithKoboAuth<assetSnapshotsCreateResponse>(getAssetSnapshotsCreateUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(assetSnapshotCreateRequest),
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetSnapshotsCreateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetSnapshotsCreateResponse
 }
 
-export const useAssetSnapshotsCreateMutationOptions = <
+export const getAssetSnapshotsCreateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -249,7 +191,7 @@ export const useAssetSnapshotsCreateMutationOptions = <
     { data: AssetSnapshotCreateRequest },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetSnapshotsCreate>>,
   TError,
@@ -257,11 +199,11 @@ export const useAssetSnapshotsCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['assetSnapshotsCreate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetSnapshotsCreate>>,
@@ -269,38 +211,28 @@ export const useAssetSnapshotsCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {}
 
-    return assetSnapshotsCreate(data, fetchOptions)
+    return assetSnapshotsCreate(data, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetSnapshotsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetSnapshotsCreate>>>
 export type AssetSnapshotsCreateMutationBody = AssetSnapshotCreateRequest
 export type AssetSnapshotsCreateMutationError = ErrorObject | ErrorDetail
 
-export const useAssetSnapshotsCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof assetSnapshotsCreate>>,
-      TError,
-      { data: AssetSnapshotCreateRequest },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof assetSnapshotsCreate>>,
-  TError,
-  { data: AssetSnapshotCreateRequest },
-  TContext
-> => {
-  const mutationOptions = useAssetSnapshotsCreateMutationOptions(options)
+export const useAssetSnapshotsCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetSnapshotsCreate>>,
+    TError,
+    { data: AssetSnapshotCreateRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetSnapshotsCreateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Retrieve an asset snapshot
@@ -355,15 +287,10 @@ export const assetSnapshotsRetrieve = async (
   params?: AssetSnapshotsRetrieveParams,
   options?: RequestInit,
 ): Promise<assetSnapshotsRetrieveResponse> => {
-  const res = await fetch(getAssetSnapshotsRetrieveUrl(uid, params), {
+  return fetchWithKoboAuth<assetSnapshotsRetrieveResponse>(getAssetSnapshotsRetrieveUrl(uid, params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetSnapshotsRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetSnapshotsRetrieveResponse
 }
 
 export const getAssetSnapshotsRetrieveQueryKey = (uid: string, params?: AssetSnapshotsRetrieveParams) => {
@@ -377,22 +304,22 @@ export const getAssetSnapshotsRetrieveQueryOptions = <
   uid: string,
   params?: AssetSnapshotsRetrieveParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAssetSnapshotsRetrieveQueryKey(uid, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetSnapshotsRetrieve>>> = ({ signal }) =>
-    assetSnapshotsRetrieve(uid, params, { signal, ...fetchOptions })
+    assetSnapshotsRetrieve(uid, params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetSnapshotsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AssetSnapshotsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetSnapshotsRetrieve>>>
@@ -403,71 +330,15 @@ export function useAssetSnapshotsRetrieve<
   TError = ErrorDetail | ErrorObject,
 >(
   uid: string,
-  params: undefined | AssetSnapshotsRetrieveParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetSnapshotsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetSnapshotsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetSnapshotsRetrieve<
-  TData = Awaited<ReturnType<typeof assetSnapshotsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  uid: string,
   params?: AssetSnapshotsRetrieveParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetSnapshotsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetSnapshotsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetSnapshotsRetrieve<
-  TData = Awaited<ReturnType<typeof assetSnapshotsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  uid: string,
-  params?: AssetSnapshotsRetrieveParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetSnapshotsRetrieve<
-  TData = Awaited<ReturnType<typeof assetSnapshotsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  uid: string,
-  params?: AssetSnapshotsRetrieveParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetSnapshotsRetrieveQueryOptions(uid, params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -510,56 +381,46 @@ export const assetSnapshotsDestroy = async (
   uid: string,
   options?: RequestInit,
 ): Promise<assetSnapshotsDestroyResponse> => {
-  const res = await fetch(getAssetSnapshotsDestroyUrl(uid), {
+  return fetchWithKoboAuth<assetSnapshotsDestroyResponse>(getAssetSnapshotsDestroyUrl(uid), {
     ...options,
     method: 'DELETE',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetSnapshotsDestroyResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetSnapshotsDestroyResponse
 }
 
-export const useAssetSnapshotsDestroyMutationOptions = <
+export const getAssetSnapshotsDestroyMutationOptions = <
   TError = ErrorDetail | ErrorObject,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof assetSnapshotsDestroy>>, TError, { uid: string }, TContext>
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<Awaited<ReturnType<typeof assetSnapshotsDestroy>>, TError, { uid: string }, TContext> => {
   const mutationKey = ['assetSnapshotsDestroy']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetSnapshotsDestroy>>, { uid: string }> = (props) => {
     const { uid } = props ?? {}
 
-    return assetSnapshotsDestroy(uid, fetchOptions)
+    return assetSnapshotsDestroy(uid, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetSnapshotsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetSnapshotsDestroy>>>
 
 export type AssetSnapshotsDestroyMutationError = ErrorDetail | ErrorObject
 
-export const useAssetSnapshotsDestroy = <TError = ErrorDetail | ErrorObject, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<Awaited<ReturnType<typeof assetSnapshotsDestroy>>, TError, { uid: string }, TContext>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<Awaited<ReturnType<typeof assetSnapshotsDestroy>>, TError, { uid: string }, TContext> => {
-  const mutationOptions = useAssetSnapshotsDestroyMutationOptions(options)
+export const useAssetSnapshotsDestroy = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof assetSnapshotsDestroy>>, TError, { uid: string }, TContext>
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetSnapshotsDestroyMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Asset snapshot preview
@@ -593,15 +454,10 @@ export const assetSnapshotsPreviewRetrieve = async (
   uid: string,
   options?: RequestInit,
 ): Promise<assetSnapshotsPreviewRetrieveResponse> => {
-  const res = await fetch(getAssetSnapshotsPreviewRetrieveUrl(uid), {
+  return fetchWithKoboAuth<assetSnapshotsPreviewRetrieveResponse>(getAssetSnapshotsPreviewRetrieveUrl(uid), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetSnapshotsPreviewRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetSnapshotsPreviewRetrieveResponse
 }
 
 export const getAssetSnapshotsPreviewRetrieveQueryKey = (uid: string) => {
@@ -614,22 +470,22 @@ export const getAssetSnapshotsPreviewRetrieveQueryOptions = <
 >(
   uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAssetSnapshotsPreviewRetrieveQueryKey(uid)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>> = ({ signal }) =>
-    assetSnapshotsPreviewRetrieve(uid, { signal, ...fetchOptions })
+    assetSnapshotsPreviewRetrieve(uid, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AssetSnapshotsPreviewRetrieveQueryResult = NonNullable<
@@ -642,67 +498,14 @@ export function useAssetSnapshotsPreviewRetrieve<
   TError = void | ErrorObject,
 >(
   uid: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetSnapshotsPreviewRetrieve<
-  TData = Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>,
-  TError = void | ErrorObject,
->(
-  uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetSnapshotsPreviewRetrieve<
-  TData = Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>,
-  TError = void | ErrorObject,
->(
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetSnapshotsPreviewRetrieve<
-  TData = Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>,
-  TError = void | ErrorObject,
->(
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetSnapshotsPreviewRetrieveQueryOptions(uid, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -741,15 +544,10 @@ export const assetSnapshotsXformRetrieve = async (
   uid: string,
   options?: RequestInit,
 ): Promise<assetSnapshotsXformRetrieveResponse> => {
-  const res = await fetch(getAssetSnapshotsXformRetrieveUrl(uid), {
+  return fetchWithKoboAuth<assetSnapshotsXformRetrieveResponse>(getAssetSnapshotsXformRetrieveUrl(uid), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetSnapshotsXformRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetSnapshotsXformRetrieveResponse
 }
 
 export const getAssetSnapshotsXformRetrieveQueryKey = (uid: string) => {
@@ -762,22 +560,22 @@ export const getAssetSnapshotsXformRetrieveQueryOptions = <
 >(
   uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAssetSnapshotsXformRetrieveQueryKey(uid)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>> = ({ signal }) =>
-    assetSnapshotsXformRetrieve(uid, { signal, ...fetchOptions })
+    assetSnapshotsXformRetrieve(uid, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AssetSnapshotsXformRetrieveQueryResult = NonNullable<
@@ -790,67 +588,14 @@ export function useAssetSnapshotsXformRetrieve<
   TError = void,
 >(
   uid: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetSnapshotsXformRetrieve<
-  TData = Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>,
-  TError = void,
->(
-  uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetSnapshotsXformRetrieve<
-  TData = Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>,
-  TError = void,
->(
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetSnapshotsXformRetrieve<
-  TData = Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>,
-  TError = void,
->(
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetSnapshotsXformRetrieveQueryOptions(uid, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -892,15 +637,13 @@ export const assetSnapshotsXmlWithDisclaimerRetrieve = async (
   uid: string,
   options?: RequestInit,
 ): Promise<assetSnapshotsXmlWithDisclaimerRetrieveResponse> => {
-  const res = await fetch(getAssetSnapshotsXmlWithDisclaimerRetrieveUrl(uid), {
-    ...options,
-    method: 'GET',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetSnapshotsXmlWithDisclaimerRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetSnapshotsXmlWithDisclaimerRetrieveResponse
+  return fetchWithKoboAuth<assetSnapshotsXmlWithDisclaimerRetrieveResponse>(
+    getAssetSnapshotsXmlWithDisclaimerRetrieveUrl(uid),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
 export const getAssetSnapshotsXmlWithDisclaimerRetrieveQueryKey = (uid: string) => {
@@ -913,22 +656,22 @@ export const getAssetSnapshotsXmlWithDisclaimerRetrieveQueryOptions = <
 >(
   uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAssetSnapshotsXmlWithDisclaimerRetrieveQueryKey(uid)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>> = ({ signal }) =>
-    assetSnapshotsXmlWithDisclaimerRetrieve(uid, { signal, ...fetchOptions })
+    assetSnapshotsXmlWithDisclaimerRetrieve(uid, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AssetSnapshotsXmlWithDisclaimerRetrieveQueryResult = NonNullable<
@@ -941,71 +684,14 @@ export function useAssetSnapshotsXmlWithDisclaimerRetrieve<
   TError = ErrorObject,
 >(
   uid: string,
-  options: {
-    query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>, TError, TData>
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetSnapshotsXmlWithDisclaimerRetrieve<
-  TData = Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>,
-  TError = ErrorObject,
->(
-  uid: string,
   options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>, TError, TData>
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetSnapshotsXmlWithDisclaimerRetrieve<
-  TData = Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>,
-  TError = ErrorObject,
->(
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetSnapshotsXmlWithDisclaimerRetrieve<
-  TData = Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>,
-  TError = ErrorObject,
->(
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetSnapshotsXmlWithDisclaimerRetrieveQueryOptions(uid, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 

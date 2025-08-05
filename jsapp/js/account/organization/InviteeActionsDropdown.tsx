@@ -53,7 +53,7 @@ export default function InviteeActionsDropdown({
     try {
       await orgInvitesPatchMutation.mutateAsync({
         organizationId: orgId,
-        guid: invite.invitee,
+        guid: invite.url.slice(0,-1).split('/').pop()!,
         data: {
           status: MemberInviteStatus.resent,
         },
@@ -81,7 +81,7 @@ export default function InviteeActionsDropdown({
 
   const removeInvitation = async () => {
     try {
-      await orgInvitesDestroyMutation.mutateAsync({ organizationId: '', guid: invite.url })
+      await orgInvitesDestroyMutation.mutateAsync({ organizationId: orgId, guid: invite.url.slice(0,-1).split('/').pop()! })
       notify(t('Invitation removed'), 'success')
     } catch (e) {
       notify(t('An error occurred while removing the invitation'), 'error')

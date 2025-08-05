@@ -7,16 +7,10 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
   MutationFunction,
-  QueryClient,
   QueryFunction,
   QueryKey,
-  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
@@ -53,7 +47,7 @@ import type { PaginatedHookList } from './models/paginatedHookList'
 
 import type { PaginatedHookLogList } from './models/paginatedHookLogList'
 
-import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
+import { fetchWithKoboAuth } from '../orval.mutator'
 
 // https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497
 type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B
@@ -71,6 +65,8 @@ type NonReadonly<T> = [T] extends [UnionToIntersection<T>]
       [P in keyof Writable<T>]: T[P] extends object ? NonReadonly<NonNullable<T[P]>> : T[P]
     }
   : DistributeReadOnlyOverUnions<T>
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List external services
@@ -115,15 +111,10 @@ export const assetsHooksList = async (
   params?: AssetsHooksListParams,
   options?: RequestInit,
 ): Promise<assetsHooksListResponse> => {
-  const res = await fetch(getAssetsHooksListUrl(parentLookupAsset, params), {
+  return fetchWithKoboAuth<assetsHooksListResponse>(getAssetsHooksListUrl(parentLookupAsset, params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsHooksListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsHooksListResponse
 }
 
 export const getAssetsHooksListQueryKey = (parentLookupAsset: string, params?: AssetsHooksListParams) => {
@@ -137,22 +128,22 @@ export const getAssetsHooksListQueryOptions = <
   parentLookupAsset: string,
   params?: AssetsHooksListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHooksList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAssetsHooksListQueryKey(parentLookupAsset, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsHooksList>>> = ({ signal }) =>
-    assetsHooksList(parentLookupAsset, params, { signal, ...fetchOptions })
+    assetsHooksList(parentLookupAsset, params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!parentLookupAsset, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsHooksList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsHooksListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHooksList>>>
@@ -160,62 +151,15 @@ export type AssetsHooksListQueryError = ErrorObject
 
 export function useAssetsHooksList<TData = Awaited<ReturnType<typeof assetsHooksList>>, TError = ErrorObject>(
   parentLookupAsset: string,
-  params: undefined | AssetsHooksListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsHooksList>>,
-          TError,
-          Awaited<ReturnType<typeof assetsHooksList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsHooksList<TData = Awaited<ReturnType<typeof assetsHooksList>>, TError = ErrorObject>(
-  parentLookupAsset: string,
   params?: AssetsHooksListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsHooksList>>,
-          TError,
-          Awaited<ReturnType<typeof assetsHooksList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHooksList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsHooksList<TData = Awaited<ReturnType<typeof assetsHooksList>>, TError = ErrorObject>(
-  parentLookupAsset: string,
-  params?: AssetsHooksListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetsHooksList<TData = Awaited<ReturnType<typeof assetsHooksList>>, TError = ErrorObject>(
-  parentLookupAsset: string,
-  params?: AssetsHooksListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetsHooksListQueryOptions(parentLookupAsset, params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -281,27 +225,22 @@ export const assetsHooksCreate = async (
   hook: NonReadonly<Hook>,
   options?: RequestInit,
 ): Promise<assetsHooksCreateResponse> => {
-  const res = await fetch(getAssetsHooksCreateUrl(parentLookupAsset), {
+  return fetchWithKoboAuth<assetsHooksCreateResponse>(getAssetsHooksCreateUrl(parentLookupAsset), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(hook),
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsHooksCreateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsHooksCreateResponse
 }
 
-export const useAssetsHooksCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsHooksCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksCreate>>,
     TError,
     { parentLookupAsset: string; data: NonReadonly<Hook> },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsHooksCreate>>,
   TError,
@@ -309,11 +248,11 @@ export const useAssetsHooksCreateMutationOptions = <TError = ErrorObject, TConte
   TContext
 > => {
   const mutationKey = ['assetsHooksCreate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsHooksCreate>>,
@@ -321,38 +260,28 @@ export const useAssetsHooksCreateMutationOptions = <TError = ErrorObject, TConte
   > = (props) => {
     const { parentLookupAsset, data } = props ?? {}
 
-    return assetsHooksCreate(parentLookupAsset, data, fetchOptions)
+    return assetsHooksCreate(parentLookupAsset, data, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetsHooksCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHooksCreate>>>
 export type AssetsHooksCreateMutationBody = NonReadonly<Hook>
 export type AssetsHooksCreateMutationError = ErrorObject
 
-export const useAssetsHooksCreate = <TError = ErrorObject, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof assetsHooksCreate>>,
-      TError,
-      { parentLookupAsset: string; data: NonReadonly<Hook> },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof assetsHooksCreate>>,
-  TError,
-  { parentLookupAsset: string; data: NonReadonly<Hook> },
-  TContext
-> => {
-  const mutationOptions = useAssetsHooksCreateMutationOptions(options)
+export const useAssetsHooksCreate = <TError = ErrorObject, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsHooksCreate>>,
+    TError,
+    { parentLookupAsset: string; data: NonReadonly<Hook> },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetsHooksCreateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## List logs of an external services endpoints accessible to requesting user
@@ -422,15 +351,13 @@ export const assetsHooksLogsList = async (
   params?: AssetsHooksLogsListParams,
   options?: RequestInit,
 ): Promise<assetsHooksLogsListResponse> => {
-  const res = await fetch(getAssetsHooksLogsListUrl(parentLookupAsset, parentLookupHook, params), {
-    ...options,
-    method: 'GET',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsHooksLogsListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsHooksLogsListResponse
+  return fetchWithKoboAuth<assetsHooksLogsListResponse>(
+    getAssetsHooksLogsListUrl(parentLookupAsset, parentLookupHook, params),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
 export const getAssetsHooksLogsListQueryKey = (
@@ -458,22 +385,22 @@ export const getAssetsHooksLogsListQueryOptions = <
   parentLookupHook: string,
   params?: AssetsHooksLogsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAssetsHooksLogsListQueryKey(parentLookupAsset, parentLookupHook, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsHooksLogsList>>> = ({ signal }) =>
-    assetsHooksLogsList(parentLookupAsset, parentLookupHook, params, { signal, ...fetchOptions })
+    assetsHooksLogsList(parentLookupAsset, parentLookupHook, params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!(parentLookupAsset && parentLookupHook), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsHooksLogsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsHooksLogsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHooksLogsList>>>
@@ -485,74 +412,15 @@ export function useAssetsHooksLogsList<
 >(
   parentLookupAsset: string,
   parentLookupHook: string,
-  params: undefined | AssetsHooksLogsListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsHooksLogsList>>,
-          TError,
-          Awaited<ReturnType<typeof assetsHooksLogsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsHooksLogsList<
-  TData = Awaited<ReturnType<typeof assetsHooksLogsList>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  parentLookupAsset: string,
-  parentLookupHook: string,
   params?: AssetsHooksLogsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsHooksLogsList>>,
-          TError,
-          Awaited<ReturnType<typeof assetsHooksLogsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsHooksLogsList<
-  TData = Awaited<ReturnType<typeof assetsHooksLogsList>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  parentLookupAsset: string,
-  parentLookupHook: string,
-  params?: AssetsHooksLogsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetsHooksLogsList<
-  TData = Awaited<ReturnType<typeof assetsHooksLogsList>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  parentLookupAsset: string,
-  parentLookupHook: string,
-  params?: AssetsHooksLogsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetsHooksLogsListQueryOptions(parentLookupAsset, parentLookupHook, params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -597,15 +465,13 @@ export const assetsHooksLogsRetrieve = async (
   uid: string,
   options?: RequestInit,
 ): Promise<assetsHooksLogsRetrieveResponse> => {
-  const res = await fetch(getAssetsHooksLogsRetrieveUrl(parentLookupAsset, parentLookupHook, uid), {
-    ...options,
-    method: 'GET',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsHooksLogsRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsHooksLogsRetrieveResponse
+  return fetchWithKoboAuth<assetsHooksLogsRetrieveResponse>(
+    getAssetsHooksLogsRetrieveUrl(parentLookupAsset, parentLookupHook, uid),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
 export const getAssetsHooksLogsRetrieveQueryKey = (
@@ -624,26 +490,24 @@ export const getAssetsHooksLogsRetrieveQueryOptions = <
   parentLookupHook: string,
   uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey =
     queryOptions?.queryKey ?? getAssetsHooksLogsRetrieveQueryKey(parentLookupAsset, parentLookupHook, uid)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>> = ({ signal }) =>
-    assetsHooksLogsRetrieve(parentLookupAsset, parentLookupHook, uid, { signal, ...fetchOptions })
+    assetsHooksLogsRetrieve(parentLookupAsset, parentLookupHook, uid, { signal, ...requestOptions })
 
   return {
     queryKey,
     queryFn,
     enabled: !!(parentLookupAsset && parentLookupHook && uid),
     ...queryOptions,
-  } as UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>, TError, TData> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  } as UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>, TError, TData> & { queryKey: QueryKey }
 }
 
 export type AssetsHooksLogsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>>
@@ -656,73 +520,14 @@ export function useAssetsHooksLogsRetrieve<
   parentLookupAsset: string,
   parentLookupHook: string,
   uid: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsHooksLogsRetrieve<
-  TData = Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  parentLookupAsset: string,
-  parentLookupHook: string,
-  uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsHooksLogsRetrieve<
-  TData = Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  parentLookupAsset: string,
-  parentLookupHook: string,
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetsHooksLogsRetrieve<
-  TData = Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  parentLookupAsset: string,
-  parentLookupHook: string,
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetsHooksLogsRetrieveQueryOptions(parentLookupAsset, parentLookupHook, uid, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -772,20 +577,18 @@ export const assetsHooksLogsRetryPartialUpdate = async (
   patchedHookLog: NonReadonly<PatchedHookLog>,
   options?: RequestInit,
 ): Promise<assetsHooksLogsRetryPartialUpdateResponse> => {
-  const res = await fetch(getAssetsHooksLogsRetryPartialUpdateUrl(parentLookupAsset, parentLookupHook, uid), {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(patchedHookLog),
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsHooksLogsRetryPartialUpdateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsHooksLogsRetryPartialUpdateResponse
+  return fetchWithKoboAuth<assetsHooksLogsRetryPartialUpdateResponse>(
+    getAssetsHooksLogsRetryPartialUpdateUrl(parentLookupAsset, parentLookupHook, uid),
+    {
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(patchedHookLog),
+    },
+  )
 }
 
-export const useAssetsHooksLogsRetryPartialUpdateMutationOptions = <
+export const getAssetsHooksLogsRetryPartialUpdateMutationOptions = <
   TError = ErrorDetail | ErrorObject,
   TContext = unknown,
 >(options?: {
@@ -795,7 +598,7 @@ export const useAssetsHooksLogsRetryPartialUpdateMutationOptions = <
     { parentLookupAsset: string; parentLookupHook: string; uid: string; data: NonReadonly<PatchedHookLog> },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsHooksLogsRetryPartialUpdate>>,
   TError,
@@ -803,11 +606,11 @@ export const useAssetsHooksLogsRetryPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['assetsHooksLogsRetryPartialUpdate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsHooksLogsRetryPartialUpdate>>,
@@ -815,12 +618,10 @@ export const useAssetsHooksLogsRetryPartialUpdateMutationOptions = <
   > = (props) => {
     const { parentLookupAsset, parentLookupHook, uid, data } = props ?? {}
 
-    return assetsHooksLogsRetryPartialUpdate(parentLookupAsset, parentLookupHook, uid, data, fetchOptions)
+    return assetsHooksLogsRetryPartialUpdate(parentLookupAsset, parentLookupHook, uid, data, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetsHooksLogsRetryPartialUpdateMutationResult = NonNullable<
@@ -829,26 +630,18 @@ export type AssetsHooksLogsRetryPartialUpdateMutationResult = NonNullable<
 export type AssetsHooksLogsRetryPartialUpdateMutationBody = NonReadonly<PatchedHookLog>
 export type AssetsHooksLogsRetryPartialUpdateMutationError = ErrorDetail | ErrorObject
 
-export const useAssetsHooksLogsRetryPartialUpdate = <TError = ErrorDetail | ErrorObject, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof assetsHooksLogsRetryPartialUpdate>>,
-      TError,
-      { parentLookupAsset: string; parentLookupHook: string; uid: string; data: NonReadonly<PatchedHookLog> },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof assetsHooksLogsRetryPartialUpdate>>,
-  TError,
-  { parentLookupAsset: string; parentLookupHook: string; uid: string; data: NonReadonly<PatchedHookLog> },
-  TContext
-> => {
-  const mutationOptions = useAssetsHooksLogsRetryPartialUpdateMutationOptions(options)
+export const useAssetsHooksLogsRetryPartialUpdate = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsHooksLogsRetryPartialUpdate>>,
+    TError,
+    { parentLookupAsset: string; parentLookupHook: string; uid: string; data: NonReadonly<PatchedHookLog> },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetsHooksLogsRetryPartialUpdateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Retrieve an external service
@@ -879,15 +672,10 @@ export const assetsHooksRetrieve = async (
   uid: string,
   options?: RequestInit,
 ): Promise<assetsHooksRetrieveResponse> => {
-  const res = await fetch(getAssetsHooksRetrieveUrl(parentLookupAsset, uid), {
+  return fetchWithKoboAuth<assetsHooksRetrieveResponse>(getAssetsHooksRetrieveUrl(parentLookupAsset, uid), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsHooksRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsHooksRetrieveResponse
 }
 
 export const getAssetsHooksRetrieveQueryKey = (parentLookupAsset: string, uid: string) => {
@@ -901,22 +689,22 @@ export const getAssetsHooksRetrieveQueryOptions = <
   parentLookupAsset: string,
   uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAssetsHooksRetrieveQueryKey(parentLookupAsset, uid)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsHooksRetrieve>>> = ({ signal }) =>
-    assetsHooksRetrieve(parentLookupAsset, uid, { signal, ...fetchOptions })
+    assetsHooksRetrieve(parentLookupAsset, uid, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!(parentLookupAsset && uid), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsHooksRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsHooksRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHooksRetrieve>>>
@@ -925,61 +713,14 @@ export type AssetsHooksRetrieveQueryError = ErrorObject
 export function useAssetsHooksRetrieve<TData = Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError = ErrorObject>(
   parentLookupAsset: string,
   uid: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsHooksRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetsHooksRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsHooksRetrieve<TData = Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError = ErrorObject>(
-  parentLookupAsset: string,
-  uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsHooksRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetsHooksRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsHooksRetrieve<TData = Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError = ErrorObject>(
-  parentLookupAsset: string,
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetsHooksRetrieve<TData = Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError = ErrorObject>(
-  parentLookupAsset: string,
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetsHooksRetrieveQueryOptions(parentLookupAsset, uid, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -1018,27 +759,22 @@ export const assetsHooksPartialUpdate = async (
   patchedHook: NonReadonly<PatchedHook>,
   options?: RequestInit,
 ): Promise<assetsHooksPartialUpdateResponse> => {
-  const res = await fetch(getAssetsHooksPartialUpdateUrl(parentLookupAsset, uid), {
+  return fetchWithKoboAuth<assetsHooksPartialUpdateResponse>(getAssetsHooksPartialUpdateUrl(parentLookupAsset, uid), {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(patchedHook),
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsHooksPartialUpdateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsHooksPartialUpdateResponse
 }
 
-export const useAssetsHooksPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsHooksPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksPartialUpdate>>,
     TError,
     { parentLookupAsset: string; uid: string; data: NonReadonly<PatchedHook> },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsHooksPartialUpdate>>,
   TError,
@@ -1046,11 +782,11 @@ export const useAssetsHooksPartialUpdateMutationOptions = <TError = ErrorObject,
   TContext
 > => {
   const mutationKey = ['assetsHooksPartialUpdate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsHooksPartialUpdate>>,
@@ -1058,38 +794,28 @@ export const useAssetsHooksPartialUpdateMutationOptions = <TError = ErrorObject,
   > = (props) => {
     const { parentLookupAsset, uid, data } = props ?? {}
 
-    return assetsHooksPartialUpdate(parentLookupAsset, uid, data, fetchOptions)
+    return assetsHooksPartialUpdate(parentLookupAsset, uid, data, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetsHooksPartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHooksPartialUpdate>>>
 export type AssetsHooksPartialUpdateMutationBody = NonReadonly<PatchedHook>
 export type AssetsHooksPartialUpdateMutationError = ErrorObject
 
-export const useAssetsHooksPartialUpdate = <TError = ErrorObject, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof assetsHooksPartialUpdate>>,
-      TError,
-      { parentLookupAsset: string; uid: string; data: NonReadonly<PatchedHook> },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof assetsHooksPartialUpdate>>,
-  TError,
-  { parentLookupAsset: string; uid: string; data: NonReadonly<PatchedHook> },
-  TContext
-> => {
-  const mutationOptions = useAssetsHooksPartialUpdateMutationOptions(options)
+export const useAssetsHooksPartialUpdate = <TError = ErrorObject, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsHooksPartialUpdate>>,
+    TError,
+    { parentLookupAsset: string; uid: string; data: NonReadonly<PatchedHook> },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetsHooksPartialUpdateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Delete an external service.
@@ -1120,25 +846,20 @@ export const assetsHooksDestroy = async (
   uid: string,
   options?: RequestInit,
 ): Promise<assetsHooksDestroyResponse> => {
-  const res = await fetch(getAssetsHooksDestroyUrl(parentLookupAsset, uid), {
+  return fetchWithKoboAuth<assetsHooksDestroyResponse>(getAssetsHooksDestroyUrl(parentLookupAsset, uid), {
     ...options,
     method: 'DELETE',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsHooksDestroyResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsHooksDestroyResponse
 }
 
-export const useAssetsHooksDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsHooksDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksDestroy>>,
     TError,
     { parentLookupAsset: string; uid: string },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsHooksDestroy>>,
   TError,
@@ -1146,11 +867,11 @@ export const useAssetsHooksDestroyMutationOptions = <TError = ErrorObject, TCont
   TContext
 > => {
   const mutationKey = ['assetsHooksDestroy']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsHooksDestroy>>,
@@ -1158,38 +879,28 @@ export const useAssetsHooksDestroyMutationOptions = <TError = ErrorObject, TCont
   > = (props) => {
     const { parentLookupAsset, uid } = props ?? {}
 
-    return assetsHooksDestroy(parentLookupAsset, uid, fetchOptions)
+    return assetsHooksDestroy(parentLookupAsset, uid, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetsHooksDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHooksDestroy>>>
 
 export type AssetsHooksDestroyMutationError = ErrorObject
 
-export const useAssetsHooksDestroy = <TError = ErrorObject, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof assetsHooksDestroy>>,
-      TError,
-      { parentLookupAsset: string; uid: string },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof assetsHooksDestroy>>,
-  TError,
-  { parentLookupAsset: string; uid: string },
-  TContext
-> => {
-  const mutationOptions = useAssetsHooksDestroyMutationOptions(options)
+export const useAssetsHooksDestroy = <TError = ErrorObject, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsHooksDestroy>>,
+    TError,
+    { parentLookupAsset: string; uid: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetsHooksDestroyMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Retries all failed attempts
@@ -1226,25 +937,23 @@ export const assetsHooksRetryPartialUpdate = async (
   uid: string,
   options?: RequestInit,
 ): Promise<assetsHooksRetryPartialUpdateResponse> => {
-  const res = await fetch(getAssetsHooksRetryPartialUpdateUrl(parentLookupAsset, uid), {
-    ...options,
-    method: 'PATCH',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsHooksRetryPartialUpdateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsHooksRetryPartialUpdateResponse
+  return fetchWithKoboAuth<assetsHooksRetryPartialUpdateResponse>(
+    getAssetsHooksRetryPartialUpdateUrl(parentLookupAsset, uid),
+    {
+      ...options,
+      method: 'PATCH',
+    },
+  )
 }
 
-export const useAssetsHooksRetryPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsHooksRetryPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksRetryPartialUpdate>>,
     TError,
     { parentLookupAsset: string; uid: string },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsHooksRetryPartialUpdate>>,
   TError,
@@ -1252,11 +961,11 @@ export const useAssetsHooksRetryPartialUpdateMutationOptions = <TError = ErrorOb
   TContext
 > => {
   const mutationKey = ['assetsHooksRetryPartialUpdate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsHooksRetryPartialUpdate>>,
@@ -1264,12 +973,10 @@ export const useAssetsHooksRetryPartialUpdateMutationOptions = <TError = ErrorOb
   > = (props) => {
     const { parentLookupAsset, uid } = props ?? {}
 
-    return assetsHooksRetryPartialUpdate(parentLookupAsset, uid, fetchOptions)
+    return assetsHooksRetryPartialUpdate(parentLookupAsset, uid, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetsHooksRetryPartialUpdateMutationResult = NonNullable<
@@ -1278,26 +985,18 @@ export type AssetsHooksRetryPartialUpdateMutationResult = NonNullable<
 
 export type AssetsHooksRetryPartialUpdateMutationError = ErrorObject
 
-export const useAssetsHooksRetryPartialUpdate = <TError = ErrorObject, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof assetsHooksRetryPartialUpdate>>,
-      TError,
-      { parentLookupAsset: string; uid: string },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof assetsHooksRetryPartialUpdate>>,
-  TError,
-  { parentLookupAsset: string; uid: string },
-  TContext
-> => {
-  const mutationOptions = useAssetsHooksRetryPartialUpdateMutationOptions(options)
+export const useAssetsHooksRetryPartialUpdate = <TError = ErrorObject, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsHooksRetryPartialUpdate>>,
+    TError,
+    { parentLookupAsset: string; uid: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetsHooksRetryPartialUpdateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 
 export const getApiV2AssetsHooksListResponseMock = (

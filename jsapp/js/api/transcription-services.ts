@@ -6,17 +6,7 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import { useQuery } from '@tanstack/react-query'
-import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
-  QueryClient,
-  QueryFunction,
-  QueryKey,
-  UndefinedInitialDataOptions,
-  UseQueryOptions,
-  UseQueryResult,
-} from '@tanstack/react-query'
+import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
 
 import type { ErrorDetail } from './models/errorDetail'
 
@@ -31,6 +21,10 @@ import { http, HttpResponse, delay } from 'msw'
 import type { PaginatedTranscriptionServiceList } from './models/paginatedTranscriptionServiceList'
 
 import type { TranscriptionService } from './models/transcriptionService'
+
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List the transcription services accessible to requesting user.
@@ -78,15 +72,10 @@ export const transcriptionServicesList = async (
   params?: TranscriptionServicesListParams,
   options?: RequestInit,
 ): Promise<transcriptionServicesListResponse> => {
-  const res = await fetch(getTranscriptionServicesListUrl(params), {
+  return fetchWithKoboAuth<transcriptionServicesListResponse>(getTranscriptionServicesListUrl(params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: transcriptionServicesListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as transcriptionServicesListResponse
 }
 
 export const getTranscriptionServicesListQueryKey = (params?: TranscriptionServicesListParams) => {
@@ -99,22 +88,22 @@ export const getTranscriptionServicesListQueryOptions = <
 >(
   params?: TranscriptionServicesListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getTranscriptionServicesListQueryKey(params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof transcriptionServicesList>>> = ({ signal }) =>
-    transcriptionServicesList(params, { signal, ...fetchOptions })
+    transcriptionServicesList(params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof transcriptionServicesList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type TranscriptionServicesListQueryResult = NonNullable<Awaited<ReturnType<typeof transcriptionServicesList>>>
@@ -124,68 +113,15 @@ export function useTranscriptionServicesList<
   TData = Awaited<ReturnType<typeof transcriptionServicesList>>,
   TError = ErrorDetail,
 >(
-  params: undefined | TranscriptionServicesListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof transcriptionServicesList>>,
-          TError,
-          Awaited<ReturnType<typeof transcriptionServicesList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useTranscriptionServicesList<
-  TData = Awaited<ReturnType<typeof transcriptionServicesList>>,
-  TError = ErrorDetail,
->(
   params?: TranscriptionServicesListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof transcriptionServicesList>>,
-          TError,
-          Awaited<ReturnType<typeof transcriptionServicesList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useTranscriptionServicesList<
-  TData = Awaited<ReturnType<typeof transcriptionServicesList>>,
-  TError = ErrorDetail,
->(
-  params?: TranscriptionServicesListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useTranscriptionServicesList<
-  TData = Awaited<ReturnType<typeof transcriptionServicesList>>,
-  TError = ErrorDetail,
->(
-  params?: TranscriptionServicesListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getTranscriptionServicesListQueryOptions(params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -230,15 +166,10 @@ export const transcriptionServicesRetrieve = async (
   code: string,
   options?: RequestInit,
 ): Promise<transcriptionServicesRetrieveResponse> => {
-  const res = await fetch(getTranscriptionServicesRetrieveUrl(code), {
+  return fetchWithKoboAuth<transcriptionServicesRetrieveResponse>(getTranscriptionServicesRetrieveUrl(code), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: transcriptionServicesRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as transcriptionServicesRetrieveResponse
 }
 
 export const getTranscriptionServicesRetrieveQueryKey = (code: string) => {
@@ -251,22 +182,22 @@ export const getTranscriptionServicesRetrieveQueryOptions = <
 >(
   code: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getTranscriptionServicesRetrieveQueryKey(code)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>> = ({ signal }) =>
-    transcriptionServicesRetrieve(code, { signal, ...fetchOptions })
+    transcriptionServicesRetrieve(code, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!code, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type TranscriptionServicesRetrieveQueryResult = NonNullable<
@@ -279,67 +210,14 @@ export function useTranscriptionServicesRetrieve<
   TError = ErrorDetail | ErrorObject,
 >(
   code: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof transcriptionServicesRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useTranscriptionServicesRetrieve<
-  TData = Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  code: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof transcriptionServicesRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useTranscriptionServicesRetrieve<
-  TData = Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  code: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useTranscriptionServicesRetrieve<
-  TData = Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  code: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof transcriptionServicesRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getTranscriptionServicesRetrieveQueryOptions(code, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 

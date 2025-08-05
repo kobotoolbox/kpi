@@ -7,16 +7,10 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
   MutationFunction,
-  QueryClient,
   QueryFunction,
   QueryKey,
-  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
@@ -47,7 +41,9 @@ import type { ProjectViewExportResponse } from './models/projectViewExportRespon
 
 import type { ProjectViewListResponse } from './models/projectViewListResponse'
 
-import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List project views for current user
@@ -87,15 +83,10 @@ export const projectViewsList = async (
   params?: ProjectViewsListParams,
   options?: RequestInit,
 ): Promise<projectViewsListResponse> => {
-  const res = await fetch(getProjectViewsListUrl(params), {
+  return fetchWithKoboAuth<projectViewsListResponse>(getProjectViewsListUrl(params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: projectViewsListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as projectViewsListResponse
 }
 
 export const getProjectViewsListQueryKey = (params?: ProjectViewsListParams) => {
@@ -108,81 +99,37 @@ export const getProjectViewsListQueryOptions = <
 >(
   params?: ProjectViewsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getProjectViewsListQueryKey(params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsList>>> = ({ signal }) =>
-    projectViewsList(params, { signal, ...fetchOptions })
+    projectViewsList(params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectViewsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type ProjectViewsListQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsList>>>
 export type ProjectViewsListQueryError = ErrorDetail
 
 export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectViewsList>>, TError = ErrorDetail>(
-  params: undefined | ProjectViewsListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectViewsList>>,
-          TError,
-          Awaited<ReturnType<typeof projectViewsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectViewsList>>, TError = ErrorDetail>(
   params?: ProjectViewsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectViewsList>>,
-          TError,
-          Awaited<ReturnType<typeof projectViewsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectViewsList>>, TError = ErrorDetail>(
-  params?: ProjectViewsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useProjectViewsList<TData = Awaited<ReturnType<typeof projectViewsList>>, TError = ErrorDetail>(
-  params?: ProjectViewsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getProjectViewsListQueryOptions(params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -225,15 +172,10 @@ export const projectViewsRetrieve = async (
   uid: string,
   options?: RequestInit,
 ): Promise<projectViewsRetrieveResponse> => {
-  const res = await fetch(getProjectViewsRetrieveUrl(uid), {
+  return fetchWithKoboAuth<projectViewsRetrieveResponse>(getProjectViewsRetrieveUrl(uid), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: projectViewsRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as projectViewsRetrieveResponse
 }
 
 export const getProjectViewsRetrieveQueryKey = (uid: string) => {
@@ -246,22 +188,22 @@ export const getProjectViewsRetrieveQueryOptions = <
 >(
   uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getProjectViewsRetrieveQueryKey(uid)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsRetrieve>>> = ({ signal }) =>
-    projectViewsRetrieve(uid, { signal, ...fetchOptions })
+    projectViewsRetrieve(uid, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectViewsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type ProjectViewsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsRetrieve>>>
@@ -272,67 +214,14 @@ export function useProjectViewsRetrieve<
   TError = ErrorDetail | ErrorObject,
 >(
   uid: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectViewsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof projectViewsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectViewsRetrieve<
-  TData = Awaited<ReturnType<typeof projectViewsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectViewsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof projectViewsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectViewsRetrieve<
-  TData = Awaited<ReturnType<typeof projectViewsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useProjectViewsRetrieve<
-  TData = Awaited<ReturnType<typeof projectViewsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getProjectViewsRetrieveQueryOptions(uid, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -379,15 +268,10 @@ export const projectViewsExportRetrieve = async (
   objType: string,
   options?: RequestInit,
 ): Promise<projectViewsExportRetrieveResponse> => {
-  const res = await fetch(getProjectViewsExportRetrieveUrl(uid, objType), {
+  return fetchWithKoboAuth<projectViewsExportRetrieveResponse>(getProjectViewsExportRetrieveUrl(uid, objType), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: projectViewsExportRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as projectViewsExportRetrieveResponse
 }
 
 export const getProjectViewsExportRetrieveQueryKey = (uid: string, objType: string) => {
@@ -401,22 +285,22 @@ export const getProjectViewsExportRetrieveQueryOptions = <
   uid: string,
   objType: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsExportRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsExportRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getProjectViewsExportRetrieveQueryKey(uid, objType)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsExportRetrieve>>> = ({ signal }) =>
-    projectViewsExportRetrieve(uid, objType, { signal, ...fetchOptions })
+    projectViewsExportRetrieve(uid, objType, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!(uid && objType), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type ProjectViewsExportRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsExportRetrieve>>>
@@ -428,70 +312,14 @@ export function useProjectViewsExportRetrieve<
 >(
   uid: string,
   objType: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsExportRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof projectViewsExportRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectViewsExportRetrieve<
-  TData = Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
-  TError = ErrorObject | ErrorDetail,
->(
-  uid: string,
-  objType: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsExportRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof projectViewsExportRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsExportRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectViewsExportRetrieve<
-  TData = Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
-  TError = ErrorObject | ErrorDetail,
->(
-  uid: string,
-  objType: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsExportRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useProjectViewsExportRetrieve<
-  TData = Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
-  TError = ErrorObject | ErrorDetail,
->(
-  uid: string,
-  objType: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsExportRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getProjectViewsExportRetrieveQueryOptions(uid, objType, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -537,18 +365,13 @@ export const projectViewsExportCreate = async (
   objType: string,
   options?: RequestInit,
 ): Promise<projectViewsExportCreateResponse> => {
-  const res = await fetch(getProjectViewsExportCreateUrl(uid, objType), {
+  return fetchWithKoboAuth<projectViewsExportCreateResponse>(getProjectViewsExportCreateUrl(uid, objType), {
     ...options,
     method: 'POST',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: projectViewsExportCreateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as projectViewsExportCreateResponse
 }
 
-export const useProjectViewsExportCreateMutationOptions = <
+export const getProjectViewsExportCreateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -558,7 +381,7 @@ export const useProjectViewsExportCreateMutationOptions = <
     { uid: string; objType: string },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof projectViewsExportCreate>>,
   TError,
@@ -566,11 +389,11 @@ export const useProjectViewsExportCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['projectViewsExportCreate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof projectViewsExportCreate>>,
@@ -578,38 +401,28 @@ export const useProjectViewsExportCreateMutationOptions = <
   > = (props) => {
     const { uid, objType } = props ?? {}
 
-    return projectViewsExportCreate(uid, objType, fetchOptions)
+    return projectViewsExportCreate(uid, objType, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type ProjectViewsExportCreateMutationResult = NonNullable<Awaited<ReturnType<typeof projectViewsExportCreate>>>
 
 export type ProjectViewsExportCreateMutationError = ErrorObject | ErrorDetail
 
-export const useProjectViewsExportCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof projectViewsExportCreate>>,
-      TError,
-      { uid: string; objType: string },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof projectViewsExportCreate>>,
-  TError,
-  { uid: string; objType: string },
-  TContext
-> => {
-  const mutationOptions = useProjectViewsExportCreateMutationOptions(options)
+export const useProjectViewsExportCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof projectViewsExportCreate>>,
+    TError,
+    { uid: string; objType: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getProjectViewsExportCreateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Retrieve assets available in project view
@@ -660,15 +473,10 @@ export const projectViewsAssetsRetrieve = async (
   params?: ProjectViewsAssetsRetrieveParams,
   options?: RequestInit,
 ): Promise<projectViewsAssetsRetrieveResponse> => {
-  const res = await fetch(getProjectViewsAssetsRetrieveUrl(uid, params), {
+  return fetchWithKoboAuth<projectViewsAssetsRetrieveResponse>(getProjectViewsAssetsRetrieveUrl(uid, params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: projectViewsAssetsRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as projectViewsAssetsRetrieveResponse
 }
 
 export const getProjectViewsAssetsRetrieveQueryKey = (uid: string, params?: ProjectViewsAssetsRetrieveParams) => {
@@ -682,22 +490,22 @@ export const getProjectViewsAssetsRetrieveQueryOptions = <
   uid: string,
   params?: ProjectViewsAssetsRetrieveParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getProjectViewsAssetsRetrieveQueryKey(uid, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>> = ({ signal }) =>
-    projectViewsAssetsRetrieve(uid, params, { signal, ...fetchOptions })
+    projectViewsAssetsRetrieve(uid, params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type ProjectViewsAssetsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>>
@@ -708,71 +516,15 @@ export function useProjectViewsAssetsRetrieve<
   TError = ErrorObject | ErrorDetail,
 >(
   uid: string,
-  params: undefined | ProjectViewsAssetsRetrieveParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectViewsAssetsRetrieve<
-  TData = Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
-  TError = ErrorObject | ErrorDetail,
->(
-  uid: string,
   params?: ProjectViewsAssetsRetrieveParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectViewsAssetsRetrieve<
-  TData = Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
-  TError = ErrorObject | ErrorDetail,
->(
-  uid: string,
-  params?: ProjectViewsAssetsRetrieveParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useProjectViewsAssetsRetrieve<
-  TData = Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
-  TError = ErrorObject | ErrorDetail,
->(
-  uid: string,
-  params?: ProjectViewsAssetsRetrieveParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getProjectViewsAssetsRetrieveQueryOptions(uid, params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -828,15 +580,10 @@ export const projectViewsUsersRetrieve = async (
   params?: ProjectViewsUsersRetrieveParams,
   options?: RequestInit,
 ): Promise<projectViewsUsersRetrieveResponse> => {
-  const res = await fetch(getProjectViewsUsersRetrieveUrl(uid, params), {
+  return fetchWithKoboAuth<projectViewsUsersRetrieveResponse>(getProjectViewsUsersRetrieveUrl(uid, params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: projectViewsUsersRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as projectViewsUsersRetrieveResponse
 }
 
 export const getProjectViewsUsersRetrieveQueryKey = (uid: string, params?: ProjectViewsUsersRetrieveParams) => {
@@ -850,22 +597,22 @@ export const getProjectViewsUsersRetrieveQueryOptions = <
   uid: string,
   params?: ProjectViewsUsersRetrieveParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getProjectViewsUsersRetrieveQueryKey(uid, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>> = ({ signal }) =>
-    projectViewsUsersRetrieve(uid, params, { signal, ...fetchOptions })
+    projectViewsUsersRetrieve(uid, params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type ProjectViewsUsersRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>>
@@ -876,71 +623,15 @@ export function useProjectViewsUsersRetrieve<
   TError = ErrorDetail | ErrorObject,
 >(
   uid: string,
-  params: undefined | ProjectViewsUsersRetrieveParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof projectViewsUsersRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectViewsUsersRetrieve<
-  TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  uid: string,
   params?: ProjectViewsUsersRetrieveParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof projectViewsUsersRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProjectViewsUsersRetrieve<
-  TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  uid: string,
-  params?: ProjectViewsUsersRetrieveParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useProjectViewsUsersRetrieve<
-  TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  uid: string,
-  params?: ProjectViewsUsersRetrieveParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getProjectViewsUsersRetrieveQueryOptions(uid, params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 

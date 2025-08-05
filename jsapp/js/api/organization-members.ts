@@ -7,16 +7,10 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
   MutationFunction,
-  QueryClient,
   QueryFunction,
   QueryKey,
-  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
@@ -37,7 +31,9 @@ import type { MemberListResponse } from './models/memberListResponse'
 
 import type { PaginatedMemberListResponseList } from './models/paginatedMemberListResponseList'
 
-import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List Members
@@ -84,15 +80,10 @@ export const organizationsMembersList = async (
   params?: OrganizationsMembersListParams,
   options?: RequestInit,
 ): Promise<organizationsMembersListResponse> => {
-  const res = await fetch(getOrganizationsMembersListUrl(organizationId, params), {
+  return fetchWithKoboAuth<organizationsMembersListResponse>(getOrganizationsMembersListUrl(organizationId, params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: organizationsMembersListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as organizationsMembersListResponse
 }
 
 export const getOrganizationsMembersListQueryKey = (
@@ -109,22 +100,22 @@ export const getOrganizationsMembersListQueryOptions = <
   organizationId: string,
   params?: OrganizationsMembersListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getOrganizationsMembersListQueryKey(organizationId, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsMembersList>>> = ({ signal }) =>
-    organizationsMembersList(organizationId, params, { signal, ...fetchOptions })
+    organizationsMembersList(organizationId, params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!organizationId, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof organizationsMembersList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type OrganizationsMembersListQueryResult = NonNullable<Awaited<ReturnType<typeof organizationsMembersList>>>
@@ -135,71 +126,15 @@ export function useOrganizationsMembersList<
   TError = ErrorObject,
 >(
   organizationId: string,
-  params: undefined | OrganizationsMembersListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof organizationsMembersList>>,
-          TError,
-          Awaited<ReturnType<typeof organizationsMembersList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsMembersList<
-  TData = Awaited<ReturnType<typeof organizationsMembersList>>,
-  TError = ErrorObject,
->(
-  organizationId: string,
   params?: OrganizationsMembersListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof organizationsMembersList>>,
-          TError,
-          Awaited<ReturnType<typeof organizationsMembersList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsMembersList<
-  TData = Awaited<ReturnType<typeof organizationsMembersList>>,
-  TError = ErrorObject,
->(
-  organizationId: string,
-  params?: OrganizationsMembersListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useOrganizationsMembersList<
-  TData = Awaited<ReturnType<typeof organizationsMembersList>>,
-  TError = ErrorObject,
->(
-  organizationId: string,
-  params?: OrganizationsMembersListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getOrganizationsMembersListQueryOptions(organizationId, params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -239,15 +174,13 @@ export const organizationsMembersRetrieve = async (
   userUsername: string,
   options?: RequestInit,
 ): Promise<organizationsMembersRetrieveResponse> => {
-  const res = await fetch(getOrganizationsMembersRetrieveUrl(organizationId, userUsername), {
-    ...options,
-    method: 'GET',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: organizationsMembersRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as organizationsMembersRetrieveResponse
+  return fetchWithKoboAuth<organizationsMembersRetrieveResponse>(
+    getOrganizationsMembersRetrieveUrl(organizationId, userUsername),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
 export const getOrganizationsMembersRetrieveQueryKey = (organizationId: string, userUsername: string) => {
@@ -261,22 +194,22 @@ export const getOrganizationsMembersRetrieveQueryOptions = <
   organizationId: string,
   userUsername: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getOrganizationsMembersRetrieveQueryKey(organizationId, userUsername)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsMembersRetrieve>>> = ({ signal }) =>
-    organizationsMembersRetrieve(organizationId, userUsername, { signal, ...fetchOptions })
+    organizationsMembersRetrieve(organizationId, userUsername, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!(organizationId && userUsername), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof organizationsMembersRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type OrganizationsMembersRetrieveQueryResult = NonNullable<
@@ -290,70 +223,14 @@ export function useOrganizationsMembersRetrieve<
 >(
   organizationId: string,
   userUsername: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof organizationsMembersRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof organizationsMembersRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsMembersRetrieve<
-  TData = Awaited<ReturnType<typeof organizationsMembersRetrieve>>,
-  TError = ErrorObject,
->(
-  organizationId: string,
-  userUsername: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof organizationsMembersRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof organizationsMembersRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsMembersRetrieve<
-  TData = Awaited<ReturnType<typeof organizationsMembersRetrieve>>,
-  TError = ErrorObject,
->(
-  organizationId: string,
-  userUsername: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useOrganizationsMembersRetrieve<
-  TData = Awaited<ReturnType<typeof organizationsMembersRetrieve>>,
-  TError = ErrorObject,
->(
-  organizationId: string,
-  userUsername: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getOrganizationsMembersRetrieveQueryOptions(organizationId, userUsername, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -404,20 +281,18 @@ export const organizationsMembersPartialUpdate = async (
   patchedMemberPatchRequest: PatchedMemberPatchRequest,
   options?: RequestInit,
 ): Promise<organizationsMembersPartialUpdateResponse> => {
-  const res = await fetch(getOrganizationsMembersPartialUpdateUrl(organizationId, userUsername), {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(patchedMemberPatchRequest),
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: organizationsMembersPartialUpdateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as organizationsMembersPartialUpdateResponse
+  return fetchWithKoboAuth<organizationsMembersPartialUpdateResponse>(
+    getOrganizationsMembersPartialUpdateUrl(organizationId, userUsername),
+    {
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(patchedMemberPatchRequest),
+    },
+  )
 }
 
-export const useOrganizationsMembersPartialUpdateMutationOptions = <
+export const getOrganizationsMembersPartialUpdateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -427,7 +302,7 @@ export const useOrganizationsMembersPartialUpdateMutationOptions = <
     { organizationId: string; userUsername: string; data: PatchedMemberPatchRequest },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof organizationsMembersPartialUpdate>>,
   TError,
@@ -435,11 +310,11 @@ export const useOrganizationsMembersPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['organizationsMembersPartialUpdate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof organizationsMembersPartialUpdate>>,
@@ -447,12 +322,10 @@ export const useOrganizationsMembersPartialUpdateMutationOptions = <
   > = (props) => {
     const { organizationId, userUsername, data } = props ?? {}
 
-    return organizationsMembersPartialUpdate(organizationId, userUsername, data, fetchOptions)
+    return organizationsMembersPartialUpdate(organizationId, userUsername, data, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type OrganizationsMembersPartialUpdateMutationResult = NonNullable<
@@ -461,26 +334,18 @@ export type OrganizationsMembersPartialUpdateMutationResult = NonNullable<
 export type OrganizationsMembersPartialUpdateMutationBody = PatchedMemberPatchRequest
 export type OrganizationsMembersPartialUpdateMutationError = ErrorObject | ErrorDetail
 
-export const useOrganizationsMembersPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof organizationsMembersPartialUpdate>>,
-      TError,
-      { organizationId: string; userUsername: string; data: PatchedMemberPatchRequest },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof organizationsMembersPartialUpdate>>,
-  TError,
-  { organizationId: string; userUsername: string; data: PatchedMemberPatchRequest },
-  TContext
-> => {
-  const mutationOptions = useOrganizationsMembersPartialUpdateMutationOptions(options)
+export const useOrganizationsMembersPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof organizationsMembersPartialUpdate>>,
+    TError,
+    { organizationId: string; userUsername: string; data: PatchedMemberPatchRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getOrganizationsMembersPartialUpdateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Remove Member
@@ -521,18 +386,16 @@ export const organizationsMembersDestroy = async (
   userUsername: string,
   options?: RequestInit,
 ): Promise<organizationsMembersDestroyResponse> => {
-  const res = await fetch(getOrganizationsMembersDestroyUrl(organizationId, userUsername), {
-    ...options,
-    method: 'DELETE',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: organizationsMembersDestroyResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as organizationsMembersDestroyResponse
+  return fetchWithKoboAuth<organizationsMembersDestroyResponse>(
+    getOrganizationsMembersDestroyUrl(organizationId, userUsername),
+    {
+      ...options,
+      method: 'DELETE',
+    },
+  )
 }
 
-export const useOrganizationsMembersDestroyMutationOptions = <
+export const getOrganizationsMembersDestroyMutationOptions = <
   TError = ErrorDetail | ErrorObject,
   TContext = unknown,
 >(options?: {
@@ -542,7 +405,7 @@ export const useOrganizationsMembersDestroyMutationOptions = <
     { organizationId: string; userUsername: string },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof organizationsMembersDestroy>>,
   TError,
@@ -550,11 +413,11 @@ export const useOrganizationsMembersDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['organizationsMembersDestroy']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof organizationsMembersDestroy>>,
@@ -562,12 +425,10 @@ export const useOrganizationsMembersDestroyMutationOptions = <
   > = (props) => {
     const { organizationId, userUsername } = props ?? {}
 
-    return organizationsMembersDestroy(organizationId, userUsername, fetchOptions)
+    return organizationsMembersDestroy(organizationId, userUsername, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type OrganizationsMembersDestroyMutationResult = NonNullable<
@@ -576,26 +437,18 @@ export type OrganizationsMembersDestroyMutationResult = NonNullable<
 
 export type OrganizationsMembersDestroyMutationError = ErrorDetail | ErrorObject
 
-export const useOrganizationsMembersDestroy = <TError = ErrorDetail | ErrorObject, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof organizationsMembersDestroy>>,
-      TError,
-      { organizationId: string; userUsername: string },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof organizationsMembersDestroy>>,
-  TError,
-  { organizationId: string; userUsername: string },
-  TContext
-> => {
-  const mutationOptions = useOrganizationsMembersDestroyMutationOptions(options)
+export const useOrganizationsMembersDestroy = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof organizationsMembersDestroy>>,
+    TError,
+    { organizationId: string; userUsername: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getOrganizationsMembersDestroyMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 
 export const getApiV2OrganizationsMembersListResponseMock = (

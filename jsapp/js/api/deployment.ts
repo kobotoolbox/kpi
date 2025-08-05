@@ -7,16 +7,10 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
   MutationFunction,
-  QueryClient,
   QueryFunction,
   QueryKey,
-  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
@@ -37,7 +31,9 @@ import { AssetTypeEnum } from './models/assetTypeEnum'
 
 import type { DeploymentResponse } from './models/deploymentResponse'
 
-import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## Retrieve the existing deployment (if any)
@@ -69,15 +65,10 @@ export const assetsDeploymentRetrieve = async (
   uid: string,
   options?: RequestInit,
 ): Promise<assetsDeploymentRetrieveResponse> => {
-  const res = await fetch(getAssetsDeploymentRetrieveUrl(uid), {
+  return fetchWithKoboAuth<assetsDeploymentRetrieveResponse>(getAssetsDeploymentRetrieveUrl(uid), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsDeploymentRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsDeploymentRetrieveResponse
 }
 
 export const getAssetsDeploymentRetrieveQueryKey = (uid: string) => {
@@ -90,22 +81,22 @@ export const getAssetsDeploymentRetrieveQueryOptions = <
 >(
   uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDeploymentRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDeploymentRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAssetsDeploymentRetrieveQueryKey(uid)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDeploymentRetrieve>>> = ({ signal }) =>
-    assetsDeploymentRetrieve(uid, { signal, ...fetchOptions })
+    assetsDeploymentRetrieve(uid, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsDeploymentRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsDeploymentRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDeploymentRetrieve>>>
@@ -116,67 +107,14 @@ export function useAssetsDeploymentRetrieve<
   TError = ErrorObject,
 >(
   uid: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDeploymentRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsDeploymentRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetsDeploymentRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsDeploymentRetrieve<
-  TData = Awaited<ReturnType<typeof assetsDeploymentRetrieve>>,
-  TError = ErrorObject,
->(
-  uid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDeploymentRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsDeploymentRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetsDeploymentRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDeploymentRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsDeploymentRetrieve<
-  TData = Awaited<ReturnType<typeof assetsDeploymentRetrieve>>,
-  TError = ErrorObject,
->(
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDeploymentRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetsDeploymentRetrieve<
-  TData = Awaited<ReturnType<typeof assetsDeploymentRetrieve>>,
-  TError = ErrorObject,
->(
-  uid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsDeploymentRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetsDeploymentRetrieveQueryOptions(uid, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -222,20 +160,15 @@ export const assetsDeploymentCreate = async (
   deploymentCreateRequest: DeploymentCreateRequest,
   options?: RequestInit,
 ): Promise<assetsDeploymentCreateResponse> => {
-  const res = await fetch(getAssetsDeploymentCreateUrl(uid), {
+  return fetchWithKoboAuth<assetsDeploymentCreateResponse>(getAssetsDeploymentCreateUrl(uid), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(deploymentCreateRequest),
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsDeploymentCreateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsDeploymentCreateResponse
 }
 
-export const useAssetsDeploymentCreateMutationOptions = <
+export const getAssetsDeploymentCreateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -245,7 +178,7 @@ export const useAssetsDeploymentCreateMutationOptions = <
     { uid: string; data: DeploymentCreateRequest },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsDeploymentCreate>>,
   TError,
@@ -253,11 +186,11 @@ export const useAssetsDeploymentCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['assetsDeploymentCreate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsDeploymentCreate>>,
@@ -265,38 +198,28 @@ export const useAssetsDeploymentCreateMutationOptions = <
   > = (props) => {
     const { uid, data } = props ?? {}
 
-    return assetsDeploymentCreate(uid, data, fetchOptions)
+    return assetsDeploymentCreate(uid, data, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetsDeploymentCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsDeploymentCreate>>>
 export type AssetsDeploymentCreateMutationBody = DeploymentCreateRequest
 export type AssetsDeploymentCreateMutationError = ErrorObject | ErrorDetail
 
-export const useAssetsDeploymentCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof assetsDeploymentCreate>>,
-      TError,
-      { uid: string; data: DeploymentCreateRequest },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof assetsDeploymentCreate>>,
-  TError,
-  { uid: string; data: DeploymentCreateRequest },
-  TContext
-> => {
-  const mutationOptions = useAssetsDeploymentCreateMutationOptions(options)
+export const useAssetsDeploymentCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDeploymentCreate>>,
+    TError,
+    { uid: string; data: DeploymentCreateRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetsDeploymentCreateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## (Un)Archive the existing deployment.
@@ -339,20 +262,15 @@ export const assetsDeploymentPartialUpdate = async (
   patchedDeploymentPatchRequest: PatchedDeploymentPatchRequest,
   options?: RequestInit,
 ): Promise<assetsDeploymentPartialUpdateResponse> => {
-  const res = await fetch(getAssetsDeploymentPartialUpdateUrl(uid), {
+  return fetchWithKoboAuth<assetsDeploymentPartialUpdateResponse>(getAssetsDeploymentPartialUpdateUrl(uid), {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(patchedDeploymentPatchRequest),
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsDeploymentPartialUpdateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsDeploymentPartialUpdateResponse
 }
 
-export const useAssetsDeploymentPartialUpdateMutationOptions = <
+export const getAssetsDeploymentPartialUpdateMutationOptions = <
   TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
@@ -362,7 +280,7 @@ export const useAssetsDeploymentPartialUpdateMutationOptions = <
     { uid: string; data: PatchedDeploymentPatchRequest },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsDeploymentPartialUpdate>>,
   TError,
@@ -370,11 +288,11 @@ export const useAssetsDeploymentPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['assetsDeploymentPartialUpdate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsDeploymentPartialUpdate>>,
@@ -382,12 +300,10 @@ export const useAssetsDeploymentPartialUpdateMutationOptions = <
   > = (props) => {
     const { uid, data } = props ?? {}
 
-    return assetsDeploymentPartialUpdate(uid, data, fetchOptions)
+    return assetsDeploymentPartialUpdate(uid, data, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetsDeploymentPartialUpdateMutationResult = NonNullable<
@@ -396,26 +312,18 @@ export type AssetsDeploymentPartialUpdateMutationResult = NonNullable<
 export type AssetsDeploymentPartialUpdateMutationBody = PatchedDeploymentPatchRequest
 export type AssetsDeploymentPartialUpdateMutationError = ErrorObject | ErrorDetail
 
-export const useAssetsDeploymentPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof assetsDeploymentPartialUpdate>>,
-      TError,
-      { uid: string; data: PatchedDeploymentPatchRequest },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof assetsDeploymentPartialUpdate>>,
-  TError,
-  { uid: string; data: PatchedDeploymentPatchRequest },
-  TContext
-> => {
-  const mutationOptions = useAssetsDeploymentPartialUpdateMutationOptions(options)
+export const useAssetsDeploymentPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDeploymentPartialUpdate>>,
+    TError,
+    { uid: string; data: PatchedDeploymentPatchRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetsDeploymentPartialUpdateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 
 export const getApiV2AssetsDeploymentRetrieveResponseMock = (

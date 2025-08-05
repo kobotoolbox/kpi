@@ -7,16 +7,10 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
   MutationFunction,
-  QueryClient,
   QueryFunction,
   QueryKey,
-  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
@@ -39,7 +33,7 @@ import type { PaginatedPairedDataResponseList } from './models/paginatedPairedDa
 
 import type { PairedDataResponse } from './models/pairedDataResponse'
 
-import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
+import { fetchWithKoboAuth } from '../orval.mutator'
 
 // https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497
 type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B
@@ -57,6 +51,8 @@ type NonReadonly<T> = [T] extends [UnionToIntersection<T>]
       [P in keyof Writable<T>]: T[P] extends object ? NonReadonly<NonNullable<T[P]>> : T[P]
     }
   : DistributeReadOnlyOverUnions<T>
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List paired project endpoints
@@ -103,15 +99,10 @@ export const assetsPairedDataList = async (
   params?: AssetsPairedDataListParams,
   options?: RequestInit,
 ): Promise<assetsPairedDataListResponse> => {
-  const res = await fetch(getAssetsPairedDataListUrl(parentLookupAsset, params), {
+  return fetchWithKoboAuth<assetsPairedDataListResponse>(getAssetsPairedDataListUrl(parentLookupAsset, params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsPairedDataListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsPairedDataListResponse
 }
 
 export const getAssetsPairedDataListQueryKey = (parentLookupAsset: string, params?: AssetsPairedDataListParams) => {
@@ -125,22 +116,22 @@ export const getAssetsPairedDataListQueryOptions = <
   parentLookupAsset: string,
   params?: AssetsPairedDataListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAssetsPairedDataListQueryKey(parentLookupAsset, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsPairedDataList>>> = ({ signal }) =>
-    assetsPairedDataList(parentLookupAsset, params, { signal, ...fetchOptions })
+    assetsPairedDataList(parentLookupAsset, params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!parentLookupAsset, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsPairedDataList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsPairedDataListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataList>>>
@@ -148,62 +139,15 @@ export type AssetsPairedDataListQueryError = ErrorObject
 
 export function useAssetsPairedDataList<TData = Awaited<ReturnType<typeof assetsPairedDataList>>, TError = ErrorObject>(
   parentLookupAsset: string,
-  params: undefined | AssetsPairedDataListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsPairedDataList>>,
-          TError,
-          Awaited<ReturnType<typeof assetsPairedDataList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsPairedDataList<TData = Awaited<ReturnType<typeof assetsPairedDataList>>, TError = ErrorObject>(
-  parentLookupAsset: string,
   params?: AssetsPairedDataListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsPairedDataList>>,
-          TError,
-          Awaited<ReturnType<typeof assetsPairedDataList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsPairedDataList<TData = Awaited<ReturnType<typeof assetsPairedDataList>>, TError = ErrorObject>(
-  parentLookupAsset: string,
-  params?: AssetsPairedDataListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetsPairedDataList<TData = Awaited<ReturnType<typeof assetsPairedDataList>>, TError = ErrorObject>(
-  parentLookupAsset: string,
-  params?: AssetsPairedDataListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetsPairedDataListQueryOptions(parentLookupAsset, params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -247,27 +191,22 @@ export const assetsPairedDataCreate = async (
   pairedData: NonReadonly<PairedData>,
   options?: RequestInit,
 ): Promise<assetsPairedDataCreateResponse> => {
-  const res = await fetch(getAssetsPairedDataCreateUrl(parentLookupAsset), {
+  return fetchWithKoboAuth<assetsPairedDataCreateResponse>(getAssetsPairedDataCreateUrl(parentLookupAsset), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(pairedData),
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsPairedDataCreateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsPairedDataCreateResponse
 }
 
-export const useAssetsPairedDataCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsPairedDataCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPairedDataCreate>>,
     TError,
     { parentLookupAsset: string; data: NonReadonly<PairedData> },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsPairedDataCreate>>,
   TError,
@@ -275,11 +214,11 @@ export const useAssetsPairedDataCreateMutationOptions = <TError = ErrorObject, T
   TContext
 > => {
   const mutationKey = ['assetsPairedDataCreate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsPairedDataCreate>>,
@@ -287,38 +226,28 @@ export const useAssetsPairedDataCreateMutationOptions = <TError = ErrorObject, T
   > = (props) => {
     const { parentLookupAsset, data } = props ?? {}
 
-    return assetsPairedDataCreate(parentLookupAsset, data, fetchOptions)
+    return assetsPairedDataCreate(parentLookupAsset, data, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetsPairedDataCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataCreate>>>
 export type AssetsPairedDataCreateMutationBody = NonReadonly<PairedData>
 export type AssetsPairedDataCreateMutationError = ErrorObject
 
-export const useAssetsPairedDataCreate = <TError = ErrorObject, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof assetsPairedDataCreate>>,
-      TError,
-      { parentLookupAsset: string; data: NonReadonly<PairedData> },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof assetsPairedDataCreate>>,
-  TError,
-  { parentLookupAsset: string; data: NonReadonly<PairedData> },
-  TContext
-> => {
-  const mutationOptions = useAssetsPairedDataCreateMutationOptions(options)
+export const useAssetsPairedDataCreate = <TError = ErrorObject, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPairedDataCreate>>,
+    TError,
+    { parentLookupAsset: string; data: NonReadonly<PairedData> },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetsPairedDataCreateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Retrieve a connection between two projects
@@ -351,15 +280,13 @@ export const assetsPairedDataRetrieve = async (
   pairedDataUid: string,
   options?: RequestInit,
 ): Promise<assetsPairedDataRetrieveResponse> => {
-  const res = await fetch(getAssetsPairedDataRetrieveUrl(parentLookupAsset, pairedDataUid), {
-    ...options,
-    method: 'GET',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsPairedDataRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsPairedDataRetrieveResponse
+  return fetchWithKoboAuth<assetsPairedDataRetrieveResponse>(
+    getAssetsPairedDataRetrieveUrl(parentLookupAsset, pairedDataUid),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
 export const getAssetsPairedDataRetrieveQueryKey = (parentLookupAsset: string, pairedDataUid: string) => {
@@ -373,22 +300,22 @@ export const getAssetsPairedDataRetrieveQueryOptions = <
   parentLookupAsset: string,
   pairedDataUid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getAssetsPairedDataRetrieveQueryKey(parentLookupAsset, pairedDataUid)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>> = ({ signal }) =>
-    assetsPairedDataRetrieve(parentLookupAsset, pairedDataUid, { signal, ...fetchOptions })
+    assetsPairedDataRetrieve(parentLookupAsset, pairedDataUid, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!(parentLookupAsset && pairedDataUid), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsPairedDataRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsPairedDataRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>>
@@ -400,70 +327,14 @@ export function useAssetsPairedDataRetrieve<
 >(
   parentLookupAsset: string,
   pairedDataUid: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsPairedDataRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetsPairedDataRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsPairedDataRetrieve<
-  TData = Awaited<ReturnType<typeof assetsPairedDataRetrieve>>,
-  TError = ErrorObject,
->(
-  parentLookupAsset: string,
-  pairedDataUid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsPairedDataRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetsPairedDataRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsPairedDataRetrieve<
-  TData = Awaited<ReturnType<typeof assetsPairedDataRetrieve>>,
-  TError = ErrorObject,
->(
-  parentLookupAsset: string,
-  pairedDataUid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetsPairedDataRetrieve<
-  TData = Awaited<ReturnType<typeof assetsPairedDataRetrieve>>,
-  TError = ErrorObject,
->(
-  parentLookupAsset: string,
-  pairedDataUid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetsPairedDataRetrieveQueryOptions(parentLookupAsset, pairedDataUid, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -504,27 +375,25 @@ export const assetsPairedDataPartialUpdate = async (
   patchedPairedDataPatchPayload: PatchedPairedDataPatchPayload,
   options?: RequestInit,
 ): Promise<assetsPairedDataPartialUpdateResponse> => {
-  const res = await fetch(getAssetsPairedDataPartialUpdateUrl(parentLookupAsset, pairedDataUid), {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(patchedPairedDataPatchPayload),
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsPairedDataPartialUpdateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsPairedDataPartialUpdateResponse
+  return fetchWithKoboAuth<assetsPairedDataPartialUpdateResponse>(
+    getAssetsPairedDataPartialUpdateUrl(parentLookupAsset, pairedDataUid),
+    {
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(patchedPairedDataPatchPayload),
+    },
+  )
 }
 
-export const useAssetsPairedDataPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsPairedDataPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>,
     TError,
     { parentLookupAsset: string; pairedDataUid: string; data: PatchedPairedDataPatchPayload },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>,
   TError,
@@ -532,11 +401,11 @@ export const useAssetsPairedDataPartialUpdateMutationOptions = <TError = ErrorOb
   TContext
 > => {
   const mutationKey = ['assetsPairedDataPartialUpdate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>,
@@ -544,12 +413,10 @@ export const useAssetsPairedDataPartialUpdateMutationOptions = <TError = ErrorOb
   > = (props) => {
     const { parentLookupAsset, pairedDataUid, data } = props ?? {}
 
-    return assetsPairedDataPartialUpdate(parentLookupAsset, pairedDataUid, data, fetchOptions)
+    return assetsPairedDataPartialUpdate(parentLookupAsset, pairedDataUid, data, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetsPairedDataPartialUpdateMutationResult = NonNullable<
@@ -558,26 +425,18 @@ export type AssetsPairedDataPartialUpdateMutationResult = NonNullable<
 export type AssetsPairedDataPartialUpdateMutationBody = PatchedPairedDataPatchPayload
 export type AssetsPairedDataPartialUpdateMutationError = ErrorObject
 
-export const useAssetsPairedDataPartialUpdate = <TError = ErrorObject, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>,
-      TError,
-      { parentLookupAsset: string; pairedDataUid: string; data: PatchedPairedDataPatchPayload },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>,
-  TError,
-  { parentLookupAsset: string; pairedDataUid: string; data: PatchedPairedDataPatchPayload },
-  TContext
-> => {
-  const mutationOptions = useAssetsPairedDataPartialUpdateMutationOptions(options)
+export const useAssetsPairedDataPartialUpdate = <TError = ErrorObject, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>,
+    TError,
+    { parentLookupAsset: string; pairedDataUid: string; data: PatchedPairedDataPatchPayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetsPairedDataPartialUpdateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Remove a connection between two projects
@@ -610,25 +469,23 @@ export const assetsPairedDataDestroy = async (
   pairedDataUid: string,
   options?: RequestInit,
 ): Promise<assetsPairedDataDestroyResponse> => {
-  const res = await fetch(getAssetsPairedDataDestroyUrl(parentLookupAsset, pairedDataUid), {
-    ...options,
-    method: 'DELETE',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsPairedDataDestroyResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsPairedDataDestroyResponse
+  return fetchWithKoboAuth<assetsPairedDataDestroyResponse>(
+    getAssetsPairedDataDestroyUrl(parentLookupAsset, pairedDataUid),
+    {
+      ...options,
+      method: 'DELETE',
+    },
+  )
 }
 
-export const useAssetsPairedDataDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsPairedDataDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPairedDataDestroy>>,
     TError,
     { parentLookupAsset: string; pairedDataUid: string },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsPairedDataDestroy>>,
   TError,
@@ -636,11 +493,11 @@ export const useAssetsPairedDataDestroyMutationOptions = <TError = ErrorObject, 
   TContext
 > => {
   const mutationKey = ['assetsPairedDataDestroy']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsPairedDataDestroy>>,
@@ -648,38 +505,28 @@ export const useAssetsPairedDataDestroyMutationOptions = <TError = ErrorObject, 
   > = (props) => {
     const { parentLookupAsset, pairedDataUid } = props ?? {}
 
-    return assetsPairedDataDestroy(parentLookupAsset, pairedDataUid, fetchOptions)
+    return assetsPairedDataDestroy(parentLookupAsset, pairedDataUid, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type AssetsPairedDataDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataDestroy>>>
 
 export type AssetsPairedDataDestroyMutationError = ErrorObject
 
-export const useAssetsPairedDataDestroy = <TError = ErrorObject, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof assetsPairedDataDestroy>>,
-      TError,
-      { parentLookupAsset: string; pairedDataUid: string },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof assetsPairedDataDestroy>>,
-  TError,
-  { parentLookupAsset: string; pairedDataUid: string },
-  TContext
-> => {
-  const mutationOptions = useAssetsPairedDataDestroyMutationOptions(options)
+export const useAssetsPairedDataDestroy = <TError = ErrorObject, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPairedDataDestroy>>,
+    TError,
+    { parentLookupAsset: string; pairedDataUid: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getAssetsPairedDataDestroyMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Return an XML which contains data submitted to paired asset
@@ -716,15 +563,13 @@ export const assetsPairedDataExternalRetrieve = async (
   pairedDataUid: string,
   options?: RequestInit,
 ): Promise<assetsPairedDataExternalRetrieveResponse> => {
-  const res = await fetch(getAssetsPairedDataExternalRetrieveUrl(parentLookupAsset, pairedDataUid), {
-    ...options,
-    method: 'GET',
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: assetsPairedDataExternalRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as assetsPairedDataExternalRetrieveResponse
+  return fetchWithKoboAuth<assetsPairedDataExternalRetrieveResponse>(
+    getAssetsPairedDataExternalRetrieveUrl(parentLookupAsset, pairedDataUid),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
 export const getAssetsPairedDataExternalRetrieveQueryKey = (parentLookupAsset: string, pairedDataUid: string) => {
@@ -738,23 +583,23 @@ export const getAssetsPairedDataExternalRetrieveQueryOptions = <
   parentLookupAsset: string,
   pairedDataUid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey =
     queryOptions?.queryKey ?? getAssetsPairedDataExternalRetrieveQueryKey(parentLookupAsset, pairedDataUid)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>> = ({ signal }) =>
-    assetsPairedDataExternalRetrieve(parentLookupAsset, pairedDataUid, { signal, ...fetchOptions })
+    assetsPairedDataExternalRetrieve(parentLookupAsset, pairedDataUid, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!(parentLookupAsset && pairedDataUid), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsPairedDataExternalRetrieveQueryResult = NonNullable<
@@ -768,70 +613,14 @@ export function useAssetsPairedDataExternalRetrieve<
 >(
   parentLookupAsset: string,
   pairedDataUid: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsPairedDataExternalRetrieve<
-  TData = Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>,
-  TError = ErrorObject,
->(
-  parentLookupAsset: string,
-  pairedDataUid: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAssetsPairedDataExternalRetrieve<
-  TData = Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>,
-  TError = ErrorObject,
->(
-  parentLookupAsset: string,
-  pairedDataUid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useAssetsPairedDataExternalRetrieve<
-  TData = Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>,
-  TError = ErrorObject,
->(
-  parentLookupAsset: string,
-  pairedDataUid: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAssetsPairedDataExternalRetrieveQueryOptions(parentLookupAsset, pairedDataUid, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 

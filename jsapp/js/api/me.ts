@@ -7,16 +7,10 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
   MutationFunction,
-  QueryClient,
   QueryFunction,
   QueryKey,
-  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
@@ -51,7 +45,7 @@ import type { PaginatedSocialAccountList } from './models/paginatedSocialAccount
 
 import type { SocialAccount } from './models/socialAccount'
 
-import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
+import { fetchWithKoboAuth } from '../orval.mutator'
 
 // https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497
 type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B
@@ -69,6 +63,8 @@ type NonReadonly<T> = [T] extends [UnionToIntersection<T>]
       [P in keyof Writable<T>]: T[P] extends object ? NonReadonly<NonNullable<T[P]>> : T[P]
     }
   : DistributeReadOnlyOverUnions<T>
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## Retrieve current user profile
@@ -95,15 +91,10 @@ export const getMeRetrieveUrl = () => {
 }
 
 export const meRetrieve = async (options?: RequestInit): Promise<meRetrieveResponse> => {
-  const res = await fetch(getMeRetrieveUrl(), {
+  return fetchWithKoboAuth<meRetrieveResponse>(getMeRetrieveUrl(), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: meRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as meRetrieveResponse
 }
 
 export const getMeRetrieveQueryKey = () => {
@@ -114,76 +105,33 @@ export const getMeRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof meRetrieve>>,
   TError = ErrorDetail,
 >(options?: {
-  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meRetrieve>>, TError, TData>>
-  fetch?: RequestInit
+  query?: UseQueryOptions<Awaited<ReturnType<typeof meRetrieve>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getMeRetrieveQueryKey()
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof meRetrieve>>> = ({ signal }) =>
-    meRetrieve({ signal, ...fetchOptions })
+    meRetrieve({ signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof meRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type MeRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof meRetrieve>>>
 export type MeRetrieveQueryError = ErrorDetail
 
-export function useMeRetrieve<TData = Awaited<ReturnType<typeof meRetrieve>>, TError = ErrorDetail>(
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof meRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof meRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof meRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useMeRetrieve<TData = Awaited<ReturnType<typeof meRetrieve>>, TError = ErrorDetail>(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof meRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof meRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useMeRetrieve<TData = Awaited<ReturnType<typeof meRetrieve>>, TError = ErrorDetail>(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useMeRetrieve<TData = Awaited<ReturnType<typeof meRetrieve>>, TError = ErrorDetail>(
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useMeRetrieve<TData = Awaited<ReturnType<typeof meRetrieve>>, TError = ErrorDetail>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof meRetrieve>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getMeRetrieveQueryOptions(options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -226,27 +174,22 @@ export const mePartialUpdate = async (
   patchedCurrentUser: NonReadonly<PatchedCurrentUser>,
   options?: RequestInit,
 ): Promise<mePartialUpdateResponse> => {
-  const res = await fetch(getMePartialUpdateUrl(), {
+  return fetchWithKoboAuth<mePartialUpdateResponse>(getMePartialUpdateUrl(), {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(patchedCurrentUser),
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: mePartialUpdateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as mePartialUpdateResponse
 }
 
-export const useMePartialUpdateMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const getMePartialUpdateMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof mePartialUpdate>>,
     TError,
     { data: NonReadonly<PatchedCurrentUser> },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof mePartialUpdate>>,
   TError,
@@ -254,11 +197,11 @@ export const useMePartialUpdateMutationOptions = <TError = ErrorObject | ErrorDe
   TContext
 > => {
   const mutationKey = ['mePartialUpdate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof mePartialUpdate>>,
@@ -266,38 +209,28 @@ export const useMePartialUpdateMutationOptions = <TError = ErrorObject | ErrorDe
   > = (props) => {
     const { data } = props ?? {}
 
-    return mePartialUpdate(data, fetchOptions)
+    return mePartialUpdate(data, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type MePartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof mePartialUpdate>>>
 export type MePartialUpdateMutationBody = NonReadonly<PatchedCurrentUser>
 export type MePartialUpdateMutationError = ErrorObject | ErrorDetail
 
-export const useMePartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof mePartialUpdate>>,
-      TError,
-      { data: NonReadonly<PatchedCurrentUser> },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof mePartialUpdate>>,
-  TError,
-  { data: NonReadonly<PatchedCurrentUser> },
-  TContext
-> => {
-  const mutationOptions = useMePartialUpdateMutationOptions(options)
+export const useMePartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof mePartialUpdate>>,
+    TError,
+    { data: NonReadonly<PatchedCurrentUser> },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getMePartialUpdateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Delete current user
@@ -338,51 +271,41 @@ export const getMeDestroyUrl = () => {
 }
 
 export const meDestroy = async (options?: RequestInit): Promise<meDestroyResponse> => {
-  const res = await fetch(getMeDestroyUrl(), {
+  return fetchWithKoboAuth<meDestroyResponse>(getMeDestroyUrl(), {
     ...options,
     method: 'DELETE',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: meDestroyResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as meDestroyResponse
 }
 
-export const useMeDestroyMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+export const getMeDestroyMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof meDestroy>>, TError, void, TContext>
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<Awaited<ReturnType<typeof meDestroy>>, TError, void, TContext> => {
   const mutationKey = ['meDestroy']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<Awaited<ReturnType<typeof meDestroy>>, void> = () => {
-    return meDestroy(fetchOptions)
+    return meDestroy(requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type MeDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof meDestroy>>>
 
 export type MeDestroyMutationError = ErrorObject | ErrorDetail
 
-export const useMeDestroy = <TError = ErrorObject | ErrorDetail, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<Awaited<ReturnType<typeof meDestroy>>, TError, void, TContext>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<Awaited<ReturnType<typeof meDestroy>>, TError, void, TContext> => {
-  const mutationOptions = useMeDestroyMutationOptions(options)
+export const useMeDestroy = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof meDestroy>>, TError, void, TContext>
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getMeDestroyMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * View and change email. Allow only 1 primary/confirmed email.
@@ -423,15 +346,10 @@ export const meEmailsList = async (
   params?: MeEmailsListParams,
   options?: RequestInit,
 ): Promise<meEmailsListResponse> => {
-  const res = await fetch(getMeEmailsListUrl(params), {
+  return fetchWithKoboAuth<meEmailsListResponse>(getMeEmailsListUrl(params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: meEmailsListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as meEmailsListResponse
 }
 
 export const getMeEmailsListQueryKey = (params?: MeEmailsListParams) => {
@@ -441,81 +359,37 @@ export const getMeEmailsListQueryKey = (params?: MeEmailsListParams) => {
 export const getMeEmailsListQueryOptions = <TData = Awaited<ReturnType<typeof meEmailsList>>, TError = unknown>(
   params?: MeEmailsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meEmailsList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof meEmailsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getMeEmailsListQueryKey(params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof meEmailsList>>> = ({ signal }) =>
-    meEmailsList(params, { signal, ...fetchOptions })
+    meEmailsList(params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof meEmailsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type MeEmailsListQueryResult = NonNullable<Awaited<ReturnType<typeof meEmailsList>>>
 export type MeEmailsListQueryError = unknown
 
 export function useMeEmailsList<TData = Awaited<ReturnType<typeof meEmailsList>>, TError = unknown>(
-  params: undefined | MeEmailsListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof meEmailsList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof meEmailsList>>,
-          TError,
-          Awaited<ReturnType<typeof meEmailsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useMeEmailsList<TData = Awaited<ReturnType<typeof meEmailsList>>, TError = unknown>(
   params?: MeEmailsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meEmailsList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof meEmailsList>>,
-          TError,
-          Awaited<ReturnType<typeof meEmailsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof meEmailsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useMeEmailsList<TData = Awaited<ReturnType<typeof meEmailsList>>, TError = unknown>(
-  params?: MeEmailsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meEmailsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useMeEmailsList<TData = Awaited<ReturnType<typeof meEmailsList>>, TError = unknown>(
-  params?: MeEmailsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meEmailsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getMeEmailsListQueryOptions(params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -562,27 +436,22 @@ export const meEmailsCreate = async (
   params?: MeEmailsCreateParams,
   options?: RequestInit,
 ): Promise<meEmailsCreateResponse> => {
-  const res = await fetch(getMeEmailsCreateUrl(params), {
+  return fetchWithKoboAuth<meEmailsCreateResponse>(getMeEmailsCreateUrl(params), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(emailAddress),
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: meEmailsCreateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as meEmailsCreateResponse
 }
 
-export const useMeEmailsCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getMeEmailsCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meEmailsCreate>>,
     TError,
     { data: NonReadonly<EmailAddress>; params?: MeEmailsCreateParams },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof meEmailsCreate>>,
   TError,
@@ -590,11 +459,11 @@ export const useMeEmailsCreateMutationOptions = <TError = unknown, TContext = un
   TContext
 > => {
   const mutationKey = ['meEmailsCreate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof meEmailsCreate>>,
@@ -602,38 +471,28 @@ export const useMeEmailsCreateMutationOptions = <TError = unknown, TContext = un
   > = (props) => {
     const { data, params } = props ?? {}
 
-    return meEmailsCreate(data, params, fetchOptions)
+    return meEmailsCreate(data, params, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type MeEmailsCreateMutationResult = NonNullable<Awaited<ReturnType<typeof meEmailsCreate>>>
 export type MeEmailsCreateMutationBody = NonReadonly<EmailAddress>
 export type MeEmailsCreateMutationError = unknown
 
-export const useMeEmailsCreate = <TError = unknown, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof meEmailsCreate>>,
-      TError,
-      { data: NonReadonly<EmailAddress>; params?: MeEmailsCreateParams },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof meEmailsCreate>>,
-  TError,
-  { data: NonReadonly<EmailAddress>; params?: MeEmailsCreateParams },
-  TContext
-> => {
-  const mutationOptions = useMeEmailsCreateMutationOptions(options)
+export const useMeEmailsCreate = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof meEmailsCreate>>,
+    TError,
+    { data: NonReadonly<EmailAddress>; params?: MeEmailsCreateParams },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getMeEmailsCreateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * Apply this mixin to any view or viewset to enable multi-field lookups
@@ -674,15 +533,10 @@ export const meSocialAccountsList = async (
   params?: MeSocialAccountsListParams,
   options?: RequestInit,
 ): Promise<meSocialAccountsListResponse> => {
-  const res = await fetch(getMeSocialAccountsListUrl(params), {
+  return fetchWithKoboAuth<meSocialAccountsListResponse>(getMeSocialAccountsListUrl(params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: meSocialAccountsListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as meSocialAccountsListResponse
 }
 
 export const getMeSocialAccountsListQueryKey = (params?: MeSocialAccountsListParams) => {
@@ -695,81 +549,37 @@ export const getMeSocialAccountsListQueryOptions = <
 >(
   params?: MeSocialAccountsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getMeSocialAccountsListQueryKey(params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof meSocialAccountsList>>> = ({ signal }) =>
-    meSocialAccountsList(params, { signal, ...fetchOptions })
+    meSocialAccountsList(params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof meSocialAccountsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type MeSocialAccountsListQueryResult = NonNullable<Awaited<ReturnType<typeof meSocialAccountsList>>>
 export type MeSocialAccountsListQueryError = unknown
 
 export function useMeSocialAccountsList<TData = Awaited<ReturnType<typeof meSocialAccountsList>>, TError = unknown>(
-  params: undefined | MeSocialAccountsListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof meSocialAccountsList>>,
-          TError,
-          Awaited<ReturnType<typeof meSocialAccountsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useMeSocialAccountsList<TData = Awaited<ReturnType<typeof meSocialAccountsList>>, TError = unknown>(
   params?: MeSocialAccountsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof meSocialAccountsList>>,
-          TError,
-          Awaited<ReturnType<typeof meSocialAccountsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useMeSocialAccountsList<TData = Awaited<ReturnType<typeof meSocialAccountsList>>, TError = unknown>(
-  params?: MeSocialAccountsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useMeSocialAccountsList<TData = Awaited<ReturnType<typeof meSocialAccountsList>>, TError = unknown>(
-  params?: MeSocialAccountsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getMeSocialAccountsListQueryOptions(params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -823,15 +633,10 @@ export const meSocialAccountsRetrieve = async (
   params?: MeSocialAccountsRetrieveParams,
   options?: RequestInit,
 ): Promise<meSocialAccountsRetrieveResponse> => {
-  const res = await fetch(getMeSocialAccountsRetrieveUrl(provider, uid, params), {
+  return fetchWithKoboAuth<meSocialAccountsRetrieveResponse>(getMeSocialAccountsRetrieveUrl(provider, uid, params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: meSocialAccountsRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as meSocialAccountsRetrieveResponse
 }
 
 export const getMeSocialAccountsRetrieveQueryKey = (
@@ -850,22 +655,22 @@ export const getMeSocialAccountsRetrieveQueryOptions = <
   uid: string,
   params?: MeSocialAccountsRetrieveParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getMeSocialAccountsRetrieveQueryKey(provider, uid, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>> = ({ signal }) =>
-    meSocialAccountsRetrieve(provider, uid, params, { signal, ...fetchOptions })
+    meSocialAccountsRetrieve(provider, uid, params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!(provider && uid), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type MeSocialAccountsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>>
@@ -877,74 +682,15 @@ export function useMeSocialAccountsRetrieve<
 >(
   provider: string,
   uid: string,
-  params: undefined | MeSocialAccountsRetrieveParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof meSocialAccountsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useMeSocialAccountsRetrieve<
-  TData = Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
-  TError = unknown,
->(
-  provider: string,
-  uid: string,
   params?: MeSocialAccountsRetrieveParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof meSocialAccountsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useMeSocialAccountsRetrieve<
-  TData = Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
-  TError = unknown,
->(
-  provider: string,
-  uid: string,
-  params?: MeSocialAccountsRetrieveParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useMeSocialAccountsRetrieve<
-  TData = Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
-  TError = unknown,
->(
-  provider: string,
-  uid: string,
-  params?: MeSocialAccountsRetrieveParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getMeSocialAccountsRetrieveQueryOptions(provider, uid, params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -998,25 +744,20 @@ export const meSocialAccountsDestroy = async (
   params?: MeSocialAccountsDestroyParams,
   options?: RequestInit,
 ): Promise<meSocialAccountsDestroyResponse> => {
-  const res = await fetch(getMeSocialAccountsDestroyUrl(provider, uid, params), {
+  return fetchWithKoboAuth<meSocialAccountsDestroyResponse>(getMeSocialAccountsDestroyUrl(provider, uid, params), {
     ...options,
     method: 'DELETE',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: meSocialAccountsDestroyResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as meSocialAccountsDestroyResponse
 }
 
-export const useMeSocialAccountsDestroyMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getMeSocialAccountsDestroyMutationOptions = <TError = unknown, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
     TError,
     { provider: string; uid: string; params?: MeSocialAccountsDestroyParams },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
   TError,
@@ -1024,11 +765,11 @@ export const useMeSocialAccountsDestroyMutationOptions = <TError = unknown, TCon
   TContext
 > => {
   const mutationKey = ['meSocialAccountsDestroy']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
@@ -1036,38 +777,28 @@ export const useMeSocialAccountsDestroyMutationOptions = <TError = unknown, TCon
   > = (props) => {
     const { provider, uid, params } = props ?? {}
 
-    return meSocialAccountsDestroy(provider, uid, params, fetchOptions)
+    return meSocialAccountsDestroy(provider, uid, params, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type MeSocialAccountsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof meSocialAccountsDestroy>>>
 
 export type MeSocialAccountsDestroyMutationError = unknown
 
-export const useMeSocialAccountsDestroy = <TError = unknown, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
-      TError,
-      { provider: string; uid: string; params?: MeSocialAccountsDestroyParams },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
-  TError,
-  { provider: string; uid: string; params?: MeSocialAccountsDestroyParams },
-  TContext
-> => {
-  const mutationOptions = useMeSocialAccountsDestroyMutationOptions(options)
+export const useMeSocialAccountsDestroy = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
+    TError,
+    { provider: string; uid: string; params?: MeSocialAccountsDestroyParams },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getMeSocialAccountsDestroyMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 
 export const getMeRetrieveResponseMock = (overrideResponse: Partial<MeListResponse> = {}): MeListResponse => ({

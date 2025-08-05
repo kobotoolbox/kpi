@@ -6,17 +6,7 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import { useQuery } from '@tanstack/react-query'
-import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
-  QueryClient,
-  QueryFunction,
-  QueryKey,
-  UndefinedInitialDataOptions,
-  UseQueryOptions,
-  UseQueryResult,
-} from '@tanstack/react-query'
+import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
 
 import type { ErrorDetail } from './models/errorDetail'
 
@@ -33,6 +23,10 @@ import type { MigrateResponse } from './models/migrateResponse'
 import type { PaginatedUserListResponseList } from './models/paginatedUserListResponseList'
 
 import type { UserRetrieveResponse } from './models/userRetrieveResponse'
+
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List users
@@ -69,15 +63,10 @@ export const getUsersListUrl = (params?: UsersListParams) => {
 }
 
 export const usersList = async (params?: UsersListParams, options?: RequestInit): Promise<usersListResponse> => {
-  const res = await fetch(getUsersListUrl(params), {
+  return fetchWithKoboAuth<usersListResponse>(getUsersListUrl(params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: usersListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as usersListResponse
 }
 
 export const getUsersListQueryKey = (params?: UsersListParams) => {
@@ -87,77 +76,37 @@ export const getUsersListQueryKey = (params?: UsersListParams) => {
 export const getUsersListQueryOptions = <TData = Awaited<ReturnType<typeof usersList>>, TError = ErrorDetail>(
   params?: UsersListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof usersList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof usersList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getUsersListQueryKey(params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof usersList>>> = ({ signal }) =>
-    usersList(params, { signal, ...fetchOptions })
+    usersList(params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof usersList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type UsersListQueryResult = NonNullable<Awaited<ReturnType<typeof usersList>>>
 export type UsersListQueryError = ErrorDetail
 
 export function useUsersList<TData = Awaited<ReturnType<typeof usersList>>, TError = ErrorDetail>(
-  params: undefined | UsersListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof usersList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<Awaited<ReturnType<typeof usersList>>, TError, Awaited<ReturnType<typeof usersList>>>,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useUsersList<TData = Awaited<ReturnType<typeof usersList>>, TError = ErrorDetail>(
   params?: UsersListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof usersList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof usersList>>,
-          TError,
-          Awaited<ReturnType<typeof usersList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof usersList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useUsersList<TData = Awaited<ReturnType<typeof usersList>>, TError = ErrorDetail>(
-  params?: UsersListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof usersList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useUsersList<TData = Awaited<ReturnType<typeof usersList>>, TError = ErrorDetail>(
-  params?: UsersListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof usersList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getUsersListQueryOptions(params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -189,15 +138,10 @@ export const getUsersRetrieveUrl = (username: string) => {
 }
 
 export const usersRetrieve = async (username: string, options?: RequestInit): Promise<usersRetrieveResponse> => {
-  const res = await fetch(getUsersRetrieveUrl(username), {
+  return fetchWithKoboAuth<usersRetrieveResponse>(getUsersRetrieveUrl(username), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: usersRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as usersRetrieveResponse
 }
 
 export const getUsersRetrieveQueryKey = (username: string) => {
@@ -207,22 +151,22 @@ export const getUsersRetrieveQueryKey = (username: string) => {
 export const getUsersRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof usersRetrieve>>, TError = ErrorObject>(
   username: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof usersRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof usersRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getUsersRetrieveQueryKey(username)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof usersRetrieve>>> = ({ signal }) =>
-    usersRetrieve(username, { signal, ...fetchOptions })
+    usersRetrieve(username, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!username, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof usersRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type UsersRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof usersRetrieve>>>
@@ -230,58 +174,14 @@ export type UsersRetrieveQueryError = ErrorObject
 
 export function useUsersRetrieve<TData = Awaited<ReturnType<typeof usersRetrieve>>, TError = ErrorObject>(
   username: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof usersRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof usersRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof usersRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useUsersRetrieve<TData = Awaited<ReturnType<typeof usersRetrieve>>, TError = ErrorObject>(
-  username: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof usersRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof usersRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof usersRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof usersRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useUsersRetrieve<TData = Awaited<ReturnType<typeof usersRetrieve>>, TError = ErrorObject>(
-  username: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof usersRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useUsersRetrieve<TData = Awaited<ReturnType<typeof usersRetrieve>>, TError = ErrorObject>(
-  username: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof usersRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getUsersRetrieveQueryOptions(username, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -332,15 +232,10 @@ export const usersMigrateRetrieve = async (
   username: string,
   options?: RequestInit,
 ): Promise<usersMigrateRetrieveResponse> => {
-  const res = await fetch(getUsersMigrateRetrieveUrl(username), {
+  return fetchWithKoboAuth<usersMigrateRetrieveResponse>(getUsersMigrateRetrieveUrl(username), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: usersMigrateRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as usersMigrateRetrieveResponse
 }
 
 export const getUsersMigrateRetrieveQueryKey = (username: string) => {
@@ -353,22 +248,22 @@ export const getUsersMigrateRetrieveQueryOptions = <
 >(
   username: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof usersMigrateRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof usersMigrateRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getUsersMigrateRetrieveQueryKey(username)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof usersMigrateRetrieve>>> = ({ signal }) =>
-    usersMigrateRetrieve(username, { signal, ...fetchOptions })
+    usersMigrateRetrieve(username, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!username, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof usersMigrateRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type UsersMigrateRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof usersMigrateRetrieve>>>
@@ -376,58 +271,14 @@ export type UsersMigrateRetrieveQueryError = ErrorDetail
 
 export function useUsersMigrateRetrieve<TData = Awaited<ReturnType<typeof usersMigrateRetrieve>>, TError = ErrorDetail>(
   username: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof usersMigrateRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof usersMigrateRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof usersMigrateRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useUsersMigrateRetrieve<TData = Awaited<ReturnType<typeof usersMigrateRetrieve>>, TError = ErrorDetail>(
-  username: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof usersMigrateRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof usersMigrateRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof usersMigrateRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof usersMigrateRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useUsersMigrateRetrieve<TData = Awaited<ReturnType<typeof usersMigrateRetrieve>>, TError = ErrorDetail>(
-  username: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof usersMigrateRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useUsersMigrateRetrieve<TData = Awaited<ReturnType<typeof usersMigrateRetrieve>>, TError = ErrorDetail>(
-  username: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof usersMigrateRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getUsersMigrateRetrieveQueryOptions(username, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 

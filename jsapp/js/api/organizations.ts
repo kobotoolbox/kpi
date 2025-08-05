@@ -7,16 +7,10 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type {
-  DataTag,
-  DefinedInitialDataOptions,
-  DefinedUseQueryResult,
   MutationFunction,
-  QueryClient,
   QueryFunction,
   QueryKey,
-  UndefinedInitialDataOptions,
   UseMutationOptions,
-  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
@@ -45,7 +39,9 @@ import type { PaginatedOrganizationAssetUsageResponseList } from './models/pagin
 
 import type { PaginatedOrganizationList } from './models/paginatedOrganizationList'
 
-import { koboCustomOrvalMutationOptions } from '../orval.mutationOptions'
+import { fetchWithKoboAuth } from '../orval.mutator'
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
  * ## List user's organizations
@@ -85,15 +81,10 @@ export const organizationsList = async (
   params?: OrganizationsListParams,
   options?: RequestInit,
 ): Promise<organizationsListResponse> => {
-  const res = await fetch(getOrganizationsListUrl(params), {
+  return fetchWithKoboAuth<organizationsListResponse>(getOrganizationsListUrl(params), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: organizationsListResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as organizationsListResponse
 }
 
 export const getOrganizationsListQueryKey = (params?: OrganizationsListParams) => {
@@ -106,81 +97,37 @@ export const getOrganizationsListQueryOptions = <
 >(
   params?: OrganizationsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsList>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getOrganizationsListQueryKey(params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsList>>> = ({ signal }) =>
-    organizationsList(params, { signal, ...fetchOptions })
+    organizationsList(params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof organizationsList>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type OrganizationsListQueryResult = NonNullable<Awaited<ReturnType<typeof organizationsList>>>
 export type OrganizationsListQueryError = ErrorObject
 
 export function useOrganizationsList<TData = Awaited<ReturnType<typeof organizationsList>>, TError = ErrorObject>(
-  params: undefined | OrganizationsListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof organizationsList>>,
-          TError,
-          Awaited<ReturnType<typeof organizationsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsList<TData = Awaited<ReturnType<typeof organizationsList>>, TError = ErrorObject>(
   params?: OrganizationsListParams,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof organizationsList>>,
-          TError,
-          Awaited<ReturnType<typeof organizationsList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsList<TData = Awaited<ReturnType<typeof organizationsList>>, TError = ErrorObject>(
-  params?: OrganizationsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useOrganizationsList<TData = Awaited<ReturnType<typeof organizationsList>>, TError = ErrorObject>(
-  params?: OrganizationsListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getOrganizationsListQueryOptions(params, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -215,15 +162,10 @@ export const organizationsRetrieve = async (
   id: string,
   options?: RequestInit,
 ): Promise<organizationsRetrieveResponse> => {
-  const res = await fetch(getOrganizationsRetrieveUrl(id), {
+  return fetchWithKoboAuth<organizationsRetrieveResponse>(getOrganizationsRetrieveUrl(id), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: organizationsRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as organizationsRetrieveResponse
 }
 
 export const getOrganizationsRetrieveQueryKey = (id: string) => {
@@ -236,22 +178,22 @@ export const getOrganizationsRetrieveQueryOptions = <
 >(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getOrganizationsRetrieveQueryKey(id)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsRetrieve>>> = ({ signal }) =>
-    organizationsRetrieve(id, { signal, ...fetchOptions })
+    organizationsRetrieve(id, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof organizationsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type OrganizationsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof organizationsRetrieve>>>
@@ -262,67 +204,14 @@ export function useOrganizationsRetrieve<
   TError = ErrorObject,
 >(
   id: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof organizationsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof organizationsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsRetrieve<
-  TData = Awaited<ReturnType<typeof organizationsRetrieve>>,
-  TError = ErrorObject,
->(
-  id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof organizationsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof organizationsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsRetrieve<
-  TData = Awaited<ReturnType<typeof organizationsRetrieve>>,
-  TError = ErrorObject,
->(
-  id: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useOrganizationsRetrieve<
-  TData = Awaited<ReturnType<typeof organizationsRetrieve>>,
-  TError = ErrorObject,
->(
-  id: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getOrganizationsRetrieveQueryOptions(id, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -360,27 +249,22 @@ export const organizationsPartialUpdate = async (
   patchedOrganizationPatchPayload: PatchedOrganizationPatchPayload,
   options?: RequestInit,
 ): Promise<organizationsPartialUpdateResponse> => {
-  const res = await fetch(getOrganizationsPartialUpdateUrl(id), {
+  return fetchWithKoboAuth<organizationsPartialUpdateResponse>(getOrganizationsPartialUpdateUrl(id), {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(patchedOrganizationPatchPayload),
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: organizationsPartialUpdateResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as organizationsPartialUpdateResponse
 }
 
-export const useOrganizationsPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getOrganizationsPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsPartialUpdate>>,
     TError,
     { id: string; data: PatchedOrganizationPatchPayload },
     TContext
   >
-  fetch?: RequestInit
+  request?: SecondParameter<typeof fetchWithKoboAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof organizationsPartialUpdate>>,
   TError,
@@ -388,11 +272,11 @@ export const useOrganizationsPartialUpdateMutationOptions = <TError = ErrorObjec
   TContext
 > => {
   const mutationKey = ['organizationsPartialUpdate']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
+    : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof organizationsPartialUpdate>>,
@@ -400,12 +284,10 @@ export const useOrganizationsPartialUpdateMutationOptions = <TError = ErrorObjec
   > = (props) => {
     const { id, data } = props ?? {}
 
-    return organizationsPartialUpdate(id, data, fetchOptions)
+    return organizationsPartialUpdate(id, data, requestOptions)
   }
 
-  const customOptions = koboCustomOrvalMutationOptions({ ...mutationOptions, mutationFn })
-
-  return customOptions
+  return { mutationFn, ...mutationOptions }
 }
 
 export type OrganizationsPartialUpdateMutationResult = NonNullable<
@@ -414,26 +296,18 @@ export type OrganizationsPartialUpdateMutationResult = NonNullable<
 export type OrganizationsPartialUpdateMutationBody = PatchedOrganizationPatchPayload
 export type OrganizationsPartialUpdateMutationError = ErrorObject
 
-export const useOrganizationsPartialUpdate = <TError = ErrorObject, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof organizationsPartialUpdate>>,
-      TError,
-      { id: string; data: PatchedOrganizationPatchPayload },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof organizationsPartialUpdate>>,
-  TError,
-  { id: string; data: PatchedOrganizationPatchPayload },
-  TContext
-> => {
-  const mutationOptions = useOrganizationsPartialUpdateMutationOptions(options)
+export const useOrganizationsPartialUpdate = <TError = ErrorObject, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof organizationsPartialUpdate>>,
+    TError,
+    { id: string; data: PatchedOrganizationPatchPayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithKoboAuth>
+}) => {
+  const mutationOptions = getOrganizationsPartialUpdateMutationOptions(options)
 
-  return useMutation(mutationOptions, queryClient)
+  return useMutation(mutationOptions)
 }
 /**
  * ## Retrieve organization asset usage tracker
@@ -467,15 +341,10 @@ export const organizationsAssetUsageRetrieve = async (
   id: string,
   options?: RequestInit,
 ): Promise<organizationsAssetUsageRetrieveResponse> => {
-  const res = await fetch(getOrganizationsAssetUsageRetrieveUrl(id), {
+  return fetchWithKoboAuth<organizationsAssetUsageRetrieveResponse>(getOrganizationsAssetUsageRetrieveUrl(id), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: organizationsAssetUsageRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as organizationsAssetUsageRetrieveResponse
 }
 
 export const getOrganizationsAssetUsageRetrieveQueryKey = (id: string) => {
@@ -488,22 +357,22 @@ export const getOrganizationsAssetUsageRetrieveQueryOptions = <
 >(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getOrganizationsAssetUsageRetrieveQueryKey(id)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>> = ({ signal }) =>
-    organizationsAssetUsageRetrieve(id, { signal, ...fetchOptions })
+    organizationsAssetUsageRetrieve(id, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type OrganizationsAssetUsageRetrieveQueryResult = NonNullable<
@@ -516,67 +385,14 @@ export function useOrganizationsAssetUsageRetrieve<
   TError = ErrorObject,
 >(
   id: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsAssetUsageRetrieve<
-  TData = Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>,
-  TError = ErrorObject,
->(
-  id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsAssetUsageRetrieve<
-  TData = Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>,
-  TError = ErrorObject,
->(
-  id: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useOrganizationsAssetUsageRetrieve<
-  TData = Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>,
-  TError = ErrorObject,
->(
-  id: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getOrganizationsAssetUsageRetrieveQueryOptions(id, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -622,15 +438,10 @@ export const organizationsAssetsRetrieve = async (
   id: string,
   options?: RequestInit,
 ): Promise<organizationsAssetsRetrieveResponse> => {
-  const res = await fetch(getOrganizationsAssetsRetrieveUrl(id), {
+  return fetchWithKoboAuth<organizationsAssetsRetrieveResponse>(getOrganizationsAssetsRetrieveUrl(id), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: organizationsAssetsRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as organizationsAssetsRetrieveResponse
 }
 
 export const getOrganizationsAssetsRetrieveQueryKey = (id: string) => {
@@ -643,22 +454,22 @@ export const getOrganizationsAssetsRetrieveQueryOptions = <
 >(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getOrganizationsAssetsRetrieveQueryKey(id)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsAssetsRetrieve>>> = ({ signal }) =>
-    organizationsAssetsRetrieve(id, { signal, ...fetchOptions })
+    organizationsAssetsRetrieve(id, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof organizationsAssetsRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type OrganizationsAssetsRetrieveQueryResult = NonNullable<
@@ -671,67 +482,14 @@ export function useOrganizationsAssetsRetrieve<
   TError = ErrorObject,
 >(
   id: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetsRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof organizationsAssetsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof organizationsAssetsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsAssetsRetrieve<
-  TData = Awaited<ReturnType<typeof organizationsAssetsRetrieve>>,
-  TError = ErrorObject,
->(
-  id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetsRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof organizationsAssetsRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof organizationsAssetsRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsAssetsRetrieve<
-  TData = Awaited<ReturnType<typeof organizationsAssetsRetrieve>>,
-  TError = ErrorObject,
->(
-  id: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useOrganizationsAssetsRetrieve<
-  TData = Awaited<ReturnType<typeof organizationsAssetsRetrieve>>,
-  TError = ErrorObject,
->(
-  id: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetsRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getOrganizationsAssetsRetrieveQueryOptions(id, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
@@ -776,15 +534,10 @@ export const organizationsServiceUsageRetrieve = async (
   id: string,
   options?: RequestInit,
 ): Promise<organizationsServiceUsageRetrieveResponse> => {
-  const res = await fetch(getOrganizationsServiceUsageRetrieveUrl(id), {
+  return fetchWithKoboAuth<organizationsServiceUsageRetrieveResponse>(getOrganizationsServiceUsageRetrieveUrl(id), {
     ...options,
     method: 'GET',
   })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  const data: organizationsServiceUsageRetrieveResponse['data'] = body ? JSON.parse(body) : {}
-
-  return { data, status: res.status, headers: res.headers } as organizationsServiceUsageRetrieveResponse
 }
 
 export const getOrganizationsServiceUsageRetrieveQueryKey = (id: string) => {
@@ -797,22 +550,22 @@ export const getOrganizationsServiceUsageRetrieveQueryOptions = <
 >(
   id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>, TError, TData>>
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
 ) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+  const { query: queryOptions, request: requestOptions } = options ?? {}
 
   const queryKey = queryOptions?.queryKey ?? getOrganizationsServiceUsageRetrieveQueryKey(id)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>> = ({ signal }) =>
-    organizationsServiceUsageRetrieve(id, { signal, ...fetchOptions })
+    organizationsServiceUsageRetrieve(id, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>,
     TError,
     TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  > & { queryKey: QueryKey }
 }
 
 export type OrganizationsServiceUsageRetrieveQueryResult = NonNullable<
@@ -825,67 +578,14 @@ export function useOrganizationsServiceUsageRetrieve<
   TError = ErrorObject,
 >(
   id: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsServiceUsageRetrieve<
-  TData = Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>,
-  TError = ErrorObject,
->(
-  id: string,
   options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>,
-          TError,
-          Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithKoboAuth>
   },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useOrganizationsServiceUsageRetrieve<
-  TData = Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>,
-  TError = ErrorObject,
->(
-  id: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-
-export function useOrganizationsServiceUsageRetrieve<
-  TData = Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>,
-  TError = ErrorObject,
->(
-  id: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getOrganizationsServiceUsageRetrieveQueryOptions(id, options)
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
   query.queryKey = queryOptions.queryKey
 
