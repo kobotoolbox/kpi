@@ -101,13 +101,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         except (InvalidXFormException, MissingXFormException):
             return 0
 
-    def bulk_assign_mapped_perms(self):
-        """
-        Assign backend mapped permissions. Deprecated because the permissions are based
-        on KPI asset based permissions
-        """
-        pass
-
     def calculated_submission_count(
         self, user: settings.AUTH_USER_MODEL, **kwargs
     ) -> int:

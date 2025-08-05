@@ -20,7 +20,10 @@ from kpi.constants import (
     PREFIX_PARTIAL_PERMS,
 )
 from kpi.deployment_backends.kc_access.utils import (
+<<<<<<< HEAD
     _get_xform_id_for_asset,
+=======
+>>>>>>> origin/dev-227-replace_guardian_assign_remove_perm
     kc_transaction_atomic,
     set_kc_anonymous_permissions_xform_flags,
 )
@@ -498,8 +501,7 @@ class ObjectPermissionMixin:
 
         # Handle KoboCat xform flags for the anonymous user
         if not deny and is_anonymous:
-            if xform_id := _get_xform_id_for_asset(self):
-                set_kc_anonymous_permissions_xform_flags(self, codename, xform_id)
+            set_kc_anonymous_permissions_xform_flags(self, codename)
 
         # Resolve implied permissions, e.g. granting change implies granting
         # view
@@ -718,10 +720,9 @@ class ObjectPermissionMixin:
         is_anonymous = is_user_anonymous(user_obj)
         # Handle KoboCat xform flags for the anonymous user
         if is_anonymous:
-            if xform_id := _get_xform_id_for_asset(self):
-                set_kc_anonymous_permissions_xform_flags(
-                    self, codename, xform_id, remove=True
-                )
+            set_kc_anonymous_permissions_xform_flags(
+                self, codename, remove=True
+            )
 
     def _update_partial_permissions(
         self,
