@@ -390,6 +390,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
                 'source': 'source',
                 'asset_uid': asset.uid,
                 'log_subtype': 'project',
+                'project_owner': asset.owner.username,
             },
             date_created=yesterday,
             object_id=asset.id,
@@ -403,6 +404,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
                 'source': 'source',
                 'asset_uid': asset.uid,
                 'log_subtype': 'project',
+                'project_owner': asset.owner.username,
             },
         )
 
@@ -422,6 +424,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
                 'source': 'source',
                 'asset_uid': asset.uid,
                 'log_subtype': 'project',
+                'project_owner': asset.owner.username,
             },
             user=user,
         )
@@ -432,15 +435,16 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
 
     @data(
         # source, asset_uid, ip_address, subtype
-        ('source', 'a1234', None, 'project'),  # missing ip
-        ('source', None, '1.2.3.4', 'project'),  # missing asset_uid
-        (None, 'a1234', '1.2.3.4', 'project'),  # missing source
-        ('source', 'a1234', '1.2.3.4', None),  # missing subtype
-        ('source', 'a1234', '1.2.3.4', 'bad_type'),  # bad subtype
+        ('source', 'a1234', None, 'project', 'someuser'),  # missing ip
+        ('source', None, '1.2.3.4', 'project', 'someuser'),  # missing asset_uid
+        (None, 'a1234', '1.2.3.4', 'project', 'someuser'),  # missing source
+        ('source', 'a1234', '1.2.3.4', None, 'someuser'),  # missing subtype
+        ('source', 'a1234', '1.2.3.4', 'bad_type', 'someuser'),  # bad subtype
+        ('source', 'a1234', '1.2.3.4', 'project', None),  # missing owner
     )
     @unpack
     def test_create_project_history_log_requires_metadata_fields(
-        self, source, ip_address, asset_uid, subtype
+        self, source, ip_address, asset_uid, subtype, owner
     ):
         user = User.objects.get(username='someuser')
         asset = Asset.objects.get(pk=1)
@@ -449,6 +453,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'ip_address': ip_address,
             'asset_uid': asset_uid,
             'log_subtype': subtype,
+            'project_owner': owner,
         }
 
         with self.assertRaises(ValidationError):
@@ -767,6 +772,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'content': 'content',
             'advanced_features.qual.qual_survey': 'survey',
             'latest_version.uid': 'v12345',
+            'owner.username': 'someuser',
         }
         request.updated_data = {**request.initial_data, field: 'new'}
         with patch(
@@ -787,6 +793,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'advanced_features.qual.qual_survey': 'survey',
             'latest_version.uid': 'v12345',
             'something_new': 'new',
+            'owner.username': 'someuser',
         }
         request.updated_data = {**request.initial_data, 'something_new': 'i am new'}
         # no log should be created even though 'something_new' changed
