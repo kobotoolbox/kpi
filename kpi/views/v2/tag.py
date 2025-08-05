@@ -1,5 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
+from rest_framework.renderers import JSONRenderer
 from taggit.models import Tag
 
 from kpi.constants import PERM_VIEW_ASSET
@@ -9,11 +11,25 @@ from kpi.serializers.v2.tag import TagListSerializer, TagSerializer
 from kpi.utils.object_permission import get_database_user, get_objects_for_user
 
 
+@extend_schema(
+    tags=['Tags']
+)
+@extend_schema_view(
+    list=extend_schema(
+        description='list',
+    ),
+    retrieve=extend_schema(
+        description='retrieve',
+    ),
+)
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     lookup_field = 'taguid__uid'
     filter_backends = (SearchFilter,)
+    renderer_classes = [
+        JSONRenderer,
+    ]
 
     def get_queryset(self, *args, **kwargs):
         user = get_database_user(self.request.user)
