@@ -11,12 +11,9 @@ from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
 from kobo.apps.openrosa.apps.api.viewsets.metadata_viewset import MetaDataViewSet
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
 from kobo.apps.openrosa.apps.main.models.meta_data import MetaData
-from kpi.constants import (
-    PERM_VIEW_ASSET,
-    PERM_CHANGE_ASSET,
-)
 from kobo.apps.openrosa.libs.permissions import assign_perm
 from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormSerializer
+from kpi.constants import PERM_CHANGE_ASSET, PERM_VIEW_ASSET
 
 
 class TestMetaDataViewSet(TestAbstractViewSet):

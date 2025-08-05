@@ -11,12 +11,8 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.utils.rest_framework import openrosa_drf_settings
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from kpi.constants import (
-    PERM_CHANGE_ASSET,
-    PERM_DELETE_SUBMISSIONS,
-    PERM_VIEW_ASSET,
-)
 from kobo.apps.openrosa.libs.utils.string import base64_encodestring
+from kpi.constants import PERM_CHANGE_ASSET, PERM_DELETE_SUBMISSIONS, PERM_VIEW_ASSET
 
 
 class HttpResponseNotAuthorized(HttpResponse):
@@ -87,9 +83,7 @@ def has_permission(xform, owner, request, shared=False):
 
 def has_delete_data_permission(xform, owner, request):
     user = request.user
-    return owner == user or user.has_perm(
-        PERM_DELETE_SUBMISSIONS, xform.asset
-    )
+    return owner == user or user.has_perm(PERM_DELETE_SUBMISSIONS, xform.asset)
 
 
 def has_edit_permission(xform, owner, request):
@@ -126,12 +120,8 @@ def get_xform_and_perms(username, id_string, request):
         XForm, user__username=username, id_string=id_string
     )
     is_owner = xform.user == request.user
-    can_edit = is_owner or request.user.has_perm(
-        PERM_CHANGE_ASSET, xform.asset
-    )
-    can_view = can_edit or request.user.has_perm(
-        PERM_VIEW_ASSET, xform.asset
-    )
+    can_edit = is_owner or request.user.has_perm(PERM_CHANGE_ASSET, xform.asset)
+    can_view = can_edit or request.user.has_perm(PERM_VIEW_ASSET, xform.asset)
     can_delete_data = is_owner or request.user.has_perm(
         PERM_DELETE_SUBMISSIONS, xform.asset
     )

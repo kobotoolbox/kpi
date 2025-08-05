@@ -3,7 +3,6 @@ from contextlib import contextmanager
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ImproperlyConfigured
 from django.db import ProgrammingError, transaction
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -72,9 +71,7 @@ def grant_kc_model_level_perms(user: 'kobo_auth.User'):
         user.user_permissions.add(*permissions_to_assign)
 
 
-def set_kc_anonymous_permissions_xform_flags(
-    obj, kpi_codenames, remove=False
-):
+def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, remove=False):
     r"""
     Given a KPI object, one or more KPI permission codenames and the PK of
     a KC `XForm`, assume the KPI permissions have been assigned to or

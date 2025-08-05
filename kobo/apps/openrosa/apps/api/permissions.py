@@ -9,15 +9,11 @@ from rest_framework.permissions import (
 )
 
 from kobo.apps.openrosa.apps.api.exceptions import LegacyAPIException
-from kobo.apps.openrosa.apps.logger.models import XForm
 from kpi.constants import (
     PERM_CHANGE_ASSET,
-    PERM_DELETE_ASSET,
     PERM_DELETE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
-    PERM_VIEW_ASSET,
 )
-from kpi.constants import PERM_CHANGE_ASSET
 
 
 class ViewDjangoObjectPermissions(DjangoObjectPermissions):
@@ -185,9 +181,7 @@ class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
             'bulk_validation_status': {
                 'PATCH': [f'kpi.{PERM_VALIDATE_SUBMISSIONS}'],
             },
-            'labels': {
-                'DELETE': [f'kpi.{PERM_CHANGE_ASSET}']
-            },
+            'labels': {'DELETE': [f'kpi.{PERM_CHANGE_ASSET}']},
             'validation_status': {
                 'DELETE': [f'kpi.{PERM_VALIDATE_SUBMISSIONS}'],
                 'PATCH': [f'kpi.{PERM_VALIDATE_SUBMISSIONS}'],
@@ -298,8 +292,7 @@ class AttachmentObjectPermissions(DjangoObjectPermissions):
         if request.user and request.user.is_superuser:
             return True
 
-        return super().has_object_permission(
-            request, view, obj.instance.xform.asset)
+        return super().has_object_permission(request, view, obj.instance.xform.asset)
 
 
 class NoteObjectPermissions(DjangoObjectPermissions):

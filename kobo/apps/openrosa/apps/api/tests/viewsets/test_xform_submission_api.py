@@ -23,7 +23,6 @@ from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmi
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.apps.main import tests as main_tests
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from kpi.constants import PERM_ADD_SUBMISSIONS
 from kobo.apps.openrosa.libs.permissions import assign_perm
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils import logger_tools
@@ -31,6 +30,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     OpenRosaResponseNotAllowed,
     OpenRosaTemporarilyUnavailable,
 )
+from kpi.constants import PERM_ADD_SUBMISSIONS
 from kpi.utils.fuzzy_int import FuzzyInt
 
 

@@ -12,8 +12,8 @@ from kobo.apps.openrosa.libs.permissions import (
     XFORM_MODELS_NAMES,
     get_xform_ids_for_user,
 )
-from kpi.utils.object_permission import get_database_user
 from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_VIEW_ASSET
+from kpi.utils.object_permission import get_database_user
 
 
 class ObjectPermissionsFilter(BaseFilterBackend):

@@ -26,10 +26,10 @@ from kobo.apps.openrosa.libs.utils.user_auth import (
     check_and_set_form_by_id,
     check_and_set_form_by_id_string,
 )
+from kpi.constants import PERM_CHANGE_ASSET
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
-from kpi.constants import PERM_CHANGE_ASSET
 from kpi.views.v2.paired_data import OpenRosaDynamicDataAttachmentViewset
 
 DECIMAL_PRECISION = 2

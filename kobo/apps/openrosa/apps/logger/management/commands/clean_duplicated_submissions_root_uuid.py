@@ -1,14 +1,14 @@
 import time
 
 from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
 from django.core.management import call_command
+from django.core.management.base import BaseCommand, CommandError
 from django.db.utils import IntegrityError
 
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
-    set_meta,
     add_uuid_prefix,
+    set_meta,
 )
 
 

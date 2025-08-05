@@ -2,15 +2,7 @@ from django.conf import settings
 from django.contrib.auth.models import Permission
 from django_request_cache import cache_for_request
 
-from kpi.constants import (
-    PERM_ADD_SUBMISSIONS,
-    PERM_CHANGE_ASSET,
-    PERM_DELETE_ASSET,
-    PERM_DELETE_SUBMISSIONS,
-    PERM_VALIDATE_SUBMISSIONS,
-    PERM_VIEW_ASSET,
-)
-
+from kpi.constants import PERM_VIEW_ASSET
 
 XFORM_MODELS_NAMES = [
     'xform',

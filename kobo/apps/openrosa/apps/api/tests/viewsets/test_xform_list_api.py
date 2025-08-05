@@ -13,13 +13,9 @@ from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
 )
 from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import XFormListApi
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
-from kpi.constants import (
-    PERM_ADD_SUBMISSIONS,
-    PERM_VIEW_ASSET,
-)
 from kobo.apps.openrosa.libs.permissions import assign_perm
 from kobo.apps.organizations.models import Organization
-from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_MANAGE_ASSET
+from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_MANAGE_ASSET, PERM_VIEW_ASSET
 from kpi.models import Asset
 
 

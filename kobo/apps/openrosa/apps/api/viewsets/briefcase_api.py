@@ -87,8 +87,7 @@ class BriefcaseApi(
     """
     filter_backends = (filters.AnonDjangoObjectPermissionFilter,)
     queryset = XForm.objects.all()
-    permission_classes = (permissions.IsAuthenticated,
-                          ViewAssetPermissions)
+    permission_classes = (permissions.IsAuthenticated, ViewAssetPermissions)
     renderer_classes = (TemplateXMLRenderer, BrowsableAPIRenderer)
     serializer_class = XFormListSerializer
     template_name = 'openrosa_response.xml'

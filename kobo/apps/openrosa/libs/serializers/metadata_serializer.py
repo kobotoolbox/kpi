@@ -10,21 +10,18 @@ from django.utils.translation import gettext as t
 from rest_framework import serializers
 from werkzeug.http import parse_options_header
 
-from kobo.apps.openrosa.apps.main.models.meta_data import MetaData
 from kobo.apps.openrosa.apps.logger.models import XForm
-from kpi.constants import (
-    PERM_VIEW_ASSET,
-    PERM_CHANGE_ASSET,
-)
+from kobo.apps.openrosa.apps.main.models.meta_data import MetaData
+from kpi.constants import PERM_CHANGE_ASSET, PERM_VIEW_ASSET
 
 METADATA_TYPES = (
-    ('data_license', t("Data License")),
-    ('form_license', t("Form License")),
-    ('media', t("Media")),
-    ('public_link', t("Public Link")),
-    ('source', t("Source")),
-    ('supporting_doc', t("Supporting Document")),
-    ('paired_data', t("Paired Data")),
+    ('data_license', t('Data License')),
+    ('form_license', t('Form License')),
+    ('media', t('Media')),
+    ('public_link', t('Public Link')),
+    ('source', t('Source')),
+    ('supporting_doc', t('Supporting Document')),
+    ('paired_data', t('Paired Data')),
 )
 
 

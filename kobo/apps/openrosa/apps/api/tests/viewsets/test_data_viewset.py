@@ -6,12 +6,8 @@ from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
-from kpi.constants import (
-    PERM_CHANGE_ASSET,
-    PERM_DELETE_SUBMISSIONS,
-    PERM_VIEW_ASSET,
-)
 from kobo.apps.openrosa.libs.permissions import assign_perm, remove_perm
+from kpi.constants import PERM_CHANGE_ASSET, PERM_DELETE_SUBMISSIONS, PERM_VIEW_ASSET
 
 
 def _data_list(formid):

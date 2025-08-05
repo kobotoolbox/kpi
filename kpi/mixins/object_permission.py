@@ -716,9 +716,7 @@ class ObjectPermissionMixin:
         is_anonymous = is_user_anonymous(user_obj)
         # Handle KoboCat xform flags for the anonymous user
         if is_anonymous:
-            set_kc_anonymous_permissions_xform_flags(
-                self, codename, remove=True
-            )
+            set_kc_anonymous_permissions_xform_flags(self, codename, remove=True)
 
     def _update_partial_permissions(
         self,

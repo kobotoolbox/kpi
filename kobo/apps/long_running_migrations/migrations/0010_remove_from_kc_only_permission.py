@@ -2,10 +2,10 @@ from django.db import migrations
 
 
 def add_long_running_migration(apps, schema_editor):
-    LongRunningMigration = apps.get_model('long_running_migrations', 'LongRunningMigration')  # noqa
-    LongRunningMigration.objects.create(
-        name='0010_remove_from_kc_only_permission'
-    )
+    LongRunningMigration = apps.get_model(
+        'long_running_migrations', 'LongRunningMigration'
+    )  # noqa
+    LongRunningMigration.objects.create(name='0010_remove_from_kc_only_permission')
 
 
 def noop(*args, **kwargs):
