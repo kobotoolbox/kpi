@@ -34,6 +34,15 @@ GENERIC_NLP_OBJECT_SCHEMA = build_object_type(
     }
 )
 
+GENERIC_NLP_ALL_TIME_OBJECT_SCHEMA = build_object_type(
+    properties={
+        'asr_seconds_current_period': build_basic_type(OpenApiTypes.INT),
+        'mt_characters_current_period': build_basic_type(OpenApiTypes.INT),
+        'asr_seconds_all_time': build_basic_type(OpenApiTypes.INT),
+        'mt_characters_all_time': build_basic_type(OpenApiTypes.INT),
+    }
+)
+
 GENERIC_STRING_SCHEMA = build_basic_type(OpenApiTypes.STR)
 
 GENERIC_OBJECT_SCHEMA = build_object_type(properties={})

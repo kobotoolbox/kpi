@@ -2,7 +2,10 @@ from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import build_basic_type, build_object_type
 from drf_spectacular.types import OpenApiTypes
 
-from kpi.schema_extensions.v2.generic.schema import BALANCE_FIELDS_SCHEMA
+from kpi.schema_extensions.v2.generic.schema import (
+    BALANCE_FIELDS_SCHEMA,
+    GENERIC_NLP_ALL_TIME_OBJECT_SCHEMA,
+)
 
 
 class BalancesFieldExtension(OpenApiSerializerFieldExtension):
@@ -23,14 +26,7 @@ class NlpUsageFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.service_usage.fields.NlpUsageField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(
-            properties={
-                'asr_seconds_current_period': build_basic_type(OpenApiTypes.INT),
-                'mt_characters_current_period': build_basic_type(OpenApiTypes.INT),
-                'asr_seconds_all_time': build_basic_type(OpenApiTypes.INT),
-                'mt_characters_all_time': build_basic_type(OpenApiTypes.INT),
-            }
-        )
+        return GENERIC_NLP_ALL_TIME_OBJECT_SCHEMA
 
 
 class SubmissionCountFieldExtension(OpenApiSerializerFieldExtension):
