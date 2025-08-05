@@ -40,7 +40,7 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'asset-export-detail': '/api/v2/assets/{parent_lookup_asset}/exports/{uid}/',
         'serve_private_file': '{path}',
         'asset-file-detail': '/api/v2/assets/{parent_lookup_asset}/files/{uid}/',
-        'asset-file-content': '/api/v2/assets/{parent_lookup_asset}/files/{uid}/content/',
+        'asset-file-content': '/api/v2/assets/{parent_lookup_asset}/files/{uid}/content/',  # noqa
         'hook-log-list': '/api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/',  # noqa
         'hook-log-detail': '/api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/',  # noqa
         'organization-members-list': '/api/v2/organizations/{id}/members/',

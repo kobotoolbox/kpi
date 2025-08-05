@@ -15,14 +15,12 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import exceptions, serializers
 from rest_framework.fields import empty
-from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 
 from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.organizations.utils import get_real_owner
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
-from kobo.apps.subsequences.utils.deprecation import WritableAdvancedFeaturesField
 from kobo.apps.trash_bin.exceptions import TrashIntegrityError, TrashTaskInProgressError
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kobo.apps.trash_bin.utils import move_to_trash, put_back
@@ -41,17 +39,9 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.fields import WritableJSONField, RelativePrefixHyperlinkedRelatedField, \
-    PaginatedApiField
+from kpi.fields import WritableJSONField
 from kpi.models import Asset, AssetVersion, ObjectPermission, UserAssetSubscription
 from kpi.models.asset import AssetDeploymentStatus
-from kpi.utils.schema_extensions.fields import (
-    ReadOnlyFieldWithSchemaField,
-    WriteableJsonWithSchemaField,
-    RelativePrefixHyperlinkedRelatedFieldWithSchemaField,
-    PaginatedApiFieldWithSchemaField,
-    HyperlinkedIdentityFieldWithSchemaField,
-)
 from kpi.utils.object_permission import (
     get_cached_code_names,
     get_database_user,
@@ -62,6 +52,13 @@ from kpi.utils.project_views import (
     get_project_view_user_permissions_for_asset,
     user_has_project_view_asset_perm,
     view_has_perm,
+)
+from kpi.utils.schema_extensions.fields import (
+    HyperlinkedIdentityFieldWithSchemaField,
+    PaginatedApiFieldWithSchemaField,
+    ReadOnlyFieldWithSchemaField,
+    RelativePrefixHyperlinkedRelatedFieldWithSchemaField,
+    WriteableJsonWithSchemaField,
 )
 from ...schema_extensions.v2.assets.fields import (
     AccessTypeField,
@@ -327,37 +324,27 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     url = HyperlinkedIdentityFieldWithSchemaField(
         schema_field=AssetHyperlinkedURLField,
         lookup_field='uid',
-        view_name='asset-detail'
+        view_name='asset-detail',
     )
     asset_type = serializers.ChoiceField(choices=ASSET_TYPES)
     settings = WriteableJsonWithSchemaField(
-        schema_field=SettingsField,
-        required=False,
-        allow_blank=True
+        schema_field=SettingsField, required=False, allow_blank=True
     )
-    content = WriteableJsonWithSchemaField(
-        schema_field=ContentField,
-        required=False
-    )
+    content = WriteableJsonWithSchemaField(schema_field=ContentField, required=False)
     report_styles = WriteableJsonWithSchemaField(
-        schema_field=ReportStyleField,
-        required=False
+        schema_field=ReportStyleField, required=False
     )
     report_custom = WriteableJsonWithSchemaField(
-        schema_field=ReportCustomField,
-        required=False
+        schema_field=ReportCustomField, required=False
     )
     map_styles = WriteableJsonWithSchemaField(
-        schema_field=MapStylesField,
-        required=False
+        schema_field=MapStylesField, required=False
     )
     map_custom = WriteableJsonWithSchemaField(
-        schema_field=MapCustomField,
-        required=False
+        schema_field=MapCustomField, required=False
     )
     advanced_features = WriteableJsonWithSchemaField(
-        schema_field=AdvancedFeatureField,
-        required=False
+        schema_field=AdvancedFeatureField, required=False
     )
     advanced_submission_schema = serializers.SerializerMethodField()
     files = serializers.SerializerMethodField()
@@ -387,8 +374,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     version_id = serializers.CharField(read_only=True)
     version__content_hash = serializers.CharField(read_only=True)
     has_deployment = ReadOnlyFieldWithSchemaField(
-        schema_field=HasDeploymentField,
-        read_only=True
+        schema_field=HasDeploymentField, read_only=True
     )
     deployed_version_id = serializers.SerializerMethodField()
     deployed_versions = PaginatedApiFieldWithSchemaField(
@@ -411,8 +397,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     status = serializers.SerializerMethodField()
     access_types = serializers.SerializerMethodField()
     data_sharing = WriteableJsonWithSchemaField(
-        schema_field=DataSharingField,
-        required=False
+        schema_field=DataSharingField, required=False
     )
     paired_data = serializers.SerializerMethodField()
     project_ownership = serializers.SerializerMethodField()

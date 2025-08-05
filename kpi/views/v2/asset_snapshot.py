@@ -3,8 +3,7 @@ import copy
 import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
-from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
+from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -25,7 +24,6 @@ from kpi.renderers import (
     OpenRosaManifestRenderer,
     XMLRenderer,
 )
-from kpi.schema_extensions.v2.assets.schema import ASSET_URL_SCHEMA
 from kpi.schema_extensions.v2.asset_snapshots.schema import (
     ASSET_SNAPSHOT_DETAILS_SCHEMA,
     ASSET_SNAPSHOT_SOURCE_SCHEMA,
@@ -34,6 +32,7 @@ from kpi.schema_extensions.v2.asset_snapshots.serializers import (
     AssetSnapshotCreateRequest,
     AssetSnapshotResponse,
 )
+from kpi.schema_extensions.v2.assets.schema import ASSET_URL_SCHEMA
 from kpi.schema_extensions.v2.openrosa.serializers import (
     OpenRosaFormListResponse,
     OpenRosaManifestResponse,

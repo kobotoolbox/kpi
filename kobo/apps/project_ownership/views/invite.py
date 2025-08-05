@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework.renderers import JSONRenderer
 
 from kpi.permissions import IsAuthenticated
@@ -12,9 +12,9 @@ from ...audit_log.base_views import AuditLoggedModelViewSet
 from ..filters import InviteFilter
 from ..models import Invite
 from ..schema_extensions.v2.project_ownership.invites.serializers import (
+    InviteUpdatePayload,
     ProjectInviteCreatePayload,
     ProjectInviteResponse,
-    InviteUpdatePayload,
 )
 from ..serializers import InviteSerializer
 

@@ -6,8 +6,7 @@ from operator import itemgetter
 from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
+from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -43,7 +42,18 @@ from kpi.permissions import (
     get_perm_name,
 )
 from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, XlsRenderer
-from kpi.schema_extensions.v2.assets.schema import ASSET_CLONE_FROM_SCHEMA
+from kpi.schema_extensions.v2.assets.schema import (
+    ASSET_CLONE_FROM_SCHEMA,
+    ASSET_CONTENT_SCHEMA,
+    ASSET_ENABLED_SCHEMA,
+    ASSET_FIELDS_SCHEMA,
+    ASSET_NAME_SCHEMA,
+    ASSET_SETTINGS_SCHEMA,
+    ASSET_TYPE_SCHEMA,
+    BULK_ACTION_SCHEMA,
+    BULK_ASSET_UIDS_SCHEMA,
+    BULK_CONFIRM_SCHEMA,
+)
 from kpi.schema_extensions.v2.assets.serializers import (
     AssetBulkRequest,
     AssetBulkResponse,
@@ -75,21 +85,11 @@ from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
+    open_api_201_created_response,
     open_api_204_empty_response,
-    open_api_http_example_response, open_api_201_created_response,
+    open_api_http_example_response,
 )
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
-from kpi.schema_extensions.v2.assets.schema import (
-    ASSET_CONTENT_SCHEMA,
-    ASSET_ENABLED_SCHEMA,
-    ASSET_FIELDS_SCHEMA,
-    ASSET_NAME_SCHEMA,
-    ASSET_SETTINGS_SCHEMA,
-    ASSET_TYPE_SCHEMA,
-    BULK_ACTION_SCHEMA,
-    BULK_ASSET_UIDS_SCHEMA,
-    BULK_CONFIRM_SCHEMA,
-)
 
 
 @extend_schema(
@@ -109,9 +109,7 @@ from kpi.schema_extensions.v2.assets.schema import (
             OpenApiExample(
                 name='Perform action on one or more asset',
                 value={
-                    'asset_uids': generate_example_from_schema(
-                        BULK_ASSET_UIDS_SCHEMA
-                    ),
+                    'asset_uids': generate_example_from_schema(BULK_ASSET_UIDS_SCHEMA),
                     'action': generate_example_from_schema(BULK_ACTION_SCHEMA),
                 },
                 request_only=True,
@@ -158,9 +156,7 @@ from kpi.schema_extensions.v2.assets.schema import (
                 name='Cloning an asset',
                 value={
                     'name': generate_example_from_schema(ASSET_NAME_SCHEMA),
-                    'clone_from': generate_example_from_schema(
-                        ASSET_CLONE_FROM_SCHEMA
-                    ),
+                    'clone_from': generate_example_from_schema(ASSET_CLONE_FROM_SCHEMA),
                     'asset_type': generate_example_from_schema(ASSET_TYPE_SCHEMA),
                 },
                 request_only=True,

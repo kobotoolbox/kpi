@@ -452,11 +452,13 @@ class PairedDataURLFieldExtension(OpenApiSerializerFieldExtension):
             'api_v2:paired-data-list', parent_lookup_asset='aBeA23YCYjkGTFvYVHuAyU'
         )
 
+
 class ParentURLFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.ParentURLField'
 
     def map_serializer_field(self, auto_schema, direction):
         return ASSET_URL_SCHEMA
+
 
 class PermissionsFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.PermissionsField'

@@ -1,8 +1,11 @@
 # coding: utf-8
 from django.http import HttpResponseRedirect
-from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample, \
-    OpenApiParameter
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiParameter,
+    extend_schema,
+    extend_schema_view,
+)
 from private_storage.views import PrivateStorageDetailView
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -14,6 +17,12 @@ from kpi.constants import PERM_VIEW_ASSET
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.models import AssetFile
 from kpi.permissions import AssetEditorPermission
+from kpi.schema_extensions.v2.files.schema import (
+    ASSET_URL_SCHEMA,
+    BASE64_METADATA_SCHEMA,
+    URL_METADATA_SCHEMA,
+    USER_URL_SCHEMA,
+)
 from kpi.schema_extensions.v2.files.serializers import CreateFilePayload, FilesResponse
 from kpi.serializers.v2.asset_file import AssetFileSerializer
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
@@ -24,12 +33,6 @@ from kpi.utils.schema_extensions.response import (
     open_api_204_empty_response,
 )
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-from kpi.schema_extensions.v2.files.schema import (
-    ASSET_URL_SCHEMA,
-    BASE64_METADATA_SCHEMA,
-    URL_METADATA_SCHEMA,
-    USER_URL_SCHEMA,
-)
 
 
 @extend_schema(
@@ -42,7 +45,7 @@ from kpi.schema_extensions.v2.files.schema import (
             required=True,
             description='UID of the parent asset',
         ),
-    ]
+    ],
 )
 @extend_schema_view(
     create=extend_schema(
@@ -73,9 +76,7 @@ from kpi.schema_extensions.v2.files.schema import (
                     'description': 'Description of the file',
                     'file_type': 'image/png',
                     'base64Encoded': 'SGVsbG8sIFdvcmxkIQ',
-                    'metadata': generate_example_from_schema(
-                        BASE64_METADATA_SCHEMA
-                    ),
+                    'metadata': generate_example_from_schema(BASE64_METADATA_SCHEMA),
                 },
                 request_only=True,
             ),

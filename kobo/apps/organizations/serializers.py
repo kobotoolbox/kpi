@@ -11,7 +11,6 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound, PermissionDenied
-from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -71,8 +70,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
     )
     user__username = serializers.ReadOnlyField(source='user.username')
     user__extra_details__name = ReadOnlyFieldWithSchemaField(
-        schema_field=OpenApiTypes.STR,
-        source='user.extra_details.data.name'
+        schema_field=OpenApiTypes.STR, source='user.extra_details.data.name'
     )
     user__email = serializers.ReadOnlyField(source='user.email')
     user__is_active = serializers.ReadOnlyField(source='user.is_active')

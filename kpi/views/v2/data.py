@@ -6,7 +6,7 @@ import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
 from django.utils.translation import gettext_lazy as t
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from pymongo.errors import OperationFailure
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
@@ -320,7 +320,9 @@ class DataViewSet(
                 }
             return Response(**response)
 
-    @extend_schema(exclude=True,)
+    @extend_schema(
+        exclude=True,
+    )
     @action(
         detail=True,
         methods=['GET'],
