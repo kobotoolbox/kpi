@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -28,7 +28,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             required=True,
             description='UID of the parent asset',
         )
-    ]
+    ],
 )
 @extend_schema_view(
     # Due to limitations in drf-spectacular support of OAS 3.1, DELETE actions
@@ -58,7 +58,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
                 required=True,
                 description='ID of the attachment',
             )
-        ]
+        ],
     ),
 )
 class AttachmentDeleteViewSet(

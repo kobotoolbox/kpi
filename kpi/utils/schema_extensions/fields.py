@@ -3,9 +3,9 @@ from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 
 from kpi.fields import (
-    WritableJSONField,
-    RelativePrefixHyperlinkedRelatedField,
     PaginatedApiField,
+    RelativePrefixHyperlinkedRelatedField,
+    WritableJSONField,
 )
 
 
@@ -20,7 +20,9 @@ def ReadOnlyFieldWithSchemaField(schema_field=None, *args, **kwargs):  # noqa N8
     return _DynamicField(*args, **kwargs)
 
 
-def HyperlinkedIdentityFieldWithSchemaField(schema_field=None, *args, **kwargs):  # noqa N802
+def HyperlinkedIdentityFieldWithSchemaField(
+    schema_field=None, *args, **kwargs
+):  # noqa N802
     if schema_field is None:
         raise ValueError('You must provide a `schema_field=` argument')
 
@@ -64,4 +66,3 @@ def WriteableJsonWithSchemaField(schema_field=None, *args, **kwargs):  # noqa N8
         pass
 
     return _DynamicField(*args, **kwargs)
-

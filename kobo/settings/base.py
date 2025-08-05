@@ -1016,7 +1016,7 @@ SPECTACULAR_SETTINGS = {
             ('created', 'created'),
             ('processing', 'processing'),
             ('error', 'error'),
-            ('complete', 'complete')
+            ('complete', 'complete'),
         ),
     },
 }

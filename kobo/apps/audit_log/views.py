@@ -29,15 +29,15 @@ from .schema_extensions.v2.access_logs.serializers import (
     ExportCreateResponse,
     ExportListResponse,
 )
-from .schema_extensions.v2.history.serializers import (
-    HistoryActionResponse,
-    HistoryExportResponse,
-    HistoryListResponse,
-)
 from .schema_extensions.v2.audit_logs.serializers import (
     AuditLogResponse,
     ExportHistoryResponse,
     ProjectHistoryLogResponse,
+)
+from .schema_extensions.v2.history.serializers import (
+    HistoryActionResponse,
+    HistoryExportResponse,
+    HistoryListResponse,
 )
 from .serializers import (
     AccessLogSerializer,
@@ -500,7 +500,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
             required=True,
             description='UID of the parent assets',
         ),
-    ]
+    ],
 )
 @extend_schema_view(
     actions=extend_schema(

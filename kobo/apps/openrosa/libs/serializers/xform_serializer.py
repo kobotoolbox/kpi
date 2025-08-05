@@ -102,9 +102,7 @@ class XFormListSerializer(serializers.Serializer):
     formID = ReadOnlyFieldWithSchemaField(
         schema_field=OpenApiTypes.STR, source='id_string'
     )
-    name = ReadOnlyFieldWithSchemaField(
-        schema_field=OpenApiTypes.STR, source='title'
-    )
+    name = ReadOnlyFieldWithSchemaField(schema_field=OpenApiTypes.STR, source='title')
     majorMinorVersion = serializers.SerializerMethodField('get_version')
     version = serializers.SerializerMethodField()
     hash = serializers.SerializerMethodField()

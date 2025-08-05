@@ -1,8 +1,11 @@
 # coding: utf-8
 from django.http import HttpResponseRedirect
-from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample, \
-    OpenApiParameter
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiParameter,
+    extend_schema,
+    extend_schema_view,
+)
 from private_storage.views import PrivateStorageDetailView
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -44,7 +47,7 @@ from kpi.schema_extensions.v2.generic.schema import (
             required=True,
             description='UID of the parent asset',
         ),
-    ]
+    ],
 )
 @extend_schema_view(
     create=extend_schema(
@@ -75,9 +78,7 @@ from kpi.schema_extensions.v2.generic.schema import (
                     'description': 'Description of the file',
                     'file_type': 'image/png',
                     'base64Encoded': 'SGVsbG8sIFdvcmxkIQ',
-                    'metadata': generate_example_from_schema(
-                        BASE64_METADATA_SCHEMA
-                    ),
+                    'metadata': generate_example_from_schema(BASE64_METADATA_SCHEMA),
                 },
                 request_only=True,
             ),

@@ -1,7 +1,6 @@
 from django.db.models import Prefetch
 from django.shortcuts import Http404
-from drf_spectacular.utils import extend_schema, OpenApiParameter
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.renderers import JSONRenderer
 
@@ -9,8 +8,9 @@ from kpi.permissions import IsAuthenticated
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from ..models import Transfer, TransferStatus
-from ..schema_extensions.v2.project_ownership.transfers.serializers import \
-    TransferListResponse
+from ..schema_extensions.v2.project_ownership.transfers.serializers import (
+    TransferListResponse,
+)
 from ..serializers import TransferDetailSerializer
 
 

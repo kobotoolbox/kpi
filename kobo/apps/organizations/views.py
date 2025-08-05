@@ -2,9 +2,12 @@ from django.db import transaction
 from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
-from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view, \
-    OpenApiExample
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiParameter,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -15,6 +18,10 @@ from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
+from kpi.schema_extensions.v2.invites.schema import (
+    INVITE_ROLE_SCHEMA,
+    INVITE_STATUS_SCHEMA,
+)
 from kpi.schema_extensions.v2.invites.serializers import (
     InviteCreatePayload,
     InvitePatchPayload,
@@ -63,10 +70,6 @@ from .serializers import (
     OrgMembershipInviteSerializer,
 )
 from .utils import revoke_org_asset_perms
-from kpi.schema_extensions.v2.invites.schema import (
-    INVITE_ROLE_SCHEMA,
-    INVITE_STATUS_SCHEMA,
-)
 
 
 class OrganizationAssetViewSet(AssetViewSet):
