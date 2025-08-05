@@ -1,1 +1,1 @@
-## Retrieve a tag
+## Retrieve a tag's data
