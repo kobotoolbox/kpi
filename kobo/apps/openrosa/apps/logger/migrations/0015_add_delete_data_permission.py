@@ -72,52 +72,6 @@ def remove_model_level_perms(apps):
         ).delete()
 
 
-def grant_object_level_perms(apps):
-    """
-    At the object level, grant `delete_submissions` to anyone who already has
-    `change_submissions`
-    """
-    User = apps.get_model('kobo_auth', 'User')  # noqa
-    Permission = apps.get_model('auth', 'Permission')  # noqa
-    UserObjectPermission = apps.get_model('guardian', 'UserObjectPermission') # noqa
-
-    with use_db(settings.OPENROSA_DB_ALIAS):
-        new_perm = Permission.objects.get(
-            content_type__app_label='logger', codename='delete_data_xform'
-        )
-        old_perm = Permission.objects.get(
-            content_type__app_label='logger', codename='change_xform'
-        )
-        new_perm_objects = []
-        for old_assign in UserObjectPermission.objects.filter(
-            permission=old_perm
-        ).iterator():
-            old_assign.pk = None
-            old_assign.permission = new_perm
-            new_perm_objects.append(old_assign)
-        sys.stderr.write(
-            'Creating {} object-level permission assignments...\n'.format(
-                len(new_perm_objects)
-            )
-        )
-        sys.stderr.flush()
-        # Django 1.8 does not support `ignore_conflicts=True`
-        UserObjectPermission.objects.bulk_create(new_perm_objects)
-
-
-def remove_object_level_perms(apps):
-    """
-    Remove all object-level 'delete_submissions' permission assignments
-    """
-    Permission = apps.get_model('auth', 'Permission')  # noqa
-    UserObjectPermission = apps.get_model('guardian', 'UserObjectPermission')  # noqa
-    with use_db(settings.OPENROSA_DB_ALIAS):
-        perm = Permission.objects.get(
-            content_type__app_label='logger', codename='delete_data_xform'
-        )
-        UserObjectPermission.objects.filter(permission=perm).delete()
-
-
 def forwards_func(apps, schema_editor):
     sys.stderr.write(
         'Expanding `change_xform` into `change_xform` and '
@@ -127,7 +81,7 @@ def forwards_func(apps, schema_editor):
     sys.stderr.flush()
     create_new_perms(apps)
     grant_model_level_perms(apps)
-    # Deprecated openrosa permissions:
+    # Deprecated openrosa guardian based permissions:
     #   grant_object_level_perms(apps)
 
 
@@ -135,7 +89,7 @@ def reverse_func(apps, schema_editor):
     # In testing, removal took only a small fraction of the time that it took
     # to create the assignments
     remove_model_level_perms(apps)
-    # Deprecated openrosa permissions:
+    # Deprecated openrosa guardian based permissions:
     #   remove_object_level_perms(apps)
 
 

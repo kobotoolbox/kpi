@@ -23,7 +23,7 @@ from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmi
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.apps.main import tests as main_tests
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from kobo.apps.openrosa.libs.constants import CAN_ADD_SUBMISSIONS
+from kpi.constants import PERM_ADD_SUBMISSIONS
 from kobo.apps.openrosa.libs.permissions import assign_perm
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils import logger_tools
@@ -373,7 +373,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
         }
         alice_profile = self._create_user_profile(alice_data)
 
-        assign_perm(CAN_ADD_SUBMISSIONS, alice_profile.user, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice_profile.user, self.xform.asset)
 
         count = Attachment.objects.count()
         s = self.surveys[0]

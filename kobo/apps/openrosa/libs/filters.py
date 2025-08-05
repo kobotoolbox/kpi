@@ -13,6 +13,7 @@ from kobo.apps.openrosa.libs.permissions import (
     get_xform_ids_for_user,
 )
 from kpi.utils.object_permission import get_database_user
+from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_VIEW_ASSET
 
 
 class ObjectPermissionsFilter(BaseFilterBackend):
@@ -20,7 +21,7 @@ class ObjectPermissionsFilter(BaseFilterBackend):
     Copy from django-rest-framework-guardian `ObjectPermissionsFilter`
     """
 
-    perm_format = '%(app_label)s.view_%(model_name)s'
+    permission = PERM_VIEW_ASSET
     shortcut_kwargs = {
         'accept_global_perms': False,
     }
@@ -36,10 +37,6 @@ class ObjectPermissionsFilter(BaseFilterBackend):
 
     def filter_queryset(self, request, queryset, view):
         user = request.user
-        permission = self.perm_format % {
-            'app_label': queryset.model._meta.app_label,
-            'model_name': queryset.model._meta.model_name,
-        }
 
         if org_admin_queryset := self._get_objects_for_org_admin(
             request, queryset, view
@@ -47,7 +44,7 @@ class ObjectPermissionsFilter(BaseFilterBackend):
             return org_admin_queryset
 
         if queryset.model._meta.model_name in XFORM_MODELS_NAMES:
-            xform_ids = get_xform_ids_for_user(user, perm=permission)
+            xform_ids = get_xform_ids_for_user(user, perm=self.permission)
             return queryset.filter(id__in=xform_ids)
 
         raise NotImplementedError
@@ -123,7 +120,7 @@ class RowLevelObjectPermissionFilter(ObjectPermissionsFilter):
 
 
 class XFormListObjectPermissionFilter(RowLevelObjectPermissionFilter):
-    perm_format = '%(app_label)s.report_%(model_name)s'
+    permission = PERM_ADD_SUBMISSIONS
 
 
 class XFormOwnerFilter(filters.BaseFilterBackend):

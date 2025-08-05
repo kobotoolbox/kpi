@@ -6,7 +6,6 @@ from django_request_cache import cache_for_request
 
 from kobo.apps.openrosa.libs.constants import OPENROSA_APP_LABELS
 from kobo.apps.openrosa.libs.permissions import (
-    KPI_PERMISSIONS_MAP,
     get_model_permission_codenames,
 )
 from kobo.apps.organizations.models import Organization, create_organization
@@ -26,18 +25,7 @@ class User(AbstractUser):
         # - `obj` is not None and its app_label belongs to KoboCAT
         # - `perm` format is <app_label>.<perm>, we check the app label
         # - `perm` belongs to KoboCAT permission codenames
-        if obj:
-            # Deprecating kobocat permissions. For now we redirect to asset permissions
-            # if the object has an asset property (XForms and DataDictionary objects)
-            if hasattr(obj, 'asset'):
-                perm_name = perm.split('.')[-1]
-                asset_perm = KPI_PERMISSIONS_MAP.get(perm_name)
-                if asset_perm is not None:
-                    warnings.warn(
-                        'Deprecated XForm permission ' + perm, DeprecationWarning
-                    )
-                    return self.has_perm(asset_perm, obj.asset)
-            if obj._meta.app_label in OPENROSA_APP_LABELS:
+        if obj and obj._meta.app_label in OPENROSA_APP_LABELS:
                 with use_db(settings.OPENROSA_DB_ALIAS):
                     return super().has_perm(perm, obj)
 

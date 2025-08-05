@@ -2,14 +2,6 @@ from django.conf import settings
 from django.contrib.auth.models import Permission
 from django_request_cache import cache_for_request
 
-from kobo.apps.openrosa.libs.constants import (
-    CAN_ADD_SUBMISSIONS,
-    CAN_CHANGE_XFORM,
-    CAN_DELETE_DATA_XFORM,
-    CAN_DELETE_XFORM,
-    CAN_VALIDATE_XFORM,
-    CAN_VIEW_XFORM,
-)
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
@@ -18,15 +10,6 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_ASSET,
 )
-
-KPI_PERMISSIONS_MAP = {  # keys are KPI's codenames, values are KC's
-    CAN_CHANGE_XFORM: PERM_CHANGE_ASSET,  # "Can change XForm" in KC shell
-    CAN_VIEW_XFORM: PERM_VIEW_ASSET,  # "Can view XForm" in KC shell
-    CAN_ADD_SUBMISSIONS: PERM_ADD_SUBMISSIONS,  # "Can make submissions to the form" in KC shell  # noqa
-    CAN_DELETE_DATA_XFORM: PERM_DELETE_SUBMISSIONS,  # "Can delete submissions" in KC shell  # noqa
-    CAN_VALIDATE_XFORM: PERM_VALIDATE_SUBMISSIONS,  # "Can validate submissions" in KC shell  # noqa
-    CAN_DELETE_XFORM: PERM_DELETE_ASSET,  # "Can delete XForm" in KC shell
-}
 
 
 XFORM_MODELS_NAMES = [
@@ -39,10 +22,6 @@ XFORM_MODELS_NAMES = [
 
 
 def assign_perm(perm: str, user: 'settings.AUTH_USER_MODEL', obj) -> bool:
-    if hasattr(obj, 'asset'):
-        obj = obj.asset  # XForms permissions are based on the asset's
-        only_perm = perm.split('.')[-1]
-        perm = KPI_PERMISSIONS_MAP[only_perm]
     obj.assign_perm(user, perm)
 
 
@@ -54,24 +33,18 @@ def get_users_with_perms(
 
 
 def remove_perm(perm: str, user: 'settings.AUTH_USER_MODEL', obj):
-    if hasattr(obj, 'asset'):
-        obj = obj.asset  # XForms permissions are based on the asset's
-        only_perm = perm.split('.')[-1]
-        perm = KPI_PERMISSIONS_MAP[only_perm]
     obj.remove_perm(user, perm)
 
 
 @cache_for_request
 def get_xform_ids_for_user(
-    user: 'settings.AUTH_USER_MODEL', perm: str = CAN_VIEW_XFORM
+    user: 'settings.AUTH_USER_MODEL', perm: str = PERM_VIEW_ASSET
 ) -> list[int]:
     from kobo.apps.openrosa.apps.logger.models.xform import XForm
     from kpi.utils.object_permission import (
         get_objects_for_user as kpi_get_objects_for_user,
     )
 
-    only_perm = perm.split('.')[-1]
-    perm = KPI_PERMISSIONS_MAP[only_perm]
     # By default kpi.utils.object_permissions.get_objects_for_user works for Asset model
     qs_assets = kpi_get_objects_for_user(user, [perm])
     uids = list(qs_assets.values_list('uid', flat=True))
