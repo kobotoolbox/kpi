@@ -9,6 +9,7 @@ from kpi.filters import SearchFilter
 from kpi.models import Asset
 from kpi.serializers.v2.tag import TagListSerializer, TagSerializer
 from kpi.utils.object_permission import get_database_user, get_objects_for_user
+from kpi.utils.schema_extensions.markdown import read_md
 
 
 @extend_schema(
@@ -16,10 +17,10 @@ from kpi.utils.object_permission import get_database_user, get_objects_for_user
 )
 @extend_schema_view(
     list=extend_schema(
-        description='list',
+        description=read_md('kpi', 'tags/list.md'),
     ),
     retrieve=extend_schema(
-        description='retrieve',
+        description=read_md('kpi', 'tags/retrieve.md'),
     ),
 )
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -30,6 +31,19 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     renderer_classes = [
         JSONRenderer,
     ]
+
+    """
+    Viewset for managing the current user's tags
+
+    Available actions:
+    - list                  → GET /api/v2/tags/
+    - retrieve              → GET /api/v2/tags/{taguid__uid}/
+
+    Documentation:
+    - docs/api/v2/tags/list.md
+    - docs/api/v2/tags/retrieve.md
+    """
+
 
     def get_queryset(self, *args, **kwargs):
         user = get_database_user(self.request.user)
