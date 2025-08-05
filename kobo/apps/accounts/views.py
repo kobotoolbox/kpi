@@ -78,13 +78,13 @@ class EmailAddressViewSet(
 )
 @extend_schema_view(
     destroy=extend_schema(
-        description='Destroy',
+        description=read_md('accounts', 'social/delete.md'),
     ),
     list=extend_schema(
-        description='List',
+        description=read_md('accounts', 'social/list.md'),
     ),
     retrieve=extend_schema(
-        description='Retrieve',
+        description=read_md('accounts', 'social/retrieve.md'),
     ),
 )
 class SocialAccountViewSet(
