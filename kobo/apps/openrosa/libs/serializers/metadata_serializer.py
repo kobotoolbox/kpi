@@ -12,7 +12,10 @@ from werkzeug.http import parse_options_header
 
 from kobo.apps.openrosa.apps.main.models.meta_data import MetaData
 from kobo.apps.openrosa.apps.logger.models import XForm
-from kobo.apps.openrosa.libs.constants import CAN_CHANGE_XFORM, CAN_VIEW_XFORM
+from kpi.constants import (
+    PERM_VIEW_ASSET,
+    PERM_CHANGE_ASSET,
+)
 
 METADATA_TYPES = (
     ('data_license', t("Data License")),
@@ -68,10 +71,10 @@ class MetaDataSerializer(serializers.HyperlinkedModelSerializer):
     def validate_xform(self, xform):
         request = self.context.get('request')
 
-        if not request.user.has_perm(CAN_VIEW_XFORM, xform):
+        if not request.user.has_perm(PERM_VIEW_ASSET, xform.asset):
             raise serializers.ValidationError(t('Project not found'))
 
-        if not request.user.has_perm(CAN_CHANGE_XFORM, xform):
+        if not request.user.has_perm(PERM_CHANGE_ASSET, xform.asset):
             raise serializers.ValidationError(t(
                 'You do not have sufficient permissions to perform this action'
             ))

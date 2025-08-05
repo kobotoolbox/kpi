@@ -11,10 +11,10 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.utils.rest_framework import openrosa_drf_settings
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from kobo.apps.openrosa.libs.constants import (
-    CAN_CHANGE_XFORM,
-    CAN_DELETE_DATA_XFORM,
-    CAN_VIEW_XFORM,
+from kpi.constants import (
+    PERM_CHANGE_ASSET,
+    PERM_DELETE_SUBMISSIONS,
+    PERM_VIEW_ASSET,
 )
 from kobo.apps.openrosa.libs.utils.string import base64_encodestring
 
@@ -80,21 +80,21 @@ def has_permission(xform, owner, request, shared=False):
             and request.session.get('public_link') == xform.uuid
         )
         or owner == user
-        or user.has_perm('logger.' + CAN_VIEW_XFORM, xform)
-        or user.has_perm('logger.' + CAN_CHANGE_XFORM, xform)
+        or user.has_perm(PERM_VIEW_ASSET, xform.asset)
+        or user.has_perm(PERM_CHANGE_ASSET, xform.asset)
     )
 
 
 def has_delete_data_permission(xform, owner, request):
     user = request.user
     return owner == user or user.has_perm(
-        'logger.' + CAN_DELETE_DATA_XFORM, xform
+        PERM_DELETE_SUBMISSIONS, xform.asset
     )
 
 
 def has_edit_permission(xform, owner, request):
     user = request.user
-    return owner == user or user.has_perm('logger.' + CAN_CHANGE_XFORM, xform)
+    return owner == user or user.has_perm(PERM_CHANGE_ASSET, xform.asset)
 
 
 def check_and_set_user_and_form(username, id_string, request):
@@ -127,13 +127,13 @@ def get_xform_and_perms(username, id_string, request):
     )
     is_owner = xform.user == request.user
     can_edit = is_owner or request.user.has_perm(
-        'logger.' + CAN_CHANGE_XFORM, xform
+        PERM_CHANGE_ASSET, xform.asset
     )
     can_view = can_edit or request.user.has_perm(
-        'logger.' + CAN_VIEW_XFORM, xform
+        PERM_VIEW_ASSET, xform.asset
     )
     can_delete_data = is_owner or request.user.has_perm(
-        'logger.' + CAN_DELETE_DATA_XFORM, xform
+        PERM_DELETE_SUBMISSIONS, xform.asset
     )
     return [xform, is_owner, can_edit, can_view, can_delete_data]
 

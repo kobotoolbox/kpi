@@ -14,7 +14,9 @@ from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
 )
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
 from kobo.apps.openrosa.apps.logger.models import XForm
-from kobo.apps.openrosa.libs.constants import CAN_VIEW_XFORM
+from kpi.constants import (
+    PERM_VIEW_ASSET,
+)
 from kobo.apps.openrosa.libs.permissions import assign_perm
 from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormSerializer
 
@@ -91,7 +93,7 @@ class TestXFormViewSet(TestAbstractViewSet):
         self.assertEqual(self.user.username, 'alice')
         self.assertNotEqual(previous_user, self.user)
 
-        assign_perm(CAN_VIEW_XFORM, self.user, self.xform)
+        assign_perm(PERM_VIEW_ASSET, self.user, self.xform.asset)
         view = XFormViewSet.as_view({
             'get': 'retrieve'
         })

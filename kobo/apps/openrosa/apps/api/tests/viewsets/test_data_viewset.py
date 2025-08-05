@@ -6,10 +6,10 @@ from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
-from kobo.apps.openrosa.libs.constants import (
-    CAN_CHANGE_XFORM,
-    CAN_DELETE_DATA_XFORM,
-    CAN_VIEW_XFORM,
+from kpi.constants import (
+    PERM_CHANGE_ASSET,
+    PERM_DELETE_SUBMISSIONS,
+    PERM_VIEW_ASSET,
 )
 from kobo.apps.openrosa.libs.permissions import assign_perm, remove_perm
 
@@ -227,7 +227,7 @@ class TestDataViewSet(TestBase):
         self.assertEqual(self.user.username, 'alice')
         self.assertNotEqual(previous_user, self.user)
 
-        assign_perm(CAN_VIEW_XFORM, self.user, self.xform)
+        assign_perm(PERM_VIEW_ASSET, self.user, self.xform.asset)
 
         # publish alice's form
         self._publish_transportation_form()
@@ -384,14 +384,14 @@ class TestDataViewSet(TestBase):
 
         self._create_user_and_login(username='alice', password='alice')
         # Allow Alice to delete submissions.
-        assign_perm(CAN_VIEW_XFORM, self.user, self.xform)
-        assign_perm(CAN_CHANGE_XFORM, self.user, self.xform)
+        assign_perm(PERM_VIEW_ASSET, self.user, self.xform.asset)
+        assign_perm(PERM_CHANGE_ASSET, self.user, self.xform.asset)
         self.extra = {'HTTP_AUTHORIZATION': f'Token {self.user.auth_token}'}
         request = self.factory.delete('/', **self.extra)
         dataid = self.xform.instances.all().order_by('id')[0].pk
         response = view(request, pk=formid, dataid=dataid)
 
-        # Alice cannot delete submissions with `CAN_CHANGE_XFORM`
+        # Alice cannot delete submissions with `PERM_CHANGE_ASSET`
         self.assertContains(
             response,
             'This is not supported by the legacy API anymore',
@@ -399,8 +399,8 @@ class TestDataViewSet(TestBase):
         )
 
         # Even with correct permissions, Alice should not be able to delete
-        remove_perm(CAN_CHANGE_XFORM, self.user, self.xform)
-        assign_perm(CAN_DELETE_DATA_XFORM, self.user, self.xform)
+        remove_perm(PERM_CHANGE_ASSET, self.user, self.xform.asset)
+        assign_perm(PERM_DELETE_SUBMISSIONS, self.user, self.xform.asset)
         response = view(request, pk=formid, dataid=dataid)
         self.assertContains(
             response,

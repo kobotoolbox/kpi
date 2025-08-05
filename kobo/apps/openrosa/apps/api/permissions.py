@@ -10,11 +10,10 @@ from rest_framework.permissions import (
 
 from kobo.apps.openrosa.apps.api.exceptions import LegacyAPIException
 from kobo.apps.openrosa.apps.logger.models import XForm
-from kobo.apps.openrosa.libs.constants import (
-    CAN_CHANGE_XFORM,
-    CAN_DELETE_DATA_XFORM,
-    CAN_VALIDATE_XFORM,
-    CAN_VIEW_XFORM,
+from kpi.constants import (
+    PERM_CHANGE_ASSET,
+    PERM_DELETE_SUBMISSIONS,
+    PERM_VALIDATE_SUBMISSIONS,
 )
 from kpi.constants import PERM_CHANGE_ASSET
 
@@ -120,7 +119,7 @@ class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
         # Those who can edit submissions can also delete them, following the
         # behavior of `kobo.apps.openrosa.apps.main.views.delete_data`
         self.perms_map = deepcopy(self.perms_map)
-        self.perms_map['DELETE'] = ['%(app_label)s.' + CAN_DELETE_DATA_XFORM]
+        self.perms_map['DELETE'] = [PERM_DELETE_SUBMISSIONS]
 
     def has_permission(self, request, view):
         lookup_field = view.lookup_field
@@ -163,17 +162,17 @@ class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
         #  - Remove this kludgy solution
         perms_actions_map = {
             'bulk_delete': {
-                'DELETE': [f'logger.{CAN_DELETE_DATA_XFORM}'],
+                'DELETE': [PERM_DELETE_SUBMISSIONS],
             },
             'bulk_validation_status': {
-                'PATCH': [f'logger.{CAN_VALIDATE_XFORM}'],
+                'PATCH': [PERM_VALIDATE_SUBMISSIONS],
             },
             'labels': {
-                'DELETE': [f'logger.{CAN_CHANGE_XFORM}']
+                'DELETE': [PERM_CHANGE_ASSET]
             },
             'validation_status': {
-                'DELETE': [f'logger.{CAN_VALIDATE_XFORM}'],
-                'PATCH': [f'logger.{CAN_VALIDATE_XFORM}'],
+                'DELETE': [PERM_VALIDATE_SUBMISSIONS],
+                'PATCH': [PERM_VALIDATE_SUBMISSIONS],
             },
         }
 
@@ -186,7 +185,7 @@ class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
             if view.action == 'bulk_delete':
                 raise LegacyAPIException
 
-            return user.has_perms(required_perms, obj)
+            return user.has_perms(required_perms, obj.asset)
 
         # Deleting submissions is not allowed with KoboCAT API
         if view.action == 'destroy':
@@ -206,26 +205,6 @@ class EnketoSubmissionEditPermissions(ObjectPermissionsWithViewRestricted):
 
         # Grant access if user is owner or superuser
         if user.is_superuser or user == obj.user:
-            return True
-
-        return user.has_perms(required_perms, obj)
-
-
-class EnketoSubmissionViewPermissions(ObjectPermissionsWithViewRestricted):
-
-    def has_permission(self, request, view):
-        return True
-
-    def has_object_permission(self, request, view, obj):
-        user = request.user
-        required_perms = [f'logger.{CAN_VIEW_XFORM}']
-
-        # Grant access if user is owner or super user
-        if user.is_superuser or user == obj.user:
-            return True
-
-        # Allow anonymous users to access shared data
-        if obj.shared_data:
             return True
 
         return user.has_perms(required_perms, obj)
@@ -318,7 +297,7 @@ class AttachmentObjectPermissions(DjangoObjectPermissions):
             return True
 
         return super().has_object_permission(
-            request, view, obj.instance.xform)
+            request, view, obj.instance.xform.asset)
 
 
 class NoteObjectPermissions(DjangoObjectPermissions):
