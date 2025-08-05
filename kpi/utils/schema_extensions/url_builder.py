@@ -34,6 +34,8 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'attachment-thumb': '/api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/{pk}/{suffix}/',  # noqa
         'paired-data-detail': '/api/v2/assets/{parent_lookup_asset}/paired-data/{paired_data_uid}',  # noqa
         'project-ownership-transfer-detail': '/api/v2/project-ownership/invites/{parent_lookup_invite_uid}/transfers/{uid}/',  # noqa
+        'tags-detail': '/api/v2/tags/{taguid__uid}/',
+        'tags-list': '/api/v2/tags/',
     }
 
     try:
