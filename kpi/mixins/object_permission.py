@@ -20,10 +20,6 @@ from kpi.constants import (
     PREFIX_PARTIAL_PERMS,
 )
 from kpi.deployment_backends.kc_access.utils import (
-<<<<<<< HEAD
-    _get_xform_id_for_asset,
-=======
->>>>>>> origin/dev-227-replace_guardian_assign_remove_perm
     kc_transaction_atomic,
     set_kc_anonymous_permissions_xform_flags,
 )
