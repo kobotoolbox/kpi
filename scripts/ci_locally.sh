@@ -54,7 +54,7 @@ echo -e '\n\n## Job: npm-test'
 # Uncomment lines below until this comment (https://github.com/kobotoolbox/kpi/pull/5593#discussion_r1999067788)
 # is addressed.
 # echo -e '\n\n### Step: Setup Node'
-# echo 'Disclaimer: CI installs a matrix of v20.17.0 and 22, this script checks against v20.17.0.'
+# echo 'Disclaimer: CI installs a matrix of v20.18.1 and 22, this script checks against v20.18.1.'
 # npm run hint
 # echo 'Disclaimer: CI caches node_modules, this script does not.'
 

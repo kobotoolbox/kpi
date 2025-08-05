@@ -31,5 +31,5 @@ jobs:
 
   npm-test:
     needs: changes
-    if: needs.changes.outputs.all == 'true' || false && needs.changes.outputs.npm-test == 'true'
+    if: needs.changes.outputs.all == 'true' || needs.changes.outputs.npm-test == 'true'
     uses: ./.github/workflows/npm-test.yml
