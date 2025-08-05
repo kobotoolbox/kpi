@@ -32,6 +32,18 @@ class ViewDjangoObjectPermissions(DjangoObjectPermissions):
     }
 
 
+class ViewAssetPermissions(DjangoObjectPermissions):
+    perms_map = {
+        'GET': ['kpi.view_asset'],
+        'OPTIONS': [],
+        'HEAD': [],
+        'POST': ['kpi.add_asset'],
+        'PUT': ['kpi.change_asset'],
+        'PATCH': ['kpi.change_asset'],
+        'DELETE': ['kpi.delete_asset'],
+    }
+
+
 class ObjectPermissionsWithViewRestricted(DjangoObjectPermissions):
     """
     The default `perms_map` does not include GET, OPTIONS, or HEAD, meaning
