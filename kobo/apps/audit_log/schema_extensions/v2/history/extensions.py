@@ -8,7 +8,9 @@ from drf_spectacular.types import OpenApiTypes
 
 from kpi.schema_extensions.v2.generic.schema import (
     GENERIC_ARRAY_SCHEMA,
-    USER_URL_SCHEMA, LABEL_VALUE_OBJECT_SCHEMA,
+    USER_URL_SCHEMA,
+    LABEL_VALUE_OBJECT_SCHEMA,
+    GENERIC_OBJECT_SCHEMA,
 )
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
@@ -57,12 +59,8 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
                         ),
                         'data-table': build_object_type(
                             properties={
-                                'new': build_object_type(
-                                    properties={}
-                                ),
-                                'old': build_object_type(
-                                    properties={}
-                                ),
+                                'new': GENERIC_OBJECT_SCHEMA,
+                                'old': GENERIC_OBJECT_SCHEMA,
                             }
                         ),
                     }

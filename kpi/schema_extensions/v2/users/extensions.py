@@ -10,6 +10,7 @@ from kpi.utils.schema_extensions.url_builder import build_url_type
 from kpi.schema_extensions.v2.generic.schema import (
     GENERIC_ARRAY_SCHEMA,
     USER_URL_SCHEMA,
+    GENERIC_OBJECT_SCHEMA,
 )
 
 
@@ -41,7 +42,7 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
                     properties={
                         'kobo_my_project': build_object_type(
                             properties={
-                                'order': build_object_type(properties={}),
+                                'order': GENERIC_OBJECT_SCHEMA,
                                 'fields': GENERIC_ARRAY_SCHEMA,
                                 'filters': GENERIC_ARRAY_SCHEMA,
                             }

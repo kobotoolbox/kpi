@@ -7,7 +7,11 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from kpi.schema_extensions.v2.generic.schema import GENERIC_ARRAY_SCHEMA, ASSET_URL_SCHEMA
+from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_ARRAY_SCHEMA,
+    ASSET_URL_SCHEMA,
+    GENERIC_OBJECT_SCHEMA,
+)
 
 class DataFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.export_tasks.fields.DataField'
@@ -41,7 +45,7 @@ class MessageFieldExtend(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.export_tasks.fields.MessageField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(properties={})
+        return GENERIC_OBJECT_SCHEMA
 
 
 class QueryFieldExtension(OpenApiSerializerFieldExtension):

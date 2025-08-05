@@ -14,6 +14,7 @@ from .schema import (
 from kpi.schema_extensions.v2.generic.schema import (
     ASSET_URL_SCHEMA,
     USER_URL_SCHEMA,
+    GENERIC_OBJECT_SCHEMA,
 )
 
 
@@ -108,7 +109,7 @@ class MetadataCreateFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.files.fields.MetadataCreateField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(properties={})
+        return GENERIC_OBJECT_SCHEMA
 
 
 class MetadataFieldExtension(OpenApiSerializerFieldExtension):

@@ -7,6 +7,7 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
+from kpi.schema_extensions.v2.generic.schema import GENERIC_OBJECT_SCHEMA
 
 
 class ImportUrlFieldExtension(OpenApiSerializerFieldExtension):
@@ -46,7 +47,7 @@ class MessagesFieldExtension(OpenApiSerializerFieldExtension):
                                             'bad': build_basic_type(OpenApiTypes.INT),
                                             'good': build_basic_type(OpenApiTypes.INT),
                                             'total': build_basic_type(OpenApiTypes.INT),
-                                            'first': build_object_type(properties={}),
+                                            'first': GENERIC_OBJECT_SCHEMA,
                                         }
                                     ),
                                     'default_translation': build_basic_type(

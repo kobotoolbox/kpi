@@ -10,6 +10,7 @@ from kpi.schema_extensions.v2.generic.schema import (
     LABEL_VALUE_OBJECT_SCHEMA,
     GENERIC_ARRAY_SCHEMA,
     USER_URL_SCHEMA,
+    GENERIC_OBJECT_SCHEMA,
 )
 
 
@@ -48,12 +49,8 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
                         ),
                         'data-table': build_object_type(
                             properties={
-                                'new': build_object_type(
-                                    properties={}
-                                ),
-                                'old': build_object_type(
-                                    properties={}
-                                ),
+                                'new': GENERIC_OBJECT_SCHEMA,
+                                'old': GENERIC_OBJECT_SCHEMA,
                             }
                         ),
                     }
@@ -156,12 +153,8 @@ class ProjectHistoryMetadataFieldExtension(OpenApiSerializerFieldExtension):
                         ),
                         'data-table': build_object_type(
                             properties={
-                                'new': build_object_type(
-                                    properties={}
-                                ),
-                                'old': build_object_type(
-                                    properties={}
-                                ),
+                                'new': GENERIC_OBJECT_SCHEMA,
+                                'old': GENERIC_OBJECT_SCHEMA,
                             }
                         ),
                     }
