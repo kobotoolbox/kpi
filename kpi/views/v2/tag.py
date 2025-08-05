@@ -22,12 +22,17 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
         description=read_md('kpi', 'tags/list.md'),
         responses=open_api_200_ok_response(
             TagListResponse,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'tags/retrieve.md'),
         responses=open_api_200_ok_response(
             TagRetrieveResponse,
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     ),
 )
