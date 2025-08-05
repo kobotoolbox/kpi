@@ -31,6 +31,15 @@ class ViewDjangoObjectPermissions(DjangoObjectPermissions):
         'DELETE': ['%(app_label)s.delete_%(model_name)s'],
     }
 
+
+class ObjectPermissionsWithViewRestricted(DjangoObjectPermissions):
+    """
+    The default `perms_map` does not include GET, OPTIONS, or HEAD, meaning
+    anyone can view objects. We override this here to check for `view_…`
+    permissions before allowing objects to be seen. Refer to
+    https://www.django-rest-framework.org/api-guide/permissions/#djangoobjectpermissions
+    """
+
     asset_perms_map = {
         'GET': [PERM_VIEW_ASSET],
         'OPTIONS': [PERM_VIEW_ASSET],
@@ -40,13 +49,6 @@ class ViewDjangoObjectPermissions(DjangoObjectPermissions):
         'DELETE': [PERM_DELETE_ASSET],
     }
 
-class ObjectPermissionsWithViewRestricted(DjangoObjectPermissions):
-    """
-    The default `perms_map` does not include GET, OPTIONS, or HEAD, meaning
-    anyone can view objects. We override this here to check for `view_…`
-    permissions before allowing objects to be seen. Refer to
-    https://www.django-rest-framework.org/api-guide/permissions/#djangoobjectpermissions
-    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Do NOT mutate `perms_map` from the parent class! Doing so will affect
@@ -291,7 +293,7 @@ class AttachmentObjectPermissions(DjangoObjectPermissions):
         return super().has_permission(request, view)
 
     def has_object_permission(self, request, view, obj):
-        view.model = XForm
+        view.model = obj.instance.xform.asset._meta.model
 
         if request.user and request.user.is_superuser:
             return True
