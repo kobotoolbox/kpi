@@ -34,7 +34,7 @@ from kpi.versioning import APIV2Versioning
         )
     ),
     create=extend_schema(
-        description=read_md('kpi','authorized_applications/create.md'),
+        description=read_md('kpi', 'authorized_applications/create.md'),
         request={'application/json': CreateUserSerializer},
         responses=open_api_201_created_response(
             CreateUserSerializer,

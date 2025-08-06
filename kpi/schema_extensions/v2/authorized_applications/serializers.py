@@ -26,4 +26,3 @@ AuthenticateResponse = inline_serializer(
         'date_joined': serializers.DateTimeField(),
     },
 )
-
