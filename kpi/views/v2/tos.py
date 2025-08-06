@@ -18,12 +18,17 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
         description=read_md('kpi', 'tos/list.md'),
         responses=open_api_200_ok_response(
             TermsOfServiceResponse,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+            validate_payload=False,
         )
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'tos/retrieve.md'),
         responses=open_api_200_ok_response(
             TermsOfServiceResponse(many=False),
+            raise_access_forbidden=False,
+            validate_payload=False,
         )
     )
 )
