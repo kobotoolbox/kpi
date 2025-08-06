@@ -4,8 +4,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 
 from hub.models import SitewideMessage
+from kpi.schema_extensions.v2.tos.serializers import TermsOfServiceResponse
 from kpi.serializers.v2.tos import TermsOfServiceSerializer
 from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 
 
 @extend_schema(
@@ -14,9 +16,15 @@ from kpi.utils.schema_extensions.markdown import read_md
 @extend_schema_view(
     list=extend_schema(
         description=read_md('kpi', 'tos/list.md'),
+        responses=open_api_200_ok_response(
+            TermsOfServiceResponse,
+        )
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'tos/retrieve.md'),
+        responses=open_api_200_ok_response(
+            TermsOfServiceResponse(many=False),
+        )
     )
 )
 class TermsOfServiceViewSet(viewsets.ReadOnlyModelViewSet):
