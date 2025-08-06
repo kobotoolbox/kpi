@@ -36,6 +36,7 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'project-ownership-transfer-detail': '/api/v2/project-ownership/invites/{parent_lookup_invite_uid}/transfers/{uid}/',  # noqa
         'tags-detail': '/api/v2/tags/{taguid__uid}/',
         'tags-list': '/api/v2/tags/',
+        'terms-of-service-detail': '/api/v2/terms-of-service/{slug}/',
     }
 
     try:
