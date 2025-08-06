@@ -129,9 +129,7 @@ class SocialAccountViewSet(
     serializer_class = SocialAccountSerializer
     permission_classes = (IsAuthenticated,)
     versioning_class = APIV2Versioning
-    renderer_classes = [
-        JSONRenderer,
-    ]
+    renderer_classes = [JSONRenderer,]
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)
