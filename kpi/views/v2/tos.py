@@ -5,6 +5,7 @@ from rest_framework.renderers import JSONRenderer
 
 from hub.models import SitewideMessage
 from kpi.serializers.v2.tos import TermsOfServiceSerializer
+from kpi.utils.schema_extensions.markdown import read_md
 
 
 @extend_schema(
@@ -12,15 +13,27 @@ from kpi.serializers.v2.tos import TermsOfServiceSerializer
 )
 @extend_schema_view(
     list=extend_schema(
-        description='list',
+        description=read_md('kpi', 'tos/list.md'),
     ),
     retrieve=extend_schema(
-        description='retrieve',
+        description=read_md('kpi', 'tos/retrieve.md'),
     )
 )
 class TermsOfServiceViewSet(viewsets.ReadOnlyModelViewSet):
     """
     TBC, Terms of service readonly endpoint
+    """
+
+    """
+    ViewSet for managing the terms of service
+
+    Available actions:
+    - list           → GET /api/v2/terms-of-service/
+    - retrieve       → GET /api/v2/terms-of-service/{slug}/
+
+    Documentation:
+    - docs/api/v2/tos/list.md
+    - docs/api/v2/tos/retrieve.md
     """
 
     queryset = SitewideMessage.objects.filter(slug__startswith='terms_of_service')
