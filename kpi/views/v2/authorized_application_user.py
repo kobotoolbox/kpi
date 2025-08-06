@@ -10,37 +10,14 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ACCESS_LOG_AUTHORIZED_APP_TYPE
 from kpi.models import AuthorizedApplication
 from kpi.models.authorized_application import ApplicationTokenAuthentication
-from kpi.schema_extensions.v2.authorized_applications.serializers import \
-    AuthenticateResponse, AuthenticatePayload
 from kpi.serializers import AuthorizedApplicationUserSerializer
 from kpi.serializers.v2.create_user import CreateUserSerializer
-from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import open_api_201_created_response
 from kpi.versioning import APIV2Versioning
 
 
 @extend_schema(
-    tags=['Authorized Applications']
-)
-@extend_schema_view(
-    authenticate_user=extend_schema(
-        description=read_md(
-            'kpi', 'authorized_applications/authenticate_user.md'
-        ),
-        request={'application/json': AuthenticatePayload},
-        responses=open_api_201_created_response(
-            AuthenticateResponse,
-            raise_not_found=False,
-        )
-    ),
-    create=extend_schema(
-        description=read_md('kpi', 'authorized_applications/create.md'),
-        request={'application/json': CreateUserSerializer},
-        responses=open_api_201_created_response(
-            CreateUserSerializer,
-            raise_not_found=False,
-        )
-    )
+    tags=['Authorized Applications'],
+    exclude=True,
 )
 class AuthorizedApplicationUserViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
@@ -53,18 +30,6 @@ class AuthorizedApplicationUserViewSet(
     renderer_classes = [
         JSONRenderer,
     ]
-    """
-    ViewSet for managing the authorized applications
-
-    Available actions:
-    - authenticate_user         → GET /api/v2/authorized-application/authenticate_user/
-    - authenticate_user         → GET /api/v2/authorized-application/users/authenticate_user/ (an alias of the first endpoint)  # noqa
-    - create                    → GET /api/v2/authorized-application/users/
-
-    Documentation:
-    - docs/api/v2/authorized_applications/authenticate_user.md
-    - docs/api/v2/authorized_applications/create.md
-    """
 
     @action(detail=False, methods=['POST'])
     def authenticate_user(self, request):
