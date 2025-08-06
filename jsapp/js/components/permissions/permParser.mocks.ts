@@ -1,5 +1,5 @@
 import type { PaginatedResponse, PermissionResponse, PermissionsConfigResponse } from '#/dataInterface'
-import { PermsFormData } from './permParser'
+import { PermsFormData, PermsFormDataPartialWithUsername } from './permParser'
 
 /**
  * Mock permissions endpoints responses for tests.
@@ -428,36 +428,17 @@ export const assetWithMultiplePartial2: PaginatedResponse<PermissionResponse> = 
 }
 
 // This is the `buildFormData` output for user "kate"
-export const assetWithMultiplePartial2_formData_kate: PermsFormData = {
+export const assetWithMultiplePartial2_formData_kate: PermsFormDataPartialWithUsername = {
   username: 'kate',
-  formView: true,
-  formEdit: false,
-  formManage: false,
-  submissionsView: false,
-  submissionsViewPartialByUsers: false,
-  submissionsViewPartialByUsersList: ['bob'],
-  submissionsViewPartialByResponses: false,
-  submissionsViewPartialByResponsesQuestion: null,
-  submissionsViewPartialByResponsesValue: '',
   submissionsAdd: true,
-  submissionsEdit: false,
-  submissionsEditPartialByUsers: true,
-  submissionsEditPartialByUsersList: ['bob'],
-  submissionsEditPartialByResponses: false,
-  submissionsEditPartialByResponsesQuestion: null,
-  submissionsEditPartialByResponsesValue: '',
-  submissionsValidate: false,
-  submissionsValidatePartialByUsers: true,
-  submissionsValidatePartialByUsersList: ['bob'],
-  submissionsValidatePartialByResponses: false,
-  submissionsValidatePartialByResponsesQuestion: null,
-  submissionsValidatePartialByResponsesValue: '',
-  submissionsDelete: false,
+  submissionsViewPartialByUsers: true,
+  submissionsViewPartialByUsersList: ['bob'],
   submissionsDeletePartialByUsers: true,
   submissionsDeletePartialByUsersList: ['bob'],
-  submissionsDeletePartialByResponses: false,
-  submissionsDeletePartialByResponsesQuestion: null,
-  submissionsDeletePartialByResponsesValue: '',
+  submissionsEditPartialByUsers: true,
+  submissionsEditPartialByUsersList: ['bob'],
+  submissionsValidatePartialByUsers: true,
+  submissionsValidatePartialByUsersList: ['bob'],
 }
 
 export const endpoints = {
