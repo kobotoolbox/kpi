@@ -12,6 +12,7 @@ from kpi.models import AuthorizedApplication
 from kpi.models.authorized_application import ApplicationTokenAuthentication
 from kpi.serializers import AuthorizedApplicationUserSerializer
 from kpi.serializers.v2.create_user import CreateUserSerializer
+from kpi.utils.schema_extensions.markdown import read_md
 from kpi.versioning import APIV2Versioning
 
 
@@ -20,10 +21,13 @@ from kpi.versioning import APIV2Versioning
 )
 @extend_schema_view(
     authenticate_user=extend_schema(
-        description='authenticate user'
+        description=read_md(
+            'kpi', 'authorized_applications/authenticate_user.md'
+        ),
     ),
     create=extend_schema(
-        description='create',
+        description=read_md('kpi','authorized_applications/create.md'),
+
     )
 )
 class AuthorizedApplicationUserViewSet(
@@ -37,6 +41,18 @@ class AuthorizedApplicationUserViewSet(
     renderer_classes = [
         JSONRenderer,
     ]
+    """
+    ViewSet for managing the authorized applications
+
+    Available actions:
+    - authenticate_user         → GET /api/v2/authorized-application/authenticate_user/
+    - authenticate_user         → GET /api/v2/authorized-application/users/authenticate_user/ (an alias of the first endpoint)  # noqa
+    - create                    → GET /api/v2/authorized-application/users/
+
+    Documentation:
+    - docs/api/v2/authorized_applications/authenticate_user.md
+    - docs/api/v2/authorized_applications/create.md
+    """
 
     @action(detail=False, methods=['POST'])
     def authenticate_user(self, request):
