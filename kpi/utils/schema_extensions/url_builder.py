@@ -51,6 +51,8 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'language-detail': '/api/v2/language/{code}/',
         'user_profile': '/{username}',
         'organization-invites-detail': '/api/v2/organizations/{organization_id}/invites/{guid}/',  # noqa
+        'tags-detail': '/api/v2/tags/{taguid__uid}/',
+        'tags-list': '/api/v2/tags/',
     }
 
     try:
