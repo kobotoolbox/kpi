@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "description": "KoboToolbox frontend interface.",
   "engines": {
-    "node": "^20.17.0 || ^22.4.1"
+    "node": "^20.18.1 || ^22.4.1"
   },
   "dependencies": {
     "@fontsource/roboto": "^4.4.2",
@@ -13,7 +13,7 @@
     "@mantine/hooks": "^7.15.0",
     "@mapbox/leaflet-omnivore": "^0.3.4",
     "@placemarkio/check-geojson": "^0.1.14",
-    "@sentry/react": "^7.61.0",
+    "@sentry/react": "^7.120.3",
     "@tanstack/react-query": "^5.49.2",
     "@tanstack/react-table": "^8.20.5",
     "alertifyjs": "^1.14.0",
@@ -227,7 +227,7 @@
     "test:storybook:watch": "npm run test:storybook:launch -- --watch",
     "test:unit": "jest --config ./jsapp/jest/unit.config.ts",
     "test-watch": "jest --config ./jsapp/jest/unit.config.ts --watch",
-    "lint": "npm run lint:biome && npm run lint:eslint && npm run lint:types && npm run lint:css && npm run lint:coffee",
+    "lint": "npm run lint:biome && npm run lint:eslint && npm run lint:types && npm run lint:css",
     "lint:biome": "biome check",
     "lint:eslint": "eslint 'jsapp/js/'",
     "lint:eslint-summary": "npm run lint -- --ext .js,.jsx,.ts,.tsx --format compact | grep '(@' | grep ' - ' | sed -r 's/.* (\\w+ -) .*(\\(@.*)$/\\1 \\2/' | sort | uniq -c | sort -nr",
