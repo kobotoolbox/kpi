@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema
 from rest_framework import exceptions, mixins, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
@@ -16,7 +16,6 @@ from kpi.versioning import APIV2Versioning
 
 
 @extend_schema(
-    tags=['Authorized Applications'],
     exclude=True,
 )
 class AuthorizedApplicationUserViewSet(
