@@ -20,7 +20,7 @@ from .serializers import EmailAddressSerializer, SocialAccountSerializer
 )
 @extend_schema_view(
     list=extend_schema(
-        description=read_md('accounts', 'email/list.md'),
+        description=read_md('accounts', 'me/email/list.md'),
         responses=open_api_200_ok_response(
             EmailAddressSerializer,
             raise_not_found=False,
@@ -29,7 +29,7 @@ from .serializers import EmailAddressSerializer, SocialAccountSerializer
         )
     ),
     create=extend_schema(
-        description=read_md('accounts', 'email/create.md'),
+        description=read_md('accounts', 'me/email/create.md'),
         request={'application/json': EmailRequestPayload},
         responses=open_api_201_created_response(
             EmailAddressSerializer,
@@ -51,8 +51,8 @@ class EmailAddressViewSet(
     - create         → CREATE    /me/
 
     Documentation:
-    - docs/api/v2/me/list.md
-    - docs/api/v2/me/create.md
+    - docs/api/v2/me/email/list.md
+    - docs/api/v2/me/email/create.md
     """
 
     queryset = EmailAddress.objects.all()
@@ -78,14 +78,14 @@ class EmailAddressViewSet(
 )
 @extend_schema_view(
     destroy=extend_schema(
-        description=read_md('accounts', 'social/delete.md'),
+        description=read_md('accounts', 'me/social/delete.md'),
         responses=open_api_204_empty_response(
             raise_access_forbidden=False,
             validate_payload=False,
         )
     ),
     list=extend_schema(
-        description=read_md('accounts', 'social/list.md'),
+        description=read_md('accounts', 'me/social/list.md'),
         responses=open_api_200_ok_response(
             SocialAccountSerializer,
             raise_not_found=False,
@@ -94,7 +94,7 @@ class EmailAddressViewSet(
         )
     ),
     retrieve=extend_schema(
-        description=read_md('accounts', 'social/retrieve.md'),
+        description=read_md('accounts', 'me/social/retrieve.md'),
         responses=open_api_200_ok_response(
             SocialAccountSerializer,
             raise_access_forbidden=False,
@@ -118,9 +118,9 @@ class SocialAccountViewSet(
     - retrieve       → GET      /me/social-accounts/{provider}/{uid}/
 
     Documentation:
-    - docs/api/v2/social/destroy.md
-    - docs/api/v2/social/list.md
-    - docs/api/v2/social/retrieve.md
+    - docs/api/v2/me/social/destroy.md
+    - docs/api/v2/me/social/list.md
+    - docs/api/v2/me/social/retrieve.md
     """
 
     lookup_value_regex = r'(?P<provider>[^/.]+)/(?P<uid>[-\w]+)'
