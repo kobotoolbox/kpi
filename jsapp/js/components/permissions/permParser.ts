@@ -204,13 +204,17 @@ export function removeImpliedPerms(parsed: PermissionBase[]): PermissionBase[] {
   // Step 2. We remove implied from the outcome list
   const output = parsed.filter((backendPerm) => !impliedPerms.has(backendPerm.permission))
 
-  // Step 3. Remove implied permissions for each `partial_submissions` left
-  output.forEach((backendPerm) => {
-    const permDef = permConfig.getPermission(backendPerm.permission)
-    if (permDef?.codename === 'partial_submissions' && backendPerm.partial_permissions) {
-      backendPerm.partial_permissions = removeImpliedPartialPerms(backendPerm.partial_permissions)
-    }
-  })
+  // TEMP HACK FIX:
+  // Commenting out this code because the UI doesn't handle implied partial permissions properly. It seems to be better
+  // for users to simply display all existing partial permissions ("show too much") than be confusing in showing
+  // too little. There is also a test ("should remove implied partial permissions") commented out in `permParser.tests`.
+  // // Step 3. Remove implied permissions for each `partial_submissions` left
+  // output.forEach((backendPerm) => {
+  //   const permDef = permConfig.getPermission(backendPerm.permission)
+  //   if (permDef?.codename === 'partial_submissions' && backendPerm.partial_permissions) {
+  //     backendPerm.partial_permissions = removeImpliedPartialPerms(backendPerm.partial_permissions)
+  //   }
+  // })
 
   return output
 }
