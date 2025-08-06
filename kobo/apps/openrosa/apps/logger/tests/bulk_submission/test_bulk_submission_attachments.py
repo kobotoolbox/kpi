@@ -2,12 +2,11 @@
 import os
 
 from django.urls import reverse
-from django.conf import settings
 
-from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
-from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.import_tools import import_instances_from_zip
+from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.views import bulksubmission
+from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.libs.utils.storage import rmdir
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,

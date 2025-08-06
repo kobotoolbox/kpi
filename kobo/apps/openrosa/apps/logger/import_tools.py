@@ -55,21 +55,21 @@ def iterate_through_instances(dirpath, callback):
                 try:
                     success_count += callback(xfxs)
                 except Exception as e:
-                    errors.append("%s => %s" % (xfxs.filename, str(e)))
+                    errors.append('%s => %s' % (xfxs.filename, str(e)))
                 del xfxs
                 total_file_count += 1
 
     return total_file_count, success_count, errors
 
 
-def import_instances_from_zip(zipfile_path, user, status="zip"):
+def import_instances_from_zip(zipfile_path, user, status='zip'):
     try:
         temp_directory = tempfile.mkdtemp()
         zf = zipfile.ZipFile(zipfile_path)
 
         zf.extractall(temp_directory)
     except zipfile.BadZipfile as e:
-        errors = ["%s" % e]
+        errors = ['%s' % e]
         return 0, 0, errors
     else:
         return import_instances_from_path(temp_directory, user, status)
@@ -77,7 +77,7 @@ def import_instances_from_zip(zipfile_path, user, status="zip"):
         shutil.rmtree(temp_directory)
 
 
-def import_instances_from_path(path, user, status="zip"):
+def import_instances_from_path(path, user, status='zip'):
     def callback(xform_fs):
         """
         This callback is passed an instance of a XFormInstanceFS.
