@@ -3,12 +3,27 @@ import os
 import glob
 import re
 
+from lxml import etree
+
 
 class XFormInstanceFS:
     def __init__(self, filepath):
         self.path = filepath
         self.directory, self.filename = os.path.split(self.path)
         self.xform_id = re.sub(".xml", "", self.filename)
+
+    @property
+    def attachments(self):
+        if not hasattr(self, '_attachments'):
+            dir = os.path.join(self.directory)
+            self._attachments = [
+                entry
+                for entry in os.scandir(dir)
+                if entry.is_file()
+                and entry.path != self.path
+                and entry.name in self.mentioned_attachments
+            ]
+        return self._attachments
 
     @property
     def photos(self):
@@ -20,6 +35,20 @@ class XFormInstanceFS:
                 if self.xml.find(photo) > 0:
                     self._photos.append(photo_path)
         return self._photos
+
+    @property
+    def mentioned_attachments(self):
+        if not hasattr(self, '_mentioned_attachments'):
+            parser = etree.XMLParser()
+            root = etree.fromstring(self.xml, parser=parser)
+            namespaces = root.nsmap
+            self._mentioned_attachments = set(
+                root.xpath(
+                    '//*[@type="file"]/text()',
+                    namespaces=namespaces,
+                )
+            )
+        return self._mentioned_attachments
 
     @property
     def metadata_directory(self):

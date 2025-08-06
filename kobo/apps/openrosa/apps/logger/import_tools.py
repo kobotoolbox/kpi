@@ -1,4 +1,5 @@
 # coding: utf-8
+import mimetypes
 import os
 import shutil
 import tempfile
@@ -25,7 +26,6 @@ from kobo.apps.openrosa.libs.utils.logger_tools import create_instance
 # │   │   └── Registration_2011_03_18_2011-03-21_19-33-34.xml
 # └── metadata
 #     └── data
-
 
 def django_file(path, field_name, content_type):
     # adapted from here:
@@ -83,17 +83,25 @@ def import_instances_from_path(path, user, status="zip"):
         This callback is passed an instance of a XFormInstanceFS.
         See xform_fs.py for more info.
         """
-        with django_file(xform_fs.path, field_name="xml_file",
-                         content_type="text/xml") as xml_file:
-            images = [django_file(jpg, field_name="image",
-                      content_type="image/jpeg") for jpg in xform_fs.photos]
+        with django_file(
+            xform_fs.path,
+            field_name='xml_file',
+            content_type='text/xml',
+        ) as xml_file:
+            attachments = [
+                django_file(
+                    dir_entry.path, None, mimetypes.guess_type(dir_entry.name, strict=0)
+                )
+                for dir_entry in xform_fs.attachments
+            ]
             # TODO: if an instance has been submitted make sure all the
             # files are in the database.
             # there shouldn't be any instances with a submitted status in the
             # import.
-            instance = create_instance(user.username, xml_file, images, status)
 
-            for i in images:
+            instance = create_instance(user.username, xml_file, attachments, status)
+
+            for i in attachments:
                 i.close()
                 i.close()
 
