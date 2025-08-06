@@ -22,8 +22,8 @@ class User(AbstractUser):
         # - `perm` format is <app_label>.<perm>, we check the app label
         # - `perm` belongs to KoboCAT permission codenames
         if obj and obj._meta.app_label in OPENROSA_APP_LABELS:
-                with use_db(settings.OPENROSA_DB_ALIAS):
-                    return super().has_perm(perm, obj)
+            with use_db(settings.OPENROSA_DB_ALIAS):
+                return super().has_perm(perm, obj)
 
         if '.' in perm:
             app_label, _ = perm.split('.', 1)
