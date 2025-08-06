@@ -360,7 +360,7 @@ describe('permParser', () => {
       })
     })
 
-    it('should build proper form data for multiple partial "by users" permissions', () => {
+    it('should build proper form data for all possible partial "by users" permissions', () => {
       const testUser = 'kate'
 
       const usersWithPerms = parseBackendData(

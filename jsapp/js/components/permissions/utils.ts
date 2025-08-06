@@ -148,7 +148,7 @@ export function isPartialByUsersFilter(filter: PartialPermissionFilter) {
 }
 
 /**
- * Finds "by users" filter inside the partial permission and returns the users
+ * Finds "by users" filters inside the partial permission and returns the users
  * list from it. If there is no "by users" filter we return `undefined`.
  */
 export function getPartialByUsersFilterList(partialPerm: PartialPermission): string[] | undefined {

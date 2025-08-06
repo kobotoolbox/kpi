@@ -348,10 +348,9 @@ export function buildFormData(permissions: PermissionResponse[], username?: stri
           return
         }
 
-        // Step 3.  We assume here that there might be a case of 1 or 2 filters
-        // tops. There might be one "by users" or one "by responses" or one each
-        // - no other possiblities can happen. We get each of them separately
-        // and try to put them back as form data:
+        // Step 3. Find all usernames from "by users" permission and a single
+        // response filter (we assume there can be only single condition) for
+        // "by responses" permission.
         const byUsersFilterList = getPartialByUsersFilterList(partial)
         const byResponsesFilter = getPartialByResponsesFilter(partial)
 
