@@ -28,7 +28,7 @@ class ViewDjangoObjectPermissions(DjangoObjectPermissions):
     }
 
 
-class ViewAssetPermissions(DjangoObjectPermissions):
+class AssetObjectPermissions(DjangoObjectPermissions):
     perms_map = {
         'GET': ['kpi.view_asset'],
         'OPTIONS': [],

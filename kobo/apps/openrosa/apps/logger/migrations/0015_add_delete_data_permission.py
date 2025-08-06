@@ -81,16 +81,12 @@ def forwards_func(apps, schema_editor):
     sys.stderr.flush()
     create_new_perms(apps)
     grant_model_level_perms(apps)
-    # Deprecated openrosa guardian based permissions:
-    #   grant_object_level_perms(apps)
 
 
 def reverse_func(apps, schema_editor):
     # In testing, removal took only a small fraction of the time that it took
     # to create the assignments
     remove_model_level_perms(apps)
-    # Deprecated openrosa guardian based permissions:
-    #   remove_object_level_perms(apps)
 
 
 class Migration(migrations.Migration):

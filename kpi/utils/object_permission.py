@@ -138,7 +138,6 @@ def get_objects_for_user(
             new_app_label, codename = perm.split('.', 1)
             if app_label != new_app_label:
                 # Transitioning away from generic-relation ObjectPermission
-                breakpoint()
                 raise NotImplementedError
         else:
             codename = perm
