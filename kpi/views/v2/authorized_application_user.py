@@ -30,6 +30,7 @@ from kpi.versioning import APIV2Versioning
         request={'application/json': AuthenticatePayload},
         responses=open_api_201_created_response(
             AuthenticateResponse,
+            raise_not_found=False,
         )
     ),
     create=extend_schema(
@@ -37,6 +38,7 @@ from kpi.versioning import APIV2Versioning
         request={'application/json': CreateUserSerializer},
         responses=open_api_201_created_response(
             CreateUserSerializer,
+            raise_not_found=False,
         )
     )
 )
