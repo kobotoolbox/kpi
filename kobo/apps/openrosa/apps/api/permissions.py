@@ -286,12 +286,10 @@ class AttachmentObjectPermissions(DjangoObjectPermissions):
         return super().has_permission(request, view)
 
     def has_object_permission(self, request, view, obj):
-        view.model = obj.instance.xform.asset._meta.model
-
         if request.user and request.user.is_superuser:
             return True
 
-        return super().has_object_permission(request, view, obj.instance.xform.asset)
+        return super().has_object_permission(request, view, obj.xform.asset)
 
 
 class NoteObjectPermissions(DjangoObjectPermissions):
