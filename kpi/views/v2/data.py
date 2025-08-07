@@ -53,7 +53,7 @@ from kpi.schema_extensions.v2.data.serializers import (
     DataStatusesUpdate,
     DataValidationStatusesUpdatePayload,
     DataValidationStatusUpdatePayload,
-    DataValidationStatusUpdateResponse,
+    DataValidationStatusUpdateResponse, EnketoEditResponse, EnketoViewResponse,
 )
 from kpi.serializers.v2.data import DataBulkActionsValidator
 from kpi.utils.log import logging
@@ -321,7 +321,12 @@ class DataViewSet(
             return Response(**response)
 
     @extend_schema(
-        exclude=True,
+        description=read_md('kpi', 'data/enketo_edit.md'),
+        responses=open_api_200_ok_response(
+            EnketoEditResponse,
+            require_auth=False,
+            validate_payload=False,
+        )
     )
     @action(
         detail=True,
@@ -342,7 +347,14 @@ class DataViewSet(
             )
         return self._handle_enketo_redirect(request, enketo_response, *args, **kwargs)
 
-    @extend_schema(exclude=True)
+    @extend_schema(
+        description=read_md('kpi', 'data/enketo_view.md'),
+        responses=open_api_200_ok_response(
+            EnketoViewResponse,
+            require_auth=False,
+            validate_payload=False,
+        )
+    )
     @action(
         detail=True,
         methods=['GET'],

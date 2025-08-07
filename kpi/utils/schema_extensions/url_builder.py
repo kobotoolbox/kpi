@@ -62,6 +62,8 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'tags-detail': '/api/v2/tags/{taguid__uid}/',
         'tags-list': '/api/v2/tags/',
         'terms-of-service-detail': '/api/v2/terms-of-service/{slug}/',
+        'enketo_edit_link': '{path}',
+        'enketo_view_link': '{path}',
     }
 
     try:
