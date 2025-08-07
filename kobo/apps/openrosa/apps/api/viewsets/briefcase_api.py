@@ -11,7 +11,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
-from kobo.apps.openrosa.apps.api.permissions import ViewAssetPermissions
+from kobo.apps.openrosa.apps.api.permissions import AssetObjectPermissions
 from kobo.apps.openrosa.apps.api.tools import get_media_file_response
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
@@ -87,7 +87,7 @@ class BriefcaseApi(
     """
     filter_backends = (filters.AnonDjangoObjectPermissionFilter,)
     queryset = XForm.objects.all()
-    permission_classes = (permissions.IsAuthenticated, ViewAssetPermissions)
+    permission_classes = (permissions.IsAuthenticated, AssetObjectPermissions)
     renderer_classes = (TemplateXMLRenderer, BrowsableAPIRenderer)
     serializer_class = XFormListSerializer
     template_name = 'openrosa_response.xml'

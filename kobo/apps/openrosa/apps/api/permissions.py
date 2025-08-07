@@ -14,6 +14,7 @@ from kpi.constants import (
     PERM_DELETE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
 )
+from kpi.utils.permissions import is_user_anonymous
 
 
 class ViewDjangoObjectPermissions(DjangoObjectPermissions):
@@ -91,12 +92,13 @@ class XFormPermissions(ObjectPermissionsWithViewRestricted):
 
     def has_permission(self, request, view):
         # Allow anonymous users to access shared data
-        if (
-            request.method in SAFE_METHODS
-            and view.action
-            and view.action == 'retrieve'
-        ):
-            return True
+        is_anonymous = is_user_anonymous(request.user)
+        if is_anonymous:
+            return (
+                request.method in SAFE_METHODS
+                and view.action
+                and view.action == 'retrieve'
+            )
 
         if (
             request.method not in SAFE_METHODS
@@ -138,6 +140,7 @@ class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
     def has_permission(self, request, view):
         lookup_field = view.lookup_field
         lookup = view.kwargs.get(lookup_field)
+        is_anonymous = is_user_anonymous(request.user)
         # Allow anonymous users to access shared data
         allowed_anonymous_actions = ['retrieve']
         if lookup:
@@ -145,11 +148,11 @@ class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
             # a form pk is specified. e.g. `/api/v1/data/{pk}.json
             allowed_anonymous_actions.append('list')
 
-        if (
-            request.method in SAFE_METHODS
-            and view.action in allowed_anonymous_actions
-        ):
-            return True
+        if is_anonymous:
+            return (
+                request.method in SAFE_METHODS
+                and view.action in allowed_anonymous_actions
+            )
 
         return super().has_permission(request, view)
 
@@ -225,26 +228,21 @@ class MetaDataObjectPermissions(ObjectPermissionsWithViewRestricted):
         self.perms_map['DELETE'] = self.perms_map['PATCH']
 
     def has_permission(self, request, view):
-
         if request.user and request.user.is_superuser:
             return True
 
+        is_anonymous = is_user_anonymous(request.user)
         allowed_anonymous_action = ['retrieve']
-
-        try:
-            request.GET['xform']
-        except KeyError:
-            pass
-        else:
+        if 'xform' in request.GET:
             # Allow anonymous user to list metadata when `xform` parameter is
             # specified.
             allowed_anonymous_action.append('list')
 
-        if (
-            request.method in SAFE_METHODS
-            and view.action in allowed_anonymous_action
-        ):
-            return True
+        if is_anonymous:
+            return (
+                request.method in SAFE_METHODS
+                and view.action in allowed_anonymous_action
+            )
 
         return super(MetaDataObjectPermissions, self).has_permission(
             request=request, view=view
@@ -280,7 +278,6 @@ class AttachmentObjectPermissions(DjangoObjectPermissions):
         return super().__init__(*args, **kwargs)
 
     def has_permission(self, request, view):
-
         if request.user and request.user.is_superuser:
             return True
 
@@ -313,6 +310,11 @@ class NoteObjectPermissions(DjangoObjectPermissions):
         # Data will be filtered in `NoteViewSet`
         if request.method in SAFE_METHODS and view.action == 'retrieve':
             return True
+
+        # Anonymous users can't see notes
+        is_anonymous = is_user_anonymous(request.user)
+        if is_anonymous:
+            return False
 
         return super().has_permission(request, view)
 
