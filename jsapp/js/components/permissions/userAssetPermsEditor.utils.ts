@@ -14,7 +14,7 @@ import type {
   CheckboxNamePartialByUsers,
   PermissionCodename,
 } from './permConstants'
-import type { PermsFormData, PermsFormDataPartialWithUsername } from './permParser'
+import type { PermsFormDataPartialWithUsername } from './permParser'
 import type { AssignablePermsMap } from './sharingForm.component'
 import type { UserAssetPermsEditorState } from './userAssetPermsEditor.component'
 import { getPartialByResponsesQuestionName, getPartialByResponsesValueName, getPartialByUsersListName } from './utils'

@@ -10,7 +10,6 @@ import type {
   PermissionCodename,
 } from './permConstants'
 import { CHECKBOX_PERM_PAIRS, PARTIAL_BY_RESPONSES_PERM_PAIRS, PARTIAL_BY_USERS_PERM_PAIRS } from './permConstants'
-import { EMPTY_EDITOR_STATE } from './userAssetPermsEditor.utils'
 import {
   getCheckboxNameByPermission,
   getPartialByResponsesCheckboxName,

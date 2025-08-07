@@ -1,5 +1,5 @@
 import type { PaginatedResponse, PermissionResponse, PermissionsConfigResponse } from '#/dataInterface'
-import { PermsFormData, PermsFormDataPartialWithUsername } from './permParser'
+import type { PermsFormDataPartialWithUsername } from './permParser'
 
 /**
  * Mock permissions endpoints responses for tests.

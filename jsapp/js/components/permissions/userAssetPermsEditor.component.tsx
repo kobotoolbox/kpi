@@ -25,7 +25,7 @@ import type {
   PartialByUsersListName,
   PermissionCodename,
 } from './permConstants'
-import { PermsFormData, buildFormData, parseFormData } from './permParser'
+import { type PermsFormData, buildFormData, parseFormData } from './permParser'
 import type { AssignablePermsMap } from './sharingForm.component'
 import styles from './userAssetPermsEditor.module.scss'
 import {
