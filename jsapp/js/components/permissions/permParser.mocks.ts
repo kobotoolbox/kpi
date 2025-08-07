@@ -431,8 +431,8 @@ export const assetWithMultiplePartial2: PaginatedResponse<PermissionResponse> = 
 export const assetWithMultiplePartial2_formData_kate: PermsFormDataPartialWithUsername = {
   username: 'kate',
   submissionsAdd: true,
-  submissionsViewPartialByUsers: true,
-  submissionsViewPartialByUsersList: ['bob'],
+  // submissionsViewPartialByUsers: true,
+  // submissionsViewPartialByUsersList: ['bob'],
   submissionsDeletePartialByUsers: true,
   submissionsDeletePartialByUsersList: ['bob'],
   submissionsEditPartialByUsers: true,
