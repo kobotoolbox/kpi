@@ -116,7 +116,7 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
                 description='ID of the attachment',
             ),
         ],
-        operation_id='attachment-thumbnail',
+        operation_id='attachment_thumbnail',
     ),
 )
 class AttachmentViewSet(

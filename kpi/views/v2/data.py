@@ -53,7 +53,7 @@ from kpi.schema_extensions.v2.data.serializers import (
     DataStatusesUpdate,
     DataValidationStatusesUpdatePayload,
     DataValidationStatusUpdatePayload,
-    DataValidationStatusUpdateResponse,
+    DataValidationStatusUpdateResponse, EnketoEditResponse, EnketoViewResponse,
 )
 from kpi.serializers.v2.data import DataBulkActionsValidator
 from kpi.utils.log import logging
@@ -166,6 +166,11 @@ class DataViewSet(
     - validation_status     → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
     - validation_statuses   → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
     - validation_statuses   → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
+    - enketo_edit           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/edit/
+    - enketo_edit           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/edit/
+    - enketo_edit           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/edit/
+    - enketo_view           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/view/
+    - enketo_view           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/view/
 
     Documentation:
     - docs/api/v2/data/bulk_delete.md
@@ -179,46 +184,8 @@ class DataViewSet(
     - docs/api/v2/data/validation_status_update.md
     - docs/api/v2/data/validation_statuses_delete.md
     - docs/api/v2/data/validation_statuses_update.md
-
-
-    ## CRUD
-    **It is not allowed to create submissions with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint**
-
-
-    **It is not possible to update a submission directly with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint.  # noqa
-    Instead, it returns the URL where the instance can be opened in Enketo for editing in the UI._
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/edit/?return_url=false
-    </pre>
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/edit/?return_url=false
-    To redirect (HTTP 302) to the Enketo editing URL, use the `…/enketo/redirect/edit/` endpoint:
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/redirect/edit/?return_url=false
-    </pre>
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/redirect/edit/?return_url=false
-    View-only version of current submission
-
-    Return a URL to display the filled submission in view-only mode in the Enketo UI.
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/view/
-    </pre>
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/view/
-    To redirect (HTTP 302) to the Enketo viewing URL, use the `…/enketo/redirect/view/` endpoint:
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/redirect/view/?return_url=false
-    </pre>
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/redirect/view/?return_url=false
+    - docs/api/v2/data/enketo_view.md
+    - docs/api/v2/data/enketo_edit.md
     """
 
     parent_model = Asset
@@ -321,7 +288,21 @@ class DataViewSet(
             return Response(**response)
 
     @extend_schema(
-        exclude=True,
+        description=read_md('kpi', 'data/enketo_edit.md'),
+        responses=open_api_200_ok_response(
+            EnketoEditResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the data',
+            ),
+        ],
     )
     @action(
         detail=True,
@@ -342,7 +323,23 @@ class DataViewSet(
             )
         return self._handle_enketo_redirect(request, enketo_response, *args, **kwargs)
 
-    @extend_schema(exclude=True)
+    @extend_schema(
+        description=read_md('kpi', 'data/enketo_view.md'),
+        responses=open_api_200_ok_response(
+            EnketoViewResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the data',
+            ),
+        ],
+    )
     @action(
         detail=True,
         methods=['GET'],

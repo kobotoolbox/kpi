@@ -15,16 +15,10 @@ from kobo.apps.hook.schema_extensions.v2.hooks.fields import (
     SubsetFieldsField,
     UrlField,
 )
-
-
-@extend_schema_field(SettingsField)
-class SettingsFieldOverload(serializers.JSONField):
-    pass
-
-
-@extend_schema_field(SubsetFieldsField)
-class SubsetFieldOverload(serializers.ListField):
-    pass
+from kpi.utils.schema_extensions.fields import (
+    JSONFieldWithSchemaField,
+    ListFieldWithSchemaField,
+)
 
 
 class HookSerializer(serializers.ModelSerializer):
@@ -32,8 +26,8 @@ class HookSerializer(serializers.ModelSerializer):
     payload_template = serializers.CharField(required=False, allow_blank=True,
                                              allow_null=True)
 
-    settings = SettingsField()
-    subset_fields = SubsetFieldOverload()
+    settings = JSONFieldWithSchemaField(SettingsField)
+    subset_fields = ListFieldWithSchemaField(SubsetFieldsField)
 
     class Meta:
         model = Hook

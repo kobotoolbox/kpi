@@ -15,14 +15,11 @@
  * See: https://github.com/kobotoolbox/kpi/issues/3908
  */
 
-import { Cookies } from 'react-cookie'
 import { toast } from 'react-hot-toast'
 import Reflux from 'reflux'
 import { notify } from '#/utils'
 import { actions } from './actions'
 import { parseTags } from './assetParserUtils'
-
-const cookies = new Cookies()
 
 function changes(orig_obj, new_obj) {
   var out = {},

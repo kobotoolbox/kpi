@@ -704,6 +704,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         else:
             return {}
 
+    @extend_schema_field(OpenApiTypes.BOOL)
     def get_deployment__encrypted(self, obj):
         if obj.has_deployment:
             return obj.deployment.is_encrypted
@@ -717,6 +718,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         else:
             return {}
 
+    @extend_schema_field(OpenApiTypes.DATETIME)
     def get_deployment__last_submission_time(self, obj):
         if obj.has_deployment:
             return obj.deployment.last_submission_time
@@ -747,6 +749,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return None
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_deployment__uuid(self, obj):
         return obj.deployment.form_uuid if obj.has_deployment else None
 
