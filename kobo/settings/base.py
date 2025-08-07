@@ -1017,14 +1017,6 @@ SPECTACULAR_SETTINGS = {
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
     ],
-    'ENUM_NAME_OVERRIDES': {
-        'status': (
-            ('created', 'created'),
-            ('processing', 'processing'),
-            ('error', 'error'),
-            ('complete', 'complete'),
-        ),
-    },
 }
 
 OPENROSA_REST_FRAMEWORK = {
