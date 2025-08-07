@@ -177,7 +177,6 @@
     "replace-in-file": "^6.3.5",
     "sass": "^1.77.6",
     "sass-loader": "^10.5.2",
-    "source-map-loader": "^3.0.2",
     "speed-measure-webpack-plugin": "^1.5.0",
     "storybook": "^9.0.0-beta.11",
     "storybook-addon-remix-react-router": "^3.1",
