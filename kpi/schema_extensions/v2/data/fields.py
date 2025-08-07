@@ -33,3 +33,11 @@ class EmptyListField(serializers.ListField):
 
 class EmptyObjectField(serializers.JSONField):
     build_object_type(properties={})
+
+
+class EnketoEditUrlField(serializers.URLField):
+    pass
+
+
+class EnketoViewUrlField(serializers.URLField):
+    pass

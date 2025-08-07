@@ -9,6 +9,8 @@ from .fields import (
     DataValidationPayloadField,
     EmptyListField,
     EmptyObjectField,
+    EnketoEditUrlField,
+    EnketoViewUrlField,
 )
 
 DataBulkDelete = inline_serializer_class(
@@ -89,4 +91,20 @@ DataValidationStatusesUpdatePayload = inline_serializer_class(
     fields={
         'payload': DataValidationPayloadField(),
     },
+)
+
+EnketoEditResponse = inline_serializer_class(
+    name='EnketoEditResponse',
+    fields={
+        'url': EnketoEditUrlField(),
+        'version': serializers.CharField(),
+    }
+)
+
+EnketoViewResponse = inline_serializer_class(
+    name='EnketoViewResponse',
+    fields={
+        'url': EnketoViewUrlField(),
+        'version': serializers.CharField(),
+    }
 )
