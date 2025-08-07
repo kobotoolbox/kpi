@@ -431,6 +431,7 @@ export const assetWithMultiplePartial2: PaginatedResponse<PermissionResponse> = 
 export const assetWithMultiplePartial2_formData_kate: PermsFormDataPartialWithUsername = {
   username: 'kate',
   submissionsAdd: true,
+  // Note: This is nonexistent in the output, because these are implied permissions and in current UI we don't show them
   // submissionsViewPartialByUsers: true,
   // submissionsViewPartialByUsersList: ['bob'],
   submissionsDeletePartialByUsers: true,
