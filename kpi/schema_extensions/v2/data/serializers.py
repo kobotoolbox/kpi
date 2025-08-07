@@ -77,7 +77,7 @@ DataValidationStatusUpdatePayload = inline_serializer_class(
 DataValidationStatusUpdateResponse = inline_serializer_class(
     name='DataValidationStatusUpdateResponse',
     fields={
-        'timestamp': serializers.DateField(),
+        'timestamp': serializers.DateTimeField(),
         'uid': serializers.CharField(),
         'by_whom': serializers.CharField(),
         'label': serializers.CharField(),
