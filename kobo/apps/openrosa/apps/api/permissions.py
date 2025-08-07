@@ -141,18 +141,20 @@ class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
         lookup_field = view.lookup_field
         lookup = view.kwargs.get(lookup_field)
         is_anonymous = is_user_anonymous(request.user)
-        # Allow anonymous users to access shared data
         allowed_anonymous_actions = ['retrieve']
         if lookup:
             # We need to grant access to anonymous on list endpoint too when
             # a form pk is specified. e.g. `/api/v1/data/{pk}.json
             allowed_anonymous_actions.append('list')
 
+        if (
+            request.method in SAFE_METHODS
+            and view.action in allowed_anonymous_actions
+        ):
+            return True
+        # No need to check more permissions if it's an anonymous user (saves db queries)
         if is_anonymous:
-            return (
-                request.method in SAFE_METHODS
-                and view.action in allowed_anonymous_actions
-            )
+            return False
 
         return super().has_permission(request, view)
 
