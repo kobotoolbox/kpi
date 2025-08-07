@@ -83,7 +83,7 @@ jobs:
       - chromatic
       - get-commit-title
     # Any code that isn't 0 means some error happening, see https://www.chromatic.com/docs/cli/#exit-codes
-    if: ${{ always() && (needs.chromatic.outputs.chromatic-code != 0) }}
+    if: ${{ !cancelled() && (needs.chromatic.outputs.chromatic-code != 0) }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
