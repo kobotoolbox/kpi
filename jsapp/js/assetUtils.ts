@@ -37,7 +37,8 @@ import envStore from '#/envStore'
 import type { IconName } from '#/k-icons'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME_URL } from '#/users/utils'
-import { currentLang, isRtlLanguage } from '#/utils'
+import { currentLang } from '#/utils'
+import { isRtlLang } from 'rtl-detect'
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -145,7 +146,7 @@ export function getCountryDisplayString(asset: AssetResponse | ProjectViewAsset)
     }
 
     // RTL handling
-    const isRtl = isRtlLanguage(currentLang())
+    const isRtl = isRtlLang(currentLang())
 
     if (isRtl) {
       countries.reverse()
