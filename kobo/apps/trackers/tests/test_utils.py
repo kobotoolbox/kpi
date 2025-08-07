@@ -1,15 +1,14 @@
 from math import inf
 
+import pytest
 from ddt import data, ddt
-from django.test import override_settings
+from django.conf import settings
 from django.utils import timezone
-from djstripe.models import Charge, PaymentIntent, Price, Product
 from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
-from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
-from kobo.apps.stripe.tests.utils import generate_plan_subscription
+from kobo.apps.stripe.utils.import_management import requires_stripe
 from kobo.apps.trackers.utils import (
     get_organization_remaining_usage,
     update_nlp_counter,
@@ -38,7 +37,10 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         )
         self.asset.deploy(backend='mock', active=True)
 
-    def _create_product(self, product_metadata):
+    @requires_stripe
+    def _create_product(self, product_metadata, **kwargs):
+        Price = kwargs['price_model']
+        Product = kwargs['product_model']
         product = baker.make(
             Product,
             active=True,
@@ -48,12 +50,16 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         product.save()
         return product, price
 
+    @requires_stripe
     def _make_payment(
         self,
         price,
         customer,
         payment_status='succeeded',
+        **kwargs,
     ):
+        Charge = kwargs['charge_model']
+        PaymentIntent = kwargs['payment_intent_model']
         payment_total = 2000
         payment_intent = baker.make(
             PaymentIntent,
@@ -85,9 +91,13 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         charge.save()
         return charge
 
-    @data('characters', 'seconds')
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @data('mt_characters', 'asr_seconds')
     def test_organization_usage_utils(self, usage_type):
-        usage_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
+        from kobo.apps.stripe.tests.utils import generate_plan_subscription
+        usage_key = f'{usage_type}_limit'
         sub_metadata = {
             usage_key: '1000',
             'product_type': 'plan',
@@ -110,28 +120,28 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         assert remaining == total_limit
 
         update_nlp_counter(
-            USAGE_LIMIT_MAP[usage_type], 1000, self.someuser.id, self.asset.id
+            usage_type, 1000, self.someuser.id, self.asset.id
         )
 
         remaining = get_organization_remaining_usage(self.organization, usage_type)
         assert remaining == total_limit - 1000
 
         update_nlp_counter(
-            USAGE_LIMIT_MAP[usage_type], 1500, self.someuser.id, self.asset.id
+            usage_type, 1500, self.someuser.id, self.asset.id
         )
         remaining = get_organization_remaining_usage(self.organization, usage_type)
         assert remaining == total_limit - 2500
 
-    @override_settings(
-        STRIPE_ENABLED=False,
+    @pytest.mark.skipif(
+        settings.STRIPE_ENABLED, reason='Tests non-stripe functionality'
     )
-    @data('characters', 'seconds')
+    @data('mt_characters', 'asr_seconds')
     def test_org_usage_utils_without_stripe(self, usage_type):
         remaining = get_organization_remaining_usage(self.organization, usage_type)
         assert remaining == inf
 
         update_nlp_counter(
-            USAGE_LIMIT_MAP[usage_type], 10000, self.someuser.id, self.asset.id
+            usage_type, 10000, self.someuser.id, self.asset.id
         )
 
         remaining = get_organization_remaining_usage(self.organization, usage_type)

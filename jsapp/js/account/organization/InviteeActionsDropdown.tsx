@@ -30,7 +30,7 @@ export default function InviteeActionsDropdown({
       notify(t('The invitation was resent'), 'success')
     } catch (e: any) {
       if (e.status === 429 && e.headers?.get('Retry-After')) {
-        const minutes = Math.ceil(parseInt(e.headers.get('Retry-After')) / 60)
+        const minutes = Math.ceil(Number.parseInt(e.headers.get('Retry-After')) / 60)
         notify(
           t('Invitation resent too quickly, wait for ##MINUTES## minutes before retrying').replace(
             '##MINUTES##',

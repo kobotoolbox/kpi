@@ -1,30 +1,33 @@
+import assetStore from '#/assetStore'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import { getMediaAttachment, getQuestionXPath, getRowData } from '#/components/submissions/submissionUtils'
-import type { AssetContent, SubmissionAttachment } from '#/dataInterface'
+import type { SubmissionAttachment } from '#/dataInterface'
 import { convertSecondsToMinutes } from '#/utils'
 
 /**
  * Returns an error string or the attachment. It's basically a wrapper function
  * over `getMediaAttachment` for DRY purposes in `singleProcessingStore` context.
  */
-export function getAttachmentForProcessing(assetContent: AssetContent): string | SubmissionAttachment {
+export function getAttachmentForProcessing(): string | SubmissionAttachment {
   const errorMessage = 'Insufficient data'
+
+  const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid)
 
   const submissionData = singleProcessingStore.getSubmissionData()
   const currentQuestionName = singleProcessingStore.currentQuestionName
   // We need `assetContent` with survey, submission data, and question name to
   // go further.
-  if (!assetContent.survey || !submissionData || !currentQuestionName) {
+  if (!asset?.content?.survey || !submissionData || !currentQuestionName) {
     return errorMessage
   }
 
-  const rowData = getRowData(currentQuestionName, assetContent.survey, submissionData)
+  const rowData = getRowData(currentQuestionName, asset.content.survey, submissionData)
   // We need row data to go further. And we are expecting a string (filename).
   if (!rowData || typeof rowData !== 'string') {
     return errorMessage
   }
 
-  const questionXPath = getQuestionXPath(assetContent.survey, currentQuestionName)
+  const questionXPath = getQuestionXPath(asset.content.survey, currentQuestionName)
 
   return getMediaAttachment(submissionData, rowData, questionXPath)
 }

@@ -102,6 +102,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(metadata_dict['ip_address'], '127.0.0.1')
         self.assertEqual(metadata_dict['source'], 'source')
         self.assertEqual(metadata_dict['log_subtype'], expected_subtype)
+        self.assertEqual(metadata_dict['project_owner'], self.asset.owner.username)
 
     def _check_submission_log_metadata(
         self, metadata, expected_username, expected_root_uuid
@@ -110,7 +111,12 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(metadata['submission']['root_uuid'], expected_root_uuid)
 
     def _base_asset_detail_endpoint_test(
-        self, patch, url_name, request_data, expected_action, use_v2=True
+        self,
+        patch,
+        url_name,
+        request_data,
+        expected_action,
+        use_v2=True,
     ):
         url_name_prefix = 'api_v2:' if use_v2 else ''
         url = reverse(f'{url_name_prefix}{url_name}', kwargs={'uid': self.asset.uid})
@@ -130,13 +136,12 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     def _base_project_history_log_test(
         self, method, url, request_data, expected_action, expected_subtype
     ):
-        # requests are either patches or posts
-        # hit the endpoint with the correct data
         method(
             url,
             data=request_data,
             format='json',
         )
+
         self.asset.refresh_from_db()
 
         # make sure a log was created
@@ -737,8 +742,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                     'paired_data_uid': paired_data.paired_data_uid,
                 },
             ),
-            expected_action=AuditAction.DISCONNECT_PROJECT,
             request_data=None,
+            expected_action=AuditAction.DISCONNECT_PROJECT,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
         )
         self.assertEqual(log_metadata['paired-data']['source_name'], source.name)
@@ -770,8 +775,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                     'paired_data_uid': paired_data.paired_data_uid,
                 },
             ),
-            expected_action=AuditAction.MODIFY_IMPORTED_FIELDS,
             request_data={'fields': ['q2']},
+            expected_action=AuditAction.MODIFY_IMPORTED_FIELDS,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
         )
         self.assertEqual(log_metadata['paired-data']['source_name'], source.name)
@@ -827,8 +832,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                     'uid': media.uid,
                 },
             ),
-            expected_action=AuditAction.DELETE_MEDIA,
             request_data=None,
+            expected_action=AuditAction.DELETE_MEDIA,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
         )
         self.assertEqual(log_metadata['asset-file']['uid'], media.uid)
@@ -953,8 +958,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                     'parent_lookup_asset': self.asset.uid,
                 },
             ),
-            expected_action=AuditAction.EXPORT,
             request_data=request_data,
+            expected_action=AuditAction.EXPORT,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
         )
 
@@ -995,20 +1000,23 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     )
     @unpack
     def test_bulk_actions(self, bulk_action, audit_action):
-        assets = [Asset.objects.create(
-            content={
-                'survey': [
-                    {
-                        'type': 'text',
-                        'label': 'Question 1',
-                        'name': 'q1',
-                        '$kuid': 'abc',
-                    },
-                ]
-            },
-            owner=self.user,
-            asset_type='survey',
-        ) for i in range(0, 2)]
+        assets = [
+            Asset.objects.create(
+                content={
+                    'survey': [
+                        {
+                            'type': 'text',
+                            'label': 'Question 1',
+                            'name': 'q1',
+                            '$kuid': 'abc',
+                        },
+                    ]
+                },
+                owner=self.user,
+                asset_type='survey',
+            )
+            for i in range(0, 2)
+        ]
 
         for asset in assets:
             asset.deploy(backend='mock', active=True)
@@ -1017,8 +1025,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         if bulk_action == 'undelete':
             self._make_bulk_request(uids, 'delete')
-
-        self._make_bulk_request(uids, bulk_action)
+        else:
+            self._make_bulk_request(uids, bulk_action)
 
         if audit_action is None:
             self.assertEqual(ProjectHistoryLog.objects.count(), 0)

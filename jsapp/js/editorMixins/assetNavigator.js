@@ -179,8 +179,8 @@ class AssetNavigator extends Reflux.Component {
   }
 
   toggleTagSelected(tag) {
-    let tags = this.state.selectedTags
-    let _ti = tags.indexOf(tag)
+    const tags = this.state.selectedTags
+    const _ti = tags.indexOf(tag)
     if (_ti === -1) {
       tags.push(tag)
     } else {

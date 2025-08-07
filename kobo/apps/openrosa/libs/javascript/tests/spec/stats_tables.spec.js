@@ -1,6 +1,6 @@
-describe('Stats Tables', function () {
-  describe('SummaryStatsEnabled', function () {
-    it('returns true when method contains MEAN, MEDIAN or MODE', function () {
+describe('Stats Tables', () => {
+  describe('SummaryStatsEnabled', () => {
+    it('returns true when method contains MEAN, MEDIAN or MODE', () => {
       var result,
         summaryMethod = Ona.SummaryMethod.MEAN | Ona.SummaryMethod.MEDIAN | Ona.SummaryMethod.MODE
 
@@ -8,7 +8,7 @@ describe('Stats Tables', function () {
       expect(result).toBe(true)
     })
 
-    it('returns false when method doest contain any of MEAN, MEDIAN or MODE', function () {
+    it('returns false when method doest contain any of MEAN, MEDIAN or MODE', () => {
       var result,
         summaryMethod = 0
 
@@ -17,11 +17,11 @@ describe('Stats Tables', function () {
     })
   })
 
-  describe('Ona.SummaryMethodView', function () {
-    describe('setSummaryMethods', function () {
+  describe('Ona.SummaryMethodView', () => {
+    describe('setSummaryMethods', () => {
       var summaryMethodView
 
-      beforeEach(function () {
+      beforeEach(() => {
         summaryMethodView = new Ona.SummaryMethodView({
           model: new Backbone.Model({
             fields: new Backbone.Collection(),
@@ -33,13 +33,13 @@ describe('Stats Tables', function () {
         })
       })
 
-      it("should or the incoming value with the models current summary method's value", function () {
+      it("should or the incoming value with the models current summary method's value", () => {
         var currentValue = summaryMethodView.model.get('summary_methods')
         summaryMethodView.setSummaryMethods(Ona.SummaryMethod.MEAN, true)
         expect(summaryMethodView.model.get('summary_methods')).toEqual(currentValue | Ona.SummaryMethod.MEAN)
       })
 
-      it("should xor the incoming value with the models current summary method's value if setBit is false", function () {
+      it("should xor the incoming value with the models current summary method's value if setBit is false", () => {
         var currentValue = summaryMethodView.model.get('summary_methods')
         summaryMethodView.setSummaryMethods(Ona.SummaryMethod.MEAN, false)
         expect(summaryMethodView.model.get('summary_methods')).toEqual(currentValue ^ Ona.SummaryMethod.MEAN)
@@ -47,10 +47,10 @@ describe('Stats Tables', function () {
     })
   })
 
-  describe('Ona.StatsCollection', function () {
+  describe('Ona.StatsCollection', () => {
     var statsCollection
 
-    beforeEach(function () {
+    beforeEach(() => {
       var field = new FH.Field({
         type: 'integer',
         name: 'age',
@@ -64,8 +64,8 @@ describe('Stats Tables', function () {
       })
     })
 
-    describe('parse', function () {
-      it('only returns values for enabled stats', function () {
+    describe('parse', () => {
+      it('only returns values for enabled stats', () => {
         var parsedResponse = statsCollection.parse({
           age: {
             min: 0,
@@ -83,9 +83,9 @@ describe('Stats Tables', function () {
     })
   })
 
-  describe('Ona.TableBuilderView', function () {
-    describe('shouldDisableButton', function () {
-      it('should return true when selected field is undefined or no summary method is selected', function () {
+  describe('Ona.TableBuilderView', () => {
+    describe('shouldDisableButton', () => {
+      it('should return true when selected field is undefined or no summary method is selected', () => {
         var model = new Backbone.Model({
           selected_field: void 0,
           summary_methods: 0,
@@ -94,7 +94,7 @@ describe('Stats Tables', function () {
         expect(result).toBe(true)
       })
 
-      it('should return false when selected field is NOT undefined an at least one summary method is selected', function () {
+      it('should return false when selected field is NOT undefined an at least one summary method is selected', () => {
         var model = new Backbone.Model({
           selected_field: new FH.Field({
             name: 'age',
@@ -108,9 +108,9 @@ describe('Stats Tables', function () {
     })
   })
 
-  describe('Ona.FrequenciesCollection', function () {
-    describe('LabelsForSelect', function () {
-      it('should comma separate select multiples', function () {
+  describe('Ona.FrequenciesCollection', () => {
+    describe('LabelsForSelect', () => {
+      it('should comma separate select multiples', () => {
         var result,
           field = new FH.Field({
             name: 'browsers',
@@ -125,7 +125,7 @@ describe('Stats Tables', function () {
         expect(result).toEqual('Chrome, Internet Explorer')
       })
 
-      it("should return the requested language's label", function () {
+      it("should return the requested language's label", () => {
         var result,
           field = new FH.Field({
             name: 'browsers',

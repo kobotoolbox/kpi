@@ -127,24 +127,24 @@ actions.resources.createImport.listen((params, onCompleted, onFailed) => {
     })
 })
 
-actions.resources.createSnapshot.listen(function (details) {
+actions.resources.createSnapshot.listen((details) => {
   dataInterface
     .createAssetSnapshot(details)
     .done(actions.resources.createSnapshot.completed)
     .fail(actions.resources.createSnapshot.failed)
 })
 
-actions.resources.listTags.listen(function (data) {
+actions.resources.listTags.listen((data) => {
   dataInterface.listTags(data).done(actions.resources.listTags.completed).fail(actions.resources.listTags.failed)
 })
 
-actions.resources.listTags.completed.listen(function (results) {
+actions.resources.listTags.completed.listen((results) => {
   if (results.next) {
     Sentry.captureMessage('MAX_TAGS_EXCEEDED: Too many tags')
   }
 })
 
-actions.resources.updateAsset.listen(function (uid, values, params = {}) {
+actions.resources.updateAsset.listen((uid, values, params = {}) => {
   dataInterface
     .patchAsset(uid, values)
     .done((asset) => {
@@ -154,7 +154,7 @@ actions.resources.updateAsset.listen(function (uid, values, params = {}) {
       }
       notify(t('successfully updated'))
     })
-    .fail(function (resp) {
+    .fail((resp) => {
       actions.resources.updateAsset.failed(resp)
       if (params.onFailed) {
         params.onFailed(resp)
@@ -162,7 +162,7 @@ actions.resources.updateAsset.listen(function (uid, values, params = {}) {
     })
 })
 
-actions.resources.deployAsset.listen(function (asset, redeployment, params = {}) {
+actions.resources.deployAsset.listen((asset, redeployment, params = {}) => {
   dataInterface
     .deployAsset(asset, redeployment)
     .done((data) => {
@@ -179,7 +179,7 @@ actions.resources.deployAsset.listen(function (asset, redeployment, params = {})
     })
 })
 
-actions.resources.deployAsset.failed.listen(function (data, redeployment) {
+actions.resources.deployAsset.failed.listen((data, redeployment) => {
   // report the problem to the user
   let failure_message = null
 
@@ -217,7 +217,7 @@ actions.resources.deployAsset.failed.listen(function (data, redeployment) {
   alertify.alert(t('unable to deploy'), failure_message)
 })
 
-actions.resources.setDeploymentActive.listen(function (details, onComplete) {
+actions.resources.setDeploymentActive.listen((details, onComplete) => {
   dataInterface
     .setDeploymentActive(details)
     .done((data) => {
@@ -236,7 +236,7 @@ actions.resources.setDeploymentActive.completed.listen((result) => {
   }
 })
 
-actions.resources.getAssetFiles.listen(function (assetId, fileType) {
+actions.resources.getAssetFiles.listen((assetId, fileType) => {
   dataInterface
     .getAssetFiles(assetId, fileType)
     .done(actions.resources.getAssetFiles.completed)
@@ -309,7 +309,7 @@ actions.map = Reflux.createActions({
  * @param {string} assetUid
  * @param {object} mapStyles
  */
-actions.map.setMapStyles.listen(function (assetUid, mapStyles) {
+actions.map.setMapStyles.listen((assetUid, mapStyles) => {
   dataInterface
     .patchAsset(assetUid, { map_styles: mapStyles })
     .done((asset) => {
@@ -320,18 +320,18 @@ actions.map.setMapStyles.listen(function (assetUid, mapStyles) {
   actions.map.setMapStyles.started(assetUid, mapStyles)
 })
 
-actions.resources.createResource.listen(function (details) {
+actions.resources.createResource.listen((details) => {
   dataInterface
     .createResource(details)
-    .done(function (asset) {
+    .done((asset) => {
       actions.resources.createResource.completed(asset)
     })
-    .fail(function (...args) {
+    .fail((...args) => {
       actions.resources.createResource.failed(...args)
     })
 })
 
-actions.resources.deleteAsset.listen(function (details, params = {}) {
+actions.resources.deleteAsset.listen((details, params = {}) => {
   dataInterface
     .deleteAsset(details)
     .done(() => {
@@ -349,7 +349,7 @@ actions.resources.deleteAsset.listen(function (details, params = {}) {
     })
 })
 
-actions.resources.cloneAsset.listen(function (details, params = {}) {
+actions.resources.cloneAsset.listen((details, params = {}) => {
   dataInterface
     .cloneAsset(details)
     .done((asset) => {
@@ -364,16 +364,16 @@ actions.resources.cloneAsset.failed.listen(() => {
   notify(t('Could not create project!'), 'error')
 })
 
-actions.search.assets.listen(function (searchData, params = {}) {
+actions.search.assets.listen((searchData, params = {}) => {
   dataInterface
     .searchAssets(searchData)
-    .done(function (response) {
+    .done((response) => {
       actions.search.assets.completed(searchData, response)
       if (typeof params.onComplete === 'function') {
         params.onComplete(searchData, response)
       }
     })
-    .fail(function (response) {
+    .fail((response) => {
       actions.search.assets.failed(searchData, response)
       if (typeof params.onFailed === 'function') {
         params.onFailed(searchData, response)
@@ -381,7 +381,7 @@ actions.search.assets.listen(function (searchData, params = {}) {
     })
 })
 
-actions.auth.verifyLogin.listen(function () {
+actions.auth.verifyLogin.listen(() => {
   dataInterface
     .selfProfile()
     .done((data /*, msg, req*/) => {
@@ -424,7 +424,7 @@ actions.auth.getApiToken.failed.listen(() => {
 
 const assetCache = {}
 
-actions.resources.loadAsset.listen(function (params, refresh = false) {
+actions.resources.loadAsset.listen((params, refresh = false) => {
   // if we want to force-refresh the asset or if we don't have it cached, make an API call
   if (refresh || !(params.id in assetCache)) {
     // initialize the cache entry with an empty value, or evict stale cached entry for this asset
@@ -451,7 +451,7 @@ actions.resources.loadAsset.listen(function (params, refresh = false) {
   // the cache entry for this asset is currently loading, do nothing
 })
 
-actions.resources.updateSubmissionValidationStatus.listen(function (uid, sid, data) {
+actions.resources.updateSubmissionValidationStatus.listen((uid, sid, data) => {
   dataInterface
     .updateSubmissionValidationStatus(uid, sid, data)
     .done((result) => {

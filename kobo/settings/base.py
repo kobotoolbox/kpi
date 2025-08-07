@@ -452,6 +452,22 @@ CONSTANCE_CONFIG = {
         'having the system empty it automatically.',
         'positive_int_minus_one',
     ),
+    'ATTACHMENT_TRASH_GRACE_PERIOD': (
+        7,
+        'Number of days to keep attachments in trash after users (soft-)deleted '
+        'them and before automatically hard-deleting them by the system',
+        'positive_int',
+    ),
+    'AUTO_DELETE_ATTACHMENTS': (
+        False,
+        'Enable automatic deletion of attachments for users who have exceeded '
+        'their storage limits.'
+    ),
+    'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD': (
+        90,
+        'Number of days to keep attachments after the user has exceeded their '
+        'storage limits.'
+    ),
     # Toggle for ZXCVBN
     'ENABLE_PASSWORD_ENTROPY_METER': (
         True,
@@ -545,6 +561,11 @@ CONSTANCE_CONFIG = {
         ),
         'i18n_text_jsonfield_schema',
     ),
+    'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY': (
+        7,
+        'Number of days before enqueued mass email records are marked as failed.',
+        'positive_int',
+    ),
     'PROJECT_OWNERSHIP_RESUME_THRESHOLD': (
         10,
         'Number of minutes asynchronous tasks can be idle before being '
@@ -616,6 +637,11 @@ CONSTANCE_CONFIG = {
         True,
         'Use the term "Team" instead of "Organization" when Stripe is not enabled',
     ),
+    'MASS_EMAIL_TEST_EMAILS': (
+        '',
+        'List (one per line) users who will be sent test emails when using the \n'
+        '"test_users" query for MassEmailConfigs',
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -684,6 +710,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ACCESS_LOG_LIFESPAN',
         'PROJECT_HISTORY_LOG_LIFESPAN',
         'ORGANIZATION_INVITE_EXPIRY',
+        'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
+        'MASS_EMAIL_TEST_EMAILS',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -738,7 +766,10 @@ CONSTANCE_CONFIG_FIELDSETS = {
     ),
     'Trash bin': (
         'ACCOUNT_TRASH_GRACE_PERIOD',
+        'ATTACHMENT_TRASH_GRACE_PERIOD',
         'PROJECT_TRASH_GRACE_PERIOD',
+        'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD',
+        'AUTO_DELETE_ATTACHMENTS',
     ),
     'Regular maintenance settings': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
@@ -1260,6 +1291,12 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    # Schedule every 30 minutes
+    'attachment-cleanup-for-users-exceeding-limits': {
+        'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
+        'schedule': crontab(minute='*/30'),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
     # Schedule every day at midnight UTC
     'project-ownership-garbage-collector': {
         'task': 'kobo.apps.project_ownership.tasks.garbage_collector',
@@ -1284,9 +1321,32 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/15'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
-
+    # Schedule every day at midnight UTC
+    'mass-email-record-mark-as-failed': {
+        'task': 'kobo.apps.mass_emails.tasks.mark_old_enqueued_mass_email_record_as_failed', # noqa
+        'schedule': crontab(minute=0, hour=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    'mass-emails-send': {
+        'task': 'kobo.apps.mass_emails.tasks.send_emails',
+        'schedule': crontab(minute=1),
+        'options': {'queue': 'kpi_queue'},
+    },
+    'mass-emails-enqueue-records': {
+        'task': 'kobo.apps.mass_emails.tasks.generate_mass_email_user_lists',
+        'schedule': crontab(minute=0),
+        'options': {'queue': 'kpi_queue'},
+    }
 }
 
+if STRIPE_ENABLED:
+    # Schedule to run once per celery timeout
+    # with a five minute buffer
+    CELERY_BEAT_SCHEDULE['update-exceeded-limit-counters'] = {
+        'task': 'kobo.apps.stripe.tasks.update_exceeded_limit_counters',
+        'schedule': timedelta(seconds=CELERY_TASK_TIME_LIMIT + (60 * 5)),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    }
 
 CELERY_BROKER_TRANSPORT_OPTIONS = {
     'fanout_patterns': True,
@@ -1383,6 +1443,24 @@ if os.environ.get('EMAIL_PORT'):
 if os.environ.get('EMAIL_USE_TLS'):
     EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
 
+MAX_MASS_EMAILS_PER_DAY = 1000
+MASS_EMAIL_THROTTLE_PER_SECOND = 40
+MASS_EMAIL_SLEEP_SECONDS = 1
+# change the interval between "daily" email sends for testing. this will set both
+# the frequency of the task and the expiry time of the cached email limits. should
+# only be True on small testing instances
+MASS_EMAILS_CONDENSE_SEND = env.bool('MASS_EMAILS_CONDENSE_SEND', False)
+if MASS_EMAILS_CONDENSE_SEND:
+    CELERY_BEAT_SCHEDULE['mass-emails-send'] = {
+        'task': 'kobo.apps.mass_emails.tasks.send_emails',
+        'schedule': crontab(minute='1-59/5'),
+        'options': {'queue': 'kpi_queue'},
+    }
+    CELERY_BEAT_SCHEDULE['mass-emails-enqueue-records'] = {
+        'task': 'kobo.apps.mass_emails.tasks.generate_mass_email_user_lists',
+        'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'kpi_queue'},
+    }
 
 """ AWS configuration (email and storage) """
 if env.str('AWS_ACCESS_KEY_ID', False):
@@ -1843,7 +1921,8 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'text/csv',
     'application/xml',
     'application/zip',
-    'application/x-zip-compressed'
+    'application/x-zip-compressed',
+    'application/geo+json',
 ]
 
 # Silence Django Guardian warning. Authentication backend is hooked, but

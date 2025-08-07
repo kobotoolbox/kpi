@@ -2,7 +2,14 @@
  * The Project Management app bundle file. All the required setup is done here
  * plus it is the file that is handling the root rendering.
  */
+
+/**
+ * Import order matters, because for CSS selectors with equal specificy the last one applies.
+ * Notably, `line-length` mismatches between mantine default styles and main global scss styles.
+ * TODO: reconsile differences in the mantine config at `theme/kobo/index.ts`.
+ */
 import 'jquery-ui/ui/widgets/sortable'
+import '@mantine/core/styles.css'
 import '../scss/main.scss'
 
 import React from 'react'
@@ -52,7 +59,7 @@ moment.locale(currentLang())
 const gaTokenEl = document.head.querySelector('meta[name=google-analytics-token]')
 if (gaTokenEl !== null && gaTokenEl.content) {
   window.dataLayer = window.dataLayer || []
-  window.gtag = function () {
+  window.gtag = () => {
     window.dataLayer.push(arguments)
   }
   window.gtag('js', new Date())

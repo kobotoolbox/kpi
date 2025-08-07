@@ -95,7 +95,7 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormProps, ColumnsHideF
   }
 
   onFieldToggleChange(fieldId: string, isSelected: boolean) {
-    let newSelectedColumns = [...this.state.selectedColumns]
+    const newSelectedColumns = [...this.state.selectedColumns]
     if (isSelected) {
       newSelectedColumns.push(fieldId)
     } else {

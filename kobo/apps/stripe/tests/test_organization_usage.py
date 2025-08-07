@@ -1,7 +1,6 @@
 import calendar
 import timeit
-from datetime import datetime, timedelta
-from math import inf
+from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -18,15 +17,9 @@ from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
-from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
 from kobo.apps.stripe.tests.utils import (
-    generate_free_plan,
     generate_mmo_subscription,
     generate_plan_subscription,
-)
-from kobo.apps.stripe.utils import (
-    get_organization_plan_limit,
-    get_organization_plan_limits,
 )
 from kobo.apps.trackers.tests.submission_utils import (
     add_mock_submissions,
@@ -546,147 +539,6 @@ class OrganizationAssetUsageAPITestCase(AssetUsageAPITestCase):
         assert response.data['count'] == 2
 
 
-@ddt
-class OrganizationsUtilsTestCase(BaseTestCase):
-    fixtures = ['test_data']
-
-    def setUp(self):
-        self.organization = baker.make(
-            Organization, id='123456abcdef', name='test organization'
-        )
-        self.second_organization = baker.make(
-            Organization, id='abcdef123456', name='second test organization'
-        )
-        self.someuser = User.objects.get(username='someuser')
-        self.anotheruser = User.objects.get(username='anotheruser')
-        self.newuser = baker.make(User, username='newuser')
-        self.organization.add_user(self.anotheruser, is_admin=True)
-
-    def test_get_organization_plan_limits(self):
-        generate_free_plan()
-        product_metadata = {
-            'mt_characters_limit': '1234',
-            'product_type': 'plan',
-            'plan_type': 'enterprise',
-        }
-        generate_plan_subscription(self.organization, metadata=product_metadata)
-        product_metadata['mt_characters_limit'] = '5678'
-        generate_plan_subscription(self.second_organization, metadata=product_metadata)
-        all_limits = get_organization_plan_limits('characters')
-        assert all_limits[self.organization.id] == 1234
-        assert all_limits[self.second_organization.id] == 5678
-        other_orgs = Organization.objects.exclude(
-            id__in=[self.organization.id, self.second_organization.id]
-        )
-        for org in other_orgs:
-            assert all_limits[org.id] == 6000
-
-    @override_settings(STRIPE_ENABLED=False)
-    def test_get_organization_plan_limits_stripe_disabled_returns_inf(self):
-        all_limits = get_organization_plan_limits('submission')
-        for org in Organization.objects.all():
-            assert all_limits[org.id] == inf
-
-    def test_get_organization_plan_limits_prioritizes_price_metadata(self):
-        product_metadata = {
-            'mt_characters_limit': '1234',
-            'product_type': 'plan',
-            'plan_type': 'enterprise',
-        }
-        price_metadata = {
-            'mt_characters_limit': '5678',
-        }
-        generate_plan_subscription(
-            self.organization, metadata=product_metadata, price_metadata=price_metadata
-        )
-        limit = get_organization_plan_limit(self.organization, 'characters')
-        assert limit == 5678
-
-    def test_get_organization_plan_limits_takes_most_recent_active_plan(self):
-        product_metadata = {
-            'mt_characters_limit': '1234',
-            'product_type': 'plan',
-            'plan_type': 'enterprise',
-        }
-        yesterday = datetime.now() - timedelta(days=1)
-        early_sub = generate_plan_subscription(
-            self.organization, metadata=product_metadata
-        )
-        early_sub.start_date = yesterday
-
-        product_metadata['mt_characters_limit'] = '5678'
-        generate_plan_subscription(self.organization, metadata=product_metadata)
-
-        # mock a canceled subscription
-        product_metadata['mt_characters_limit'] = '91011'
-        generate_plan_subscription(
-            self.organization, metadata=product_metadata, status='canceled'
-        )
-        limit = get_organization_plan_limit(self.organization, 'characters')
-
-        assert limit == 5678
-
-    def test_get_plan_community_limit(self):
-        generate_free_plan()
-        limit = get_organization_plan_limit(self.organization, 'seconds')
-        assert limit == 600
-        limit = get_organization_plan_limit(self.organization, 'characters')
-        assert limit == 6000
-
-    @data('characters', 'seconds')
-    def test_get_subscription_limit(self, usage_type):
-        stripe_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
-        product_metadata = {
-            stripe_key: '1234',
-            'product_type': 'plan',
-            'plan_type': 'enterprise',
-        }
-        generate_plan_subscription(self.organization, metadata=product_metadata)
-        limit = get_organization_plan_limit(self.organization, usage_type)
-        assert limit == 1234
-
-    # Currently submissions and storage are the only usage types that can be
-    # 'unlimited'
-    @data('submission', 'storage')
-    def test_get_subscription_limit_unlimited(self, usage_type):
-        stripe_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
-        product_metadata = {
-            stripe_key: 'unlimited',
-            'product_type': 'plan',
-            'plan_type': 'enterprise',
-        }
-        generate_plan_subscription(self.organization, metadata=product_metadata)
-        limit = get_organization_plan_limit(self.organization, usage_type)
-        assert limit == float('inf')
-
-    def test_get_addon_subscription_default_limits(self):
-        generate_free_plan()
-        product_metadata = {
-            'product_type': 'addon',
-        }
-        generate_plan_subscription(self.organization, metadata=product_metadata)
-        limit = get_organization_plan_limit(self.organization, 'seconds')
-        assert limit == 600
-        limit = get_organization_plan_limit(self.organization, 'characters')
-        assert limit == 6000
-
-    def test_get_addon_subscription_limits(self):
-        generate_free_plan()
-        characters_key = f'{USAGE_LIMIT_MAP["characters"]}_limit'
-        seconds_key = f'{USAGE_LIMIT_MAP["seconds"]}_limit'
-        product_metadata = {
-            'product_type': 'addon',
-            characters_key: 1234,
-            seconds_key: 123,
-        }
-        generate_plan_subscription(self.organization, metadata=product_metadata)
-        limit = get_organization_plan_limit(self.organization, 'seconds')
-        assert limit == 123
-        limit = get_organization_plan_limit(self.organization, 'characters')
-        assert limit == 1234
-
-
-@override_settings(STRIPE_ENABLED=True)
 class OrganizationsModelIntegrationTestCase(BaseTestCase):
     fixtures = ['test_data']
 

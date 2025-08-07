@@ -10,6 +10,7 @@ $avatar-size-m: 32px;
 
   .initials {
     width: $size;
+    min-width: $size; // Avoids the initials to shrink (was happening in some cases)
     height: $size;
     border-radius: $size;
     line-height: $size;

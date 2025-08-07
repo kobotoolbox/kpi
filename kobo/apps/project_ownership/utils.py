@@ -103,22 +103,21 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
     # Moving files is pretty slow, thus it should run in a celery task.
     errors = False
     for attachment in attachments.iterator():
+        update_fields = ['user_id']
         media_file_path = attachment.media_file.name
-        if not (
+        if (
             target_folder := get_target_folder(
                 transfer.invite.sender.username,
                 transfer.invite.recipient.username,
-                attachment.media_file.name,
+                media_file_path,
             )
         ):
-            continue
-        else:
             # There is no way to ensure atomicity when moving the file and saving the
             # object to the database. Fingers crossed that the process doesn't get
             # interrupted between these two operations.
             if attachment.media_file.move(target_folder):
+                update_fields.append('media_file')
                 _delete_thumbnails(media_file_path)
-                attachment.save(update_fields=['media_file'])
             else:
                 errors = True
                 logging.error(
@@ -126,7 +125,10 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
                     f'could not be moved to {target_folder}'
                 )
 
-            heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
+        attachment.user_id = transfer.invite.recipient.pk
+        attachment.save(update_fields=update_fields)
+
+        heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
 
     if errors:
         raise AsyncTaskException('Some attachments could not be moved')

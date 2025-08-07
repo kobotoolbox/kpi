@@ -152,6 +152,7 @@ const AddOnList = (props: {
               setIsBusy={props.setIsBusy}
               subscribedAddOns={subscribedAddOns}
               organization={props.organization}
+              isRecurring
             />
           )}
           {!!oneTimeAddOnProducts.length && (

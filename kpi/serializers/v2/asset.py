@@ -7,7 +7,7 @@ from typing import Optional
 from constance import config
 from django.conf import settings
 from django.db import transaction
-from django.db.models import F, QuerySet
+from django.db.models import F
 from django.utils.translation import gettext as t
 from django.utils.translation import ngettext as nt
 from django_request_cache import cache_for_request
@@ -15,7 +15,6 @@ from rest_framework import exceptions, serializers
 from rest_framework.fields import empty
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
-from rest_framework.utils.serializer_helpers import ReturnList
 
 from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.organizations.utils import get_real_owner
@@ -47,7 +46,6 @@ from kpi.fields import (
 )
 from kpi.models import (
     Asset,
-    AssetExportSettings,
     AssetVersion,
     ObjectPermission,
     UserAssetSubscription,
@@ -91,22 +89,23 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         delete_request, put_back_ = self._get_action_type_and_direction(
             validated_data['payload']
         )
-        extra_params = {}
-        if asset_uids := validated_data['payload'].get('asset_uids'):
-            extra_params['asset_uids'] = asset_uids
-        else:
-            extra_params['owner'] = self.__user
 
-        queryset, projects_count = ProjectTrash.toggle_asset_statuses(
-            active=put_back_,
-            toggle_delete=delete_request,
-            **extra_params,
-        )
-        validated_data['project_counts'] = projects_count
+        if not (asset_uids := validated_data['payload'].get('asset_uids')):
+            asset_uids = list(
+                Asset.objects.values_list('uid', flat=True).filter(
+                    owner=self.__user
+                )
+            )
 
         if delete_request:
-            self._toggle_trash(queryset, put_back_)
-
+            queryset, projects_count = self._toggle_trash(asset_uids, put_back_)
+        else:
+            queryset, projects_count = ProjectTrash.toggle_statuses(
+                object_identifiers=asset_uids,
+                active=put_back_,
+                toggle_delete=delete_request,
+            )
+        validated_data['project_counts'] = projects_count
         return validated_data
 
     def validate_payload(self, payload: dict) -> dict:
@@ -158,7 +157,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
     def _create_tasks(self, assets: list[dict]):
         try:
-            move_to_trash(
+            return move_to_trash(
                 self.__user, assets, config.PROJECT_TRASH_GRACE_PERIOD, 'asset'
             )
         except TrashIntegrityError:
@@ -170,7 +169,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
     def _delete_tasks(self, assets: list[dict]):
         try:
-            put_back(self.__user, assets, 'asset')
+            return put_back(self.__user, assets, 'asset')
         except TrashTaskInProgressError:
             raise serializers.ValidationError(
                 {'detail': t('One or many projects are already being deleted!')}
@@ -226,8 +225,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         if objects_count != len(asset_uids):
             raise exceptions.PermissionDenied()
 
-    def _toggle_trash(self, queryset: QuerySet, put_back_: bool):
-
+    def _toggle_trash(self, asset_uids: list[str], put_back_: bool):
         # The main goal of the annotation below is to pass always the same
         # metadata attributes to AuditLog model whatever the model and the action.
         # `self._delete_tasks and self._create_tasks` both call utilities which
@@ -236,14 +234,14 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         # E.g: retrieve all actions on asset 'aSWwcERCgsGTsgIx` would be done
         # with `q=metadata__asset_uid:aSWwcERCgsGTsgIx`. It will return
         # all delete submissions and action on the asset itself.
-        assets = queryset.annotate(
+        assets = Asset.all_objects.filter(uid__in=asset_uids).annotate(
             asset_uid=F('uid'), asset_name=F('name')
         ).values('pk', 'asset_uid', 'asset_name')
 
         if put_back_:
-            self._delete_tasks(assets)
+            return self._delete_tasks(assets)
         else:
-            self._create_tasks(assets)
+            return self._create_tasks(assets)
 
     def _validate_action(self, payload: dict):
         try:
@@ -322,7 +320,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     permissions = serializers.SerializerMethodField()
     effective_permissions = serializers.SerializerMethodField()
     exports = serializers.SerializerMethodField()
-    export_settings = serializers.SerializerMethodField()
+    export_settings = AssetExportSettingsSerializer(
+        many=True, read_only=True, source='asset_export_settings'
+    )
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.CharField(read_only=True)
     version__content_hash = serializers.CharField(read_only=True)
@@ -343,7 +343,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployment__uuid = serializers.SerializerMethodField()
     deployment_status = serializers.SerializerMethodField()
     data = serializers.SerializerMethodField()
-
     # Only add link instead of hooks list to avoid multiple access to DB.
     hooks_link = serializers.SerializerMethodField()
 
@@ -416,13 +415,12 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             'paired_data',
             'project_ownership',
             'owner_label',
+            'last_modified_by'
         )
+        read_only_fields = ('last_modified_by', 'uid')
         extra_kwargs = {
             'parent': {
                 'lookup_field': 'uid',
-            },
-            'uid': {
-                'read_only': True,
             },
         }
 
@@ -781,14 +779,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             request=self.context.get('request', None),
         )
 
-    def get_export_settings(self, obj: Asset) -> ReturnList:
-        return AssetExportSettingsSerializer(
-            AssetExportSettings.objects.filter(asset=obj),
-            many=True,
-            read_only=True,
-            context=self.context,
-        ).data
-
     def get_access_types(self, asset):
         """
         Handles the detail endpoint but also takes advantage of the
@@ -1079,6 +1069,7 @@ class AssetListSerializer(AssetSerializer):
             'children',
             'data_sharing',
             'owner_label',
+            'last_modified_by',
         )
 
     def get_permissions(self, asset):
@@ -1187,6 +1178,7 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'asset_type',
             'downloads',
             'owner_label',
+            'last_modified_by',
         )
 
     def get_deployment__submission_count(self, obj: Asset) -> int:

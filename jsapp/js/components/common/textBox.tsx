@@ -59,7 +59,6 @@ interface TextBoxProps {
   /** Additional class name */
   className?: string
   disableAutocomplete?: boolean
-  'data-cy'?: string
   /** Gives focus to the input immediately after rendering */
   renderFocused?: boolean
 }
@@ -114,7 +113,7 @@ export default function TextBox(props: TextBoxProps) {
     rootClassNames.push(props.className)
   }
 
-  let size: TextBoxSize = props.size || DefaultSize
+  const size: TextBoxSize = props.size || DefaultSize
   switch (size) {
     case 'l':
       rootClassNames.push(styles.sizeL)
@@ -161,7 +160,6 @@ export default function TextBox(props: TextBoxProps) {
     readOnly: props.readOnly,
     disabled: props.disabled,
     required: props.required,
-    'data-cy': props['data-cy'],
     // For `number` type we allow only positive integers
     step: props.type === 'number' ? 1 : undefined,
     min: props.type === 'number' ? 0 : undefined,

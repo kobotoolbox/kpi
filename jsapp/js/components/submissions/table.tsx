@@ -20,11 +20,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanPartially, userHasPermForSubmission } from '#/components/permissions/utils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
-import {
-  getMediaAttachment,
-  getRepeatGroupAnswers,
-  getSupplementalDetailsContent,
-} from '#/components/submissions/submissionUtils'
+import { getMediaAttachment, getSupplementalDetailsContent } from '#/components/submissions/submissionUtils'
 import type {
   DataTableSelectedRows,
   ReactTableInstance,
@@ -94,7 +90,9 @@ import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
 import { stores } from '#/stores'
-import { formatTimeDateShort, removeDefaultUuidPrefix } from '#/utils'
+import { formatTimeDateShort } from '#/utils'
+import LimitNotifications from '../usageLimits/limitNotifications.component'
+import RepeatGroupCell from './RepeatGroupCell'
 import AudioCell from './audioCell'
 import MediaCell from './mediaCell'
 
@@ -191,7 +189,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       actions.table.updateSettings.completed.listen(this.onTableUpdateSettingsCompleted.bind(this)),
       actions.resources.deleteSubmission.completed.listen(this.refreshSubmissions.bind(this)),
       actions.resources.duplicateSubmission.completed.listen(this.onDuplicateSubmissionCompleted.bind(this)),
-      actions.resources.refreshTableSubmissions.completed.listen(this.refreshSubmissions.bind(this)),
+      // Note: this action is not async, so we don't need to listen for `completed`
+      actions.resources.refreshTableSubmissions.listen(this.refreshSubmissions.bind(this)),
       actions.submissions.getSubmissions.completed.listen(this.onGetSubmissionsCompleted.bind(this)),
       actions.submissions.getSubmissions.failed.listen(this.onGetSubmissionsFailed.bind(this)),
       actions.submissions.bulkDeleteStatus.completed.listen(this.onBulkChangeCompleted.bind(this)),
@@ -370,7 +369,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * @returns {object} one of ValidationStatusOption
    */
   getCurrentValidationStatusOption(originalRow: SubmissionResponse): ValidationStatusOption {
-    const foundOption = VALIDATION_STATUS_OPTIONS.find((option) => option.value === originalRow._validation_status?.uid)
+    const foundOption = VALIDATION_STATUS_OPTIONS.find(
+      (option) => 'uid' in originalRow._validation_status && option.value === originalRow._validation_status.uid,
+    )
 
     // If submission doesn't have a validation status, we return the no option option :)
     return foundOption || VALIDATION_STATUS_NO_OPTION
@@ -380,12 +381,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * Callback for dropdown.
    */
   onValidationStatusChange(sid: string, newValidationStatus: ValidationStatusOptionName) {
-    const _this = this
-
     if (newValidationStatus === ValidationStatusAdditionalName.no_status) {
-      actions.resources.removeSubmissionValidationStatus(_this.props.asset.uid, sid)
+      actions.resources.removeSubmissionValidationStatus(this.props.asset.uid, sid)
     } else {
-      actions.resources.updateSubmissionValidationStatus(_this.props.asset.uid, sid, {
+      actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, sid, {
         'validation_status.uid': newValidationStatus,
       })
     }
@@ -594,7 +593,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       className: elClassNames.join(' '),
       headerClassName: elClassNames.join(' '),
       Filter: ({ filter, onChange }) => {
-        let currentOption: ValidationStatusOption =
+        const currentOption: ValidationStatusOption =
           VALIDATION_STATUS_OPTIONS.find((item) => item.value === filter?.value) || VALIDATION_STATUS_SHOW_ALL_OPTION
 
         return (
@@ -841,28 +840,20 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           )
 
           if (typeof row.value === 'object' && !key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
-            const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key)
-            if (repeatGroupAnswers) {
-              // display a list of answers from a repeat group question
-              return (
-                <span className='trimmed-text' dir='auto'>
-                  {repeatGroupAnswers.join(', ')}
-                </span>
-              )
-            } else {
-              return ''
-            }
+            return <RepeatGroupCell submissionData={row.original} rowName={key} />
           }
 
           if (q && q.type && row.value) {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
               let mediaAttachment = null
 
-              let attachmentIndex: number = row.original._attachments.findIndex((attachment: SubmissionAttachment) => {
-                const attachmentFileNameEnd = attachment.filename.split('/').pop()
-                const normalizedRowValue = row.value.replace(/ /g, '_')
-                return attachmentFileNameEnd === normalizedRowValue
-              })
+              const attachmentIndex: number = row.original._attachments.findIndex(
+                (attachment: SubmissionAttachment) => {
+                  const attachmentFileNameEnd = attachment.filename.split('/').pop()
+                  const normalizedRowValue = row.value.replace(/ /g, '_')
+                  return attachmentFileNameEnd === normalizedRowValue
+                },
+              )
 
               if (q.type !== QUESTION_TYPES.text.id && row.original._attachments[attachmentIndex]) {
                 mediaAttachment = getMediaAttachment(
@@ -873,14 +864,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               }
 
               if (q.type === QUESTION_TYPES.audio.id || q.type === QUESTION_TYPES['background-audio'].id) {
-                const submissionEditId = removeDefaultUuidPrefix(row.original['meta/rootUuid']) || row.original._uuid
-
                 if (mediaAttachment !== null && q.$xpath !== undefined) {
                   return (
                     <AudioCell
                       assetUid={this.props.asset.uid}
                       xpath={q.$xpath}
-                      submissionEditId={submissionEditId}
+                      submissionData={row.original}
                       mediaAttachment={mediaAttachment}
                     />
                   )
@@ -895,9 +884,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                     mediaName={row.value}
                     submissionIndex={row.index + 1}
                     submissionTotal={this.state.submissions.length}
-                    assetUid={this.props.asset.uid}
-                    xpath={q.$xpath}
-                    submissionUuid={row.original._uuid}
+                    submissionData={row.original}
+                    asset={this.props.asset}
                   />
                 )
               }
@@ -917,7 +905,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             if (q && q.type === QUESTION_TYPES.select_multiple.id && row.value && !tableStore.getTranslationIndex()) {
               const values = row.value.split(' ')
               const labels: string[] = []
-              values.forEach(function (valueItem: string) {
+              values.forEach((valueItem: string) => {
                 const choice = choices.find(
                   (choiceItem) => choiceItem.list_name === q?.select_from_list_name && choiceItem.name === valueItem,
                 )
@@ -1063,7 +1051,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   onSubmissionValidationStatusChange(result: ValidationStatusResponse, sid: string) {
     if (sid) {
-      const subIndex = this.state.submissions.findIndex((x) => x._id === parseInt(sid))
+      const subIndex = this.state.submissions.findIndex((x) => x._id === Number.parseInt(sid))
       if (typeof subIndex !== 'undefined' && this.state.submissions[subIndex]) {
         const newData = this.state.submissions
         newData[subIndex]._validation_status = result || {}
@@ -1152,7 +1140,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   submissionModalProcessing(
     sid: string,
     submissions: SubmissionResponse[],
-    isDuplicated: boolean = false,
+    isDuplicated = false,
     duplicatedSubmission: SubmissionResponse | null = null,
   ) {
     const ids = submissions.map((item) => item._id)
@@ -1253,7 +1241,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    */
   bulkSelectAllRows(isChecked: boolean) {
     const s = this.state.selectedRows
-    this.state.submissions.forEach(function (r) {
+    this.state.submissions.forEach((r) => {
       if (isChecked) {
         s[r._id] = true
       } else {
@@ -1288,7 +1276,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   bulkSelectAll() {
     // make sure all rows on current page are selected
     const s = this.state.selectedRows
-    this.state.submissions.forEach(function (r) {
+    this.state.submissions.forEach((r) => {
       s[r._id] = true
     })
 
@@ -1399,6 +1387,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     }
     return (
       <bem.FormView m={formViewModifiers}>
+        <bem.FormView__item m='banner-container'>
+          <LimitNotifications />
+        </bem.FormView__item>
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
           {userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) && (
             <ColumnsHideDropdown
@@ -1431,7 +1422,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             />
           </bem.FormView__item>
         </bem.FormView__group>
-
         <ReactTable
           data={this.state.submissions}
           columns={this.state.columns}

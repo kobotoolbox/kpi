@@ -23,7 +23,7 @@ interface AudioPlayerProps {
   /** Pass it to show a filename above the player. */
   filename?: string
   mediaURL: string
-  'data-cy'?: string
+  rightHeaderSection?: React.ReactNode
 }
 
 interface AudioPlayerState {
@@ -100,10 +100,10 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
   }
 
   onPlayStatusChange() {
-    if (!this.state.isPlaying) {
-      this.audioInterface.play()
-    } else {
+    if (this.state.isPlaying) {
       this.audioInterface.pause()
+    } else {
+      this.audioInterface.play()
     }
 
     this.setState({
@@ -112,10 +112,10 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
   }
 
   onSeekChange(newTime: string) {
-    this.audioInterface.currentTime = parseInt(newTime)
+    this.audioInterface.currentTime = Number.parseInt(newTime)
 
     this.setState({
-      currentTime: parseInt(newTime),
+      currentTime: Number.parseInt(newTime),
     })
   }
 
@@ -128,6 +128,10 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
               <Icon name='file-audio' size='m' />
             </bem.AudioPlayer__nameIcon>
             <label>{this.name}</label>
+
+            {this.props.rightHeaderSection && (
+              <div className='audio-player__name__right-section'>{this.props.rightHeaderSection}</div>
+            )}
           </bem.AudioPlayer__name>
         )}
         <bem.AudioPlayer__controls>
@@ -136,7 +140,6 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
             startIcon={this.state.isPlaying ? 'pause' : 'caret-right'}
             size='l'
             onClick={this.onPlayStatusChange.bind(this)}
-            data-cy='audio player pauseplay'
           />
         </bem.AudioPlayer__controls>
 
@@ -152,7 +155,7 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
 
   render() {
     return (
-      <bem.AudioPlayer data-cy={this.props['data-cy']}>
+      <bem.AudioPlayer>
         {this.state.isLoading && <LoadingSpinner />}
         {!this.state.isLoading && this.state.isBroken && (
           <InlineMessage type='error' message={t('Could not load media file')} />

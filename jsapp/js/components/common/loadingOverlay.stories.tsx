@@ -1,5 +1,5 @@
 import { Button, Card, Center, LoadingOverlay, PasswordInput, Stack, Text, TextInput } from '@mantine/core'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
 
 /**
  * Mantine [LoadingOverlay](https://mantine.dev/core/loading-overlay/) component stories.
@@ -7,7 +7,7 @@ import type { Meta, StoryObj } from '@storybook/react'
  * Component used to display an overlay  over the sibling content containing the Loader component
  */
 const meta: Meta<typeof LoadingOverlay> = {
-  title: 'Common/LoadingOverlay',
+  title: 'Design system/LoadingOverlay',
   component: LoadingOverlay,
   decorators: [
     (Story) => (
@@ -33,6 +33,7 @@ const meta: Meta<typeof LoadingOverlay> = {
       control: 'boolean',
     },
   },
+  parameters: { a11y: { test: 'todo' } },
 }
 
 type Story = StoryObj<typeof LoadingOverlay>

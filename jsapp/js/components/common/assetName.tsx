@@ -8,7 +8,6 @@ import { hasLongWords } from '#/textUtils'
 
 interface AssetNameProps {
   asset: AssetResponse | ProjectViewAsset
-  'data-cy'?: string
 }
 
 /**
@@ -49,9 +48,6 @@ export default class AssetName extends React.Component<AssetNameProps> {
     }
 
     const additionalAttributes: { [attr: string]: string } = {}
-    if (this.props['data-cy']) {
-      additionalAttributes['data-cy'] = this.props['data-cy']
-    }
 
     return (
       <span className={classNames.join(' ')} {...additionalAttributes}>

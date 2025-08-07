@@ -1,7 +1,9 @@
 @use 'scss/colors';
+@use 'scss/mixins';
 
 .media-cell {
-  text-align: center;
+  @include mixins.centerRowFlex;
+  justify-content: space-between;
 
   .icon-wrapper {
     .icon-wrapper__icon {
@@ -22,4 +24,8 @@
   .media-cell__duration {
     vertical-align: top;
   }
+}
+
+.media-cell__text {
+  @include mixins.textEllipsis;
 }

@@ -6,7 +6,6 @@ from urllib.parse import quote as urlquote
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db import models
-from django.utils import timezone
 from django.utils.http import urlencode
 
 from kobo.apps.kobo_auth.models import User
@@ -58,10 +57,7 @@ class AttachmentDefaultManager(models.Manager):
 
 
 class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
-    # Mimic KpiUidField behaviour with _null=True
-    # TODO: remove _null=True after the long running migration 0007 has
-    # run and been completed
-    uid = KpiUidField(uid_prefix='att', _null=True)
+    uid = KpiUidField(uid_prefix='att')
     instance = models.ForeignKey(
         Instance, related_name='attachments', on_delete=models.CASCADE
     )
@@ -87,25 +83,14 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
         XForm,
         related_name='attachments',
         on_delete=models.CASCADE,
-        null=True,
-        blank=True,
         db_index=True,
     )
     user = models.ForeignKey(
         User,
         related_name='attachments',
         on_delete=models.CASCADE,
-        null=True,
-        blank=True,
         db_index=True,
     )
-
-    # Override these two fields from AbstractTimeStampedModel to ensure they are
-    # nullable and not backfilled with the current timestamp when the migration runs.
-    # TODO: remove in future release after the long running migration 0007 has run
-    # and been completed
-    date_created = models.DateTimeField(null=True, blank=True)
-    date_modified = models.DateTimeField(null=True, blank=True)
     hash = models.CharField(null=True, max_length=64)
 
     objects = AttachmentDefaultManager()
@@ -211,18 +196,16 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
             if not self.hash:
                 self.hash = self.get_hash()
 
-        # Denormalize xform and user
-        if (
-            values := Instance.objects.select_related('xform')
-            .filter(pk=self.instance_id)
-            .values('xform_id', 'xform__user_id')
-            .first()
-        ):
-            self.xform_id = values['xform_id']
-            self.user_id = values['xform__user_id']
-
-        if not self.pk:
-            self.date_created = self.date_modified = timezone.now()
+        if not (self.xform_id and self.user_id):
+            # Denormalize xform and user
+            if (
+                values := Instance.objects.select_related('xform')
+                .filter(pk=self.instance_id)
+                .values('xform_id', 'xform__user_id')
+                .first()
+            ):
+                self.xform_id = values['xform_id']
+                self.user_id = values['xform__user_id']
 
         super().save(*args, **kwargs)
 

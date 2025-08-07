@@ -389,6 +389,18 @@ class SubmissionPermission(AssetNestedObjectPermission):
         return user_permissions
 
 
+class AttachmentDeletionPermission(SubmissionPermission):
+    """
+    Permissions for deleting attachments.
+    To delete an attachment, the user must have permission to edit the submission.
+    """
+
+    perms_map = {
+        'GET': ['%(app_label)s.view_%(model_name)s'],
+        'DELETE': ['%(app_label)s.change_%(model_name)s'],
+    }
+
+
 class AssetExportSettingsPermission(SubmissionPermission):
     perms_map = {
         'GET': ['%(app_label)s.view_submissions'],

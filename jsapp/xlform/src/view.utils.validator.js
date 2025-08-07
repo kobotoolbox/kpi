@@ -1,5 +1,4 @@
 /* global viewUtils */
-'use strict'
 
 /*
     Options:
@@ -8,24 +7,16 @@
             failureMessage:string - the message passed to the callback when validation fails
             args:array - additional arguments to pass into the validation function
 */
-module.exports = (function () {
-  return (function () {
+module.exports = (() =>
+  (() => {
     var singleton = {
-      create: function (options) {
-        return new Validator(options)
-      },
+      create: (options) => new Validator(options),
       __validators: {
-        invalidChars: function (value, chars) {
+        invalidChars: (value, chars) => {
           var matcher = new RegExp('[' + chars + ']')
           return !matcher.test(value)
         },
-        unique: function (value, list) {
-          return (
-            _.filter(list, function (item) {
-              return item === value
-            }).length === 0
-          )
-        },
+        unique: (value, list) => _.filter(list, (item) => item === value).length === 0,
       },
     }
 
@@ -52,5 +43,4 @@ module.exports = (function () {
     }
 
     return singleton
-  })()
-})()
+  })())()

@@ -1,9 +1,8 @@
-import { forwardRef } from 'react'
-
-import { ActionIcon as ActionIconMantine } from '@mantine/core'
+import { ActionIcon as ActionIconMantine, createPolymorphicComponent } from '@mantine/core'
 import type { ActionIconProps as ActionIconPropsMantine } from '@mantine/core/lib/components'
+import { forwardRef } from 'react'
 import type { IconName } from '#/k-icons'
-import Icon, { IconSize } from './icon'
+import Icon, { type IconSize } from './icon'
 
 export interface ActionIconProps extends Omit<ActionIconPropsMantine, 'size'> {
   iconName: IconName
@@ -20,5 +19,6 @@ const ActionIcon = forwardRef<HTMLButtonElement, ActionIconProps>(({ iconName, .
     </ActionIconMantine>
   )
 })
+ActionIcon.displayName = 'ActionIcon'
 
-export default ActionIcon
+export default createPolymorphicComponent<'button', ActionIconProps>(ActionIcon)

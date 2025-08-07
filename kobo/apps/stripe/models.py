@@ -3,17 +3,16 @@ from typing import List
 from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.db.models import IntegerField, Sum
+from django.db.models import IntegerField, Q, Sum
 from django.db.models.functions import Cast, Coalesce
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from djstripe.enums import PaymentIntentStatus
 from djstripe.models import Charge, Price, Subscription
 
+from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
-from kobo.apps.organizations.types import UsageType
-from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, USAGE_LIMIT_MAP
-from kobo.apps.stripe.utils import get_default_add_on_limits
+from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
+from kobo.apps.stripe.utils.subscription_limits import get_default_add_on_limits
 from kpi.fields import KpiUidField
 from kpi.utils.django_orm_helper import DeductUsageValue
 
@@ -121,6 +120,85 @@ class PlanAddOn(models.Model):
         return add_on_created
 
     @staticmethod
+    def get_limits_remaining_field(usage_type):
+        return f'limits_remaining__{usage_type}_limit'
+
+    @staticmethod
+    def get_usage_limits_field(usage_type):
+        return f'usage_limits__{usage_type}_limit'
+
+    @staticmethod
+    def get_organizations_totals(organizations: list['Organization'] = None):
+        organizations_filter = Q()
+        if organizations is not None:
+            organizations_filter = Q(
+                organization__id__in=[org.id for org in organizations]
+            )
+        all_add_on_totals = (
+            PlanAddOn.objects.filter(organizations_filter & Q(charge__refunded=False))
+            .values('organization_id')
+            .annotate(
+                asr_seconds_remaining=Coalesce(
+                    Sum(
+                        Cast(
+                            PlanAddOn.get_limits_remaining_field(UsageType.ASR_SECONDS),
+                            output_field=IntegerField(),
+                        )
+                    ),
+                    0,
+                ),
+                total_asr_seconds_limit=Coalesce(
+                    Sum(
+                        Cast(
+                            PlanAddOn.get_usage_limits_field(UsageType.ASR_SECONDS),
+                            output_field=IntegerField(),
+                        )
+                    ),
+                    0,
+                ),
+                mt_characters_remaining=Coalesce(
+                    Sum(
+                        Cast(
+                            PlanAddOn.get_limits_remaining_field(
+                                UsageType.MT_CHARACTERS
+                            ),
+                            output_field=IntegerField(),
+                        )
+                    ),
+                    0,
+                ),
+                total_mt_characters_limit=Coalesce(
+                    Sum(
+                        Cast(
+                            PlanAddOn.get_usage_limits_field(UsageType.MT_CHARACTERS),
+                            output_field=IntegerField(),
+                        )
+                    ),
+                    0,
+                ),
+                submission_remaining=Coalesce(
+                    Sum(
+                        Cast(
+                            PlanAddOn.get_limits_remaining_field(UsageType.SUBMISSION),
+                            output_field=IntegerField(),
+                        )
+                    ),
+                    0,
+                ),
+                total_submission_limit=Coalesce(
+                    Sum(
+                        Cast(
+                            PlanAddOn.get_usage_limits_field(UsageType.SUBMISSION),
+                            output_field=IntegerField(),
+                        )
+                    ),
+                    0,
+                ),
+            )
+        )
+        return {row['organization_id']: row for row in all_add_on_totals}
+
+    @staticmethod
     def get_organization_totals(
         organization: 'Organization', usage_type: UsageType
     ) -> (int, int):
@@ -128,28 +206,12 @@ class PlanAddOn(models.Model):
         Returns the total limit and the total remaining usage for a given organization
         and usage type.
         """
-        usage_mapped = USAGE_LIMIT_MAP[usage_type]
-        limit_key = f'{usage_mapped}_limit'
-        limit_field = f'limits_remaining__{limit_key}'
-        usage_field = f'usage_limits__{limit_key}'
-        totals = PlanAddOn.objects.filter(
-            organization__id=organization.id,
-            limits_remaining__has_key=limit_key,
-            usage_limits__has_key=limit_key,
-            charge__refunded=False,
-        ).aggregate(
-            total_usage_limit=Coalesce(
-                Sum(Cast(usage_field, output_field=IntegerField())),
-                0,
-                output_field=IntegerField(),
-            ),
-            total_remaining=Coalesce(
-                Sum(Cast(limit_field, output_field=IntegerField())),
-                0,
-            ),
+        limits = PlanAddOn.get_organizations_totals([organization]).get(
+            organization.id, {}
         )
-
-        return totals['total_usage_limit'], totals['total_remaining']
+        usage_limit = limits[f'total_{usage_type}_limit']
+        limit_remaining = limits[f'{usage_type}_remaining']
+        return usage_limit, limit_remaining
 
     @property
     def is_expended(self):
@@ -209,8 +271,7 @@ class PlanAddOn(models.Model):
 
         Returns the amount of usage that was not applied to an add-on.
         """
-        usage_mapped = USAGE_LIMIT_MAP[usage_type]
-        limit_key = f'{usage_mapped}_limit'
+        limit_key = f'{usage_type}_limit'
         metadata_key = f'limits_remaining__{limit_key}'
         add_ons = PlanAddOn.objects.filter(
             organization__id=organization.id,
@@ -243,6 +304,13 @@ class PlanAddOn(models.Model):
         return self.product.metadata.get('valid_tags', '').split(',')
 
 
-@receiver(post_save, sender=Charge)
-def make_add_on_for_charge(sender, instance, created, **kwargs):
-    PlanAddOn.create_or_update_one_time_add_on(instance)
+class ExceededLimitCounter(models.Model):
+    user = models.ForeignKey(
+        User,
+        related_name='exceeded_limit_counters',
+        on_delete=models.CASCADE,
+    )
+    days = models.PositiveSmallIntegerField(default=0)
+    limit_type = models.CharField(choices=UsageType.choices, max_length=20)
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)

@@ -8,7 +8,7 @@ import {
   type ExportTypeName,
 } from '#/components/projectDownloads/exportsConstants'
 import exportsStore from '#/components/projectDownloads/exportsStore'
-import { type AssetResponse } from '#/dataInterface'
+import type { AssetResponse } from '#/dataInterface'
 
 interface LegacyExportsProps {
   asset: AssetResponse

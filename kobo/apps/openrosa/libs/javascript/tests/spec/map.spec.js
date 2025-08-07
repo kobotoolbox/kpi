@@ -1,6 +1,6 @@
 // Formhub Map Component Specs
 // ---------------------------
-describe('Formhub Map', function () {
+describe('Formhub Map', () => {
   // Handle to our map's DOM element
   var el
 
@@ -22,21 +22,21 @@ describe('Formhub Map', function () {
   }
 
   // Create a `#map` div before each spec and assign it to the `el` variable.
-  beforeEach(function () {
+  beforeEach(() => {
     $('body').append($('<div id="map"></div>'))
     el = $('#map')
   })
 
   // Remove the `#map` div after each spec and un-define the `el` variable.
-  afterEach(function () {
+  afterEach(() => {
     el.remove()
     el = undefined
   })
 
   // ### Test the map's initialization
-  describe('Map initialization', function () {
+  describe('Map initialization', () => {
     // Test that default map options are overridden when specified.
-    it('overrides defaults', function () {
+    it('overrides defaults', () => {
       var map = new FH.Map({
         el: el,
         zoom: 13,
@@ -47,7 +47,7 @@ describe('Formhub Map', function () {
     })
 
     // Test that default map options are used if overrides are not specified.
-    it('uses defaults if they are not specified', function () {
+    it('uses defaults if they are not specified', () => {
       var map = new FH.Map({
         el: el,
       })
@@ -57,8 +57,8 @@ describe('Formhub Map', function () {
   })
 
   // ### Test base layer functionality.
-  describe('Base Layers', function () {
-    it('creates base layers defined at initialisation', function () {
+  describe('Base Layers', () => {
+    it('creates base layers defined at initialisation', () => {
       var map = new FH.Map({
         el: el,
         layers: layer_configs.concat([customMapBoxTileLayer]),
@@ -66,17 +66,17 @@ describe('Formhub Map', function () {
       expect(_.keys(map._layersControl._layers).length).toEqual(7)
     })
 
-    describe('Layer Initialisation by type', function () {
+    describe('Layer Initialisation by type', () => {
       var map
       // Create an FH.Map before each spec
-      beforeEach(function () {
+      beforeEach(() => {
         map = new FH.Map({
           el: el,
         })
       })
 
       // Test that `addBaseLayer` can add a MapBox layer
-      it('can add a mapbox layer', function () {
+      it('can add a mapbox layer', () => {
         var mapbox_layer_config = {
             type: FH.layers.MAPBOX,
             label: 'Mapbox Streets',
@@ -92,7 +92,7 @@ describe('Formhub Map', function () {
       })
 
       // Test that `addBaseLayer` can add a Google layer
-      it('can add a Google layer', function () {
+      it('can add a Google layer', () => {
         var google_layer_config = {
             type: FH.layers.GOOGLE,
             label: 'Google Hybrid',
@@ -106,7 +106,7 @@ describe('Formhub Map', function () {
       })
 
       // Test that `addBaseLayer` can add a generic layer defined by url
-      it('can add a generic layer', function () {
+      it('can add a generic layer', () => {
         var generic_layer_config = {
             label: 'Custom Layer',
             options: {
@@ -121,8 +121,8 @@ describe('Formhub Map', function () {
     })
   })
 
-  describe('determineDefaultLayer', function () {
-    it('sets the custom layer as the default if its defined', function () {
+  describe('determineDefaultLayer', () => {
+    it('sets the custom layer as the default if its defined', () => {
       // add the custom layer
       var base_layers = layer_configs.concat([customMapBoxTileLayer])
       var default_layer = FH.Map.determineDefaultLayer(base_layers, 'en')
@@ -130,13 +130,13 @@ describe('Formhub Map', function () {
       expect(default_layer).toBe(customMapBoxTileLayer)
     })
 
-    it('sets the layer matching the language code as the default if no custom layer is defined', function () {
+    it('sets the layer matching the language code as the default if no custom layer is defined', () => {
       var default_layer = FH.Map.determineDefaultLayer(layer_configs, 'fr')
       expect(default_layer).toBeDefined()
       expect(default_layer.label).toEqual('Mapbox Streets (Français)')
     })
 
-    it('sets the first defined layer as the default if no custom or language layer is found', function () {
+    it('sets the first defined layer as the default if no custom or language layer is found', () => {
       var default_layer = FH.Map.determineDefaultLayer(layer_configs, 'en')
       expect(default_layer).toBeDefined()
       expect(default_layer.label).toEqual('Mapbox Streets')
@@ -144,21 +144,21 @@ describe('Formhub Map', function () {
   })
 })
 
-describe('FeatureLayer', function () {
-  describe('parseLatLngString', function () {
-    describe('valid string', function () {
+describe('FeatureLayer', () => {
+  describe('parseLatLngString', () => {
+    describe('valid string', () => {
       var lat_lng_str = '36.0 -1.2 3600 25',
         result
 
-      beforeEach(function () {
+      beforeEach(() => {
         result = FH.FeatureLayer.parseLatLngString(lat_lng_str)
       })
 
-      it('returns an array with two elements', function () {
+      it('returns an array with two elements', () => {
         expect(result.length).toEqual(2)
       })
 
-      it('converts the string values into floats', function () {
+      it('converts the string values into floats', () => {
         expect(typeof result[0]).toEqual('number')
         expect(result[0]).not.toBeNaN()
       })
@@ -166,7 +166,7 @@ describe('FeatureLayer', function () {
   })
 })
 
-describe('DataView', function () {
+describe('DataView', () => {
   var fieldSet,
     raw_questions = [
       {
@@ -181,21 +181,21 @@ describe('DataView', function () {
       },
     ]
 
-  beforeEach(function () {
+  beforeEach(() => {
     fieldSet = new FH.FieldSet()
-    FH.Form.parseQuestions(raw_questions).forEach(function (field) {
+    FH.Form.parseQuestions(raw_questions).forEach((field) => {
       fieldSet.add(field)
     })
   })
 
-  xit('creates a template from the specified fieldSet', function () {
+  xit('creates a template from the specified fieldSet', () => {
     var dataView = new FH.DataView()
     dataView.renderTemplate(fieldSet)
     expect(dataView.template).toBeDefined()
   })
 
-  xdescribe('templateFromFields', function () {
-    it('creates a table row for each question', function () {
+  xdescribe('templateFromFields', () => {
+    it('creates a table row for each question', () => {
       var result
 
       result = FH.DataView.templateFromFields(fieldSet)
@@ -208,7 +208,7 @@ describe('DataView', function () {
       )
     })
 
-    it('uses the specified language if provided', function () {
+    it('uses the specified language if provided', () => {
       var result,
         multi_lang_questions = [
           {
@@ -230,7 +230,7 @@ describe('DataView', function () {
         ]
 
       fieldSet = new FH.FieldSet()
-      FH.Form.parseQuestions(multi_lang_questions).forEach(function (field) {
+      FH.Form.parseQuestions(multi_lang_questions).forEach((field) => {
         fieldSet.add(field)
       })
 
@@ -244,7 +244,7 @@ describe('DataView', function () {
       )
     })
 
-    it('handles grouped questions', function () {
+    it('handles grouped questions', () => {
       var result
       raw_questions = [
         {
@@ -265,7 +265,7 @@ describe('DataView', function () {
         },
       ]
       fieldSet = new FH.FieldSet()
-      FH.Form.parseQuestions(raw_questions).forEach(function (field) {
+      FH.Form.parseQuestions(raw_questions).forEach((field) => {
         fieldSet.add(field)
       })
 

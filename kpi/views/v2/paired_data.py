@@ -183,6 +183,7 @@ class PairedDataViewset(
         ('object_id', 'asset.id'),
         'fields',
         ('source_uid', 'source.uid'),
+        'asset.owner.username',
     ]
 
     @action(

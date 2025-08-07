@@ -78,6 +78,7 @@ class AssetFile(AbstractTimeStampedModel, AbstractFormMedia):
             'text/csv',
             'application/xml',
             'application/zip',
+            'application/geo+json',
         ),
         PAIRED_DATA: ('application/xml',),
         MAP_LAYER: (

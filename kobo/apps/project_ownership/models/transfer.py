@@ -151,9 +151,7 @@ class Transfer(AbstractTimeStampedModel):
                             )
                             return
 
-                        with deployment.suspend_submissions(
-                            [self.asset.owner_id, new_owner.pk]
-                        ):
+                        with deployment.suspend_submissions():
                             old_id_string = None
                             if XForm.objects.filter(
                                 id_string=xform.id_string,

@@ -24,9 +24,11 @@ interface KoboModalProps {
    * NOTE: disabling Esc key may introduce an accessibility issue.
    */
   isDismissableByDefaultMeans?: boolean
-  'data-cy'?: string
 }
 
+/**
+ * @deprecated use `import { Modal } from '@mantine/core'` instead.
+ */
 export default function KoboModal(props: KoboModalProps) {
   const modalSize: KoboModalSize = props.size || DEFAULT_SIZE
 
@@ -39,7 +41,6 @@ export default function KoboModal(props: KoboModalProps) {
       overlayClassName='kobo-modal-overlay'
       shouldCloseOnOverlayClick={props.isDismissableByDefaultMeans}
       shouldCloseOnEsc={props.isDismissableByDefaultMeans}
-      data={{ cy: props['data-cy'] }}
       preventScroll
     >
       {props.children}

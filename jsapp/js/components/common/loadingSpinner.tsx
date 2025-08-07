@@ -14,7 +14,6 @@ interface LoadingSpinnerProps {
    * the message completely, pass `false`.
    */
   message?: string | boolean
-  'data-cy'?: string
   /** Additional class names. */
   className?: string
 }
@@ -41,7 +40,6 @@ export default function LoadingSpinner(props: LoadingSpinnerProps) {
         },
         props.className,
       )}
-      data-cy={props['data-cy']}
     >
       <div className={styles.loadingInner}>
         {spinnerType === 'regular' && <Icon name='spinner' size='xl' className='k-spin' />}

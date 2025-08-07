@@ -11,7 +11,6 @@ import Button from '#/components/common/button'
 import TextBox from '#/components/common/textBox'
 import envStore from '#/envStore'
 import sessionStore from '#/stores/session'
-import { currentLang } from '#/utils'
 
 bem.MFAModal = makeBem(null, 'mfa-modal')
 

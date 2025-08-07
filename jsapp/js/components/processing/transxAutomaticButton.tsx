@@ -11,6 +11,7 @@ interface TransxAutomaticButtonProps {
   selectedLanguage?: LanguageCode
   /** Which type of service the button should check availability for. */
   type: 'transcript' | 'translation'
+  disabled?: boolean
 }
 
 interface TransxAutomaticButtonState {
@@ -101,20 +102,20 @@ export default class TransxAutomaticButton extends React.Component<
   }
 
   render() {
-    if (!envStore.data.asr_mt_features_enabled) {
-      // We hide button for users that don't have access to the feature.
-      return null
-    } else {
+    if (envStore.data.asr_mt_features_enabled) {
       return (
         <Button
           type='primary'
           size='m'
           label={t('automatic')}
           onClick={this.props.onClick}
-          isDisabled={!this.state.isAvailable}
+          isDisabled={this.props.disabled || !this.state.isAvailable}
           isPending={singleProcessingStore.data.isFetchingData || this.state.isLoading}
         />
       )
+    } else {
+      // We hide button for users that don't have access to the feature.
+      return null
     }
   }
 }

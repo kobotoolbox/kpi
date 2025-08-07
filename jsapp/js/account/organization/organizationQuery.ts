@@ -75,7 +75,7 @@ interface OrganizationQueryParams {
  */
 export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
   const session = useSession()
-  const organizationUrl = !session.isPending ? session.currentLoggedAccount?.organization?.url : undefined
+  const organizationUrl = session.isPending ? undefined : session.currentLoggedAccount?.organization?.url
 
   useEffect(() => {
     if (params?.shouldForceInvalidation) {

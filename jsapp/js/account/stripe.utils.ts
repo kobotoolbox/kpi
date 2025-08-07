@@ -3,17 +3,17 @@ import { useCallback } from 'react'
 import { when } from 'mobx'
 import prettyBytes from 'pretty-bytes'
 import {
-  BaseProduct,
-  ChangePlan,
+  type BaseProduct,
+  type ChangePlan,
   ChangePlanStatus,
-  Checkout,
-  LimitAmount,
+  type Checkout,
+  type LimitAmount,
   Limits,
-  Price,
-  Product,
+  type Price,
+  type Product,
   SubscriptionChangeType,
-  SubscriptionInfo,
-  TransformQuantity,
+  type SubscriptionInfo,
+  type TransformQuantity,
   USAGE_TYPE,
 } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
@@ -58,12 +58,12 @@ export function isAddonProduct(product: Product) {
 }
 
 export function processCheckoutResponse(data: Checkout) {
-  if (!data?.url) {
+  if (data?.url) {
+    window.location.assign(data.url)
+  } else {
     notify.error(t('There has been an issue, please try again later.'), {
       duration: 10000,
     })
-  } else {
-    window.location.assign(data.url)
   }
 }
 
@@ -128,9 +128,9 @@ export const getSubscriptionChangeDetails = (currentPlan: SubscriptionInfo | nul
     currentPlan.schedule.phases?.length &&
     currentPlan.schedule.phases.length > 1
   ) {
-    let nextPhaseItem = currentPlan.schedule.phases[1].items[0]
+    const nextPhaseItem = currentPlan.schedule.phases[1].items[0]
     for (const product of products) {
-      let price = product.prices.find((price) => price.id === nextPhaseItem.price)
+      const price = product.prices.find((price) => price.id === nextPhaseItem.price)
       if (price) {
         nextProduct = product
         date = convertUnixTimestampToUtc(currentPlan.schedule.phases[0].end_date!)

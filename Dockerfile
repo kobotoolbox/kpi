@@ -64,7 +64,7 @@ RUN apt-get -qq update && \
         libproj-dev \
         locales \
         # pin an exact Node version for stability. update this regularly.
-        nodejs=$(apt-cache show nodejs | grep -F 'Version: 20.17.0' | cut -f 2 -d ' ') \
+        nodejs=$(apt-cache show nodejs | grep -F 'Version: 20.18.1' | cut -f 2 -d ' ') \
         openjdk-17-jre \
         postgresql-client \
         procps \
@@ -122,7 +122,7 @@ ENV PATH=$PATH:${KPI_NODE_PATH}/.bin
 # Build client code. #
 ######################
 
-RUN npm run build
+RUN npm run build:app
 
 ###########################
 # Organize static assets. #

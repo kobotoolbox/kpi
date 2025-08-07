@@ -1,6 +1,6 @@
 import Alert from './alert'
 
-export default { title: 'common/Alert' }
+export default { title: 'Design system/Alert' }
 
 export function Demo() {
   const message =

@@ -395,14 +395,6 @@ $side-tabs-width-mobile: 70px;
       text-transform: uppercase;
     }
   }
-
-  &.form-view__cell--deployed {
-    margin-left: 10px;
-    display: inline-block;
-    padding: 6px;
-    background-color: colors.$kobo-green;
-    border-radius: 2px;
-  }
 }
 
 @keyframes recent {
@@ -443,7 +435,14 @@ $side-tabs-width-mobile: 70px;
       &--version {
         width: 39%;
         text-align: initial;
+        display: flex;
+        gap: 12px;
+        align-items: center;
       }
+    }
+
+    .form-view__label--date {
+      text-align: left;
     }
 
     &.recent {
@@ -468,7 +467,10 @@ $side-tabs-width-mobile: 70px;
   }
 }
 
-.form-view--form-settings,
+.form-view--form-settings {
+  background: colors.$kobo-white;
+}
+
 .form-view--settings-sharing {
   background: colors.$kobo-white;
   padding: 40px;

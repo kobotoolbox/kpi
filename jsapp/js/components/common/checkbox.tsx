@@ -24,7 +24,6 @@ interface CheckboxProps {
   label?: React.ReactNode
   /** Only needed if checkbox is in submittable form. */
   name?: string
-  'data-cy'?: string
 }
 
 /** A checkbox generic component. */
@@ -70,7 +69,6 @@ class Checkbox extends React.Component<CheckboxProps, {}> {
             onClick={this.onClick}
             checked={this.props.checked}
             disabled={this.props.disabled}
-            data-cy={this.props['data-cy']}
           />
 
           {this.props.label && <bem.Checkbox__label>{this.props.label}</bem.Checkbox__label>}

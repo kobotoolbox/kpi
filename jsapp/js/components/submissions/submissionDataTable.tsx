@@ -2,25 +2,28 @@ import './submissionDataTable.scss'
 
 import React from 'react'
 
+import { Group } from '@mantine/core'
 import autoBind from 'react-autobind'
 import { findRow, renderQuestionTypeIcon } from '#/assetUtils'
+import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
+import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'
 import SimpleTable from '#/components/common/SimpleTable'
-import AudioPlayer from '#/components/common/audioPlayer'
 import Button from '#/components/common/button'
-import { PROCESSING_QUESTION_TYPES } from '#/components/processing/processingUtils'
 import { goToProcessing } from '#/components/processing/routes.utils'
 import {
   DISPLAY_GROUP_TYPES,
   DisplayGroup,
   getMediaAttachment,
   getSubmissionDisplayData,
+  shouldProcessingBeAccessible,
 } from '#/components/submissions/submissionUtils'
 import type { DisplayResponse } from '#/components/submissions/submissionUtils'
 import { META_QUESTION_TYPES, QUESTION_TYPES, RANK_LEVEL_TYPE, SCORE_ROW_TYPE } from '#/constants'
-import type { AnyRowTypeName, MetaQuestionTypeName, QuestionTypeName } from '#/constants'
+import type { AnyRowTypeName, MetaQuestionTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import { formatDate, formatTimeDate } from '#/utils'
+import AudioPlayer from '../common/audioPlayer'
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table')
 bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row')
@@ -33,6 +36,7 @@ interface SubmissionDataTableProps {
   submissionData: SubmissionResponse
   translationIndex: number
   showXMLNames?: boolean
+  onAttachmentDeleted: (attachmentUid: string) => void
 }
 
 /**
@@ -131,27 +135,23 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       case SCORE_ROW_TYPE:
       case RANK_LEVEL_TYPE:
         choice = this.findChoice(item.listName, item.data)
-        if (!choice) {
-          console.error(`Choice not found for "${item.listName}" and "${item.data}".`)
-          // fallback to raw data to display anything meaningful
-          return item.data
-        } else {
+        if (choice) {
           return (
             <bem.SubmissionDataTable__value>
               {choice.label?.[this.props.translationIndex] || choice.name}
             </bem.SubmissionDataTable__value>
           )
+        } else {
+          console.error(`Choice not found for "${item.listName}" and "${item.data}".`)
+          // fallback to raw data to display anything meaningful
+          return item.data
         }
       case QUESTION_TYPES.select_multiple.id:
         return (
           <ul>
             {item.data.split(' ').map((answer, answerIndex) => {
               choice = this.findChoice(item.listName, answer)
-              if (!choice) {
-                console.error(`Choice not found for "${item.listName}" and "${answer}".`)
-                // fallback to raw data to display anything meaningful
-                return answer
-              } else {
+              if (choice) {
                 return (
                   <li key={answerIndex}>
                     <bem.SubmissionDataTable__value>
@@ -159,6 +159,10 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
                     </bem.SubmissionDataTable__value>
                   </li>
                 )
+              } else {
+                console.error(`Choice not found for "${item.listName}" and "${answer}".`)
+                // fallback to raw data to display anything meaningful
+                return answer
               }
             })}
           </ul>
@@ -207,41 +211,77 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
 
   renderAttachment(type: AnyRowTypeName | null, filename: string, name: string, xpath: string) {
     const attachment = getMediaAttachment(this.props.submissionData, filename, xpath)
-    if (attachment && attachment instanceof Object) {
-      return (
-        <>
-          {type === QUESTION_TYPES.audio.id && (
-            <>
-              <AudioPlayer mediaURL={attachment.download_url} />
 
+    // In the case that an attachment is missing, don't crash the page
+    if (typeof attachment !== 'object') return attachment
+
+    if (!attachment || typeof attachment.download_url !== 'string') return null
+
+    if (attachment.is_deleted) {
+      return (
+        <Group>
+          <DeletedAttachment />
+        </Group>
+      )
+    }
+
+    const attachmentShortFilename = attachment.filename.split('/').pop()
+
+    return (
+      <>
+        {type === QUESTION_TYPES.audio.id && (
+          <Group>
+            <AudioPlayer mediaURL={attachment?.download_url} />
+
+            <span className='print-only'>{attachmentShortFilename}</span>
+
+            {shouldProcessingBeAccessible(this.props.submissionData, attachment) && (
               <Button
+                className='hide-on-print'
                 type='primary'
                 size='s'
                 endIcon='arrow-up-right'
                 label={t('Open')}
                 onClick={this.openProcessing.bind(this, name)}
               />
-            </>
-          )}
-          {type === QUESTION_TYPES.image.id && (
+            )}
+          </Group>
+        )}
+
+        {type === QUESTION_TYPES.image.id && (
+          <>
             <a href={attachment.download_url} target='_blank'>
               <img src={attachment.download_medium_url} />
             </a>
-          )}
+            <span className='print-only'>{attachmentShortFilename}</span>
+          </>
+        )}
 
-          {type === QUESTION_TYPES.video.id && <video src={attachment.download_url} controls />}
+        {type === QUESTION_TYPES.video.id && (
+          <>
+            <video src={attachment.download_url} controls />
+            <span className='print-only'>{attachmentShortFilename}</span>
+          </>
+        )}
 
-          {type === QUESTION_TYPES.file.id && (
-            <a href={attachment.download_url} target='_blank'>
-              {filename}
-            </a>
-          )}
-        </>
-      )
-      // In the case that an attachment is missing, don't crash the page
-    } else {
-      return attachment
-    }
+        {type === QUESTION_TYPES.file.id && (
+          <a href={attachment.download_url} target='_blank'>
+            {filename}
+          </a>
+        )}
+
+        {type !== null && (
+          <AttachmentActionsDropdown
+            asset={this.props.asset}
+            submissionData={this.props.submissionData}
+            attachmentUid={attachment.uid}
+            onDeleted={() => {
+              this.props.onAttachmentDeleted(attachment.uid)
+            }}
+          />
+        )}
+      </>
+    )
   }
 
   renderMetaResponse(dataName: MetaQuestionTypeName | string, label: string) {

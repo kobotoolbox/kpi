@@ -1,6 +1,6 @@
 import { type MantineSize, Stack } from '@mantine/core'
-import type { Meta, StoryObj } from '@storybook/react'
-import { Select } from './Select'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import Select from './Select'
 
 const sizes: MantineSize[] = ['xs', 'sm', 'md', 'lg', 'xl']
 
@@ -37,7 +37,7 @@ const largeData = [
  * See detailed uses in [Mantine's Select page](https://mantine.dev/core/select/)
  */
 const meta: Meta<typeof Select> = {
-  title: 'Common/Select',
+  title: 'Design system/Select',
   component: Select,
   decorators: [
     (Story) => (
@@ -112,6 +112,7 @@ export const Clearable: Story = {
     clearable: true,
     value: data[3].value,
   },
+  parameters: { a11y: { test: 'todo' } },
 }
 
 /**

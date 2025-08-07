@@ -25,8 +25,9 @@ export default function AccessLogsSection() {
             label={t('Log out of all devices')}
             startIcon='logout'
           />
+
+          <ExportToEmailButton label={t('Export log data')} exportFunction={startAccessLogsExport} />
         </div>
-        <ExportToEmailButton label={t('Export log data')} exportFunction={startAccessLogsExport} />
       </header>
 
       <PaginatedQueryUniversalTable<AccessLog>

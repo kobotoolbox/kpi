@@ -12,10 +12,11 @@ import { actions } from '../actions'
 import { PROJECT_SETTINGS_CONTEXTS } from '../constants'
 import mixins from '../mixins'
 import RESTServices from './RESTServices'
-import FormMap from './map/map'
+import { FormMap } from './map'
 import FormMedia from './modalForms/formMedia'
 import ProjectSettings from './modalForms/projectSettings'
 import SharingForm from './permissions/sharingForm.component'
+import LimitNotifications from './usageLimits/limitNotifications.component'
 
 const ConnectProjects = React.lazy(
   () => import(/* webpackPrefetch: true */ '#/components/dataAttachments/connectProjects'),
@@ -26,7 +27,7 @@ const ProjectDownloads = React.lazy(
 )
 const FormGallery = React.lazy(() => import(/* webpackPrefetch: true */ './formGallery/formGallery.component'))
 
-const FormActivity = React.lazy(() => import(/* webpackPrefetch: true */ './activity/formActivity'))
+const FormActivity = React.lazy(() => import(/* webpackPrefetch: true */ './activity/FormActivity'))
 
 export class FormSubScreens extends React.Component {
   constructor(props) {
@@ -107,6 +108,7 @@ export class FormSubScreens extends React.Component {
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='form-settings'>
+          <LimitNotifications />
           <ProjectSettings context={PROJECT_SETTINGS_CONTEXTS.EXISTING} formAsset={this.state} />
         </bem.FormView>
       </DocumentTitle>
@@ -117,6 +119,7 @@ export class FormSubScreens extends React.Component {
 
     return (
       <bem.FormView m='form-settings-sharing'>
+        <LimitNotifications />
         <SharingForm assetUid={uid} />
 
         <TransferProjects asset={this.state} />

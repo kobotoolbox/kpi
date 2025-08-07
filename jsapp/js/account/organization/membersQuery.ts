@@ -1,4 +1,4 @@
-import { QueryKey, keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchDelete, fetchGet, fetchPatch } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import type { Json } from '#/components/common/common.interfaces'

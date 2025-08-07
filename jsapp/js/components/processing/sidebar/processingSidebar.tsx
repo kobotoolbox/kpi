@@ -35,7 +35,7 @@ export default function ProcessingSidebar(props: ProcessingSidebarProps) {
 
         {displays.includes(StaticDisplays.Transcript) && transcript && <TransxDisplay transx={transcript} />}
 
-        {displays.includes(StaticDisplays.Audio) && <SidebarSubmissionMedia assetContent={props.asset.content} />}
+        {displays.includes(StaticDisplays.Audio) && <SidebarSubmissionMedia asset={props.asset} />}
 
         {displays.includes(StaticDisplays.Data) && <SidebarSubmissionData asset={props.asset} />}
 

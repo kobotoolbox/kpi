@@ -250,10 +250,10 @@ class SingleProcessingStore extends Reflux.Store {
   /** This is making sure the asset processing features are activated. */
   private onAssetLoad(asset: AssetResponse) {
     if (isAnyProcessingRouteActive() && this.currentAssetUid === asset.uid) {
-      if (!isAssetProcessingActivated(this.currentAssetUid)) {
-        this.activateAsset()
-      } else {
+      if (isAssetProcessingActivated(this.currentAssetUid)) {
         this.fetchAllInitialDataForAsset()
+      } else {
+        this.activateAsset()
       }
     }
   }
@@ -301,12 +301,12 @@ class SingleProcessingStore extends Reflux.Store {
       return
     }
 
-    if (!isAssetProcessingActivated(this.currentAssetUid)) {
-      this.activateAsset()
-    } else {
+    if (isAssetProcessingActivated(this.currentAssetUid)) {
       this.fetchSubmissionData()
       this.fetchEditIds()
       this.fetchProcessingData()
+    } else {
+      this.activateAsset()
     }
   }
 
@@ -383,7 +383,7 @@ class SingleProcessingStore extends Reflux.Store {
     }
   }
 
-  private fetchSubmissionData(): void {
+  fetchSubmissionData(): void {
     this.isSubmissionLoaded = false
     this.data.submissionData = undefined
     this.trigger(this.data)

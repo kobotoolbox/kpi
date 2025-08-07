@@ -1,7 +1,7 @@
 var _ = require('underscore')
 
-module.exports = (function () {
-  return function (equalityCriterionPattern, existenceCriterionPattern, criteriaJoinPattern, selectMultiplePattern) {
+module.exports = (
+  () => (equalityCriterionPattern, existenceCriterionPattern, criteriaJoinPattern, selectMultiplePattern) => {
     function parseCriterion(text) {
       var matches = text.match(existenceCriterionPattern)
       if (matches === null) {
@@ -55,7 +55,7 @@ module.exports = (function () {
       }
     }
 
-    return function (text) {
+    return (text) => {
       var criteria = text.split(criteriaJoinPattern),
         criteriaLength = criteria.length,
         joinOperators = text.match(criteriaJoinPattern)
@@ -70,12 +70,10 @@ module.exports = (function () {
         }
       } else {
         return {
-          criteria: _.map(criteria, function (criterion) {
-            return parseCriterion(criterion)
-          }),
+          criteria: _.map(criteria, (criterion) => parseCriterion(criterion)),
           operator: joinOperators[0].replace(/ /g, '').toUpperCase(),
         }
       }
     }
   }
-})()
+)()

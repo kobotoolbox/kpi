@@ -23,8 +23,8 @@ export function shouldUseTeamLabel(envStoreData: EnvStoreData, subscription: Sub
 export function getSimpleMMOLabel(
   envStoreData: EnvStoreData,
   subscription: SubscriptionInfo | null,
-  plural: boolean = false,
-  capitalize: boolean = false,
+  plural = false,
+  capitalize = false,
 ) {
   if (shouldUseTeamLabel(envStoreData, subscription)) {
     if (plural) {

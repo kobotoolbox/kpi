@@ -201,8 +201,13 @@ class ExportTaskViewSet(AuditLoggedNoUpdateModelViewSet):
             source = resolve_url_to_asset(task_data['source'])
         except Asset.DoesNotExist:
             raise serializers.ValidationError(
-                {'source': 'The specified asset does not exist.'})
-        request._request.updated_data = {'asset_id': source.id, 'asset_uid': source.uid}
+                {'source': 'The specified asset does not exist.'}
+            )
+        request._request.updated_data = {
+            'asset_id': source.id,
+            'asset_uid': source.uid,
+            'project_owner': source.owner.username,
+        }
         # Complain if it's not deployed
         if not source.has_deployment:
             raise serializers.ValidationError(

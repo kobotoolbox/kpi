@@ -87,6 +87,7 @@ export const themeKobo = createTheme({
     lg: rem(16),
     xl: rem(18),
   },
+  // Kobo uses 20+ different line-heights in different units. TODO: standardize and use mantine config.
   lineHeights: {},
   headings: {
     fontWeight: '500',

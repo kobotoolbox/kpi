@@ -7,12 +7,14 @@
  * NOTE: We have other utils files related to asset, submissions, etc.
  */
 
-import * as Sentry from '@sentry/react'
+import type * as Sentry from '@sentry/react'
 import random from 'lodash.random'
 import moment from 'moment'
 import { Cookies } from 'react-cookie'
 import type { Toast, ToastOptions } from 'react-hot-toast'
 import { toast } from 'react-hot-toast'
+import type { Json } from './components/common/common.interfaces'
+import type { MongoQuery } from './dataInterface'
 
 export const LANGUAGE_COOKIE_NAME = 'django_language'
 
@@ -186,8 +188,8 @@ declare global {
   }
 }
 
-export const log = (function () {
-  const innerLogFn = function (...args: any[]) {
+export const log = (() => {
+  const innerLogFn = (...args: any[]) => {
     console.log.apply(console, args)
     return args[0]
   }
@@ -276,12 +278,28 @@ export function escapeHtml(str: string): string {
   return div.innerHTML
 }
 
+/**
+ * Returns text content of a HTML string
+ */
+export function getTextContentOnly(html: string): string {
+  const doc = new DOMParser().parseFromString(html, 'text/html')
+  const walker = document.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, null)
+  const texts = []
+  let node
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue !== null) {
+      texts.push(node.nodeValue)
+    }
+  }
+  return texts.join('')
+}
+
 export function renderCheckbox(id: string, label: string, isImportant = false) {
   let additionalClass = ''
   if (isImportant) {
     additionalClass += 'alertify-toggle-important'
   }
-  return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}" data-cy="checkbox"><span class="checkbox__label">${label}</span></label></div>`
+  return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`
 }
 
 export function hasVerticalScrollbar(element: HTMLElement): boolean {
@@ -359,7 +377,7 @@ export function truncateFile(str: string, length: number) {
 /**
  * Truncates a floating point number to a fixed number of decimal places (default 2)
  */
-export const truncateNumber = (decimal: number, decimalPlaces = 2) => parseFloat(decimal.toFixed(decimalPlaces))
+export const truncateNumber = (decimal: number, decimalPlaces = 2) => Number.parseFloat(decimal.toFixed(decimalPlaces))
 
 /**
  * Standard method for converting seconds to minutes for billing purposes
@@ -560,4 +578,23 @@ export function removeDefaultUuidPrefix(uuid: string) {
  */
 export function matchUuid(uuidA: string, uuidB: string) {
   return addDefaultUuidPrefix(uuidA) === addDefaultUuidPrefix(uuidB)
+}
+
+export function createDateQuery(startDate: string, endDate: string): MongoQuery {
+  // $and is necessary as repeating a json key is not valid
+  const andQuery: Json = []
+  if (startDate) {
+    if (!startDate.includes('T')) {
+      startDate = startDate + 'T00:00Z'
+    }
+    andQuery.push({ _submission_time: { $gt: startDate } })
+  }
+  if (endDate) {
+    if (!endDate.includes('T')) {
+      endDate = endDate + 'T23:59:59.999Z'
+    }
+    andQuery.push({ _submission_time: { $lt: endDate } })
+  }
+
+  return andQuery
 }

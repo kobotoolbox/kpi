@@ -78,11 +78,6 @@ class TestAttachment(TestBase):
                 )
                 default_storage.delete(thumbnail)
 
-    def test_attachment_has_user_and_xform_fields(self):
-        attachment = Attachment()
-        self.assertTrue(hasattr(attachment, 'user'))
-        self.assertTrue(hasattr(attachment, 'xform'))
-
     def test_attachment_save_populates_user_and_xform(self):
         user = User.objects.create_user(username='testuser', password='testpassword')
         f = open(

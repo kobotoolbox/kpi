@@ -1,5 +1,6 @@
 # coding: utf-8
 import os
+
 from django.contrib.auth.management import DEFAULT_DB_ALIAS
 from mongomock import MongoClient as MockMongoClient
 
@@ -40,8 +41,8 @@ ENKETO_INTERNAL_URL = 'http://enketo.mock'
 # cached values
 CONSTANCE_DATABASE_CACHE_BACKEND = None
 
-if 'djstripe' not in INSTALLED_APPS:
-    INSTALLED_APPS += ('djstripe', 'kobo.apps.stripe')
+if 'djstripe' not in INSTALLED_APPS:  # noqa F405
+    INSTALLED_APPS += ('djstripe', 'kobo.apps.stripe')  # noqa F405
 STRIPE_ENABLED = True
 
 WEBPACK_LOADER['DEFAULT'][
@@ -55,3 +56,4 @@ TEST_USERNAME = 'bob'
 SKIP_TESTS_WITH_CONCURRENCY = os.getenv('SKIP_TESTS_WITH_CONCURRENCY', False)
 
 OPENROSA_DB_ALIAS = DEFAULT_DB_ALIAS
+MASS_EMAILS_CONDENSE_SEND = False

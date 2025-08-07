@@ -1,7 +1,7 @@
 import type { ModalProps } from '@mantine/core'
 import { Button, Center, Group, Modal, Stack, Text } from '@mantine/core'
-import { useArgs } from '@storybook/preview-api'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import { useArgs } from 'storybook/preview-api'
 
 const RenderModal = ({ ...args }: ModalProps) => {
   const [{ opened }, updateArgs] = useArgs()
@@ -26,7 +26,7 @@ const RenderModal = ({ ...args }: ModalProps) => {
  * Mantine [Modal](https://mantine.dev/core/modal/) component stories.
  */
 const meta: Meta<typeof Modal> = {
-  title: 'Common/Modal',
+  title: 'Design system old/Modal',
   component: Modal,
   render: RenderModal,
   argTypes: {
@@ -68,6 +68,7 @@ const meta: Meta<typeof Modal> = {
     size: 'md',
     fullScreen: false,
   },
+  parameters: { a11y: { test: 'todo' } },
 }
 
 type Story = StoryObj<typeof Modal>

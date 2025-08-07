@@ -5,8 +5,8 @@ import type { Organization } from '#/account/organization/organizationQuery'
 import { useDisplayPrice } from '#/account/plans/useDisplayPrice.hook'
 import { postCheckout, postCustomerPortal } from '#/account/stripe.api'
 import type { Product, SubscriptionInfo } from '#/account/stripe.types'
-import KoboSelect3 from '#/components/special/koboAccessibleSelect'
 import Button from '#/components/common/ButtonNew'
+import Select from '#/components/common/Select'
 
 interface AddOnProductRowProps {
   products: Product[]
@@ -14,6 +14,7 @@ interface AddOnProductRowProps {
   setIsBusy: (value: boolean) => void
   subscribedAddOns: SubscriptionInfo[]
   organization: Organization
+  isRecurring?: boolean
 }
 
 export const AddOnProductRow = ({
@@ -22,6 +23,7 @@ export const AddOnProductRow = ({
   setIsBusy,
   subscribedAddOns,
   organization,
+  isRecurring,
 }: AddOnProductRowProps) => {
   const [selectedProduct, setSelectedProduct] = useState(products[0])
   const [selectedPrice, setSelectedPrice] = useState<Product['prices'][0]>(selectedProduct.prices[0])
@@ -112,20 +114,23 @@ export const AddOnProductRow = ({
       </td>
       <td className={styles.price}>
         <div className={styles.oneTime}>
-          <KoboSelect3
-            size={'fit'}
+          <Select
+            size='sm'
+            className={styles.selectProducts}
             name='products'
-            options={products.map((product) => {
+            data={products.map((product) => {
               return { value: product.id, label: product.name }
             })}
-            onChange={(productId) => onChangeProduct(productId as string)}
+            onChange={(productId: string | null) => onChangeProduct(productId)}
             value={selectedProduct.id}
           />
-          {displayName === 'File Storage' && (
-            <KoboSelect3
-              size={'fit'}
-              name={t('prices')}
-              options={priceOptions}
+          {isRecurring && (
+            // Recurring interval selector
+            <Select
+              size='sm'
+              className={styles.selectPrices}
+              name='prices'
+              data={priceOptions}
               onChange={onChangePrice}
               value={selectedPrice.id}
             />

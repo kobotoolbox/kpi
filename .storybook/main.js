@@ -8,10 +8,7 @@ module.exports = {
   stories: ['../jsapp/**/*.stories.@(js|jsx|ts|tsx)'],
   addons: [
     '@storybook/addon-links',
-    '@storybook/addon-essentials',
-    '@storybook/addon-interactions',
     '@storybook/addon-a11y',
-    'storybook-dark-mode',
     // NB:
     // 'storybook-addon-swc' may improve build speed in the future.
     // - At time of writing, the build performance gains are negated because it
@@ -19,6 +16,10 @@ module.exports = {
     //   issues in Storybook 6.
     // - Testing with React 16.14.0 and Storybook 7 (beta) seemed to perform
     //   well.
+    'storybook-dark-mode',
+    '@storybook/addon-webpack5-compiler-swc',
+    'storybook-addon-remix-react-router',
+    '@storybook/addon-docs',
   ],
 
   framework: {
@@ -34,11 +35,9 @@ module.exports = {
       resolve: {
         extensions: ['.jsx', '.js', '.coffee', '.ts', '.tsx', '.scss'],
         alias: {
-          app: path.join(__dirname, '../app'),
-          jsapp: path.join(__dirname, '../jsapp'),
+          '#': path.join(__dirname, '../jsapp/js'),
           js: path.join(__dirname, '../jsapp/js'),
           scss: path.join(__dirname, '../jsapp/scss'),
-          utils: path.join(__dirname, '../jsapp/js/utils'),
         },
       },
     })
@@ -85,9 +84,8 @@ module.exports = {
     }
     return config
   },
-  docs: {
-    autodocs: true,
-  },
+  docs: {},
+  staticDirs: ['../msw-mocks'],
 }
 
 /// Apply some customizations to the config, intended to decrease build time

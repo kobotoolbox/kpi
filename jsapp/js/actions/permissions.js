@@ -89,16 +89,23 @@ permissionsActions.assignAssetPermission.listen((assetUid, perm) => {
 })
 
 /**
- * For removing single permission
+ * For removing asset permissions
  *
  * @param {string} assetUid
  * @param {string} perm - permission url
+ * @param {boolean} removeAll - set to true to remove all permissions. Defaults to removing a single permission.
  */
-permissionsActions.removeAssetPermission.listen((assetUid, perm, isNonOwner) => {
-  dataInterface
-    .removePermission(perm)
+permissionsActions.removeAssetPermission.listen((assetUid, perm, removeAll, isNonOwner) => {
+  let removalPromise
+
+  if (removeAll) {
+    removalPromise = dataInterface.removeAllPermissions(perm)
+  } else {
+    removalPromise = dataInterface.removePermission(perm)
+  }
+
+  removalPromise
     .done(() => {
-      // Avoid this call if a non-owner removed their own permissions as it will fail
       if (!isNonOwner) {
         permissionsActions.getAssetPermissions(assetUid)
       }
@@ -155,7 +162,7 @@ permissionsActions.setAssetPublic.listen((asset, shouldSetAnonPerms) => {
 })
 
 // copies permissions from one asset to other
-permissionsActions.copyPermissionsFrom.listen(function (sourceUid, targetUid) {
+permissionsActions.copyPermissionsFrom.listen((sourceUid, targetUid) => {
   dataInterface
     .copyPermissionsFrom(sourceUid, targetUid)
     .done(() => {

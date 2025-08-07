@@ -1,5 +1,5 @@
 import { fetchGet, fetchPatch, fetchPost, handleApiFail } from '#/api'
-import { FailResponse, PaginatedResponse } from '#/dataInterface'
+import type { FailResponse, PaginatedResponse } from '#/dataInterface'
 import sessionStore from '#/stores/session'
 import { buildUserUrl, getUsernameFromUrl } from '#/users/utils'
 import { notify } from '#/utils'

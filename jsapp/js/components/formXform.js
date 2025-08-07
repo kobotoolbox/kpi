@@ -21,16 +21,16 @@ export default class FormXform extends React.Component {
   }
 
   render() {
-    if (!this.state.xformLoaded) {
+    if (this.state.xformLoaded) {
       return (
         <bem.FormView m='ui-panel'>
-          <CenteredMessage message={t('XForm is loading')} />
+          <div className='pygment' dangerouslySetInnerHTML={this.state.xformHtml} />
         </bem.FormView>
       )
     } else {
       return (
         <bem.FormView m='ui-panel'>
-          <div className='pygment' dangerouslySetInnerHTML={this.state.xformHtml} />
+          <CenteredMessage message={t('XForm is loading')} />
         </bem.FormView>
       )
     }

@@ -101,10 +101,10 @@ export default function EmailSection() {
 
   function handleSubmit() {
     const emailPattern = /[^@]+@[^@]+\.[^@]+/
-    if (!emailPattern.test(email.newEmail)) {
-      notify.error('Invalid email address')
-    } else {
+    if (emailPattern.test(email.newEmail)) {
       setNewUserEmail(email.newEmail)
+    } else {
+      notify.error('Invalid email address')
     }
   }
 

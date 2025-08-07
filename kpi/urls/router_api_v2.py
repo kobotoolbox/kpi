@@ -1,5 +1,3 @@
-# coding: utf-8
-
 from django.urls import path
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
@@ -24,6 +22,7 @@ from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
 from kpi.views.v2.asset_usage import AssetUsageViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
 from kpi.views.v2.attachment import AttachmentViewSet
+from kpi.views.v2.attachment_delete import AttachmentDeleteViewSet
 from kpi.views.v2.authorized_application_user import AuthorizedApplicationUserViewSet
 from kpi.views.v2.data import DataViewSet
 from kpi.views.v2.export_task import ExportTaskViewSet
@@ -32,6 +31,7 @@ from kpi.views.v2.paired_data import PairedDataViewset
 from kpi.views.v2.permission import PermissionViewSet
 from kpi.views.v2.service_usage import ServiceUsageViewSet
 from kpi.views.v2.tag import TagViewSet
+from kpi.views.v2.tos import TermsOfServiceViewSet
 from kpi.views.v2.user import UserViewSet
 from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
 
@@ -125,6 +125,13 @@ asset_routes.register(
     parents_query_lookups=['asset'],
 )
 
+asset_routes.register(
+    r'attachments',
+    AttachmentDeleteViewSet,
+    basename='asset-attachments',
+    parents_query_lookups=['asset'],
+)
+
 data_routes = asset_routes.register(r'data',
                                     DataViewSet,
                                     basename='submission',
@@ -174,6 +181,10 @@ router_api_v2.register(r'service_usage',
 router_api_v2.register(r'users', UserViewSet, basename='user-kpi')
 
 router_api_v2.register(r'tags', TagViewSet, basename='tags')
+router_api_v2.register(
+    r'terms-of-service', TermsOfServiceViewSet, basename='terms-of-service'
+)
+
 # Merge django apps routers with API v2 router
 # All routes are under `/api/v2/` within the same namespace.
 router_api_v2.registry.extend(project_ownership_router.registry)

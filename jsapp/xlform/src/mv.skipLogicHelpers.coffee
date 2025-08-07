@@ -260,33 +260,27 @@ module.exports = do ->
     use_criterion_builder_helper: () ->
       @builder ?= @helper_factory.create_builder()
       presenters = @builder.build_criterion_builder(@state.serialize())
-
       if presenters == false
-        @state = null
+        # Note: pre-decaffination logic returned false, now it renders use_hand_code_helper instead. Seems to have no effect.
+        @use_hand_code_helper()
       else
         @state = new skipLogicHelpers.SkipLogicCriterionBuilderHelper(presenters[0], presenters[1], @builder, @view_factory, @)
         @render @destination
-      return
     use_hand_code_helper: () ->
       @state = new skipLogicHelpers.SkipLogicHandCodeHelper(@state.serialize(), @builder, @view_factory, @)
       @render @destination
       return
-    use_mode_selector_helper : () ->
+    use_mode_selector_helper: () ->
       @helper_factory.survey.off null, null, @state
       @state = new skipLogicHelpers.SkipLogicModeSelectorHelper(@view_factory, @)
       @render @destination
       return
     constructor: (@model_factory, @view_factory, @helper_factory, serialized_criteria) ->
-      @state = serialize: () -> return serialized_criteria
+      @state = serialize: () -> return serialized_criteria # Initial seeding, will be re-assigned a proper helper in next lines.
       if !serialized_criteria? || serialized_criteria == ''
-        serialized_criteria = ''
         @use_mode_selector_helper()
       else
         @use_criterion_builder_helper()
-
-      if !@state?
-        @state = serialize: () -> return serialized_criteria
-        @use_hand_code_helper()
 
   class skipLogicHelpers.SkipLogicCriterionBuilderHelper
     determine_criterion_delimiter_visibility: () ->

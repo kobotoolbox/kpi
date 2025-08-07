@@ -45,6 +45,13 @@ class TableMediaPreview extends React.Component {
 
   renderPreviewByType() {
     switch (this.props.questionType) {
+      case QUESTION_TYPES.file.id:
+        return (
+          <bem.TableMediaPreview__text>
+            {this.props.mediaName}
+            <br />({this.props.mediaAttachment?.mimetype})
+          </bem.TableMediaPreview__text>
+        )
       case QUESTION_TYPES.image.id:
         return (
           <bem.TableMediaPreview__image>
@@ -57,7 +64,7 @@ class TableMediaPreview extends React.Component {
           <bem.TableMediaPreview__audio>
             <i className='k-icon k-icon-file-audio' />
 
-            <AudioPlayer mediaURL={this.props.mediaAttachment?.download_url} data-cy='audioPlayer' />
+            <AudioPlayer mediaURL={this.props.mediaAttachment?.download_url} />
           </bem.TableMediaPreview__audio>
         )
       case QUESTION_TYPES.video.id:

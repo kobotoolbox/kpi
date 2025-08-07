@@ -5,8 +5,6 @@ import React from 'react'
 import alertify from 'alertifyjs'
 import clonedeep from 'lodash.clonedeep'
 import { actions } from '#/actions'
-import bem from '#/bem'
-import AudioPlayer from '#/components/common/audioPlayer'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import Checkbox from '#/components/common/checkbox'
@@ -14,20 +12,20 @@ import KoboSelect from '#/components/common/koboSelect'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { userCan, userHasPermForSubmission } from '#/components/permissions/utils'
 import SubmissionDataTable from '#/components/submissions/submissionDataTable'
-import { getMediaAttachment } from '#/components/submissions/submissionUtils'
+import { getBackgroundAudioAttachment, markAttachmentAsDeleted } from '#/components/submissions/submissionUtils'
 import type { SubmissionPageName } from '#/components/submissions/table.types'
-import { getBackgroundAudioQuestionName } from '#/components/submissions/tableUtils'
 import {
   VALIDATION_STATUS_OPTIONS,
   ValidationStatusAdditionalName,
 } from '#/components/submissions/validationStatus.constants'
 import type { ValidationStatusOptionName } from '#/components/submissions/validationStatus.constants'
-import { EnketoActions, MODAL_TYPES, QuestionTypeName } from '#/constants'
+import { EnketoActions, MODAL_TYPES } from '#/constants'
 import { dataInterface } from '#/dataInterface'
 import type { AssetResponse, FailResponse, SubmissionResponse, ValidationStatusResponse } from '#/dataInterface'
 import enketoHandler from '#/enketoHandler'
 import pageState from '#/pageState.store'
 import { launchPrinting } from '#/utils'
+import SubmissionBackgroundAudio from './SubmissionBackgroundAudio'
 
 const DETAIL_NOT_FOUND = '{"detail":"Not found."}'
 
@@ -88,7 +86,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
 
   constructor(props: SubmissionModalProps) {
     super(props)
-    let translations = this.props.asset.content?.translations
+    const translations = this.props.asset.content?.translations
     let translationOptions: TranslationOption[] = []
 
     if (translations && translations.length > 1) {
@@ -189,8 +187,8 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
         let next = -1
 
         if (this.props.ids && sid) {
-          const c = this.props.ids.findIndex((k) => k === parseInt(sid))
-          let tableInfo = this.props.tableInfo || false
+          const c = this.props.ids.findIndex((k) => k === Number.parseInt(sid))
+          const tableInfo = this.props.tableInfo || false
           if (this.props.ids[c - 1]) {
             prev = this.props.ids[c - 1]
           }
@@ -263,8 +261,8 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
    * there is no indication that app is doing anything in the meantime (bad UX).
    */
   deleteSubmission() {
-    let dialog = alertify.dialog('confirm')
-    let opts = {
+    const dialog = alertify.dialog('confirm')
+    const opts = {
       title: t('Delete submission?'),
       message: `${t('Are you sure you want to delete this submission?')} ${t('This action cannot be undone')}.`,
       labels: { ok: t('Delete'), cancel: t('Cancel') },
@@ -394,45 +392,26 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
   }
 
   onLanguageChange(newValue: string | null) {
-    let index = this.state.translationOptions.findIndex((x) => x.value === newValue)
+    const index = this.state.translationOptions.findIndex((x) => x.value === newValue)
     this.setState({
       translationIndex: index || 0,
     })
   }
 
-  /**
-   * Whether the form has background audio enabled. This means that there is
-   * a possibility that the submission could have a background audio recording.
-   * If you need to know if recording exist, please use `getBackgroundAudioUrl`.
-   */
-  hasBackgroundAudioEnabled() {
-    return this.props.asset?.content?.survey?.some((question) => question.type === QuestionTypeName['background-audio'])
-  }
+  handleDeletedAttachment(attachmentUid: string) {
+    if (this.state.submission) {
+      // Override the attachment object in memory to mark it as deleted (without
+      // making an API call for fresh submission data)
+      this.setState({
+        submission: markAttachmentAsDeleted(this.state.submission, attachmentUid),
+      })
 
-  getBackgroundAudioUrl() {
-    const backgroundAudioName = getBackgroundAudioQuestionName(this.props.asset)
-
-    if (
-      backgroundAudioName &&
-      this.state.submission &&
-      Object.keys(this.state.submission).includes(backgroundAudioName)
-    ) {
-      const response = this.state.submission[backgroundAudioName]
-      if (typeof response === 'string') {
-        const mediaAttachment = getMediaAttachment(
-          this.state.submission,
-          response,
-          QuestionTypeName['background-audio'],
-        )
-        if (typeof mediaAttachment === 'string') {
-          return mediaAttachment
-        } else {
-          return mediaAttachment.download_medium_url || mediaAttachment.download_url
-        }
-      }
+      // Prompt table to refresh submission list
+      actions.resources.refreshTableSubmissions()
+      // TODO: IDEA: instead of doing this for every deleted attachment, mark
+      // state here as something like `isRefreshTableUponClosingNeeded`, and add
+      // some `onBeforeClose` functionality to the `bigModal`…
     }
-
-    return undefined
   }
 
   /**
@@ -442,6 +421,9 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
     if (!this.props.asset.deployment__active || !this.state.submission) {
       return null
     }
+
+    const selectedOption =
+      'uid' in this.state.submission._validation_status ? this.state.submission._validation_status.uid : null
 
     return (
       <div className='submission-modal-dropdowns'>
@@ -465,7 +447,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
           type='outline'
           size='s'
           options={VALIDATION_STATUS_OPTIONS}
-          selectedOption={this.state.submission._validation_status?.uid || null}
+          selectedOption={selectedOption}
           onChange={(newSelectedOption: string | null) => {
             if (newSelectedOption !== null) {
               const castOption = newSelectedOption as ValidationStatusOptionName
@@ -689,10 +671,13 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
     }
 
     // Get background audio
-    const bgAudioUrl = this.getBackgroundAudioUrl()
+    // Note: we do this here to avoid a weird interaction with onDeleted if we pass the uid back up to this component
+    // FIXME: This does not get the audio file if the form turns off background audio (even if there exist submissions)
+    const bgAudio = getBackgroundAudioAttachment(this.props.asset, this.state.submission)
 
     // Each of these `renderX()` functions handle the conditional rendering
     // by itself
+    // TODO: Move each of these render functions to a different component to shorten this file
     return (
       <>
         {this.renderDuplicatedSubmissionSubheader()}
@@ -703,22 +688,13 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
 
         {this.renderSubmissionActions()}
 
-        {this.hasBackgroundAudioEnabled() && (
-          <bem.SubmissionDataTable>
-            <bem.SubmissionDataTable__row m={['columns', 'column-names']}>
-              <bem.SubmissionDataTable__column>{t('Background audio recording')}</bem.SubmissionDataTable__column>
-            </bem.SubmissionDataTable__row>
-
-            <bem.SubmissionDataTable__row m={['columns', 'response', 'type-audio']}>
-              {bgAudioUrl && (
-                <bem.SubmissionDataTable__column m={['data', 'type-audio']}>
-                  <AudioPlayer mediaURL={bgAudioUrl} />
-                </bem.SubmissionDataTable__column>
-              )}
-
-              {!bgAudioUrl && <bem.SubmissionDataTable__column m='data'>{t('N/A')}</bem.SubmissionDataTable__column>}
-            </bem.SubmissionDataTable__row>
-          </bem.SubmissionDataTable>
+        {this.props.asset.content?.survey && bgAudio && (
+          <SubmissionBackgroundAudio
+            asset={this.props.asset}
+            submission={this.state.submission}
+            audio={bgAudio}
+            onDeleted={() => this.handleDeletedAttachment(bgAudio?.uid)}
+          />
         )}
 
         <SubmissionDataTable
@@ -726,6 +702,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
           submissionData={this.state.submission}
           translationIndex={this.state.translationIndex}
           showXMLNames={this.state.showXMLNames}
+          onAttachmentDeleted={this.handleDeletedAttachment.bind(this)}
         />
       </>
     )

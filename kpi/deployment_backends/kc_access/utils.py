@@ -327,6 +327,9 @@ def reset_kc_permissions(
 
 
 def delete_kc_user(username: str):
+    if settings.TESTING:
+        return
+
     with use_db(settings.OPENROSA_DB_ALIAS):
         # Do not use `.using()` here because it does not bubble down to the
         # Collector.

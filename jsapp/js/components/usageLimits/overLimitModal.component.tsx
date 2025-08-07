@@ -1,4 +1,4 @@
-import { AnchorHTMLAttributes, useEffect, useState } from 'react'
+import { type AnchorHTMLAttributes, useEffect, useState } from 'react'
 
 import Markdown from 'react-markdown'
 import { useNavigate } from 'react-router-dom'

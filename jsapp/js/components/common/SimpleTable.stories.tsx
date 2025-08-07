@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import SimpleTable from './SimpleTable'
 
 const meta: Meta<React.ComponentProps<typeof SimpleTable>> = {
-  title: 'common/SimpleTable',
+  title: 'Design system/SimpleTable',
   component: SimpleTable,
   argTypes: {},
   args: {},
@@ -20,13 +20,13 @@ const meta: Meta<React.ComponentProps<typeof SimpleTable>> = {
           'n/a',
           '??',
           <div key='test'>
-            This is just a DIV. It has a button and an input:
+            This is just a DIV. It has a button and a quote:
             <br />
             <br />
             <button>button</button>
             <br />
             <br />
-            <input type='email' />
+            <blockquote>blockquote</blockquote>
             <br />
             <br />
             It shows you can have any <code>React.ReactNode</code> here.

@@ -1,6 +1,6 @@
 var csrftoken
 
-$(document).ready(function () {
+$(document).ready(() => {
   // table sort example
   // ==================
 
@@ -19,17 +19,16 @@ $(document).ready(function () {
 
   // Copy code blocks in docs
   $('.copy-code').focus(function () {
-    var el = this
     // push select to event loop for chrome :{o
-    setTimeout(function () {
-      $(el).select()
+    setTimeout(() => {
+      $(this).select()
     }, 0)
   })
 
   // POSITION STATIC TWIPSIES
   // ========================
 
-  $(window).bind('load resize', function () {
+  $(window).bind('load resize', () => {
     $('.tooltips a').each(function () {
       $(this)
         .tooltip({
@@ -45,7 +44,7 @@ $(document).ready(function () {
   // CSRF Protection for AJAX
   // https://docs.djangoproject.com/en/dev/ref/contrib/csrf/
   csrftoken = $('meta[name=csrf-token]').attr('content')
-  $(document).ajaxSend(function (event, xhr, settings) {
+  $(document).ajaxSend((event, xhr, settings) => {
     function sameOrigin(url) {
       // url could be relative or scheme relative or absolute
       var host = document.location.host // host + port
@@ -89,7 +88,7 @@ $(document).ready(function () {
     var type_id = '#' + type
     var params = {}
     params[type] = $(type_id).val()
-    $.post(saveBtn.data('url'), params, function (data) {
+    $.post(saveBtn.data('url'), params, (data) => {
       saveBtn.hide()
       $(type_id + '_edit').show()
       $(type_id).attr('disabled', '')
@@ -116,7 +115,7 @@ $(document).ready(function () {
     var params = {}
     params[type] = $(type_id).val()
     // TODO handle multi-part post
-    $.post(addBtn.data('url'), params, function (data) {
+    $.post(addBtn.data('url'), params, (data) => {
       $(type_id).val('')
     })
     return false
@@ -127,7 +126,7 @@ $(document).ready(function () {
 
   //$('#new-form').tooltip({'placement': 'left'})
 
-  $(function () {
+  $(() => {
     $('a[rel=tooltip]').tooltip({
       live: true,
       placement: 'top',
@@ -137,7 +136,7 @@ $(document).ready(function () {
 
   $('a[rel=popover]')
     .popover()
-    .click(function (e) {
+    .click((e) => {
       e.preventDefault()
     })
 
@@ -147,11 +146,9 @@ $(document).ready(function () {
       title: false,
       template:
         '<div class="popover"><div class="arrow"></div><div class="popover-inner"><div class="popover-content"><p></p></div></div></div>',
-      content: function () {
-        return '<a href=="#">Click Me</a>'
-      },
+      content: () => '<a href=="#">Click Me</a>',
     })
-    .click(function (e) {
+    .click((e) => {
       e.preventDefault()
     })
 

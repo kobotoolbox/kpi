@@ -181,12 +181,12 @@ export enum ChangePlanStatus {
 }
 
 export enum SubscriptionChangeType {
-  CANCELLATION,
-  RENEWAL,
-  PRODUCT_CHANGE,
-  PRICE_CHANGE,
-  QUANTITY_CHANGE,
-  NO_CHANGE,
+  CANCELLATION = 0,
+  RENEWAL = 1,
+  PRODUCT_CHANGE = 2,
+  PRICE_CHANGE = 3,
+  QUANTITY_CHANGE = 4,
+  NO_CHANGE = 5,
 }
 
 export type ChangePlan =
@@ -220,8 +220,8 @@ export interface OneTimeUsageLimits {
 }
 
 export enum USAGE_TYPE {
-  SUBMISSIONS,
-  TRANSCRIPTION,
-  TRANSLATION,
-  STORAGE,
+  SUBMISSIONS = 0,
+  TRANSCRIPTION = 1,
+  TRANSLATION = 2,
+  STORAGE = 3,
 }

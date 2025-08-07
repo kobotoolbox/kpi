@@ -10,12 +10,12 @@ on:
 jobs:
   build:
     if: github.event.pull_request.merged == true
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v4
         with:
           # We need this particular version, as npm 8.5.5 is the last version
           # that works with our package.json :sadface:.
@@ -47,7 +47,7 @@ jobs:
         run: sudo json2po jsapp/compiled/extracted-strings.json locale/en/LC_MESSAGES/djangojs.po
 
       - name: Run Transifex
-        uses: transifex/cli-action@v1
+        uses: transifex/cli-action@v2
         with:
           token: ${{ secrets.TRANSIFEX_API }}
           args: 'push -s'

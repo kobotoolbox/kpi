@@ -47,6 +47,7 @@ export const DATA_TABLE_SETTINGS = Object.freeze({
 })
 
 export const TABLE_MEDIA_TYPES = createEnum([
+  QuestionTypeName.file,
   QuestionTypeName.image,
   QuestionTypeName.audio,
   QuestionTypeName.video,

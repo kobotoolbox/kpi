@@ -43,6 +43,7 @@ class AuditLogTasksTestCase(BaseTestCase):
                 'source': 'source',
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
                 'latest_version_uid': '0',
+                'project_owner': 'someuser',
             },
             object_id=self.asset.id,
         )

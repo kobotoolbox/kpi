@@ -2,6 +2,7 @@ import React from 'react'
 
 import alertify from 'alertifyjs'
 import { actions } from '#/actions'
+import BulkDeleteMediaFiles from '#/attachments/BulkDeleteMediaFiles'
 import bem from '#/bem'
 import Badge from '#/components/common/badge'
 import Button from '#/components/common/button'
@@ -127,7 +128,6 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
       selectedCount = requestObj.submission_ids.length
     }
     let msg
-    let onshow
     msg = t(
       'You are about to permanently delete ##count## submissions. It is not possible to recover deleted submissions.',
     ).replace('##count##', String(selectedCount))
@@ -135,16 +135,16 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
 
     this.closeCurrentDialog() // just for safety sake
     this.currentDialog = alertify.dialog('confirm')
-    onshow = () => {
-      let ok_button = this.currentDialog?.elements.buttons.primary.firstChild as HTMLButtonElement
-      let $els = $('.alertify-toggle input')
+    const onshow = () => {
+      const ok_button = this.currentDialog?.elements.buttons.primary.firstChild as HTMLButtonElement
+      const $els = $('.alertify-toggle input')
 
       ok_button.disabled = true
 
       $els.each(function () {
         $(this).prop('checked', false)
       })
-      $els.change(function () {
+      $els.change(() => {
         ok_button.disabled = false
         $els.each(function () {
           if (!$(this).prop('checked')) {
@@ -177,6 +177,20 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
       totalSubmissions: this.props.totalRowsCount,
       selectedSubmissions: Object.keys(this.props.selectedRows),
     })
+  }
+
+  /** Returns an array of SubmissionResponse's which delete-able attachments. */
+  getSelectedSubmissionsWithAttachments() {
+    return this.props.data.filter(
+      (submission) =>
+        Object.keys(this.props.selectedRows).includes(submission._id.toString()) &&
+        submission._attachments.filter((attachment) => !attachment.is_deleted).length > 0,
+    )
+  }
+
+  handleDeletedAttachment() {
+    // Prompt table to refresh submission list
+    actions.resources.refreshTableSubmissions()
   }
 
   render() {
@@ -249,6 +263,17 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
               startIcon='trash'
               label={t('Delete')}
               className='table-meta__additional-text'
+            />
+          )}
+
+        {Object.keys(this.props.selectedRows).length > 0 &&
+          (userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
+            userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)) &&
+          this.getSelectedSubmissionsWithAttachments().length > 0 && (
+            <BulkDeleteMediaFiles
+              selectedSubmissions={this.getSelectedSubmissionsWithAttachments()}
+              asset={this.props.asset}
+              onDeleted={this.handleDeletedAttachment}
             />
           )}
       </bem.TableMeta__bulkOptions>

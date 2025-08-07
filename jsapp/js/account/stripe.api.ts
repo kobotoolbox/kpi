@@ -68,32 +68,12 @@ export async function postCustomerPortal(organizationId: string, priceId = '', q
 }
 
 /**
- * Get the subscription interval (`'month'` or `'year'`) for the logged-in user.
- * Returns `'month'` for users on the free plan.
- */
-export async function getSubscriptionInterval() {
-  await when(() => envStore.isReady)
-  if (envStore.data.stripe_public_key) {
-    if (!subscriptionStore.isPending && !subscriptionStore.isInitialised) {
-      subscriptionStore.fetchSubscriptionInfo()
-    }
-    await when(() => subscriptionStore.isInitialised)
-    const subscriptionList = subscriptionStore.planResponse
-    const activeSubscription = subscriptionList.find((sub) => ACTIVE_STRIPE_STATUSES.includes(sub.status))
-    if (activeSubscription) {
-      return activeSubscription.items[0].price.recurring?.interval || 'month'
-    }
-  }
-  return 'month'
-}
-
-/**
  * Extract the limits from Stripe product/price metadata and convert their values from string to number (if necessary.)
  * Will only return limits that exceed the ones in `limitsToCompare`, or all limits if `limitsToCompare` is not present.
  */
 function getLimitsForMetadata(metadata: PriceMetadata, limitsToCompare: false | AccountLimit = false) {
   const limits: Partial<AccountLimit> = {}
-  const quantity = getAdjustedQuantityForPrice(parseInt(metadata['quantity']), metadata.transform_quantity)
+  const quantity = getAdjustedQuantityForPrice(Number.parseInt(metadata['quantity']), metadata.transform_quantity)
   for (const [key, value] of Object.entries(metadata)) {
     // if we need to compare limits, make sure we're not overwriting a higher limit from somewhere else
     if (limitsToCompare) {
@@ -106,7 +86,7 @@ function getLimitsForMetadata(metadata: PriceMetadata, limitsToCompare: false | 
     }
     // only use metadata needed for limit calculations
     if (key in DEFAULT_LIMITS && value !== null) {
-      const numericValue = parseInt(value as string)
+      const numericValue = Number.parseInt(value as string)
       limits[key as keyof AccountLimit] = value === Limits.unlimited ? Limits.unlimited : numericValue * quantity
     }
   }

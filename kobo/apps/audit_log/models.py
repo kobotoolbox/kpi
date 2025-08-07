@@ -61,6 +61,7 @@ class AuditType(models.TextChoices):
     USER_MANAGEMENT = 'user-management'
     ASSET_MANAGEMENT = 'asset-management'
     SUBMISSION_MANAGEMENT = 'submission-management'
+    ATTACHMENT_MANAGEMENT = 'attachment-management'
 
 
 class AuditLog(models.Model):
@@ -346,6 +347,7 @@ class ProjectHistoryLog(AuditLog):
                 'ip_address': audit_log_info['ip_address'],
                 'source': audit_log_info['source'],
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'project_owner': audit_log_info['project_owner'],
             }
             ProjectHistoryLog.objects.create(
                 user=task.user,
@@ -459,6 +461,7 @@ class ProjectHistoryLog(AuditLog):
                 'ip_address': client_ip,
                 'source': source,
                 'latest_version_uid': asset.prefetched_latest_versions[0].uid,
+                'project_owner': asset.owner.username,
             }
             ProjectHistoryLog.objects.create(
                 user=request.user,
@@ -484,6 +487,7 @@ class ProjectHistoryLog(AuditLog):
                 'ip_address': get_client_ip(request),
                 'source': get_human_readable_client_user_agent(request),
                 'cloned_from': request._data[CLONE_ARG_NAME],
+                'project_owner': initial_data['asset.owner.username'],
             },
         )
 
@@ -504,6 +508,7 @@ class ProjectHistoryLog(AuditLog):
             'ip_address': get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
             'latest_version_uid': audit_log_info['latest_version_uid'],
+            'project_owner': audit_log_info['owner_username'],
         }
 
         # requests to archive/unarchive will only have the `active` param in the request
@@ -559,6 +564,7 @@ class ProjectHistoryLog(AuditLog):
             'ip_address': get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
             'latest_version_uid': updated_data['latest_version.uid'],
+            'project_owner': updated_data['owner.username'],
         }
 
         changed_field_to_action_map = {
@@ -627,6 +633,7 @@ class ProjectHistoryLog(AuditLog):
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
                 'ip_address': get_client_ip(request),
                 'source': get_human_readable_client_user_agent(request),
+                'project_owner': request.asset.owner.username,
                 'submission': {
                     'submitted_by': instance.username,
                     'root_uuid': instance.root_uuid,
@@ -667,6 +674,7 @@ class ProjectHistoryLog(AuditLog):
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
                 'ip_address': get_client_ip(request),
                 'source': get_human_readable_client_user_agent(request),
+                'project_owner': request.asset.owner.username,
                 'submission': {
                     'submitted_by': username,
                     'root_uuid': instance.root_uuid,
@@ -678,7 +686,7 @@ class ProjectHistoryLog(AuditLog):
     def _create_from_ownership_transfer(cls, request):
         updated_data = getattr(request, 'updated_data')
         transfers = updated_data['transfers'].values(
-            'asset__uid', 'asset__asset_type', 'asset__id'
+            'asset__uid', 'asset__asset_type', 'asset__id', 'asset__owner__username'
         )
         logs = []
         for transfer in transfers:
@@ -696,6 +704,7 @@ class ProjectHistoryLog(AuditLog):
                         'ip_address': get_client_ip(request),
                         'source': get_human_readable_client_user_agent(request),
                         'username': updated_data['recipient.username'],
+                        'project_owner': transfer['asset__owner__username'],
                     },
                 )
             )
@@ -732,6 +741,7 @@ class ProjectHistoryLog(AuditLog):
             'source': get_human_readable_client_user_agent(request),
             'asset_uid': asset_uid,
             'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            'project_owner': source_data['asset.owner.username'],
         }
         # we'll be bulk creating logs instead of using .create, so we have to set
         # all fields manually
@@ -791,6 +801,7 @@ class ProjectHistoryLog(AuditLog):
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
                 'ip_address': get_client_ip(request),
                 'source': get_human_readable_client_user_agent(request),
+                'project_owner': updated_data['project_owner'],
             },
         )
 
@@ -935,12 +946,14 @@ class ProjectHistoryLog(AuditLog):
             # request failed, don't try to log
             return
         object_id = source_data.pop('object_id')
+        owner = source_data.pop('asset.owner.username')
 
         metadata = {
             'asset_uid': asset_uid,
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
             'ip_address': get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
+            'project_owner': owner,
         }
         if label:
             metadata.update({label: source_data})

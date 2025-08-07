@@ -30,7 +30,7 @@ export function validateBackendPermissions(permissionAssignments: PermissionResp
     allContradictory = union(allContradictory, appendUserUrls(permDef.contradictory, assignment.user))
   })
 
-  let hasAllImplied = true
+  const hasAllImplied = true
   // FIXME: `manage_asset` implies all the `*_submission` permissions, but
   // those are assignable *only* when the asset type is 'survey'. We need to
   // design a way to pass that nuance from the back end to the front end

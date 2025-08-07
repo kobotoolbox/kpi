@@ -11,7 +11,7 @@ export function generateColumnFilters(selectedColumns, selectableQuestions) {
   // We need to flatten questions if coming from survey in order to compare
   // to `selectableQuestions`
   if (selectableQuestions?.length && typeof selectableQuestions[0] === 'object') {
-    let questions = assetUtils.getSurveyFlatPaths(selectableQuestions)
+    const questions = assetUtils.getSurveyFlatPaths(selectableQuestions)
     for (const key in questions) {
       if (!questions[key].includes('version')) {
         selectableColumns.push(questions[key])

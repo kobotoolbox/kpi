@@ -11,7 +11,7 @@
   TODO: rename this file "signup_form_helpers.js"
   TODO: lint this file, make variable names clearer
 */
-;(function () {
+;(() => {
   // ------------- DOM ARRANGEMENT --------------------------------------
   // Improve DOM source order of Django checkbox form elements
   document.querySelectorAll('form.registration input[type="checkbox"]').forEach((checkbox) => {
@@ -55,11 +55,11 @@
       return value
     }
     // on tabout
-    organization_website.addEventListener('blur', function (e) {
+    organization_website.addEventListener('blur', (e) => {
       e.target.value = cleaned_url(e.target.value)
     })
     // on "enter" key
-    organization_website.addEventListener('keydown', function (e) {
+    organization_website.addEventListener('keydown', (e) => {
       if (e.keyCode === 13) {
         e.target.value = cleaned_url(e.target.value)
       }
@@ -74,7 +74,7 @@
 
   // The back end uses custom validation for these fields, but on the frontend
   // they should have the same look-and-feel as regular required fields.
-  document.querySelectorAll('[data-required]').forEach(function (field) {
+  document.querySelectorAll('[data-required]').forEach((field) => {
     const redAsterisk = document.createElement('span')
     redAsterisk.classList.add('required')
     redAsterisk.textContent = '*'
@@ -87,7 +87,7 @@
   const organization_placeholder = document.createElement('div') // swapper
   const organization_website_placeholder = document.createElement('div') // swapper
 
-  const applySkipLogic = function () {
+  const applySkipLogic = () => {
     // Swap fields with placeholders, removing or re-adding them to the form
     if (organization_type.value === 'none' || (organization_type.value === '' && organization_type.required)) {
       if (organization_parent) {

@@ -1,11 +1,11 @@
-import { TextInput, TextInputProps } from '@mantine/core'
-import type { Meta, StoryObj } from '@storybook/react'
+import { TextInput, type TextInputProps } from '@mantine/core'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import Icon from './icon'
 
 const inputSizes: Array<TextInputProps['size']> = ['sm', 'md', 'lg']
 
 export default {
-  title: 'common/TextInput',
+  title: 'Design system old/TextInput',
   component: TextInput,
   argTypes: {
     label: {

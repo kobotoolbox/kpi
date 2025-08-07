@@ -28,7 +28,7 @@ interface IconProps {
  * An icon component.
  */
 export default function Icon(props: IconProps) {
-  let classNames: string[] = []
+  const classNames: string[] = []
   if (props.className) {
     classNames.push(props.className)
   }

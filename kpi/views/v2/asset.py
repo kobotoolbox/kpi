@@ -27,7 +27,7 @@ from kpi.filters import (
     AssetOrderingFilter,
     ExcludeOrgAssetFilter,
     KpiObjectPermissionsFilter,
-    SearchFilter
+    SearchFilter,
 )
 from kpi.highlighters import highlight_xform
 from kpi.mixins.asset import AssetViewSetListMixin
@@ -401,6 +401,7 @@ class AssetViewSet(
         'data_sharing',
         'content',
         'advanced_features.qual.qual_survey',
+        'owner.username',
     ]
     log_type = AuditType.PROJECT_HISTORY
 
@@ -485,6 +486,7 @@ class AssetViewSet(
                     'id': asset.id,
                     'latest_deployed_version_uid': asset.latest_deployed_version_uid,
                     'latest_version_uid': asset.latest_version.uid,
+                    'owner_username': asset.owner.username,
                 }
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict
@@ -518,6 +520,7 @@ class AssetViewSet(
                     'active': serializer.data['active'],
                     'latest_deployed_version_uid': asset.latest_deployed_version_uid,
                     'latest_version_uid': asset.latest_version.uid,
+                    'owner_username': asset.owner.username,
                 }
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict

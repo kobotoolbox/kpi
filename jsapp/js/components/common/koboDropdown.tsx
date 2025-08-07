@@ -14,6 +14,7 @@ const DEFAULT_PLACEMENT: KoboDropdownPlacement = 'down-center'
 interface KoboDropdownProps {
   /** Defaults to DEFAULT_PLACEMENT :wink: */
   placement?: KoboDropdownPlacement
+  /** I think we have this here, so that `KoboSelect` (that is built atop this component) would use it. */
   isRequired?: boolean
   /** Disables the dropdowns trigger, thus disallowing opening dropdown. */
   isDisabled?: boolean
@@ -27,7 +28,6 @@ interface KoboDropdownProps {
    * the `data-name` attribute.
    */
   name: string
-  'data-cy'?: string
   /** Alternative way of getting the opened status of the menu. */
   onMenuVisibilityChange?: (isOpened: boolean) => void
   /** Additional class names. */
@@ -40,7 +40,6 @@ interface KoboDropdownState {
 
 interface AdditionalWrapperAttributes {
   'data-name': string
-  'data-cy'?: string
 }
 
 bem.KoboDropdown = makeBem(null, 'kobo-dropdown')
@@ -210,10 +209,6 @@ export default class KoboDropdown extends React.Component<KoboDropdownProps, Kob
     const additionalWrapperAttributes: AdditionalWrapperAttributes = {
       // We use `data-name` attribute to allow any character in the name.
       ['data-name']: this.props.name,
-    }
-
-    if (this.props['data-cy']) {
-      additionalWrapperAttributes['data-cy'] = this.props['data-cy']
     }
 
     return (

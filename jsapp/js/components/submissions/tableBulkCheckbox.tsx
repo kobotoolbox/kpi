@@ -16,7 +16,7 @@ interface TableBulkCheckboxProps {
   onClearSelection: () => void
 }
 
-export function TableBulkCheckbox(props: TableBulkCheckboxProps) {
+export default function TableBulkCheckbox(props: TableBulkCheckboxProps) {
   function onSelectAllPages() {
     props.onSelectAllPages()
   }
@@ -59,5 +59,3 @@ export function TableBulkCheckbox(props: TableBulkCheckboxProps) {
     </div>
   )
 }
-
-export default TableBulkCheckbox
