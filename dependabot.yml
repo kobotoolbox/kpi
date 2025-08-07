@@ -9,3 +9,8 @@ updates:
       - "dependencies"
     reviewers:
       - "magicznyleszek"
+    ignore:
+      # We no longer want to use select2. The only usages left are in the Form Builder code.
+      - dependancy-name: "select2"
+      # - dependancy-name: "x"
+      #   versions: [ ">=1.0.0" ]
