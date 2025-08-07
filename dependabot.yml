@@ -7,20 +7,37 @@ updates:
     # Specify labels for npm pull requests
     labels:
       - "dependencies"
+      - "Front end"
     reviewers:
       - "magicznyleszek"
     ignore:
+      ######################################
+      # Deps that we want to get rid of etc.
+      ######################################
+
       # We no longer want to use select2. The only usages left are in the Form Builder code.
       - dependancy-name: "select2"
+
       # We need to use https://github.com/saifelse/coffeelint-no-implicit-returns in our ongoing decaffeination project.
       # Unfortunately it doesn't work with coffeelint 2+. The plan is to not have CoffeeScript files, so there would be
       # no need for coffeelint :fingers_crossed:
       - dependancy-name: "coffeelint"
         versions: [ ">=2.0.0" ]
+
       # We want to slowly not have mobx, updating it is not a priority.
       - dependancy-name: "mobx-react"
-      # We can't update chai because of chai-deep-equal-ignore-undefined that doesn't work with 5.x
+
+      #####################################################
+      # Deps that require refactor and work before updating
+      #####################################################
+
+      # We can't update chai because of `chai-deep-equal-ignore-undefined` that doesn't work with 5.x
       - dependancy-name: "@types/chai"
         versions: [ ">=5.0.0" ]
       - dependancy-name: "chai"
         versions: [ ">=5.0.0" ]
+
+      # Updating to next major version requires some refactor as there are some breaking changes that sadly do concern
+      # our code https://github.com/webpack-contrib/css-loader/releases/tag/v7.0.0
+      - dependancy-name: "css-loader"
+        versions: [ ">=7.0.0" ]
