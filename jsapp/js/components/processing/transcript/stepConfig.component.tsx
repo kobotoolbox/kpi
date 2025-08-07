@@ -18,9 +18,11 @@ import { getAttachmentForProcessing } from './transcript.utils'
 export default function StepConfig() {
   const { data: serviceUsageData } = useServiceUsageQuery()
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
-  const isOverLimit = useMemo(
-    () => serviceUsageData?.limitExceedList.includes(UsageLimitTypes.TRANSCRIPTION),
-    [serviceUsageData?.limitExceedList],
+  const usageLimitBlock = useMemo(
+    () =>
+      serviceUsageData?.limitExceedList.includes(UsageLimitTypes.TRANSCRIPTION) &&
+      envStore.data.usage_limit_enforcement,
+    [serviceUsageData?.limitExceedList, envStore.data.usage_limit_enforcement],
   )
   const { billingPeriod } = useBillingPeriod()
 
@@ -68,7 +70,7 @@ export default function StepConfig() {
   }
 
   function onAutomaticButtonClick() {
-    if (isOverLimit) {
+    if (usageLimitBlock) {
       setIsLimitBlockModalOpen(true)
     } else {
       selectModeAuto()
