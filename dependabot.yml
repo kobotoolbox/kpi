@@ -19,3 +19,8 @@ updates:
         versions: [ ">=2.0.0" ]
       # We want to slowly not have mobx, updating it is not a priority.
       - dependancy-name: "mobx-react"
+      # We can't update chai because of chai-deep-equal-ignore-undefined that doesn't work with 5.x
+      - dependancy-name: "@types/chai"
+        versions: [ ">=5.0.0" ]
+      - dependancy-name: "chai"
+        versions: [ ">=5.0.0" ]
