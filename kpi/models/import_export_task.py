@@ -8,7 +8,6 @@ from collections import defaultdict
 from io import BytesIO
 from os.path import split, splitext
 from typing import Dict, Generator, List, Optional, Tuple
-from zoneinfo import ZoneInfo
 
 import constance
 import dateutil.parser
@@ -39,6 +38,7 @@ from private_storage.fields import PrivateFileField
 from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
 from rest_framework import exceptions
 from werkzeug.http import parse_options_header
+from zoneinfo import ZoneInfo
 
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.subsequences.utils import stream_with_extras
@@ -323,7 +323,9 @@ class ImportTask(ImportExportTask):
 
         if destination_collection and not has_necessary_perm:
             # redundant check
-            raise exceptions.PermissionDenied('user cannot load assets into this collection')
+            raise exceptions.PermissionDenied(
+                'user cannot load assets into this collection'
+            )
 
         collections_to_assign = []
         for item in fif._parsed:
