@@ -61,9 +61,9 @@ class TestBulkSubmissionAttachments(TestBase):
                 ('wave.wav', 'audio/x-wav'),
             ]
             actual = list(
-                instance.attachments.order_by(
-                    'media_file_basename'
-                ).values_list('media_file_basename', 'mimetype')
+                instance.attachments.order_by('media_file_basename').values_list(
+                    'media_file_basename', 'mimetype'
+                )
             )
             self.assertEqual(actual, expected)
 
@@ -72,12 +72,12 @@ class TestBulkSubmissionAttachments(TestBase):
             self.assertEqual(
                 sorted(basenames),
                 # Both submissions in the zipfile use these names
-                sorted(['test.pdf', 'thanks.png', 'wave.wav']))
+                sorted(['test.pdf', 'thanks.png', 'wave.wav']),
+            )
             basenames_count += len(basenames)
 
         # Expect 6 new attachments total (wav, png, pdf)
         self.assertEqual(basenames_count, 6)
-
 
     def test_bulk_import_attachments_post(self):
         url = reverse(bulksubmission, kwargs={'username': self.user.username})
