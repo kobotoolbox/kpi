@@ -87,7 +87,7 @@
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.17.0",
     "@faker-js/faker": "^9.8.0",
-    "@jest/create-cache-key-function": "^29.7.0",
+    "@jest/create-cache-key-function": "^30.0.5",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
     "@storybook/addon-a11y": "^9.0.0-beta.11",
     "@storybook/addon-docs": "^9.0.17",
