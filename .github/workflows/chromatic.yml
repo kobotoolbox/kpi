@@ -58,7 +58,7 @@ jobs:
           ref: "main"
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.17.0
+          node-version: 20.18.1
       - name: Install dependencies
         run: npm ci
       - name: Run Chromatic
@@ -83,7 +83,7 @@ jobs:
       - chromatic
       - get-commit-title
     # Any code that isn't 0 means some error happening, see https://www.chromatic.com/docs/cli/#exit-codes
-    if: ${{ always() && (needs.chromatic.outputs.chromatic-code != 0) }}
+    if: ${{ !cancelled() && (needs.chromatic.outputs.chromatic-code != 0) }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
