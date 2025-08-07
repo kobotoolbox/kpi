@@ -310,6 +310,11 @@ CONSTANCE_CONFIG = {
         False,
         'Require MFA for superusers with a usable password',
     ),
+    'USAGE_LIMIT_ENFORCEMENT': (
+        env.bool('USAGE_LIMIT_ENFORCEMENT', False),
+        'For Stripe-enabled instances, determines whether usage limits will be enforced'
+        'by blocking submissions/NLP actions or deleting stored files.',
+    ),
     'ASR_MT_INVITEE_USERNAMES': (
         '',
         'List of invited usernames, one per line, who will have access to NLP '
@@ -713,6 +718,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ORGANIZATION_INVITE_EXPIRY',
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
         'MASS_EMAIL_TEST_EMAILS',
+        'USAGE_LIMIT_ENFORCEMENT',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
