@@ -100,12 +100,7 @@ jobs:
       - changelog
       - notify-prev
       - notify-current
-    if: |
-      failure() && (
-      (needs.create-branch.result == 'failure' || needs.create-branch.result == 'timed_out') ||
-      (needs.changelog.result == 'failure' || needs.changelog.result == 'timed_out') ||
-      (needs.notify-prev.result == 'failure' || needs.notify-prev.result == 'timed_out') ||
-      (needs.notify-current.result == 'failure' || needs.notify-current.result == 'timed_out'))
+    if: ${{ failure() }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
