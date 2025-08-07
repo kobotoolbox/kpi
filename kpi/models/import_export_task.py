@@ -8,6 +8,7 @@ from collections import defaultdict
 from io import BytesIO
 from os.path import split, splitext
 from typing import Dict, Generator, List, Optional, Tuple
+from zoneinfo import ZoneInfo
 
 import constance
 import dateutil.parser
@@ -38,7 +39,6 @@ from private_storage.fields import PrivateFileField
 from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
 from rest_framework import exceptions
 from werkzeug.http import parse_options_header
-from zoneinfo import ZoneInfo
 
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.subsequences.utils import stream_with_extras
@@ -105,8 +105,11 @@ class ImportExportTask(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     data = models.JSONField()
     messages = models.JSONField(default=dict)
-    status = models.CharField(choices=ImportExportStatusChoices.choices, max_length=32,
-                              default=ImportExportStatusChoices.CREATED)
+    status = models.CharField(
+        choices=ImportExportStatusChoices.choices,
+        max_length=32,
+        default=ImportExportStatusChoices.CREATED,
+    )
     date_created = models.DateTimeField(auto_now_add=True)
     # date_expired = models.DateTimeField(null=True)
 
