@@ -138,8 +138,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             raise_access_forbidden=False,
             error_media_type='text/html',
         ),
-        tags=['OpenRosa'],
-        exclude=True,
+        tags=['OpenRosa Form List'],
     ),
     manifest=extend_schema(
         description=read_md('kpi', 'openrosa/manifest.md'),
@@ -151,8 +150,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             raise_access_forbidden=False,
             error_media_type='text/html',
         ),
-        tags=['OpenRosa'],
-        exclude=True,
+        tags=['OpenRosa Form Manifest'],
     ),
     submission=extend_schema(
         description=read_md('kpi', 'openrosa/submission.md'),
@@ -164,8 +162,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             raise_access_forbidden=False,
             raise_not_found=False,
         ),
-        tags=['OpenRosa'],
-        exclude=True,
+        tags=['OpenRosa Form Submission'],
     ),
     preview=extend_schema(
         description=read_md('kpi', 'asset_snapshots/preview.md'),

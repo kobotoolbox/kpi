@@ -32,10 +32,7 @@ from kpi.models.object_permission import ObjectPermission
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
 
 
-@extend_schema(
-    tags=['OpenRosa'],
-    exclude=True,
-)
+@extend_schema(tags=['OpenRosa Add'])
 class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
     content_negotiation_class = MediaFileContentNegotiation
@@ -137,7 +134,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
         return queryset
 
-    @extend_schema(exclude=True)
+    @extend_schema(tags=['OpenRosa Form List'])
     def list(self, request, *args, **kwargs):
 
         object_list = self.filter_queryset(self.get_queryset())
@@ -150,7 +147,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         )
         return Response(serializer.data, headers=self.get_openrosa_headers())
 
-    @extend_schema(exclude=True)
+    @extend_schema(tags=['OpenRosa Form List'])
     def retrieve(self, request, *args, **kwargs):
         xform = self.get_object()
 
@@ -158,6 +155,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             xform.xml_with_disclaimer, headers=self.get_openrosa_headers()
         )
 
+    @extend_schema(tags=['OpenRosa Form Manifest'])
     @action(detail=True, methods=['GET'])
     def manifest(self, request, *args, **kwargs):
         xform = self.get_object()
@@ -205,6 +203,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
         return Response(serializer.data, headers=self.get_openrosa_headers())
 
+    @extend_schema(tags=['OpenRosa Form Media'])
     @action(detail=True, methods=['GET'])
     def media(self, request, *args, **kwargs):
         xform = self.get_object()

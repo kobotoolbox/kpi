@@ -4,7 +4,7 @@ from rest_framework import generics, views
 from . import openrosa_drf_settings
 
 
-@extend_schema(tags=['OpenRosa'], exclude=True)
+@extend_schema(tags=['OpenRosa'])
 class OpenRosaAPIView(views.APIView):
 
     renderer_classes = openrosa_drf_settings.DEFAULT_RENDERER_CLASSES

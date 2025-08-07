@@ -10,6 +10,7 @@ from drf_spectacular.views import SpectacularAPIView
 from rest_framework import status
 from rest_framework.exceptions import server_error
 
+from kpi.utils.spectacular_processing import V2SchemaGenerator, OpenRosaSchemaGenerator
 from kpi.utils.urls import is_request_for_html
 from kpi.views.v2.swagger_ui import ExtendedSwaggerUIView
 
@@ -19,13 +20,27 @@ admin.site.login = staff_member_required(admin.site.login, login_url=settings.LO
 urlpatterns = [
     path(
         'api/v2/schema/',
-        SpectacularAPIView.as_view(api_version='api_v2'),
+        SpectacularAPIView.as_view(
+            api_version='api_v2', generator_class=V2SchemaGenerator
+        ),
         name='schema',
     ),
     path(
         'api/v2/docs/',
         ExtendedSwaggerUIView.as_view(url_name='schema'),
         name='swagger-ui',
+    ),
+    path(
+        'api/openrosa/schema/',
+        SpectacularAPIView.as_view(
+            api_version='api_v2', generator_class=OpenRosaSchemaGenerator
+        ),
+        name='schema-openrosa',
+    ),
+    path(
+        'api/openrosa/docs/',
+        ExtendedSwaggerUIView.as_view(url_name='schema-openrosa'),
+        name='swagger-ui-openrosa',
     ),
     # https://github.com/stochastic-technologies/django-loginas
     re_path(r'^admin/', include('loginas.urls')),

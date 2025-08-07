@@ -65,10 +65,7 @@ def create_instance_from_json(username, request):
     return safe_create_instance(username, xml_file, [], None, request=request)
 
 
-@extend_schema(
-    tags=['OpenRosa'],
-    exclude=True,
-)
+@extend_schema(tags=['OpenRosa Form Submission'])
 class XFormSubmissionApi(
     OpenRosaHeadersMixin,
     mixins.CreateModelMixin,
