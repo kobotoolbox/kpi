@@ -42,7 +42,7 @@ updates:
       - dependancy-name: "css-loader"
         versions: [ ">=7.0.0" ]
 
-      # We use it in our script responsible for generating icons. The major version update changes how the code needs to
-      # be used. It's not a big change, but requires some manual work
+      # We use it in our script responsible for generating icons (`scripts/generate_icons.js`). The major version update
+      # changes how the code needs to be used. It's not a big change, but requires some manual work.
       - dependancy-name: "replace-in-file"
         versions: [ ">=7.0.0" ]
