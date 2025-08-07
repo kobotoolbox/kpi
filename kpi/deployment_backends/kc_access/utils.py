@@ -3,7 +3,6 @@ from contextlib import contextmanager
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ImproperlyConfigured
 from django.db import ProgrammingError, transaction
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -21,64 +20,6 @@ def safe_kc_read(func):
             )
 
     return _wrapper
-
-
-def _get_content_type_kwargs_for_related(obj):
-    r"""
-        Given an `obj` with a `KC_CONTENT_TYPE_KWARGS` dictionary attribute,
-        prepend `content_type__` to each key in that dictionary and return the
-        result.
-        :param obj: Object with `KC_CONTENT_TYPE_KWARGS` dictionary attribute
-        :rtype dict(str, str)
-    """
-    try:
-        content_type_kwargs = obj.KC_CONTENT_TYPE_KWARGS
-    except AttributeError:
-        raise ImproperlyConfigured(
-            'Model {} has a KC_PERMISSIONS_MAP attribute but lacks '
-            'KC_CONTENT_TYPE_KWARGS'.format(obj._meta.model_name)
-        )
-    # Prepend 'content_type__' to each field name in KC_CONTENT_TYPE_KWARGS
-    content_type_kwargs = {
-        'content_type__' + k: v for k, v in content_type_kwargs.items()
-    }
-    return content_type_kwargs
-
-
-def _get_applicable_kc_permissions(obj, kpi_codenames):
-    r"""
-        Given a KPI object and one KPI permission codename as a single string,
-        or many codenames as an iterable, return the corresponding KC
-        permissions as a list of `KobocatPermission` objects.
-        :param obj: Object with `KC_PERMISSIONS_MAP` dictionary attribute
-        :param kpi_codenames: One or more codenames for KPI permissions
-        :type kpi_codenames: str or list(str)
-        :rtype list(:py:class:`Permission`)
-    """
-    if not settings.KOBOCAT_URL or not settings.KOBOCAT_INTERNAL_URL:
-        return []
-    try:
-        perm_map = obj.KC_PERMISSIONS_MAP
-    except AttributeError:
-        # This model doesn't have any associated KC permissions
-        logging.warning(
-            '{} object missing KC_PERMISSIONS_MAP'.format(type(obj)))
-        return []
-    if isinstance(kpi_codenames, str):
-        kpi_codenames = [kpi_codenames]
-    # Map KPI codenames to KC
-    kc_codenames = []
-    for kpi_codename in kpi_codenames:
-        try:
-            kc_codenames.append(perm_map[kpi_codename])
-        except KeyError:
-            # This permission doesn't map to anything in KC
-            continue
-    content_type_kwargs = _get_content_type_kwargs_for_related(obj)
-    permissions = Permission.objects.using(settings.OPENROSA_DB_ALIAS).filter(
-        codename__in=kc_codenames, **content_type_kwargs
-    )
-    return permissions
 
 
 def _get_xform_id_for_asset(asset):
@@ -130,9 +71,7 @@ def grant_kc_model_level_perms(user: 'kobo_auth.User'):
         user.user_permissions.add(*permissions_to_assign)
 
 
-def set_kc_anonymous_permissions_xform_flags(
-    obj, kpi_codenames, remove=False
-):
+def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, remove=False):
     r"""
     Given a KPI object, one or more KPI permission codenames and the PK of
     a KC `XForm`, assume the KPI permissions have been assigned to or

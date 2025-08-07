@@ -457,16 +457,6 @@ class Asset(
         PERM_VALIDATE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
     }
 
-    # Some permissions must be copied to KC
-    KC_PERMISSIONS_MAP = {  # keys are KPI's codenames, values are KC's
-        PERM_CHANGE_SUBMISSIONS: 'change_xform',  # "Can change XForm" in KC shell
-        PERM_VIEW_SUBMISSIONS: 'view_xform',  # "Can view XForm" in KC shell
-        PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can make submissions to the form" in KC shell  # noqa
-        PERM_DELETE_SUBMISSIONS: 'delete_data_xform',  # "Can delete submissions" in KC shell  # noqa
-        PERM_VALIDATE_SUBMISSIONS: 'validate_xform',  # "Can validate submissions" in KC shell  # noqa
-        PERM_DELETE_ASSET: 'delete_xform',  # "Can delete XForm" in KC shell
-    }
-    KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
     # KC records anonymous access as flags on the `XForm`
     KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS = {
         PERM_ADD_SUBMISSIONS: {'require_auth': False},
