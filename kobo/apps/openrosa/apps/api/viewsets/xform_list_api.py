@@ -147,7 +147,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         )
         return Response(serializer.data, headers=self.get_openrosa_headers())
 
-    @extend_schema(tags=['OpenRosa Form List'])
+    @extend_schema(tags=['OpenRosa Form List'], exclude=True)
     def retrieve(self, request, *args, **kwargs):
         xform = self.get_object()
 

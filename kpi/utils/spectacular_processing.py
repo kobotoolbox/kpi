@@ -6,10 +6,11 @@ OPEN_ROSA_ENDPOINTS = [
     '/submission',
     #'/formUpload',
     #'/upload',
+    # '/{username}/forms/{pk}/form.xml',
     '/xformsManifest/{pk}',
     '/xformsMedia/{pk}/{metadata}',
     '/{username}/formList',
-    # '/{username}/forms/{pk}/form.xml',
+
     '/{username}/submission',
     '/{username}/xformsManifest/{pk}',
     '/{username}/xformsMedia/{pk}/{metadata}',
