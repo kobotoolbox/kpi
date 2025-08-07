@@ -1,13 +1,15 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import (
     build_array_type,
-    build_basic_type,
     build_object_type,
 )
-from drf_spectacular.types import OpenApiTypes
 
+from kpi.schema_extensions.v2.generic.schema import (
+    ASSET_URL_SCHEMA,
+    GENERIC_STRING_SCHEMA,
+)
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from kpi.schema_extensions.v2.generic.schema import ASSET_URL_SCHEMA, GENERIC_STRING_SCHEMA
+
 
 class AssetUrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kobo.apps.project_ownership.schema_extensions.v2.project_ownership.transfers.fields.AssetUrlField'  # noqa
@@ -25,7 +27,7 @@ class StatusesFieldExtension(OpenApiSerializerFieldExtension):
                 properties={
                     'status': GENERIC_STRING_SCHEMA,
                     'status_type': GENERIC_STRING_SCHEMA,
-                    'error':  GENERIC_STRING_SCHEMA,
+                    'error': GENERIC_STRING_SCHEMA,
                 }
             )
         )

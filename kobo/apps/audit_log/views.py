@@ -10,8 +10,8 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kpi.filters import SearchFilter
 from kpi.models.import_export_task import (
     AccessLogExportTask,
-    ProjectHistoryLogExportTask,
     ImportExportStatusChoices,
+    ProjectHistoryLogExportTask,
 )
 from kpi.permissions import IsAuthenticated
 from kpi.tasks import export_task_in_background
@@ -460,7 +460,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
         in_progress = ProjectHistoryLogExportTask.objects.filter(
             user=request.user,
             asset_uid=None,
-            status=ImportExportStatusChoices.PROCESSING
+            status=ImportExportStatusChoices.PROCESSING,
         ).count()
         if in_progress > 0:
             return Response(

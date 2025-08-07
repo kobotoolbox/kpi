@@ -6,11 +6,11 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
-from kpi.utils.schema_extensions.url_builder import build_url_type
 from kpi.schema_extensions.v2.generic.schema import (
     GENERIC_OBJECT_SCHEMA,
     GENERIC_STRING_SCHEMA,
 )
+from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
 class ImportUrlFieldExtension(OpenApiSerializerFieldExtension):
@@ -34,15 +34,9 @@ class MessagesFieldExtension(OpenApiSerializerFieldExtension):
                             'summary': build_object_type(
                                 properties={
                                     'geo': build_basic_type(OpenApiTypes.BOOL),
-                                    'labels': build_array_type(
-                                        GENERIC_STRING_SCHEMA
-                                    ),
-                                    'columns': build_array_type(
-                                        GENERIC_STRING_SCHEMA
-                                    ),
-                                    'language': build_array_type(
-                                        GENERIC_STRING_SCHEMA
-                                    ),
+                                    'labels': build_array_type(GENERIC_STRING_SCHEMA),
+                                    'columns': build_array_type(GENERIC_STRING_SCHEMA),
+                                    'language': build_array_type(GENERIC_STRING_SCHEMA),
                                     'row_count': build_basic_type(OpenApiTypes.INT),
                                     'name_quality': build_object_type(
                                         properties={

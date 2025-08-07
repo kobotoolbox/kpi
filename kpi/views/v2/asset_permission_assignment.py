@@ -33,13 +33,13 @@ from kpi.schema_extensions.v2.asset_permission_assignments.schema import (
     ASSET_PARTIAL_PERMISSION_ASSIGNMENT_SCHEMA,
     PERMISSION_URL_SCHEMA,
 )
-from kpi.schema_extensions.v2.generic.schema import (USER_URL_SCHEMA)
 from kpi.schema_extensions.v2.asset_permission_assignments.serializers import (
     PermissionAssignmentBulkRequest,
     PermissionAssignmentCloneRequest,
     PermissionAssignmentCreateRequest,
     PermissionAssignmentResponse,
 )
+from kpi.schema_extensions.v2.generic.schema import USER_URL_SCHEMA
 from kpi.serializers.v2.asset_permission_assignment import (
     AssetBulkInsertPermissionSerializer,
     AssetPermissionAssignmentSerializer,

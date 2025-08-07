@@ -2,19 +2,14 @@ from drf_spectacular.extensions import (
     OpenApiSerializerExtension,
     OpenApiSerializerFieldExtension,
 )
-from drf_spectacular.plumbing import (
-    build_array_type,
-    build_basic_type,
-    build_object_type,
-)
-from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.plumbing import build_object_type
 
-from kpi.utils.schema_extensions.url_builder import build_url_type
-from .schema import INVITE_ROLE_SCHEMA, INVITE_STATUS_SCHEMA
 from kpi.schema_extensions.v2.generic.schema import (
     GENERIC_ARRAY_SCHEMA,
     USER_URL_SCHEMA,
 )
+from kpi.utils.schema_extensions.url_builder import build_url_type
+from .schema import INVITE_ROLE_SCHEMA, INVITE_STATUS_SCHEMA
 
 
 class InvitedByUrlFieldExtension(OpenApiSerializerFieldExtension):

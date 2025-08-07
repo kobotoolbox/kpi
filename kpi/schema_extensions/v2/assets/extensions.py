@@ -9,6 +9,13 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
+from kpi.schema_extensions.v2.generic.schema import (
+    ASSET_URL_SCHEMA,
+    GENERIC_ARRAY_SCHEMA,
+    GENERIC_OBJECT_SCHEMA,
+    GENERIC_STRING_SCHEMA,
+    USER_URL_SCHEMA,
+)
 from kpi.utils.schema_extensions.url_builder import build_url_type
 from .schema import (
     ASSET_CLONE_FROM_SCHEMA,
@@ -22,13 +29,7 @@ from .schema import (
     BULK_ASSET_UIDS_SCHEMA,
     BULK_CONFIRM_SCHEMA,
 )
-from kpi.schema_extensions.v2.generic.schema import (
-    ASSET_URL_SCHEMA,
-    GENERIC_ARRAY_SCHEMA,
-    GENERIC_OBJECT_SCHEMA,
-    GENERIC_STRING_SCHEMA,
-    USER_URL_SCHEMA,
-)
+
 
 class AccessTypeFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AccessTypeField'

@@ -1,15 +1,16 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import (
     build_array_type,
-    build_basic_type,
     build_object_type,
 )
-from drf_spectacular.types import OpenApiTypes
 
-from kpi.utils.schema_extensions.url_builder import build_url_type
 from kpi.schema_extensions.v2.generic.schema import (
-    GENERIC_ARRAY_SCHEMA, LABEL_VALUE_OBJECT_SCHEMA, GENERIC_OBJECT_SCHEMA,GENERIC_STRING_SCHEMA
+    GENERIC_ARRAY_SCHEMA,
+    GENERIC_OBJECT_SCHEMA,
+    GENERIC_STRING_SCHEMA,
+    LABEL_VALUE_OBJECT_SCHEMA,
 )
+from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
 class AssetLanguageFieldExtension(OpenApiSerializerFieldExtension):
@@ -30,9 +31,7 @@ class AssetSettingsFieldExtension(OpenApiSerializerFieldExtension):
         return build_object_type(
             properties={
                 'sector': LABEL_VALUE_OBJECT_SCHEMA,
-                'country': build_array_type(
-                    schema=LABEL_VALUE_OBJECT_SCHEMA
-                ),
+                'country': build_array_type(schema=LABEL_VALUE_OBJECT_SCHEMA),
                 'description': GENERIC_STRING_SCHEMA,
                 'collects_pii': GENERIC_STRING_SCHEMA,
                 'organization': GENERIC_STRING_SCHEMA,

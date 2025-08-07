@@ -222,11 +222,15 @@ class ExportTaskViewSet(AuditLoggedNoUpdateModelViewSet):
             lambda: export_in_background.delay(export_task_uid=export_task.uid)
         )
 
-        return Response({
-            'uid': export_task.uid,
-            'url': reverse(
-                'submissionexporttask-detail',
-                kwargs={'uid': export_task.uid},
-                request=request),
-            'status': ImportExportStatusChoices.PROCESSING
-        }, status.HTTP_201_CREATED)
+        return Response(
+            {
+                'uid': export_task.uid,
+                'url': reverse(
+                    'submissionexporttask-detail',
+                    kwargs={'uid': export_task.uid},
+                    request=request,
+                ),
+                'status': ImportExportStatusChoices.PROCESSING,
+            },
+            status.HTTP_201_CREATED,
+        )

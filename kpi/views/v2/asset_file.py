@@ -17,7 +17,12 @@ from kpi.constants import PERM_VIEW_ASSET
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.models import AssetFile
 from kpi.permissions import AssetEditorPermission
+from kpi.schema_extensions.v2.files.schema import (
+    BASE64_METADATA_SCHEMA,
+    URL_METADATA_SCHEMA,
+)
 from kpi.schema_extensions.v2.files.serializers import CreateFilePayload, FilesResponse
+from kpi.schema_extensions.v2.generic.schema import ASSET_URL_SCHEMA, USER_URL_SCHEMA
 from kpi.serializers.v2.asset_file import AssetFileSerializer
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
@@ -27,14 +32,6 @@ from kpi.utils.schema_extensions.response import (
     open_api_204_empty_response,
 )
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-from kpi.schema_extensions.v2.files.schema import (
-    BASE64_METADATA_SCHEMA,
-    URL_METADATA_SCHEMA,
-)
-from kpi.schema_extensions.v2.generic.schema import (
-    ASSET_URL_SCHEMA,
-    USER_URL_SCHEMA,
-)
 
 
 @extend_schema(

@@ -1,11 +1,11 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
-from drf_spectacular.plumbing import build_basic_type, build_object_type
-from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.plumbing import build_object_type
 
 from kpi.schema_extensions.v2.generic.schema import (
-    USER_URL_SCHEMA,
     GENERIC_STRING_SCHEMA,
+    USER_URL_SCHEMA,
 )
+
 
 # This drf-extension made for the metadata field of AccessLog targets the external class
 # and tells it what it should return when generating the schema.

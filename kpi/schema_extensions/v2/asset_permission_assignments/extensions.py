@@ -4,13 +4,14 @@ from drf_spectacular.extensions import (
 )
 from drf_spectacular.plumbing import build_object_type
 
+from kpi.schema_extensions.v2.generic.schema import USER_URL_SCHEMA
 from .schema import (
     ASSET_PARTIAL_PERMISSION_ASSIGNMENT_SCHEMA,
     ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA,
     PERMISSION_ASSIGNMENT_LABEL_SCHEMA,
     PERMISSION_URL_SCHEMA,
 )
-from kpi.schema_extensions.v2.generic.schema import (USER_URL_SCHEMA)
+
 
 class AssetPermissionAssignmentUrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.asset_permission_assignments.fields.AssetPermissionAssignmentUrlField'  # noqa

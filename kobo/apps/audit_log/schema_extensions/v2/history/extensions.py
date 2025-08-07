@@ -1,6 +1,5 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import (
-    build_array_type,
     build_basic_type,
     build_object_type,
 )
@@ -8,12 +7,11 @@ from drf_spectacular.types import OpenApiTypes
 
 from kpi.schema_extensions.v2.generic.schema import (
     GENERIC_ARRAY_SCHEMA,
-    USER_URL_SCHEMA,
-    LABEL_VALUE_OBJECT_SCHEMA,
     GENERIC_OBJECT_SCHEMA,
     GENERIC_STRING_SCHEMA,
+    LABEL_VALUE_OBJECT_SCHEMA,
+    USER_URL_SCHEMA,
 )
-from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
 class ActionFieldExtension(OpenApiSerializerFieldExtension):

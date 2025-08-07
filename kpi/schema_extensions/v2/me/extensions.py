@@ -1,15 +1,17 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import (
+    build_array_type,
     build_basic_type,
-    build_object_type, build_array_type,
+    build_object_type,
 )
 from drf_spectacular.types import OpenApiTypes
 
-from kpi.utils.schema_extensions.url_builder import build_url_type
 from kpi.schema_extensions.v2.generic.schema import (
     GENERIC_OBJECT_SCHEMA,
     GENERIC_STRING_SCHEMA,
 )
+from kpi.utils.schema_extensions.url_builder import build_url_type
+
 
 class ExtraDetailField(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.me.fields.ExtraDetailField'

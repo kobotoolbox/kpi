@@ -6,11 +6,11 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.schema_extensions.v2.generic.schema import (
-    LABEL_VALUE_OBJECT_SCHEMA,
     GENERIC_ARRAY_SCHEMA,
-    USER_URL_SCHEMA,
     GENERIC_OBJECT_SCHEMA,
     GENERIC_STRING_SCHEMA,
+    LABEL_VALUE_OBJECT_SCHEMA,
+    USER_URL_SCHEMA,
 )
 
 

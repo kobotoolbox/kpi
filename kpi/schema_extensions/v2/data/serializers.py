@@ -98,7 +98,7 @@ EnketoEditResponse = inline_serializer_class(
     fields={
         'url': EnketoEditUrlField(),
         'version': serializers.CharField(),
-    }
+    },
 )
 
 EnketoViewResponse = inline_serializer_class(
@@ -106,5 +106,5 @@ EnketoViewResponse = inline_serializer_class(
     fields={
         'url': EnketoViewUrlField(),
         'version': serializers.CharField(),
-    }
+    },
 )

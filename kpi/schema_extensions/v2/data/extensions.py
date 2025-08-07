@@ -6,8 +6,9 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
-from kpi.utils.schema_extensions.url_builder import build_url_type
 from kpi.schema_extensions.v2.generic.schema import GENERIC_STRING_SCHEMA
+from kpi.utils.schema_extensions.url_builder import build_url_type
+
 
 class DataAttachmentFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.data.fields.DataAttachmentField'

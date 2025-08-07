@@ -1,4 +1,8 @@
-from drf_spectacular.plumbing import build_basic_type, build_object_type, build_array_type
+from drf_spectacular.plumbing import (
+    build_array_type,
+    build_basic_type,
+    build_object_type,
+)
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
