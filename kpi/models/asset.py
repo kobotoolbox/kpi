@@ -49,7 +49,6 @@ from kpi.constants import (
     PERM_DELETE_ASSET,
     PERM_DELETE_SUBMISSIONS,
     PERM_DISCOVER_ASSET,
-    PERM_FROM_KC_ONLY,
     PERM_MANAGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
@@ -319,10 +318,6 @@ class Asset(
             (PERM_CHANGE_SUBMISSIONS, t('Can modify submitted data for asset')),
             (PERM_DELETE_SUBMISSIONS, t('Can delete submitted data for asset')),
             (PERM_VALIDATE_SUBMISSIONS, t('Can validate submitted data asset')),
-            # TEMPORARY Issue #1161: A flag to indicate that permissions came
-            # solely from `sync_kobocat_xforms` and not from any user
-            # interaction with KPI
-            (PERM_FROM_KC_ONLY, 'INTERNAL USE ONLY; DO NOT ASSIGN')
         )
 
         # Since Django 2.1, 4 permissions are added for each registered model:
