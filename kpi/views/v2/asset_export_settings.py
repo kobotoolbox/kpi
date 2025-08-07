@@ -10,7 +10,7 @@ from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.models import AssetExportSettings, SubmissionSynchronousExport
-from kpi.models.import_export_task import StatusChoices
+from kpi.models.import_export_task import ImportExportStatusChoices
 from kpi.permissions import AssetExportSettingsPermission
 from kpi.renderers import SubmissionCSVRenderer, SubmissionXLSXRenderer
 from kpi.schema_extensions.v2.export_settings.serializers import (
@@ -215,7 +215,7 @@ class AssetExportSettingsViewSet(
            user=user,
            asset_export_settings=settings_obj,
         )
-        if export.status != StatusChoices.COMPLETE:
+        if export.status != ImportExportStatusChoices.COMPLETE:
             # The problem has already been logged by `ImportExportTask.run()`,
             # but pass some information of dubious usefulness back to the
             # client.

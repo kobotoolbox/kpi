@@ -11,7 +11,7 @@ from kpi.filters import SearchFilter
 from kpi.models.import_export_task import (
     AccessLogExportTask,
     ProjectHistoryLogExportTask,
-    StatusChoices,
+    ImportExportStatusChoices,
 )
 from kpi.permissions import IsAuthenticated
 from kpi.tasks import export_task_in_background
@@ -458,7 +458,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     @action(detail=False, methods=['GET', 'POST'])
     def export(self, request, *args, **kwargs):
         in_progress = ProjectHistoryLogExportTask.objects.filter(
-            user=request.user, asset_uid=None, status=StatusChoices.PROCESSING
+            user=request.user, asset_uid=None, status=ImportExportStatusChoices.PROCESSING
         ).count()
         if in_progress > 0:
             return Response(
@@ -572,7 +572,7 @@ class ProjectHistoryLogViewSet(
         in_progress = ProjectHistoryLogExportTask.objects.filter(
             user=request.user,
             asset_uid=self.asset_uid,
-            status=StatusChoices.PROCESSING,
+            status=ImportExportStatusChoices.PROCESSING,
         ).count()
         if in_progress > 0:
             return Response(
@@ -699,7 +699,7 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     def create(self, request, *args, **kwargs):
         if AccessLogExportTask.objects.filter(
             user=request.user,
-            status=StatusChoices.PROCESSING,
+            status=ImportExportStatusChoices.PROCESSING,
             get_all_logs=False,
         ).exists():
             return Response(
@@ -760,7 +760,7 @@ class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
         # Check if the superuser has a task running for all
         if AccessLogExportTask.objects.filter(
             user=request.user,
-            status=StatusChoices.PROCESSING,
+            status=ImportExportStatusChoices.PROCESSING,
             get_all_logs=True,
         ).exists():
             return Response(
