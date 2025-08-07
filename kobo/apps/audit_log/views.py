@@ -458,7 +458,9 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     @action(detail=False, methods=['GET', 'POST'])
     def export(self, request, *args, **kwargs):
         in_progress = ProjectHistoryLogExportTask.objects.filter(
-            user=request.user, asset_uid=None, status=ImportExportStatusChoices.PROCESSING
+            user=request.user,
+            asset_uid=None,
+            status=ImportExportStatusChoices.PROCESSING
         ).count()
         if in_progress > 0:
             return Response(
