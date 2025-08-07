@@ -2,12 +2,20 @@ from django.conf import settings
 
 
 def build_url_type(viewname: str, **kwargs) -> dict:
-
     """
-    Due to the life cycle of DRF, we have no choice but to build the examples as
-    belong instead of using a reverse_lazy like we did before. This util is loaded
-    before the urls and models which mean the cycle will enter an infinite loop where
-    it tries to get the url, then the model and so on.
+    Utility used to build API schema examples for drf-spectacular.
+
+    In practice, we initially tried using `reverse_lazy` to generate realistic URLs,
+    but since drf-spectacular parses all code at schema generation time — before Django
+    has fully loaded all apps and URL patterns — this caused import issues and circular
+    references.
+
+    To avoid that, we hardcode the URL patterns via a `urls_pattern_mapping` to simulate
+    the behavior of `reverse_lazy`, while ensuring the examples still match the actual
+    API routes.
+
+    This utility helps produce meaningful URLs in Swagger UI, instead of dummy or
+    unrelated placeholders.
     """
     example_url = settings.KOBOFORM_URL + '/api/v2/' + viewname
     if ':' in viewname:
