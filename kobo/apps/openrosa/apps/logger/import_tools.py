@@ -27,6 +27,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import create_instance
 # └── metadata
 #     └── data
 
+
 def django_file(path, field_name, content_type):
     # adapted from here:
     # http://groups.google.com/group/django-users/browse_thread/thread/
