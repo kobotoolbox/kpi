@@ -4,6 +4,7 @@
  */
 
 import React from 'react'
+import { isRtlLang } from 'rtl-detect'
 
 import assetStore from '#/assetStore'
 import permConfig from '#/components/permissions/permConfig'
@@ -38,7 +39,6 @@ import type { IconName } from '#/k-icons'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME_URL } from '#/users/utils'
 import { currentLang } from '#/utils'
-import { isRtlLang } from 'rtl-detect'
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
