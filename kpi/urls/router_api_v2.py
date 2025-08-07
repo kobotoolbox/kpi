@@ -1,4 +1,5 @@
 from django.urls import path
+from rest_framework.renderers import JSONRenderer
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
 from kobo.apps.audit_log.urls import router as audit_log_router
@@ -210,17 +211,17 @@ router_api_v2.register(
 enketo_url_aliases = [
     path(
         'assets/<parent_lookup_asset>/data/<pk>/edit/',
-        DataViewSet.as_view({'get': 'enketo_edit'}),
+        DataViewSet.as_view({'get': 'enketo_edit'}, renderer_classes=[JSONRenderer]),
         name='submission-enketo-edit-legacy',
     ),
     path(
         'assets/<parent_lookup_asset>/data/<pk>/enketo/redirect/edit/',
-        DataViewSet.as_view({'get': 'enketo_edit'}),
+        DataViewSet.as_view({'get': 'enketo_edit'}, renderer_classes=[JSONRenderer]),
         name='submission-enketo-edit-redirect',
     ),
     path(
         'assets/<parent_lookup_asset>/data/<pk>/enketo/redirect/view/',
-        DataViewSet.as_view({'get': 'enketo_view'}),
+        DataViewSet.as_view({'get': 'enketo_view'}, renderer_classes=[JSONRenderer]),
         name='submission-enketo-view-redirect',
     ),
 ]
