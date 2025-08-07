@@ -52,7 +52,7 @@ DataResponse = inline_serializer_class(
         '_attachments': DataAttachmentField(),
         '_status': serializers.CharField(),
         '_geolocation': EmptyListField(),
-        '_submission_time': serializers.TimeField(),
+        '_submission_time': serializers.DateTimeField(),
         '_tags': EmptyListField(),
         'Notes': EmptyListField(),
         '_validation_status': EmptyObjectField(),
