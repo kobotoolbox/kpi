@@ -84,6 +84,7 @@ def utcnow(*args, **kwargs):
     """
     return datetime.datetime.now(tz=ZoneInfo('UTC'))
 
+
 class StatusChoices(models.TextChoices):
 
     CREATED = 'created', 'created'

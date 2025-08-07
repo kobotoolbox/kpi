@@ -10,7 +10,6 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kpi.filters import SearchFilter
 from kpi.models.import_export_task import (
     AccessLogExportTask,
-    ImportExportTask,
     ProjectHistoryLogExportTask,
     StatusChoices,
 )
