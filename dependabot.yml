@@ -16,5 +16,6 @@ updates:
       # Unfortunately it doesn't work with coffeelint 2+. The plan is to not have CoffeeScript files, so there would be
       # no need for coffeelint :fingers_crossed:
       - dependancy-name: "coffeelint"
-      # - dependancy-name: "x"
-      #   versions: [ ">=1.0.0" ]
+        versions: [ ">=2.0.0" ]
+      # We want to slowly not have mobx, updating it is not a priority.
+      - dependancy-name: "mobx-react"
