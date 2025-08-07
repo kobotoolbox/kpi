@@ -201,7 +201,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             data = json.loads(f.read())
             request = self.factory.post('/submission', data, format='json')
             response = self.view(request)
-            self.assertEqual(response.status_code, 401)
+            self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
             mock_balances = {
                 UsageType.STORAGE_BYTES: {
@@ -228,7 +228,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             ):
                 request = self.factory.post('/submission', data, format='json')
                 response = self.view(request)
-                self.assertEqual(response.status_code, 401)
+                self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
                 request = self.factory.post('/submission', data, format='json')
                 auth = DigestAuth('bob', 'bobbob')
                 request.META.update(auth(request.META, response))
