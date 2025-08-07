@@ -12,5 +12,9 @@ updates:
     ignore:
       # We no longer want to use select2. The only usages left are in the Form Builder code.
       - dependancy-name: "select2"
+      # We need to use https://github.com/saifelse/coffeelint-no-implicit-returns in our ongoing decaffeination project.
+      # Unfortunately it doesn't work with coffeelint 2+. The plan is to not have CoffeeScript files, so there would be
+      # no need for coffeelint :fingers_crossed:
+      - dependancy-name: "coffeelint"
       # - dependancy-name: "x"
       #   versions: [ ">=1.0.0" ]
