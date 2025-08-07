@@ -21,7 +21,7 @@ class XFormInstanceFS:
                 for entry in os.scandir(dir)
                 if entry.is_file()
                 and entry.path != self.path
-                and entry.name in self.mentioned_attachments
+                and entry.name in self.mentioned_in_xml
             ]
         return self._attachments
 
@@ -37,18 +37,18 @@ class XFormInstanceFS:
         return self._photos
 
     @property
-    def mentioned_attachments(self):
-        if not hasattr(self, '_mentioned_attachments'):
+    def mentioned_in_xml(self):
+        if not hasattr(self, '_mentioned_in_xml'):
             parser = etree.XMLParser()
             root = etree.fromstring(self.xml, parser=parser)
             namespaces = root.nsmap
-            self._mentioned_attachments = set(
+            self._mentioned_in_xml = set(
                 root.xpath(
-                    '//*[@type="file"]/text()',
+                    '//*/text()',
                     namespaces=namespaces,
                 )
             )
-        return self._mentioned_attachments
+        return self._mentioned_in_xml
 
     @property
     def metadata_directory(self):
