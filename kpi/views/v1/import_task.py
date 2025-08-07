@@ -10,6 +10,7 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import (
     get_human_readable_client_user_agent,
 )
 from kpi.models import ImportTask
+from kpi.models.import_export_task import StatusChoices
 from kpi.serializers import ImportTaskListSerializer, ImportTaskSerializer
 from kpi.tasks import import_in_background
 from kpi.utils.strings import to_str
@@ -65,6 +66,6 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
                 'importtask-detail',
                 kwargs={'uid': import_task.uid},
                 request=request),
-            'status': ImportTask.PROCESSING
+            'status': StatusChoices.PROCESSING
         }, status.HTTP_201_CREATED)
 

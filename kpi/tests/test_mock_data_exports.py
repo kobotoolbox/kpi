@@ -20,6 +20,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models import Asset, SubmissionExportTask
+from kpi.models.import_export_task import StatusChoices
 from kpi.utils.mongo_helper import drop_mock_only
 from kpi.utils.object_permission import get_anonymous_user
 
@@ -1473,7 +1474,7 @@ class MockDataExports(MockDataExportsBase):
         export_task.data = task_data
         export_task.save()
         export_task.run()
-        self.assertEqual(export_task.status, SubmissionExportTask.COMPLETE)
+        self.assertEqual(export_task.status, StatusChoices.COMPLETE)
         result = export_task.result
         self.assertTrue(result.storage.exists(result.name))
         # Make an excessive amount of additional exports
@@ -1492,7 +1493,7 @@ class MockDataExports(MockDataExportsBase):
             :settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM]
         # Call `run()` once more since it invokes the cleanup logic
         export_task.run()
-        self.assertEqual(export_task.status, SubmissionExportTask.COMPLETE)
+        self.assertEqual(export_task.status, StatusChoices.COMPLETE)
         # Verify the cleanup
         self.assertFalse(result.storage.exists(result.name))
         self.assertListEqual(  # assertSequenceEqual isn't working...
@@ -1516,7 +1517,7 @@ class MockDataExports(MockDataExportsBase):
             ).count(),
         )
         # Simulate a few stuck exports
-        for status in (SubmissionExportTask.CREATED, SubmissionExportTask.PROCESSING):
+        for status in (StatusChoices.CREATED, StatusChoices.PROCESSING):
             export_task = SubmissionExportTask()
             export_task.user = self.user
             export_task.data = task_data
@@ -1525,7 +1526,7 @@ class MockDataExports(MockDataExportsBase):
             export_task.date_created -= datetime.timedelta(days=1)
             export_task.save()
         self.assertSequenceEqual(
-            [SubmissionExportTask.CREATED, SubmissionExportTask.PROCESSING],
+            [StatusChoices.CREATED, StatusChoices.PROCESSING],
             SubmissionExportTask.objects.filter(
                 user=self.user, data__source=task_data['source']
             ).order_by('pk').values_list('status', flat=True),
@@ -1538,7 +1539,7 @@ class MockDataExports(MockDataExportsBase):
         export_task.run()
         # Verify that the stuck exports have been marked
         self.assertSequenceEqual(
-            [SubmissionExportTask.ERROR, SubmissionExportTask.ERROR, SubmissionExportTask.COMPLETE],
+            [StatusChoices.ERROR, StatusChoices.ERROR, StatusChoices.COMPLETE],
             SubmissionExportTask.objects.filter(
                 user=self.user, data__source=task_data['source']
             ).order_by('pk').values_list('status', flat=True),

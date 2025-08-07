@@ -84,6 +84,13 @@ def utcnow(*args, **kwargs):
     """
     return datetime.datetime.now(tz=ZoneInfo('UTC'))
 
+class StatusChoices(models.TextChoices):
+
+    CREATED = 'created', 'created'
+    PROCESSING = 'processing', 'processing'
+    COMPLETE = 'complete', 'complete'
+    ERROR = 'error', 'error'
+
 
 class ImportExportTask(models.Model):
     """
@@ -94,23 +101,11 @@ class ImportExportTask(models.Model):
     class Meta:
         abstract = True
 
-    CREATED = 'created'
-    PROCESSING = 'processing'
-    COMPLETE = 'complete'
-    ERROR = 'error'
-
-    STATUS_CHOICES = (
-        (CREATED, CREATED),
-        (PROCESSING, PROCESSING),
-        (ERROR, ERROR),
-        (COMPLETE, COMPLETE),
-    )
-
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     data = models.JSONField()
     messages = models.JSONField(default=dict)
-    status = models.CharField(choices=STATUS_CHOICES, max_length=32,
-                              default=CREATED)
+    status = models.CharField(choices=StatusChoices.choices, max_length=32,
+                              default=StatusChoices.CREATED)
     date_created = models.DateTimeField(auto_now_add=True)
     # date_expired = models.DateTimeField(null=True)
 
@@ -125,32 +120,32 @@ class ImportExportTask(models.Model):
             _refetched_self = self._meta.model.objects.get(pk=self.pk)
             self.status = _refetched_self.status
             del _refetched_self
-            if self.status == self.COMPLETE:
+            if self.status == StatusChoices.COMPLETE:
                 return
-            elif self.status != self.CREATED:
+            elif self.status != StatusChoices.CREATED:
                 # possibly a concurrent task?
                 raise Exception(
                     'only recently created {}s can be executed'.format(
                         self._meta.model_name)
                 )
-            self.status = self.PROCESSING
+            self.status = StatusChoices.PROCESSING
             self.save(update_fields=['status'])
 
         msgs = defaultdict(list)
         try:
             # This method must be implemented by a subclass
             self._run_task(msgs)
-            self.status = self.COMPLETE
+            self.status = StatusChoices.COMPLETE
         except SubmissionExportTaskBase.InaccessibleData as e:
             msgs['error_type'] = t('Cannot access data')
             msgs['error'] = str(e)
-            self.status = self.ERROR
+            self.status = StatusChoices.ERROR
         # TODO: continue to make more specific exceptions as above until this
         # catch-all can be removed entirely
         except Exception as err:
             msgs['error_type'] = type(err).__name__
             msgs['error'] = str(err)
-            self.status = self.ERROR
+            self.status = StatusChoices.ERROR
             logging.error(
                 'Failed to run %s: %s' % (self._meta.model_name, repr(err)),
                 exc_info=True
@@ -164,7 +159,7 @@ class ImportExportTask(models.Model):
         try:
             self.save(update_fields=['status', 'messages', 'data'])
         except TypeError as e:
-            self.status = self.ERROR
+            self.status = StatusChoices.ERROR
             logging.error('Failed to save %s: %s' % (self._meta.model_name,
                                                      repr(e)),
                           exc_info=True)
@@ -243,7 +238,7 @@ class ImportTask(ImportExportTask):
         ]
 
     def _run_task(self, messages):
-        self.status = self.PROCESSING
+        self.status = StatusChoices.PROCESSING
         self.save(update_fields=['status'])
         dest_item = has_necessary_perm = False
 
@@ -1072,7 +1067,7 @@ class SubmissionExportTaskBase(ImportExportTask):
             user=user,
             date_created__lt=oldest_allowed_timestamp,
             data__source=source,
-        ).exclude(status__in=(cls.COMPLETE, cls.ERROR))
+        ).exclude(status__in=(StatusChoices.COMPLETE, StatusChoices.ERROR))
         for stuck_export in stuck_exports:
             logging.warning(
                 'Stuck export {}: type {}, username {}, source {}, '
@@ -1085,7 +1080,7 @@ class SubmissionExportTaskBase(ImportExportTask):
                 )
             )
             # FIXME: use `select_for_update`
-            stuck_export.status = cls.ERROR
+            stuck_export.status = StatusChoices.ERROR
             stuck_export.save()
 
     @classmethod
@@ -1171,13 +1166,13 @@ class SubmissionSynchronousExport(SubmissionExportTaskBase):
             export = cls.objects.select_for_update().get(**criteria)
 
             if (
-                export.status == cls.COMPLETE
+                export.status == StatusChoices.COMPLETE
                 and export.date_created >= age_cutoff
             ):
                 return export
 
             export.data = data
-            export.status = cls.CREATED
+            export.status = StatusChoices.CREATED
             export.date_created = utcnow()
             export.result.delete(save=False)
             export.save()
