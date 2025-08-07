@@ -26,7 +26,7 @@ class TestBulkSubmissionAttachments(TestBase):
         TestBase.setUp(self)
         self._publish_xls_file(XLSX_FILE_PATH)
 
-    def _attachments(self, instance):
+    def _stored_attachment_basenames(self, instance):
         placeholder_path = '{username}/attachments/{xform_uuid}/{instance_uuid}'
         attachments_path = placeholder_path.format(
             username=self.user.username,
@@ -43,26 +43,41 @@ class TestBulkSubmissionAttachments(TestBase):
             rmdir(self.user.username)
 
     def test_bulk_import_attachments_zip(self):
-        queryset = Instance.objects
-        initial_instances_count = queryset.count()
-        initial_attachments_count = 0
-
-        for instance in queryset.all():
-            initial_attachments_count += len(self._attachments(instance))
+        self.assertFalse(Instance.objects.exists())
 
         import_instances_from_zip(ZIP_FILE_PATH, self.user)
 
-        instance_count = Instance.objects.count()
-        attachments_count = 0
-        for instance in queryset.all():
-            attachments = self._attachments(instance)
-            self.assertEqual(attachments, ['test.pdf', 'thanks.png', 'wave.wav'])
-            attachments_count += len(attachments)
+        queryset = Instance.objects
 
-        # Expect 2 new submissions
-        self.assertEqual(instance_count, initial_instances_count + 2)
+        self.assertEqual(queryset.count(), 2)
+
+        basenames_count = 0
+        for instance in queryset.all():
+
+            # Check the database
+            expected = [
+                ('test.pdf', 'application/pdf'),
+                ('thanks.png', 'image/png'),
+                ('wave.wav', 'audio/x-wav'),
+            ]
+            actual = list(
+                instance.attachments.order_by(
+                    'media_file_basename'
+                ).values_list('media_file_basename', 'mimetype')
+            )
+            self.assertEqual(actual, expected)
+
+            # Check the filesystem
+            basenames = self._stored_attachment_basenames(instance)
+            self.assertEqual(
+                sorted(basenames),
+                # Both submissions in the zipfile use these names
+                sorted(['test.pdf', 'thanks.png', 'wave.wav']))
+            basenames_count += len(basenames)
+
         # Expect 6 new attachments total (wav, png, pdf)
-        self.assertEqual(attachments_count, initial_attachments_count + 6)
+        self.assertEqual(basenames_count, 6)
+
 
     def test_bulk_import_attachments_post(self):
         url = reverse(bulksubmission, kwargs={'username': self.user.username})

@@ -90,7 +90,9 @@ def import_instances_from_path(path, user, status='zip'):
         ) as xml_file:
             attachments = [
                 django_file(
-                    dir_entry.path, None, mimetypes.guess_type(dir_entry.name, strict=0)
+                    dir_entry.path,
+                    field_name=dir_entry.name,
+                    content_type=mimetypes.guess_type(dir_entry.name)[0],
                 )
                 for dir_entry in xform_fs.attachments
             ]
@@ -98,12 +100,14 @@ def import_instances_from_path(path, user, status='zip'):
             # files are in the database.
             # there shouldn't be any instances with a submitted status in the
             # import.
+            #
 
-            instance = create_instance(user.username, xml_file, attachments, status)
+            instance = create_instance(
+                user.username, xml_file, (a for a in attachments), status
+            )
 
-            for i in attachments:
-                i.close()
-                i.close()
+            for a in attachments:
+                a.close()
 
             if instance:
                 return 1
