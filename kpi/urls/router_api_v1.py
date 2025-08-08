@@ -1,4 +1,4 @@
-# coding: utf-8
+from django.urls import path
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
 from kobo.apps.hook.views.v1.hook import HookViewSet
@@ -62,3 +62,26 @@ router_api_v1.register(r'exports', ExportTaskViewSet)
 router_api_v1.register(r'authorized_application/users',
                        AuthorizedApplicationUserViewSet,
                        basename='authorized_applications')
+
+
+# Create aliases here instead of using complex regex patterns in the `url_path`
+# parameter of the @action decorator. DRF and drf-spectacular struggle to interpret
+# them correctly, often resulting in broken routes and schema generation errors.
+enketo_url_aliases = [
+    path(
+        'assets/<parent_lookup_asset>/submissions/<pk>/edit/',
+        SubmissionViewSet.as_view({'get': 'enketo_edit'}),
+        name='submission-enketo-edit-legacy',
+    ),
+    path(
+        'assets/<parent_lookup_asset>/submissions/<pk>/enketo/redirect/edit/',
+        SubmissionViewSet.as_view({'get': 'enketo_edit'}),
+        name='submission-enketo-edit-redirect',
+    ),
+    path(
+        'assets/<parent_lookup_asset>/submissions/<pk>/enketo/redirect/view/',
+        SubmissionViewSet.as_view({'get': 'enketo_view'}),
+        name='submission-enketo-view-redirect',
+    ),
+]
+urls_patterns = router_api_v1.urls + enketo_url_aliases

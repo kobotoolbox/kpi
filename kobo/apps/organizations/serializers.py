@@ -7,9 +7,10 @@ from django.core.validators import validate_email
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as t
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound, PermissionDenied
-from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -23,9 +24,20 @@ from kobo.apps.organizations.models import (
 )
 from kobo.apps.project_ownership.models import InviteStatusChoices
 from kpi.exceptions import RetryAfterAPIException
+from kpi.schema_extensions.v2.organizations.fields import (
+    AssetField,
+    AssetUsageField,
+    MembersField,
+    ServiceUsageField,
+    UrlField,
+)
 from kpi.utils.cache import void_cache_for_request
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.placeholders import replace_placeholders
+from kpi.utils.schema_extensions.fields import (
+    HyperlinkedIdentityFieldWithSchemaField,
+    ReadOnlyFieldWithSchemaField,
+)
 from .constants import (
     INVITE_ALREADY_ACCEPTED_ERROR,
     INVITE_ALREADY_EXISTS_ERROR,
@@ -57,8 +69,8 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         source='created', format='%Y-%m-%dT%H:%M:%SZ'
     )
     user__username = serializers.ReadOnlyField(source='user.username')
-    user__extra_details__name = serializers.ReadOnlyField(
-        source='user.extra_details.data.name'
+    user__extra_details__name = ReadOnlyFieldWithSchemaField(
+        schema_field=OpenApiTypes.STR, source='user.extra_details.data.name'
     )
     user__email = serializers.ReadOnlyField(source='user.email')
     user__is_active = serializers.ReadOnlyField(source='user.is_active')
@@ -78,6 +90,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             'invite',
         ]
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_url(self, obj):
 
         request = self.context.get('request')
@@ -90,6 +103,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             request=request
         )
 
+    @extend_schema_field(OpenApiTypes.OBJECT)
     def get_invite(self, obj):
         """
         Get the latest invite for the user if it exists
@@ -164,7 +178,9 @@ class OrganizationSerializer(serializers.ModelSerializer):
     members = serializers.SerializerMethodField()
     request_user_role = serializers.SerializerMethodField()
     service_usage = serializers.SerializerMethodField()
-    url = HyperlinkedIdentityField(lookup_field='id', view_name='organizations-detail')
+    url = HyperlinkedIdentityFieldWithSchemaField(
+        schema_field=UrlField, lookup_field='id', view_name='organizations-detail'
+    )
     website = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
@@ -191,6 +207,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         return create_organization(user, validated_data['name'])
 
+    @extend_schema_field(AssetField)
     def get_assets(self, organization: Organization) -> str:
         return reverse(
             'organizations-assets',
@@ -198,6 +215,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             request=self.context['request'],
         )
 
+    @extend_schema_field(AssetUsageField)
     def get_asset_usage(self, organization: Organization) -> str:
         return reverse(
             'organizations-asset-usage',
@@ -205,6 +223,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             request=self.context['request'],
         )
 
+    @extend_schema_field(MembersField)
     def get_members(self, organization: Organization) -> str:
         return reverse(
             'organization-members-list',
@@ -212,6 +231,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             request=self.context['request'],
         )
 
+    @extend_schema_field(ServiceUsageField)
     def get_service_usage(self, organization: Organization) -> str:
         return reverse(
             'organizations-service-usage',
@@ -219,6 +239,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             request=self.context['request'],
         )
 
+    @extend_schema_field(OpenApiTypes.BOOL)
     def get_is_owner(self, organization):
 
         # This method is deprecated.
@@ -229,6 +250,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
         return False
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_request_user_role(self, organization):
 
         if request := self.context.get('request'):
@@ -315,6 +337,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
 
         return invites
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_invited_by(self, invite):
         return reverse(
             'user-kpi-detail',
@@ -322,6 +345,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             request=self.context['request'],
         )
 
+    @extend_schema_field(OpenApiTypes.URI)
     def get_url(self, obj):
         """
         Return the detail URL for the invite
