@@ -16,7 +16,7 @@ module.exports = {
     //   issues in Storybook 6.
     // - Testing with React 16.14.0 and Storybook 7 (beta) seemed to perform
     //   well.
-    'storybook-dark-mode',
+    '@storybook-community/storybook-dark-mode',
     '@storybook/addon-webpack5-compiler-swc',
     'storybook-addon-remix-react-router',
     '@storybook/addon-docs',
