@@ -489,33 +489,13 @@ export default Object.assign(
       })
     },
 
-    // navigating out of form builder
-
-    safeNavigateToRoute(route) {
-      if (this.needsSave()) {
-        const dialog = alertify.dialog('confirm')
-        const opts = {
-          title: UNSAVED_CHANGES_WARNING,
-          message: '',
-          labels: { ok: t('Yes, leave form'), cancel: t('Cancel') },
-          onok: () => {
-            this.props.router.navigate(route)
-          },
-          oncancel: dialog.destroy,
-        }
-        dialog.set(opts).show()
-      } else {
-        this.props.router.navigate(route)
-      }
-    },
-
     safeNavigateToList() {
       if (this.state.backRoute) {
-        this.safeNavigateToRoute(this.state.backRoute)
+        this.props.router.navigate(this.state.backRoute)
       } else if (this.props.router.location.pathname.startsWith(ROUTES.LIBRARY)) {
-        this.safeNavigateToRoute(ROUTES.LIBRARY)
+        this.props.router.navigate(ROUTES.LIBRARY)
       } else {
-        this.safeNavigateToRoute(ROUTES.FORMS)
+        this.props.router.navigate(ROUTES.FORMS)
       }
     },
 
@@ -529,7 +509,7 @@ export default Object.assign(
           targetRoute = ROUTES.LIBRARY_ITEM.replace(':uid', this.state.asset_uid)
         }
       }
-      this.safeNavigateToRoute(targetRoute)
+      this.props.router.navigate(targetRoute)
     },
 
     isAddingQuestionsRestricted() {
