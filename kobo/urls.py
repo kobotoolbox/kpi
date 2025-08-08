@@ -10,7 +10,10 @@ from drf_spectacular.views import SpectacularAPIView
 from rest_framework import status
 from rest_framework.exceptions import server_error
 
-from kpi.utils.spectacular_processing import V2SchemaGenerator, OpenRosaSchemaGenerator
+from kpi.utils.spectacular_processing import (
+    ApiOpenRosaSchemaGenerator,
+    ApiV2SchemaGenerator,
+)
 from kpi.utils.urls import is_request_for_html
 from kpi.views.v2.swagger_ui import ExtendedSwaggerUIView
 
@@ -21,7 +24,7 @@ urlpatterns = [
     path(
         'api/v2/schema/',
         SpectacularAPIView.as_view(
-            api_version='api_v2', generator_class=V2SchemaGenerator
+            api_version='api_v2', generator_class=ApiV2SchemaGenerator
         ),
         name='schema',
     ),
@@ -33,7 +36,7 @@ urlpatterns = [
     path(
         'api/openrosa/schema/',
         SpectacularAPIView.as_view(
-            api_version='api_v2', generator_class=OpenRosaSchemaGenerator
+            api_version='api_v2', generator_class=ApiOpenRosaSchemaGenerator
         ),
         name='schema-openrosa',
     ),
