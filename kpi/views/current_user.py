@@ -58,7 +58,8 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     >               "url": string,
     >               "name": string,
     >               "uid": string,
-    >           }
+    >           },
+    >           "extra_details__uid": string,
     >       }
 
     Update account details

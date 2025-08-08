@@ -188,6 +188,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         super().setUp()
         self._create_and_set_asset()
         self.add_submissions(count=5)
+        cache.clear()
 
     def test_disable_cache(self):
         self.add_nlp_trackers()

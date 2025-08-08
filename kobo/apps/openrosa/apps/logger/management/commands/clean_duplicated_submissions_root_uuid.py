@@ -91,11 +91,16 @@ class Command(BaseCommand):
                     instance.root_uuid = (
                         f'CONFLICT-{now}-{xform_id_string}-{old_uuid}'
                     )
-                    instance.xml = set_meta(
-                        instance.xml,
-                        'rootUuid',
-                        add_uuid_prefix(instance.root_uuid),
-                    )
+                    try:
+                        instance.xml = set_meta(
+                            instance.xml,
+                            'rootUuid',
+                            add_uuid_prefix(instance.root_uuid),
+                        )
+                    except ValueError:
+                        # instance has never been edited
+                        pass
+
                     instance.xml_hash = instance.get_hash(instance.xml)
                     if self._verbosity >= 2:
                         self.stdout.write(

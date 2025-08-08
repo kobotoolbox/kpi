@@ -4,20 +4,25 @@ import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
 import { UsageLimitTypes } from '#/account/stripe.types'
 import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
+import { useServiceUsageQuery } from '#/account/usage/useServiceUsageQuery'
 import Button from '#/components/common/button'
 import LanguageSelector, { resetAllLanguageSelectors } from '#/components/languages/languageSelector'
 import type { DetailedLanguage, LanguageCode, ListLanguage } from '#/components/languages/languagesStore'
 import bodyStyles from '#/components/processing/processingBody.module.scss'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import TransxAutomaticButton from '#/components/processing/transxAutomaticButton'
-import { useExceedingLimits } from '#/components/usageLimits/useExceedingLimits.hook'
 import envStore from '#/envStore'
 import NlpUsageLimitBlockModal from '../nlpUsageLimitBlockModal/nlpUsageLimitBlockModal.component'
 
 export default function StepConfig() {
-  const limits = useExceedingLimits()
+  const { data: serviceUsageData } = useServiceUsageQuery()
+
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
-  const isOverLimit = useMemo(() => limits.exceedList.includes(UsageLimitTypes.TRANSLATION), [limits.exceedList])
+  const usageLimitBlack = useMemo(
+    () =>
+      serviceUsageData?.limitExceedList.includes(UsageLimitTypes.TRANSLATION) && envStore.data.usage_limit_enforcement,
+    [serviceUsageData?.limitExceedList, envStore.data.usage_limit_enforcement],
+  )
   const { billingPeriod } = useBillingPeriod()
 
   function dismissLimitBlockModal() {
@@ -75,7 +80,7 @@ export default function StepConfig() {
   }
 
   function onAutomaticButtonClick() {
-    if (isOverLimit) {
+    if (usageLimitBlack) {
       setIsLimitBlockModalOpen(true)
     } else {
       selectModeAuto()

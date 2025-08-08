@@ -308,6 +308,11 @@ CONSTANCE_CONFIG = {
         False,
         'Require MFA for superusers with a usable password',
     ),
+    'USAGE_LIMIT_ENFORCEMENT': (
+        env.bool('USAGE_LIMIT_ENFORCEMENT', False),
+        'For Stripe-enabled instances, determines whether usage limits will be enforced'
+        'by blocking submissions/NLP actions or deleting stored files.',
+    ),
     'ASR_MT_INVITEE_USERNAMES': (
         '',
         'List of invited usernames, one per line, who will have access to NLP '
@@ -456,6 +461,16 @@ CONSTANCE_CONFIG = {
         'Number of days to keep attachments in trash after users (soft-)deleted '
         'them and before automatically hard-deleting them by the system',
         'positive_int',
+    ),
+    'AUTO_DELETE_ATTACHMENTS': (
+        False,
+        'Enable automatic deletion of attachments for users who have exceeded '
+        'their storage limits.'
+    ),
+    'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD': (
+        90,
+        'Number of days to keep attachments after the user has exceeded their '
+        'storage limits.'
     ),
     # Toggle for ZXCVBN
     'ENABLE_PASSWORD_ENTROPY_METER': (
@@ -701,6 +716,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ORGANIZATION_INVITE_EXPIRY',
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
         'MASS_EMAIL_TEST_EMAILS',
+        'USAGE_LIMIT_ENFORCEMENT',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -757,6 +773,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ACCOUNT_TRASH_GRACE_PERIOD',
         'ATTACHMENT_TRASH_GRACE_PERIOD',
         'PROJECT_TRASH_GRACE_PERIOD',
+        'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD',
+        'AUTO_DELETE_ATTACHMENTS',
     ),
     'Regular maintenance settings': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
@@ -1274,6 +1292,12 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    # Schedule every 30 minutes
+    'attachment-cleanup-for-users-exceeding-limits': {
+        'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
+        'schedule': crontab(minute='*/30'),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
     # Schedule every day at midnight UTC
     'project-ownership-garbage-collector': {
         'task': 'kobo.apps.project_ownership.tasks.garbage_collector',
@@ -1316,6 +1340,14 @@ CELERY_BEAT_SCHEDULE = {
     }
 }
 
+if STRIPE_ENABLED:
+    # Schedule to run once per celery timeout
+    # with a five minute buffer
+    CELERY_BEAT_SCHEDULE['update-exceeded-limit-counters'] = {
+        'task': 'kobo.apps.stripe.tasks.update_exceeded_limit_counters',
+        'schedule': timedelta(seconds=CELERY_TASK_TIME_LIMIT + (60 * 5)),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    }
 
 CELERY_BROKER_TRANSPORT_OPTIONS = {
     'fanout_patterns': True,
@@ -1916,3 +1948,4 @@ LONG_RUNNING_MIGRATION_BATCH_SIZE = 2000
 
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100
+MAX_RESTARTED_TRANSFERS = 20

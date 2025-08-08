@@ -338,6 +338,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployment__links = serializers.SerializerMethodField()
     deployment__data_download_links = serializers.SerializerMethodField()
     deployment__submission_count = serializers.SerializerMethodField()
+    deployment__encrypted = serializers.SerializerMethodField()
+    deployment__last_submission_time = serializers.SerializerMethodField()
+    deployment__uuid = serializers.SerializerMethodField()
     deployment_status = serializers.SerializerMethodField()
     data = serializers.SerializerMethodField()
     # Only add link instead of hooks list to avoid multiple access to DB.
@@ -354,67 +357,70 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Asset
         lookup_field = 'uid'
-        fields = ('url',
-                  'owner',
-                  'owner__username',
-                  'parent',
-                  'settings',
-                  'asset_type',
-                  'files',
-                  'summary',
-                  'date_created',
-                  'date_modified',
-                  'date_deployed',
-                  'version_id',
-                  'version__content_hash',
-                  'version_count',
-                  'has_deployment',
-                  'deployed_version_id',
-                  'deployed_versions',
-                  'deployment__links',
-                  'deployment__active',
-                  'deployment__data_download_links',
-                  'deployment__submission_count',
-                  'deployment_status',
-                  'report_styles',
-                  'report_custom',
-                  'advanced_features',
-                  'advanced_submission_schema',
-                  'analysis_form_json',
-                  'map_styles',
-                  'map_custom',
-                  'content',
-                  'downloads',
-                  'embeds',
-                  'xform_link',
-                  'hooks_link',
-                  'tag_string',
-                  'uid',
-                  'kind',
-                  'xls_link',
-                  'name',
-                  'assignable_permissions',
-                  'permissions',
-                  'effective_permissions',
-                  'exports',
-                  'export_settings',
-                  'settings',
-                  'data',
-                  'children',
-                  'subscribers_count',
-                  'status',
-                  'access_types',
-                  'data_sharing',
-                  'paired_data',
-                  'project_ownership',
-                  'owner_label',
-                  )
+        fields = (
+            'url',
+            'owner',
+            'owner__username',
+            'parent',
+            'settings',
+            'asset_type',
+            'files',
+            'summary',
+            'date_created',
+            'date_modified',
+            'date_deployed',
+            'version_id',
+            'version__content_hash',
+            'version_count',
+            'has_deployment',
+            'deployed_version_id',
+            'deployed_versions',
+            'deployment__links',
+            'deployment__active',
+            'deployment__data_download_links',
+            'deployment__submission_count',
+            'deployment__last_submission_time',
+            'deployment__encrypted',
+            'deployment__uuid',
+            'deployment_status',
+            'report_styles',
+            'report_custom',
+            'advanced_features',
+            'advanced_submission_schema',
+            'analysis_form_json',
+            'map_styles',
+            'map_custom',
+            'content',
+            'downloads',
+            'embeds',
+            'xform_link',
+            'hooks_link',
+            'tag_string',
+            'uid',
+            'kind',
+            'xls_link',
+            'name',
+            'assignable_permissions',
+            'permissions',
+            'effective_permissions',
+            'exports',
+            'export_settings',
+            'settings',
+            'data',
+            'children',
+            'subscribers_count',
+            'status',
+            'access_types',
+            'data_sharing',
+            'paired_data',
+            'project_ownership',
+            'owner_label',
+            'last_modified_by'
+        )
+        read_only_fields = ('last_modified_by', 'uid')
         extra_kwargs = {
             'parent': {
                 'lookup_field': 'uid',
-            },
-            'uid': {
-                'read_only': True,
             },
         }
 
@@ -628,11 +634,23 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         else:
             return {}
 
+    def get_deployment__encrypted(self, obj):
+        if obj.has_deployment:
+            return obj.deployment.is_encrypted
+        else:
+            return False
+
     def get_deployment__data_download_links(self, obj):
         if obj.has_deployment:
             return obj.deployment.get_data_download_links()
         else:
             return {}
+
+    def get_deployment__last_submission_time(self, obj):
+        if obj.has_deployment:
+            return obj.deployment.last_submission_time
+        else:
+            return None
 
     def get_deployment__submission_count(self, obj):
         if not obj.has_deployment:
@@ -656,6 +674,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             return obj.deployment.submission_count
 
         return None
+
+    def get_deployment__uuid(self, obj):
+        return obj.deployment.form_uuid if obj.has_deployment else None
 
     def get_assignable_permissions(self, asset):
         return [
@@ -1014,37 +1035,42 @@ class AssetListSerializer(AssetSerializer):
         # WARNING! If you're changing something here, please update
         # `Asset.optimize_queryset_for_list()`; otherwise, you'll cause an
         # additional database query for each asset in the list.
-        fields = ('url',
-                  'date_created',
-                  'date_modified',
-                  'date_deployed',
-                  'owner',
-                  'summary',
-                  'owner__username',
-                  'parent',
-                  'uid',
-                  'tag_string',
-                  'settings',
-                  'kind',
-                  'name',
-                  'asset_type',
-                  'version_id',
-                  'has_deployment',
-                  'deployed_version_id',
-                  'deployment__active',
-                  'deployment__submission_count',
-                  'deployment_status',
-                  'permissions',
-                  'export_settings',
-                  'downloads',
-                  'data',
-                  'subscribers_count',
-                  'status',
-                  'access_types',
-                  'children',
-                  'data_sharing',
-                  'owner_label',
-                  )
+        fields = (
+            'url',
+            'date_created',
+            'date_modified',
+            'date_deployed',
+            'owner',
+            'summary',
+            'owner__username',
+            'parent',
+            'uid',
+            'tag_string',
+            'settings',
+            'kind',
+            'name',
+            'asset_type',
+            'version_id',
+            'has_deployment',
+            'deployed_version_id',
+            'deployment__active',
+            'deployment__submission_count',
+            'deployment__last_submission_time',
+            'deployment__encrypted',
+            'deployment__uuid',
+            'deployment_status',
+            'permissions',
+            'export_settings',
+            'downloads',
+            'data',
+            'subscribers_count',
+            'status',
+            'access_types',
+            'children',
+            'data_sharing',
+            'owner_label',
+            'last_modified_by',
+        )
 
     def get_permissions(self, asset):
         try:
@@ -1145,10 +1171,14 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'has_deployment',
             'deployment__active',
             'deployment__submission_count',
+            'deployment__encrypted',
+            'deployment__last_submission_time',
+            'deployment__uuid',
             'deployment_status',
             'asset_type',
             'downloads',
             'owner_label',
+            'last_modified_by',
         )
 
     def get_deployment__submission_count(self, obj: Asset) -> int:
