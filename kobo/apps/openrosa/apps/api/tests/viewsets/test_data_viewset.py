@@ -6,12 +6,8 @@ from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
-from kobo.apps.openrosa.libs.constants import (
-    CAN_CHANGE_XFORM,
-    CAN_DELETE_DATA_XFORM,
-    CAN_VIEW_XFORM,
-)
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm, remove_perm
+from kobo.apps.openrosa.libs.permissions import assign_perm, remove_perm
+from kpi.constants import PERM_CHANGE_ASSET, PERM_DELETE_SUBMISSIONS, PERM_VIEW_ASSET
 
 
 def _data_list(formid):
@@ -227,7 +223,7 @@ class TestDataViewSet(TestBase):
         self.assertEqual(self.user.username, 'alice')
         self.assertNotEqual(previous_user, self.user)
 
-        assign_perm(CAN_VIEW_XFORM, self.user, self.xform)
+        assign_perm(PERM_VIEW_ASSET, self.user, self.xform.asset)
 
         # publish alice's form
         self._publish_transportation_form()
@@ -384,14 +380,14 @@ class TestDataViewSet(TestBase):
 
         self._create_user_and_login(username='alice', password='alice')
         # Allow Alice to delete submissions.
-        assign_perm(CAN_VIEW_XFORM, self.user, self.xform)
-        assign_perm(CAN_CHANGE_XFORM, self.user, self.xform)
+        assign_perm(PERM_VIEW_ASSET, self.user, self.xform.asset)
+        assign_perm(PERM_CHANGE_ASSET, self.user, self.xform.asset)
         self.extra = {'HTTP_AUTHORIZATION': f'Token {self.user.auth_token}'}
         request = self.factory.delete('/', **self.extra)
         dataid = self.xform.instances.all().order_by('id')[0].pk
         response = view(request, pk=formid, dataid=dataid)
 
-        # Alice cannot delete submissions with `CAN_CHANGE_XFORM`
+        # Alice cannot delete submissions with `PERM_CHANGE_ASSET`
         self.assertContains(
             response,
             'This is not supported by the legacy API anymore',
@@ -399,8 +395,8 @@ class TestDataViewSet(TestBase):
         )
 
         # Even with correct permissions, Alice should not be able to delete
-        remove_perm(CAN_CHANGE_XFORM, self.user, self.xform)
-        assign_perm(CAN_DELETE_DATA_XFORM, self.user, self.xform)
+        remove_perm(PERM_CHANGE_ASSET, self.user, self.xform.asset)
+        assign_perm(PERM_DELETE_SUBMISSIONS, self.user, self.xform.asset)
         response = view(request, pk=formid, dataid=dataid)
         self.assertContains(
             response,
@@ -442,12 +438,12 @@ class TestDataViewSet(TestBase):
         view = DataViewSet.as_view({'get': 'list'})
         request = self.factory.get('/', **self.extra)
         formid = self.xform.pk
-        with self.assertNumQueries(10):
+        with self.assertNumQueries(14):
             view(request, pk=formid)
         # test adding submissions does not increase query count
         self._make_submissions()
         self._make_submissions()
-        with self.assertNumQueries(10):
+        with self.assertNumQueries(14):
             view(request, pk=formid)
 
     def test_query_counts_with_attachments(self):
@@ -456,9 +452,9 @@ class TestDataViewSet(TestBase):
         view = DataViewSet.as_view({'get': 'list'})
         request = self.factory.get('/', **self.extra)
         formid = self.xform.pk
-        with self.assertNumQueries(10):
+        with self.assertNumQueries(14):
             view(request, pk=formid)
         self._submit_transport_instance_w_attachment()
         self._submit_transport_instance_w_attachment()
-        with self.assertNumQueries(10):
+        with self.assertNumQueries(14):
             view(request, pk=formid)

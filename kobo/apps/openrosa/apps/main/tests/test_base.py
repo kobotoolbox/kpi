@@ -23,6 +23,7 @@ from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import (
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils.logger_tools import publish_xls_form
 from kobo.apps.openrosa.libs.utils.string import base64_encodestring
+from kpi.utils.object_permission import get_database_user
 
 
 class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
@@ -52,8 +53,7 @@ class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
         # `auth_permission`.  Without this, actions
         # on individual instances are immediately denied and object-level permissions
         # are never considered.
-        if user.is_anonymous:
-            user = User.objects.get(id=settings.ANONYMOUS_USER_ID)
+        user = get_database_user(user)
         user.user_permissions.set(Permission.objects.all())
         if save:
             user.save()
@@ -110,6 +110,10 @@ class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
         self.assertEqual(XForm.objects.count(), count + 1)
         self.xform = XForm.objects.order_by('pk').reverse()[0]
         assert self.xform.pk == xform.pk
+        # uid can be repeated, so we use the xform's pk
+        self.xform.asset.save()
+        self.xform.kpi_asset_uid = self.xform.asset.uid
+        self.xform.save()
 
     def _share_form_data(self, id_string='transportation_2011_07_25'):
         xform = XForm.objects.get(id_string=id_string)
@@ -123,10 +127,7 @@ class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
             'transportation',
             'transportation.xls',
         )
-        count = XForm.objects.count()
-        TestBase._publish_xls_file(self, xls_path)
-        self.assertEqual(XForm.objects.count(), count + 1)
-        self.xform = XForm.objects.order_by('pk').reverse()[0]
+        self._publish_xls_file_and_set_xform(xls_path)
 
     def _submit_transport_instance(self, survey_at=0):
         s = self.surveys[survey_at]

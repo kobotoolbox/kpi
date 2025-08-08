@@ -9,13 +9,12 @@ from rest_framework.permissions import (
 )
 
 from kobo.apps.openrosa.apps.api.exceptions import LegacyAPIException
-from kobo.apps.openrosa.apps.logger.models import XForm
-from kobo.apps.openrosa.libs.constants import (
-    CAN_CHANGE_XFORM,
-    CAN_DELETE_DATA_XFORM,
-    CAN_VALIDATE_XFORM,
-    CAN_VIEW_XFORM,
+from kpi.constants import (
+    PERM_CHANGE_ASSET,
+    PERM_DELETE_SUBMISSIONS,
+    PERM_VALIDATE_SUBMISSIONS,
 )
+from kpi.utils.permissions import is_user_anonymous
 
 
 class ViewDjangoObjectPermissions(DjangoObjectPermissions):
@@ -30,6 +29,18 @@ class ViewDjangoObjectPermissions(DjangoObjectPermissions):
     }
 
 
+class AssetObjectPermissions(DjangoObjectPermissions):
+    perms_map = {
+        'GET': ['kpi.view_asset'],
+        'OPTIONS': [],
+        'HEAD': [],
+        'POST': ['kpi.add_asset'],
+        'PUT': ['kpi.change_asset'],
+        'PATCH': ['kpi.change_asset'],
+        'DELETE': ['kpi.delete_asset'],
+    }
+
+
 class ObjectPermissionsWithViewRestricted(DjangoObjectPermissions):
     """
     The default `perms_map` does not include GET, OPTIONS, or HEAD, meaning
@@ -37,6 +48,7 @@ class ObjectPermissionsWithViewRestricted(DjangoObjectPermissions):
     permissions before allowing objects to be seen. Refer to
     https://www.django-rest-framework.org/api-guide/permissions/#djangoobjectpermissions
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Do NOT mutate `perms_map` from the parent class! Doing so will affect
@@ -57,7 +69,6 @@ class ObjectPermissionsWithViewRestricted(DjangoObjectPermissions):
             if not hasattr(self, 'APP_LABEL')
             else self.APP_LABEL
         )
-
         model_name = (
             model_cls._meta.model_name
             if not hasattr(self, 'MODEL_NAME')
@@ -76,15 +87,18 @@ class ObjectPermissionsWithViewRestricted(DjangoObjectPermissions):
 
 
 class XFormPermissions(ObjectPermissionsWithViewRestricted):
+    APP_LABEL = 'kpi'
+    MODEL_NAME = 'asset'
 
     def has_permission(self, request, view):
         # Allow anonymous users to access shared data
-        if (
-            request.method in SAFE_METHODS
-            and view.action
-            and view.action == 'retrieve'
-        ):
-            return True
+        is_anonymous = is_user_anonymous(request.user)
+        if is_anonymous:
+            return (
+                request.method in SAFE_METHODS
+                and view.action
+                and view.action == 'retrieve'
+            )
 
         if (
             request.method not in SAFE_METHODS
@@ -100,23 +114,33 @@ class XFormPermissions(ObjectPermissionsWithViewRestricted):
         if request.method in SAFE_METHODS and view.action == 'retrieve':
             if obj.shared:
                 return True
+        if request.method == 'POST':
+            post_view = getattr(view, 'post', object)
+            url_name = getattr(post_view, 'url_name', None)
+            # Labels POST action goes through this permission class. By default,
+            # the POST action is not associated to changing the asset but to creating
+            # a new asset, so we need to check for change asset permissions instead
+            if url_name == 'labels':
+                return request.user.has_perm(PERM_CHANGE_ASSET, obj.asset)
 
-        return super().has_object_permission(request, view, obj)
+        return super().has_object_permission(request, view, obj.asset)
 
 
 class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
+    APP_LABEL = 'kpi'
+    MODEL_NAME = 'asset'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Those who can edit submissions can also delete them, following the
         # behavior of `kobo.apps.openrosa.apps.main.views.delete_data`
         self.perms_map = deepcopy(self.perms_map)
-        self.perms_map['DELETE'] = ['%(app_label)s.' + CAN_DELETE_DATA_XFORM]
+        self.perms_map['DELETE'] = [f'kpi.{PERM_DELETE_SUBMISSIONS}']
 
     def has_permission(self, request, view):
         lookup_field = view.lookup_field
         lookup = view.kwargs.get(lookup_field)
-        # Allow anonymous users to access shared data
+        is_anonymous = is_user_anonymous(request.user)
         allowed_anonymous_actions = ['retrieve']
         if lookup:
             # We need to grant access to anonymous on list endpoint too when
@@ -128,6 +152,9 @@ class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
             and view.action in allowed_anonymous_actions
         ):
             return True
+        # No need to check more permissions if it's an anonymous user (saves db queries)
+        if is_anonymous:
+            return False
 
         return super().has_permission(request, view)
 
@@ -154,17 +181,15 @@ class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
         #  - Remove this kludgy solution
         perms_actions_map = {
             'bulk_delete': {
-                'DELETE': [f'logger.{CAN_DELETE_DATA_XFORM}'],
+                'DELETE': [f'kpi.{PERM_DELETE_SUBMISSIONS}'],
             },
             'bulk_validation_status': {
-                'PATCH': [f'logger.{CAN_VALIDATE_XFORM}'],
+                'PATCH': [f'kpi.{PERM_VALIDATE_SUBMISSIONS}'],
             },
-            'labels': {
-                'DELETE': [f'logger.{CAN_CHANGE_XFORM}']
-            },
+            'labels': {'DELETE': [f'kpi.{PERM_CHANGE_ASSET}']},
             'validation_status': {
-                'DELETE': [f'logger.{CAN_VALIDATE_XFORM}'],
-                'PATCH': [f'logger.{CAN_VALIDATE_XFORM}'],
+                'DELETE': [f'kpi.{PERM_VALIDATE_SUBMISSIONS}'],
+                'PATCH': [f'kpi.{PERM_VALIDATE_SUBMISSIONS}'],
             },
         }
 
@@ -177,7 +202,7 @@ class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
             if view.action == 'bulk_delete':
                 raise LegacyAPIException
 
-            return user.has_perms(required_perms, obj)
+            return user.has_perms(required_perms, obj.asset)
 
         # Deleting submissions is not allowed with KoboCAT API
         if view.action == 'destroy':
@@ -186,50 +211,14 @@ class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
         return super().has_object_permission(request, view, obj)
 
 
-class EnketoSubmissionEditPermissions(ObjectPermissionsWithViewRestricted):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def has_object_permission(self, request, view, obj):
-        user = request.user
-        required_perms = [f'logger.{CAN_CHANGE_XFORM}']
-
-        # Grant access if user is owner or superuser
-        if user.is_superuser or user == obj.user:
-            return True
-
-        return user.has_perms(required_perms, obj)
-
-
-class EnketoSubmissionViewPermissions(ObjectPermissionsWithViewRestricted):
-
-    def has_permission(self, request, view):
-        return True
-
-    def has_object_permission(self, request, view, obj):
-        user = request.user
-        required_perms = [f'logger.{CAN_VIEW_XFORM}']
-
-        # Grant access if user is owner or super user
-        if user.is_superuser or user == obj.user:
-            return True
-
-        # Allow anonymous users to access shared data
-        if obj.shared_data:
-            return True
-
-        return user.has_perms(required_perms, obj)
-
-
 class MetaDataObjectPermissions(ObjectPermissionsWithViewRestricted):
 
-    # Users can read MetaData objects with 'view_xform' permissions and
-    # they can edit MetaData objects with 'change_xform'.
+    # Users can read MetaData objects with 'view_asset' permissions and
+    # they can edit MetaData objects with 'change_asset'.
     # DRF get the app label and the model name from the queryset, so we
-    # override them the find a match among user's XForm permissions.
-    APP_LABEL = 'logger'
-    MODEL_NAME = 'xform'
+    # override them the find a match among user's Asset permissions.
+    APP_LABEL = 'kpi'
+    MODEL_NAME = 'asset'
 
     def __init__(self, *args, **kwargs):
         super(MetaDataObjectPermissions, self).__init__(
@@ -241,26 +230,21 @@ class MetaDataObjectPermissions(ObjectPermissionsWithViewRestricted):
         self.perms_map['DELETE'] = self.perms_map['PATCH']
 
     def has_permission(self, request, view):
-
         if request.user and request.user.is_superuser:
             return True
 
+        is_anonymous = is_user_anonymous(request.user)
         allowed_anonymous_action = ['retrieve']
-
-        try:
-            request.GET['xform']
-        except KeyError:
-            pass
-        else:
+        if 'xform' in request.GET:
             # Allow anonymous user to list metadata when `xform` parameter is
             # specified.
             allowed_anonymous_action.append('list')
 
-        if (
-            request.method in SAFE_METHODS
-            and view.action in allowed_anonymous_action
-        ):
-            return True
+        if is_anonymous:
+            return (
+                request.method in SAFE_METHODS
+                and view.action in allowed_anonymous_action
+            )
 
         return super(MetaDataObjectPermissions, self).has_permission(
             request=request, view=view
@@ -280,7 +264,7 @@ class MetaDataObjectPermissions(ObjectPermissionsWithViewRestricted):
             return True
 
         return super(MetaDataObjectPermissions, self).has_object_permission(
-            request=request, view=view, obj=obj.xform
+            request=request, view=view, obj=obj.xform.asset
         )
 
 
@@ -290,40 +274,35 @@ class AttachmentObjectPermissions(DjangoObjectPermissions):
         # The default `perms_map` does not include GET, OPTIONS, PATCH or HEAD.
         # See http://www.django-rest-framework.org/api-guide/filtering/#djangoobjectpermissionsfilter  # noqa
         self.perms_map = deepcopy(DjangoObjectPermissions.perms_map)
-        self.perms_map['GET'] = ['%(app_label)s.view_xform']
-        self.perms_map['OPTIONS'] = ['%(app_label)s.view_xform']
-        self.perms_map['HEAD'] = ['%(app_label)s.view_xform']
+        self.perms_map['GET'] = ['kpi.view_asset']
+        self.perms_map['OPTIONS'] = ['kpi.view_asset']
+        self.perms_map['HEAD'] = ['kpi.view_asset']
         return super().__init__(*args, **kwargs)
 
     def has_permission(self, request, view):
-
         if request.user and request.user.is_superuser:
             return True
 
         return super().has_permission(request, view)
 
     def has_object_permission(self, request, view, obj):
-        view.model = XForm
-
         if request.user and request.user.is_superuser:
             return True
 
-        return super().has_object_permission(
-            request, view, obj.instance.xform)
+        return super().has_object_permission(request, view, obj.xform.asset)
 
 
 class NoteObjectPermissions(DjangoObjectPermissions):
-
     authenticated_users_only = False
 
     def __init__(self, *args, **kwargs):
         self.perms_map = deepcopy(self.perms_map)
-        self.perms_map['GET'] = ['%(app_label)s.view_xform']
-        self.perms_map['OPTIONS'] = ['%(app_label)s.view_xform']
-        self.perms_map['HEAD'] = ['%(app_label)s.view_xform']
-        self.perms_map['PATCH'] = ['%(app_label)s.change_xform']
-        self.perms_map['POST'] = ['%(app_label)s.change_xform']
-        self.perms_map['DELETE'] = ['%(app_label)s.change_xform']
+        self.perms_map['GET'] = ['kpi.view_asset']
+        self.perms_map['OPTIONS'] = ['kpi.view_asset']
+        self.perms_map['HEAD'] = ['kpi.view_asset']
+        self.perms_map['PATCH'] = ['kpi.change_asset']
+        self.perms_map['POST'] = ['kpi.change_asset']
+        self.perms_map['DELETE'] = ['kpi.change_asset']
 
         return super().__init__(*args, **kwargs)
 
@@ -331,6 +310,11 @@ class NoteObjectPermissions(DjangoObjectPermissions):
         # Data will be filtered in `NoteViewSet`
         if request.method in SAFE_METHODS and view.action == 'retrieve':
             return True
+
+        # Anonymous users can't see notes
+        is_anonymous = is_user_anonymous(request.user)
+        if is_anonymous:
+            return False
 
         return super().has_permission(request, view)
 
@@ -343,7 +327,7 @@ class NoteObjectPermissions(DjangoObjectPermissions):
             if xform.shared_data:
                 return True
 
-        return super().has_object_permission(request, view, xform)
+        return super().has_object_permission(request, view, xform.asset)
 
 
 class ConnectViewsetPermissions(IsAuthenticated):
