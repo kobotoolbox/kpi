@@ -6,7 +6,7 @@ import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
 from django.utils.translation import gettext_lazy as t
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from pymongo.errors import OperationFailure
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
@@ -53,7 +53,7 @@ from kpi.schema_extensions.v2.data.serializers import (
     DataStatusesUpdate,
     DataValidationStatusesUpdatePayload,
     DataValidationStatusUpdatePayload,
-    DataValidationStatusUpdateResponse,
+    DataValidationStatusUpdateResponse, EnketoEditResponse, EnketoViewResponse,
 )
 from kpi.serializers.v2.data import DataBulkActionsValidator
 from kpi.utils.log import logging
@@ -72,6 +72,15 @@ from kpi.utils.xml import (
 
 @extend_schema(
     tags=['Data'],
+    parameters=[
+        OpenApiParameter(
+            name='parent_lookup_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent asset',
+        ),
+    ],
 )
 @extend_schema_view(
     destroy=extend_schema(
@@ -80,6 +89,15 @@ from kpi.utils.xml import (
         responses=open_api_204_empty_response(
             validate_payload=False, require_auth=False, raise_access_forbidden=False
         ),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the data',
+            ),
+        ],
     ),
     duplicate=extend_schema(
         description=read_md('kpi', 'data/duplicate.md'),
@@ -90,6 +108,15 @@ from kpi.utils.xml import (
             require_auth=False,
             raise_access_forbidden=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the data',
+            ),
+        ],
     ),
     list=extend_schema(
         description=read_md('kpi', 'data/list.md'),
@@ -110,6 +137,15 @@ from kpi.utils.xml import (
             require_auth=False,
             raise_access_forbidden=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the data',
+            ),
+        ],
     ),
 )
 class DataViewSet(
@@ -130,6 +166,11 @@ class DataViewSet(
     - validation_status     → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
     - validation_statuses   → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
     - validation_statuses   → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
+    - enketo_edit           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/edit/
+    - enketo_edit           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/edit/
+    - enketo_edit           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/edit/
+    - enketo_view           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/view/
+    - enketo_view           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/view/
 
     Documentation:
     - docs/api/v2/data/bulk_delete.md
@@ -143,46 +184,8 @@ class DataViewSet(
     - docs/api/v2/data/validation_status_update.md
     - docs/api/v2/data/validation_statuses_delete.md
     - docs/api/v2/data/validation_statuses_update.md
-
-
-    ## CRUD
-    **It is not allowed to create submissions with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint**
-
-
-    **It is not possible to update a submission directly with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint.  # noqa
-    Instead, it returns the URL where the instance can be opened in Enketo for editing in the UI._
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/edit/?return_url=false
-    </pre>
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/edit/?return_url=false
-    To redirect (HTTP 302) to the Enketo editing URL, use the `…/enketo/redirect/edit/` endpoint:
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/redirect/edit/?return_url=false
-    </pre>
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/redirect/edit/?return_url=false
-    View-only version of current submission
-
-    Return a URL to display the filled submission in view-only mode in the Enketo UI.
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/view/
-    </pre>
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/view/
-    To redirect (HTTP 302) to the Enketo viewing URL, use the `…/enketo/redirect/view/` endpoint:
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/redirect/view/?return_url=false
-    </pre>
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/redirect/view/?return_url=false
+    - docs/api/v2/data/enketo_view.md
+    - docs/api/v2/data/enketo_edit.md
     """
 
     parent_model = Asset
@@ -284,6 +287,23 @@ class DataViewSet(
                 }
             return Response(**response)
 
+    @extend_schema(
+        description=read_md('kpi', 'data/enketo_edit.md'),
+        responses=open_api_200_ok_response(
+            EnketoEditResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the data',
+            ),
+        ],
+    )
     @action(
         detail=True,
         methods=['GET'],
@@ -303,6 +323,23 @@ class DataViewSet(
             )
         return self._handle_enketo_redirect(request, enketo_response, *args, **kwargs)
 
+    @extend_schema(
+        description=read_md('kpi', 'data/enketo_view.md'),
+        responses=open_api_200_ok_response(
+            EnketoViewResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the data',
+            ),
+        ],
+    )
     @action(
         detail=True,
         methods=['GET'],
@@ -425,6 +462,15 @@ class DataViewSet(
             require_auth=False,
             raise_access_forbidden=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the data',
+            ),
+        ],
     )
     @extend_schema(
         methods=['DELETE'],
@@ -433,6 +479,15 @@ class DataViewSet(
         responses=open_api_204_empty_response(
             validate_payload=False, require_auth=False, raise_access_forbidden=False
         ),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the data',
+            ),
+        ],
     )
     @extend_schema(
         methods=['GET'],
@@ -444,6 +499,15 @@ class DataViewSet(
             require_auth=False,
             raise_access_forbidden=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the data',
+            ),
+        ],
     )
     @action(detail=True, methods=['GET', 'PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer],

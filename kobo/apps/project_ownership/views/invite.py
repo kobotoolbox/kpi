@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework.renderers import JSONRenderer
 
 from kpi.permissions import IsAuthenticated
@@ -12,9 +12,9 @@ from ...audit_log.base_views import AuditLoggedModelViewSet
 from ..filters import InviteFilter
 from ..models import Invite
 from ..schema_extensions.v2.project_ownership.invites.serializers import (
-    InviteCreatePayload,
-    InviteResponse,
     InviteUpdatePayload,
+    ProjectInviteCreatePayload,
+    ProjectInviteResponse,
 )
 from ..serializers import InviteSerializer
 
@@ -25,9 +25,9 @@ from ..serializers import InviteSerializer
 @extend_schema_view(
     create=extend_schema(
         description=read_md('project_ownership', 'project_ownership/invites/create.md'),
-        request={'application/json': InviteCreatePayload},
+        request={'application/json': ProjectInviteCreatePayload},
         responses=open_api_201_created_response(
-            InviteResponse,
+            ProjectInviteResponse,
             require_auth=False,
             raise_not_found=False,
         ),
@@ -42,7 +42,7 @@ from ..serializers import InviteSerializer
     list=extend_schema(
         description=read_md('project_ownership', 'project_ownership/invites/list.md'),
         responses=open_api_200_ok_response(
-            InviteResponse,
+            ProjectInviteResponse,
             require_auth=False,
             raise_not_found=False,
             validate_payload=False,
@@ -61,7 +61,7 @@ from ..serializers import InviteSerializer
             'project_ownership', 'project_ownership/invites/retrieve.md'
         ),
         responses=open_api_200_ok_response(
-            InviteResponse,
+            ProjectInviteResponse,
             require_auth=False,
             validate_payload=False,
         ),
@@ -70,7 +70,7 @@ from ..serializers import InviteSerializer
         description=read_md('project_ownership', 'project_ownership/invites/update.md'),
         request={'application/json': InviteUpdatePayload},
         responses=open_api_200_ok_response(
-            InviteResponse,
+            ProjectInviteResponse,
             require_auth=False,
         ),
     ),

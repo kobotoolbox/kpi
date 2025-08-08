@@ -31,6 +31,22 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
 
 @extend_schema(
     tags=['Attachments'],
+    parameters=[
+        OpenApiParameter(
+            name='parent_lookup_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent asset',
+        ),
+        OpenApiParameter(
+            name='parent_lookup_data',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent data',
+        ),
+    ],
 )
 @extend_schema_view(
     list=extend_schema(
@@ -66,7 +82,14 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
                 type=OpenApiTypes.STR,
                 enum=['mp3'],
                 location=OpenApiParameter.QUERY,
-            )
+            ),
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the attachment',
+            ),
         ],
         responses=open_api_200_ok_response(
             description='Will return a content type with the type of the attachment as well as the attachment itself.',  # noqa
@@ -74,6 +97,7 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
             require_auth=False,
             raise_access_forbidden=False,
         ),
+        operation_id='attachment_retrieve',
     ),
     thumb=extend_schema(
         description=read_md('kpi', 'asset_attachments/suffix.md'),
@@ -83,7 +107,16 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
             raise_access_forbidden=False,
             validate_payload=False,
         ),
-        operation_id='attachment-thumbnail',
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=int,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='ID of the attachment',
+            ),
+        ],
+        operation_id='attachment_thumbnail',
     ),
 )
 class AttachmentViewSet(

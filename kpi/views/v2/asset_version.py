@@ -1,5 +1,5 @@
 # coding: utf-8
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.renderers import JSONRenderer
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -21,6 +21,15 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 @extend_schema(
     tags=['Versions'],
+    parameters=[
+        OpenApiParameter(
+            name='parent_lookup_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent asset',
+        ),
+    ],
 )
 @extend_schema_view(
     create=extend_schema(

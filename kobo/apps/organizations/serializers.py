@@ -27,15 +27,17 @@ from kpi.exceptions import RetryAfterAPIException
 from kpi.schema_extensions.v2.organizations.fields import (
     AssetField,
     AssetUsageField,
-    IsOwnerField,
     MembersField,
-    RequestUserRoleField,
     ServiceUsageField,
     UrlField,
 )
 from kpi.utils.cache import void_cache_for_request
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.placeholders import replace_placeholders
+from kpi.utils.schema_extensions.fields import (
+    HyperlinkedIdentityFieldWithSchemaField,
+    ReadOnlyFieldWithSchemaField,
+)
 from .constants import (
     INVITE_ALREADY_ACCEPTED_ERROR,
     INVITE_ALREADY_EXISTS_ERROR,
@@ -49,11 +51,6 @@ from .constants import (
     USER_DOES_NOT_EXIST_ERROR,
 )
 from .tasks import transfer_member_data_ownership_to_org
-
-
-@extend_schema_field(OpenApiTypes.STR)
-class ExtraDetailOverload(serializers.ReadOnlyField):
-    pass
 
 
 class OrganizationUserSerializer(serializers.ModelSerializer):
@@ -72,8 +69,8 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         source='created', format='%Y-%m-%dT%H:%M:%SZ'
     )
     user__username = serializers.ReadOnlyField(source='user.username')
-    user__extra_details__name = ExtraDetailOverload(
-        source='user.extra_details.data.name'
+    user__extra_details__name = ReadOnlyFieldWithSchemaField(
+        schema_field=OpenApiTypes.STR, source='user.extra_details.data.name'
     )
     user__email = serializers.ReadOnlyField(source='user.email')
     user__is_active = serializers.ReadOnlyField(source='user.is_active')
@@ -174,14 +171,16 @@ class OrganizationOwnerSerializer(serializers.ModelSerializer):
 
 class OrganizationSerializer(serializers.ModelSerializer):
 
-    assets = AssetField()
-    asset_usage = AssetUsageField()
+    assets = serializers.SerializerMethodField()
+    asset_usage = serializers.SerializerMethodField()
     is_mmo = serializers.BooleanField(read_only=True)
-    is_owner = IsOwnerField()
-    members = MembersField()
-    request_user_role = RequestUserRoleField()
-    service_usage = ServiceUsageField()
-    url = UrlField(lookup_field='id', view_name='organizations-detail')
+    is_owner = serializers.SerializerMethodField()
+    members = serializers.SerializerMethodField()
+    request_user_role = serializers.SerializerMethodField()
+    service_usage = serializers.SerializerMethodField()
+    url = HyperlinkedIdentityFieldWithSchemaField(
+        schema_field=UrlField, lookup_field='id', view_name='organizations-detail'
+    )
     website = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
@@ -208,6 +207,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         return create_organization(user, validated_data['name'])
 
+    @extend_schema_field(AssetField)
     def get_assets(self, organization: Organization) -> str:
         return reverse(
             'organizations-assets',
@@ -215,6 +215,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             request=self.context['request'],
         )
 
+    @extend_schema_field(AssetUsageField)
     def get_asset_usage(self, organization: Organization) -> str:
         return reverse(
             'organizations-asset-usage',
@@ -222,6 +223,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             request=self.context['request'],
         )
 
+    @extend_schema_field(MembersField)
     def get_members(self, organization: Organization) -> str:
         return reverse(
             'organization-members-list',
@@ -229,6 +231,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             request=self.context['request'],
         )
 
+    @extend_schema_field(ServiceUsageField)
     def get_service_usage(self, organization: Organization) -> str:
         return reverse(
             'organizations-service-usage',
@@ -236,6 +239,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             request=self.context['request'],
         )
 
+    @extend_schema_field(OpenApiTypes.BOOL)
     def get_is_owner(self, organization):
 
         # This method is deprecated.
@@ -246,6 +250,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
         return False
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_request_user_role(self, organization):
 
         if request := self.context.get('request'):

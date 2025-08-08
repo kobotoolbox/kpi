@@ -137,6 +137,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
         return queryset
 
+    @extend_schema(exclude=True)
     def list(self, request, *args, **kwargs):
 
         object_list = self.filter_queryset(self.get_queryset())
@@ -149,6 +150,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         )
         return Response(serializer.data, headers=self.get_openrosa_headers())
 
+    @extend_schema(exclude=True)
     def retrieve(self, request, *args, **kwargs):
         xform = self.get_object()
 

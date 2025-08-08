@@ -3,7 +3,6 @@ import json
 
 import constance
 from django.utils.translation import gettext as t
-from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.reverse import reverse
@@ -16,6 +15,10 @@ from kobo.apps.hook.schema_extensions.v2.hooks.fields import (
     SubsetFieldsField,
     UrlField,
 )
+from kpi.utils.schema_extensions.fields import (
+    JSONFieldWithSchemaField,
+    ListFieldWithSchemaField,
+)
 
 
 class HookSerializer(serializers.ModelSerializer):
@@ -23,8 +26,8 @@ class HookSerializer(serializers.ModelSerializer):
     payload_template = serializers.CharField(required=False, allow_blank=True,
                                              allow_null=True)
 
-    settings = SettingsField()
-    subset_fields = SubsetFieldsField()
+    settings = JSONFieldWithSchemaField(SettingsField)
+    subset_fields = ListFieldWithSchemaField(SubsetFieldsField)
 
     class Meta:
         model = Hook
@@ -58,16 +61,16 @@ class HookSerializer(serializers.ModelSerializer):
             'success_count',
         )
 
-    url = UrlField()
-    logs_url = LogsUrlField()
+    url = serializers.SerializerMethodField()
+    logs_url = serializers.SerializerMethodField()
 
-    @extend_schema_field(OpenApiTypes.URI_REF)
+    @extend_schema_field(UrlField)
     def get_url(self, hook):
         return reverse('hook-detail',
                        args=(hook.asset.uid, hook.uid),
                        request=self.context.get('request', None))
 
-    @extend_schema_field(OpenApiTypes.URI_REF)
+    @extend_schema_field(LogsUrlField)
     def get_logs_url(self, hook):
         return reverse('hook-log-list',
                        args=(hook.asset.uid, hook.uid),

@@ -5,7 +5,7 @@ import constance
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext as t
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -31,6 +31,15 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 @extend_schema(
     tags=['Rest Services'],
+    parameters=[
+        OpenApiParameter(
+            name='parent_lookup_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent assets',
+        ),
+    ],
 )
 @extend_schema_view(
     create=extend_schema(
@@ -48,6 +57,15 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the hook',
+            ),
+        ],
     ),
     list=extend_schema(
         description=read_md('hook', 'hooks/list.md'),
@@ -65,6 +83,15 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             require_auth=False,
             raise_access_forbidden=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the hook',
+            ),
+        ],
     ),
     retrieve=extend_schema(
         description=read_md('hook', 'hooks/retrieve.md'),
@@ -74,6 +101,15 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the hook',
+            ),
+        ],
     ),
     retry=extend_schema(
         description=read_md('hook', 'hooks/retry.md'),
@@ -84,6 +120,15 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the hook',
+            ),
+        ],
     ),
     update=extend_schema(
         exclude=True,

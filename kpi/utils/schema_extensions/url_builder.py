@@ -2,12 +2,20 @@ from django.conf import settings
 
 
 def build_url_type(viewname: str, **kwargs) -> dict:
-
     """
-    Due to the life cycle of DRF, we have no choice but to build the examples as
-    belong instead of using a reverse_lazy like we did before. This util is loaded
-    before the urls and models which mean the cycle will enter an infinite loop where
-    it tries to get the url, then the model and so on.
+    Utility used to build API schema examples for drf-spectacular.
+
+    In practice, we initially tried using `reverse_lazy` to generate realistic URLs,
+    but since drf-spectacular parses all code at schema generation time — before Django
+    has fully loaded all apps and URL patterns — this caused import issues and circular
+    references.
+
+    To avoid that, we hardcode the URL patterns via a `urls_pattern_mapping` to simulate
+    the behavior of `reverse_lazy`, while ensuring the examples still match the actual
+    API routes.
+
+    This utility helps produce meaningful URLs in Swagger UI, instead of dummy or
+    unrelated placeholders.
     """
     example_url = settings.KOBOFORM_URL + '/api/v2/' + viewname
     if ':' in viewname:
@@ -34,9 +42,28 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'attachment-thumb': '/api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/{pk}/{suffix}/',  # noqa
         'paired-data-detail': '/api/v2/assets/{parent_lookup_asset}/paired-data/{paired_data_uid}',  # noqa
         'project-ownership-transfer-detail': '/api/v2/project-ownership/invites/{parent_lookup_invite_uid}/transfers/{uid}/',  # noqa
+        'asset-reports': '/api/v2/assets/{uid}/reports/',
+        'asset-export-settings-detail': '/api/v2/assets/{parent_lookup_asset}/export-settings/{uid}/',  # noqa
+        'asset-export-settings-detail-format': '/api/v2/assets/{parent_lookup_asset}/export-settings/{uid}/data.{format}',  # noqa
+        'asset-export-detail': '/api/v2/assets/{parent_lookup_asset}/exports/{uid}/',
+        'serve_private_file': '{path}',
+        'asset-file-detail': '/api/v2/assets/{parent_lookup_asset}/files/{uid}/',
+        'asset-file-content': '/api/v2/assets/{parent_lookup_asset}/files/{uid}/content/',  # noqa
+        'hook-log-list': '/api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/',  # noqa
+        'hook-log-detail': '/api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/',  # noqa
+        'organization-members-list': '/api/v2/organizations/{id}/members/',
+        'organizations-assets': '/api/v2/organizations/{id}/assets/',
+        'organizations-service-usage': '/api/v2/organizations/{id}/service_usage/',
+        'organizations-asset-usage': '/api/v2/organizations/{id}/assets_usage/',
+        'organizations-detail': '/api/v2/organizations/{id}/',
+        'language-detail': '/api/v2/language/{code}/',
+        'user_profile': '/{username}',
+        'organization-invites-detail': '/api/v2/organizations/{organization_id}/invites/{guid}/',  # noqa
         'tags-detail': '/api/v2/tags/{taguid__uid}/',
         'tags-list': '/api/v2/tags/',
         'terms-of-service-detail': '/api/v2/terms-of-service/{slug}/',
+        'enketo_edit_link': '{path}',
+        'enketo_view_link': '{path}',
     }
 
     try:

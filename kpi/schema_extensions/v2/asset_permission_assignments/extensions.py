@@ -5,8 +5,8 @@ from drf_spectacular.extensions import (
 from drf_spectacular.plumbing import build_object_type
 
 from .schema import (
-    ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA,
     ASSET_PARTIAL_PERMISSION_ASSIGNMENT_SCHEMA,
+    ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA,
     PERMISSION_ASSIGNMENT_LABEL_SCHEMA,
     PERMISSION_URL_SCHEMA,
     USER_URL_SCHEMA,
@@ -61,6 +61,7 @@ class AssetPermissionCreateAssignmentSerializerExtension(OpenApiSerializerExtens
                         'permission',
                         'user',
                     ],
+                    additionalProperties=False,
                     properties={
                         'permission': PERMISSION_URL_SCHEMA,
                         'user': USER_URL_SCHEMA,

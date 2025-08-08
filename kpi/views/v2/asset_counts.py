@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.http import Http404
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import mixins, viewsets
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -26,6 +26,15 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='parent_lookup_asset',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the parent asset',
+            ),
+        ],
     )
 )
 class AssetCountsViewSet(

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 
-class HookLogURLField(serializers.SerializerMethodField):
+class HookLogURLField(serializers.URLField):
     pass
 
 

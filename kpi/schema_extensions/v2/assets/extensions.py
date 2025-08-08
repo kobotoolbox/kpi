@@ -165,14 +165,14 @@ class AssetSettingsFieldExtension(OpenApiSerializerFieldExtension):
 
 
 class BulkActionFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.assets.serializers.BulkActionField'
+    target_class = 'kpi.schema_extensions.v2.assets.fields.BulkActionField'
 
     def map_serializer(self, auto_schema, direction):
-        return build_object_type(properties={})
+        return build_basic_type(OpenApiTypes.STR)
 
 
 class BulkAssetUidsFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.assets.serializers.BulkAssetUidsField'
+    target_class = 'kpi.schema_extensions.v2.assets.fields.BulkAssetUidsField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
@@ -300,13 +300,6 @@ class DataSharingFieldExtension(OpenApiSerializerFieldExtension):
         return build_object_type(properties={})
 
 
-class DeploymentActiveFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.assets.fields.DeploymentActiveField'
-
-    def map_serializer_field(self, auto_schema, direction):
-        return build_basic_type(OpenApiTypes.BOOL)
-
-
 class DeploymentDataDownloadLinksFieldExtension(OpenApiSerializerFieldExtension):
     target_class = (
         'kpi.schema_extensions.v2.assets.fields.DeploymentDataDownloadLinksField'
@@ -321,15 +314,6 @@ class DeploymentLinkFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(properties={})
-
-
-class DeploymentSubmissionCountFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.assets.fields.DeploymentSubmissionCountField'
-    )
-
-    def map_serializer_field(self, auto_schema, direction):
-        return build_basic_type(OpenApiTypes.INT)
 
 
 class DeployedVersionsFieldExtension(OpenApiSerializerFieldExtension):
@@ -469,6 +453,13 @@ class PairedDataURLFieldExtension(OpenApiSerializerFieldExtension):
         )
 
 
+class ParentURLFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.fields.ParentURLField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return ASSET_URL_SCHEMA
+
+
 class PermissionsFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.PermissionsField'
 
@@ -562,13 +553,6 @@ class SettingsFieldExtension(OpenApiSerializerFieldExtension):
         )
 
 
-class SubscribersCountFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.assets.fields.SubscribersCountField'
-
-    def map_serializer_field(self, auto_schema, direction):
-        return build_basic_type(OpenApiTypes.INT)
-
-
 class SummaryFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.SummaryField'
 
@@ -624,13 +608,6 @@ class ValidContentDataFieldExtension(OpenApiSerializerFieldExtension):
                 ),
             }
         )
-
-
-class VersionCountFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.assets.fields.VersionCountField'
-
-    def map_serializer_field(self, auto_schema, direction):
-        return build_basic_type(OpenApiTypes.INT)
 
 
 class XFormLinkFieldExtension(OpenApiSerializerFieldExtension):

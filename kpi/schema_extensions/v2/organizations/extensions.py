@@ -40,13 +40,6 @@ class BalanceFieldExtension(OpenApiSerializerFieldExtension):
         )
 
 
-class IsOwnerFieldExtensions(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.organizations.fields.IsOwnerField'
-
-    def map_serializer_field(self, auto_schema, direction):
-        return build_basic_type(OpenApiTypes.BOOL)
-
-
 class MembersFieldExtensions(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.organizations.fields.MembersField'
 
@@ -79,13 +72,6 @@ class NlpUsageCurrentPeriodExtension(OpenApiSerializerFieldExtension):
                 'total_nlp_mt_characters': build_basic_type(OpenApiTypes.INT),
             }
         )
-
-
-class RequestUserRoleFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.organizations.fields.RequestUserRoleField'
-
-    def map_serializer_field(self, auto_schema, direction):
-        return build_basic_type(OpenApiTypes.STR)
 
 
 class ServiceUsageFieldExtension(OpenApiSerializerFieldExtension):
