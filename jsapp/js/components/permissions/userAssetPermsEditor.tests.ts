@@ -3,66 +3,12 @@ import permConfig from './permConfig'
 import { endpoints } from './permParser.mocks'
 import type { AssignablePermsMap } from './sharingForm.component'
 import {
+  EMPTY_EDITOR_STATE,
   applyValidityRules,
   getFormData,
   isPartialByResponsesValid,
   isPartialByUsersValid,
 } from './userAssetPermsEditor.utils'
-
-/**
- * This is `UserAssetPermsEditorState` with all possible properties having falsy
- * values.
- */
-const EMPTY_EDITOR_STATE = {
-  isSubmitPending: false,
-  isEditingUsername: false,
-  isCheckingUsername: false,
-  username: 'zefir',
-  formView: false,
-  formViewDisabled: false,
-  formEdit: false,
-  formEditDisabled: false,
-  formManage: false,
-  formManageDisabled: false,
-  submissionsView: false,
-  submissionsViewDisabled: false,
-  submissionsViewPartialByUsers: false,
-  submissionsViewPartialByUsersDisabled: false,
-  submissionsViewPartialByUsersList: [],
-  submissionsViewPartialByResponses: false,
-  submissionsViewPartialByResponsesDisabled: false,
-  submissionsViewPartialByResponsesQuestion: null,
-  submissionsViewPartialByResponsesValue: '',
-  submissionsAdd: false,
-  submissionsAddDisabled: false,
-  submissionsEdit: false,
-  submissionsEditDisabled: false,
-  submissionsEditPartialByUsers: false,
-  submissionsEditPartialByUsersDisabled: false,
-  submissionsEditPartialByUsersList: [],
-  submissionsEditPartialByResponses: false,
-  submissionsEditPartialByResponsesDisabled: false,
-  submissionsEditPartialByResponsesQuestion: null,
-  submissionsEditPartialByResponsesValue: '',
-  submissionsValidate: false,
-  submissionsValidateDisabled: false,
-  submissionsValidatePartialByUsers: false,
-  submissionsValidatePartialByUsersDisabled: false,
-  submissionsValidatePartialByUsersList: [],
-  submissionsValidatePartialByResponses: false,
-  submissionsValidatePartialByResponsesDisabled: false,
-  submissionsValidatePartialByResponsesQuestion: null,
-  submissionsValidatePartialByResponsesValue: '',
-  submissionsDelete: false,
-  submissionsDeleteDisabled: false,
-  submissionsDeletePartialByUsers: false,
-  submissionsDeletePartialByUsersDisabled: false,
-  submissionsDeletePartialByUsersList: [],
-  submissionsDeletePartialByResponses: false,
-  submissionsDeletePartialByResponsesDisabled: false,
-  submissionsDeletePartialByResponsesQuestion: null,
-  submissionsDeletePartialByResponsesValue: '',
-}
 
 let testAssignablePerms: AssignablePermsMap = new Map()
 
@@ -229,6 +175,7 @@ describe('userAssetPermsEditor utils tests', () => {
     it('should remove unassignable permissions from output', () => {
       const stateObj = {
         ...EMPTY_EDITOR_STATE,
+        username: 'zefir',
         formEdit: true,
         submissionsAdd: true,
         submissionsView: true,
