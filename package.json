@@ -136,7 +136,7 @@
     "@types/react-tagsinput": "^3.20.6",
     "@types/reflux": "^6.4.6",
     "@types/zxcvbn": "^4.4.4",
-    "@vusion/webfonts-generator": "^0.7.3",
+    "@vusion/webfonts-generator": "^0.8.0",
     "autoprefixer": "^10.4.19",
     "chai": "^4.2.0",
     "chai-exclude": "^2.1.0",
