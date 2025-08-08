@@ -9,7 +9,7 @@ from kpi.fields import (
 )
 
 
-def HyperlinkedIdentityFieldWithSchemaField(  # noqa N802
+def HyperlinkedIdentityFieldWithSchemaField( # noqa N802
     schema_field=None, *args, **kwargs
 ):
     if schema_field is None:
