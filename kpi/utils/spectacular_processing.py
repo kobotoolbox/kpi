@@ -1,16 +1,13 @@
 from drf_spectacular.generators import SchemaGenerator, EndpointEnumerator
 
 OPEN_ROSA_ENDPOINTS = [
-    '/formList',
     # '/forms/{pk}/form.xml',
-    '/submission',
-    #'/formUpload',
-    #'/upload',
     # '/{username}/forms/{pk}/form.xml',
+    '/formList',
+    '/submission',
     '/xformsManifest/{pk}',
     '/xformsMedia/{pk}/{metadata}',
     '/{username}/formList',
-
     '/{username}/submission',
     '/{username}/xformsManifest/{pk}',
     '/{username}/xformsMedia/{pk}/{metadata}',
@@ -72,8 +69,6 @@ class OpenRosaSchemaGenerator(SchemaGenerator):
 def pre_processing_filtering(endpoints):
     filtered = []
     seen = []
-
-    print('in pre processing', flush=True)
 
     for path, path_regex, method, callback in endpoints:
         # Remove all endpoints not in 'api/v2/'
