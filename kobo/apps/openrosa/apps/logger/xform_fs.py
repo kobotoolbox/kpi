@@ -3,8 +3,6 @@ import glob
 import os
 import re
 
-from lxml import etree
-
 
 class XFormInstanceFS:
     def __init__(self, filepath):
@@ -21,23 +19,8 @@ class XFormInstanceFS:
                 for entry in os.scandir(dir)
                 if entry.is_file()
                 and entry.path != self.path
-                and entry.name in self.mentioned_in_xml
             ]
         return self._attachments
-
-    @property
-    def mentioned_in_xml(self):
-        if not hasattr(self, '_mentioned_in_xml'):
-            parser = etree.XMLParser()
-            root = etree.fromstring(self.xml, parser=parser)
-            namespaces = root.nsmap
-            self._mentioned_in_xml = set(
-                root.xpath(
-                    '//*/text()',
-                    namespaces=namespaces,
-                )
-            )
-        return self._mentioned_in_xml
 
     @property
     def metadata_directory(self):
