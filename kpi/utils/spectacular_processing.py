@@ -1,4 +1,4 @@
-from drf_spectacular.generators import SchemaGenerator, EndpointEnumerator
+from drf_spectacular.generators import EndpointEnumerator, SchemaGenerator
 
 OPEN_ROSA_ENDPOINTS = [
     # Openrosa add when user is authentified
@@ -17,12 +17,14 @@ OPEN_ROSA_ENDPOINTS = [
     '/api/v2/asset_snapshots/{uid}/submission',
 ]
 
+
 class ApiOpenRosaEndpointEnumerator(EndpointEnumerator):
 
     """
     This enumerator filters through all endpoint path and only keeps those
     that are part of openrosa
     """
+
     def _get_api_endpoints(self, patterns, prefix):
         endpoints = super()._get_api_endpoints(patterns, prefix)
 
@@ -38,11 +40,11 @@ class ApiOpenRosaEndpointEnumerator(EndpointEnumerator):
 
 
 class ApiV2EndpointEnumerator(EndpointEnumerator):
-
     """
     This enumerator filters through all endpoint path and only keeps those
     that are part of the api/v2
     """
+
     def _get_api_endpoints(self, patterns, prefix):
         endpoints = super()._get_api_endpoints(patterns, prefix)
 
