@@ -31,6 +31,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     OpenRosaTemporarilyUnavailable,
 )
 from kpi.constants import PERM_ADD_SUBMISSIONS
+from kobo.apps.organizations.constants import UsageType
 from kpi.utils.fuzzy_int import FuzzyInt
 
 
