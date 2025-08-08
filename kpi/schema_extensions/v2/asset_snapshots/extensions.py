@@ -2,11 +2,14 @@ from drf_spectacular.extensions import (
     OpenApiSerializerExtension,
     OpenApiSerializerFieldExtension,
 )
-from drf_spectacular.plumbing import build_basic_type, build_object_type
-from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.plumbing import build_object_type
 
+from kpi.schema_extensions.v2.generic.schema import (
+    ASSET_URL_SCHEMA,
+    GENERIC_STRING_SCHEMA,
+    USER_URL_SCHEMA,
+)
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from ..assets.schema import ASSET_URL_SCHEMA
 from .schema import ASSET_SNAPSHOT_DETAILS_SCHEMA, ASSET_SNAPSHOT_SOURCE_SCHEMA
 
 
@@ -42,7 +45,7 @@ class AssetSnapshotDetailsExportFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'note': build_basic_type(OpenApiTypes.STR),
+                'note': GENERIC_STRING_SCHEMA,
             }
         )
 
@@ -77,7 +80,7 @@ class AssetSnapshotURLUserFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.asset_snapshots.fields.AssetSnapshotUserURLField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type('api_v2:user-kpi-detail', username='bob')
+        return USER_URL_SCHEMA
 
 
 class AssetSnapshotURLPreviewFieldExtension(OpenApiSerializerFieldExtension):

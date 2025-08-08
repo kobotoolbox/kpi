@@ -1073,9 +1073,12 @@ class SubmissionExportTaskBase(ImportExportTask):
             user=user,
             date_created__lt=oldest_allowed_timestamp,
             data__source=source,
-        ).exclude(status__in=(
-            ImportExportStatusChoices.COMPLETE, ImportExportStatusChoices.ERROR
-        ))
+        ).exclude(
+            status__in=(
+                ImportExportStatusChoices.COMPLETE,
+                ImportExportStatusChoices.ERROR,
+            )
+        )
         for stuck_export in stuck_exports:
             logging.warning(
                 'Stuck export {}: type {}, username {}, source {}, '

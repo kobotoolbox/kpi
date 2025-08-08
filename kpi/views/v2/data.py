@@ -53,7 +53,9 @@ from kpi.schema_extensions.v2.data.serializers import (
     DataStatusesUpdate,
     DataValidationStatusesUpdatePayload,
     DataValidationStatusUpdatePayload,
-    DataValidationStatusUpdateResponse, EnketoEditResponse, EnketoViewResponse,
+    DataValidationStatusUpdateResponse,
+    EnketoEditResponse,
+    EnketoViewResponse,
 )
 from kpi.serializers.v2.data import DataBulkActionsValidator
 from kpi.utils.log import logging

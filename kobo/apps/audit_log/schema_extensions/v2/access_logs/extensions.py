@@ -1,8 +1,10 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
-from drf_spectacular.plumbing import build_basic_type, build_object_type
-from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.plumbing import build_object_type
 
-from kpi.utils.schema_extensions.url_builder import build_url_type
+from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_STRING_SCHEMA,
+    USER_URL_SCHEMA,
+)
 
 
 # This drf-extension made for the metadata field of AccessLog targets the external class
@@ -13,12 +15,12 @@ class AccessLogMetadataFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'source': build_basic_type(OpenApiTypes.STR),
-                'auth_type': build_basic_type(OpenApiTypes.STR),
-                'ip_address': build_basic_type(OpenApiTypes.STR),
-                'initial_user_uid': build_basic_type(OpenApiTypes.STR),
-                'initial_user_username': build_basic_type(OpenApiTypes.STR),
-                'authorized_app_name': build_basic_type(OpenApiTypes.STR),
+                'source': GENERIC_STRING_SCHEMA,
+                'auth_type': GENERIC_STRING_SCHEMA,
+                'ip_address': GENERIC_STRING_SCHEMA,
+                'initial_user_uid': GENERIC_STRING_SCHEMA,
+                'initial_user_username': GENERIC_STRING_SCHEMA,
+                'authorized_app_name': GENERIC_STRING_SCHEMA,
             }
         )
 
@@ -27,4 +29,4 @@ class AccessLogUserFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kobo.apps.audit_log.schema_extensions.v2.access_logs.fields.AccessLogUserURLField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type('api_v2:user-kpi-detail', username='bob')
+        return USER_URL_SCHEMA

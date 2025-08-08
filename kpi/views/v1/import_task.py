@@ -60,12 +60,15 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
                                                 data=itask_data)
         # Have Celery run the import in the background
         import_in_background.delay(import_task_uid=import_task.uid)
-        return Response({
-            'uid': import_task.uid,
-            'url': reverse(
-                'importtask-detail',
-                kwargs={'uid': import_task.uid},
-                request=request),
-            'status': ImportExportStatusChoices.PROCESSING
-        }, status.HTTP_201_CREATED)
-
+        return Response(
+            {
+                'uid': import_task.uid,
+                'url': reverse(
+                    'importtask-detail',
+                    kwargs={'uid': import_task.uid},
+                    request=request,
+                ),
+                'status': ImportExportStatusChoices.PROCESSING,
+            },
+            status.HTTP_201_CREATED,
+        )

@@ -6,6 +6,12 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
+from kpi.schema_extensions.v2.generic.schema import (
+    ASSET_URL_SCHEMA,
+    GENERIC_ARRAY_SCHEMA,
+    GENERIC_OBJECT_SCHEMA,
+    GENERIC_STRING_SCHEMA,
+)
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
@@ -15,15 +21,13 @@ class DataFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'lang': build_basic_type(OpenApiTypes.STR),
-                'name': build_basic_type(OpenApiTypes.STR),
-                'type': build_basic_type(OpenApiTypes.STR),
-                'fields': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
-                'source': build_url_type(
-                    'api_v2:asset-detail', uid='a3C9wWefqZVkChNLKqqXVZ'
-                ),
-                'group_sep': build_basic_type(OpenApiTypes.STR),
-                'multiple_select': build_basic_type(OpenApiTypes.STR),
+                'lang': GENERIC_STRING_SCHEMA,
+                'name': GENERIC_STRING_SCHEMA,
+                'type': GENERIC_STRING_SCHEMA,
+                'fields': GENERIC_ARRAY_SCHEMA,
+                'source': ASSET_URL_SCHEMA,
+                'group_sep': GENERIC_STRING_SCHEMA,
+                'multiple_select': GENERIC_STRING_SCHEMA,
                 'include_media_url': build_basic_type(OpenApiTypes.BOOL),
                 'hierarchy_in_labels': build_basic_type(OpenApiTypes.BOOL),
                 'processing_time_seconds': build_basic_type(OpenApiTypes.FLOAT),
@@ -36,14 +40,14 @@ class FieldsFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.export_tasks.fields.FieldsField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_array_type(schema=build_basic_type(OpenApiTypes.STR))
+        return GENERIC_ARRAY_SCHEMA
 
 
 class MessageFieldExtend(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.export_tasks.fields.MessageField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(properties={})
+        return GENERIC_OBJECT_SCHEMA
 
 
 class QueryFieldExtension(OpenApiSerializerFieldExtension):

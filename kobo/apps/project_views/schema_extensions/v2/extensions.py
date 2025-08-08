@@ -1,11 +1,15 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import (
     build_array_type,
-    build_basic_type,
     build_object_type,
 )
-from drf_spectacular.types import OpenApiTypes
 
+from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_ARRAY_SCHEMA,
+    GENERIC_OBJECT_SCHEMA,
+    GENERIC_STRING_SCHEMA,
+    LABEL_VALUE_OBJECT_SCHEMA,
+)
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
@@ -15,7 +19,7 @@ class AssetLanguageFieldExtension(OpenApiSerializerFieldExtension):
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_array_type(schema=build_basic_type(OpenApiTypes.STR))
+        return GENERIC_ARRAY_SCHEMA
 
 
 class AssetSettingsFieldExtension(OpenApiSerializerFieldExtension):
@@ -26,27 +30,13 @@ class AssetSettingsFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'sector': build_object_type(
-                    properties={
-                        'label': build_basic_type(OpenApiTypes.STR),
-                        'value': build_basic_type(OpenApiTypes.STR),
-                    }
-                ),
-                'country': build_array_type(
-                    schema=build_object_type(
-                        properties={
-                            'label': build_basic_type(OpenApiTypes.STR),
-                            'value': build_basic_type(OpenApiTypes.STR),
-                        }
-                    )
-                ),
-                'description': build_basic_type(OpenApiTypes.STR),
-                'collects_pii': build_basic_type(OpenApiTypes.STR),
-                'organization': build_basic_type(OpenApiTypes.STR),
-                'country_codes': build_array_type(
-                    schema=build_basic_type(OpenApiTypes.STR)
-                ),
-                'operational_purpose': build_basic_type(OpenApiTypes.STR),
+                'sector': LABEL_VALUE_OBJECT_SCHEMA,
+                'country': build_array_type(schema=LABEL_VALUE_OBJECT_SCHEMA),
+                'description': GENERIC_STRING_SCHEMA,
+                'collects_pii': GENERIC_STRING_SCHEMA,
+                'organization': GENERIC_STRING_SCHEMA,
+                'country_codes': GENERIC_ARRAY_SCHEMA,
+                'operational_purpose': GENERIC_STRING_SCHEMA,
             }
         )
 
@@ -60,7 +50,7 @@ class AssetDownloadFieldExtension(OpenApiSerializerFieldExtension):
         return build_array_type(
             schema=build_object_type(
                 properties={
-                    'format': build_basic_type(OpenApiTypes.STR),
+                    'format': GENERIC_STRING_SCHEMA,
                     'url': build_url_type(
                         'api_v2:asset-detail',
                         uid='aTPPUDScaFZkvBzd8FyK4Q',
@@ -111,7 +101,7 @@ class GenericListFieldExtension(OpenApiSerializerFieldExtension):
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_array_type(schema=build_basic_type(OpenApiTypes.STR))
+        return GENERIC_ARRAY_SCHEMA
 
 
 class UrlFieldExtension(OpenApiSerializerFieldExtension):
@@ -131,25 +121,21 @@ class UserMetadataFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'city': build_basic_type(OpenApiTypes.STR),
-                'name': build_basic_type(OpenApiTypes.STR),
-                'sector': build_basic_type(OpenApiTypes.STR),
-                'country': build_basic_type(OpenApiTypes.STR),
-                'organization': build_basic_type(OpenApiTypes.STR),
-                'last_ui_language': build_basic_type(OpenApiTypes.STR),
-                'organization_type': build_basic_type(OpenApiTypes.STR),
-                'organization_website': build_basic_type(OpenApiTypes.STR),
+                'city': GENERIC_STRING_SCHEMA,
+                'name': GENERIC_STRING_SCHEMA,
+                'sector': GENERIC_STRING_SCHEMA,
+                'country': GENERIC_STRING_SCHEMA,
+                'organization': GENERIC_STRING_SCHEMA,
+                'last_ui_language': GENERIC_STRING_SCHEMA,
+                'organization_type': GENERIC_STRING_SCHEMA,
+                'organization_website': GENERIC_STRING_SCHEMA,
                 'project_view_settings': build_object_type(
                     properties={
                         'my_project_view_name': build_object_type(
                             properties={
-                                'order': build_object_type(properties={}),
-                                'fields': build_array_type(
-                                    schema=build_basic_type(OpenApiTypes.STR)
-                                ),
-                                'filters': build_array_type(
-                                    schema=build_basic_type(OpenApiTypes.STR)
-                                ),
+                                'order': GENERIC_OBJECT_SCHEMA,
+                                'fields': GENERIC_ARRAY_SCHEMA,
+                                'filters': GENERIC_ARRAY_SCHEMA,
                             }
                         )
                     }

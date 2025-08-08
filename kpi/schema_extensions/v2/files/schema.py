@@ -7,8 +7,6 @@ from kpi.utils.schema_extensions.url_builder import build_url_type
 Common schemas to avoid redundancy
 """
 
-ASSET_URL_SCHEMA = build_url_type('api_v2:asset-detail', uid='a3C9wWefqZVkChNLKqqXVZ')
-
 BASE64_METADATA_SCHEMA = build_object_type(
     required=['filename'],
     properties={
@@ -28,6 +26,3 @@ URL_METADATA_SCHEMA = build_object_type(
         'redirect_url': build_basic_type(OpenApiTypes.URI),
     }
 )
-
-
-USER_URL_SCHEMA = build_url_type('user-kpi-detail', username='bob')

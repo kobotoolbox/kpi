@@ -32,7 +32,7 @@ from kpi.schema_extensions.v2.asset_snapshots.serializers import (
     AssetSnapshotCreateRequest,
     AssetSnapshotResponse,
 )
-from kpi.schema_extensions.v2.assets.schema import ASSET_URL_SCHEMA
+from kpi.schema_extensions.v2.generic.schema import ASSET_URL_SCHEMA
 from kpi.schema_extensions.v2.openrosa.serializers import (
     OpenRosaFormListResponse,
     OpenRosaManifestResponse,

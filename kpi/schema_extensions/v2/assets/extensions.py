@@ -9,6 +9,13 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
+from kpi.schema_extensions.v2.generic.schema import (
+    ASSET_URL_SCHEMA,
+    GENERIC_ARRAY_SCHEMA,
+    GENERIC_OBJECT_SCHEMA,
+    GENERIC_STRING_SCHEMA,
+    USER_URL_SCHEMA,
+)
 from kpi.utils.schema_extensions.url_builder import build_url_type
 from .schema import (
     ASSET_CLONE_FROM_SCHEMA,
@@ -18,7 +25,6 @@ from .schema import (
     ASSET_NAME_SCHEMA,
     ASSET_SETTINGS_SCHEMA,
     ASSET_TYPE_SCHEMA,
-    ASSET_URL_SCHEMA,
     BULK_ACTION_SCHEMA,
     BULK_ASSET_UIDS_SCHEMA,
     BULK_CONFIRM_SCHEMA,
@@ -29,14 +35,14 @@ class AccessTypeFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AccessTypeField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_array_type(schema=build_basic_type(OpenApiTypes.STR))
+        return GENERIC_ARRAY_SCHEMA
 
 
 class AdvancedFeatureFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AdvancedFeatureField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(properties={})
+        return GENERIC_OBJECT_SCHEMA
 
 
 class AdvancedSubmissionSchemaFieldExtension(OpenApiSerializerFieldExtension):
@@ -47,8 +53,8 @@ class AdvancedSubmissionSchemaFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'type': build_basic_type(OpenApiTypes.STR),
-                '$description': build_basic_type(OpenApiTypes.STR),
+                'type': GENERIC_STRING_SCHEMA,
+                '$description': GENERIC_STRING_SCHEMA,
             }
         )
 
@@ -59,10 +65,8 @@ class AnalysisFormJsonExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'engines': build_object_type(properties={}),
-                'additional_fields': build_array_type(
-                    schema=build_basic_type(OpenApiTypes.STR)
-                ),
+                'engines': GENERIC_OBJECT_SCHEMA,
+                'additional_fields': GENERIC_ARRAY_SCHEMA,
             }
         )
 
@@ -154,7 +158,7 @@ class AssignablePermissionFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AssignablePermissionField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_array_type(schema=build_object_type(properties={}))
+        return build_array_type(schema=GENERIC_OBJECT_SCHEMA)
 
 
 class AssetSettingsFieldExtension(OpenApiSerializerFieldExtension):
@@ -168,7 +172,7 @@ class BulkActionFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.BulkActionField'
 
     def map_serializer(self, auto_schema, direction):
-        return build_basic_type(OpenApiTypes.STR)
+        return GENERIC_STRING_SCHEMA
 
 
 class BulkAssetUidsFieldExtension(OpenApiSerializerFieldExtension):
@@ -178,9 +182,7 @@ class BulkAssetUidsFieldExtension(OpenApiSerializerFieldExtension):
         return build_object_type(
             properties={
                 'asset_uids': build_array_type(
-                    schema=build_object_type(
-                        properties={},
-                    ),
+                    schema=GENERIC_OBJECT_SCHEMA,
                 ),
             }
         )
@@ -237,9 +239,9 @@ class ContentDataFieldExtension(OpenApiSerializerFieldExtension):
         return build_object_type(
             properties={
                 'survey': build_array_type(
-                    schema=build_object_type(properties={}),
+                    schema=GENERIC_OBJECT_SCHEMA,
                 ),
-                'settings': build_object_type(properties={}),
+                'settings': GENERIC_OBJECT_SCHEMA,
             }
         )
 
@@ -250,15 +252,11 @@ class ContentFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'schema': build_basic_type(OpenApiTypes.STR),
-                'survey': build_array_type(schema=build_object_type(properties={})),
-                'settings': build_object_type(properties={}),
-                'translated': build_array_type(
-                    schema=build_basic_type(OpenApiTypes.STR)
-                ),
-                'translations': build_array_type(
-                    schema=build_basic_type(OpenApiTypes.STR)
-                ),
+                'schema': GENERIC_STRING_SCHEMA,
+                'survey': build_array_type(schema=GENERIC_OBJECT_SCHEMA),
+                'settings': GENERIC_OBJECT_SCHEMA,
+                'translated': GENERIC_ARRAY_SCHEMA,
+                'translations': GENERIC_ARRAY_SCHEMA,
             }
         )
 
@@ -279,7 +277,7 @@ class CountriesFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_array_type(
-            schema=build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
+            schema=GENERIC_ARRAY_SCHEMA,
         )
 
 
@@ -297,7 +295,7 @@ class DataSharingFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.DataSharingField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(properties={})
+        return GENERIC_OBJECT_SCHEMA
 
 
 class DeploymentDataDownloadLinksFieldExtension(OpenApiSerializerFieldExtension):
@@ -306,14 +304,14 @@ class DeploymentDataDownloadLinksFieldExtension(OpenApiSerializerFieldExtension)
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(properties={})
+        return GENERIC_OBJECT_SCHEMA
 
 
 class DeploymentLinkFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.DeploymentLinkField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(properties={})
+        return GENERIC_OBJECT_SCHEMA
 
 
 class DeployedVersionsFieldExtension(OpenApiSerializerFieldExtension):
@@ -323,18 +321,18 @@ class DeployedVersionsFieldExtension(OpenApiSerializerFieldExtension):
         return build_object_type(
             properties={
                 'count': build_basic_type(OpenApiTypes.INT),
-                'next': build_basic_type(OpenApiTypes.STR),
-                'previous': build_basic_type(OpenApiTypes.STR),
+                'next': GENERIC_STRING_SCHEMA,
+                'previous': GENERIC_STRING_SCHEMA,
                 'results': build_array_type(
                     schema=build_object_type(
                         properties={
-                            'uid': build_basic_type(OpenApiTypes.STR),
+                            'uid': GENERIC_STRING_SCHEMA,
                             'url': build_url_type(
                                 'api_v2:asset-version-detail',
                                 parent_lookup_asset='aBeA23YCYjkGTFvYVHuAyU',
                                 uid='vBeA23YCYjkGTFvYVHuAyU',
                             ),
-                            'content_hash': build_basic_type(OpenApiTypes.STR),
+                            'content_hash': GENERIC_STRING_SCHEMA,
                             'date_deployed': build_basic_type(OpenApiTypes.DATETIME),
                             'date_modified': build_basic_type(OpenApiTypes.DATETIME),
                         }
@@ -351,8 +349,8 @@ class DownloadsFieldExtension(OpenApiSerializerFieldExtension):
         return build_array_type(
             schema=build_object_type(
                 properties={
-                    'format': build_basic_type(OpenApiTypes.STR),
-                    'url': build_basic_type(OpenApiTypes.STR),
+                    'format': GENERIC_STRING_SCHEMA,
+                    'url': GENERIC_STRING_SCHEMA,
                 }
             )
         )
@@ -365,7 +363,7 @@ class EffectivePermissionFieldExtension(OpenApiSerializerFieldExtension):
         return build_array_type(
             schema=build_object_type(
                 properties={
-                    'codename': build_basic_type(OpenApiTypes.STR),
+                    'codename': GENERIC_STRING_SCHEMA,
                 }
             )
         )
@@ -385,7 +383,7 @@ class FileListFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.FileListField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_array_type(schema=build_basic_type(OpenApiTypes.STR))
+        return GENERIC_ARRAY_SCHEMA
 
 
 class HasDeploymentFieldExtension(OpenApiSerializerFieldExtension):
@@ -409,23 +407,21 @@ class MapCustomFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.MapCustomField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(properties={})
+        return GENERIC_OBJECT_SCHEMA
 
 
 class MapStylesFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.MapStylesField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(properties={})
+        return GENERIC_OBJECT_SCHEMA
 
 
 class MetadataListFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.MetadataListField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_array_type(
-            schema=build_basic_type(OpenApiTypes.STR),
-        )
+        return GENERIC_ARRAY_SCHEMA
 
 
 class MetadataSectorFieldExtension(OpenApiSerializerFieldExtension):
@@ -433,7 +429,7 @@ class MetadataSectorFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_array_type(
-            schema=build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
+            schema=GENERIC_ARRAY_SCHEMA,
         )
 
 
@@ -441,7 +437,7 @@ class UserURLRelativeHyperlinkedRelatedFieldExtension(OpenApiSerializerFieldExte
     target_class = 'kpi.schema_extensions.v2.assets.fields.UserURLRelativeHyperlinkedRelatedField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type('api_v2:user-kpi-detail', username='bob')
+        return USER_URL_SCHEMA
 
 
 class PairedDataURLFieldExtension(OpenApiSerializerFieldExtension):
@@ -464,14 +460,14 @@ class PermissionsFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.PermissionsField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_array_type(schema=build_basic_type(OpenApiTypes.STR))
+        return GENERIC_ARRAY_SCHEMA
 
 
 class ReportCustomFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.ReportCustomField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(properties={})
+        return GENERIC_OBJECT_SCHEMA
 
 
 class ReportStyleFieldExtension(OpenApiSerializerFieldExtension):
@@ -480,17 +476,17 @@ class ReportStyleFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'default': build_object_type(properties={}),
+                'default': GENERIC_OBJECT_SCHEMA,
                 'specified': build_object_type(
                     properties={
-                        'end': build_object_type(properties={}),
-                        'start': build_object_type(properties={}),
+                        'end': GENERIC_OBJECT_SCHEMA,
+                        'start': GENERIC_OBJECT_SCHEMA,
                     }
                 ),
                 'kuid_names': build_object_type(
                     properties={
-                        'end': build_basic_type(OpenApiTypes.STR),
-                        'start': build_basic_type(OpenApiTypes.STR),
+                        'end': GENERIC_STRING_SCHEMA,
+                        'start': GENERIC_STRING_SCHEMA,
                     }
                 ),
             }
@@ -504,10 +500,10 @@ class ReportListFieldExtension(OpenApiSerializerFieldExtension):
         return build_array_type(
             schema=build_object_type(
                 properties={
-                    'name': build_basic_type(OpenApiTypes.STR),
+                    'name': GENERIC_STRING_SCHEMA,
                     'row': build_object_type(
                         properties={
-                            'type': build_basic_type(OpenApiTypes.STR),
+                            'type': GENERIC_STRING_SCHEMA,
                         },
                     ),
                     'data': build_object_type(
@@ -518,8 +514,8 @@ class ReportListFieldExtension(OpenApiSerializerFieldExtension):
                             'show_graph': build_basic_type(OpenApiTypes.BOOL),
                         }
                     ),
-                    'kuid': build_basic_type(OpenApiTypes.STR),
-                    'style': build_object_type(properties={}),
+                    'kuid': GENERIC_STRING_SCHEMA,
+                    'style': GENERIC_OBJECT_SCHEMA,
                 }
             )
         )
@@ -540,15 +536,13 @@ class SettingsFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'sector': build_object_type(properties={}),
-                'country': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
-                'description': build_basic_type(OpenApiTypes.STR),
-                'collects_pii': build_basic_type(OpenApiTypes.STR),
-                'organization': build_basic_type(OpenApiTypes.STR),
-                'country_codes': build_array_type(
-                    schema=build_basic_type(OpenApiTypes.STR)
-                ),
-                'operational_purpose': build_basic_type(OpenApiTypes.STR),
+                'sector': GENERIC_OBJECT_SCHEMA,
+                'country': GENERIC_ARRAY_SCHEMA,
+                'description': GENERIC_STRING_SCHEMA,
+                'collects_pii': GENERIC_STRING_SCHEMA,
+                'organization': GENERIC_STRING_SCHEMA,
+                'country_codes': GENERIC_ARRAY_SCHEMA,
+                'operational_purpose': GENERIC_STRING_SCHEMA,
             }
         )
 
@@ -560,16 +554,14 @@ class SummaryFieldExtension(OpenApiSerializerFieldExtension):
         return build_object_type(
             properties={
                 'geo': build_basic_type(OpenApiTypes.BOOL),
-                'labels': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
-                'columns': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
+                'labels': GENERIC_ARRAY_SCHEMA,
+                'columns': GENERIC_ARRAY_SCHEMA,
                 'lock_all': build_basic_type(OpenApiTypes.BOOL),
                 'lock_any': build_basic_type(OpenApiTypes.BOOL),
-                'languages': build_array_type(
-                    schema=build_basic_type(OpenApiTypes.STR)
-                ),
+                'languages': GENERIC_ARRAY_SCHEMA,
                 'row_count': build_basic_type(OpenApiTypes.INT),
-                'name_quality': build_object_type(properties={}),
-                'default_translation': build_basic_type(OpenApiTypes.STR),
+                'name_quality': GENERIC_OBJECT_SCHEMA,
+                'default_translation': GENERIC_STRING_SCHEMA,
             }
         )
 
@@ -587,25 +579,21 @@ class ValidContentDataFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'schema': build_basic_type(OpenApiTypes.STR),
+                'schema': GENERIC_STRING_SCHEMA,
                 'survey': build_array_type(
                     schema=build_object_type(
                         properties={
-                            'name': build_basic_type(OpenApiTypes.STR),
-                            'type': build_basic_type(OpenApiTypes.STR),
-                            '$kuid': build_basic_type(OpenApiTypes.STR),
-                            '$xpath': build_basic_type(OpenApiTypes.STR),
-                            '$autoname': build_basic_type(OpenApiTypes.STR),
+                            'name': GENERIC_STRING_SCHEMA,
+                            'type': GENERIC_STRING_SCHEMA,
+                            '$kuid': GENERIC_STRING_SCHEMA,
+                            '$xpath': GENERIC_STRING_SCHEMA,
+                            '$autoname': GENERIC_STRING_SCHEMA,
                         },
                     )
                 ),
-                'settings': build_object_type(properties={}),
-                'translated': build_array_type(
-                    schema=build_basic_type(OpenApiTypes.STR)
-                ),
-                'translations': build_array_type(
-                    schema=build_basic_type(OpenApiTypes.STR)
-                ),
+                'settings': GENERIC_OBJECT_SCHEMA,
+                'translated': GENERIC_ARRAY_SCHEMA,
+                'translations': GENERIC_ARRAY_SCHEMA,
             }
         )
 

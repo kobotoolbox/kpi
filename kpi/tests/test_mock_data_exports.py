@@ -1519,7 +1519,7 @@ class MockDataExports(MockDataExportsBase):
         # Simulate a few stuck exports
         for status in (
             ImportExportStatusChoices.CREATED,
-            ImportExportStatusChoices.PROCESSING
+            ImportExportStatusChoices.PROCESSING,
         ):
             export_task = SubmissionExportTask()
             export_task.user = self.user
@@ -1545,7 +1545,7 @@ class MockDataExports(MockDataExportsBase):
             [
                 ImportExportStatusChoices.ERROR,
                 ImportExportStatusChoices.ERROR,
-                ImportExportStatusChoices.COMPLETE
+                ImportExportStatusChoices.COMPLETE,
             ],
             SubmissionExportTask.objects.filter(
                 user=self.user, data__source=task_data['source']

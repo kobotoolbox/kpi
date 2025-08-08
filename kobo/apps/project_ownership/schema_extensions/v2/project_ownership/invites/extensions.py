@@ -6,6 +6,12 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
+from kpi.schema_extensions.v2.generic.schema import (
+    ASSET_URL_SCHEMA,
+    GENERIC_ARRAY_SCHEMA,
+    GENERIC_STRING_SCHEMA,
+    USER_URL_SCHEMA,
+)
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
@@ -13,7 +19,7 @@ class InviteAssetFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kobo.apps.project_ownership.schema_extensions.v2.project_ownership.invites.fields.InviteAssetField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_array_type(schema=build_basic_type(OpenApiTypes.STR))
+        return GENERIC_ARRAY_SCHEMA
 
 
 class InviteUrlFieldExtension(OpenApiSerializerFieldExtension):
@@ -29,7 +35,7 @@ class RecipientSenderUrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kobo.apps.project_ownership.schema_extensions.v2.project_ownership.invites.fields.RecipientSenderUrlField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type('api_v2:user-kpi-detail', username='bob')
+        return USER_URL_SCHEMA
 
 
 class TransferFieldExtension(OpenApiSerializerFieldExtension):
@@ -44,11 +50,9 @@ class TransferFieldExtension(OpenApiSerializerFieldExtension):
                         parent_lookup_invite_uid='poi52fGkwDjQeZkUxcaou39q',
                         uid='pot54pTqM5qwKdZ4wnNdiwDY',
                     ),
-                    'asset': build_url_type(
-                        'api_v2:asset-detail', uid='a8rg3w7ZNL5Nwj7iHzKiyX'
-                    ),
-                    'status': build_basic_type(OpenApiTypes.STR),
-                    'error': build_basic_type(OpenApiTypes.STR),
+                    'asset': ASSET_URL_SCHEMA,
+                    'status': GENERIC_STRING_SCHEMA,
+                    'error': GENERIC_STRING_SCHEMA,
                     'date_modified': build_basic_type(OpenApiTypes.DATETIME),
                 }
             )
