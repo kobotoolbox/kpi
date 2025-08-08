@@ -26,17 +26,6 @@ class XFormInstanceFS:
         return self._attachments
 
     @property
-    def photos(self):
-        if not hasattr(self, '_photos'):
-            available_photos = glob.glob(os.path.join(self.directory, '*.jpg'))
-            self._photos = []
-            for photo_path in available_photos:
-                _pdir, photo = os.path.split(photo_path)
-                if self.xml.find(photo) > 0:
-                    self._photos.append(photo_path)
-        return self._photos
-
-    @property
     def mentioned_in_xml(self):
         if not hasattr(self, '_mentioned_in_xml'):
             parser = etree.XMLParser()
