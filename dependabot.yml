@@ -46,3 +46,9 @@ updates:
       # changes how the code needs to be used. It's not a big change, but requires some manual work.
       - dependancy-name: "replace-in-file"
         versions: [ ">=7.0.0" ]
+
+      # After simply updating this package, storybook fails to work. There is "$RefreshReg$ is not defined" error. I've
+      # tried following some pieces of advice at https://github.com/storybookjs/storybook/issues/18913 but it didn't fix
+      # the problem. It requires more investigation.
+      - dependancy-name: "@storybook/addon-webpack5-compiler-swc"
+        versions: [ ">=3.0.0" ]
