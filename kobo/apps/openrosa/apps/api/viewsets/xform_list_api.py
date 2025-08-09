@@ -32,7 +32,6 @@ from kpi.models.object_permission import ObjectPermission
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
 
 
-@extend_schema(tags=['OpenRosa Add'])
 class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
     content_negotiation_class = MediaFileContentNegotiation

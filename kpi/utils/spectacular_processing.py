@@ -1,28 +1,26 @@
 from drf_spectacular.generators import EndpointEnumerator, SchemaGenerator
 
 OPEN_ROSA_ENDPOINTS = [
-    # Openrosa add when user is authentified
+    # OpenRosa endpoints for adding submissions as an authenticated user
     '/formList',
     '/submission',
     '/xformsManifest/{pk}',
     '/xformsMedia/{pk}/{metadata}',
-    # Openrosa add when user is anonymous
+    # OpenRosa endpoints for adding submissions as an anonymous user
     '/{username}/formList',
     '/{username}/submission',
     '/{username}/xformsManifest/{pk}',
     '/{username}/xformsMedia/{pk}/{metadata}',
-    # Openrosa edit
+    # OpenRosa endpoints for editing submissions
     '/api/v2/asset_snapshots/{uid}/formList',
     '/api/v2/asset_snapshots/{uid}/manifest',
     '/api/v2/asset_snapshots/{uid}/submission',
 ]
 
 
-class ApiOpenRosaEndpointEnumerator(EndpointEnumerator):
-
+class OpenRosaAPIEndpointEnumerator(EndpointEnumerator):
     """
-    This enumerator filters through all endpoint path and only keeps those
-    that are part of openrosa
+    Filters endpoint paths and returns only those that belong to the OpenRosa API.
     """
 
     def _get_api_endpoints(self, patterns, prefix):
@@ -39,10 +37,13 @@ class ApiOpenRosaEndpointEnumerator(EndpointEnumerator):
         return filtered
 
 
-class ApiV2EndpointEnumerator(EndpointEnumerator):
+class OpenRosaAPISchemaGenerator(SchemaGenerator):
+    endpoint_inspector_cls = OpenRosaAPIEndpointEnumerator
+
+
+class V2APIEndpointEnumerator(EndpointEnumerator):
     """
-    This enumerator filters through all endpoint path and only keeps those
-    that are part of the api/v2
+    Filters endpoint paths and returns only those that belong to the `v2` API.
     """
 
     def _get_api_endpoints(self, patterns, prefix):
@@ -69,9 +70,5 @@ class ApiV2EndpointEnumerator(EndpointEnumerator):
         return filtered
 
 
-class ApiOpenRosaSchemaGenerator(SchemaGenerator):
-    endpoint_inspector_cls = ApiOpenRosaEndpointEnumerator
-
-
-class ApiV2SchemaGenerator(SchemaGenerator):
-    endpoint_inspector_cls = ApiV2EndpointEnumerator
+class V2APISchemaGenerator(SchemaGenerator):
+    endpoint_inspector_cls = V2APIEndpointEnumerator
