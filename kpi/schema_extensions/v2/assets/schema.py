@@ -5,8 +5,6 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
-from kpi.utils.schema_extensions.url_builder import build_url_type
-
 """
 Common schemas to avoid redundancy
 """
@@ -31,8 +29,6 @@ ASSET_SETTINGS_SCHEMA = build_object_type(
 ASSET_NAME_SCHEMA = build_basic_type(OpenApiTypes.STR)
 
 ASSET_TYPE_SCHEMA = build_basic_type(OpenApiTypes.STR)
-
-ASSET_URL_SCHEMA = build_url_type('api_v2:asset-detail', uid='a5owyo85mHyFazzgsZK45c')
 
 BULK_ACTION_SCHEMA = build_basic_type(OpenApiTypes.STR)
 

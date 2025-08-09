@@ -18,12 +18,11 @@ from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.models import AssetFile
 from kpi.permissions import AssetEditorPermission
 from kpi.schema_extensions.v2.files.schema import (
-    ASSET_URL_SCHEMA,
     BASE64_METADATA_SCHEMA,
     URL_METADATA_SCHEMA,
-    USER_URL_SCHEMA,
 )
 from kpi.schema_extensions.v2.files.serializers import CreateFilePayload, FilesResponse
+from kpi.schema_extensions.v2.generic.schema import ASSET_URL_SCHEMA, USER_URL_SCHEMA
 from kpi.serializers.v2.asset_file import AssetFileSerializer
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md

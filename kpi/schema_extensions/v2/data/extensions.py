@@ -6,6 +6,7 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
+from kpi.schema_extensions.v2.generic.schema import GENERIC_STRING_SCHEMA
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
@@ -68,7 +69,7 @@ class DataBulkUpdatePayloadFieldExtension(OpenApiSerializerFieldExtension):
                 ),
                 'data': build_object_type(
                     properties={
-                        'field_to_update': build_basic_type(OpenApiTypes.STR),
+                        'field_to_update': GENERIC_STRING_SCHEMA,
                     }
                 )
             }
@@ -82,9 +83,9 @@ class DataBulkUpdateResultFieldExtension(OpenApiSerializerFieldExtension):
         return build_array_type(
             schema=build_object_type(
                 properties={
-                    'uuid': build_basic_type(OpenApiTypes.STR),
+                    'uuid': GENERIC_STRING_SCHEMA,
                     'status_code': build_basic_type(OpenApiTypes.INT),
-                    'message': build_basic_type(OpenApiTypes.STR),
+                    'message': GENERIC_STRING_SCHEMA,
                 }
             )
         )
@@ -99,7 +100,7 @@ class DataValidationPayloadFieldExtension(OpenApiSerializerFieldExtension):
                 'submission_ids': build_array_type(
                     schema=build_basic_type(OpenApiTypes.INT)
                 ),
-                'validation_status.uid': build_basic_type(OpenApiTypes.STR),
+                'validation_status.uid': GENERIC_STRING_SCHEMA,
             }
         )
 

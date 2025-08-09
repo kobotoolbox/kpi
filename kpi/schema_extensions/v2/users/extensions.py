@@ -1,11 +1,14 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import (
-    build_array_type,
-    build_basic_type,
     build_object_type,
 )
-from drf_spectacular.types import OpenApiTypes
 
+from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_ARRAY_SCHEMA,
+    GENERIC_OBJECT_SCHEMA,
+    GENERIC_STRING_SCHEMA,
+    USER_URL_SCHEMA,
+)
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
@@ -26,24 +29,20 @@ class MetadataFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'name': build_basic_type(OpenApiTypes.STR),
-                'sector': build_basic_type(OpenApiTypes.STR),
-                'country': build_basic_type(OpenApiTypes.STR),
-                'organization': build_basic_type(OpenApiTypes.STR),
-                'last_ui_language': build_basic_type(OpenApiTypes.STR),
-                'organization_type': build_basic_type(OpenApiTypes.STR),
-                'organization_website': build_basic_type(OpenApiTypes.STR),
+                'name': GENERIC_STRING_SCHEMA,
+                'sector': GENERIC_STRING_SCHEMA,
+                'country': GENERIC_STRING_SCHEMA,
+                'organization': GENERIC_STRING_SCHEMA,
+                'last_ui_language': GENERIC_STRING_SCHEMA,
+                'organization_type': GENERIC_STRING_SCHEMA,
+                'organization_website': GENERIC_STRING_SCHEMA,
                 'project_views_settings': build_object_type(
                     properties={
                         'kobo_my_project': build_object_type(
                             properties={
-                                'order': build_object_type(properties={}),
-                                'fields': build_array_type(
-                                    schema=build_basic_type(OpenApiTypes.STR),
-                                ),
-                                'filters': build_array_type(
-                                    schema=build_basic_type(OpenApiTypes.STR),
-                                ),
+                                'order': GENERIC_OBJECT_SCHEMA,
+                                'fields': GENERIC_ARRAY_SCHEMA,
+                                'filters': GENERIC_ARRAY_SCHEMA,
                             }
                         )
                     }
@@ -56,7 +55,4 @@ class UrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.users.fields.UrlField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type(
-            'user-kpi-detail',
-            username='bob'
-        )
+        return USER_URL_SCHEMA

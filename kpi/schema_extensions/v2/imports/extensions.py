@@ -6,6 +6,10 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
+from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_OBJECT_SCHEMA,
+    GENERIC_STRING_SCHEMA,
+)
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
@@ -25,20 +29,14 @@ class MessagesFieldExtension(OpenApiSerializerFieldExtension):
                 'updated': build_array_type(
                     schema=build_object_type(
                         properties={
-                            'uid': build_basic_type(OpenApiTypes.STR),
-                            'kind': build_basic_type(OpenApiTypes.STR),
+                            'uid': GENERIC_STRING_SCHEMA,
+                            'kind': GENERIC_STRING_SCHEMA,
                             'summary': build_object_type(
                                 properties={
                                     'geo': build_basic_type(OpenApiTypes.BOOL),
-                                    'labels': build_array_type(
-                                        build_basic_type(OpenApiTypes.STR)
-                                    ),
-                                    'columns': build_array_type(
-                                        build_basic_type(OpenApiTypes.STR)
-                                    ),
-                                    'language': build_array_type(
-                                        build_basic_type(OpenApiTypes.STR)
-                                    ),
+                                    'labels': build_array_type(GENERIC_STRING_SCHEMA),
+                                    'columns': build_array_type(GENERIC_STRING_SCHEMA),
+                                    'language': build_array_type(GENERIC_STRING_SCHEMA),
                                     'row_count': build_basic_type(OpenApiTypes.INT),
                                     'name_quality': build_object_type(
                                         properties={
@@ -46,7 +44,7 @@ class MessagesFieldExtension(OpenApiSerializerFieldExtension):
                                             'bad': build_basic_type(OpenApiTypes.INT),
                                             'good': build_basic_type(OpenApiTypes.INT),
                                             'total': build_basic_type(OpenApiTypes.INT),
-                                            'first': build_object_type(properties={}),
+                                            'first': GENERIC_OBJECT_SCHEMA,
                                         }
                                     ),
                                     'default_translation': build_basic_type(
@@ -54,25 +52,25 @@ class MessagesFieldExtension(OpenApiSerializerFieldExtension):
                                     ),
                                 }
                             ),
-                            'owner__username': build_basic_type(OpenApiTypes.STR),
+                            'owner__username': GENERIC_STRING_SCHEMA,
                         }
                     )
                 ),
                 'audit-logs': build_array_type(
                     schema=build_object_type(
                         properties={
-                            'source': build_basic_type(OpenApiTypes.STR),
+                            'source': GENERIC_STRING_SCHEMA,
                             'asset_id': build_basic_type(OpenApiTypes.INT),
-                            'new_name': build_basic_type(OpenApiTypes.STR),
-                            'old_name': build_basic_type(OpenApiTypes.STR),
-                            'asset_uid': build_basic_type(OpenApiTypes.STR),
-                            'ip_address': build_basic_type(OpenApiTypes.STR),
-                            'project_owner': build_basic_type(OpenApiTypes.STR),
-                            'latest_version_uid': build_basic_type(OpenApiTypes.STR),
+                            'new_name': GENERIC_STRING_SCHEMA,
+                            'old_name': GENERIC_STRING_SCHEMA,
+                            'asset_uid': GENERIC_STRING_SCHEMA,
+                            'ip_address': GENERIC_STRING_SCHEMA,
+                            'project_owner': GENERIC_STRING_SCHEMA,
+                            'latest_version_uid': GENERIC_STRING_SCHEMA,
                         }
                     )
                 ),
-                'error': build_basic_type(OpenApiTypes.STR),
-                'error_type': build_basic_type(OpenApiTypes.STR),
+                'error': GENERIC_STRING_SCHEMA,
+                'error_type': GENERIC_STRING_SCHEMA,
             }
         )

@@ -1,7 +1,6 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
-from drf_spectacular.plumbing import build_array_type, build_basic_type
-from drf_spectacular.types import OpenApiTypes
 
+from kpi.schema_extensions.v2.generic.schema import GENERIC_ARRAY_SCHEMA
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
@@ -25,4 +24,4 @@ class PendingUidsFieldExtension(OpenApiSerializerFieldExtension):
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_array_type(schema=build_basic_type(OpenApiTypes.STR))
+        return GENERIC_ARRAY_SCHEMA

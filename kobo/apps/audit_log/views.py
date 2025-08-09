@@ -460,7 +460,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
         in_progress = ProjectHistoryLogExportTask.objects.filter(
             user=request.user,
             asset_uid=None,
-            status=ImportExportStatusChoices.PROCESSING
+            status=ImportExportStatusChoices.PROCESSING,
         ).count()
         if in_progress > 0:
             return Response(

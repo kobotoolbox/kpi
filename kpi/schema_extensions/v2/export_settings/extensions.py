@@ -6,6 +6,10 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
+from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_ARRAY_SCHEMA,
+    GENERIC_STRING_SCHEMA,
+)
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
@@ -16,12 +20,12 @@ class CreatePayloadFieldExtensions(OpenApiSerializerFieldExtension):
         return build_object_type(
             properties={
                 'fields_from_all_versions': build_basic_type(OpenApiTypes.BOOL),
-                'group_sep': build_basic_type(OpenApiTypes.STR),
+                'group_sep': GENERIC_STRING_SCHEMA,
                 'hierarchy_in_labels': build_basic_type(OpenApiTypes.BOOL),
                 'lang': build_basic_type(OpenApiTypes.BOOL),
-                'multiple_select': build_basic_type(OpenApiTypes.STR),
-                'types': build_basic_type(OpenApiTypes.STR),
-                'fields': build_array_type(schema={}),
+                'multiple_select': GENERIC_STRING_SCHEMA,
+                'types': GENERIC_STRING_SCHEMA,
+                'fields': GENERIC_ARRAY_SCHEMA,
                 'flatten': build_basic_type(OpenApiTypes.BOOL),
                 'xls_types_as_text': build_basic_type(OpenApiTypes.BOOL),
                 'include_media_url': build_basic_type(OpenApiTypes.BOOL),
@@ -79,11 +83,11 @@ class ExportSettingsFieldExtensions(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'lang': build_basic_type(OpenApiTypes.STR),
-                'type': build_basic_type(OpenApiTypes.STR),
-                'fields': build_array_type(schema=build_basic_type(OpenApiTypes.STR)),
-                'group_sep': build_basic_type(OpenApiTypes.STR),
-                'multiple_select': build_basic_type(OpenApiTypes.STR),
+                'lang': GENERIC_STRING_SCHEMA,
+                'type': GENERIC_STRING_SCHEMA,
+                'fields': GENERIC_ARRAY_SCHEMA,
+                'group_sep': GENERIC_STRING_SCHEMA,
+                'multiple_select': GENERIC_STRING_SCHEMA,
                 'include_media_url': build_basic_type(OpenApiTypes.BOOL),
                 'xls_types_as_text': build_basic_type(OpenApiTypes.BOOL),
                 'hierarchy_in_labels': build_basic_type(OpenApiTypes.BOOL),
@@ -99,12 +103,12 @@ class UpdatePayloadFieldExtension(OpenApiSerializerFieldExtension):
         return build_object_type(
             properties={
                 'fields_from_all_versions': build_basic_type(OpenApiTypes.BOOL),
-                'group_sep': build_basic_type(OpenApiTypes.STR),
+                'group_sep': GENERIC_STRING_SCHEMA,
                 'hierarchy_in_labels': build_basic_type(OpenApiTypes.BOOL),
-                'lang': build_basic_type(OpenApiTypes.STR),
-                'multiple_select': build_basic_type(OpenApiTypes.STR),
-                'type': build_basic_type(OpenApiTypes.STR),
-                'fields': build_array_type(schema={}),
+                'lang': GENERIC_STRING_SCHEMA,
+                'multiple_select': GENERIC_STRING_SCHEMA,
+                'type': GENERIC_STRING_SCHEMA,
+                'fields': GENERIC_ARRAY_SCHEMA,
             }
         )
 
