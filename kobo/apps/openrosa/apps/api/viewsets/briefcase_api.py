@@ -76,7 +76,7 @@ class DoXmlFormUpload:
 
 
 @extend_schema(
-    tags=['OpenRosa'],
+    tags=['Briefcase'],
     exclude=True,
 )
 class BriefcaseApi(
