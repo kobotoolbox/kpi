@@ -1,12 +1,15 @@
 from django.core.management.base import BaseCommand, CommandError
 from drf_spectacular.renderers import OpenApiJsonRenderer, OpenApiYamlRenderer
 
-from kpi.utils.spectacular_processing import OpenRosaSchemaGenerator, V2SchemaGenerator
+from kpi.utils.spectacular_processing import (
+    OpenRosaAPISchemaGenerator,
+    V2APISchemaGenerator,
+)
 
 
 SCHEMA_GENERATORS = {
-    'openrosa': OpenRosaSchemaGenerator,
-    'api_v2': V2SchemaGenerator,
+    'openrosa': OpenRosaAPISchemaGenerator,
+    'api_v2': V2APISchemaGenerator,
 }
 
 FORMAT_RENDERERS = {
