@@ -2,7 +2,10 @@ import React, { useEffect, useState } from 'react'
 import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
 import type { MemberListResponse } from '#/api/models/memberListResponse'
 import type { OrganizationResponse } from '#/api/models/organizationResponse'
-import { getOrganizationsMembersRetrieveQueryKey, useOrganizationsMembersRetrieve } from '#/api/react-query/organization-members'
+import {
+  getOrganizationsMembersRetrieveQueryKey,
+  useOrganizationsMembersRetrieve,
+} from '#/api/react-query/organization-members'
 import Alert from '#/components/common/alert'
 import { useSafeUsernameStorageKey } from '#/hooks/useSafeUsernameStorageKey'
 
@@ -25,7 +28,7 @@ export default function OrgInviteAcceptedBanner({ username, organization }: OrgI
       queryKey: getOrganizationsMembersRetrieveQueryKey(organization.id, username),
       retry: false,
       refetchOnWindowFocus: false,
-    }
+    },
   })
   const [isBannerDismissed, setIsBannerDismissed] = useState<boolean | undefined>()
   const [localStorageKeyPrefix, setLocalStorageKeyPrefix] = useState<string | undefined>()

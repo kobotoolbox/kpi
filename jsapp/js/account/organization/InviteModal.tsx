@@ -22,19 +22,17 @@ import envStore from '#/envStore'
 import { queryClient } from '#/query/queryClient'
 import userExistence from '#/users/userExistence.store'
 import { checkEmailPattern, notify } from '#/utils'
+import { inviteGuidFromUrl } from './common'
 
 export default function InviteModal(props: ModalProps) {
   const inviteQuery = useOrganizationsInvitesCreate({
     mutation: {
-      onSuccess: (_data, variables) => {
-        if (_data.status !== 201) return // typeguard, `onSuccess` will always be 200.
+      onSuccess: (data, variables) => {
+        if (data.status !== 201) return // typeguard, `onSuccess` will always be 201.
         queryClient.invalidateQueries({ queryKey: getOrganizationsInvitesListQueryKey(variables.organizationId) })
-        for (const invite of _data.data) {
+        for (const invite of data.data) {
           queryClient.invalidateQueries({
-            queryKey: getOrganizationsInvitesRetrieveQueryKey(
-              variables.organizationId,
-              invite.url.slice(0, -1).split('/').pop()!,
-            ),
+            queryKey: getOrganizationsInvitesRetrieveQueryKey(variables.organizationId, inviteGuidFromUrl(invite.url)),
           })
         }
         queryClient.invalidateQueries({ queryKey: getOrganizationsMembersListQueryKey(variables.organizationId) })

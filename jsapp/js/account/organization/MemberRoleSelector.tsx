@@ -5,7 +5,6 @@ import type { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import {
   getOrganizationsInvitesListQueryKey,
   getOrganizationsInvitesRetrieveQueryKey,
-  useOrganizationsInvitesPartialUpdate,
 } from '#/api/react-query/organization-invites'
 import {
   getOrganizationsMembersListQueryKey,
@@ -17,11 +16,13 @@ import {
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Select from '#/components/common/Select'
 import { queryClient } from '#/query/queryClient'
+import { inviteGuidFromUrl } from './common'
+import useOrganizationsInvitesPartialUpdate from './useOrganizationsInvitesPartialUpdate'
 
 interface MemberRoleSelectorProps {
   username: string
   /** The role of the `username` user - the one we are modifying here. */
-  role: MemberRoleEnum
+  role: MemberRoleEnum | InviteeRoleEnum
   /** The role of the currently logged in user. */
   currentUserRole: MemberRoleEnum
   /** URL for patching org member invites. Should only be passed if invite is still open */
@@ -81,7 +82,9 @@ export default function MemberRoleSelector({ username, role, inviteUrl }: Member
         })
         queryClient.invalidateQueries({ queryKey: getOrganizationsMembersListQueryKey(variables.organizationId) })
         // Note: invalidate ALL members because username isn't available in scope to select the exact member.
-        queryClient.invalidateQueries({ queryKey: getOrganizationsMembersRetrieveQueryKey(variables.organizationId, 'unknown').slice(0, -1) })
+        queryClient.invalidateQueries({
+          queryKey: getOrganizationsMembersRetrieveQueryKey(variables.organizationId, 'unknown').slice(0, -1),
+        })
       },
       onMutate: async ({ data, organizationId }) => {
         if (!('role' in data)) return
@@ -113,7 +116,7 @@ export default function MemberRoleSelector({ username, role, inviteUrl }: Member
 
     if (inviteUrl) {
       orgInvitesPatchMutation.mutateAsync({
-        guid: inviteUrl.slice(0, -1).split('/').pop()!,
+        guid: inviteGuidFromUrl(inviteUrl),
         organizationId: organization.id,
         data: { role },
       })

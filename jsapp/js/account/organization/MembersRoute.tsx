@@ -108,7 +108,7 @@ export default function MembersRoute() {
       size: 140,
       cellFormatter: (obj: MemberListResponse) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
-        return invite ? formatDate(invite.created!) : formatDate(member!.date_joined)
+        return invite ? formatDate(invite.created) : formatDate(member!.date_joined)
       },
     },
     {

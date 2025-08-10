@@ -10,11 +10,15 @@ import {
   useOrganizationsInvitesDestroy,
   useOrganizationsInvitesPartialUpdate,
 } from '#/api/react-query/organization-invites'
-import { getOrganizationsMembersListQueryKey, getOrganizationsMembersRetrieveQueryKey, getOrganizationsMembersRetrieveQueryKey } from '#/api/react-query/organization-members'
+import {
+  getOrganizationsMembersListQueryKey,
+  getOrganizationsMembersRetrieveQueryKey,
+} from '#/api/react-query/organization-members'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import ButtonNew from '#/components/common/ButtonNew'
 import { queryClient } from '#/query/queryClient'
 import { notify } from '#/utils'
+import { inviteGuidFromUrl } from './common'
 
 /**
  * A dropdown with all actions that can be taken towards an organization invitee.
@@ -39,7 +43,9 @@ export default function InviteeActionsDropdown({
         })
         queryClient.invalidateQueries({ queryKey: getOrganizationsMembersListQueryKey(variables.organizationId) })
         // Note: invalidate ALL members because username isn't available in scope to select the exact member.
-        queryClient.invalidateQueries({ queryKey: getOrganizationsMembersRetrieveQueryKey(variables.organizationId, 'unknown').slice(0, -1) })
+        queryClient.invalidateQueries({
+          queryKey: getOrganizationsMembersRetrieveQueryKey(variables.organizationId, 'unknown').slice(0, -1),
+        })
       },
     },
     request: {
@@ -55,7 +61,9 @@ export default function InviteeActionsDropdown({
         })
         queryClient.invalidateQueries({ queryKey: getOrganizationsMembersListQueryKey(variables.organizationId) })
         // Note: invalidate ALL members because username isn't available in scope to select the exact member.
-        queryClient.invalidateQueries({ queryKey: getOrganizationsMembersRetrieveQueryKey(variables.organizationId, 'unknown').slice(0, -1) })
+        queryClient.invalidateQueries({
+          queryKey: getOrganizationsMembersRetrieveQueryKey(variables.organizationId, 'unknown').slice(0, -1),
+        })
       },
     },
   })
@@ -64,7 +72,7 @@ export default function InviteeActionsDropdown({
     try {
       await orgInvitesPatchMutation.mutateAsync({
         organizationId: organization.id,
-        guid: invite.url.slice(0, -1).split('/').pop()!,
+        guid: inviteGuidFromUrl(invite.url),
         data: {
           status: InviteStatusChoicesEnum.resent,
         },
@@ -94,7 +102,7 @@ export default function InviteeActionsDropdown({
     try {
       await orgInvitesDestroyMutation.mutateAsync({
         organizationId: organization.id,
-        guid: invite.url.slice(0, -1).split('/').pop()!,
+        guid: inviteGuidFromUrl(invite.url),
       })
       notify(t('Invitation removed'), 'success')
     } catch (e) {

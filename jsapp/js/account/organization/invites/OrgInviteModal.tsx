@@ -3,19 +3,21 @@ import React, { useState } from 'react'
 import { Button, FocusTrap, Group, Modal, Stack, Text } from '@mantine/core'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 import subscriptionStore from '#/account/subscriptionStore'
-import { MemberListResponseInviteStatus } from '#/api/models/memberListResponseInviteStatus'
+import type { ErrorDetail } from '#/api/models/errorDetail'
+import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
+import type { MemberListResponseInviteStatus } from '#/api/models/memberListResponseInviteStatus'
 import {
   getOrganizationsInvitesListQueryKey,
   getOrganizationsInvitesRetrieveQueryKey,
-  useOrganizationsInvitesPartialUpdate,
-  useOrganizationsInvitesRetrieve,
 } from '#/api/react-query/organization-invites'
+import { useOrganizationsInvitesRetrieve } from '#/api/react-query/organization-invites'
 import Alert from '#/components/common/alert'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore from '#/envStore'
 import { queryClient } from '#/query/queryClient'
 import { useSession } from '#/stores/useSession'
 import { notify } from '#/utils'
+import useOrganizationsInvitesPartialUpdate from '../useOrganizationsInvitesPartialUpdate'
 
 /**
  * Displays a modal to a user that got an invitation for joining an organization. There is a possibility to accept or
@@ -26,7 +28,7 @@ import { notify } from '#/utils'
 export default function OrgInviteModal(props: { orgId: string; inviteId: string; onUserResponse: () => void }) {
   const [isModalOpen, setIsModalOpen] = useState(true)
   const [awaitingDataRefresh, setAwaitingDataRefresh] = useState(false)
-  const [userResponseType, setUserResponseType] = useState<MemberListResponseInviteStatus | null>(null)
+  const [userResponseType, setUserResponseType] = useState<InviteStatusChoicesEnum | null>(null)
   const session = useSession()
   const orgInvitesQuery = useOrganizationsInvitesRetrieve(props.orgId, props.inviteId)
   const orgInvitesPatch = useOrganizationsInvitesPartialUpdate({
@@ -40,7 +42,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
     },
     request: {
       notifyAboutError: false,
-    }
+    },
   })
   const handleOrgInvitesPatch = (status: MemberListResponseInviteStatus) => {
     return orgInvitesPatch.mutateAsync({ organizationId: props.orgId, guid: props.inviteId, data: { status } })
@@ -71,8 +73,8 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
 
   const handleDeclineInvite = async () => {
     try {
-      setUserResponseType(MemberListResponseInviteStatus.declined)
-      await handleOrgInvitesPatch(MemberListResponseInviteStatus.declined)
+      setUserResponseType(InviteStatusChoicesEnum.declined)
+      await handleOrgInvitesPatch(InviteStatusChoicesEnum.declined)
       handleSuccessfulInviteResponse(t('Invitation successfully declined'))
     } catch (error) {
       setMiscError(t('Unknown error while trying to update an invitation'))
@@ -82,8 +84,8 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
 
   const handleAcceptInvite = async () => {
     try {
-      setUserResponseType(MemberListResponseInviteStatus.accepted)
-      await handleOrgInvitesPatch(MemberListResponseInviteStatus.accepted)
+      setUserResponseType(InviteStatusChoicesEnum.accepted)
+      await handleOrgInvitesPatch(InviteStatusChoicesEnum.accepted)
       await handleSuccessfulInviteResponse(t('Invitation successfully accepted'), true)
     } catch (error) {
       setMiscError(t('Unknown error while trying to update an invitation'))
@@ -97,6 +99,8 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
 
   let content: React.ReactNode = null
   let title: React.ReactNode = null
+
+  // TODO: investigate the error flows!
 
   // Case 1: loading data.
   if (orgInvitesQuery.isLoading) {
@@ -119,8 +123,9 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
     title = t('Unable to join ##TEAM_OR_ORGANIZATION_NAME##').replace('##TEAM_OR_ORGANIZATION_NAME##', orgName)
     // Fallback message
     let patchMemberInviteErrorMessage = t('Failed to respond to invitation')
-    if (orgInvitesPatch.error?.detail) {
-      patchMemberInviteErrorMessage = orgInvitesPatch.error.detail as string
+    // TODO: sort out types
+    if ((orgInvitesPatch.error as ErrorDetail)?.detail) {
+      patchMemberInviteErrorMessage = (orgInvitesPatch.error as ErrorDetail).detail
     }
     content = (
       <Stack>
@@ -153,7 +158,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   // We also continue displaying this content while we wait for data to refresh following acceptance
   else if (
     orgInvitesQuery.data?.status === 200 &&
-    (orgInvitesQuery.data?.data.status === MemberListResponseInviteStatus.pending || awaitingDataRefresh)
+    (orgInvitesQuery.data?.data.status === InviteStatusChoicesEnum.pending || awaitingDataRefresh)
   ) {
     title = t('Accept invitation to join ##TEAM_OR_ORGANIZATION_NAME##').replace(
       '##TEAM_OR_ORGANIZATION_NAME##',
@@ -177,7 +182,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
             variant='light'
             size='lg'
             onClick={handleDeclineInvite}
-            loading={userResponseType === MemberListResponseInviteStatus.declined}
+            loading={userResponseType === InviteStatusChoicesEnum.declined}
           >
             {t('Decline')}
           </Button>
@@ -188,7 +193,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
             onClick={handleAcceptInvite}
             // We don't use RQ loading state here because we also want spinner to display during
             // timeout while we give backend time for data transfer
-            loading={userResponseType === MemberListResponseInviteStatus.accepted}
+            loading={userResponseType === InviteStatusChoicesEnum.accepted}
           >
             {t('Accept')}
           </Button>
