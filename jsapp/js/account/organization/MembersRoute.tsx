@@ -100,7 +100,7 @@ export default function MembersRoute() {
       size: 140,
       cellFormatter: (obj: OrganizationMemberListItem) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
-        return invite ? formatDate(invite.date_created) : formatDate(member!.date_joined)
+        return invite ? formatDate(invite.created) : formatDate(member!.date_joined)
       },
     },
     {
@@ -130,7 +130,7 @@ export default function MembersRoute() {
           return (
             <MemberRoleSelector
               username={invite.invitee}
-              role={invite.invitee_role}
+              role={invite.invitee_role as any}
               currentUserRole={orgQuery.data.request_user_role}
               inviteUrl={invite.url}
             />

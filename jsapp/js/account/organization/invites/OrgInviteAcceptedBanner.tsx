@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react'
-
-import { MemberInviteStatus } from '#/account/organization/membersInviteQuery'
 import { useOrganizationMemberDetailQuery } from '#/account/organization/membersQuery'
 import type { Organization } from '#/account/organization/organizationQuery'
+import { KoboAppsProjectOwnershipSchemaExtensionsV2ProjectOwnershipInvitesFieldsStatusEnumField } from '#/api/models/koboAppsProjectOwnershipSchemaExtensionsV2ProjectOwnershipInvitesFieldsStatusEnumField'
 import Alert from '#/components/common/alert'
 import { useSafeUsernameStorageKey } from '#/hooks/useSafeUsernameStorageKey'
 
@@ -52,7 +51,7 @@ export default function OrgInviteAcceptedBanner(props: OrgInviteAcceptedBannerPr
     // Only show banner to users who are members of MMO organization
     !props.organization.is_mmo ||
     // Only show banner to users who have accepted the invite
-    organizationMemberDetailQuery.data?.invite?.status !== MemberInviteStatus.accepted ||
+    organizationMemberDetailQuery.data?.invite?.status !== KoboAppsProjectOwnershipSchemaExtensionsV2ProjectOwnershipInvitesFieldsStatusEnumField.accepted ||
     // Wait for local storage information
     isBannerDismissed === undefined ||
     // Respect users who dismissed the banner
