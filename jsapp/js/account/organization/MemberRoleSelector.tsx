@@ -1,8 +1,14 @@
 import { LoadingOverlay } from '@mantine/core'
+import {
+  getOrganizationsInvitesListQueryKey,
+  getOrganizationsInvitesRetrieveQueryKey,
+  useOrganizationsInvitesPartialUpdate,
+} from '#/api/react-query/organization-invites'
 import Select from '#/components/common/Select'
-import { usePatchMemberInvite } from './membersInviteQuery'
-import { usePatchOrganizationMember } from './membersQuery'
-import { OrganizationUserRole } from './organizationQuery'
+import { queryClient } from '#/query/queryClient'
+import { QueryKeys } from '#/query/queryKeys'
+import { type OrganizationMemberListItem, usePatchOrganizationMember } from './membersQuery'
+import { OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 
 interface MemberRoleSelectorProps {
   username: string
@@ -15,23 +21,65 @@ interface MemberRoleSelectorProps {
 }
 
 export default function MemberRoleSelector({ username, role, inviteUrl }: MemberRoleSelectorProps) {
+  const orgQuery = useOrganizationQuery()
+  const organizationId = orgQuery.data?.id
+
   const patchMember = usePatchOrganizationMember(username)
-  const patchInvite = usePatchMemberInvite(inviteUrl)
+
+  const orgInvitesPatchMutation = useOrganizationsInvitesPartialUpdate({
+    mutation: {
+      onSuccess: (_data, variables) => {
+        queryClient.invalidateQueries({ queryKey: getOrganizationsInvitesListQueryKey(variables.organizationId) })
+        queryClient.invalidateQueries({
+          queryKey: getOrganizationsInvitesRetrieveQueryKey(variables.organizationId, variables.guid),
+        })
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMembers], })
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMemberDetail], })
+      },
+      onMutate: async ({data}) => {
+        if (!('role' in data)) return
+
+        // If we are updating the invitee's role, we want to optimistically update their role in queries for
+        // the members table list. So we look for their unique invite url and update the relevant query accordingly
+        const qData = queryClient.getQueriesData({ queryKey: [QueryKeys.organizationMembers] })
+        const query = qData.find((q) =>
+          (q[1] as any)?.results?.find((m: OrganizationMemberListItem) => m.invite?.url === inviteUrl),
+        )
+
+        if (!query) return
+
+        const queryKey = query[0]
+        const queryData = query[1]
+        const item = (queryData as any).results.find((m: OrganizationMemberListItem) => m.invite?.url === inviteUrl)
+
+        item.invite.invitee_role = data.role
+        queryClient.setQueryData(queryKey, queryData)
+      },
+    },
+    request: {
+      errorMessageDisplay: t('There was an error updating this invitation.')
+    }
+  })
 
   const handleRoleChange = (newRole: string | null) => {
-    if (newRole) {
-      const role = newRole as OrganizationUserRole
-      if (inviteUrl) {
-        patchInvite.mutateAsync({ role })
-      } else {
-        patchMember.mutateAsync({ role })
-      }
+    if (!organizationId) return
+    if (!newRole) return
+    const role = newRole as OrganizationUserRole
+
+    if (inviteUrl) {
+      orgInvitesPatchMutation.mutateAsync({
+        guid: inviteUrl.slice(0, -1).split('/').pop()!,
+        organizationId,
+        data: { role },
+      })
+    } else {
+      patchMember.mutateAsync({ role })
     }
   }
 
   return (
     <>
-      <LoadingOverlay visible={patchMember.isPending || patchInvite.isPending} />
+      <LoadingOverlay visible={patchMember.isPending || orgInvitesPatchMutation.isPending} />
       <Select
         size='sm'
         data={[
