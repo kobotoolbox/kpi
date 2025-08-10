@@ -94,3 +94,9 @@ Main principle is, keep related code close for modularity. Organize by feature/u
 - use React functional components and hooks instead of classes and HOCs.
 - for response caching use `react-query`, don't reinvent cache using state.
 
+### Use Orval's react-query for API
+
+- define invalidations and optionally optimistic updates at `#/api/mutation-defauls/..`
+- when using callback options inline, be mindful to apply defaults with `getMutationDefaults`/`getQueryDefaults`.
+- use inline the relavant API hook from `#/api/react-query/..`
+- when transforming responses, prefer `select` option over transforming response too much.

@@ -31,6 +31,8 @@ import { Tracking } from './router/useTracking'
 import { themeKobo } from './theme'
 import ToasterConfig from './toasterConfig'
 
+import './api/mutation-defaults'
+
 class App extends React.Component {
   constructor(props) {
     super(props)

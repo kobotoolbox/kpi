@@ -1,4 +1,9 @@
 import subscriptionStore from '#/account/subscriptionStore'
+import {
+  getOrganizationsMembersDestroyMutationOptions,
+  useOrganizationsMembersDestroy,
+} from '#/api/react-query/user-team-organization-usage'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import KoboModal from '#/components/modals/koboModal'
@@ -6,8 +11,7 @@ import KoboModalContent from '#/components/modals/koboModalContent'
 import KoboModalFooter from '#/components/modals/koboModalFooter'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
 import envStore from '#/envStore'
-import { notify } from '#/utils'
-import { useRemoveOrganizationMember } from './membersQuery'
+import { queryClient } from '#/query/queryClient'
 import { getSimpleMMOLabel } from './organization.utils'
 
 interface MemberRemoveModalProps {
@@ -30,7 +34,21 @@ export default function MemberRemoveModal({
   onConfirmDone,
   onCancel,
 }: MemberRemoveModalProps) {
-  const removeMember = useRemoveOrganizationMember()
+  const [organization] = useOrganizationAssumed()
+
+  const orgMemberDestroy = useOrganizationsMembersDestroy({
+    mutation: {
+      onSettled: async (data, error, variables, context) => {
+        await queryClient
+          .getMutationDefaults(getOrganizationsMembersDestroyMutationOptions().mutationKey!)
+          .onSettled?.(data, error, variables, context)
+        onConfirmDone()
+      },
+    },
+    request: {
+      errorMessageDisplay: 'Failed to remove member',
+    },
+  })
   const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0], false, false)
 
   // There are two different sets of strings - one for removing a member, and
@@ -61,13 +79,10 @@ export default function MemberRemoveModal({
   }
 
   const handleRemoveMember = async () => {
-    try {
-      await removeMember.mutateAsync(username)
-    } catch (error) {
-      notify('Failed to remove member', 'error')
-    } finally {
-      onConfirmDone()
-    }
+    await orgMemberDestroy.mutateAsync({
+      uidOrganization: organization.id,
+      username: username,
+    })
   }
 
   return (
@@ -88,7 +103,7 @@ export default function MemberRemoveModal({
           size='m'
           onClick={handleRemoveMember}
           label={textToDisplay.confirmButtonLabel}
-          isPending={removeMember.isPending}
+          isPending={orgMemberDestroy.isPending}
         />
       </KoboModalFooter>
     </KoboModal>
