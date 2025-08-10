@@ -125,6 +125,11 @@ urlpatterns = [
         name='form-list',
     ),
     re_path(
+        r'^key/(?P<token>\w+)/formList$',
+        XFormListApi.as_view({'get': 'list'}),
+        name='form-list',
+    ),
+    re_path(
         r'^(?P<username>\w+)/xformsManifest/(?P<pk>[\d+^/]+)$',
         XFormListApi.as_view({'get': 'manifest'}),
         name='manifest-url',
@@ -158,6 +163,11 @@ urlpatterns = [
     ),
     re_path(
         r'^(?P<username>\w+)/submission$',
+        XFormSubmissionApi.as_view({'post': 'create', 'head': 'create'}),
+        name='submissions',
+    ),
+    re_path(
+        r'^key/(?P<token>\w+)/submission$',
         XFormSubmissionApi.as_view({'post': 'create', 'head': 'create'}),
         name='submissions',
     ),

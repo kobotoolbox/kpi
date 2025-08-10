@@ -11,6 +11,7 @@ from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from kobo.apps.kobo_auth.models import Collector
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.tools import get_media_file_response
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
@@ -25,7 +26,7 @@ from kobo.apps.openrosa.libs.serializers.xform_serializer import (
     XFormListSerializer,
     XFormManifestSerializer,
 )
-from kpi.authentication import DigestAuthentication
+from kpi.authentication import DigestAuthentication, CollectorTokenAuthentication
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.models.object_permission import ObjectPermission
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
@@ -47,6 +48,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         # previously hard-coded authentication classes are included first
         authentication_classes = [
             DigestAuthentication,
+            CollectorTokenAuthentication
         ]
         self.authentication_classes = authentication_classes + [
             auth_class
@@ -80,11 +82,17 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
     def filter_queryset(self, queryset):
         username = self.kwargs.get('username')
-
-        if username is None:
+        token = self.kwargs.get('token')
+        if token:
+            collector = Collector.objects.get(token=token)
+            collector_group = collector.group
+            assets = list(collector_group.assets.values_list('uid', flat=True))
+            queryset = queryset.filter(kpi_asset_uid__in=assets)
+        elif username is None:
             # If no username is specified, the request must be authenticated
             if self.request.user.is_anonymous:
                 # raises a permission denied exception, forces authentication
+
                 self.permission_denied(self.request)
             else:
                 # Return all the forms the currently-logged-in user can access,
