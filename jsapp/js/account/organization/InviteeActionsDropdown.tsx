@@ -2,10 +2,19 @@ import type { ReactNode } from 'react'
 
 import { Group, LoadingOverlay, Menu, Modal, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import type { InviteResponse } from '#/api/models/inviteResponse'
+import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
+import {
+  getOrganizationsInvitesListQueryKey,
+  getOrganizationsInvitesRetrieveQueryKey,
+  useOrganizationsInvitesDestroy,
+  useOrganizationsInvitesPartialUpdate,
+} from '#/api/react-query/organization-invites'
+import { getOrganizationsMembersListQueryKey, getOrganizationsMembersRetrieveQueryKey } from '#/api/react-query/organization-members'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import ButtonNew from '#/components/common/ButtonNew'
+import { queryClient } from '#/query/queryClient'
 import { notify } from '#/utils'
-import type { MemberInvite } from './membersInviteQuery'
-import { MemberInviteStatus, usePatchMemberInvite, useRemoveMemberInvite } from './membersInviteQuery'
 
 /**
  * A dropdown with all actions that can be taken towards an organization invitee.
@@ -15,17 +24,50 @@ export default function InviteeActionsDropdown({
   invite,
 }: {
   target: ReactNode
-  invite: MemberInvite
+  invite: InviteResponse
 }) {
+  const [organization] = useOrganizationAssumed()
+
   const [opened, { open, close }] = useDisclosure()
 
-  const patchInviteMutation = usePatchMemberInvite(invite.url)
-  const removeInviteMutation = useRemoveMemberInvite()
+  const orgInvitesPatchMutation = useOrganizationsInvitesPartialUpdate({
+    mutation: {
+      onSuccess: (_data, variables) => {
+        queryClient.invalidateQueries({ queryKey: getOrganizationsInvitesListQueryKey(variables.organizationId) })
+        queryClient.invalidateQueries({
+          queryKey: getOrganizationsInvitesRetrieveQueryKey(variables.organizationId, variables.guid),
+        })
+        queryClient.invalidateQueries({ queryKey: getOrganizationsMembersListQueryKey(variables.organizationId) })
+        // Note: invalidate ALL members because username isn't available in scope to select the exact member.
+        queryClient.invalidateQueries({ queryKey: getOrganizationsMembersRetrieveQueryKey(variables.organizationId, 'unknown').slice(0, -1) })
+      },
+    },
+    request: {
+      errorMessageDisplay: t('There was an error updating this invitation.'),
+    },
+  })
+  const orgInvitesDestroyMutation = useOrganizationsInvitesDestroy({
+    mutation: {
+      onSuccess: (_data, variables) => {
+        queryClient.invalidateQueries({ queryKey: getOrganizationsInvitesListQueryKey(variables.organizationId) })
+        queryClient.invalidateQueries({
+          queryKey: getOrganizationsInvitesRetrieveQueryKey(variables.organizationId, variables.guid),
+        })
+        queryClient.invalidateQueries({ queryKey: getOrganizationsMembersListQueryKey(variables.organizationId) })
+        // Note: invalidate ALL members because username isn't available in scope to select the exact member.
+        queryClient.invalidateQueries({ queryKey: getOrganizationsMembersRetrieveQueryKey(variables.organizationId, 'unknown').slice(0, -1) })
+      },
+    },
+  })
 
   const resendInvitation = async () => {
     try {
-      await patchInviteMutation.mutateAsync({
-        status: MemberInviteStatus.resent,
+      await orgInvitesPatchMutation.mutateAsync({
+        organizationId: organization.id,
+        guid: invite.url.slice(0, -1).split('/').pop()!,
+        data: {
+          status: InviteStatusChoicesEnum.resent,
+        },
       })
       notify(t('The invitation was resent'), 'success')
     } catch (e: any) {
@@ -50,7 +92,10 @@ export default function InviteeActionsDropdown({
 
   const removeInvitation = async () => {
     try {
-      await removeInviteMutation.mutateAsync(invite.url)
+      await orgInvitesDestroyMutation.mutateAsync({
+        organizationId: organization.id,
+        guid: invite.url.slice(0, -1).split('/').pop()!,
+      })
       notify(t('Invitation removed'), 'success')
     } catch (e) {
       notify(t('An error occurred while removing the invitation'), 'error')
@@ -62,7 +107,7 @@ export default function InviteeActionsDropdown({
   return (
     <>
       <Modal opened={opened} onClose={close} title={t('Remove invitation?')}>
-        <LoadingOverlay visible={removeInviteMutation.isPending} />
+        <LoadingOverlay visible={orgInvitesDestroyMutation.isPending} />
         <Stack>
           <Text>{t("Are you sure you want to remove this user's invitation to join the team?")}</Text>
           <Group justify='flex-end'>
@@ -76,7 +121,7 @@ export default function InviteeActionsDropdown({
         </Stack>
       </Modal>
 
-      <LoadingOverlay visible={patchInviteMutation.isPending} />
+      <LoadingOverlay visible={orgInvitesPatchMutation.isPending} />
       <Menu offset={0} position='bottom-end'>
         <Menu.Target>{target}</Menu.Target>
 
