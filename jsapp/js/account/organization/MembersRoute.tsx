@@ -170,7 +170,7 @@ export default function MembersRoute() {
             />
           )
         } else if (invite) {
-          return <InviteeActionsDropdown target={target} invite={invite} />
+          return <InviteeActionsDropdown orgId={orgQuery.data.id} target={target} invite={invite} />
         }
 
         return null
