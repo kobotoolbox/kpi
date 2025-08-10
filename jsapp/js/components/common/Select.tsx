@@ -18,13 +18,18 @@ const iconSizeMap: Record<string, IconSize> = {
   xl: 'l',
 }
 
-const Select = (props: SelectProps) => {
-  const [value, setValue] = useState<string | null>(props.value || null)
+interface SelectPropsNarrow<Datum extends string | null = string | null> extends Omit<SelectProps, 'onChange'> {
+  value?: Datum
+  onChange?: (newValue: Datum | null, option: ComboboxItem) => void
+}
+
+const Select = <Datum extends string | null = string | null>(props: SelectPropsNarrow<Datum>) => {
+  const [value, setValue] = useState<Datum | null>(props.value || null)
   const [isOpened, setIsOpened] = useState(props.defaultDropdownOpened || false)
 
   const onChange = (newValue: string | null, option: ComboboxItem) => {
-    setValue(newValue)
-    props.onChange?.(newValue, option)
+    setValue(newValue as Datum | null)
+    props.onChange?.(newValue as Datum | null, option)
   }
 
   const clear = () => {
