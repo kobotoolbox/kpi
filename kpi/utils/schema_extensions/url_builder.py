@@ -68,6 +68,10 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'importtask-detail': '/api/v2/imports/{uid}/',
         'organization-members-detail': '/api/v2/organizations/{organization_id}/members/{user__username}/',  # noqa
         'project-ownership-invite-detail': '/api/v2/project-ownership/invites/{uid}/',
+        'projectview-detail': '/api/v2/project-views/{uid}/',
+        'projectview-assets': '/api/v2/project-views/{uid}/assets/',
+        'projectview-export': '/api/v2/project-views/{uid}/{obj_type}/export/',
+        'projectview-users': '/api/v2/project-views/{uid}/users/',
     }
 
     try:
