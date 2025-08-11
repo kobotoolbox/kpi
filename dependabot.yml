@@ -12,7 +12,7 @@ updates:
       - "magicznyleszek"
     ignore:
       ######################################
-      # Deps that we want to get rid of etc.
+      # Deps that we do not plan to update
       ######################################
 
       # We no longer want to use select2. The only usages left are in the Form Builder code.
