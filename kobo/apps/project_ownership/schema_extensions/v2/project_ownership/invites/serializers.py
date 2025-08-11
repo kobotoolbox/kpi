@@ -5,8 +5,10 @@ from .fields import (
     InviteAssetField,
     InviteUrlField,
     RecipientSenderUrlField,
+    StatusEnumField,
     TransferField,
 )
+
 
 ProjectInviteCreatePayload = inline_serializer_class(
     name='ProjectInviteCreatePayload',
@@ -21,7 +23,7 @@ ProjectInviteResponse = inline_serializer_class(
     fields={
         'url': InviteUrlField(),
         'sender |  recipient': RecipientSenderUrlField(),
-        'status': serializers.CharField(),
+        'status': StatusEnumField(),
         'date_created': serializers.DateTimeField(),
         'date_modified': serializers.DateTimeField(),
         'transfers': TransferField(),
@@ -31,6 +33,6 @@ ProjectInviteResponse = inline_serializer_class(
 InviteUpdatePayload = inline_serializer_class(
     name='InviteUpdatePayload',
     fields={
-        'status': serializers.CharField(),
+        'status': StatusEnumField(),
     },
 )
