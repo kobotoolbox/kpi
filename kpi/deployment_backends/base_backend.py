@@ -412,6 +412,11 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @property
+    @abc.abstractmethod
+    def is_encrypted(self) -> bool:
+        pass
+
+    @property
     def last_submission_time(self):
         return self._last_submission_time()
 

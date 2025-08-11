@@ -61,6 +61,7 @@ class ProjectHistoryLogTestCaseMixin:
             'source': 'source',
             'log_subtype': 'project',
             'some': 'thing',
+            'project_owner': 'someuser',
         }
         ProjectHistoryLog.objects.create(
             user=self.user,
@@ -102,6 +103,7 @@ class ProjectHistoryLogTestCaseMixin:
                 'ip_address': '1.2.3.4',
                 'source': 'source',
                 'log_subtype': 'project',
+                'project_owner': 'someuser',
             },
             date_created=yesterday,
         )
@@ -114,6 +116,7 @@ class ProjectHistoryLogTestCaseMixin:
                 'ip_address': '1.2.3.4',
                 'source': 'source',
                 'log_subtype': 'project',
+                'project_owner': 'someuser',
             },
             date_created=now,
         )
@@ -140,6 +143,7 @@ class ProjectHistoryLogTestCaseMixin:
                 'ip_address': '1.2.3.4',
                 'source': 'source',
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'project_owner': 'someuser',
             },
             date_created=now,
         )
@@ -152,6 +156,7 @@ class ProjectHistoryLogTestCaseMixin:
                 'ip_address': '1.2.3.4',
                 'source': 'source',
                 'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+                'project_owner': 'someuser',
             },
             date_created=yesterday,
         )
@@ -176,6 +181,7 @@ class ProjectHistoryLogTestCaseMixin:
                 'ip_address': '1.2.3.4',
                 'source': 'source',
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'project_owner': 'someuser',
             },
             date_created=now,
         )
@@ -615,6 +621,7 @@ class ApiProjectHistoryLogsTestCase(BaseTestCase, ProjectHistoryLogTestCaseMixin
             'ip_address': '1.2.3.4',
             'source': 'source',
             'log_subtype': 'project',
+            'project_owner': 'someuser',
         }
         self.client.force_login(self.user)
 
@@ -733,6 +740,7 @@ class ApiAllProjectHistoryLogsTestCase(
                 'ip_address': '1.2.3.4',
                 'source': 'source',
                 'log_subtype': 'project',
+                'project_owner': 'someuser',
             },
         )
         ProjectHistoryLog.objects.create(
@@ -744,6 +752,7 @@ class ApiAllProjectHistoryLogsTestCase(
                 'ip_address': '1.2.3.4',
                 'source': 'source',
                 'log_subtype': 'project',
+                'project_owner': 'someuser',
             },
         )
         response = self.client.get(self.url)
