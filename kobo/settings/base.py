@@ -1006,9 +1006,6 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Powerful and intuitive data collection tools to make an impact',
     'VERSION': '2.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
-    'PREPROCESSING_HOOKS': [
-        'kpi.utils.spectacular_processing.pre_processing_filtering'
-    ],
     'SWAGGER_UI_FAVICON_HREF': '/static/favicon.png',
     'SWAGGER_UI_SETTINGS': {
         'filter': True,
