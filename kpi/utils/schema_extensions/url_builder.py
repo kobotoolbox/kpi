@@ -65,6 +65,7 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'terms-of-service-detail': '/api/v2/terms-of-service/{slug}/',
         'enketo_edit_link': '{path}',
         'enketo_view_link': '{path}',
+        'importtask-detail': '/api/v2/imports/{uid}/',
     }
 
     try:
