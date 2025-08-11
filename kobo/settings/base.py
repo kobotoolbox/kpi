@@ -309,6 +309,11 @@ CONSTANCE_CONFIG = {
         False,
         'Require MFA for superusers with a usable password',
     ),
+    'USAGE_LIMIT_ENFORCEMENT': (
+        env.bool('USAGE_LIMIT_ENFORCEMENT', False),
+        'For Stripe-enabled instances, determines whether usage limits will be enforced'
+        'by blocking submissions/NLP actions or deleting stored files.',
+    ),
     'ASR_MT_INVITEE_USERNAMES': (
         '',
         'List of invited usernames, one per line, who will have access to NLP '
@@ -712,6 +717,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ORGANIZATION_INVITE_EXPIRY',
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
         'MASS_EMAIL_TEST_EMAILS',
+        'USAGE_LIMIT_ENFORCEMENT',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -1292,12 +1298,11 @@ CELERY_BEAT_SCHEDULE = {
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 30 minutes
-    # ToDo: Uncomment when the task for auto-cleanup of attachments is ready (DEV-240)
-    # 'attachment-cleanup-for-users-exceeding-limits': {
-    #     'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
-    #     'schedule': crontab(minute='*/30'),
-    #     'options': {'queue': 'kpi_low_priority_queue'}
-    # },
+    'attachment-cleanup-for-users-exceeding-limits': {
+        'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
+        'schedule': crontab(minute='*/30'),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
     # Schedule every day at midnight UTC
     'project-ownership-garbage-collector': {
         'task': 'kobo.apps.project_ownership.tasks.garbage_collector',
@@ -1960,3 +1965,4 @@ LONG_RUNNING_MIGRATION_BATCH_SIZE = 2000
 
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100
+MAX_RESTARTED_TRANSFERS = 20

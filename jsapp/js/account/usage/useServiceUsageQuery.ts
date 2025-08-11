@@ -120,7 +120,7 @@ interface ServiceUsageQueryParams {
   shouldForceInvalidation?: boolean
 }
 
-export const useServiceUsageQuery = (params?: ServiceUsageQueryParams): UseQueryResult<UsageState> => {
+export const useServiceUsageQuery = (params?: ServiceUsageQueryParams): UseQueryResult<UsageState | undefined> => {
   const { data: organizationData } = useOrganizationQuery()
 
   useEffect(() => {
