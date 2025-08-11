@@ -26,9 +26,14 @@ from kobo.apps.openrosa.libs.serializers.xform_serializer import (
     XFormListSerializer,
     XFormManifestSerializer,
 )
+from kobo.apps.openrosa.schema_extensions.v2.formlist.serializers import \
+    OpenRosaEndpointFormListResponse
 from kpi.authentication import DigestAuthentication
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.models.object_permission import ObjectPermission
+from kpi.schema_extensions.v2.openrosa.serializers import OpenRosaFormListResponse
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
 
 
@@ -133,7 +138,18 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
         return queryset
 
-    @extend_schema(tags=['OpenRosa Form List'])
+    @extend_schema(
+        description=read_md('kpi', 'openrosa/form_list.md'),
+        responses=open_api_200_ok_response(
+            OpenRosaFormListResponse,
+            media_type='application/xml',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+            error_media_type='text/html',
+        ),
+        tags=['OpenRosa Form List']
+    )
     def list(self, request, *args, **kwargs):
 
         object_list = self.filter_queryset(self.get_queryset())

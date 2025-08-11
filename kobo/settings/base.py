@@ -142,6 +142,7 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.apps.viewer.app.ViewerConfig',
     'kobo.apps.openrosa.apps.main.app.MainConfig',
     'kobo.apps.openrosa.apps.api',
+    'kobo.apps.openrosa.apps.apps.OpenRosaAppConfig',
     'guardian',
     'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',

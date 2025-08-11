@@ -29,6 +29,7 @@ class OpenRosaAPIEndpointEnumerator(EndpointEnumerator):
         filtered = []
 
         for path, path_regex, method, callback in endpoints:
+            print('@@@@@@@@@@@@@ ', path, flush=True)
             if path not in OPEN_ROSA_ENDPOINTS:
                 continue
 
