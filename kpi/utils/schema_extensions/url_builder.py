@@ -66,6 +66,7 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'enketo_edit_link': '{path}',
         'enketo_view_link': '{path}',
         'importtask-detail': '/api/v2/imports/{uid}/',
+        'organization-members-detail': '/api/v2/organizations/{organization_id}/members/{user__username}/',  # noqa
     }
 
     try:
