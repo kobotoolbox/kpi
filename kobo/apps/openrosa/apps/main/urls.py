@@ -118,10 +118,12 @@ urlpatterns = [
         XFormSubmissionApi.as_view({'post': 'create', 'head': 'create'}),
         name='submissions',
     ),
-    re_path(r'^formList$', XFormListApi.as_view({'get': 'list'}), name='form-list'),
+    re_path(
+        r'^formList$', XFormListApi.as_view({'get': 'form_list'}), name='form-list'
+    ),
     re_path(
         r'^(?P<username>\w+)/formList$',
-        XFormListApi.as_view({'get': 'list'}),
+        XFormListApi.as_view({'get': 'form_list'}),
         name='form-list',
     ),
     re_path(

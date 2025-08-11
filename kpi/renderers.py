@@ -40,7 +40,7 @@ class MP3ConversionRenderer(MediaFileRenderer):
 
 class OpenRosaRenderer(DRFXMLRenderer):
 
-    media_type = 'text/xml'
+    media_type = 'application/xml'
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
         """
