@@ -47,6 +47,7 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'asset-export-settings-detail-format': '/api/v2/assets/{parent_lookup_asset}/export-settings/{uid}/data.{format}',  # noqa
         'asset-export-detail': '/api/v2/assets/{parent_lookup_asset}/exports/{uid}/',
         'serve_private_file': '/private-media/{username}/exports/assets-{username}-view_pvNNUan8EBhzfkrv6sCNuzR-2025-08-11T143443Z.csv',  # noqa
+        'serve_asset_private_file': '{path}',
         'asset-file-detail': '/api/v2/assets/{parent_lookup_asset}/files/{uid}/',
         'asset-file-content': '/api/v2/assets/{parent_lookup_asset}/files/{uid}/content/',  # noqa
         'hook-log-list': '/api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/',  # noqa
