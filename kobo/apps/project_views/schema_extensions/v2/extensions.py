@@ -91,7 +91,7 @@ class ExportResponseResultExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'serve_private_file',
-            path='bob/exports/assets-bob-view_pvyHWBnzRw3GCJpFs6cMdem-2025-07-18T124015Z.csv',  # noqa
+            username='bob',
         )
 
 
