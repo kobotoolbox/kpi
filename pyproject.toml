@@ -57,8 +57,11 @@ testpaths = [
     'kpi',
     'hub',
 ]
+# Add USAGE_LIMIT_ENFORCEMENT here because setting it in
+# test module doesn't get registered by constance
 env = [
     'DJANGO_SETTINGS_MODULE=kobo.settings.testing',
+    'USAGE_LIMIT_ENFORCEMENT=True',
 ]
 addopts = [
     '-m not performance',

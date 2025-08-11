@@ -17,12 +17,6 @@ from taggit.managers import TaggableManager
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import XLSFormError
 from kobo.apps.openrosa.koboform.pyxform_utils import convert_csv_to_xls
-from kobo.apps.openrosa.libs.constants import (
-    CAN_ADD_SUBMISSIONS,
-    CAN_DELETE_DATA_XFORM,
-    CAN_TRANSFER_OWNERSHIP,
-    CAN_VALIDATE_XFORM,
-)
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
@@ -110,12 +104,6 @@ class XForm(AbstractTimeStampedModel):
         verbose_name = t('XForm')
         verbose_name_plural = t('XForms')
         ordering = ('id_string',)
-        permissions = (
-            (CAN_ADD_SUBMISSIONS, t('Can make submissions to the form')),
-            (CAN_TRANSFER_OWNERSHIP, t('Can transfer form ownership.')),
-            (CAN_VALIDATE_XFORM, t('Can validate submissions')),
-            (CAN_DELETE_DATA_XFORM, t('Can delete submissions')),
-        )
 
     objects = XFormWithoutPendingDeletedManager()
     all_objects = XFormAllManager()

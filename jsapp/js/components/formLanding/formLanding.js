@@ -10,6 +10,7 @@ import Reflux from 'reflux'
 import { actions } from '#/actions'
 import bem from '#/bem'
 import AnonymousSubmission from '#/components/anonymousSubmission.component'
+import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -30,6 +31,7 @@ import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { formatTime, notify } from '#/utils'
+import LimitNotifications from '../usageLimits/limitNotifications.component'
 
 const DVCOUNT_LIMIT_MINIMUM = 20
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url
@@ -235,21 +237,24 @@ class FormLanding extends React.Component {
                     <bem.FormView__label m='version'>
                       {`v${dvcount - n}`}
                       {item.uid === this.state.deployed_version_id && this.state.deployment__active && (
-                        <bem.FormView__cell m='deployed'>{t('Deployed')}</bem.FormView__cell>
+                        <AssetStatusBadge deploymentStatus={this.state.deployment_status} />
                       )}
                     </bem.FormView__label>
                     <bem.FormView__label m='date'>{formatTime(item.date_deployed)}</bem.FormView__label>
                     {isLoggedIn && (
-                      <Button
-                        type='text'
-                        size='m'
-                        onClick={() => {
-                          this.saveCloneAs(item.uid)
-                        }}
-                        startIcon='duplicate'
-                        tooltip={t('Clone this version as a new project')}
-                        tooltipPosition='right'
-                      />
+                      <bem.FormView__label>
+                        <Button
+                          type='text'
+                          size='m'
+                          onClick={() => {
+                            this.saveCloneAs(item.uid)
+                          }}
+                          startIcon='duplicate'
+                          tooltip={t('Clone this version as a new project')}
+                          tooltipPosition='right'
+                          className='history-clone'
+                        />
+                      </bem.FormView__label>
                     )}
                   </bem.FormView__group>
                 )
@@ -615,6 +620,7 @@ class FormLanding extends React.Component {
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='form'>
+          <LimitNotifications />
           <bem.FormView__row>
             <bem.FormView__cell m={['columns', 'first']}>
               <bem.FormView__cell m='label'>

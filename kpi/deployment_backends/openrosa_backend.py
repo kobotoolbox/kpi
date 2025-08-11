@@ -830,6 +830,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         }
 
     @property
+    def is_encrypted(self) -> bool:
+        try:
+            return self.xform.encrypted
+        except (InvalidXFormException, MissingXFormException):
+            return False
+
+    @property
     def mongo_userform_id(self):
         return get_mongo_userform_id(self.xform, self.asset.owner.username)
 
@@ -1328,6 +1335,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 'require_auth',
                 'uuid',
                 'mongo_uuid',
+                'encrypted',
+                'last_submission_time',
             )
             .select_related('user')  # Avoid extra query to validate username below
             .first()
@@ -1432,7 +1441,10 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         file_.delete(force=True)
 
     def _last_submission_time(self):
-        return self.xform.last_submission_time
+        try:
+            return self.xform.last_submission_time
+        except (InvalidXFormException, MissingXFormException):
+            return None
 
     def _save_openrosa_metadata(self, file_: SyncBackendMediaInterface):
         """

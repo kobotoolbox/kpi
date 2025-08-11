@@ -1,0 +1,58 @@
+name: Dependabot automerge
+
+on: pull_request_target
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  npm-test:
+    uses: ./.github/workflows/npm-test.yml
+    # Avoid running this on different PRs
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+
+  review-dependabot-pr:
+    runs-on: ubuntu-latest
+    needs:
+      - npm-test
+    if: |
+      ${{ github.event.pull_request.user.login == 'dependabot[bot]' }} &&
+      !failure() &&
+      needs.npm-test.result == 'success'
+    outputs:
+      pr-url: ${{ github.event.pull_request.html_url }}
+    steps:
+      - name: Dependabot metadata
+        id: dependabot-metadata
+        uses: dependabot/fetch-metadata@v2.4.0
+
+      - name: Enable auto-merge for Dependabot PRs of patch and minor updates
+        if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' || steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
+        # This requires auto-merge to be enabled in GitHub repo settings
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Approve patch and minor updates
+        if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' || steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
+        run: |
+          gh pr review $PR_URL --approve -b "I'm **approving** this pull request because **it includes a patch or minor update**"
+          gh pr edit $PR_URL --add-label "Front end,automerge"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+  on-failure:
+    if: |
+      failure() ||
+      (needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out')
+    needs:
+      - npm-test
+      - review-dependabot-pr
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "Github Actions (dependabot)"
+      content: ":boom: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to auto-merge [a dependabot PR](${{needs.review-dependabot-pr.outputs.pr-url}}). Please review."

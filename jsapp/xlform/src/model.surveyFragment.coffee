@@ -116,7 +116,8 @@ module.exports = do ->
     return
 
   class surveyFragment.SurveyFragment extends $base.BaseCollection
-    constructor: (a,b)->
+    constructor: (arg, opts)->
+      super(arg, opts)
       @rows = new Rows([], _parent: @)
       @_meta = new Backbone.Model()
       passFunctionToMetaModel(@, "set")
@@ -124,7 +125,6 @@ module.exports = do ->
       passFunctionToMetaModel(@, "on")
       passFunctionToMetaModel(@, "off")
       passFunctionToMetaModel(@, "trigger")
-      super(a,b)
     _validate: ->
       @clearErrors()
       isValid = true
@@ -248,14 +248,13 @@ module.exports = do ->
   class surveyFragment.Group extends $row.BaseRow
     @kls = "Group"
     @key = "group"
-    constructor: (a={}, b)->
-      __rows = a.__rows or []
-      if a.label == undefined
-        a.label = ''
-      @_parent = a._parent
-      delete a.__rows
+    constructor: (arg={}, opts)->
+      __rows = arg.__rows or []
+      delete arg.__rows
+      if arg.label == undefined
+        arg.label = ''
+      super(arg, opts)
       @rows = new Rows([], _parent: @)
-      super(a,b)
       @rows.add __rows  if __rows
       for row in __rows
         row._parent = row.collection = @rows

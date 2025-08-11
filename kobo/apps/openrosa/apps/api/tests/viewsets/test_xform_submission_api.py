@@ -7,11 +7,13 @@ from unittest.mock import patch
 import pytest
 import requests
 import simplejson as json
+from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.test.testcases import LiveServerTestCase
+from django.test.utils import override_settings
 from django_digest.test import DigestAuth
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -24,7 +26,6 @@ from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmi
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.apps.main import tests as main_tests
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from kobo.apps.openrosa.libs.constants import CAN_ADD_SUBMISSIONS
 from kobo.apps.openrosa.libs.permissions import assign_perm
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils import logger_tools
@@ -32,6 +33,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     OpenRosaResponseNotAllowed,
     OpenRosaTemporarilyUnavailable,
 )
+from kpi.constants import PERM_ADD_SUBMISSIONS
 from kobo.apps.organizations.constants import UsageType
 from kpi.utils.fuzzy_int import FuzzyInt
 
@@ -69,8 +71,11 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             expected_queries = FuzzyInt(43, 47)
             # In stripe-enabled environments usage limit enforcement
             # requires additional queries
+            # TODO: Constance adds three extra queries when checking
+            # USAGE_LIMIT_ENFORCEMENT variable. But we use caching
+            # so should find a way to keep that out of this count
             if settings.STRIPE_ENABLED:
-                expected_queries = FuzzyInt(79, 83)
+                expected_queries = FuzzyInt(80, 87)
             with self.assertNumQueries(expected_queries):
                 self.view(request)
 
@@ -172,6 +177,58 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 request = self.factory.post('/submission', data, format='json')
                 response = self.view(request)
                 self.assertEqual(response.status_code, 401)
+                request = self.factory.post('/submission', data, format='json')
+                auth = DigestAuth('bob', 'bobbob')
+                request.META.update(auth(request.META, response))
+                response = self.view(request, username=self.user.username)
+                self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_disable_limit_enforcement(self):
+        """
+        Ensure submissions by an authenticated user are rejected if asset owner
+        is over their storage or submission limit
+        """
+        path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'transport_submission.json',
+        )
+        with open(path, 'rb') as f:
+            data = json.loads(f.read())
+            request = self.factory.post('/submission', data, format='json')
+            response = self.view(request)
+            self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+            mock_balances = {
+                UsageType.STORAGE_BYTES: {
+                    'exceeded': True,
+                },
+                UsageType.SUBMISSION: {
+                    'exceeded': True,
+                },
+            }
+            with override_config(USAGE_LIMIT_ENFORCEMENT=False):
+                with patch(
+                    'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
+                    return_value=mock_balances,
+                ):
+                    request = self.factory.post('/submission', data, format='json')
+                    auth = DigestAuth('bob', 'bobbob')
+                    request.META.update(auth(request.META, response))
+                    response = self.view(request, username=self.user.username)
+                    self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+            with patch(
+                'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
+                return_value=mock_balances,
+            ):
+                request = self.factory.post('/submission', data, format='json')
+                response = self.view(request)
+                self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
                 request = self.factory.post('/submission', data, format='json')
                 auth = DigestAuth('bob', 'bobbob')
                 request.META.update(auth(request.META, response))
@@ -479,7 +536,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
         }
         alice_profile = self._create_user_profile(alice_data)
 
-        assign_perm(CAN_ADD_SUBMISSIONS, alice_profile.user, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice_profile.user, self.xform.asset)
 
         count = Attachment.objects.count()
         s = self.surveys[0]
@@ -729,6 +786,10 @@ class ConcurrentSubmissionTestCase(RequestMixin, LiveServerTestCase):
 
         self.xform = logger_tools.publish_xls_form(xls_file, self.user)
 
+    # FIXME Find a way to avoid constance db calls interfering with
+    # `get_instance_lock()`. Currently, we set STRIPE_ENABLED to false here
+    # to avoid constance being called at all in `create_instance()``
+    @override_settings(STRIPE_ENABLED=False)
     @pytest.mark.skipif(
         settings.SKIP_TESTS_WITH_CONCURRENCY,
         reason='GitLab does not seem to support multi-processes'

@@ -1,11 +1,10 @@
-# coding: utf-8
 from django.db import transaction
 from rest_framework import serializers
 
 from kobo.apps.accounts.validators import (
-    USERNAME_REGEX,
-    USERNAME_MAX_LENGTH,
     USERNAME_INVALID_MESSAGE,
+    USERNAME_MAX_LENGTH,
+    USERNAME_REGEX,
 )
 from kobo.apps.kobo_auth.shortcuts import User
 

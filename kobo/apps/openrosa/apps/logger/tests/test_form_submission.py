@@ -150,7 +150,7 @@ class TestFormSubmission(TestBase):
         alice = self._create_user(username, username)
 
         # assign report perms to user
-        assign_perm('report_xform', alice, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice, self.xform.asset)
         auth = DigestAuth(username, username)
 
         xml_submission_file_path = os.path.join(
@@ -207,7 +207,7 @@ class TestFormSubmission(TestBase):
         alice = self._create_user('alice', 'alice')
 
         # assign report perms to user
-        assign_perm('report_xform', alice, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice, self.xform.asset)
         client = DigestClient()
         client.set_authorization('alice', 'alice', 'Digest')
 
@@ -615,7 +615,7 @@ class TestFormSubmission(TestBase):
         alice = self._create_user('alice', 'alice')
 
         # assign report perms to user
-        assign_perm('report_xform', alice, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice, self.xform.asset)
 
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
@@ -632,7 +632,7 @@ class TestFormSubmission(TestBase):
         UserProfile.objects.create(user=alice)
 
         # assign report perms to user
-        assign_perm('report_xform', alice, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice, self.xform.asset)
 
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
@@ -813,7 +813,7 @@ class TestFormSubmission(TestBase):
         # permission to edit submissions
         alice = self._create_user('alice', 'alice')
         UserProfile.objects.create(user=alice)
-        assign_perm('report_xform', alice, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice, self.xform.asset)
         auth = DigestAuth('alice', 'alice')
         # attempt an edit
         xml_submission_file_path = os.path.join(

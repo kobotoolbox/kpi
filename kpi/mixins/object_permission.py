@@ -20,6 +20,7 @@ from kpi.constants import (
     PREFIX_PARTIAL_PERMS,
 )
 from kpi.deployment_backends.kc_access.utils import (
+    kc_transaction_atomic,
     set_kc_anonymous_permissions_xform_flags,
 )
 from kpi.models.object_permission import ObjectPermission
@@ -408,6 +409,7 @@ class ObjectPermissionMixin:
         }
 
     @transaction.atomic
+    @kc_transaction_atomic
     def assign_perm(
         self, user_obj, perm, deny=False, defer_recalc=False, partial_perms=None
     ):
@@ -640,6 +642,7 @@ class ObjectPermissionMixin:
         return fn(perm in perms for perm in self.get_perms(user_obj))
 
     @transaction.atomic
+    @kc_transaction_atomic
     def remove_perm(self, user_obj, perm, defer_recalc=False):
         """
         Revoke the given `perm` on this object from `user_obj`. By default,

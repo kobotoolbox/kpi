@@ -1,3 +1,5 @@
+import itertools
+from collections import defaultdict
 from datetime import timedelta
 
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
@@ -5,6 +7,7 @@ from celery.signals import task_failure, task_retry
 from constance import config
 from django.apps import apps
 from django.conf import settings
+from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as t
@@ -54,7 +57,6 @@ def async_task(transfer_id: int, async_task_type: str):
         status=TransferStatusChoices.IN_PROGRESS,
         status_type=async_task_type,
     )
-
     if async_task_type == TransferStatusTypeChoices.ATTACHMENTS:
         move_attachments(transfer)
     elif async_task_type == TransferStatusTypeChoices.MEDIA_FILES:
@@ -258,6 +260,8 @@ def task_restarter():
     """
     # Avoid circular import
     TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
+    Transfer = apps.get_model('project_ownership', 'Transfer')  # noqa
+
     resume_threshold = timezone.now() - timedelta(
         minutes=config.PROJECT_OWNERSHIP_RESUME_THRESHOLD
     )
@@ -265,16 +269,58 @@ def task_restarter():
         minutes=config.PROJECT_OWNERSHIP_STUCK_THRESHOLD
     )
 
-    # Restart tasks that were stopped unintentionally.
-    for transfer_status in (
-        TransferStatus.objects.filter(
-            date_modified__lte=resume_threshold,
-            date_created__gt=stuck_threshold,
-            status=TransferStatusChoices.IN_PROGRESS,
-        )
-        .exclude(status_type=TransferStatusTypeChoices.GLOBAL)
-        .order_by('date_modified')[:settings.MAX_RESTARTED_TASKS]
-    ):
-        async_task.delay(
-            transfer_status.transfer.pk, transfer_status.status_type
-        )
+    tasks_by_transfer = defaultdict(list)
+    full_transfer_pks = set()
+    # Restart tasks that were stopped unintentionally after the transfer started
+    # PENDING tasks were never started so don't consider them "stuck" even if they are
+    # very old
+
+    stopped_in_progress_tasks = Q(
+        date_modified__lte=resume_threshold,
+        date_created__gt=stuck_threshold,
+        status=TransferStatusChoices.IN_PROGRESS,
+    ) & ~Q(status_type=TransferStatusTypeChoices.GLOBAL)
+
+    # Don't start pending attachment tasks independently.
+    # The submission task should take care of it
+    still_pending_tasks = Q(
+        status=TransferStatusChoices.PENDING,
+        date_modified__lte=resume_threshold,
+    ) & ~Q(status_type=TransferStatusTypeChoices.ATTACHMENTS)
+
+    for transfer_status in TransferStatus.objects.filter(
+        stopped_in_progress_tasks | still_pending_tasks
+    ).order_by('date_modified'):
+        transfer_id = transfer_status.transfer_id
+        if transfer_status.status_type == TransferStatusTypeChoices.GLOBAL:
+            full_transfer_pks.add(transfer_id)
+            # remove individual task restarts, if any
+            tasks_by_transfer.pop(transfer_id, None)
+        else:
+            # if we know we'll need to transfer the whole project
+            # don't bother adding individual task restarts
+            if transfer_id in full_transfer_pks:
+                continue
+            tasks_by_transfer[transfer_id].append(transfer_status.status_type)
+
+    full_transfer_pks = list(full_transfer_pks)
+    transfers_to_restart = (
+        Transfer.objects.defer('asset__content')
+        .filter(pk__in=full_transfer_pks[:settings.MAX_RESTARTED_TRANSFERS])
+        .select_related('invite', 'invite__sender', 'invite__recipient', 'asset')
+    )
+
+    # transform {'transfer_pk': ['attachments', 'media_files']...}
+    # to [(pk, 'attachments'), (pk, 'media_files')]
+    all_tasks_to_restart = [
+        [(pk, status_type) for status_type in tasks_by_transfer[pk]]
+        for pk in tasks_by_transfer
+    ]
+    all_tasks_to_restart = list(
+        itertools.chain(*all_tasks_to_restart)
+    )[:settings.MAX_RESTARTED_TASKS]
+
+    for transfer_id, status_type in all_tasks_to_restart:
+        async_task.delay(transfer_id, status_type)
+    for transfer in transfers_to_restart:
+        transfer.transfer_project()

@@ -29,8 +29,8 @@ module.exports = do ->
           <button class="skiplogic__addcriterion kobo-button kobo-button--storm">+ #{t("Add another condition")}</button>
         </p>
         <select class="skiplogic__delimselect">
-          <option value="and">#{t("Previous responses should match all of these conditions")}</option>
-          <option value="or">#{t("Previous responses should match any of these conditions")}</option>
+          <option value="and">#{t("All of these conditions must be met")}</option>
+          <option value="or">#{t("At least one of these conditions must be met")}</option>
         </select>
       """)
 
@@ -39,7 +39,7 @@ module.exports = do ->
 
       @
 
-    addCriterion: (evt) =>
+    addCriterion: (evt) ->
       @facade.view_factory.survey.trigger('change')
       @facade.add_empty()
 
@@ -140,8 +140,12 @@ module.exports = do ->
       super(element)
       return
 
-    constructor: (@question_picker_view, @operator_picker_view, @response_value_view, @presenter) ->
+    constructor: (question_picker_view, operator_picker_view, response_value_view, presenter) ->
       super()
+      @question_picker_view = question_picker_view
+      @operator_picker_view = operator_picker_view
+      @response_value_view = response_value_view
+      @presenter = presenter
 
   ###----------------------------------------------------------------------------------------------------------###
   #-- View.RowDetail.SkipLogic.QuestionPickerView.coffee
@@ -237,8 +241,9 @@ module.exports = do ->
       chosen_element.text(abbreviated_label)
       return
 
-    constructor: (@operators) ->
+    constructor: (operators) ->
       super()
+      @operators = operators
 
   ###----------------------------------------------------------------------------------------------------------###
   #-- View.RowDetail.SkipLogic.ResponseViews.coffee
@@ -267,24 +272,24 @@ module.exports = do ->
       super()
       @setElement('<div class="skiplogic__responseval-wrapper">' + @$el + '<div></div></div>')
       @$error_message = @$('div')
-      @model.bind 'validated:invalid', @show_invalid_view
-      @model.bind 'validated:valid', @clear_invalid_view
+      @model.bind 'validated:invalid', @show_invalid_view.bind(@)
+      @model.bind 'validated:valid', @clear_invalid_view.bind(@)
       @$input = @$el.find('input')
       return @
 
-    show_invalid_view: (model, errors) =>
+    show_invalid_view: (model, errors) ->
       if @$input.val()
         @$el.addClass('textbox--invalid')
         @$error_message.html(errors.value)
         @$input.focus()
-    clear_invalid_view: (model, errors) =>
+    clear_invalid_view: (model, errors) ->
       @$el.removeClass('textbox--invalid')
       @$error_message.html('')
 
     bind_event: (handler) ->
       @$input.on 'change', handler
 
-    val: (value) =>
+    val: (value) ->
       if value?
         @$input.val(value)
       else
@@ -311,11 +316,13 @@ module.exports = do ->
       @model.off 'change:cid', handle_model_cid_change
       @model.on 'change:cid', handle_model_cid_change
 
-    constructor: (@responses, @model) ->
-      super(_.map @responses.models, (response) ->
+    constructor: (responses, model) ->
+      super(_.map responses.models, (response) ->
         text: response.get('label')
         value: response.cid
       )
+      @responses = responses
+      @model = model
 
   ###----------------------------------------------------------------------------------------------------------###
   #-- Factories.RowDetail.SkipLogic.coffee

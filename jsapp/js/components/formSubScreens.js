@@ -16,6 +16,7 @@ import { FormMap } from './map'
 import FormMedia from './modalForms/formMedia'
 import ProjectSettings from './modalForms/projectSettings'
 import SharingForm from './permissions/sharingForm.component'
+import LimitNotifications from './usageLimits/limitNotifications.component'
 
 const ConnectProjects = React.lazy(
   () => import(/* webpackPrefetch: true */ '#/components/dataAttachments/connectProjects'),
@@ -107,6 +108,7 @@ export class FormSubScreens extends React.Component {
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='form-settings'>
+          <LimitNotifications />
           <ProjectSettings context={PROJECT_SETTINGS_CONTEXTS.EXISTING} formAsset={this.state} />
         </bem.FormView>
       </DocumentTitle>
@@ -117,6 +119,7 @@ export class FormSubScreens extends React.Component {
 
     return (
       <bem.FormView m='form-settings-sharing'>
+        <LimitNotifications />
         <SharingForm assetUid={uid} />
 
         <TransferProjects asset={this.state} />

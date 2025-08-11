@@ -1,4 +1,5 @@
 from allauth.account.models import EmailAddress
+from django.core.files.uploadedfile import TemporaryUploadedFile
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework import permissions, serializers
@@ -90,4 +91,24 @@ class TestAuditLoggedViewSet(KpiTestCase):
         self.assertEqual(
             request.initial_data,
             {'email': 'initial_email@example.com', 'verified': False},
+        )
+
+    # force django to use TemporaryUploadedFile by setting a small max memory
+    @override_settings(FILE_UPLOAD_MAX_MEMORY_SIZE=1)
+    def test_unpickleable_object(self):
+        user = User.objects.get(pk=1)
+        email_address, _ = EmailAddress.objects.get_or_create(
+            user=user, email='initial_email@example.com'
+        )
+        email_address.save()
+        file = TemporaryUploadedFile(
+            'file.upload', 'file_content', size=500, charset='utf8'
+        )
+        response = self.client.post(
+            reverse('test-vs-detail', args=[email_address.pk]), data={'video': file}
+        )
+        request = response.wsgi_request
+        self.assertEqual(
+            request._data,
+            {},
         )

@@ -13,17 +13,6 @@ CAN_CHANGE_ORGANIZATION_PROFILE = 'change_organizationprofile'
 CAN_DELETE_ORGANIZATION_PROFILE = 'delete_organizationprofile'
 IS_ORGANIZATION_OWNER = 'is_org_owner'
 
-# Xform Permissions
-CAN_CHANGE_XFORM = 'change_xform'
-CAN_VALIDATE_XFORM = 'validate_xform'
-CAN_DELETE_DATA_XFORM = 'delete_data_xform'
-CAN_ADD_XFORM = 'add_xform'
-CAN_DELETE_XFORM = 'delete_xform'
-CAN_VIEW_XFORM = 'view_xform'
-CAN_ADD_SUBMISSIONS = 'report_xform'
-CAN_TRANSFER_OWNERSHIP = 'transfer_xform'
-CAN_MOVE_TO_FOLDER = 'move_xform'
-
 # Project Permissions
 CAN_VIEW_PROJECT = 'view_project'
 CAN_CHANGE_PROJECT = 'change_project'

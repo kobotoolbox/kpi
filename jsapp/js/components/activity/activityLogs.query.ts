@@ -76,7 +76,7 @@ const getFilterOptions = async (assetUid: string): Promise<LabelValuePair[]> => 
  * @returns {Promise<void>} The promise that starts the export
  */
 export const startActivityLogsExport = (assetUid: string) =>
-  fetchPost(endpoints.ASSET_HISTORY_EXPORT.replace(':asset_uid', assetUid), { notifyAboutError: false }).catch(
+  fetchPost(endpoints.ASSET_HISTORY_EXPORT.replace(':asset_uid', assetUid), null, { notifyAboutError: false }).catch(
     (error) => {
       const failResponse: FailResponse = {
         status: 500,

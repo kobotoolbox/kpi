@@ -1,6 +1,7 @@
 import type { FlatQuestion } from '#/assetUtils'
 import type { Json } from '#/components/common/common.interfaces'
 import type { SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
+import { createDateQuery } from '#/utils'
 
 const IMAGE_MIMETYPES = ['image/png', 'image/gif', 'image/jpeg', 'image/svg+xml']
 
@@ -81,21 +82,7 @@ export const selectFilterQuery = (
     // Whew, thanks to initial value this works even with 0 repeating groups
   }
   if (startDate || endDate) {
-    // $and is necessary as repeating a json key is not valid
-    const andQuery: Json = []
-    if (startDate) {
-      if (!startDate.includes('T')) {
-        startDate = startDate + 'T00:00Z'
-      }
-      andQuery.push({ _submission_time: { $gt: startDate } })
-    }
-    if (endDate) {
-      if (!endDate.includes('T')) {
-        endDate = endDate + 'T23:59:59.999Z'
-      }
-      andQuery.push({ _submission_time: { $lt: endDate } })
-    }
-    query['$and'] = andQuery
+    query['$and'] = createDateQuery(startDate, endDate)
   }
   return '&query=' + JSON.stringify(query)
 }

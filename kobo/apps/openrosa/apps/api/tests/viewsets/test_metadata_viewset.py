@@ -11,9 +11,9 @@ from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
 from kobo.apps.openrosa.apps.api.viewsets.metadata_viewset import MetaDataViewSet
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
 from kobo.apps.openrosa.apps.main.models.meta_data import MetaData
-from kobo.apps.openrosa.libs.constants import CAN_CHANGE_XFORM, CAN_VIEW_XFORM
 from kobo.apps.openrosa.libs.permissions import assign_perm
 from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormSerializer
+from kpi.constants import PERM_CHANGE_ASSET, PERM_VIEW_ASSET
 
 
 class TestMetaDataViewSet(TestAbstractViewSet):
@@ -209,7 +209,7 @@ class TestMetaDataViewSet(TestAbstractViewSet):
         self.assertTrue(response.data['xform'], 'Project not found')
 
         # Try with view permission
-        assign_perm(CAN_VIEW_XFORM, self.user, self.xform)
+        assign_perm(PERM_VIEW_ASSET, self.user, self.xform.asset)
         response = self._add_form_metadata(
             self.xform, 'media', self.data_value, self.path, test=False
         )
@@ -230,8 +230,8 @@ class TestMetaDataViewSet(TestAbstractViewSet):
         self._login_user_and_profile(extra_post_data=self.default_profile_data)
 
         # Give bob write access to alice's xform
-        assign_perm(CAN_VIEW_XFORM, self.user, self.xform)
-        assign_perm(CAN_CHANGE_XFORM, self.user, self.xform)
+        assign_perm(PERM_VIEW_ASSET, self.user, self.xform.asset)
+        assign_perm(PERM_CHANGE_ASSET, self.user, self.xform.asset)
 
         # Try to add metadata to alice's XForm.
         self._add_test_metadata()

@@ -53,6 +53,10 @@ class AssetListApiTests(test_api_assets.AssetListApiTests):
     def test_creator_permissions_on_import(self):
         pass
 
+    @unittest.skip(reason='`last_modified_by` field only exists in v2 endpoint')
+    def test_last_modified_by_field_not_assigned(self):
+        pass
+
     def test_query_counts(self):
         # expected query counts are different in v1 and v2 so override the test here
         self.create_asset()
@@ -74,15 +78,22 @@ class AssetVersionApiTests(test_api_assets.AssetVersionApiTests):
 class AssetDetailApiTests(test_api_assets.AssetDetailApiTests):
     URL_NAMESPACE = None
 
-    @unittest.skip(reason='`assignable_permissions` property only exists in '
-                          'v2 endpoint')
+    @unittest.skip(
+        reason='`assignable_permissions` property only exists in v2 endpoint'
+    )
     def test_assignable_permissions(self):
         pass
 
-    @unittest.skip(
-        reason='`project_ownership` property only exists in v2 endpoint'
-    )
+    @unittest.skip(reason='`project_ownership` property only exists in v2 endpoint')
     def test_ownership_transfer_status(self):
+        pass
+
+    @unittest.skip(reason='`last_modified_by` property only exists in v2 endpoint')
+    def test_cannot_modified_last_modified_by(self):
+        pass
+
+    @unittest.skip(reason='`last_modified_by` property only exists in v2 endpoint')
+    def test_last_modified_by_is_modified(self):
         pass
 
 

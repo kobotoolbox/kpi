@@ -21,7 +21,7 @@ jobs:
 
       matrix:
         node-version:
-          - '20.17.0'  # version that's pinned in Dockerfile for kpi release
+          - '20.18.1'  # version that's pinned in Dockerfile for kpi release
           - '22'       # version that's active (v22 until Nov, 2025), see https://nodejs.org/en/about/previous-releases
           # - '24'       # version that's current (v24 since May, 2025), see https://nodejs.org/en/about/previous-releases
       fail-fast: false # Let each job finish
