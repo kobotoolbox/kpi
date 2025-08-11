@@ -13,5 +13,9 @@ class RecipientSenderUrlField(serializers.URLField):
     pass
 
 
+class StatusEnumField(serializers.CharField):
+    pass
+
+
 class TransferField(serializers.JSONField):
     pass
