@@ -645,6 +645,64 @@ class GoogleNLPSubmissionTest(BaseTestCase):
             res = self.client.post(url, data, format='json')
             self.assertContains(res, 'complete')
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_settings(
+        CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}},
+    )
+    @override_config(ASR_MT_INVITEE_USERNAMES='*')
+    @patch('kobo.apps.subsequences.integrations.google.google_translate.translate')
+    @patch('google.cloud.speech.SpeechClient')
+    @patch('google.cloud.storage.Client')
+    def test_google_services_usage_limit_checks_disabled(self, m1, m2, translate):
+        url = reverse('advanced-submission-post', args=[self.asset.uid])
+        submission_id = 'abc123-def456'
+        submission = {
+            '__version__': self.asset.latest_deployed_version.uid,
+            'q1': 'audio_conversion_test_clip.3gp',
+            '_uuid': submission_id,
+            '_attachments': [
+                {
+                    'filename': 'someuser/audio_conversion_test_clip.3gp',
+                    'mimetype': 'video/3gpp',
+                },
+            ],
+            '_submitted_by': self.user.username,
+        }
+        self.asset.deployment.mock_submissions([submission])
+        mock_translation_client = Mock()
+        mock_translation_client.translate_text = Mock(
+            return_value='Test translated text'
+        )
+        translate.TranslationServiceClient = Mock(return_value=mock_translation_client)
+        # Avoid error on isinstance call with this:
+        translate.types = translate_v3.types
+
+        data = {
+            'submission': submission_id,
+            'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}},
+        }
+
+        mock_balances = {
+            UsageType.ASR_SECONDS: {'exceeded': True},
+            UsageType.MT_CHARACTERS: {'exceeded': True},
+        }
+        with patch(
+            'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',
+            return_value=mock_balances,
+        ):
+            data = {
+                'submission': submission_id,
+                'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}},
+            }
+            res = self.client.post(url, data, format='json')
+            assert res.status_code == status.HTTP_402_PAYMENT_REQUIRED
+
+            with override_config(USAGE_LIMIT_ENFORCEMENT=False):
+                res = self.client.post(url, data, format='json')
+                self.assertContains(res, 'complete')
+
     @override_settings(
         CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}},
         STRIPE_ENABLED=False,
