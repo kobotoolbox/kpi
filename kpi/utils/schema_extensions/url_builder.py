@@ -72,6 +72,7 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'projectview-assets': '/api/v2/project-views/{uid}/assets/',
         'projectview-export': '/api/v2/project-views/{uid}/{obj_type}/export/',
         'projectview-users': '/api/v2/project-views/{uid}/users/',
+        'user-kpi-migrate': '/api/v2/users/{username}/migrate/{task_id}/',
     }
 
     try:
