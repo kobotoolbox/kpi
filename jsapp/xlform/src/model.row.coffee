@@ -56,7 +56,6 @@ module.exports = do ->
       if @_parent
         @_parent.remove @, opts
         @_parent = null
-      ` `
       return
 
     selectableRows: () ->
@@ -249,7 +248,6 @@ module.exports = do ->
       begin_xlsformrow.type = "begin_rank"
       begin_xlsformrow['kobo--rank-items'] = @getList().get('name')
       survey_arr.push(begin_xlsformrow)
-      ``
       return
 
   class ScoreChoiceList extends Array
@@ -289,7 +287,6 @@ module.exports = do ->
       else
         ctx.warnings.push "Score choices list not set"
         @_scoreChoices = @getSurvey().choices.add(name: txtid())
-      ``
       return
 
     export_relevant_values: (survey_arr, additionalSheets)->
@@ -300,7 +297,6 @@ module.exports = do ->
       output.type = "begin_score"
       output['kobo--score-choices'] = @getList().get('name')
       survey_arr.push(output)
-      ``
       return
 
   class row.Row extends row.BaseRow
