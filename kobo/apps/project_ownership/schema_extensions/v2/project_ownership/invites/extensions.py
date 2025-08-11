@@ -17,28 +17,6 @@ from kpi.schema_extensions.v2.generic.schema import (
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
-class MemberInviteStatus:
-    CHOICES = [
-      ('accepted', 'Accepted'),
-      ('cancelled', 'Cancelled'),
-      ('declined', 'Declined'),
-      ('expired', 'Expired'),
-      ('pending', 'Pending'),
-      ('Resent', 'Resent'),
-    ]
-
-
-class EnumTest(OpenApiSerializerFieldExtension):
-    target_class = 'kobo.apps.project_ownership.schema_extensions.v2.project_ownership.invites.fields.StatusEnumField'  # noqa
-
-    def map_serializer_field(self, auto_schema, direction):
-        return build_choice_field(
-            field=serializers.ChoiceField(
-                choices=MemberInviteStatus.CHOICES
-            )
-        )
-
-
 class InviteAssetFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kobo.apps.project_ownership.schema_extensions.v2.project_ownership.invites.fields.InviteAssetField'  # noqa
 
@@ -60,6 +38,26 @@ class RecipientSenderUrlFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return USER_URL_SCHEMA
+
+
+class StatusEnumFieldExtension(OpenApiSerializerFieldExtension):
+    CHOICES = [
+      ('accepted', 'Accepted'),
+      ('cancelled', 'Cancelled'),
+      ('declined', 'Declined'),
+      ('expired', 'Expired'),
+      ('pending', 'Pending'),
+      ('Resent', 'Resent'),
+    ]
+
+    target_class = 'kobo.apps.project_ownership.schema_extensions.v2.project_ownership.invites.fields.StatusEnumField'  # noqa
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_choice_field(
+            field=serializers.ChoiceField(
+                choices=StatusEnumFieldExtension.CHOICES
+            )
+        )
 
 
 class TransferFieldExtension(OpenApiSerializerFieldExtension):
