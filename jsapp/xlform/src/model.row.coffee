@@ -258,7 +258,8 @@ module.exports = do ->
       @simpleEnsureKuid()
       return
     export_relevant_values: (surv, sheets)->
-      return surv.push(@attributes)
+      surv.push(@attributes)
+      return
 
   class ScoreRows extends Backbone.Collection
     model: ScoreRow
