@@ -26,10 +26,13 @@ from kobo.apps.openrosa.libs.serializers.xform_serializer import (
     XFormListSerializer,
     XFormManifestSerializer,
 )
+from kobo.apps.openrosa.schema_extensions.v2.manifest.serializers import \
+    OpenRosaFormManifestResponse
 from kpi.authentication import DigestAuthentication
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.models.object_permission import ObjectPermission
 from kpi.utils.schema_extensions.markdown import read_md
+from kpi.schema_extensions.v2.openrosa.serializers import OpenRosaManifestResponse
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
 
@@ -200,7 +203,18 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             xform.xml_with_disclaimer, headers=self.get_openrosa_headers()
         )
 
-    @extend_schema(tags=['OpenRosa Form Manifest'])
+    @extend_schema(
+        description=read_md('openrosa', 'manifest/list.md'),
+        responses=open_api_200_ok_response(
+            OpenRosaFormManifestResponse,
+            media_type='application/xml',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+            error_media_type='application/xml',
+        ),
+        tags=['OpenRosa Form Manifest']
+    )
     @action(detail=True, methods=['GET'])
     def manifest(self, request, *args, **kwargs):
         xform = self.get_object()

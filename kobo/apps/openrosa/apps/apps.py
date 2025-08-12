@@ -11,4 +11,5 @@ class OpenRosaAppConfig(AppConfig):
         # the type was unknown and will return to default (string)) and seen as string
         # in the UI.
         from kobo.apps.openrosa.schema_extensions.v2.formlist import extensions  # noqa F401
+        from kobo.apps.openrosa.schema_extensions.v2.manifest import extensions  # noqa F401
         super().ready()
