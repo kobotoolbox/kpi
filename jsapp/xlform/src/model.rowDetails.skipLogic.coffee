@@ -95,7 +95,7 @@ class rowDetailsSkipLogic.SkipLogicCriterion extends Backbone.Model
 
   set_option_names: (options) ->
     _.each(options, (model)->
-      if `model.get('name') == null`
+      if (`(model.get('name') == null)`)
         model.set('name', $utils.sluggify(model.get('label')))
         return
     )
@@ -132,9 +132,15 @@ class rowDetailsSkipLogic.SkipLogicCriterion extends Backbone.Model
         response_model.set_value choices[0].cid
     else
       response_model.set_value(value)
+<<<<<<< HEAD
     return
   constructor: (@factory, @survey) ->
+=======
+  constructor: (factory, survey) ->
+>>>>>>> main
     super()
+    @factory = factory
+    @survey = survey
 
 
 class rowDetailsSkipLogic.Operator extends Backbone.Model
