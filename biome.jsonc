@@ -5,6 +5,7 @@
       "node_modules/**",
       "jsapp/compiled/**",
       "*.css",
+      // Ignore minified committed JS files.
       "*.min.js",
       "*-min.js",
       "bootstrap*.js",

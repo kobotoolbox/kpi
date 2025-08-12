@@ -334,7 +334,7 @@ class BigModal extends React.Component {
           )}
           {this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && this.state.enketopreviewlink && (
             <div className='enketo-holder'>
-              <iframe src={this.state.enketopreviewlink} />
+              <iframe src={this.state.enketopreviewlink} allow='camera *; microphone *; geolocation *' />
             </div>
           )}
           {this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && !this.state.enketopreviewlink && <LoadingSpinner />}

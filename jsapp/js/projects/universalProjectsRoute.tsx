@@ -136,6 +136,7 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
 
           <ProjectsFieldsSelector
             onFieldsChange={customView.setFields.bind(customView)}
+            defaultVisibleFields={props.defaultVisibleFields}
             selectedFields={toJS(customView.fields)}
             excludedFields={props.defaultExcludedFields}
           />

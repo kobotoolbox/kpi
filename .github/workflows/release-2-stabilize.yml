@@ -18,6 +18,7 @@ jobs:
     outputs:
       all:      ${{ steps.filter.outputs.all      }}
       darker:   ${{ steps.filter.outputs.darker   }}
+      biome:    ${{ steps.filter.outputs.biome    }}
       pytest:   ${{ steps.filter.outputs.pytest   }}
       npm-test: ${{ steps.filter.outputs.npm-test }}
 
@@ -25,6 +26,11 @@ jobs:
     needs: changes
     if: needs.changes.outputs.all == 'true' || needs.changes.outputs.darker == 'true'
     uses: ./.github/workflows/darker.yml
+
+  biome:
+    needs: changes
+    if: needs.changes.outputs.all == 'true' || needs.changes.outputs.biome == 'true'
+    uses: ./.github/workflows/biome.yml
 
   pytest:
     needs: changes
