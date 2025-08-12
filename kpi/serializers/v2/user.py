@@ -1,8 +1,6 @@
-import datetime
 import logging
 from zoneinfo import ZoneInfo
 
-import constance
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
 from django_request_cache import cache_for_request
@@ -15,8 +13,8 @@ from kpi.constants import ASSET_TYPE_COLLECTION, PERM_DISCOVER_ASSET
 from kpi.models.asset import Asset, UserAssetSubscription
 from kpi.models.object_permission import ObjectPermission
 from kpi.serializers.v2.service_usage import ServiceUsageSerializer
-from kpi.utils.gravatar_url import gravatar_url
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.permissions import is_user_anonymous
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -65,17 +63,16 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
                                                                   flat=True)
 
 
-class UserListSerializer(UserSerializer):
-    extra_details_uid = serializers.SerializerMethodField()
+class UserListSerializer(serializers.HyperlinkedModelSerializer):
+    extra_details__uid = serializers.SerializerMethodField()
     is_staff = serializers.BooleanField(read_only=True)
+    date_joined = serializers.SerializerMethodField()
     last_login = serializers.SerializerMethodField()
     validated_email = serializers.SerializerMethodField()
     validated_password = serializers.SerializerMethodField()
     mfa_is_active = serializers.SerializerMethodField()
     sso_is_active = serializers.SerializerMethodField()
     accepted_tos = serializers.SerializerMethodField()
-    projects_url = serializers.SerializerMethodField()
-    gravatar = serializers.SerializerMethodField()
     social_accounts = SocialAccountSerializer(
         source='socialaccount_set', many=True, read_only=True
     )
@@ -85,12 +82,10 @@ class UserListSerializer(UserSerializer):
     current_service_usage = serializers.SerializerMethodField()
     asset_count = serializers.SerializerMethodField()
     deployed_asset_count = serializers.SerializerMethodField()
-    server_time = serializers.SerializerMethodField()
-    git_rev = serializers.SerializerMethodField()
 
     class Meta(UserSerializer.Meta):
         fields = (
-            'extra_details_uid',
+            'extra_details__uid',
             'username',
             'first_name',
             'last_name',
@@ -105,9 +100,6 @@ class UserListSerializer(UserSerializer):
             'mfa_is_active',
             'sso_is_active',
             'accepted_tos',
-            'url',
-            'projects_url',
-            'gravatar',
             'social_accounts',
             'organizations',
             'metadata',
@@ -115,10 +107,6 @@ class UserListSerializer(UserSerializer):
             'current_service_usage',
             'asset_count',
             'deployed_asset_count',
-            'public_collection_subscribers_count',
-            'public_collections_count',
-            'server_time',
-            'git_rev',
         )
 
     def get_accepted_tos(self, obj) -> bool:
@@ -138,7 +126,7 @@ class UserListSerializer(UserSerializer):
 
     def get_current_service_usage(self, user):
         # Cannot access service usage for anonymous users
-        if user.username == 'AnonymousUser':
+        if is_user_anonymous(user):
             return None
 
         serializer = ServiceUsageSerializer(
@@ -146,23 +134,17 @@ class UserListSerializer(UserSerializer):
         )
         return serializer.data
 
+    def get_date_joined(self, obj):
+        return obj.date_joined.astimezone(ZoneInfo('UTC')).strftime(
+            '%Y-%m-%dT%H:%M:%SZ')
+
     def get_deployed_asset_count(self, user) -> int:
         return user.assets.filter(_deployment_status='deployed').count()
 
-    def get_extra_details_uid(self, user):
+    def get_extra_details__uid(self, user):
         if hasattr(user, 'extra_details'):
             return user.extra_details.uid
         return None
-
-    def get_git_rev(self, obj):
-        request = self.context.get('request', False)
-        if constance.config.EXPOSE_GIT_REV or (request and request.user.is_superuser):
-            return settings.GIT_REV
-        else:
-            return False
-
-    def get_gravatar(self, obj):
-        return gravatar_url(obj.email)
 
     def get_last_login(self, obj):
         if obj.last_login is not None:
@@ -192,12 +174,6 @@ class UserListSerializer(UserSerializer):
                 ),
                 'role': user.organization.get_user_role(user),
             }
-
-    def get_projects_url(self, obj):
-        return '/'.join((settings.KOBOCAT_URL, obj.username))
-
-    def get_server_time(self, obj):
-        return datetime.datetime.now(tz=ZoneInfo('UTC')).strftime('%Y-%m-%dT%H:%M:%SZ')
 
     def get_sso_is_active(self, user):
         return SocialAccount.objects.filter(user=user).exists()

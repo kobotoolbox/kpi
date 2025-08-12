@@ -177,7 +177,6 @@ class CurrentUserTestCase(BaseTestCase):
             'email': self.user.email,
             'server_time': time.strftime('%Y-%m-%dT%H:%M:%SZ'),
             'date_joined': self.user.date_joined.strftime('%Y-%m-%dT%H:%M:%SZ'),
-            'projects_url': '/'.join((settings.KOBOCAT_URL, self.user.username)),
             'gravatar': gravatar_url(self.user.email),
             'extra_details': {
                 'organization': '',

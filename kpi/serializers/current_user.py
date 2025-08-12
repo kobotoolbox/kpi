@@ -25,7 +25,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
     server_time = serializers.SerializerMethodField()
     date_joined = serializers.SerializerMethodField()
-    projects_url = serializers.SerializerMethodField()
     gravatar = serializers.SerializerMethodField()
     extra_details = WritableJSONField(source='extra_details.data')
     current_password = serializers.CharField(write_only=True, required=False)
@@ -48,7 +47,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'email',
             'server_time',
             'date_joined',
-            'projects_url',
             'gravatar',
             'last_login',
             'extra_details',

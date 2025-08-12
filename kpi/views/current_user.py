@@ -28,7 +28,6 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     >           "email": string,
     >           "server_time": "YYYY-MM-DDTHH:MM:SSZ",
     >           "date_joined": "YYYY-MM-DDTHH:MM:SSZ",
-    >           "projects_url": "https://[kobocat]/{username}",
     >           "gravatar": url,
     >           "last_login": "YYYY-MM-DDTHH:MM:SSZ",
     >           "extra_details": {

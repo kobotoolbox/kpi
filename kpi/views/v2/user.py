@@ -39,7 +39,7 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     >           "previous": string,
     >           "results": [
     >               {
-    >                   "extra_details_uid": string,
+    >                   "extra_details__uid": string,
     >                   "username": string,
     >                   "first_name": string,
     >                   "last_name": string,
@@ -54,9 +54,6 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     >                   "mfa_is_active": boolean,
     >                   "sso_is_active": boolean,
     >                   "accepted_tos": boolean,
-    >                   "url": "https://[kpi]/users/user1/",
-    >                   "projects_url": "https://[kobocat]/user1",
-    >                   "gravatar": url,
     >                   "social_accounts": [
     >                       {
     >                           "provider": string,
@@ -133,16 +130,7 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     >                       "last_updated": YYYY-MM-DDTHH:MM:SSZ
     >                   }
     >                   "asset_count": integer,
-    >                   "deployed_asset_count": integer,
-    >                   "public_collection_subscribers_count": integer,
-    >                   "public_collections_count": integer,
-    >                   "server_time": "YYYY-MM-DDTHH:MM:SSZ",
-    >                   "git_rev": {
-    >                       "short": boolean,
-    >                       "long": boolean,
-    >                       "branch": boolean,
-    >                       "tag": boolean
-    >                   }
+    >                   "deployed_asset_count": integer
     >               }
     >           ]
     >       }

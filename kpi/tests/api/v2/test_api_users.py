@@ -118,7 +118,7 @@ class UserListTests(BaseTestCase):
         first_user_data = response.data['results'][0]
 
         expected_fields = [
-            'extra_details_uid',
+            'extra_details__uid',
             'username',
             'first_name',
             'last_name',
@@ -133,9 +133,6 @@ class UserListTests(BaseTestCase):
             'mfa_is_active',
             'sso_is_active',
             'accepted_tos',
-            'url',
-            'projects_url',
-            'gravatar',
             'social_accounts',
             'organizations',
             'metadata',
@@ -143,10 +140,6 @@ class UserListTests(BaseTestCase):
             'current_service_usage',
             'asset_count',
             'deployed_asset_count',
-            'public_collection_subscribers_count',
-            'public_collections_count',
-            'server_time',
-            'git_rev',
         ]
         for field in expected_fields:
             self.assertIn(field, first_user_data)
