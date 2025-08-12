@@ -32,7 +32,6 @@ from kpi.authentication import DigestAuthentication
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.models.object_permission import ObjectPermission
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.schema_extensions.v2.openrosa.serializers import OpenRosaManifestResponse
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
 
