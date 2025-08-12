@@ -202,7 +202,10 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
         return Response(serializer.data, headers=self.get_openrosa_headers())
 
-    @extend_schema(tags=['OpenRosa Form Media'])
+    @extend_schema(
+        tags=['OpenRosa Form Media'],
+        exclude=True,
+    )
     @action(detail=True, methods=['GET'])
     def media(self, request, *args, **kwargs):
         xform = self.get_object()
