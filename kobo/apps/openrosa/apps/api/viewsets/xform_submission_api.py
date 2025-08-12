@@ -23,6 +23,8 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     safe_create_instance,
 )
 from kobo.apps.openrosa.libs.utils.string import dict_lists2strings
+from kobo.apps.openrosa.schema_extensions.v2.submission.serializers import \
+    OpenRosaResponse, OpenRosaPayload
 from kpi.authentication import (
     BasicAuthentication,
     DigestAuthentication,
@@ -30,6 +32,7 @@ from kpi.authentication import (
     TokenAuthentication,
 )
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 from ..utils.xml import extract_confirmation_message
 
@@ -65,7 +68,16 @@ def create_instance_from_json(username, request):
     return safe_create_instance(username, xml_file, [], None, request=request)
 
 
-@extend_schema(tags=['OpenRosa Form Submission'])
+@extend_schema(
+    request={'multipart/form-data': OpenRosaPayload},
+    responses=open_api_200_ok_response(
+        OpenRosaResponse,
+        media_type='application/xml',
+        error_media_type='application/xml',
+        raise_access_forbidden=False,
+    ),
+    tags=['OpenRosa Form Submission'],
+)
 class XFormSubmissionApi(
     OpenRosaHeadersMixin,
     mixins.CreateModelMixin,
