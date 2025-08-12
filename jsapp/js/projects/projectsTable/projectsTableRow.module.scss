@@ -26,7 +26,7 @@ $projects-table-row-height: 36px;
   padding: $projects-table-row-padding;
   color: colors.$kobo-gray-700;
   flex: 1 0 auto;
-  // ensures the table columns are same width for all rows
+  // ensures the table columns are same width for all rows (default value)
   width: 10%;
 
   > * {
@@ -47,21 +47,7 @@ $projects-table-row-height: 36px;
     @include mixins.centerRowFlex;
   }
 
-  &[data-field='countries'],
-  &[data-field='description'],
-  &[data-field='ownerEmail'],
-  &[data-field='ownerOrganization'],
-  &[data-field='status'] {
-    width: 13%;
-  }
-
-  &[data-field='submissions'] {
-    width: 10%;
-  }
-
   &[data-field='countries'] {
-    width: 15%;
-
     > *:not(:last-child) {
       margin-right: 5px;
     }
@@ -69,23 +55,12 @@ $projects-table-row-height: 36px;
 
   &[data-field='ownerFullName'],
   &[data-field='ownerUsername'] {
-    width: 10%;
     font-weight: 600;
-  }
-
-  &[data-field='dateModified'],
-  &[data-field='dateDeployed'] {
-    width: 14%;
-  }
-
-  &[data-field='languages'] {
-    width: 15%;
   }
 
   &[data-field='name'] {
     color: colors.$kobo-dark-blue;
     font-weight: 600;
-    width: 30%;
 
     // Handling the fact that the cell content is a link
     padding: 0;
@@ -112,10 +87,36 @@ $projects-table-row-height: 36px;
     text-decoration: 1px solid underline color.change(colors.$kobo-mid-blue, $alpha: 0);
     text-underline-offset: 3px;
   }
+}
 
-  &[data-field='sector'] {
-    width: 15%;
-  }
+// cell widths
+.cell[data-field='status'],
+.cell[data-field='submissions'],
+.cell[data-field='ownerFullName'],
+.cell[data-field='ownerUsername'] {
+  width: 10%;
+}
+
+.cell[data-field='countries'],
+.cell[data-field='description'],
+.cell[data-field='ownerEmail'],
+.cell[data-field='ownerOrganization'] {
+  width: 13%;
+}
+
+.cell[data-field='dateModified'],
+.cell[data-field='dateDeployed'] {
+  width: 14%;
+}
+
+.cell[data-field='countries'],
+.cell[data-field='sector'],
+.cell[data-field='languages'] {
+  width: 15%;
+}
+
+.cell[data-field='name'] {
+  width: 28%;
 }
 
 .row.rowTypeProject {
