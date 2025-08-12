@@ -47,7 +47,7 @@
     "lodash.union": "^4.6.0",
     "lodash.values": "^4.3.0",
     "lodash.zip": "^4.2.0",
-    "mobx": "^6.12.5",
+    "mobx": "^6.13.7",
     "mobx-react": "^7.6.0",
     "normalize.css": "^8.0.1",
     "pretty-bytes": "^7.0.0",
