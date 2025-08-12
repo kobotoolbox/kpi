@@ -216,7 +216,18 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         tags=['OpenRosa Form Manifest']
     )
     @action(detail=True, methods=['GET'])
-    def manifest(self, request, *args, **kwargs):
+    def manifest(self, request, *args, **kwargs)
+        """
+
+        ViewSet for managing enketo form list
+
+        Available actions:
+        - xform_manifest (anonymous)         → GET /{username}/xformManifest/{id}
+        - xform_manifest (authenticated)     → GET /xformManifest/{id}
+
+        Documentation:
+        - docs/api/v2/manifest/list.md
+        """
         xform = self.get_object()
         media_files = {}
         expired_objects = False
