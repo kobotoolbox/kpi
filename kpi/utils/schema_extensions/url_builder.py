@@ -28,8 +28,8 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'user-kpi-detail': '/api/v2/users/{username}/',
         'assetsnapshot-detail': '/api/v2/asset_snapshots/{uid}/',
         'assetsnapshot-preview': '/api/v2/asset_snapshots/{uid}/preview/',
-        'assetsnapshot-xml-with-disclaimer': '/api/v2/asset_snapshots/{uid}/xml_with_disclaimer.xml',  # noqa
-        'assetsnapshot-manifest-openrosa': '/api/v2/asset_snapshots/{uid}/manifest.xml',
+        'assetsnapshot-xml-with-disclaimer': '/api/v2/asset_snapshots/{uid}/xml_with_disclaimer/',  # noqa
+        'assetsnapshot-manifest-openrosa': '/api/v2/asset_snapshots/{uid}/manifest/',
         'userassetsubscription-detail': '/api/v2/asset_subscription/{uid}/',
         'asset-version-detail': '/api/v2/assets/{parent_lookup_asset}/versions/{uid}/',
         'asset-xform': '/api/v2/assets/{uid}/xform/',
@@ -46,7 +46,8 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'asset-export-settings-detail': '/api/v2/assets/{parent_lookup_asset}/export-settings/{uid}/',  # noqa
         'asset-export-settings-detail-format': '/api/v2/assets/{parent_lookup_asset}/export-settings/{uid}/data.{format}',  # noqa
         'asset-export-detail': '/api/v2/assets/{parent_lookup_asset}/exports/{uid}/',
-        'serve_private_file': '{path}',
+        'serve_private_file': '/private-media/{username}/exports/assets-{username}-view_pvNNUan8EBhzfkrv6sCNuzR-2025-08-11T143443Z.csv',  # noqa
+        'serve_asset_private_file': '{path}',
         'asset-file-detail': '/api/v2/assets/{parent_lookup_asset}/files/{uid}/',
         'asset-file-content': '/api/v2/assets/{parent_lookup_asset}/files/{uid}/content/',  # noqa
         'hook-log-list': '/api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/',  # noqa
@@ -64,6 +65,14 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'terms-of-service-detail': '/api/v2/terms-of-service/{slug}/',
         'enketo_edit_link': '{path}',
         'enketo_view_link': '{path}',
+        'importtask-detail': '/api/v2/imports/{uid}/',
+        'organization-members-detail': '/api/v2/organizations/{organization_id}/members/{user__username}/',  # noqa
+        'project-ownership-invite-detail': '/api/v2/project-ownership/invites/{uid}/',
+        'projectview-detail': '/api/v2/project-views/{uid}/',
+        'projectview-assets': '/api/v2/project-views/{uid}/assets/',
+        'projectview-export': '/api/v2/project-views/{uid}/{obj_type}/export/',
+        'projectview-users': '/api/v2/project-views/{uid}/users/',
+        'user-kpi-migrate': '/api/v2/users/{username}/migrate/{task_id}/',
         'download-url-openrosa': '/forms/{id}/form.xml',
         'manifest-openrosa': '/xformsManifest/{id}',
     }

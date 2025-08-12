@@ -47,7 +47,7 @@ class StatusEnumFieldExtension(OpenApiSerializerFieldExtension):
       ('declined', 'Declined'),
       ('expired', 'Expired'),
       ('pending', 'Pending'),
-      ('Resent', 'Resent'),
+      ('resent', 'Resent'),
     ]
 
     target_class = 'kobo.apps.project_ownership.schema_extensions.v2.project_ownership.invites.fields.StatusEnumField'  # noqa
