@@ -132,12 +132,8 @@ class rowDetailsSkipLogic.SkipLogicCriterion extends Backbone.Model
         response_model.set_value choices[0].cid
     else
       response_model.set_value(value)
-<<<<<<< HEAD
     return
-  constructor: (@factory, @survey) ->
-=======
   constructor: (factory, survey) ->
->>>>>>> main
     super()
     @factory = factory
     @survey = survey
