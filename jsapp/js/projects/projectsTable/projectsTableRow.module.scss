@@ -93,7 +93,8 @@ $projects-table-row-height: 36px;
 .cell[data-field='status'],
 .cell[data-field='submissions'],
 .cell[data-field='ownerFullName'],
-.cell[data-field='ownerUsername'] {
+.cell[data-field='ownerUsername'],
+.cell[data-field='lastModifiedBy'] {
   width: 10%;
 }
 
