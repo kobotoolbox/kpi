@@ -4,7 +4,6 @@ import re
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django_digest.test import DigestAuth
-from guardian.models import UserObjectPermission
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -14,10 +13,9 @@ from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
 )
 from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import XFormListApi
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
-from kobo.apps.openrosa.libs.constants import CAN_ADD_SUBMISSIONS, CAN_VIEW_XFORM
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm
+from kobo.apps.openrosa.libs.permissions import assign_perm
 from kobo.apps.organizations.models import Organization
-from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_MANAGE_ASSET
+from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_MANAGE_ASSET, PERM_VIEW_ASSET
 from kpi.models import Asset
 
 
@@ -286,7 +284,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
             'email': 'alice@localhost.com',
         }
         alice_profile = self._create_user_profile(alice_data)
-        assign_perm(CAN_ADD_SUBMISSIONS, alice_profile.user, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice_profile.user, self.xform.asset)
         auth = DigestAuth('alice', 'alicealice')
         request.META.update(auth(request.META, response))
         response = self.view(request)
@@ -376,7 +374,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         alice_profile = self._create_user_profile(alice_data)
 
         self.assertFalse(
-            alice_profile.user.has_perms([CAN_VIEW_XFORM], self.xform)
+            alice_profile.user.has_perms([PERM_VIEW_ASSET], self.xform.asset)
         )
 
         auth = DigestAuth('alice', 'alicealice')
@@ -405,9 +403,9 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         }
         alice_profile = self._create_user_profile(alice_data)
 
-        assign_perm(CAN_VIEW_XFORM, alice_profile.user, self.xform)
+        assign_perm(PERM_VIEW_ASSET, alice_profile.user, self.xform.asset)
         self.assertTrue(
-            alice_profile.user.has_perms([CAN_VIEW_XFORM], self.xform)
+            alice_profile.user.has_perms([PERM_VIEW_ASSET], self.xform.asset)
         )
 
         auth = DigestAuth('alice', 'alicealice')
@@ -436,9 +434,9 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         }
         alice_profile = self._create_user_profile(alice_data)
 
-        assign_perm(CAN_ADD_SUBMISSIONS, alice_profile.user, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice_profile.user, self.xform.asset)
         self.assertTrue(
-            alice_profile.user.has_perms([CAN_ADD_SUBMISSIONS], self.xform)
+            alice_profile.user.has_perms([PERM_ADD_SUBMISSIONS], self.xform.asset)
         )
 
         auth = DigestAuth('alice', 'alicealice')
@@ -660,9 +658,6 @@ class TestXFormListAsOrgAdminApiBase(TestXFormListApiBase):
         alice_profile = self._create_user_profile(alice_data)
         alice = alice_profile.user
         bob_organization.add_user(alice, is_admin=True)
-
-        # Make sure alice has no explicit permissions
-        assert UserObjectPermission.objects.filter(user=alice).exists()
 
     def test_head_xform_list(self):
         request = self.factory.head('/')
