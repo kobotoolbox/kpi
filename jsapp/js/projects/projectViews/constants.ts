@@ -228,16 +228,7 @@ export const PROJECT_FIELDS: ProjectFields = {
     label: t('Last edited'),
     apiFilteringName: 'last_modified_by',
     apiOrderingName: 'last_modified_by',
-    availableConditions: [
-      'contains',
-      'doesNotContain',
-      'endsWith',
-      'is',
-      'isEmpty',
-      'isNot',
-      'isNotEmpty',
-      'startsWith',
-    ],
+    availableConditions: ['contains', 'doesNotContain', 'endsWith', 'is', 'isNot', 'startsWith'],
   },
   dateModified: {
     name: 'dateModified',
