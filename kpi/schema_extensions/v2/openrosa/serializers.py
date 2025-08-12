@@ -13,10 +13,8 @@ OpenRosaFormListResponse = inline_serializer_class(
     fields={
         'formID': serializers.CharField(),
         'name': serializers.CharField(),
-        'majorMinorVersion': serializers.CharField(),
-        'version': serializers.CharField(),
         'hash': serializers.CharField(),
-        'description': serializers.CharField(),
+        'descriptionText': serializers.CharField(),
         'downloadUrl': serializers.URLField(),
         'manifestUrl': serializers.URLField(),
     },

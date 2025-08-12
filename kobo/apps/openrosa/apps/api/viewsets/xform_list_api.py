@@ -159,6 +159,17 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         root.
         Exposing a custom action lets us control the response schema (e.g.
         XML root as `<xforms>`) so Swagger UI can render the XML example correctly.
+
+
+
+        ViewSet for managing enketo form list
+
+        Available actions:
+        - form_list (anonymous)         → GET /api/v2/{username}/formList/
+        - form_list (authenticated)     → GET /api/v2/formList/
+
+        Documentation:
+        - docs/api/v2/form_list/list.md
         """
         return self.list(request, *args, **kwargs)
 

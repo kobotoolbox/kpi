@@ -28,8 +28,8 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'user-kpi-detail': '/api/v2/users/{username}/',
         'assetsnapshot-detail': '/api/v2/asset_snapshots/{uid}/',
         'assetsnapshot-preview': '/api/v2/asset_snapshots/{uid}/preview/',
-        'assetsnapshot-xml-with-disclaimer': '/api/v2/asset_snapshots/{uid}/xml_with_disclaimer/',  # noqa
-        'assetsnapshot-manifest-openrosa': '/api/v2/asset_snapshots/{uid}/manifest/',
+        'assetsnapshot-xml-with-disclaimer': '/api/v2/asset_snapshots/{uid}/xml_with_disclaimer.xml',  # noqa
+        'assetsnapshot-manifest-openrosa': '/api/v2/asset_snapshots/{uid}/manifest.xml',
         'userassetsubscription-detail': '/api/v2/asset_subscription/{uid}/',
         'asset-version-detail': '/api/v2/assets/{parent_lookup_asset}/versions/{uid}/',
         'asset-xform': '/api/v2/assets/{uid}/xform/',

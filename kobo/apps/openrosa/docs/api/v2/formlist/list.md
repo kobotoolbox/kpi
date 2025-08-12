@@ -7,3 +7,6 @@ Adding a submission as an anonymous user:
 
 Adding a submission as an authenticated user:
 `/formList`
+
+
+⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
