@@ -216,7 +216,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         tags=['OpenRosa Form Manifest']
     )
     @action(detail=True, methods=['GET'])
-    def manifest(self, request, *args, **kwargs)
+    def manifest(self, request, *args, **kwargs):
         """
 
         ViewSet for managing enketo form list
