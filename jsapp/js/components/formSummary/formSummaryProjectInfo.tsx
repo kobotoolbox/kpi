@@ -79,16 +79,6 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
               <Avatar username={props.asset.owner_label} size='s' isUsernameVisible />
             )}
           </bem.FormView__cell>
-
-          {/* last edited */}
-          <bem.FormView__cell m='padding'>
-            <bem.FormView__label>{t('Last edited')}</bem.FormView__label>
-            {props.asset.last_modified_by === sessionStore.currentAccount.username && t('me')}
-            {props.asset.last_modified_by !== null &&
-              props.asset.last_modified_by !== sessionStore.currentAccount.username && (
-                <Avatar username={props.asset.last_modified_by} size='s' isUsernameVisible />
-              )}
-          </bem.FormView__cell>
         </bem.FormView__group>
 
         <bem.FormView__group m='items'>
