@@ -112,7 +112,6 @@ module.exports = do ->
         # inserting a group
         if row.rows
           if row.forEachRow
-            return null
             row.forEachRow(
               (r) => @_ensure_row_list_is_copied(r),
               {includeGroups: true}
