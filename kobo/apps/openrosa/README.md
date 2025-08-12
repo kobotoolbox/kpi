@@ -30,5 +30,4 @@ For this reason, you will no longer see a separate kobocat container: the code t
 
 Much of the user-facing and REST API features of this application are being refactored.
 For more details and discussion, please refer to
-<https://community.kobotoolbox.org/t/contemplating-the-future-of-kobocat/2743>. Please
-see [REMOVALS.md](REMOVALS.md) for a complete list.
+<https://community.kobotoolbox.org/t/contemplating-the-future-of-kobocat/2743>.

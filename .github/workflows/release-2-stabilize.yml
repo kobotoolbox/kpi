@@ -18,6 +18,7 @@ jobs:
     outputs:
       all:      ${{ steps.filter.outputs.all      }}
       darker:   ${{ steps.filter.outputs.darker   }}
+      biome:    ${{ steps.filter.outputs.biome    }}
       pytest:   ${{ steps.filter.outputs.pytest   }}
       npm-test: ${{ steps.filter.outputs.npm-test }}
 
@@ -25,6 +26,11 @@ jobs:
     needs: changes
     if: needs.changes.outputs.all == 'true' || needs.changes.outputs.darker == 'true'
     uses: ./.github/workflows/darker.yml
+
+  biome:
+    needs: changes
+    if: needs.changes.outputs.all == 'true' || needs.changes.outputs.biome == 'true'
+    uses: ./.github/workflows/biome.yml
 
   pytest:
     needs: changes
@@ -52,6 +58,11 @@ jobs:
 
   changelog:
     runs-on: ubuntu-24.04
+    needs:
+      - darker
+      - pytest
+      - npm-test
+    if: ${{ !cancelled() && !failure() }}
     steps:
     - name: post to Zulip Linear updated draft of changelog
       run: |
@@ -64,11 +75,7 @@ jobs:
       - darker
       - pytest
       - npm-test
-    if: |
-      !failure() &&
-      (needs.darker.result == 'skipped' || needs.darker.result == 'success') &&
-      (needs.pytest.result == 'skipped' || needs.pytest.result == 'success') &&
-      (needs.npm-test.result == 'skipped' || needs.npm-test.result == 'success')
+    if: ${{ !cancelled() && !failure() }}
     steps:
     - uses: actions/checkout@v4
     - name: deploy to beta
@@ -83,18 +90,9 @@ jobs:
     name: Merge forward
     runs-on: ubuntu-24.04
     needs:
-      - darker
-      - pytest
-      - npm-test
       - changelog
       - deploy-to-beta
-    if: |
-      !failure() &&
-      (needs.darker.result == 'skipped' || needs.darker.result == 'success') &&
-      (needs.pytest.result == 'skipped' || needs.pytest.result == 'success') &&
-      (needs.npm-test.result == 'skipped' || needs.npm-test.result == 'success') &&
-      (needs.changelog.result == 'skipped' || needs.changelog.result == 'success') &&
-      needs.deploy-to-beta.result == 'success'
+    if: ${{ !cancelled() && !failure() }}
     steps:
       - name: Generate a token to trigger a workflow from a workflow
         id: app-token
@@ -140,8 +138,10 @@ jobs:
       - darker
       - pytest
       - npm-test
+      - changelog
       - deploy-to-beta
       - merge-forward
+    if: ${{ !cancelled() && !failure() }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
@@ -156,14 +156,7 @@ jobs:
       - npm-test
       - deploy-to-beta
       - merge-forward
-    if: |
-      failure() &&
-      (needs.version.result == 'failure' || needs.version.result == 'timed_out' ||
-      needs.darker.result == 'failure' || needs.darker.result == 'timed_out' ||
-      needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' ||
-      needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out' ||
-      needs.deploy-to-beta.result == 'failure' || needs.deploy-to-beta.result == 'timed_out' ||
-      needs.merge-forward.result == 'failure' || needs.merge-forward.result == 'timed_out')
+    if: ${{ !cancelled() && failure() }}
     secrets: inherit
     uses: './.github/workflows/zulip.yml'
     with:

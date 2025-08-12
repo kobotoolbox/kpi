@@ -1,0 +1,49 @@
+# Biome is a seperate workflow because it should be run both on frontend source files and backend static files.
+
+name: biome
+
+on: workflow_call
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.18.1' # version that's pinned in Dockerfile for kpi release
+          check-latest: true # download newer semver match if available
+          cache: 'npm'
+
+      - name: Identify resolved node version
+        id: resolved-node-version
+        run: echo "NODE_VERSION=$(node --version)" >> "$GITHUB_OUTPUT"
+
+      # Cache: Use cache for node_modules
+      #        Keyed on os, node version, package-lock, and patches
+      - uses: actions/cache@v4
+        name: Check for cached node_modules
+        id: cache-nodemodules
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-node-v${{ steps.resolved-node-version.outputs.NODE_VERSION }}-${{ hashFiles('**/package-lock.json', 'patches/**/*.patch') }}
+
+      # Cache hit:  If the cache key matches,
+      #             /node_modules/ will have been copied from a previous run.
+      #   (Run the post-install step, `npm run copy-fonts`)
+      - name: Run copy-fonts (if using cached node_modules)
+        if: steps.cache-nodemodules.outputs.cache-hit == 'true'
+        run: npm run copy-fonts
+
+      # Cache miss: If node_modules has not been cached,
+      #             `npm install`
+      #   (This includes `npm run copy-fonts` as post-install step)
+      - name: Install JavaScript dependencies (npm install)
+        if: steps.cache-nodemodules.outputs.cache-hit != 'true'
+        run: npm install
+
+      # Check for Biome formatting errors
+      - name: Check Biome formatting, import order and linter
+        run: npm run lint:biome
