@@ -98,6 +98,7 @@ class AssetOrderingFilter(filters.OrderingFilter, DeploymentFilter):
         'owner__extra_details__data__organization',
         'owner__email',
         '_deployment_status',
+        'last_modified_by',
     ]
 
     def filter_queryset(self, request, queryset, view):
