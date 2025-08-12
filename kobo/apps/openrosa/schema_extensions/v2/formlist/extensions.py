@@ -22,12 +22,12 @@ class OpenRosaFormListSerializerExtension(OpenApiSerializerExtension):
                 'hash': build_basic_type(OpenApiTypes.STR),
                 'description': build_basic_type(OpenApiTypes.STR),
                 'downloadUrl': build_url_type(
-                    'api_v2:assetsnapshot-xml-with-disclaimer',
-                    uid='sEMPghTguZsxj4rn4s9dvS',
+                    'api_v2:download-url-openrosa',
+                    id='6',
                 ),
                 'manifestUrl': build_url_type(
-                    'api_v2:assetsnapshot-manifest-openrosa',
-                    uid='sEMPghTguZsxj4rn4s9dvS',
+                    'api_v2:manifest-openrosa',
+                    id='6',
                 ),
             }
         )

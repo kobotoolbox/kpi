@@ -136,9 +136,10 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         return queryset
 
     @extend_schema(
-        description=read_md('kpi', 'openrosa/form_list.md'),
+        description=read_md('openrosa', 'formlist/list.md'),
         responses=open_api_200_ok_response(
             XFormListSerializer,
+            media_type='application/xml',
             require_auth=False,
             validate_payload=False,
             raise_access_forbidden=False,

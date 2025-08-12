@@ -64,6 +64,8 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'terms-of-service-detail': '/api/v2/terms-of-service/{slug}/',
         'enketo_edit_link': '{path}',
         'enketo_view_link': '{path}',
+        'download-url-openrosa': '/forms/{id}/form.xml',
+        'manifest-openrosa': '/xformsManifest/{id}',
     }
 
     try:
