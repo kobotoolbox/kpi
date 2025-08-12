@@ -32,6 +32,7 @@ from kpi.authentication import (
     TokenAuthentication,
 )
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 from ..utils.xml import extract_confirmation_message
@@ -69,6 +70,7 @@ def create_instance_from_json(username, request):
 
 
 @extend_schema(
+    description=read_md('openrosa', 'submission/create.md'),
     request={'multipart/form-data': OpenRosaPayload},
     responses=open_api_200_ok_response(
         OpenRosaResponse,
@@ -85,6 +87,15 @@ class XFormSubmissionApi(
     AuditLoggedViewSet,
 ):
     """
+    ViewSet for managing the enketo submission
+
+    Available actions:
+    - create        → POST /submission
+    - create        → POST /{username}/submission
+
+    Documentation:
+    - docs/api/v2/submission/create.md
+
     Implements OpenRosa Api [FormSubmissionAPI](\
         https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI)
 
