@@ -11,7 +11,6 @@ from kpi.filters import SearchFilter
 from kpi.models.asset import Asset
 from kpi.permissions import IsAuthenticated
 from kpi.schema_extensions.v2.users.serializers import (
-    MigrateResponse,
     UserListResponse,
     UserRetrieveResponse,
 )
@@ -44,12 +43,7 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
         ),
     ),
     migrate=extend_schema(
-        description=read_md('kpi', 'users/migrate.md'),
-        responses=open_api_200_ok_response(
-            MigrateResponse,
-            raise_not_found=False,
-            validate_payload=False,
-        ),
+        exclude=True,
     ),
 )
 class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
