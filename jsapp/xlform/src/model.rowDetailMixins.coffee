@@ -15,7 +15,7 @@ module.exports = do ->
       if v is "undefined"
         Raven?.captureException("Serialized value is returning a string, undefined")
         v = ""
-      v
+      return v
 
     postInitialize: ()->
       survey = @getSurvey()
@@ -23,17 +23,17 @@ module.exports = do ->
       view_factory = new $viewRowDetailSkipLogic.SkipLogicViewFactory survey
       helper_factory = new $skipLogicHelpers.SkipLogicHelperFactory model_factory, view_factory, survey, @_parent, @.get('value')
 
-      @facade = new $skipLogicHelpers.SkipLogicPresentationFacade model_factory, helper_factory, view_factory
+      return @facade = new $skipLogicHelpers.SkipLogicPresentationFacade model_factory, helper_factory, view_factory
 
     serialize: ()->
       # @hidden = false
       # note: reimplement "hidden" if response is invalid
-      @facade.serialize()
+      return @facade.serialize()
 
     parse: ()->
 
     linkUp: (ctx)->
-      @facade.initialize()
+      return @facade.initialize()
 
   ValidationLogicMixin =
     getValue: () ->
@@ -41,7 +41,7 @@ module.exports = do ->
       if v is "undefined"
         Raven?.captureException("Serialized value is returning a string, undefined")
         v = ""
-      v
+      return v
 
     postInitialize: () ->
       survey = @getSurvey()
@@ -49,17 +49,17 @@ module.exports = do ->
       view_factory = new $viewRowDetailValidationLogic.ValidationLogicViewFactory survey
       helper_factory = new $validationLogicHelpers.ValidationLogicHelperFactory model_factory, view_factory, survey, @_parent, @.get('value')
 
-      @facade = new $skipLogicHelpers.SkipLogicPresentationFacade model_factory, helper_factory, view_factory
+      return @facade = new $skipLogicHelpers.SkipLogicPresentationFacade model_factory, helper_factory, view_factory
 
     serialize: ()->
       # @hidden = false
       # note: reimplement "hidden" if response is invalid
-      @facade.serialize()
+      return @facade.serialize()
 
     parse: ()->
 
     linkUp: (ctx)->
-      @facade.initialize()
+      return @facade.initialize()
 
   rowDetailMixins =
     relevant: SkipLogicDetailMixin
@@ -71,7 +71,7 @@ module.exports = do ->
         if first_file
           if @attributes.value is 'DEFAULT_CHOICES_FILE'
             first_file_name = first_file.metadata.filename
-            @set('value', first_file_name)
+            return @set('value', first_file_name)
     label:
       postInitialize: ()->
         # When the row's name changes, trigger the row's [finalize] function.
@@ -82,8 +82,8 @@ module.exports = do ->
         survey.forEachRow (r)=>
           if r.get('name') != @
             name = r.getValue("name")
-            names.push(name)
+            return names.push(name)
         , includeGroups: true
 
-        $modelUtils.sluggifyLabel @get('value'), names
-  rowDetailMixins
+        return $modelUtils.sluggifyLabel @get('value'), names
+  return rowDetailMixins
