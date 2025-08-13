@@ -99,7 +99,6 @@ class rowDetailsSkipLogic.SkipLogicCriterion extends Backbone.Model
         model.set('name', $utils.sluggify(model.get('label')))
         return
     )
-    ``
     return
 
   change_response: (value) ->
