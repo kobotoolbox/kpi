@@ -16,7 +16,6 @@ module.exports = do ->
       unless $viewUtils.Validator.__validators.unique(value, values)
         return "Question name isn't unique"
       else
-        ``
         return
   }
 
