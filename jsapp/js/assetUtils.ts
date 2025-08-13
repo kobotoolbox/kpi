@@ -150,10 +150,9 @@ export function getCountryDisplayString(asset: AssetResponse | ProjectViewAsset)
 
     if (isRtl) {
       countries.reverse()
+      return countries.join('، ')
     }
-
-    const separator = isRtl ? '، ' : ', '
-    return countries.join(separator)
+    return countries.join(', ')
   } else {
     return '-'
   }
