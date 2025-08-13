@@ -59,7 +59,6 @@ module.exports = do ->
       for x, i in _arr
         _arr[i] = _ljust(x, _lengths[i])
       return outstr += "| #{_arr.join(' | ')} |\n"
-      ``
 
     sheeted = csv.sheeted()
     outstr = "\n"
