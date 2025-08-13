@@ -38,6 +38,20 @@ class ExtraDetailField(OpenApiSerializerFieldExtension):
         )
 
 
+class GitRevFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.me.fields.GitRevField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'short': GENERIC_STRING_SCHEMA,
+                'long': GENERIC_STRING_SCHEMA,
+                'branch': GENERIC_STRING_SCHEMA,
+                'tag': build_basic_type(OpenApiTypes.BOOL),
+            }
+        )
+
+
 class GravatarFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.me.fields.GravatarField'
 
