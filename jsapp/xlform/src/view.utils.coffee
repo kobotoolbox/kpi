@@ -54,7 +54,8 @@ module.exports = do ->
     showFn.close = ->
       if $div
         $div.remove()
-        return $div = false
+        $div = false
+        return
     return showFn
 
   viewUtils.launchQuestionLibrary = do ->
