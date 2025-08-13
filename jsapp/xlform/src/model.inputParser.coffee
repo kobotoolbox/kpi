@@ -12,7 +12,6 @@ module.exports = do ->
       @contents = []
     push: (item)->
       @contents.push(item)
-      ``
       return
     export: ->
       arr = []
