@@ -57,7 +57,6 @@ module.exports = do ->
       else if _.isObject repr
         return _parse_sheets repr
       else
-        ``
 
   # [inputDeserializer.validateParse]
   #  ensure correct sheet names exist in imported surveys
