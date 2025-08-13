@@ -69,7 +69,6 @@ module.exports = do ->
       _grp = grpStack.pop()
       if _grp.type isnt closedByAtts.type
         throw new Error("mismatched group/repeat tags")
-      ``
       return
 
     _curGrp = ->
