@@ -46,7 +46,6 @@ module.exports = do ->
         (_lengths[index] = 0)
       if val > _lengths[index]
         return (_lengths[index] = val)
-      ``
     _ljust = (str, n) ->
       (str = '')  if !str
       diff = n - str.length
