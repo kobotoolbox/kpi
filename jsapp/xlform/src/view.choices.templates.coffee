@@ -9,5 +9,5 @@ module.exports = do ->
         </div>"""
       return template
 
-  return addoptionbutton: addoptionbutton
+  return addOptionButton: addOptionButton
 
