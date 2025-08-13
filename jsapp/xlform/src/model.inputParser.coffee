@@ -55,7 +55,7 @@ module.exports = do ->
       counts[opn_cls][att]++
       ``
       return
-      
+
     grpStack = [new ParsedStruct(type)]
 
     _pushGrp = (type='group', item)->
@@ -119,7 +119,7 @@ module.exports = do ->
 
     nullified = formBuilderUtils.nullifyTranslations(o.translations, o.translated, o.survey, baseSurvey)
 
-    # we edit the received object directly, which is totally a case of BAD CODEΓäó
+    # we edit the received object directly, which is totally a case of BAD CODE™
     # but in fact is a necessary part of the nullify hack
     o.survey = nullified.survey;
     o.translations = nullified.translations
