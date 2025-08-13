@@ -360,8 +360,8 @@ module.exports = do ->
     result = []
     for sheet in osids
       result.push {
-      id: sheet
-      sheet: arrayToObjects sheets[sheet]
+        id: sheet
+        sheet: arrayToObjects sheets[sheet]
       }
     return result
 
