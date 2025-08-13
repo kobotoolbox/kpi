@@ -147,7 +147,6 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         ),
         tags=['OpenRosa Form List'],
     )
-    @action(detail=False, methods=['get'])
     def form_list(self, request, *args, **kwargs):
         """
         Publish the OpenRosa formList via a custom action instead of relying on the
@@ -172,6 +171,16 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         - docs/api/v2/form_list/list.md
         """
         return self.list(request, *args, **kwargs)
+
+    @extend_schema(operation_id='form_list_anonymous')
+    @action(detail=False, methods=['get'])
+    def form_list_anonymous(self, request, *args, **kwargs):
+        self.form_list(request, args, kwargs)
+
+    @extend_schema(operation_id='form_list_authenticated')
+    @action(detail=False, methods=['get'])
+    def form_list_authenticated(self, request, *args, **kwargs):
+        self.form_list(request, args, kwargs)
 
     @extend_schema(tags=['OpenRosa Form List'], exclude=True)
     def list(self, request, *args, **kwargs):

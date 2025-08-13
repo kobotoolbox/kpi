@@ -119,11 +119,11 @@ urlpatterns = [
         name='submissions',
     ),
     re_path(
-        r'^formList$', XFormListApi.as_view({'get': 'form_list'}), name='form-list'
+        r'^formList$', XFormListApi.as_view({'get': 'form_list_authenticated'}), name='form-list'
     ),
     re_path(
         r'^(?P<username>\w+)/formList$',
-        XFormListApi.as_view({'get': 'form_list'}),
+        XFormListApi.as_view({'get': 'form_list_anonymous'}),
         name='form-list',
     ),
     re_path(
