@@ -386,7 +386,7 @@ module.exports = do ->
         if @auto_name
           @changing_form_title = true
           @set 'form_id', $modelUtils.sluggifyLabel(value)
-        return null
+        return
       return
 
 
