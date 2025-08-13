@@ -201,7 +201,6 @@ module.exports = do ->
 
     detach: ->
       @_parent.remove(@)
-      ``
       return
 
     remove: (item)->
