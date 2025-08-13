@@ -29,6 +29,8 @@ from kobo.apps.openrosa.libs.serializers.xform_serializer import (
 from kpi.authentication import DigestAuthentication
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.models.object_permission import ObjectPermission
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
 
 
@@ -133,9 +135,53 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
         return queryset
 
-    @extend_schema(tags=['OpenRosa Form List'])
-    def list(self, request, *args, **kwargs):
+    @extend_schema(
+        description=read_md('openrosa', 'formlist/list.md'),
+        responses=open_api_200_ok_response(
+            XFormListSerializer,
+            media_type='application/xml',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+        ),
+        tags=['OpenRosa Form List'],
+    )
+    @action(detail=False, methods=['get'])
+    def form_list(self, request, *args, **kwargs):
+        """
+        Publish the OpenRosa formList via a custom action instead of relying on the
+        ViewSet's default `list()` route.
 
+        Why? drf-spectacular treats `list` actions as arrays (`many=True`) and
+        auto-wraps the response in the OpenAPI schema. For XML, Swagger UI struggles
+        to generate an example for top-level arrays, especially when we need a named
+        root.
+        Exposing a custom action lets us control the response schema (e.g.
+        XML root as `<xforms>`) so Swagger UI can render the XML example correctly.
+
+
+
+        ViewSet for managing enketo form list
+
+        Available actions:
+        - form_list (anonymous)         → GET /api/v2/{username}/formList/
+        - form_list (authenticated)     → GET /api/v2/formList/
+
+        Documentation:
+        - docs/api/v2/form_list/list.md
+        """
+        return self.list(request, *args, **kwargs)
+
+    @extend_schema(tags=['OpenRosa Form List'], exclude=True)
+    def list(self, request, *args, **kwargs):
+        """
+        Internal implementation used by `form_list()`.
+
+        Hidden from the schema (`exclude=True`) to avoid documenting the same endpoint
+        twice and to ensure the custom action is the single source of truth with
+        the XML-friendly schema (named `<xforms>` root and `<xform>` items).
+        """
         object_list = self.filter_queryset(self.get_queryset())
 
         if request.method == 'HEAD':

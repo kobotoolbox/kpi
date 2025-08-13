@@ -73,6 +73,8 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'projectview-export': '/api/v2/project-views/{uid}/{obj_type}/export/',
         'projectview-users': '/api/v2/project-views/{uid}/users/',
         'user-kpi-migrate': '/api/v2/users/{username}/migrate/{task_id}/',
+        'download-url-openrosa': '/forms/{id}/form.xml',
+        'manifest-openrosa': '/xformsManifest/{id}',
     }
 
     try:

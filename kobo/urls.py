@@ -36,8 +36,7 @@ urlpatterns = [
     path(
         'api/openrosa/schema/',
         SpectacularAPIView.as_view(
-            # Not a real namespace but useful to identify the schema when it's generated
-            api_version='openrosa',
+            api_version='api_v2',
             generator_class=OpenRosaAPISchemaGenerator,
         ),
         name='schema-openrosa',
