@@ -36,14 +36,13 @@ module.exports = do ->
 
   q = {}
   q.groupable = ()->
-    groupables = _.flatten [
+    return _.flatten [
                 aliases('group')
                 aliases('repeat')
                 aliases('score')
                 aliases('rank')
                 aliases('kobomatrix')
-              ]
-    return groupables
+           ]
 
   q.groupsOrRepeats = ()->
     return _.flatten [aliases('group'), aliases('repeat')]
