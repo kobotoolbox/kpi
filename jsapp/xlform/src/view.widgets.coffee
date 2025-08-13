@@ -83,7 +83,6 @@ module.exports = do ->
       @$el.addClass @className
 
       return @
-      @
     constructor: (text, className) ->
       super()
       @text = text

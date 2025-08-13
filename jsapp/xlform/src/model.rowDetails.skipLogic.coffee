@@ -99,7 +99,6 @@ class rowDetailsSkipLogic.SkipLogicCriterion extends Backbone.Model
         model.set('name', $utils.sluggify(model.get('label')))
         return
     )
-    ``
     return
 
   change_response: (value) ->
@@ -209,7 +208,6 @@ class rowDetailsSkipLogic.ResponseModel extends Backbone.Model
         if choice
           @_set_value(choice.get('name'))
           @set('cid', cid)
-        ``
         return
   get_type: () ->
     return @get('type')

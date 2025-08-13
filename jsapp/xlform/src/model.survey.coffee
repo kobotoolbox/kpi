@@ -367,7 +367,7 @@ module.exports = do ->
       columns = _.keys(@attributes)
       rowObjects = [@toJSON()]
 
-      return{
+      return {
         columns: columns
         rowObjects: rowObjects
       }

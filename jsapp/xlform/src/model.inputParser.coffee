@@ -53,7 +53,6 @@ module.exports = do ->
     count_att = (opn_cls, att)->
       counts[opn_cls][att]?=0
       counts[opn_cls][att]++
-      ``
       return
 
     grpStack = [new ParsedStruct(type)]
@@ -70,7 +69,6 @@ module.exports = do ->
       _grp = grpStack.pop()
       if _grp.type isnt closedByAtts.type
         throw new Error("mismatched group/repeat tags")
-      ``
       return
 
     _curGrp = ->
