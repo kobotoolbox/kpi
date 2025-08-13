@@ -79,7 +79,8 @@ module.exports = do ->
       if options.enketoPreviewUri
         enketoPreviewUri = options.enketoPreviewUri
       if options.enketoServer
-        return enketoServer = options.enketoServer
+        enketoServer = options.enketoServer
+      return
 
     clickCloserBackground = ->
       return $("<div>", class: "js-click-remove-iframe")
