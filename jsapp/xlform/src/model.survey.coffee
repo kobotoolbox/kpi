@@ -377,10 +377,9 @@ module.exports = do ->
       @on 'change:form_id', () =>
         if @changing_form_title
           @changing_form_title = false
-          return
         else
           @auto_name = false
-          return
+        return
 
       @on 'change:form_title', (model, value) =>
         if @auto_name
