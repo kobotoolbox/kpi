@@ -1,6 +1,6 @@
 module.exports = do ->
 
-  addoptionbutton = () ->
+  addOptionButton = () ->
       template = """<div class="card__addoptions js-card-add-options">
           <div class="card__addoptions__layer"></div>
             <ul><li class="multioptions__option  xlf-option-view xlf-option-view--depr">
