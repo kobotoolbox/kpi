@@ -208,7 +208,6 @@ class rowDetailsSkipLogic.ResponseModel extends Backbone.Model
         if choice
           @_set_value(choice.get('name'))
           @set('cid', cid)
-        ``
         return
   get_type: () ->
     return @get('type')
