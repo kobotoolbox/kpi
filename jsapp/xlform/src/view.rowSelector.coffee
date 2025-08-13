@@ -142,7 +142,7 @@ module.exports = do ->
         # user makes selection by pressing ENTER
         if evt.which == $ENTER
           currentListRow.eq(columnIndex).children().eq(rowIndex).trigger('click')
-          return # The parser wants the return here instead of 1 indent to the left, no idea why
+        return
       return
 
     shrink: ->
