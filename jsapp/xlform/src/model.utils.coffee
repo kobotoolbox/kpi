@@ -48,7 +48,6 @@ module.exports = do ->
         if parsedValues.operator
           collection.meta.set("delimSelect", parsedValues.operator.toLowerCase())
           return
-        ``
       catch e
         collection.parseable = false
         return
