@@ -19,7 +19,7 @@ module.exports = do ->
 
     insertInDOM: (rowView)->
       @$el.appendTo(rowView.defaultRowDetailParent)
-      return @
+      return
 
     onChange: (evt) ->
       @acceptedFiles = evt.currentTarget.value
