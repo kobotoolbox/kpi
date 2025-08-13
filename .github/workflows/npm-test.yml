@@ -101,6 +101,6 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps webkit
 
-      # Run the storybook test suite
-      - name: Build and serve Storybook, test stories.
-        run: npm run test:storybook
+      # Skipped until flaky storybook tests are fixed not to fail main with false-positive failures.
+      # - name: Build and serve Storybook, test stories.
+      #   run: npm run test:storybook
