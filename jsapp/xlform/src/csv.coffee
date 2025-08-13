@@ -31,7 +31,7 @@ module.exports = do ->
           @rowArray = do =>
             return (for row in param.rowObjects
               row[c] for c in @columns
-              )
+            )
         else
           @rowArray = if _isArray param.rows then param.rows else []
         @kind     = param.kind if param.kind?
