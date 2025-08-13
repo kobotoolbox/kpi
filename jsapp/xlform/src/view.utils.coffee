@@ -70,6 +70,7 @@ module.exports = do ->
 
     return launch
 
+  # TODO: check if this is dead code, we don't seem to be using this anywhere
   viewUtils.enketoIframe = do ->
     enketoServer = "https://enketo.org"
     enketoPreviewUri = "/webform/preview"
