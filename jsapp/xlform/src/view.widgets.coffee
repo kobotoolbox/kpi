@@ -70,7 +70,6 @@ module.exports = do ->
       @$el.on 'paste', (e) -> e.stopPropagation()
 
       return @
-      @
     constructor: (text, className, placeholder) ->
       super()
       @text = text
