@@ -53,7 +53,6 @@ module.exports = do ->
     count_att = (opn_cls, att)->
       counts[opn_cls][att]?=0
       counts[opn_cls][att]++
-      ``
       return
       
     grpStack = [new ParsedStruct(type)]
