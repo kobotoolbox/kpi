@@ -37,12 +37,12 @@ module.exports = do ->
   q = {}
   q.groupable = ()->
     return _.flatten [
-                aliases('group')
-                aliases('repeat')
-                aliases('score')
-                aliases('rank')
-                aliases('kobomatrix')
-           ]
+      aliases('group')
+      aliases('repeat')
+      aliases('score')
+      aliases('rank')
+      aliases('kobomatrix')
+    ]
 
   q.groupsOrRepeats = ()->
     return _.flatten [aliases('group'), aliases('repeat')]
@@ -73,7 +73,7 @@ module.exports = do ->
     return q.testGroupable(type)
 
   q.hiddenTypes = ()->
-    types = _.flatten [
+    return _.flatten [
       ['imei', 'deviceid'],
       ['start'],
       ['end'],
@@ -83,7 +83,6 @@ module.exports = do ->
       ['phonenumber', 'phone_number'],
       ['audit'],
     ]
-    return types
 
   aliases.custom = q
 
