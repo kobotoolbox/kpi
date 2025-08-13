@@ -103,10 +103,4 @@ jobs:
 
       # Run the storybook test suite
       - name: Build and serve Storybook, test stories.
-        run: |
-          # Workaround for flaky test failures due cache problems.
-          # See https://github.com/storybookjs/storybook/issues/13795#issuecomment-773622951
-          rm -rf node_modules/.cache/storybook
-
-          npm run test:storybook
-          rm -rf node_modules/.cache/storybook
+        run: npm run test:storybook
