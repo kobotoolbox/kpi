@@ -11,9 +11,7 @@ from ...utils import move_attachments
 
 
 class Command(BaseCommand):
-    help = (
-        'Retry failed attachment transfers'
-    )
+    help = 'Retry failed attachment transfers'
 
     def add_arguments(self, parser):
         parser.add_argument('transfer_uids', nargs='+', type=str)
@@ -26,7 +24,8 @@ class Command(BaseCommand):
                 status=TransferStatusChoices.FAILED,
             ).exists():
                 logging.warn(
-                    f'No failed attachment transfers for {transfer_uid}. Will not continue.'
+                    f'No failed attachment transfers for {transfer_uid}.'
+                    ' Will not continue.'
                 )
                 continue
             transfer = Transfer.objects.get(uid=transfer_uid)
