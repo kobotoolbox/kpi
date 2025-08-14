@@ -3,6 +3,7 @@ from drf_spectacular.plumbing import build_basic_type, build_object_type, \
     build_choice_field
 from drf_spectacular.types import OpenApiTypes
 
+from kpi.models.import_export_task import ImportExportStatusChoices
 from kpi.schema_extensions.v2.generic.schema import (
     GENERIC_STRING_SCHEMA,
     USER_URL_SCHEMA,
@@ -24,7 +25,11 @@ class InviteFieldExtension(OpenApiSerializerFieldExtension):
                     guid='f3ba00b2-372b-4283-9d57-adbe7d5b1bf1',
                 ),
                 'invited_by': USER_URL_SCHEMA,
-                'status': GENERIC_STRING_SCHEMA,
+                'status': build_choice_field(
+                    field=serializers.ChoiceField(
+                        choices=ImportExportStatusChoices
+                    )
+                ),
                 'invitee_role': build_choice_field(
                     field=serializers.ChoiceField(
                         choices=CHOICES
