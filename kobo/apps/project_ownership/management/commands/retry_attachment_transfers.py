@@ -12,9 +12,7 @@ from ...utils import move_attachments
 
 class Command(BaseCommand):
     help = (
-        'Resume project ownership transfers done under `2.024.33f` (and later) '
-        'which failed with error: "Model.save() got an unexpected keyword argument'
-        ' \'updated_fields\'"'
+        'Retry failed attachment transfers'
     )
 
     def add_arguments(self, parser):
