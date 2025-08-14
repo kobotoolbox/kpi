@@ -29,6 +29,7 @@ module.exports = {
   typescript: {
     reactDocgen: 'react-docgen-typescript-plugin',
   },
+
   webpackFinal: async (config, { configType }) => {
     config.plugins.push(new webpack.ProvidePlugin({ $: 'jquery' }))
     config.module.rules.push({
@@ -78,6 +79,11 @@ module.exports = {
   managerWebpack: async (config) => {
     // Build speed improvements
     applySpeedTweaks(config)
+
+    // Workaround for flaky test failures due cache problems.
+    // See https://github.com/storybookjs/storybook/issues/13795#issuecomment-1192075981
+    options.cache.set = () => Promise.resolve();
+
     if (process.env.MEASURE) {
       const smp = new SpeedMeasurePlugin()
       return smp.wrap(config)
