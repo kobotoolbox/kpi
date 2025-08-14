@@ -1,8 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { fetchDelete, fetchGet, fetchPatch } from '#/api'
+import { fetchDelete, fetchGet } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import type { InviteResponse } from '#/api/models/inviteResponse'
-import type { Json } from '#/components/common/common.interfaces'
 import type { Nullable } from '#/constants'
 import type { PaginatedResponse } from '#/dataInterface'
 import { QueryKeys } from '#/query/queryKeys'
@@ -35,52 +34,6 @@ export interface OrganizationMemberListItem extends Nullable<OrganizationMember>
 
 function getMemberEndpoint(orgId: string, username: string) {
   return endpoints.ORGANIZATION_MEMBER_URL.replace(':organization_id', orgId).replace(':username', username)
-}
-
-/**
- * Mutation hook for updating organization member. It ensures that all related
- * queries refetch data (are invalidated).
- */
-export function usePatchOrganizationMember(username: string) {
-  const queryClient = useQueryClient()
-
-  const orgQuery = useOrganizationQuery()
-  const orgId = orgQuery.data?.id
-
-  return useMutation({
-    mutationFn: async (data: Partial<OrganizationMember>) =>
-      // We're asserting the `orgId` is not `undefined` here, because the parent
-      // query (`useOrganizationMembersQuery`) wouldn't be enabled without it.
-      // Plus all the organization-related UI (that would use this hook) is
-      // accessible only to logged in users.
-      fetchPatch<OrganizationMember>(getMemberEndpoint(orgId!, username), data as Json),
-    onMutate: async (mutationData) => {
-      if (mutationData.role) {
-        // If we are updating the user's role, we want to optimistically update their role in queries for
-        // the members table list. So we look for their username and update the relevant query accordingly
-        const qData = queryClient.getQueriesData({ queryKey: [QueryKeys.organizationMembers] })
-        const query = qData.find((q) =>
-          (q[1] as any)?.results?.find((m: OrganizationMemberListItem) => m.user__username === username),
-        )
-
-        if (!query) return
-
-        const queryKey = query[0]
-        const queryData = query[1]
-        const item = (queryData as any).results.find((m: OrganizationMemberListItem) => m.user__username === username)
-
-        item.role = mutationData.role
-        queryClient.setQueryData(queryKey, queryData)
-      }
-    },
-    onSettled: () => {
-      // We invalidate query, so it will refetch (instead of refetching it
-      // directly, see: https://github.com/TanStack/query/discussions/2468)
-      queryClient.invalidateQueries({
-        queryKey: [QueryKeys.organizationMembers],
-      })
-    },
-  })
 }
 
 /**
