@@ -14,9 +14,11 @@ OWNER=$(ls -ld . | awk '{print $3}')
 SRC_FOLDER="./static/openapi"
 DESTINATION_FOLDER="./staticfiles/openapi"
 
-function run () { bash -c $@; }
+# For example, `bash -c`` will run on CI, while `gosu` will run in docker.
+function run () { bash -c "$*"; }
 if [ "$WHOAMI" != "$OWNER" ]; then
-    function run () { gosu "$GOSU_USER" $@; }
+    echo "Applied gosu!"
+    function run () { gosu "$GOSU_USER" $*; }
 fi
 
 if [ ! -d "$SRC_FOLDER" ]; then
