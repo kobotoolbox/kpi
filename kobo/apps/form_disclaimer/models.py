@@ -27,7 +27,7 @@ class FormDisclaimer(AbstractMarkdownxModel):
     message = MarkdownxField()
     default = models.BooleanField(default=False)
     hidden = models.BooleanField(
-        'Hide default disclaimer for all languages of the form', default=False
+        'Hide disclaimer for all languages of the form', default=False
     )
 
     def __str__(self):

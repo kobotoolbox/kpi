@@ -27,4 +27,4 @@ module.exports = do ->
       @rowView.model.getSurvey().trigger('change')
       return
 
-  AcceptedFilesView: AcceptedFilesView
+  return AcceptedFilesView: AcceptedFilesView
