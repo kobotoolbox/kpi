@@ -16,6 +16,8 @@ import type { AccountFieldsErrors, AccountFieldsValues } from './account.constan
 import { getInitialAccountFieldsValues, getProfilePatchData } from './account.utils'
 import AccountFieldsEditor from './accountFieldsEditor.component'
 import { useOrganizationQuery } from './organization/organizationQuery'
+import ButtonNew from '#/components/common/ButtonNew'
+import ActionIcon from '#/components/common/ActionIcon'
 
 bem.AccountSettings = makeBem(null, 'account-settings', 'form')
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left')
