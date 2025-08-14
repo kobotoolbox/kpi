@@ -9,8 +9,6 @@ export const endpoints = {
   ASSET_HISTORY_EXPORT: '/api/v2/assets/:asset_uid/history/export/',
   ASSET_URL: '/api/v2/assets/:uid/',
   ORG_ASSETS_URL: '/api/v2/organizations/:organization_id/assets/',
-  ORG_MEMBER_INVITES_URL: '/api/v2/organizations/:organization_id/invites/',
-  ORG_MEMBER_INVITE_DETAIL_URL: '/api/v2/organizations/:organization_id/invites/:invite_id/',
   ORG_SERVICE_USAGE_URL: '/api/v2/organizations/:organization_id/service_usage/',
   ME_URL: '/me/',
   PRODUCTS_URL: '/api/v2/stripe/products/',
