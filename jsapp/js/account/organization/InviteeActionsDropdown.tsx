@@ -14,19 +14,21 @@ import { queryClient } from '#/query/queryClient'
 import { QueryKeys } from '#/query/queryKeys'
 import { notify } from '#/utils'
 import { MemberInviteStatus } from './membersInviteQuery'
+import { useOrganizationQuery } from './organizationQuery'
 
 /**
  * A dropdown with all actions that can be taken towards an organization invitee.
  */
 export default function InviteeActionsDropdown({
-  orgId,
   target,
   invite,
 }: {
-  orgId: string,
   target: ReactNode
   invite: InviteResponse
 }) {
+  const orgQuery = useOrganizationQuery()
+  const organizationId = orgQuery.data?.id!
+
   const [opened, { open, close }] = useDisclosure()
 
   const orgInvitesPatchMutation = useOrganizationsInvitesPartialUpdate({
@@ -36,13 +38,13 @@ export default function InviteeActionsDropdown({
         queryClient.invalidateQueries({
           queryKey: getOrganizationsInvitesRetrieveQueryKey(variables.organizationId, variables.guid),
         })
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMembers], })
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMemberDetail], })
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMembers] })
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMemberDetail] })
       },
     },
     request: {
-      errorMessageDisplay: t('There was an error updating this invitation.')
-    }
+      errorMessageDisplay: t('There was an error updating this invitation.'),
+    },
   })
   const orgInvitesDestroyMutation = useOrganizationsInvitesDestroy({
     mutation: {
@@ -51,8 +53,8 @@ export default function InviteeActionsDropdown({
         queryClient.invalidateQueries({
           queryKey: getOrganizationsInvitesRetrieveQueryKey(variables.organizationId, variables.guid),
         })
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMembers], })
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMemberDetail], })
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMembers] })
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMemberDetail] })
       },
     },
   })
@@ -60,8 +62,8 @@ export default function InviteeActionsDropdown({
   const resendInvitation = async () => {
     try {
       await orgInvitesPatchMutation.mutateAsync({
-        organizationId: orgId,
-        guid: invite.url.slice(0,-1).split('/').pop()!,
+        organizationId,
+        guid: invite.url.slice(0, -1).split('/').pop()!,
         data: {
           status: MemberInviteStatus.resent,
         },
@@ -89,7 +91,7 @@ export default function InviteeActionsDropdown({
 
   const removeInvitation = async () => {
     try {
-      await orgInvitesDestroyMutation.mutateAsync({ organizationId: orgId, guid: invite.url.slice(0,-1).split('/').pop()! })
+      await orgInvitesDestroyMutation.mutateAsync({ organizationId, guid: invite.url.slice(0, -1).split('/').pop()! })
       notify(t('Invitation removed'), 'success')
     } catch (e) {
       notify(t('An error occurred while removing the invitation'), 'error')
