@@ -16,8 +16,18 @@ Allowed fields are:
 
 - `asset_type`
 - `date_modified`
+- `date_deployed`
+- `date_modified__date`
+- `date_deployed__date`
 - `name`
+- `settings__sector`
+- `settings__sector__value`
+- `settings__description`
 - `owner__username`
+- `owner__extra_details__data__name`
+- `owner__extra_details__data__organization`
+- `owner__email`
+- `_deployment_status`
 - `subscribers_count`
 
 

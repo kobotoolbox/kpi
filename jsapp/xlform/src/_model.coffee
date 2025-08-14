@@ -20,4 +20,5 @@ module.exports = do ->
   model.utils = $utils
   model.configs = $configs
 
-  model
+  return model
+
