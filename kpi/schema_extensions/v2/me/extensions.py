@@ -47,7 +47,7 @@ class GitRevFieldExtension(OpenApiSerializerFieldExtension):
                 'short': GENERIC_STRING_SCHEMA,
                 'long': GENERIC_STRING_SCHEMA,
                 'branch': GENERIC_STRING_SCHEMA,
-                'tag': build_basic_type(OpenApiTypes.BOOL),
+                'tag': GENERIC_STRING_SCHEMA,
             }
         )
 
