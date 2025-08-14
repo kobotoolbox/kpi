@@ -45,7 +45,6 @@ class InviteFieldExtension(OpenApiSerializerFieldExtension):
                 'invited_by',
                 'status',
                 'invitee_role',
-                'invitee',
                 'organization_name',
                 'created',
                 'modified',
