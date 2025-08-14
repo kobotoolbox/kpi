@@ -5,6 +5,8 @@
       "node_modules/**",
       "jsapp/compiled/**",
       "*.css",
+      // Ignore generated OpenAPI schema.
+      "static/openapi/*",
       // Ignore minified committed JS files.
       "*.min.js",
       "*-min.js",
