@@ -1,4 +1,5 @@
 import type { PaginatedResponse, PermissionResponse, PermissionsConfigResponse } from '#/dataInterface'
+import type { PermsFormDataPartialWithUsername } from './permParser'
 
 /**
  * Mock permissions endpoints responses for tests.
@@ -325,7 +326,8 @@ const assetWithMultiplePartial: PaginatedResponse<PermissionResponse> = {
         },
         {
           url: '/api/v2/permissions/delete_submissions/',
-          filters: [{ _submitted_by: { $in: ['kate', 'joshua'] } }],
+          // This is an alternative way of getting list of two users that sometimes we receive from BE
+          filters: [{ _submitted_by: 'kate' }, { _submitted_by: 'joshua' }],
         },
         // This permission is the OR one, which is not supported by Front-end
         // code and should be treated as AND
@@ -349,6 +351,95 @@ const assetWithMultiplePartial: PaginatedResponse<PermissionResponse> = {
       label: 'View form',
     },
   ],
+}
+
+export const assetWithMultiplePartial2: PaginatedResponse<PermissionResponse> = {
+  count: 3,
+  next: null,
+  previous: null,
+  results: [
+    {
+      url: '/api/v2/assets/aqKcKVFdBVASFVo8azcdVp/permission-assignments/pSCPox6uspwYqroYvE7eXR/',
+      user: '/api/v2/users/kate/',
+      permission: '/api/v2/permissions/add_submissions/',
+      label: 'Add submissions',
+    },
+    {
+      url: '/api/v2/assets/aqKcKVFdBVASFVo8azcdVp/permission-assignments/p653D7wz6zXYuRBtpPpTGB/',
+      user: '/api/v2/users/kate/',
+      permission: '/api/v2/permissions/partial_submissions/',
+      partial_permissions: [
+        {
+          url: '/api/v2/permissions/add_submissions/',
+          filters: [
+            {
+              _submitted_by: 'bob',
+            },
+          ],
+        },
+        {
+          url: '/api/v2/permissions/view_submissions/',
+          filters: [
+            {
+              _submitted_by: 'bob',
+            },
+          ],
+        },
+        {
+          url: '/api/v2/permissions/change_submissions/',
+          filters: [
+            {
+              _submitted_by: 'bob',
+            },
+          ],
+        },
+        {
+          url: '/api/v2/permissions/delete_submissions/',
+          filters: [
+            {
+              _submitted_by: 'bob',
+            },
+          ],
+        },
+        {
+          url: '/api/v2/permissions/validate_submissions/',
+          filters: [
+            {
+              _submitted_by: 'bob',
+            },
+          ],
+        },
+      ],
+      label: {
+        default: 'Act on submissions only from specific users',
+        view_submissions: 'View submissions only from specific users',
+        change_submissions: 'Edit submissions only from specific users',
+        delete_submissions: 'Delete submissions only from specific users',
+        validate_submissions: 'Validate submissions only from specific users',
+      },
+    },
+    {
+      url: '/api/v2/assets/aqKcKVFdBVASFVo8azcdVp/permission-assignments/phRMBc7b2uxrVEspoJRxXN/',
+      user: '/api/v2/users/kate/',
+      permission: '/api/v2/permissions/view_asset/',
+      label: 'View form',
+    },
+  ],
+}
+
+// This is the `buildFormData` output for user "kate"
+export const assetWithMultiplePartial2_formData_kate: PermsFormDataPartialWithUsername = {
+  username: 'kate',
+  submissionsAdd: true,
+  // Note: This is nonexistent in the output, because these are implied permissions and in current UI we don't show them
+  // submissionsViewPartialByUsers: true,
+  // submissionsViewPartialByUsersList: ['bob'],
+  submissionsDeletePartialByUsers: true,
+  submissionsDeletePartialByUsersList: ['bob'],
+  submissionsEditPartialByUsers: true,
+  submissionsEditPartialByUsersList: ['bob'],
+  submissionsValidatePartialByUsers: true,
+  submissionsValidatePartialByUsersList: ['bob'],
 }
 
 export const endpoints = {

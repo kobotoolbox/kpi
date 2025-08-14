@@ -5,6 +5,7 @@ export const assetWithImage: AssetResponse = {
   url: 'http://kf.kobo.local/api/v2/assets/aALUCUEKcgKk28owQo3LrA/',
   owner: 'http://kf.kobo.local/api/v2/users/zefir/',
   owner__username: 'zefir',
+  last_modified_by: null,
   parent: null,
   settings: {
     sector: {},

@@ -71,4 +71,4 @@ module.exports = do ->
       @onParamChange(@paramName, val)
       return
 
-  ParamsView: ParamsView
+  return ParamsView: ParamsView

@@ -153,28 +153,33 @@ export function isPartialByUsersFilter(filter: PartialPermissionFilter) {
 }
 
 /**
- * Finds "by users" filter inside the partial permission and returns the users
+ * Finds "by users" filters inside the partial permission and returns the users
  * list from it. If there is no "by users" filter we return `undefined`.
  */
 export function getPartialByUsersFilterList(partialPerm: PartialPermission): string[] | undefined {
-  let found: PartialPermissionFilterByUsers | undefined
+  const found: PartialPermissionFilterByUsers[] = []
 
   partialPerm.filters.forEach((filter) => {
     if (isPartialByUsersFilter(filter)) {
       // We cast the type, because we checked with `isPartialByUsersFilter`
-      found = filter as PartialPermissionFilterByUsers
+      found.push(filter as PartialPermissionFilterByUsers)
     }
   })
 
-  if (!found) {
-    return undefined
-  } else if (typeof found._submitted_by === 'string') {
-    return [found._submitted_by]
-  } else if (found._submitted_by && Array.isArray(found._submitted_by.$in)) {
-    return found._submitted_by.$in
-  }
+  let foundUsernames: string[] = []
 
-  return undefined
+  found.forEach((foundFilter) => {
+    if (typeof foundFilter._submitted_by === 'string') {
+      foundUsernames.push(foundFilter._submitted_by)
+    } else if (foundFilter._submitted_by && Array.isArray(foundFilter._submitted_by.$in)) {
+      foundUsernames = [...foundUsernames, ...foundFilter._submitted_by.$in]
+    }
+  })
+
+  if (foundUsernames.length === 0) {
+    return undefined
+  }
+  return foundUsernames
 }
 
 /**

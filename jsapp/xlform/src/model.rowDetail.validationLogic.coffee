@@ -17,7 +17,7 @@ module.exports = do ->
       operator.set 'id', id
       return operator
     create_criterion_model: () ->
-      new rowDetailValidationLogic.ValidationLogicCriterion(@, @survey)
+      return new rowDetailValidationLogic.ValidationLogicCriterion(@, @survey)
 
   class rowDetailValidationLogic.ValidationLogicBasicOperator extends $skipLogicModel.SkipLogicOperator
     serialize: (question_name, response_value) ->
@@ -51,6 +51,6 @@ module.exports = do ->
       else if old_question_type.name != question_type.name
         @change_operator @get("operator").get_value()
       if (@get("operator").get_type().response_type == null) && @_get_question().response_type != @get("response_value")?.get_type()
-        @change_response @get("response_value").get("value")
+        return @change_response @get("response_value").get("value")
 
-  rowDetailValidationLogic
+  return rowDetailValidationLogic

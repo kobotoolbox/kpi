@@ -13,7 +13,7 @@ darker:
   - '.github/workflows/darker.yml' # ci
 
 biome:
-  - '*.(js|jsx|ts|tsx)'                # js or ts files.
+  - './**/*.(js|jsx|ts|tsx)'           # js or ts files.
   - 'biome.jsonc'                      # configuration.
   - '{package*.json,patches/*.patch}'  # npm + postinstall
   - '.github/workflows/biome.yml'      # ci

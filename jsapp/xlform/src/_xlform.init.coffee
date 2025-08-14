@@ -43,4 +43,4 @@ module.exports = do ->
     helper:
       skipLogic: $skipLogicHelpers
 
-  XLF
+  return XLF

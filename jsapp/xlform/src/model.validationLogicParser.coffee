@@ -37,7 +37,7 @@ module.exports = do ->
       \)
     ///
 
-  $factory(equalityCriterionPattern,
+  return $factory(equalityCriterionPattern,
             existenceCriterionPattern,
             criteriaJoinPattern,
             selectMultiplePattern)

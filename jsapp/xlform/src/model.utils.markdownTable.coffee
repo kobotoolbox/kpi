@@ -22,7 +22,7 @@ module.exports = do ->
           rowObj[cols[n]] = cell
         sheetObjs.push(rowObj)
       sObj[shtName] = sheetObjs
-      curSheet = []
+      return curSheet = []
     for row in md.split('\n')
       _r = []
       rcells = _trim(row).split('|')
@@ -36,7 +36,7 @@ module.exports = do ->
         curSheet.push(_r.slice(1, _r.length-1))
       _r
     _pushSheet()
-    sObj
+    return sObj
 
 
   markdownTable.csvJsonToMarkdown = (csvJson)->
@@ -45,22 +45,20 @@ module.exports = do ->
       if !_lengths[index]
         (_lengths[index] = 0)
       if val > _lengths[index]
-        (_lengths[index] = val)
-      ``
+        return (_lengths[index] = val)
     _ljust = (str, n) ->
       (str = '')  if !str
       diff = n - str.length
       if diff > 0
         str += (new Array(diff+1)).join(' ')
-      str
+      return str
     _append_line_arr = (_arr, preceding=0)->
       for i in [0...preceding]
         _arr.unshift('')
       _arr.length = _lengths.length
       for x, i in _arr
         _arr[i] = _ljust(x, _lengths[i])
-      outstr += "| #{_arr.join(' | ')} |\n"
-      ``
+      return outstr += "| #{_arr.join(' | ')} |\n"
 
     sheeted = csv.sheeted()
     outstr = "\n"
@@ -79,6 +77,6 @@ module.exports = do ->
       _append_line_arr(sheet.columns, 1)
       _append_line_arr(row, 1)  for row in sheet.rowArray
 
-    outstr
+    return outstr
 
-  markdownTable
+  return markdownTable

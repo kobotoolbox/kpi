@@ -12,7 +12,7 @@ module.exports = do ->
   missingPlugins = []
   errorMessageUnlessExists = (base, param, message)->
     unless base[param]
-      missingPlugins.push "'#{param}': '#{message}'"
+      return missingPlugins.push "'#{param}': '#{message}'"
 
   # these dependency checks are breaking unnecessarily
   # errorMessageUnlessExists $.fn, "editable", "jquery x-editable"
@@ -23,4 +23,4 @@ module.exports = do ->
   if missingPlugins.length > 0
     throw new Error("Missing plugin(s): {#{missingPlugins.join(', ')}}")
 
-  Backbone.View
+  return Backbone.View

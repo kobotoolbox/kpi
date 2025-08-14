@@ -2,11 +2,8 @@ from django.contrib import admin
 from django.db import transaction
 
 from kobo.apps.markdownx_uploader.admin import MarkdownxModelAdminBase
-from .models import (
-    FormDisclaimer,
-    OverriddenFormDisclaimer,
-)
 from .forms import FormDisclaimerForm, OverriddenFormDisclaimerForm
+from .models import FormDisclaimer, OverriddenFormDisclaimer
 
 
 class FormDisclaimerAdmin(MarkdownxModelAdminBase):
@@ -47,6 +44,9 @@ class FormDisclaimerAdmin(MarkdownxModelAdminBase):
 
 class OverridenFormDisclaimerAdmin(FormDisclaimerAdmin):
 
+    class Media:
+        js = ['admin/js/disable_per_asset_message.js']
+
     form = OverriddenFormDisclaimerForm
     add_form = OverriddenFormDisclaimerForm
 
@@ -59,8 +59,11 @@ class OverridenFormDisclaimerAdmin(FormDisclaimerAdmin):
         'asset__owner__username',
     ]
     autocomplete_fields = ['language', 'asset']
-    fields = ['asset', 'hidden', 'language', 'message']
     exclude = ['default']
+    fieldsets = [
+        (None, {'fields': ['asset', 'hidden']}),
+        ('Override default disclaimer', {'fields': ['language', 'message']}),
+    ]
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)

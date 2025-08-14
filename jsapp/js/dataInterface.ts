@@ -668,6 +668,7 @@ export interface AssetResponse extends AssetRequestObject {
   owner__username: string
   owner_label: string
   date_created: string
+  last_modified_by: string | null
   summary: AssetSummary
   date_modified: string
   date_deployed?: string
@@ -763,6 +764,7 @@ export interface ProjectViewAsset {
   date_modified: string
   date_created: string
   date_deployed: string | null
+  last_modified_by: string | null
   owner: string
   owner__username: string
   owner_label: string

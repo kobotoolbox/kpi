@@ -25,10 +25,11 @@ import type {
   PartialByUsersListName,
   PermissionCodename,
 } from './permConstants'
-import { buildFormData, parseFormData } from './permParser'
+import { type PermsFormData, buildFormData, parseFormData } from './permParser'
 import type { AssignablePermsMap } from './sharingForm.component'
 import styles from './userAssetPermsEditor.module.scss'
 import {
+  EMPTY_EDITOR_STATE,
   applyValidityRules,
   getFormData,
   isAssignable,
@@ -59,58 +60,29 @@ interface UserAssetPermsEditorProps {
 }
 
 /** Note that this bares a lot of similarities with `PermsFormData` interface */
-export interface UserAssetPermsEditorState {
+export interface UserAssetPermsEditorState extends PermsFormData {
   isSubmitPending: boolean
   // We need both `isEditingUsername` and `isCheckingUsername` to block sending
   // permissions to Back end, when we're not sure if user exists.
   isEditingUsername: boolean
   isCheckingUsername: boolean
-  // Properties for configuring the permission in the form:
-  username: string
-  formView: boolean
+  // All the other properties for configuring the permission in the form are defined in `PermsFormData`
   formViewDisabled: boolean
-  formEdit: boolean
   formEditDisabled: boolean
-  formManage: boolean
   formManageDisabled: boolean
-  submissionsView: boolean
   submissionsViewDisabled: boolean
-  submissionsViewPartialByUsers: boolean
   submissionsViewPartialByUsersDisabled: boolean
-  submissionsViewPartialByUsersList: string[]
-  submissionsViewPartialByResponses: boolean
   submissionsViewPartialByResponsesDisabled: boolean
-  submissionsViewPartialByResponsesQuestion: string | null
-  submissionsViewPartialByResponsesValue: string
-  submissionsAdd: boolean
   submissionsAddDisabled: boolean
-  submissionsEdit: boolean
   submissionsEditDisabled: boolean
-  submissionsEditPartialByUsers: boolean
   submissionsEditPartialByUsersDisabled: boolean
-  submissionsEditPartialByUsersList: string[]
-  submissionsEditPartialByResponses: boolean
   submissionsEditPartialByResponsesDisabled: boolean
-  submissionsEditPartialByResponsesQuestion: string | null
-  submissionsEditPartialByResponsesValue: string
-  submissionsValidate: boolean
   submissionsValidateDisabled: boolean
-  submissionsValidatePartialByUsers: boolean
   submissionsValidatePartialByUsersDisabled: boolean
-  submissionsValidatePartialByUsersList: string[]
-  submissionsValidatePartialByResponses: boolean
   submissionsValidatePartialByResponsesDisabled: boolean
-  submissionsValidatePartialByResponsesQuestion: string | null
-  submissionsValidatePartialByResponsesValue: string
-  submissionsDelete: boolean
   submissionsDeleteDisabled: boolean
-  submissionsDeletePartialByUsers: boolean
   submissionsDeletePartialByUsersDisabled: boolean
-  submissionsDeletePartialByUsersList: string[]
-  submissionsDeletePartialByResponses: boolean
   submissionsDeletePartialByResponsesDisabled: boolean
-  submissionsDeletePartialByResponsesQuestion: string | null
-  submissionsDeletePartialByResponsesValue: string
 }
 
 /**
@@ -123,58 +95,7 @@ export default class UserAssetPermsEditor extends React.Component<
   constructor(props: UserAssetPermsEditorProps) {
     super(props)
 
-    this.state = {
-      // inner workings
-      isSubmitPending: false,
-      isEditingUsername: false,
-      isCheckingUsername: false,
-      // form user inputs
-      username: '',
-      formView: false,
-      formViewDisabled: false,
-      formEdit: false,
-      formEditDisabled: false,
-      formManage: false,
-      formManageDisabled: false,
-      submissionsView: false,
-      submissionsViewDisabled: false,
-      submissionsViewPartialByUsers: false,
-      submissionsViewPartialByUsersDisabled: false,
-      submissionsViewPartialByUsersList: [],
-      submissionsViewPartialByResponses: false,
-      submissionsViewPartialByResponsesDisabled: false,
-      submissionsViewPartialByResponsesQuestion: null,
-      submissionsViewPartialByResponsesValue: '',
-      submissionsAdd: false,
-      submissionsAddDisabled: false,
-      submissionsEdit: false,
-      submissionsEditDisabled: false,
-      submissionsEditPartialByUsers: false,
-      submissionsEditPartialByUsersDisabled: false,
-      submissionsEditPartialByUsersList: [],
-      submissionsEditPartialByResponses: false,
-      submissionsEditPartialByResponsesDisabled: false,
-      submissionsEditPartialByResponsesQuestion: null,
-      submissionsEditPartialByResponsesValue: '',
-      submissionsValidate: false,
-      submissionsValidateDisabled: false,
-      submissionsValidatePartialByUsers: false,
-      submissionsValidatePartialByUsersDisabled: false,
-      submissionsValidatePartialByUsersList: [],
-      submissionsValidatePartialByResponses: false,
-      submissionsValidatePartialByResponsesDisabled: false,
-      submissionsValidatePartialByResponsesQuestion: null,
-      submissionsValidatePartialByResponsesValue: '',
-      submissionsDelete: false,
-      submissionsDeleteDisabled: false,
-      submissionsDeletePartialByUsers: false,
-      submissionsDeletePartialByUsersDisabled: false,
-      submissionsDeletePartialByUsersList: [],
-      submissionsDeletePartialByResponses: false,
-      submissionsDeletePartialByResponsesDisabled: false,
-      submissionsDeletePartialByResponsesQuestion: null,
-      submissionsDeletePartialByResponsesValue: '',
-    }
+    this.state = clonedeep(EMPTY_EDITOR_STATE)
 
     this.applyPropsData()
   }

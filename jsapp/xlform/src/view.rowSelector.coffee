@@ -30,6 +30,7 @@ module.exports = do ->
       $namer_form.find('button').on 'click', (evt) ->
         evt.preventDefault()
         $namer_form.submit()
+        return
       @$('input').eq(0).focus()
       return
 
@@ -51,17 +52,20 @@ module.exports = do ->
           # user presses the escape key
           if evt.which == 27
             @shrink()
+          return
       else
         $(window).on 'keydown.cancel_add_question',  (evt) =>
           # user presses the escape key
           if evt.which == 27
             evt.preventDefault()
             @$('input').eq(0).focus()
+          return
 
         $('body').on 'mousedown.cancel_add_question', (evt) =>
           if $(evt.target).closest('.line.expanded').length == 0
             evt.preventDefault()
             @$('input').eq(0).focus()
+          return
       return
 
     show_picker: (evt) ->
@@ -138,7 +142,7 @@ module.exports = do ->
         # user makes selection by pressing ENTER
         if evt.which == $ENTER
           currentListRow.eq(columnIndex).children().eq(rowIndex).trigger('click')
-
+        return
       return
 
     shrink: ->
@@ -147,6 +151,7 @@ module.exports = do ->
       $('body').off 'mousedown.cancel_add_question'
       @line.find("div").eq(0).fadeOut 250, =>
         @line.empty()
+        return
       @line.parents(".survey-editor__null-top-row").removeClass "expanded"
       if (@line.parents('.survey-editor').find('.survey__row').length)
         @line.parents(".survey-editor__null-top-row").addClass "survey-editor__null-top-row--hidden"
@@ -216,4 +221,4 @@ module.exports = do ->
         $fbC.animate scrollTop: scrollBy
       return
 
-  viewRowSelector
+  return viewRowSelector
