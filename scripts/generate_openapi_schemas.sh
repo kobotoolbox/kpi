@@ -14,9 +14,9 @@ OWNER=$(ls -ld . | awk '{print $3}')
 SRC_FOLDER="./static/openapi"
 DESTINATION_FOLDER="./staticfiles/openapi"
 
-function run () { bash -c "$@"; }
+function run () { bash -c $@; }
 if [ "$WHOAMI" != "$OWNER" ]; then
-    function run () { gosu "$GOSU_USER" "$@"; }
+    function run () { gosu "$GOSU_USER" $@; }
 fi
 
 if [ ! -d "$SRC_FOLDER" ]; then
