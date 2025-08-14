@@ -4,10 +4,11 @@ import {
   getOrganizationsInvitesRetrieveQueryKey,
   useOrganizationsInvitesPartialUpdate,
 } from '#/api/react-query/organization-invites'
+import { getOrganizationsMembersListQueryKey, getOrganizationsMembersRetrieveQueryKey, type organizationsMembersListResponse200, type organizationsMembersRetrieveResponse200, useOrganizationsMembersPartialUpdate } from '#/api/react-query/organization-members'
 import Select from '#/components/common/Select'
 import { queryClient } from '#/query/queryClient'
 import { QueryKeys } from '#/query/queryKeys'
-import { type OrganizationMemberListItem, usePatchOrganizationMember } from './membersQuery'
+import type { OrganizationMemberListItem } from './membersQuery'
 import { OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 
 interface MemberRoleSelectorProps {
@@ -22,10 +23,49 @@ interface MemberRoleSelectorProps {
 
 export default function MemberRoleSelector({ username, role, inviteUrl }: MemberRoleSelectorProps) {
   const orgQuery = useOrganizationQuery()
-  const organizationId = orgQuery.data?.id
+  const organizationId = orgQuery.data?.id!
 
-  const patchMember = usePatchOrganizationMember(username)
+  const queryKeyList = getOrganizationsMembersListQueryKey(organizationId)
+  const queryKeyMember = getOrganizationsMembersRetrieveQueryKey(organizationId, username)
+  const patchMember = useOrganizationsMembersPartialUpdate({
+    mutation: {
+      onMutate: async ({ userUsername, data: { role } }) => {
+        console.log('onMutate', { userUsername, data: { role } })
+        if (!role) return
 
+        const snapshotList = queryClient.getQueryData<organizationsMembersListResponse200>(queryKeyList)
+        console.log(snapshotList) // undefined and will crash, because TODO: use generated queries.
+        await queryClient.cancelQueries({ queryKey: queryKeyList })
+        queryClient.setQueryData<organizationsMembersListResponse200['data']>(queryKeyList, (members) => ({
+          ...members!,
+          results: members!.results.map((member) => ({
+            ...member,
+            role: member.user__username === userUsername ? role : member.role,
+          })),
+        }))
+
+        const snapshotMember = queryClient.getQueryData<organizationsMembersListResponse200>(queryKeyMember)
+        await queryClient.cancelQueries({ queryKey: queryKeyMember })
+        queryClient.setQueryData<organizationsMembersRetrieveResponse200['data']>(queryKeyMember, (member) => ({
+          ...member!,
+          role,
+        }))
+
+        return { snapshotList, snapshotMember }
+      },
+      onError: (_error, _variables, context) => {
+        console.log('onError', _error, _variables, context)
+        if (!context) return
+        queryClient.setQueryData(queryKeyList, context.snapshotList)
+        queryClient.setQueryData(queryKeyMember, context.snapshotMember)
+      },
+      onSettled: () => {
+        console.log('onSettled')
+        queryClient.invalidateQueries({ queryKey: queryKeyList })
+        queryClient.invalidateQueries({ queryKey: queryKeyMember })
+      },
+    },
+  })
   const orgInvitesPatchMutation = useOrganizationsInvitesPartialUpdate({
     mutation: {
       onSuccess: (_data, variables) => {
@@ -33,10 +73,10 @@ export default function MemberRoleSelector({ username, role, inviteUrl }: Member
         queryClient.invalidateQueries({
           queryKey: getOrganizationsInvitesRetrieveQueryKey(variables.organizationId, variables.guid),
         })
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMembers], })
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMemberDetail], })
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMembers] })
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMemberDetail] })
       },
-      onMutate: async ({data}) => {
+      onMutate: async ({ data }) => {
         if (!('role' in data)) return
 
         // If we are updating the invitee's role, we want to optimistically update their role in queries for
@@ -57,8 +97,8 @@ export default function MemberRoleSelector({ username, role, inviteUrl }: Member
       },
     },
     request: {
-      errorMessageDisplay: t('There was an error updating this invitation.')
-    }
+      errorMessageDisplay: t('There was an error updating this invitation.'),
+    },
   })
 
   const handleRoleChange = (newRole: string | null) => {
@@ -73,7 +113,7 @@ export default function MemberRoleSelector({ username, role, inviteUrl }: Member
         data: { role },
       })
     } else {
-      patchMember.mutateAsync({ role })
+      patchMember.mutateAsync({ organizationId, userUsername: username, data: {role: role as any} })
     }
   }
 
