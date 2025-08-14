@@ -6,7 +6,9 @@ import Icon, { type IconSize } from './icon'
 import { TooltipProps } from '@mantine/core/lib/components'
 
 export interface ActionIconProps extends Omit<ActionIconPropsMantine, 'size'> {
+  /** Text for tooltip */
   tooltip?: React.ReactNode
+  /** Additional tooltip configuration */
   tooltipProps?: Partial<Omit<TooltipProps, 'label'>>
 
   iconName: IconName
