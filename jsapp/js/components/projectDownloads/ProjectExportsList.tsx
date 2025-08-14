@@ -192,7 +192,7 @@ export default class ProjectExportsList extends React.Component<ProjectExportsLi
     let languageDisplay: React.ReactNode = <em>{t('Unknown')}</em>
     const langIndex = getLanguageIndex(this.props.asset, exportLangCast)
     if (EXPORT_FORMATS[exportLangCast]) {
-      // Regardless is there is a translation or not, the export has a label that we can display to the user
+      // Regardless if there is a translation or not, the export has a label that we can display to the user
       languageDisplay = EXPORT_FORMATS[exportLangCast].label
     } else {
       languageDisplay = exportLangCast
