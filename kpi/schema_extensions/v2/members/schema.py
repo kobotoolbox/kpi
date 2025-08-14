@@ -1,10 +1,16 @@
-CHOICES = [
-    ('admin', 'Admin'),
-    ('member', 'Member'),
+from kobo.apps.organizations.constants import (
+    ORG_ADMIN_ROLE,
+    ORG_MEMBER_ROLE,
+    ORG_OWNER_ROLE,
+)
+
+ROLE_CHOICES_ENUM_SCHEMA = [
+    (ORG_ADMIN_ROLE, ORG_ADMIN_ROLE),
+    (ORG_MEMBER_ROLE, ORG_MEMBER_ROLE),
+    (ORG_OWNER_ROLE, ORG_OWNER_ROLE),
 ]
 
-PAYLOAD_CHOICES = [
-    ('admin', 'Admin'),
-    ('member', 'Member'),
-    ('owner', 'Owner'),
+ROLE_CHOICES_PAYLOAD_ENUM_SCHEMA = [
+    (ORG_ADMIN_ROLE, ORG_ADMIN_ROLE),
+    (ORG_MEMBER_ROLE, ORG_MEMBER_ROLE),
 ]
