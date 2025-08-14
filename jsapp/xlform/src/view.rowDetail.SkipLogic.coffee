@@ -37,11 +37,12 @@ module.exports = do ->
       delimSelect = @$(".skiplogic__delimselect").val(@criterion_delimiter)
       delimSelect.children('[value=' + @criterion_delimiter + ']').attr('selected', 'selected')
 
-      @
+      return @
 
     addCriterion: (evt) ->
       @facade.view_factory.survey.trigger('change')
       @facade.add_empty()
+      return
 
     deleteCriterion: (evt)->
       @facade.view_factory.survey.trigger('change')
@@ -49,9 +50,11 @@ module.exports = do ->
       modelId = $target.data("criterionId")
       @facade.remove modelId
       $target.parent().remove()
+      return
 
     markChangedDelimSelector: (evt) ->
       @criterion_delimiter = evt.target.value
+      return
 
   class viewRowDetailSkipLogic.SkipLogicCriterion extends $viewWidgets.Base
     tagName: 'div'
@@ -67,10 +70,11 @@ module.exports = do ->
 
       @alreadyRendered = true
 
-      @
+      return @
 
     mark_question_specified: (is_specified=false) ->
       @$el.toggleClass("skiplogic__criterion--unspecified-question", not is_specified)
+      return
 
     bind_question_picker: () ->
       questionVal = @$question_picker.val()
@@ -97,21 +101,27 @@ module.exports = do ->
         @operator_picker_view.value = @$operator_picker.select2 'val'
         @presenter.change_operator(@operator_picker_view.value)
         @model.survey.trigger('change')
+        return
       )
+      return
 
     bind_response_value: () ->
       @response_value_view.bind_event(() =>
         @presenter.change_response(@response_value_view.val())
         @model.survey.trigger('change')
+        return
       )
+      return
 
     response_value_handler: () ->
       @presenter.change_response @response_value_view.val()
+      return
 
     change_operator: (@operator_picker_view) ->
       @operator_picker_view.render()
 
       @$operator_picker = @operator_picker_view.$el
+      return
 
     change_response: (response_value_view) ->
       @response_value_view.detach()
@@ -119,10 +129,12 @@ module.exports = do ->
       @response_value_view.render()
 
       @$response_value = @response_value_view.$el
+      return
 
     attach_operator: () ->
       @operator_picker_view.attach_to @$el
       @bind_operator_picker()
+      return
 
     attach_response: () ->
       if @$('.skiplogic__responseval-wrapper').length > 0
@@ -130,6 +142,7 @@ module.exports = do ->
 
       @response_value_view.attach_to(@$el)
       @bind_response_value()
+      return
 
     attach_to: (element) ->
       @question_picker_view.attach_to @$el
@@ -174,6 +187,7 @@ module.exports = do ->
     attach_to: (target) ->
       target.find('.skiplogic__rowselect').remove()
       super(target)
+      return
 
   ###----------------------------------------------------------------------------------------------------------###
   #-- View.RowDetail.SkipLogic.OperatorPickerView.coffee
@@ -183,7 +197,7 @@ module.exports = do ->
     tagName: 'div'
     className: 'skiplogic__expressionselect'
     render: () ->
-      @
+      return @
 
     attach_to: (target) ->
       target.find('.skiplogic__expressionselect').remove()
@@ -196,8 +210,9 @@ module.exports = do ->
           _.each @operators, (operator) ->
             operators.push id: operator.id, text: operator.label + (if operator.id != 1 then ' (' + operator.symbol[operator.parser_name[0]] + ')' else '')
             operators.push id: '-' + operator.id, text: operator.negated_label + (if operator.id != 1 then ' (' + operator.symbol[operator.parser_name[1]] + ')' else '')
+            return
 
-          operators
+          return operators
       })
 
       # workaround for missing elements when toggling skiplogic back and forth
@@ -209,12 +224,14 @@ module.exports = do ->
         @value = @$el.select2('val')
 
       @$el.on 'select2-close', () => @_set_style()
+      return
 
     val: (value) ->
       if value?
         @$el.select2 'val', value
         @_set_style()
         @value = value
+        return @value
       else
         return @$el.val()
 
@@ -254,6 +271,7 @@ module.exports = do ->
     attach_to: (target) ->
       target.find('.skiplogic__responseval').remove()
       super(target)
+      return
 
   class viewRowDetailSkipLogic.SkipLogicTextResponse extends $viewWidgets.TextBox
     attach_to: (target) ->
@@ -263,6 +281,7 @@ module.exports = do ->
 
     bind_event: (handler) ->
       @$el.on 'blur', handler
+      return
 
     constructor: (text) ->
       super(text, "skiplogic__responseval", t("response value"))
@@ -282,18 +301,21 @@ module.exports = do ->
         @$el.addClass('textbox--invalid')
         @$error_message.html(errors.value)
         @$input.focus()
+      return
     clear_invalid_view: (model, errors) ->
       @$el.removeClass('textbox--invalid')
       @$error_message.html('')
+      return
 
     bind_event: (handler) ->
       @$input.on 'change', handler
+      return
 
     val: (value) ->
       if value?
-        @$input.val(value)
+        return @$input.val(value)
       else
-        @$input.val()
+        return @$input.val()
 
   class viewRowDetailSkipLogic.SkipLogicDropDownResponse extends $viewWidgets.DropDown
     tagName: 'select'
@@ -304,22 +326,27 @@ module.exports = do ->
       super(target)
       # workaround for missing elements when toggling skiplogic back and forth
       target.find('.skiplogic__responseval.select2-container').show()
+      return
 
     bind_event: (handler) ->
       super 'change', handler
+      return
 
     render: () ->
       super()
       handle_model_cid_change = () =>
-        @val(@model.get 'cid')
+        return @val(@model.get 'cid')
 
       @model.off 'change:cid', handle_model_cid_change
       @model.on 'change:cid', handle_model_cid_change
+      return
 
     constructor: (responses, model) ->
       super(_.map responses.models, (response) ->
-        text: response.get('label')
-        value: response.cid
+        return {
+          text: response.get('label')
+          value: response.cid
+        }
       )
       @responses = responses
       @model = model
@@ -357,7 +384,7 @@ module.exports = do ->
 
     create_operator_picker: (question_type) ->
       operators = if question_type? then _.filter($skipLogicHelpers.operator_types, (op_type) -> op_type.id in question_type.operators) else []
-      new viewRowDetailSkipLogic.OperatorPicker operators
+      return new viewRowDetailSkipLogic.OperatorPicker operators
     create_response_value_view: (question, question_type, operator_type) ->
       if !question?
         type = 'empty'
@@ -367,11 +394,11 @@ module.exports = do ->
         type = question_type.response_type
 
       switch type
-        when 'empty' then new viewRowDetailSkipLogic.SkipLogicEmptyResponse()
-        when 'text' then new viewRowDetailSkipLogic.SkipLogicTextResponse
-        when 'dropdown' then new viewRowDetailSkipLogic.SkipLogicDropDownResponse question.getList().options
-        when 'integer', 'decimal' then new viewRowDetailSkipLogic.SkipLogicTextResponse
-        else null
+        when 'empty' then return new viewRowDetailSkipLogic.SkipLogicEmptyResponse()
+        when 'text' then return new viewRowDetailSkipLogic.SkipLogicTextResponse
+        when 'dropdown' then return new viewRowDetailSkipLogic.SkipLogicDropDownResponse question.getList().options
+        when 'integer', 'decimal' then return new viewRowDetailSkipLogic.SkipLogicTextResponse
+        else return null
     create_criterion_view: (question_picker_view, operator_picker_view, response_value_view, presenter) ->
       return new viewRowDetailSkipLogic.SkipLogicCriterion question_picker_view, operator_picker_view, response_value_view, presenter
     create_criterion_builder_view: () ->
@@ -388,4 +415,4 @@ module.exports = do ->
       return new $viewWidgets.EmptyView()
 
 
-  viewRowDetailSkipLogic
+  return viewRowDetailSkipLogic
