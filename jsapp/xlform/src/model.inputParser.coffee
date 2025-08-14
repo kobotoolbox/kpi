@@ -12,14 +12,14 @@ module.exports = do ->
       @contents = []
     push: (item)->
       @contents.push(item)
-      ``
+      return
     export: ->
       arr = []
       for item in @contents
         if item instanceof ParsedStruct
           item = item.export()
         arr.push(item)
-      _.extend({}, @atts, {type: @type, __rows: arr})
+      return _.extend({}, @atts, {type: @type, __rows: arr})
 
   hasBeenParsed = (obj)->
     for row in obj
@@ -41,6 +41,7 @@ module.exports = do ->
           else
             lang_str = key
           item[lang_str] = _translated_val
+          return
         )
     return item
 
@@ -52,7 +53,8 @@ module.exports = do ->
     count_att = (opn_cls, att)->
       counts[opn_cls][att]?=0
       counts[opn_cls][att]++
-      ``
+      return
+
     grpStack = [new ParsedStruct(type)]
 
     _pushGrp = (type='group', item)->
@@ -60,19 +62,20 @@ module.exports = do ->
       grp = new ParsedStruct(type, item)
       _curGrp().push(grp)
       grpStack.push(grp)
+      return
 
     _popGrp = (closedByAtts, type)->
       count_att('close', type)
       _grp = grpStack.pop()
       if _grp.type isnt closedByAtts.type
         throw new Error("mismatched group/repeat tags")
-      ``
+      return
 
     _curGrp = ->
       _l = grpStack.length
       if _l is 0
         throw new Error("unmatched group/repeat")
-      grpStack[_l-1]
+      return grpStack[_l-1]
 
     for item in sArr
       _groupAtts = $aliases.q.testGroupable(item.type)
@@ -94,7 +97,7 @@ module.exports = do ->
           counts: counts
         }))
 
-    _curGrp().export().__rows
+    return _curGrp().export().__rows
 
   # normalizes required value - truthy values become `true` and falsy values become `false`
   normalizeRequiredValues = (survey) ->
@@ -147,6 +150,7 @@ module.exports = do ->
       tmp[lName].push(choiceRow)
     for cn in choiceNames
       choices.add(name: cn, options: tmp[cn])
+    return choices
 
   # groupByVisibility = (inp, hidden=[], remain=[])->
   #   hiddenTypes = $aliases.q.hiddenTypes()
@@ -156,4 +160,4 @@ module.exports = do ->
   #   [hidden, inp]
 
   # inputParser.sortByVisibility = sortByVisibility
-  inputParser
+  return inputParser

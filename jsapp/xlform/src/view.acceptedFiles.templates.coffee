@@ -1,7 +1,7 @@
 module.exports = do ->
 
   acceptedFilesInput = (value, placeholder) ->
-    return """
+    template = """
     <div class='card__settings__fields__field'>
       <label>#{t("Accepted files")}</label>
       <span class='settings__input'>
@@ -9,5 +9,8 @@ module.exports = do ->
       </span>
     </div>
     """
+    
+    return template
 
-  acceptedFilesInput: acceptedFilesInput
+  return acceptedFilesInput: acceptedFilesInput
+
