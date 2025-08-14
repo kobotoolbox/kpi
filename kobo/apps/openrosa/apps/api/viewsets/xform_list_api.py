@@ -243,7 +243,9 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
     def manifest_anonymous(self, request, *args, **kwargs):
         return self.manifest(request, *args, **kwargs)
 
-    @extend_schema(tags=['OpenRosa Form Manifest'], operation_id='manifest_authenticated')
+    @extend_schema(
+        tags=['OpenRosa Form Manifest'], operation_id='manifest_authenticated'
+    )
     @action(detail=False, methods=['GET'])
     def manifest_authenticated(self, request, *args, **kwargs):
         return self.manifest(request, *args, **kwargs)

@@ -115,7 +115,9 @@ urlpatterns = [
     # odk data urls
     re_path(
         r'^submission$',
-        XFormSubmissionApi.as_view({'post': 'create_authenticated', 'head': 'create_authenticated'}),
+        XFormSubmissionApi.as_view(
+            {'post': 'create_authenticated', 'head': 'create_authenticated'}
+        ),
         name='submissions',
     ),
     re_path(
@@ -162,7 +164,9 @@ urlpatterns = [
     ),
     re_path(
         r'^(?P<username>\w+)/submission$',
-        XFormSubmissionApi.as_view({'post': 'create_anonymous', 'head': 'create_anonymous'}),
+        XFormSubmissionApi.as_view(
+            {'post': 'create_anonymous', 'head': 'create_anonymous'}
+        ),
         name='submissions',
     ),
     re_path(r'^(?P<username>\w+)/bulk-submission$', bulksubmission),

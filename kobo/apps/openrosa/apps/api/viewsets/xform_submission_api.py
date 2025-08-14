@@ -156,12 +156,16 @@ class XFormSubmissionApi(
             and not issubclass(auth_class, SessionAuthentication)
         ]
 
-    @extend_schema(tags=['OpenRosa Form Submission'], operation_id='submission_authenticated')
+    @extend_schema(
+        tags=['OpenRosa Form Submission'], operation_id='submission_authenticated'
+    )
     @action(detail=False, methods=['POST'])
     def create_authenticated(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
-    @extend_schema(tags=['OpenRosa Form Submission'], operation_id='submission_anonymous')
+    @extend_schema(
+        tags=['OpenRosa Form Submission'], operation_id='submission_anonymous'
+    )
     @action(detail=False, methods=['POST'])
     def create_anonymous(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
