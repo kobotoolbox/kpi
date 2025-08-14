@@ -1,0 +1,310 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "KoboToolbox API",
+        "version": "2.0.0",
+        "description": "Powerful and intuitive data collection tools to make an impact"
+    },
+    "paths": {
+        "/{username}/formList": {
+            "get": {
+                "operationId": "formList_list_2",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "username",
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^\\w+$"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "OpenRosa Form List"
+                ],
+                "security": [
+                    {
+                        "TokenAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "text/xml": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/XFormList"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/{username}/submission": {
+            "post": {
+                "operationId": "submission_create_2",
+                "description": "Implements OpenRosa Api [FormSubmissionAPI](        https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI)\n\n## Submit an XML XForm submission\n\n<pre class=\"prettyprint\">\n<b>POST</b> /api/v1/submissions</pre>\n> Example\n>\n>       curl -X POST -F xml_submission_file=@/path/to/submission.xml     https://example.com/api/v1/submissions\n\n## Submit an JSON XForm submission\n\n<pre class=\"prettyprint\">\n<b>POST</b> /api/v1/submissions</pre>\n> Example\n>\n>       curl -X POST -d '{\"id\": \"[form ID]\", \"submission\": [the JSON]}     http://localhost:8000/api/v1/submissions -u user:pass -H \"Content-Type:     application/json\"\n\nHere is some example JSON, it would replace `[the JSON]` above:\n>       {\n>           \"transport\": {\n>               \"available_transportation_types_to_referral_facility\":     [\"ambulance\", \"bicycle\"],\n>               \"loop_over_transport_types_frequency\": {\n>                   \"ambulance\": {\n>                       \"frequency_to_referral_facility\": \"daily\"\n>                   },\n>                   \"bicycle\": {\n>                       \"frequency_to_referral_facility\": \"weekly\"\n>                   },\n>                   \"boat_canoe\": null,\n>                   \"bus\": null,\n>                   \"donkey_mule_cart\": null,\n>                   \"keke_pepe\": null,\n>                   \"lorry\": null,\n>                   \"motorbike\": null,\n>                   \"taxi\": null,\n>                   \"other\": null\n>               }\n>           }\n>           \"meta\": {\n>               \"instanceID\": \"uuid:f3d8dc65-91a6-4d0f-9e97-802128083390\"\n>           }\n>       }",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "format",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "json",
+                                "xml"
+                            ]
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "username",
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^\\w+$"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "OpenRosa Form Submission"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "201": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/{username}/xformsManifest/{id}": {
+            "get": {
+                "operationId": "xformsManifest_retrieve_2",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[\\d+^/]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "username",
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^\\w+$"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "OpenRosa Form Manifest"
+                ],
+                "security": [
+                    {
+                        "TokenAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "text/xml": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/XFormList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/formList": {
+            "get": {
+                "operationId": "formList_list",
+                "tags": [
+                    "OpenRosa Form List"
+                ],
+                "security": [
+                    {
+                        "TokenAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "text/xml": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/XFormList"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/submission": {
+            "post": {
+                "operationId": "submission_create",
+                "description": "Implements OpenRosa Api [FormSubmissionAPI](        https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI)\n\n## Submit an XML XForm submission\n\n<pre class=\"prettyprint\">\n<b>POST</b> /api/v1/submissions</pre>\n> Example\n>\n>       curl -X POST -F xml_submission_file=@/path/to/submission.xml     https://example.com/api/v1/submissions\n\n## Submit an JSON XForm submission\n\n<pre class=\"prettyprint\">\n<b>POST</b> /api/v1/submissions</pre>\n> Example\n>\n>       curl -X POST -d '{\"id\": \"[form ID]\", \"submission\": [the JSON]}     http://localhost:8000/api/v1/submissions -u user:pass -H \"Content-Type:     application/json\"\n\nHere is some example JSON, it would replace `[the JSON]` above:\n>       {\n>           \"transport\": {\n>               \"available_transportation_types_to_referral_facility\":     [\"ambulance\", \"bicycle\"],\n>               \"loop_over_transport_types_frequency\": {\n>                   \"ambulance\": {\n>                       \"frequency_to_referral_facility\": \"daily\"\n>                   },\n>                   \"bicycle\": {\n>                       \"frequency_to_referral_facility\": \"weekly\"\n>                   },\n>                   \"boat_canoe\": null,\n>                   \"bus\": null,\n>                   \"donkey_mule_cart\": null,\n>                   \"keke_pepe\": null,\n>                   \"lorry\": null,\n>                   \"motorbike\": null,\n>                   \"taxi\": null,\n>                   \"other\": null\n>               }\n>           }\n>           \"meta\": {\n>               \"instanceID\": \"uuid:f3d8dc65-91a6-4d0f-9e97-802128083390\"\n>           }\n>       }",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "format",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "json",
+                                "xml"
+                            ]
+                        }
+                    }
+                ],
+                "tags": [
+                    "OpenRosa Form Submission"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "201": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/xformsManifest/{id}": {
+            "get": {
+                "operationId": "xformsManifest_retrieve",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[\\d+^/]+$"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "OpenRosa Form Manifest"
+                ],
+                "security": [
+                    {
+                        "TokenAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "text/xml": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/XFormList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "XFormList": {
+                "type": "object",
+                "properties": {
+                    "formID": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "majorMinorVersion": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "readOnly": true
+                    },
+                    "version": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "readOnly": true
+                    },
+                    "hash": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "descriptionText": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "downloadUrl": {
+                        "type": "string",
+                        "format": "uri",
+                        "readOnly": true
+                    },
+                    "manifestUrl": {
+                        "type": "string",
+                        "format": "uri",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "descriptionText",
+                    "downloadUrl",
+                    "formID",
+                    "hash",
+                    "majorMinorVersion",
+                    "manifestUrl",
+                    "name",
+                    "version"
+                ]
+            }
+        },
+        "securitySchemes": {
+            "BasicAuth": {
+                "type": "http",
+                "scheme": "basic"
+            },
+            "TokenAuth": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "Authorization",
+                "description": "Token-based authentication. Use the format: `Token <your-token>`"
+            }
+        }
+    }
+}
