@@ -171,7 +171,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         Documentation:
         - docs/api/v2/form_list/anonymous.md
         """
-        self.list(request, args, kwargs)
+        return self.list(request, *args, **kwargs)
 
     @extend_schema(
         description=read_md('openrosa', 'formlist/list.md'),
@@ -209,7 +209,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         Documentation:
         - docs/api/v2/form_list/authenticated.md
         """
-        self.list(request, args, kwargs)
+        return self.list(request, *args, **kwargs)
 
     @extend_schema(tags=['OpenRosa Form List'], exclude=True)
     def list(self, request, *args, **kwargs):
@@ -239,14 +239,14 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         )
 
     @extend_schema(tags=['OpenRosa Form Manifest'], operation_id='manifest_anonymous')
-    @action(detail=True, methods=['GET'])
+    @action(detail=False, methods=['GET'])
     def manifest_anonymous(self, request, *args, **kwargs):
-        self.manifest(request, *args, **kwargs)
+        return self.manifest(request, *args, **kwargs)
 
     @extend_schema(tags=['OpenRosa Form Manifest'], operation_id='manifest_authenticated')
-    @action(detail=True, methods=['GET'])
+    @action(detail=False, methods=['GET'])
     def manifest_authenticated(self, request, *args, **kwargs):
-        self.manifest(request, *args, **kwargs)
+        return self.manifest(request, *args, **kwargs)
 
     def manifest(self, request, *args, **kwargs):
         xform = self.get_object()

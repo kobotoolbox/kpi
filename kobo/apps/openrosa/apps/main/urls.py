@@ -119,7 +119,9 @@ urlpatterns = [
         name='submissions',
     ),
     re_path(
-        r'^formList$', XFormListApi.as_view({'get': 'form_list_authenticated'}), name='form-list'
+        r'^formList$',
+        XFormListApi.as_view({'get': 'form_list_authenticated'}),
+        name='form-list'
     ),
     re_path(
         r'^(?P<username>\w+)/formList$',
@@ -127,13 +129,13 @@ urlpatterns = [
         name='form-list',
     ),
     re_path(
-        r'^(?P<username>\w+)/xformsManifest/(?P<pk>[\d+^/]+)$',
-        XFormListApi.as_view({'get': 'manifest_anonymous'}),
+        r'^xformsManifest/(?P<pk>[\d+^/]+)$',
+        XFormListApi.as_view({'get': 'manifest_authenticated'}),
         name='manifest-url',
     ),
     re_path(
-        r'^xformsManifest/(?P<pk>[\d+^/]+)$',
-        XFormListApi.as_view({'get': 'manifest_authenticated'}),
+        r'^(?P<username>\w+)/xformsManifest/(?P<pk>[\d+^/]+)$',
+        XFormListApi.as_view({'get': 'manifest_anonymous'}),
         name='manifest-url',
     ),
     re_path(
