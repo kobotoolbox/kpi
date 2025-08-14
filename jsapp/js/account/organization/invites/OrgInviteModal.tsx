@@ -42,7 +42,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
       notifyAboutError: false,
     }
   })
-  const orgInvitesPatchMutateAsync = (status: MemberInviteStatus) => {
+  const handleOrgInvitesPatch = (status: MemberInviteStatus) => {
     return orgInvitesPatch.mutateAsync({ organizationId: props.orgId, guid: props.inviteId, data: { status } })
   }
   // We handle all the errors through query and BE responses, but for some edge cases we have this:
@@ -72,7 +72,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   const handleDeclineInvite = async () => {
     try {
       setUserResponseType(MemberInviteStatus.declined)
-      await orgInvitesPatchMutateAsync(MemberInviteStatus.declined)
+      await handleOrgInvitesPatch(MemberInviteStatus.declined)
       handleSuccessfulInviteResponse(t('Invitation successfully declined'))
     } catch (error) {
       setMiscError(t('Unknown error while trying to update an invitation'))
@@ -83,7 +83,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   const handleAcceptInvite = async () => {
     try {
       setUserResponseType(MemberInviteStatus.accepted)
-      await orgInvitesPatchMutateAsync(MemberInviteStatus.accepted)
+      await handleOrgInvitesPatch(MemberInviteStatus.accepted)
       await handleSuccessfulInviteResponse(t('Invitation successfully accepted'), true)
     } catch (error) {
       setMiscError(t('Unknown error while trying to update an invitation'))
