@@ -9,7 +9,7 @@ from kpi.schema_extensions.v2.generic.schema import (
 )
 from rest_framework import serializers
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from .schema import CHOICES
+from .schema import CHOICES, PAYLOAD_CHOICES
 
 
 class InviteFieldExtension(OpenApiSerializerFieldExtension):
@@ -30,11 +30,21 @@ class InviteFieldExtension(OpenApiSerializerFieldExtension):
                         choices=CHOICES
                     )
                 ),
-                'date_created': build_basic_type(OpenApiTypes.DATETIME),
+                'organization_name': GENERIC_STRING_SCHEMA,
+                'created': build_basic_type(OpenApiTypes.DATETIME),
                 'modified': build_basic_type(OpenApiTypes.DATETIME),
                 'invitee': GENERIC_STRING_SCHEMA,
             },
-            required=['date_created', 'invitee'],
+            required=[
+                'url',
+                'invited_by',
+                'status',
+                'invitee_role',
+                'invitee',
+                'organization_name',
+                'created',
+                'modified',
+            ],
         )
 
 
@@ -56,6 +66,17 @@ class RoleChoiceFieldExtension(OpenApiSerializerFieldExtension):
         return build_choice_field(
             field=serializers.ChoiceField(
                 choices=CHOICES
+            )
+        )
+
+
+class RoleChoicePayloadFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.members.fields.RoleChoicePayloadField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_choice_field(
+            field=serializers.ChoiceField(
+                choices=PAYLOAD_CHOICES
             )
         )
 
