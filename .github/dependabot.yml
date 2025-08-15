@@ -21,6 +21,7 @@ updates:
       interval: "daily"
     labels:
       - "dependencies"
+      - "Front end"
     groups:
       minor-and-patch:
         patterns:
@@ -29,3 +30,41 @@ updates:
           - "minor"
           - "patch"
     open-pull-requests-limit: 10
+    ignore:
+      ##########################################################################
+      # Deps that we do not plan to update
+      ##########################################################################
+
+      # We no longer want to use select2. The only usages left are in the Form Builder code.
+      - dependancy-name: "select2"
+
+      # We need to use https://github.com/saifelse/coffeelint-no-implicit-returns in our ongoing decaffeination project.
+      # Unfortunately it doesn't work with coffeelint 2+. The plan is to not have CoffeeScript files, so there would be
+      # no need for coffeelint :fingers_crossed:
+      - dependancy-name: "coffeelint"
+        versions: [ ">=2.0.0" ]
+
+      # We want to slowly not have mobx, updating it is not a priority.
+      - dependancy-name: "mobx-react"
+
+      ##########################################################################
+      # Deps that require refactor and work before updating
+      ##########################################################################
+
+      # https://linear.app/kobotoolbox/issue/DEV-864/choredeps-update-chai-to-5x
+      - dependancy-name: "@types/chai"
+        versions: [ ">=5.0.0" ]
+      - dependancy-name: "chai"
+        versions: [ ">=5.0.0" ]
+
+      # https://linear.app/kobotoolbox/issue/DEV-865/choredeps-update-css-loader-to-7x
+      - dependancy-name: "css-loader"
+        versions: [ ">=7.0.0" ]
+
+      # https://linear.app/kobotoolbox/issue/DEV-866/choredeps-update-replace-in-file-to-7x
+      - dependancy-name: "replace-in-file"
+        versions: [ ">=7.0.0" ]
+
+      # https://linear.app/kobotoolbox/issue/DEV-867/choredeps-update-storybookaddon-webpack5-compiler-swc-to-3x
+      - dependancy-name: "@storybook/addon-webpack5-compiler-swc"
+        versions: [ ">=3.0.0" ]
