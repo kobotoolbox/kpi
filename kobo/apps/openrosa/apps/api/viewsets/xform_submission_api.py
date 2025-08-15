@@ -71,7 +71,7 @@ def create_instance_from_json(username, request):
 
 
 @extend_schema_view(
-    create_authenticated = extend_schema(
+    create_authenticated=extend_schema(
         description=read_md('openrosa', 'submission/authenticated.md'),
         request={'multipart/form-data': OpenRosaPayload},
         responses=open_api_200_ok_response(
@@ -83,7 +83,7 @@ def create_instance_from_json(username, request):
         tags=['OpenRosa Form Submission'],
         operation_id='submission_authenticated',
     ),
-    create_anonymous = extend_schema(
+    create_anonymous=extend_schema(
         description=read_md('openrosa', 'submission/anonymous.md'),
         request={'multipart/form-data': OpenRosaPayload},
         responses=open_api_200_ok_response(
