@@ -137,6 +137,27 @@ class FastPagination(Paginated):
         return super().get_count(queryset)
 
 
+class GenericFastPagination:
+    """
+    Pagination class factory optimized for faster counting for DISTINCT queries
+    on large tables, specifically queries that return values rather than full models.
+
+    A GenericFastPagination class overrides the get_count() method to only look at the
+    value that is specified as the primary key field, avoiding expensive DISTINCTs
+    comparing several fields.
+    """
+    @staticmethod
+    def get_pagination_class(pk_field):
+        class FastPaginationForValues(FastPagination):
+            def get_count(self, queryset):
+                if queryset.query.distinct:
+                    if len(queryset.query.values_select) > 0:
+                        return queryset.values(pk_field).count()
+                return super().get_count(queryset)
+
+        return FastPaginationForValues
+
+
 class TinyPaginated(PageNumberPagination):
     """
     Same as Paginated with a small page size

@@ -11,7 +11,7 @@ from kpi.models.import_export_task import (
     ImportExportTask,
     ProjectHistoryLogExportTask,
 )
-from kpi.paginators import FastPagination, Paginated
+from kpi.paginators import FastPagination, GenericFastPagination
 from kpi.permissions import IsAuthenticated
 from kpi.tasks import export_task_in_background
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
@@ -276,7 +276,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
 
     queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     serializer_class = AccessLogSerializer
-    pagination_class = Paginated
+    pagination_class = GenericFastPagination.get_pagination_class('group_key')
 
 
 class AccessLogViewSet(AuditLogViewSet):
@@ -337,7 +337,7 @@ class AccessLogViewSet(AuditLogViewSet):
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)
     serializer_class = AccessLogSerializer
-    pagination_class = Paginated
+    pagination_class = GenericFastPagination.get_pagination_class('group_key')
 
 
 def generate_ph_view_set_logstring(description, path, example_path, all):
