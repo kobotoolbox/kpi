@@ -9,14 +9,14 @@ module.exports = do ->
   _.extend validation.validators, {
     invalidChars: (value, attr, customValue)->
       unless $viewUtils.Validator.__validators.invalidChars(value, customValue)
-        "#{value} contains invalid characters";
+        return "#{value} contains invalid characters";
     unique: (value, attr, customValue, model)->
       rows = model.getSurvey().rows.pluck(model.key)
       values = _.map(rows, (rd)-> rd.get('value'))
       unless $viewUtils.Validator.__validators.unique(value, values)
-        "Question name isn't unique"
+        return "Question name isn't unique"
       else
-        ``
+        return
   }
 
   _.extend(Backbone.Model.prototype, validation.mixin);
@@ -34,7 +34,7 @@ module.exports = do ->
       parent = @_parent
       while parent._parent
         parent = parent._parent
-      parent
+      return parent
 
   class base.BaseModel extends Backbone.Model
     constructor: (arg, opts)->
@@ -56,21 +56,24 @@ module.exports = do ->
           resp = resp.getValue()
       else
         resp = @get("value")
-      resp
+      return resp
     setDetail: (what, value)->
       if value.constructor is base.RowDetail
         @set(what, value)
       else
         @set(what, new base.RowDetail({key:what, value: value}, {_parent: @}))
+      return
     parentRow: ->
-      @_parent._parent
+      return @_parent._parent
     precedingRow: ->
       ii = @_parent.models.indexOf(@)
       if ii isnt 0
         @_parent.at(ii-1)
+      return
     nextRow: ->
       ii = @_parent.models.indexOf(@)
       @_parent.at(ii+1)
+      return
     getSurvey: ->
       parent = @_parent
       if parent is null or parent is undefined
@@ -82,15 +85,15 @@ module.exports = do ->
           parent = parent.collection._parent
         else
           break
-      parent
+      return parent
 
   _innerValue = (val)->
     # occasionally, the value passed to rowDetail
     # is an object, which evaluates to true
     if _.isObject(val)
-      val.value
+      return val.value
     else
-      val
+      return val
 
   class base.RowDetail extends base.BaseModel
     idAttribute: "name"
@@ -105,7 +108,7 @@ module.exports = do ->
       else if @key == 'label' && @_parent.constructor.key != 'group'
         return value:
           required: true
-      {}
+      return {}
 
     constructor: ({@key, value}, opts)->
       @_parent = opts._parent
@@ -139,6 +142,7 @@ module.exports = do ->
         @_oValue = @get("value")
         @on "change", ()->
           @hidden = @get("value") is @_oValue
+          return
 
       @on "change:value", (rd, val, ctxt)=>
         # @_parent.trigger "change", @key, val, ctxt
@@ -147,6 +151,7 @@ module.exports = do ->
       # if @key is "type"
       #   @on "change:list", (rd, val, ctxt)=>
       #     @_parent.trigger "change", @key, val, ctxt
+        return
 
       # when attributes change, register changes with parent survey
       if @key in ["name", "label", "hint", "guidance_hint", "required",
@@ -154,5 +159,7 @@ module.exports = do ->
                   "constraint_message", "tags"] or @key.match(/^.+::.+/)
         @on "change", (changes)=>
           @getSurvey().trigger "change", changes
+          return
+      return
 
-  base
+  return base
