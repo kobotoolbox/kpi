@@ -52,7 +52,7 @@ from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.exceptions import XlsFormatException
+from kpi.exceptions import ConcurrentExportException, XlsFormatException
 from kpi.fields import KpiUidField
 from kpi.models import Asset
 from kpi.utils.data_exports import (
@@ -121,18 +121,25 @@ class ImportExportTask(models.Model):
         asynchronous task runner (Celery)
         """
         with transaction.atomic():
-            # FIXME: use `select_for_update`
-            _refetched_self = self._meta.model.objects.get(pk=self.pk)
+            _refetched_self = self._meta.model.objects.select_for_update().get(
+                pk=self.pk
+            )
             self.status = _refetched_self.status
             del _refetched_self
-            if self.status == self.COMPLETE:
-                return
-            elif self.status != self.CREATED:
-                # possibly a concurrent task?
-                raise Exception(
+            if self.status == self.PROCESSING:
+                raise ConcurrentExportException(
                     'only recently created {}s can be executed'.format(
                         self._meta.model_name)
                 )
+            elif self.status in (self.COMPLETE, self.ERROR):
+                # There is no action to take. To retry an `ERROR`ed export, the
+                # status must first be reset to `CREATED`
+                return
+            elif self.status != self.CREATED:
+                # Sanity check in case someone adds a new export status without
+                # updating this code
+                raise NotImplementedError
+
             self.status = self.PROCESSING
             self.save(update_fields=['status'])
 
@@ -1161,27 +1168,30 @@ class SubmissionSynchronousExport(SubmissionExportTaskBase):
             'format_type': format_type,
         }
 
-        # An object (a row) must be created (inserted) before it can be locked
-        cls.objects.get_or_create(**criteria, defaults={'data': data})
+        export, created = cls.objects.get_or_create(
+            **criteria, defaults={'data': data}
+        )
+        if export.date_created < age_cutoff:
+            # The existing export is too old; reset its state so it can be
+            # reborn
+            with transaction.atomic():
+                export = cls.objects.select_for_update().get(
+                    **criteria
+                )
+                export.data = data
+                export.status = cls.CREATED
+                export.date_created = utcnow()
+                export.result.delete(save=False)
+                export.save()
 
-        with transaction.atomic():
-            # Lock the object (and block until a lock can be obtained) to
-            # prevent the same export from running concurrently
-            export = cls.objects.select_for_update().get(**criteria)
-
-            if (
-                export.status == cls.COMPLETE
-                and export.date_created >= age_cutoff
-            ):
-                return export
-
-            export.data = data
-            export.status = cls.CREATED
-            export.date_created = utcnow()
-            export.result.delete(save=False)
-            export.save()
+        try:
             export.run()
-            return export
+        except ConcurrentExportException:
+            # It's the caller's responsibility to interpret the `PENDING`
+            # status of the export appropriately
+            pass
+
+        return export
 
 
 def _get_xls_format(decoded_str):
