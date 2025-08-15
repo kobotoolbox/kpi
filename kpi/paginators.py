@@ -137,6 +137,19 @@ class FastPagination(Paginated):
         return super().get_count(queryset)
 
 
+class GenericFastPagination:
+    @staticmethod
+    def get_pagination_class(pk_field):
+        class FastPaginationForValues(FastPagination):
+            def get_count(self, queryset):
+                if queryset.query.distinct:
+                    if len(queryset.query.values_select) > 0:
+                        return queryset.values(pk_field).count()
+                return super().get_count(queryset)
+
+        return FastPaginationForValues
+
+
 class TinyPaginated(PageNumberPagination):
     """
     Same as Paginated with a small page size
