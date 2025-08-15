@@ -115,9 +115,9 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
             ):
                 continue
             else:
-                # There is no way to ensure atomicity when moving the file and saving the
-                # object to the database. Fingers crossed that the process doesn't get
-                # interrupted between these two operations.
+                # There is no way to ensure atomicity when moving the file and saving
+                # the object to the database. Fingers crossed that the process doesn't
+                # get interrupted between these two operations.
                 if attachment.media_file.move(target_folder):
                     _delete_thumbnails(media_file_path)
                     attachment.save(update_fields=['media_file'])
