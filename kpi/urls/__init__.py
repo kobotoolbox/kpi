@@ -8,13 +8,10 @@ from kpi.views import authorized_application_authenticate_user, home, modern_bro
 from kpi.views.current_user import CurrentUserViewSet
 from kpi.views.environment import EnvironmentView
 from kpi.views.token import TokenView
-from .router_api_v1 import urls_patterns as router_api_v1_urls
-from .router_api_v2 import URL_NAMESPACE
-from .router_api_v2 import urls_patterns as router_api_v2_urls
 from kpi.views.v2.authorized_application_user import AuthorizedApplicationUserViewSet
 from kpi.views.v2.logout import logout_from_all_devices
-from .router_api_v1 import router_api_v1
-from .router_api_v2 import URL_NAMESPACE, router_api_v2
+from .router_api_v1 import urls_patterns as router_api_v1_urls
+from .router_api_v2 import URL_NAMESPACE, urls_patterns as router_api_v2_urls
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See

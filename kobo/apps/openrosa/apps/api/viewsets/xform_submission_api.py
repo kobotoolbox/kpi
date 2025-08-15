@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
 from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, permissions, status
+from rest_framework.decorators import action
 from rest_framework.exceptions import NotAuthenticated
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
@@ -69,17 +70,6 @@ def create_instance_from_json(username, request):
     return safe_create_instance(username, xml_file, [], None, request=request)
 
 
-@extend_schema(
-    description=read_md('openrosa', 'submission/create.md'),
-    request={'multipart/form-data': OpenRosaPayload},
-    responses=open_api_200_ok_response(
-        OpenRosaResponse,
-        media_type='application/xml',
-        error_media_type='application/xml',
-        raise_access_forbidden=False,
-    ),
-    tags=['OpenRosa Form Submission'],
-)
 class XFormSubmissionApi(
     OpenRosaHeadersMixin,
     mixins.CreateModelMixin,
@@ -178,6 +168,38 @@ class XFormSubmissionApi(
             if auth_class not in authentication_classes
             and not issubclass(auth_class, SessionAuthentication)
         ]
+
+    @extend_schema(
+        description=read_md('openrosa', 'submission/create.md'),
+        request={'multipart/form-data': OpenRosaPayload},
+        responses=open_api_200_ok_response(
+            OpenRosaResponse,
+            media_type='application/xml',
+            error_media_type='application/xml',
+            raise_access_forbidden=False,
+        ),
+        tags=['OpenRosa Form Submission'],
+        operation_id='submission_authenticated',
+    )
+    @action(detail=False, methods=['POST'])
+    def create_authenticated(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    @extend_schema(
+        description=read_md('openrosa', 'submission/create.md'),
+        request={'multipart/form-data': OpenRosaPayload},
+        responses=open_api_200_ok_response(
+            OpenRosaResponse,
+            media_type='application/xml',
+            error_media_type='application/xml',
+            raise_access_forbidden=False,
+        ),
+        tags=['OpenRosa Form Submission'],
+        operation_id='submission_anonymous',
+    )
+    @action(detail=False, methods=['POST'])
+    def create_anonymous(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
         username = self.kwargs.get('username')
