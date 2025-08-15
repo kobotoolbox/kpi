@@ -138,7 +138,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         return queryset
 
     @extend_schema(
-        description=read_md('openrosa', 'formlist/list.md'),
+        description=read_md('openrosa', 'formlist/anonymous.md'),
         responses=open_api_200_ok_response(
             XFormListSerializer,
             media_type='application/xml',
@@ -240,21 +240,8 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             xform.xml_with_disclaimer, headers=self.get_openrosa_headers()
         )
 
-    @extend_schema(tags=['OpenRosa Form Manifest'], operation_id='manifest_anonymous')
-    @action(detail=False, methods=['GET'])
-    def manifest_anonymous(self, request, *args, **kwargs):
-        return self.manifest(request, *args, **kwargs)
-
     @extend_schema(
-        tags=['OpenRosa Form Manifest'],
-        operation_id='manifest_authenticated'
-    )
-    @action(detail=False, methods=['GET'])
-    def manifest_authenticated(self, request, *args, **kwargs):
-        return self.manifest(request, *args, **kwargs)
-
-    @extend_schema(
-        description=read_md('openrosa', 'manifest/list.md'),
+        description=read_md('openrosa', 'manifest/anonymous.md'),
         responses=open_api_200_ok_response(
             OpenRosaFormManifestResponse,
             media_type='application/xml',
@@ -263,8 +250,30 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             raise_access_forbidden=False,
             error_media_type='application/xml',
         ),
-        tags=['OpenRosa Form Manifest']
+        tags=['OpenRosa Form Manifest'],
+        operation_id='manifest_anonymous'
     )
+    @action(detail=False, methods=['GET'])
+    def manifest_anonymous(self, request, *args, **kwargs):
+        return self.manifest(request, *args, **kwargs)
+
+    @extend_schema(
+        description=read_md('openrosa', 'manifest/authenticated.md'),
+        responses=open_api_200_ok_response(
+            OpenRosaFormManifestResponse,
+            media_type='application/xml',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+            error_media_type='application/xml',
+        ),
+        tags=['OpenRosa Form Manifest'],
+        operation_id='manifest_authenticated'
+    )
+    @action(detail=False, methods=['GET'])
+    def manifest_authenticated(self, request, *args, **kwargs):
+        return self.manifest(request, *args, **kwargs)
+
     @action(detail=True, methods=['GET'])
     def manifest(self, request, *args, **kwargs):
         """
