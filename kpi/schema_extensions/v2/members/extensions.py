@@ -13,7 +13,7 @@ from kpi.schema_extensions.v2.generic.schema import (
 )
 from rest_framework import serializers
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from .schema import ROLE_CHOICES_ENUM_SCHEMA, ROLE_CHOICES_PAYLOAD_ENUM_SCHEMA
+from .schema import ROLE_CHOICES_ENUM, ROLE_CHOICES_PAYLOAD_ENUM
 
 
 class InviteFieldExtension(OpenApiSerializerFieldExtension):
@@ -35,7 +35,7 @@ class InviteFieldExtension(OpenApiSerializerFieldExtension):
                 ),
                 'invitee_role': build_choice_field(
                     field=serializers.ChoiceField(
-                        choices=ROLE_CHOICES_ENUM_SCHEMA
+                        choices=ROLE_CHOICES_ENUM
                     )
                 ),
                 'organization_name': GENERIC_STRING_SCHEMA,
@@ -72,7 +72,7 @@ class RoleChoiceFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_choice_field(
             field=serializers.ChoiceField(
-                choices=ROLE_CHOICES_ENUM_SCHEMA
+                choices=ROLE_CHOICES_ENUM
             )
         )
 
@@ -83,7 +83,7 @@ class RoleChoicePayloadFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_choice_field(
             field=serializers.ChoiceField(
-                choices=ROLE_CHOICES_PAYLOAD_ENUM_SCHEMA
+                choices=ROLE_CHOICES_PAYLOAD_ENUM
             )
         )
 
