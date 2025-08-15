@@ -25,7 +25,6 @@ billiard
 celery
 celery[redis]
 dict2xml
-defusedxml
 dj-static
 dj-stripe>=2.10,<2.11
 django-allauth>=65.11.2

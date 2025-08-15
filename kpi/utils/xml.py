@@ -3,32 +3,23 @@ from __future__ import annotations
 import re
 from typing import Optional, Union
 from xml.dom import Node
+from xml.dom import minidom
 from xml.etree import ElementTree as ET
 
-# Goals for the future:
-#
-# 1. All XML handling is done in this file. No other files import anything from
-#    xml, lxml, etc. directly; instead, they import helpers from this file.
-#
-# 2. All XML parsing is done by defusedxml. However:
-#     The defusedxml modules are not drop-in replacements of their stdlib
-#     counterparts. The modules only provide functions and classes related to
-#     parsing and loading of XML. For all other features, use the classes,
-#     functions, and constants from the stdlib modules.
-#     (https://github.com/tiran/defusedxml)
-#
-# The imports below are those given as examples by the defusedxml
-# "documentation" (the README), except for correcting a typo in the second
-# import:
-from defusedxml import ElementTree as DET
-from defusedxml import minidom
-from defusedxml.lxml import fromstring
 from django.db.models import F, Q
 from django.db.models.query import QuerySet
 from lxml import etree
 
 from kobo.apps.form_disclaimer.models import FormDisclaimer
-from kpi.exceptions import DTDForbiddenException, EntitiesForbiddenException
+
+# Goal for the future: all XML handling is done in this file. No other files
+# import anything from xml, lxml, etc. directly; instead, they import helpers
+# from this file.
+#
+# As of Python 3.8+ / lxml 4.6.2+, the standard library and lxml XML parsers
+# are hardened against XXE, entity expansion bombs, and external DTD fetching
+# by default, making defusedxml unnecessary for this project (Python 3.12,
+# lxml 5.4).
 
 
 def add_xml_declaration(
@@ -58,50 +49,6 @@ def add_xml_declaration(
     return xml_
 
 
-def check_entities(
-    elementtree: etree.ElementTree,
-    dtd_forbidden: bool = False,
-    entities_forbidden: bool = True
-):
-    """
-    This function is to be used with the lxml library using examples
-    found in the defusedxml library since support for lxml is depreciated
-    Does not return content. This function will only raise exceptions if
-    unaccepted content is contained in the XML.
-    """
-
-    docinfo = elementtree.docinfo
-    if docinfo.doctype:
-        if dtd_forbidden:
-            raise DTDForbiddenException
-        if entities_forbidden:
-            raise EntitiesForbiddenException
-
-    if entities_forbidden:
-        for dtd_entity in docinfo.internalDTD, docinfo.externalDTD:
-            if dtd_entity is None:
-                continue
-            for entity in dtd_entity.interentities():
-                raise EntitiesForbiddenException
-
-
-def check_lxml_fromstring(
-    text: str,
-    base_url: str = None,
-    forbid_dtd: bool = False,
-    forbid_entities: bool = True,
-):
-    """
-    This function is used to replace the `lxml.etree.fromstring` method similarly to
-    defusedxml's replacement for the method.
-    Returns an ElementTree object
-    """
-    rootelement = fromstring(text, base_url=base_url)
-    elementtree = rootelement.getroottree()
-    check_entities(elementtree, forbid_dtd, forbid_entities)
-    return rootelement
-
-
 def edit_submission_xml(
     xml_parsed: 'xml.etree.ElementTree.Element',
     path: str,
@@ -115,27 +62,25 @@ def edit_submission_xml(
     element.text = value
 
 
+def minidom_parsestring(text: Union[str, bytes]) -> minidom.Document:
+    """
+    Thin wrapper so callers don't import minidom directly for parsing.
+    """
+    if isinstance(text, bytes):
+        text = text.decode()
+    return minidom.parseString(text)
+
+
 def fromstring_preserve_root_xmlns(
-    text: str,
-    forbid_dtd: bool = False,
-    forbid_entities: bool = True,
-    forbid_external: bool = True,
+    text: Union[str, bytes],
 ) -> ET.Element:
     """
     Parse an XML string, but leave the default namespace in the `xmlns`
     attribute if the root element has one, and do not use Clark notation
     prefixes on tag names for the default namespace.
-
-    Copied from `defusedxml.common._generate_etree_functions()`, except that
-    the `target` is changed to a custom class. Necessary because
-    `defusedxml.ElementTree.fromstring()`, unlike the standard library
-    `xml.etree.ElementTree.fromstring()`, does not allow specifying a parser.
     """
-    parser = DET.DefusedXMLParser(
+    parser = ET.XMLParser(
         target=OmitDefaultNamespacePrefixTreeBuilder(),
-        forbid_dtd=forbid_dtd,
-        forbid_entities=forbid_entities,
-        forbid_external=forbid_external,
     )
     parser.feed(text)
     return parser.close()
@@ -255,15 +200,20 @@ def strip_nodes(
     ).decode()
 
 
-def xml_tostring(el: ET.Element) -> str:
+def xml_tostring(el: ET.Element, **kwargs) -> str:
     """
     Thin wrapper around `ElementTree.tostring()` as a step toward a future
     where all XML handling is done in this file
     """
+    if 'encoding' in kwargs:
+        raise NotImplementedError(
+            'Do not pass an `encoding` argument. The returned encoding is'
+            ' always `unicode`.'
+        )
     # "Use encoding="unicode" to generate a Unicode string (otherwise, a
     # bytestring is generated)."
     # https://docs.python.org/3.10/library/xml.etree.elementtree.html#xml.etree.ElementTree.tostring
-    return DET.tostring(el, encoding='unicode')
+    return ET.tostring(el, encoding='unicode', **kwargs)
 
 
 def _filter_nodes_by_xpaths(root: etree._Element, xpath_matches: list) -> None:

@@ -10,7 +10,7 @@ from collections import defaultdict
 from copy import deepcopy
 from datetime import datetime
 from typing import Optional
-from xml.etree import ElementTree as ET
+from kpi.utils.xml import fromstring_preserve_root_xmlns
 from zoneinfo import ZoneInfo
 
 from django.conf import settings
@@ -212,7 +212,7 @@ class Command(BaseCommand):
         if not media_question_xpaths:
             return []
 
-        xml_parsed = ET.fromstring(instance.xml)
+        xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
         basenames = []
         for xpath in media_question_xpaths:
             root, path = xpath.split('/', 1)

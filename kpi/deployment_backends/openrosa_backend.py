@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 import redis.exceptions
 import requests
 from constance import config
-from defusedxml import ElementTree as DET
+from xml.etree.ElementTree import ParseError
 from django.conf import settings
 from django.core.cache.backends.base import InvalidCacheBackendError
 from django.core.files import File
@@ -408,7 +408,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         submission_xml = xml_submission_file.read()
         try:
             xml_root = fromstring_preserve_root_xmlns(submission_xml)
-        except DET.ParseError:
+        except ParseError:
             raise SubmissionIntegrityError(t('Your submission XML is malformed.'))
         try:
             xform_uuid = xml_root.find(self.FORM_UUID_XPATH).text

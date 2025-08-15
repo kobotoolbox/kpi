@@ -12,7 +12,6 @@ from datetime import date, datetime, timezone
 from typing import Generator, Optional, Union
 from wsgiref.util import FileWrapper
 from xml.dom import Node
-from xml.etree import ElementTree as ET
 from xml.parsers.expat import ExpatError
 from zoneinfo import ZoneInfo
 
@@ -97,6 +96,7 @@ from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.usage_calculator import ServiceUsageCalculator
+from kpi.utils.xml import fromstring_preserve_root_xmlns
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
@@ -870,7 +870,7 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
 
     # Parse instance XML to get the basename of each file of the updated
     # submission
-    xml_parsed = ET.fromstring(instance.xml)
+    xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
     basenames = []
 
     for media_question_xpath in media_question_xpaths:
