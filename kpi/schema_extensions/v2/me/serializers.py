@@ -3,6 +3,7 @@ from rest_framework import serializers
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
     ExtraDetailField,
+    GitRevField,
     GravatarField,
     ProjectUrlField,
     OrganizationField,
@@ -29,7 +30,7 @@ MeListResponse = inline_serializer_class(
         'gravatar': GravatarField(),
         'last_login': serializers.DateTimeField(),
         'extra_details': ExtraDetailField(),
-        'git_rev': serializers.CharField(),
+        'git_rev': GitRevField(),
         'social_accounts': SocialAccountField(),
         'validated_password': serializers.BooleanField(),
         'accepted_tos': serializers.BooleanField(),

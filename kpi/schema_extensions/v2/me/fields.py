@@ -9,6 +9,10 @@ class DateJoinedField(serializers.DateTimeField):
     pass
 
 
+class GitRevField(serializers.JSONField):
+    pass
+
+
 class GravatarField(serializers.URLField):
     pass
 
