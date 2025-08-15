@@ -2,4 +2,4 @@
 
 This endpoint is used by Enketo when loading a form.
 It returns the URLs of form media files so they can be fetched and displayed as
-needed during form rendering.
+needed during form rendering and will open the form in edit mode.
