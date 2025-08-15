@@ -1,5 +1,8 @@
 from rest_framework import serializers
 
+from kobo.apps.project_ownership.schema_extensions.v2.project_ownership.invites.fields import (  # noqa
+    StatusEnumField
+)
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import InvitedByUrlField, InviteesField, InviteUrlField
 
@@ -26,7 +29,7 @@ InviteResponse = inline_serializer_class(
     fields={
         'url': InviteUrlField(),
         'invited_by': InvitedByUrlField(),
-        'status': serializers.CharField(),
+        'status': StatusEnumField(),
         'invitee_role': serializers.CharField(),
         'created': serializers.DateTimeField(),
         'modified': serializers.DateTimeField(),

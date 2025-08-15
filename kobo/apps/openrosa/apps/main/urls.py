@@ -115,25 +115,29 @@ urlpatterns = [
     # odk data urls
     re_path(
         r'^submission$',
-        XFormSubmissionApi.as_view({'post': 'create', 'head': 'create'}),
+        XFormSubmissionApi.as_view(
+            {'post': 'create_authenticated', 'head': 'create_authenticated'}
+        ),
         name='submissions',
     ),
     re_path(
-        r'^formList$', XFormListApi.as_view({'get': 'form_list'}), name='form-list'
+        r'^formList$',
+        XFormListApi.as_view({'get': 'form_list_authenticated'}),
+        name='form-list'
     ),
     re_path(
         r'^(?P<username>\w+)/formList$',
-        XFormListApi.as_view({'get': 'form_list'}),
+        XFormListApi.as_view({'get': 'form_list_anonymous'}),
         name='form-list',
     ),
     re_path(
-        r'^(?P<username>\w+)/xformsManifest/(?P<pk>[\d+^/]+)$',
-        XFormListApi.as_view({'get': 'manifest'}),
+        r'^xformsManifest/(?P<pk>[\d+^/]+)$',
+        XFormListApi.as_view({'get': 'manifest_authenticated'}),
         name='manifest-url',
     ),
     re_path(
-        r'^xformsManifest/(?P<pk>[\d+^/]+)$',
-        XFormListApi.as_view({'get': 'manifest'}),
+        r'^(?P<username>\w+)/xformsManifest/(?P<pk>[\d+^/]+)$',
+        XFormListApi.as_view({'get': 'manifest_anonymous'}),
         name='manifest-url',
     ),
     re_path(
@@ -160,7 +164,9 @@ urlpatterns = [
     ),
     re_path(
         r'^(?P<username>\w+)/submission$',
-        XFormSubmissionApi.as_view({'post': 'create', 'head': 'create'}),
+        XFormSubmissionApi.as_view(
+            {'post': 'create_anonymous', 'head': 'create_anonymous'}
+        ),
         name='submissions',
     ),
     re_path(r'^(?P<username>\w+)/bulk-submission$', bulksubmission),

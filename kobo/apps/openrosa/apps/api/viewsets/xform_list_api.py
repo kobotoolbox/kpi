@@ -146,9 +146,10 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             raise_not_found=False,
         ),
         tags=['OpenRosa Form List'],
+        operation_id='form_list_anonymous',
     )
     @action(detail=False, methods=['get'])
-    def form_list(self, request, *args, **kwargs):
+    def form_list_anonymous(self, request, *args, **kwargs):
         """
         Publish the OpenRosa formList via a custom action instead of relying on the
         ViewSet's default `list()` route.
@@ -166,10 +167,47 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
         Available actions:
         - form_list (anonymous)         → GET /api/v2/{username}/formList/
+
+        Documentation:
+        - docs/api/v2/form_list/anonymous.md
+        """
+        return self.list(request, *args, **kwargs)
+
+    @extend_schema(
+        description=read_md('openrosa', 'formlist/list.md'),
+        responses=open_api_200_ok_response(
+            XFormListSerializer,
+            media_type='application/xml',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+        ),
+        tags=['OpenRosa Form List'],
+        operation_id='form_list_authenticated',
+    )
+    @action(detail=False, methods=['get'])
+    def form_list_authenticated(self, request, *args, **kwargs):
+        """
+        Publish the OpenRosa formList via a custom action instead of relying on the
+        ViewSet's default `list()` route.
+
+        Why? drf-spectacular treats `list` actions as arrays (`many=True`) and
+        auto-wraps the response in the OpenAPI schema. For XML, Swagger UI struggles
+        to generate an example for top-level arrays, especially when we need a named
+        root.
+        Exposing a custom action lets us control the response schema (e.g.
+        XML root as `<xforms>`) so Swagger UI can render the XML example correctly.
+
+
+
+        ViewSet for managing enketo form list
+
+        Available actions:
         - form_list (authenticated)     → GET /api/v2/formList/
 
         Documentation:
-        - docs/api/v2/form_list/list.md
+        - docs/api/v2/form_list/authenticated.md
         """
         return self.list(request, *args, **kwargs)
 
@@ -200,8 +238,18 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             xform.xml_with_disclaimer, headers=self.get_openrosa_headers()
         )
 
-    @extend_schema(tags=['OpenRosa Form Manifest'])
-    @action(detail=True, methods=['GET'])
+    @extend_schema(tags=['OpenRosa Form Manifest'], operation_id='manifest_anonymous')
+    @action(detail=False, methods=['GET'])
+    def manifest_anonymous(self, request, *args, **kwargs):
+        return self.manifest(request, *args, **kwargs)
+
+    @extend_schema(
+        tags=['OpenRosa Form Manifest'], operation_id='manifest_authenticated'
+    )
+    @action(detail=False, methods=['GET'])
+    def manifest_authenticated(self, request, *args, **kwargs):
+        return self.manifest(request, *args, **kwargs)
+
     def manifest(self, request, *args, **kwargs):
         xform = self.get_object()
         media_files = {}
