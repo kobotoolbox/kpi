@@ -1199,20 +1199,30 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
 
         self._add_submissions()
         self.submission = self.submissions_submitted_by_someuser[0]
-        self.submission_url_legacy = reverse(
+
+        # Several URLs share the same viewname 'submission-enketo-edit' because
+        # of aliases. Django returns the last match - which is "/enketo/edit/"
+        self.submission_url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
-        self.submission_url = self.submission_url_legacy.replace(
-            'edit', 'enketo/edit'
+        self.submission_url_legacy = reverse(
+            self._get_endpoint('submission-enketo-edit-legacy'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.submission['_id'],
+            },
         )
-        self.submission_redirect_url = self.submission_url_legacy.replace(
-            'edit', 'enketo/redirect/edit'
+        self.submission_redirect_url = reverse(
+            self._get_endpoint('submission-enketo-edit-redirect'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.submission['_id'],
+            },
         )
-        assert 'redirect' in self.submission_redirect_url
 
     @responses.activate
     def test_get_legacy_edit_link_submission_as_owner(self):
@@ -1263,9 +1273,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
             content_type='application/json',
         )
 
-        response = self.client.get(
-            self.submission_redirect_url, {'format': 'json'}
-        )
+        response = self.client.get(self.submission_redirect_url, {'format': 'json'})
         assert response.status_code == status.HTTP_302_FOUND
         assert (
             response.url
@@ -1409,7 +1417,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
 
     def test_edit_submission_with_digest_credentials(self):
         url = reverse(
-            self._get_endpoint('assetsnapshot-submission-alias'),
+            self._get_endpoint('assetsnapshot-submission-openrosa'),
             args=(self.asset.snapshot().uid,),
         )
         self.client.logout()
@@ -1444,7 +1452,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
 
     def test_edit_submission_with_authenticated_session_but_no_digest(self):
         url = reverse(
-            self._get_endpoint('assetsnapshot-submission-alias'),
+            self._get_endpoint('assetsnapshot-submission-openrosa'),
             args=(self.asset.snapshot().uid,),
         )
         self.login_as_other_user('anotheruser', 'anotheruser')
@@ -1492,7 +1500,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
             )
             self.client.get(edit_url, {'format': 'json'})
             url = reverse(
-                self._get_endpoint('assetsnapshot-submission'),
+                self._get_endpoint('assetsnapshot-submission-openrosa'),
                 args=(self.asset.snapshot().uid,),
             )
             submission_urls.append(url)
@@ -1740,7 +1748,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
     def test_edit_submission_snapshot_missing(self):
         # use non-existent snapshot id
         url = reverse(
-            self._get_endpoint('assetsnapshot-submission-alias'),
+            self._get_endpoint('assetsnapshot-submission-openrosa'),
             args=('12345',),
         )
         client = DigestClient()
@@ -1750,7 +1758,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
     def test_edit_submission_snapshot_missing_unauthenticated(self):
         # use non-existent snapshot id
         url = reverse(
-            self._get_endpoint('assetsnapshot-submission-alias'),
+            self._get_endpoint('assetsnapshot-submission-openrosa'),
             args=('12345',),
         )
         self.client.logout()
@@ -1787,7 +1795,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         edited_submission = xml_tostring(xml_parsed)
 
         url = reverse(
-            self._get_endpoint('assetsnapshot-submission-alias'),
+            self._get_endpoint('assetsnapshot-submission-openrosa'),
             args=(self.asset.snapshot().uid,),
         )
         self.client.logout()
@@ -1898,7 +1906,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         # Enketo splits large submissions into chunks (max 10 MB per request).
         # Here we simulate that by sending one attachment per request.
         url = reverse(
-            self._get_endpoint('assetsnapshot-submission-alias'),
+            self._get_endpoint('assetsnapshot-submission-openrosa'),
             args=(snapshot.uid,),
         )
 
@@ -1961,10 +1969,12 @@ class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase
                 'pk': self.submission['_id'],
             },
         )
-        self.submission_view_redirect_url = (
-            self.submission_view_link_url.replace(
-                '/enketo/view/', '/enketo/redirect/view/'
-            )
+        self.submission_view_redirect_url = reverse(
+            self._get_endpoint('submission-enketo-view-redirect'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.submission['_id'],
+            },
         )
         assert 'redirect' in self.submission_view_redirect_url
 
