@@ -6,13 +6,17 @@ from .fields import (
     OpenRosaFormHubField,
     OpenRosaManifestURLField,
     OpenRosaMetaField,
-    OpenRosaXFormField,
 )
 
 OpenRosaFormListResponse = inline_serializer_class(
     name='OpenRosaFormListResponse',
     fields={
-        'xform': OpenRosaXFormField(),
+        'formID': serializers.CharField(),
+        'name': serializers.CharField(),
+        'hash': serializers.CharField(),
+        'descriptionText': serializers.CharField(),
+        'downloadUrl': serializers.URLField(),
+        'manifestUrl': serializers.URLField(),
     },
 )
 

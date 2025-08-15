@@ -16,7 +16,6 @@ class ErrorObjectSerializer(serializers.Serializer):
     detail = serializers.JSONField()
 
 
-# Returns an OpenApiResponse with the given serializer and a 200 http code
 def open_api_200_ok_response(
     given_serializer: Optional[Serializer] = None,
     media_type: Optional[str] = None,
@@ -27,6 +26,10 @@ def open_api_200_ok_response(
     raise_not_found: bool = True,
     **kwargs,
 ) -> OpenApiGenericResponse:
+    """
+    Returns an OpenApiResponse with the given serializer and a 200 http code
+    """
+
     return open_api_generic_response(
         status.HTTP_200_OK,
         given_serializer,
@@ -40,7 +43,6 @@ def open_api_200_ok_response(
     )
 
 
-# Returns an OpenApiResponse with the given serializer and a 201 http code
 def open_api_201_created_response(
     given_serializer: Optional[Serializer] = None,
     media_type: Optional[str] = None,
@@ -51,6 +53,10 @@ def open_api_201_created_response(
     raise_not_found: bool = True,
     **kwargs,
 ) -> OpenApiGenericResponse:
+    """
+    Returns an OpenApiResponse with the given serializer and a 201 http code
+    """
+
     return open_api_generic_response(
         status.HTTP_201_CREATED,
         given_serializer,
@@ -64,7 +70,6 @@ def open_api_201_created_response(
     )
 
 
-# Returns an OpenApiResponse with the given serializer and a 202 http code
 def open_api_202_accepted_response(
     given_serializer: Optional[Serializer] = None,
     media_type: Optional[str] = None,
@@ -75,6 +80,10 @@ def open_api_202_accepted_response(
     raise_not_found: bool = True,
     **kwargs,
 ) -> OpenApiGenericResponse:
+    """
+    Returns an OpenApiResponse with the given serializer and a 202 http code
+    """
+
     return open_api_generic_response(
         status.HTTP_202_ACCEPTED,
         given_serializer,
@@ -88,7 +97,6 @@ def open_api_202_accepted_response(
     )
 
 
-# Returns an OpenApiResponse with the given serializer and a 204 http code
 def open_api_204_empty_response(
     media_type: Optional[str] = None,
     error_media_type: str = 'application/json',
@@ -98,6 +106,10 @@ def open_api_204_empty_response(
     raise_not_found: bool = True,
     **kwargs,
 ) -> OpenApiGenericResponse:
+    """
+    Returns an OpenApiResponse with the given serializer and a 204 http code
+    """
+
     return open_api_generic_response(
         status.HTTP_204_NO_CONTENT,
         media_type=media_type,
@@ -216,8 +228,6 @@ def open_api_error_responses(
     return response
 
 
-# Generic function that builds an OpenApiResponse with the given http_code and
-# given serializer.
 def open_api_generic_response(
     http_code: int,
     given_serializer: Optional[Serializer] = None,
@@ -229,6 +239,11 @@ def open_api_generic_response(
     raise_not_found: bool = True,
     **kwargs,
 ) -> OpenApiGenericResponse:
+    """
+    Generic function that builds an OpenApiResponse with the given http_code and
+    given serializer.
+    """
+
     success_key = http_code
     if media_type:
         success_key = (http_code, media_type)
