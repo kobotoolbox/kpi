@@ -52,6 +52,7 @@ from kpi.utils.schema_extensions.response import (
     open_api_302_found,
 )
 from kpi.utils.xml import XMLFormWithDisclaimer
+from kpi.versioning import OpenRosaAPIVersioning
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
 
@@ -280,6 +281,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
         detail=True,
         renderer_classes=[OpenRosaFormListRenderer],
         url_path='formList',
+        versioning_class=OpenRosaAPIVersioning,
     )
     def form_list(self, request, *args, **kwargs):
         """
@@ -320,6 +322,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
     @action(
         detail=True,
         renderer_classes=[OpenRosaManifestRenderer],
+        versioning_class=OpenRosaAPIVersioning,
     )
     def manifest(self, request, *args, **kwargs):
         """
@@ -403,6 +406,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
             DigestAuthentication,
             EnketoSessionAuthentication,
         ],
+        versioning_class=OpenRosaAPIVersioning,
     )
     def submission(self, request, *args, **kwargs):
         """ Implements the OpenRosa Form Submission API """

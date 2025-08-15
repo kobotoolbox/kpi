@@ -68,6 +68,7 @@ module.exports = do ->
           ii = grp_keys.indexOf(grping)
           @_groups[ii] or @_groups[ii] = []
           @_groups[ii].push(model)
-      _.zip.apply(null, @_groups)
+          return
+      return _.zip.apply(null, @_groups)
 
-  new QtypeIconCollection(iconDetails)
+  return new QtypeIconCollection(iconDetails)

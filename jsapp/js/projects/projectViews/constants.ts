@@ -106,6 +106,7 @@ export type ProjectFieldName =
   | 'dateModified'
   | 'description'
   | 'languages'
+  | 'lastModifiedBy'
   | 'name'
   | 'ownerEmail'
   | 'ownerFullName'
@@ -222,6 +223,13 @@ export const PROJECT_FIELDS: ProjectFields = {
       'startsWith',
     ],
   },
+  lastModifiedBy: {
+    name: 'lastModifiedBy',
+    label: t('Last edited'),
+    apiFilteringName: 'last_modified_by',
+    apiOrderingName: 'last_modified_by',
+    availableConditions: ['contains', 'doesNotContain', 'endsWith', 'is', 'isNot', 'startsWith'],
+  },
   dateModified: {
     name: 'dateModified',
     label: t('Date modified'),
@@ -274,6 +282,7 @@ export const DEFAULT_ORDERABLE_FIELDS: ProjectFieldName[] = [
   'dateDeployed',
   'dateModified',
   'description',
+  'lastModifiedBy',
   'name',
   'ownerEmail',
   'ownerFullName',
@@ -286,7 +295,13 @@ export const DEFAULT_ORDERABLE_FIELDS: ProjectFieldName[] = [
  * The fields that the `/api/v2/assets/` endpoint can order the data by. AKA
  * the orderable fields for the "My Projects" route.
  */
-export const HOME_ORDERABLE_FIELDS: ProjectFieldName[] = ['dateModified', 'dateDeployed', 'name', 'status']
+export const HOME_ORDERABLE_FIELDS: ProjectFieldName[] = [
+  'dateModified',
+  'dateDeployed',
+  'lastModifiedBy',
+  'name',
+  'status',
+]
 
 export const DEFAULT_EXCLUDED_FIELDS: ProjectFieldName[] = []
 
@@ -298,6 +313,7 @@ export const DEFAULT_VISIBLE_FIELDS: ProjectFieldName[] = [
   'countries',
   'dateModified',
   'dateDeployed',
+  'lastModifiedBy',
   'name',
   'ownerUsername',
   'status',
@@ -308,6 +324,7 @@ export const DEFAULT_VISIBLE_FIELDS: ProjectFieldName[] = [
 export const HOME_DEFAULT_VISIBLE_FIELDS: ProjectFieldName[] = [
   'dateModified',
   'dateDeployed',
+  'lastModifiedBy',
   'name',
   'ownerUsername',
   'status',

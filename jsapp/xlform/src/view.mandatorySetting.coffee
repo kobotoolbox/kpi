@@ -68,4 +68,4 @@ module.exports = do ->
         @onChange(val)
       return
 
-  MandatorySettingView: MandatorySettingView
+  return MandatorySettingView: MandatorySettingView

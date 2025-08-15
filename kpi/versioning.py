@@ -15,3 +15,15 @@ class APIV2Versioning(APIAutoVersioning):
 
     def determine_version(self, request, *args, **kwargs):
         return 'api_v2'
+
+
+class OpenRosaAPIVersioning(APIAutoVersioning):
+    """
+    Custom API versioning class used to tag requests as belonging to the
+    'openrosa' schema. This is not intended to represent a real API version,
+    but rather to ensure that endpoints are grouped under the correct schema
+    during generation (e.g., when building OpenAPI docs).
+    """
+
+    def determine_version(self, request, *args, **kwargs):
+        return 'openrosa'

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
-from .fields import CeleryTask, MetadataField, UrlField
+from .fields import MetadataField, UrlField
 
 UserListResponse = inline_serializer_class(
     name='UserListResponse',
@@ -27,12 +27,5 @@ UserRetrieveResponse = inline_serializer_class(
         'date_joined': serializers.DateTimeField(),
         'public_collection_subscribers_count': serializers.IntegerField(),
         'public_collections_count': serializers.IntegerField(),
-    },
-)
-
-MigrateResponse = inline_serializer_class(
-    name='MigrateResponse',
-    fields={
-        'celery_task': CeleryTask(),
     },
 )
