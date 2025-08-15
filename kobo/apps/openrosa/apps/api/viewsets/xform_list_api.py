@@ -136,7 +136,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         return queryset
 
     @extend_schema(
-        description=read_md('openrosa', 'formlist/list.md'),
+        description=read_md('openrosa', 'formlist/anonymous.md'),
         responses=open_api_200_ok_response(
             XFormListSerializer,
             media_type='application/xml',
@@ -174,7 +174,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         return self.list(request, *args, **kwargs)
 
     @extend_schema(
-        description=read_md('openrosa', 'formlist/list.md'),
+        description=read_md('openrosa', 'formlist/authenticated.md'),
         responses=open_api_200_ok_response(
             XFormListSerializer,
             media_type='application/xml',
