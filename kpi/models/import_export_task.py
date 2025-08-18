@@ -12,7 +12,6 @@ from zoneinfo import ZoneInfo
 
 import constance
 import dateutil.parser
-import formpack
 import requests
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, HashIndex
@@ -24,6 +23,13 @@ from django.db.models.query import QuerySet
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as t
+from openpyxl.utils.exceptions import InvalidFileException
+from private_storage.fields import PrivateFileField
+from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
+from rest_framework import exceptions
+from werkzeug.http import parse_options_header
+
+import formpack
 from formpack.constants import KOBO_LOCK_SHEET
 from formpack.schema.fields import (
     IdCopyField,
@@ -34,12 +40,6 @@ from formpack.schema.fields import (
 )
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from formpack.utils.string import ellipsize
-from openpyxl.utils.exceptions import InvalidFileException
-from private_storage.fields import PrivateFileField
-from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
-from rest_framework import exceptions
-from werkzeug.http import parse_options_header
-
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.subsequences.utils import stream_with_extras
 from kpi.constants import (
@@ -927,7 +927,6 @@ class SubmissionExportTaskBase(ImportExportTask):
         `PrivateFileField`. Should be called by the `run()` method of the
         superclass. The `submission_stream` method is provided for testing
         """
-        source_url = self.data.get('source', False)
         flatten = self.data.get('flatten', True)
         export_type = self.data.get('type', '').lower()
         if export_type == 'xlsx':
@@ -1168,16 +1167,12 @@ class SubmissionSynchronousExport(SubmissionExportTaskBase):
             'format_type': format_type,
         }
 
-        export, created = cls.objects.get_or_create(
-            **criteria, defaults={'data': data}
-        )
+        export, _ = cls.objects.get_or_create(**criteria, defaults={'data': data})
         if export.date_created < age_cutoff:
             # The existing export is too old; reset its state so it can be
             # reborn
             with transaction.atomic():
-                export = cls.objects.select_for_update().get(
-                    **criteria
-                )
+                export = cls.objects.select_for_update().get(**criteria)
                 export.data = data
                 export.status = cls.CREATED
                 export.date_created = utcnow()
