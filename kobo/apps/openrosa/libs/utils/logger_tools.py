@@ -946,7 +946,7 @@ def _get_instance(
         # edits
         check_edit_submission_permissions(request, xform)
         InstanceHistory.objects.create(
-            xml=instance.xml, xform_instance=instance, uuid=old_uuid
+            xml=instance.xml, xform_instance=instance, uuid=old_uuid, root_uuid=instance.root_uuid,
         )
         instance.xml = xml
         instance.uuid = new_uuid
