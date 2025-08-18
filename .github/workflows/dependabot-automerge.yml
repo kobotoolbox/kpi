@@ -39,7 +39,7 @@ jobs:
         if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' || steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
         run: |
           gh pr review $PR_URL --approve -b "I'm **approving** this pull request because **it includes a patch or minor update**"
-          gh pr edit $PR_URL --add-label "Front end,automerge"
+          gh pr edit $PR_URL --add-label "automerge"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
@@ -55,4 +55,4 @@ jobs:
     secrets: inherit
     with:
       topic: "Github Actions (dependabot)"
-      content: ":boom: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to auto-merge [a dependabot PR](${{needs.review-dependabot-pr.outputs.pr-url}}). Please review."
+      content: ":boom: @*frontend*, ${{github.repository}} [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to auto-merge [a dependabot PR](${{needs.review-dependabot-pr.outputs.pr-url}}). Please review."
