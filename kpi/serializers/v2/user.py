@@ -3,6 +3,7 @@ from zoneinfo import ZoneInfo
 
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
+from django.core.cache import cache
 from django_request_cache import cache_for_request
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
@@ -129,6 +130,12 @@ class UserListSerializer(serializers.HyperlinkedModelSerializer):
         if is_user_anonymous(user):
             return None
 
+        # Use precomputed cache if available
+        cached = cache.get(f'user_usage:{user.id}')
+        if cached is not None:
+            return cached
+
+        # Fallback to calculating usage
         serializer = ServiceUsageSerializer(
             instance=get_database_user(user), context=self.context
         )
@@ -181,6 +188,13 @@ class UserListSerializer(serializers.HyperlinkedModelSerializer):
     def get_subscriptions(self, user):
         if not settings.STRIPE_ENABLED:
             return None
+
+        # Use precomputed cache if available
+        subs = cache.get(f'user_subs:{user.id}')
+        if subs is not None:
+            return subs
+
+        # Fallback to fetching subscriptions from the database
         try:
             subscriptions_queryset = (
                 user.organizations_organizationuser.all()

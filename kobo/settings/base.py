@@ -1342,7 +1342,13 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'kobo.apps.mass_emails.tasks.generate_mass_email_user_lists',
         'schedule': crontab(minute=0),
         'options': {'queue': 'kpi_queue'},
-    }
+    },
+    # Schedule every 15 minutes
+    'precompute-user-usage-and-subscription': {
+        'task': 'kpi.tasks.precompute_user_usage',
+        'schedule': crontab(minute='*/15'),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
 }
 
 if STRIPE_ENABLED:
