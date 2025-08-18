@@ -142,6 +142,7 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.apps.viewer.app.ViewerConfig',
     'kobo.apps.openrosa.apps.main.app.MainConfig',
     'kobo.apps.openrosa.apps.api',
+    'kobo.apps.openrosa.apps.apps.OpenRosaAppConfig',
     'guardian',
     'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
@@ -1014,6 +1015,17 @@ SPECTACULAR_SETTINGS = {
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
     ],
+    'ENUM_NAME_OVERRIDES': {
+        'kobo.apps.project_ownership.schema_extensions.v2.project_ownership.invites.fields.StatusEnumField':  # noqa
+        [
+            ('accepted', 'Accepted'),
+            ('cancelled', 'Cancelled'),
+            ('declined', 'Declined'),
+            ('expired', 'Expired'),
+            ('pending', 'Pending'),
+            ('resent', 'Resent'),
+        ]
+    }
 }
 
 OPENROSA_REST_FRAMEWORK = {
