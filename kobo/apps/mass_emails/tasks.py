@@ -274,7 +274,7 @@ class MassEmailSender:
         plan_name = self.get_plan_name(org_user)
         data = {
             'username': record.user.username,
-            'full_name': record.user.first_name + ' ' + record.user.last_name,
+            'full_name': record.user.extra_details.data['name'],
             'plan_name': plan_name,
             'date_created': record.date_created.strftime('%Y-%m-%d %H:%M'),
         }
