@@ -482,10 +482,10 @@ class SearchFilter(filters.BaseFilterBackend):
             # If we are searching on an n-to-many field, we may get multiple results
             # from the same model, so we need to de-duplicate with distinct(). Rely
             # on the view to tell us if this is not necessary
-            if getattr(view, 'requires_distinct', True):
-                return queryset.filter(q_obj).distinct()
-            else:
+            if getattr(view, 'skip_distinct', False):
                 return queryset.filter(q_obj)
+            else:
+                return queryset.filter(q_obj).distinct()
         except (FieldError, ValueError):
             return queryset.model.objects.none()
 

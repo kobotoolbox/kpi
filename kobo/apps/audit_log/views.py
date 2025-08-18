@@ -165,7 +165,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     filter_backends = (SearchFilter,)
     # audit logs have no n-to-many fields, so don't bother running "distinct" on
     # search results
-    requires_distinct = False
+    skip_distinct = True
 
     search_default_field_lookups = [
         'app_label__icontains',
