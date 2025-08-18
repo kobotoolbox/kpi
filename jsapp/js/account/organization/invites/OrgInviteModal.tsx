@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { Button, FocusTrap, Group, Modal, Stack, Text } from '@mantine/core'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 import subscriptionStore from '#/account/subscriptionStore'
-import type { KoboAppsProjectOwnershipSchemaExtensionsV2ProjectOwnershipInvitesFieldsStatusEnumField } from '#/api/models/koboAppsProjectOwnershipSchemaExtensionsV2ProjectOwnershipInvitesFieldsStatusEnumField'
+import { MemberListResponseInviteStatus } from '#/api/models/memberListResponseInviteStatus'
 import {
   getOrganizationsInvitesListQueryKey,
   getOrganizationsInvitesRetrieveQueryKey,
@@ -26,7 +26,7 @@ import { notify } from '#/utils'
 export default function OrgInviteModal(props: { orgId: string; inviteId: string; onUserResponse: () => void }) {
   const [isModalOpen, setIsModalOpen] = useState(true)
   const [awaitingDataRefresh, setAwaitingDataRefresh] = useState(false)
-  const [userResponseType, setUserResponseType] = useState<KoboAppsProjectOwnershipSchemaExtensionsV2ProjectOwnershipInvitesFieldsStatusEnumField | null>(null)
+  const [userResponseType, setUserResponseType] = useState<MemberListResponseInviteStatus | null>(null)
   const session = useSession()
   const orgInvitesQuery = useOrganizationsInvitesRetrieve(props.orgId, props.inviteId)
   const orgInvitesPatch = useOrganizationsInvitesPartialUpdate({
@@ -42,7 +42,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
       notifyAboutError: false,
     }
   })
-  const handleOrgInvitesPatch = (status: KoboAppsProjectOwnershipSchemaExtensionsV2ProjectOwnershipInvitesFieldsStatusEnumField) => {
+  const handleOrgInvitesPatch = (status: MemberListResponseInviteStatus) => {
     return orgInvitesPatch.mutateAsync({ organizationId: props.orgId, guid: props.inviteId, data: { status } })
   }
   // We handle all the errors through query and BE responses, but for some edge cases we have this:
@@ -71,8 +71,8 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
 
   const handleDeclineInvite = async () => {
     try {
-      setUserResponseType(KoboAppsProjectOwnershipSchemaExtensionsV2ProjectOwnershipInvitesFieldsStatusEnumField.declined)
-      await handleOrgInvitesPatch(KoboAppsProjectOwnershipSchemaExtensionsV2ProjectOwnershipInvitesFieldsStatusEnumField.declined)
+      setUserResponseType(MemberListResponseInviteStatus.declined)
+      await handleOrgInvitesPatch(MemberListResponseInviteStatus.declined)
       handleSuccessfulInviteResponse(t('Invitation successfully declined'))
     } catch (error) {
       setMiscError(t('Unknown error while trying to update an invitation'))
@@ -82,8 +82,8 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
 
   const handleAcceptInvite = async () => {
     try {
-      setUserResponseType(KoboAppsProjectOwnershipSchemaExtensionsV2ProjectOwnershipInvitesFieldsStatusEnumField.accepted)
-      await handleOrgInvitesPatch(KoboAppsProjectOwnershipSchemaExtensionsV2ProjectOwnershipInvitesFieldsStatusEnumField.accepted)
+      setUserResponseType(MemberListResponseInviteStatus.accepted)
+      await handleOrgInvitesPatch(MemberListResponseInviteStatus.accepted)
       await handleSuccessfulInviteResponse(t('Invitation successfully accepted'), true)
     } catch (error) {
       setMiscError(t('Unknown error while trying to update an invitation'))
@@ -153,7 +153,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   // We also continue displaying this content while we wait for data to refresh following acceptance
   else if (
     orgInvitesQuery.data?.status === 200 &&
-    (orgInvitesQuery.data?.data.status === KoboAppsProjectOwnershipSchemaExtensionsV2ProjectOwnershipInvitesFieldsStatusEnumField.pending || awaitingDataRefresh)
+    (orgInvitesQuery.data?.data.status === MemberListResponseInviteStatus.pending || awaitingDataRefresh)
   ) {
     title = t('Accept invitation to join ##TEAM_OR_ORGANIZATION_NAME##').replace(
       '##TEAM_OR_ORGANIZATION_NAME##',
@@ -177,7 +177,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
             variant='light'
             size='lg'
             onClick={handleDeclineInvite}
-            loading={userResponseType === KoboAppsProjectOwnershipSchemaExtensionsV2ProjectOwnershipInvitesFieldsStatusEnumField.declined}
+            loading={userResponseType === MemberListResponseInviteStatus.declined}
           >
             {t('Decline')}
           </Button>
@@ -188,7 +188,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
             onClick={handleAcceptInvite}
             // We don't use RQ loading state here because we also want spinner to display during
             // timeout while we give backend time for data transfer
-            loading={userResponseType === KoboAppsProjectOwnershipSchemaExtensionsV2ProjectOwnershipInvitesFieldsStatusEnumField.accepted}
+            loading={userResponseType === MemberListResponseInviteStatus.accepted}
           >
             {t('Accept')}
           </Button>

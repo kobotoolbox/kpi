@@ -3,7 +3,6 @@ import { fetchDelete, fetchGet } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import type { InviteResponse } from '#/api/models/inviteResponse'
 import type { Nullable } from '#/constants'
-import type { PaginatedResponse } from '#/dataInterface'
 import { QueryKeys } from '#/query/queryKeys'
 import { useSession } from '#/stores/useSession'
 import { type OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
@@ -66,28 +65,6 @@ export function useRemoveOrganizationMember() {
       }
     },
   })
-}
-
-/**
- * Fetches paginated list of members for given organization.
- * This is mainly needed for `useOrganizationMembersQuery`, so you most probably
- * would use it through that hook rather than directly.
- */
-export async function getOrganizationMembers(limit: number, offset: number, orgId: string) {
-  const params = new URLSearchParams({
-    limit: limit.toString(),
-    offset: offset.toString(),
-  })
-
-  const apiUrl = endpoints.ORGANIZATION_MEMBERS_URL.replace(':organization_id', orgId)
-
-  // Note: little crust ahead of time to make a simpler transition to generated react-query helpers.
-  return {
-    status: 200 as const,
-    data: await fetchGet<PaginatedResponse<OrganizationMemberListItem>>(apiUrl + '?' + params, {
-      errorMessageDisplay: t('There was an error getting the list.'),
-    }),
-  }
 }
 
 export function useOrganizationMemberDetailQuery(username: string, notifyAboutError = true) {
