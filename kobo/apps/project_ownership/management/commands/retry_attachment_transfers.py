@@ -11,7 +11,11 @@ from ...utils import move_attachments
 
 
 class Command(BaseCommand):
-    help = 'Retry failed attachment transfers'
+    help = (
+        'Retry failed attachment transfers.'
+        ' Usage: ./manage.py retry_failed_attachment_transfers'
+        ' <tranfer_uid0> <transfer_uid1> ...'
+    )
 
     def add_arguments(self, parser):
         parser.add_argument('transfer_uids', nargs='+', type=str)
