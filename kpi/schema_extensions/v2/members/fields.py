@@ -9,5 +9,13 @@ class MemberUrlField(serializers.JSONField):
     pass
 
 
+class RoleChoiceField(serializers.CharField):
+    pass
+
+
+class RoleChoicePayloadField(serializers.CharField):
+    pass
+
+
 class UserUrlField(serializers.JSONField):
     pass
