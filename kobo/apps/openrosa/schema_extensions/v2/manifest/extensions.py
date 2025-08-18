@@ -8,6 +8,7 @@ class OpenRosaManifestURLFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
-            'api_v2:manifest-openrosa',
-            id='1',
+            'api_v2:xform-download-openrosa',
+            form_media_id='123',
+            media_id='456'
         )

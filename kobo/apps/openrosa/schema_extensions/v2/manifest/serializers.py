@@ -1,3 +1,5 @@
+from rest_framework import serializers
+
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
     OpenRosaFormManifestURLField,
@@ -7,6 +9,8 @@ from .fields import (
 OpenRosaFormManifestResponse = inline_serializer_class(
     name='OpenRosaFormManifestResponse',
     fields={
-        'manifest': OpenRosaFormManifestURLField(),
+        'filename': serializers.CharField(),
+        'hash': serializers.CharField(),
+        'downloadUrl': OpenRosaFormManifestURLField(),
     },
 )
