@@ -19,7 +19,6 @@ from kpi.utils.schema_extensions.url_builder import build_url_type
 from .schema import ROLE_CHOICES_ENUM, ROLE_CHOICES_PAYLOAD_ENUM
 
 
-
 class InviteFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.members.fields.InviteField'
 
