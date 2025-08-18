@@ -15,6 +15,6 @@ OpenRosaResponse = inline_serializer_class(
 OpenRosaPayload = inline_serializer_class(
     name='OpenRosaPayload',
     fields={
-        '_xml_submission_file': serializers.CharField(),
+        'xml_submission_file': serializers.CharField(),
     },
 )
