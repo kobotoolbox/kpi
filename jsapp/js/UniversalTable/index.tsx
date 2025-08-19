@@ -83,7 +83,7 @@ export default function UniversalTable<Datum>({
 
   const currentPageIndex = useMemo(() => Math.ceil(pagination.offset / pagination.limit), [pagination])
 
-  if (queryResult.data?.status === 404) return null
+  if (queryResult.data?.status !== 200) return null
 
   return (
     <UniversalTableCore<Datum>
