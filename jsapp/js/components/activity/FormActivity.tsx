@@ -2,10 +2,11 @@ import '../../../scss/components/_kobo.form-view.scss'
 
 import { useState } from 'react'
 
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import cx from 'classnames'
 import { useParams } from 'react-router-dom'
-import PaginatedQueryUniversalTable from '#/universalTable/paginatedQueryUniversalTable.component'
-import type { UniversalTableColumn } from '#/universalTable/universalTable.component'
+import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
+import { QueryKeys } from '#/query/queryKeys'
 import { formatTime } from '#/utils'
 import type { KoboSelectOption } from '../common/koboSelect'
 import KoboSelect from '../common/koboSelect'
@@ -14,7 +15,7 @@ import KoboModal from '../modals/koboModal'
 import KoboModalHeader from '../modals/koboModalHeader'
 import styles from './FormActivity.module.scss'
 import type { ActivityLogsItem } from './activity.constants'
-import { useActivityLogsFilterOptionsQuery, useActivityLogsQuery, useExportActivityLogs } from './activityLogs.query'
+import { getActivityLogs, useActivityLogsFilterOptionsQuery, useExportActivityLogs } from './activityLogs.query'
 import { ActivityMessage } from './activityMessage.component'
 
 /**
@@ -30,11 +31,6 @@ export default function FormActivity() {
   const { uid } = useParams()
   const assetUid = uid as string
 
-  const queryData = {
-    assetUid: assetUid,
-    actionFilter: selectedFilterOption?.value || '',
-  }
-
   const { data: filterOptions } = useActivityLogsFilterOptionsQuery(assetUid)
 
   const handleFilterChange = (value: string | null) => {
@@ -44,6 +40,22 @@ export default function FormActivity() {
   // Modal is being displayed when data for it is set. To close modal, simply
   // set data to `null`.
   const [detailsModalData, setDetailsModalData] = useState<ActivityLogsItem | null>(null)
+
+  const [pagination, setPagination] = useState({
+    limit: DEFAULT_PAGE_SIZE,
+    offset: 0,
+  })
+  const queryResult = useQuery({
+    queryKey: [QueryKeys.activityLogs, assetUid, selectedFilterOption?.value || '', pagination],
+    queryFn: () =>
+      getActivityLogs({
+        assetUid: assetUid,
+        actionFilter: selectedFilterOption?.value || '',
+        limit: pagination.limit,
+        offset: pagination.offset,
+      }),
+    placeholderData: keepPreviousData,
+  })
 
   const columns: Array<UniversalTableColumn<ActivityLogsItem>> = [
     {
@@ -99,10 +111,11 @@ export default function FormActivity() {
           </KoboModal>
         )}
 
-        <PaginatedQueryUniversalTable<ActivityLogsItem>
+        <UniversalTable<ActivityLogsItem>
+          pagination={pagination}
+          setPagination={setPagination}
           columns={columns}
-          queryHook={useActivityLogsQuery}
-          queryHookData={queryData}
+          queryResult={queryResult}
         />
       </div>
     </div>

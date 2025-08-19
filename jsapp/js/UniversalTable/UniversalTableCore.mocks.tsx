@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker'
 import type { ColumnPinningPosition } from '@tanstack/react-table'
 import Avatar from '#/components/common/avatar'
 import { formatDate } from '#/utils'
-import type { UniversalTableColumn } from './universalTable.component'
+import type { UniversalTableColumn } from './UniversalTableCore'
 
 /**
  * This function is useful to generate a (big) test data for the table.
