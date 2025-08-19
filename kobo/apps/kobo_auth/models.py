@@ -1,12 +1,15 @@
+import secrets
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.db import models
+from django.db.models import fields
 from django_request_cache import cache_for_request
 
-from kobo.apps.openrosa.libs.constants import (
-    OPENROSA_APP_LABELS,
-)
+from kobo.apps.openrosa.libs.constants import OPENROSA_APP_LABELS
 from kobo.apps.openrosa.libs.permissions import get_model_permission_codenames
 from kobo.apps.organizations.models import Organization, create_organization
+from kpi.fields import KpiUidField
 from kpi.utils.database import update_autofield_sequence, use_db
 from kpi.utils.permissions import is_user_anonymous
 
@@ -87,3 +90,34 @@ class User(AbstractUser):
             unique_fields=['pk'],
         )
         update_autofield_sequence(User)
+
+
+class DataCollectorGroup(models.Model):
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL
+    )
+    uid = KpiUidField(uid_prefix='dcg', primary_key=True)
+    name = fields.CharField(max_length=200)
+
+
+class DataCollector(models.Model):
+    uid = KpiUidField(uid_prefix='dc', primary_key=True)
+    name = fields.CharField(null=True, blank=True, max_length=200)
+    token = fields.CharField(max_length=40)
+    group = models.ForeignKey(
+        DataCollectorGroup, on_delete=models.SET_NULL, related_name='data_collectors',
+        null=True, blank=True
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = self.generate_key()
+        super().save()
+
+    def rotate_token(self):
+        self.token = self.generate_key()
+        self.save()
+
+    @classmethod
+    def generate_key(cls):
+        return secrets.token_hex(20)
