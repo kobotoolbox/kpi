@@ -288,3 +288,8 @@ export function hasManagePermissionsToCurrentAsset(): boolean {
   const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid)
   return userCan('manage_asset', asset)
 }
+
+export function hasAddSubmissionsPermToCurrentAsset(): boolean {
+  const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid)
+  return userCan('add_submissions', asset)
+}
