@@ -15,8 +15,8 @@ from kpi.schema_extensions.v2.generic.schema import (
     USER_URL_SCHEMA,
 )
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from kobo.apps.project_ownership.models.choices import InviteStatusChoices
 from kobo.apps.organizations.models import OrganizationInviteStatusChoices
+
 
 class InviteAssetFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kobo.apps.project_ownership.schema_extensions.v2.project_ownership.invites.fields.InviteAssetField'  # noqa

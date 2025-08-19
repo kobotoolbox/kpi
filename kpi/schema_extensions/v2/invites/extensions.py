@@ -5,8 +5,6 @@ from drf_spectacular.extensions import (
 from drf_spectacular.plumbing import build_object_type, build_choice_field
 from rest_framework import serializers
 
-from kobo.apps.organizations.models import OrganizationInviteStatusChoices
-
 from kpi.schema_extensions.v2.generic.schema import (
     GENERIC_ARRAY_SCHEMA,
     USER_URL_SCHEMA,
