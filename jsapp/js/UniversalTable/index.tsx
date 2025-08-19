@@ -4,7 +4,7 @@ import type { UseQueryResult } from '@tanstack/react-query'
 import UniversalTableCore from './UniversalTableCore'
 import type { UniversalTableColumn } from './UniversalTableCore'
 
-export {UniversalTableColumn} from './UniversalTableCore'
+export { UniversalTableColumn } from './UniversalTableCore'
 
 export interface Pagination {
   limit: number
@@ -20,9 +20,7 @@ export interface PaginatedListResponseData<Datum = never> {
   results: Datum[]
 }
 
-export type PaginatedListResponse<Datum = never> =
-  | PaginatedListResponse.Ok<Datum>
-  | PaginatedListResponse.NotFound
+export type PaginatedListResponse<Datum = never> = PaginatedListResponse.Ok<Datum> | PaginatedListResponse.NotFound
 export namespace PaginatedListResponse {
   export interface Ok<Datum = never> {
     data: PaginatedListResponseData<Datum>
