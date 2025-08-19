@@ -250,7 +250,7 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
         )
         self.assertTrue(Attachment.objects.filter(pk=self.attachment.pk).exists())
 
-        # First, pretend user is over limit → triggers deletion of attachments
+        # Initially, assume user is over quota
         over_quota_balances = {
             UsageType.STORAGE_BYTES: {
                 'effective_limit': 1,
@@ -260,7 +260,7 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
             }
         }
 
-        # After cleanup, pretend user is back under limit
+        # After cleanup, assume user is under quota
         under_quota_balances = {
             UsageType.STORAGE_BYTES: {
                 'effective_limit': 100000,
