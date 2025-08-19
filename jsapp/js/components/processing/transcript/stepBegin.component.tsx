@@ -4,7 +4,7 @@ import cx from 'classnames'
 import Button from '#/components/common/button'
 import bodyStyles from '#/components/processing/processingBody.module.scss'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
-import { hasAddSubmissionsPermToCurrentAsset } from '../analysis/utils'
+import { hasChangeSubPermissionToCurrentAsset } from '../analysis/utils'
 
 export default function StepBegin() {
   function begin() {
@@ -26,7 +26,7 @@ export default function StepBegin() {
         size='l'
         label={t('begin')}
         onClick={begin}
-        isDisabled={!hasAddSubmissionsPermToCurrentAsset()}
+        isDisabled={!hasChangeSubPermissionToCurrentAsset()}
       />
     </div>
   )
