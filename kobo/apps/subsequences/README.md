@@ -17,7 +17,9 @@
 ### All actions must have the following components
 
 * an identifier
-* a method that decides if a given submission needs to be handled
+* a jsonschema to validate the parameters used to configure the action
+* ~~a method that decides if a given submission needs to be handled~~
+    * let's drop this requirement. everything is manually triggered, and it doesn't seem necessary even for automatic processing. `check_submission_status()` is not used anywhere except unit tests (?)
 * a handler that receives a submission (and other metadata) and processes it
 * a jsonschema to validate that a response is valid
 
@@ -33,7 +35,7 @@
 
 We will define a class `DecimalRounder` that inherits from `subsequences.actions.BaseAction`
 
-#### step 2. pick an identifier for the metadata
+#### step 2. pick an identifier for the new action
 
 ```python
 from kobo.apps.subsequences import BaseAction
@@ -41,39 +43,38 @@ class DecimalRounder(BaseAction):
     ID = 'decimal_rounder'
 ```
 
-#### step 3: when should a record should be modified or handled
+#### step 3: how should a record should be modified or handled?
 
 In this example, we would probably want to handle any submission that has a non-null value in the `fuel_cost` field of the submission. We would define that like this:
 
 ```python
-from subsequences.status ACTION_NEEDED, PASSES
-
 class DecimalRounder(BaseAction):
     ID = 'decimal_rounder'
-    def check_submission_status(self, submission):
-        if submission.get('fuel_cost') != None:
-            return ACTION_NEEDED
-        return PASSES
-
-## STEP 4: define the handler
 
     def run_change(self, submission):
         # `_destination_field` is defined by `BaseAction` to be `_supplementalDetails`
         _data = submission.get(self._destination_field, {})
-        fuel_cost = submission.get('fuel_cost')
+        if (fuel_cost := submission.get('fuel_cost')) is None:
+            return  # FIXME: this probably needs some different value to avoid blowing up
         _data[self.ID] = {'fuel_cost': round(fuel_cost * 100) / 100}
         return {**submission, self._destination_field: _data}
 
 ```
+:warning: `run_change()` makes sense for actions that do not take "edits", such as:
+* this decimal rounder
+* the number doubler example
+* automatic transcripts and translations
+* the unfinished keyword counter
 
-TODO: `run_change()` is never called. Ouch! Is the `revise_field()` method its successor?
-Maybe `run_change()` is correct for actions that do not take edits
+However, when actions *do* take edits, `revise_field()` is used. An example of that should be given here. Actions that take edits include:
+* manual transcripts and translations
+* qualitative analysis forms
 
-#### Step 4a: modify `ADVANCED_FEATURES_PARAMS_SCHEMA`
+#### Step 4: modify `ADVANCED_FEATURES_PARAMS_SCHEMA`
 
 …otherwise, you will be unable to add `decimal_rounder` to `asset.advanced_features` in step 5.
 
-TODO: figure out if we should really be maintaining the schema as one big constant, or if we should have a method in each action class that returns its own schema
+FIXME: stop maintaining the schema as one big constant and have a method in each action class that returns its own schema. A new method can gather and return all these together as one schema; it will be fast enough because it's a Python-only operation.
 
 #### Step 5: specify which surveys (`Asset`) should be passed to this handler
 
@@ -90,11 +91,14 @@ for asset in Asset.objects.filter(name__contains='fuel'):
     asset.save()
 ```
 
+:information_source:
+* `advanced_features` probably has to stay as an optimization against invoking the whole `SubmissionExtras` injection mechanism for assets that don't use it
+* `decimal_rounder_fields` is nice as a general concept. `QualAction` uses something similar with `scope` and `xpath`
+  * Translation and transcription actions should be migrated to store the source questions in `advanced_features` instead of `known_cols`
+
 #### Step 6: modify the `DecimalRounder` class to receive these params from `asset.advanced_features`
 
 ```python
-from subsequences.status ACTION_NEEDED, PASSES
-
 class DecimalRounder(BaseAction):
     ID = 'decimal_rounder'
 
@@ -102,8 +106,11 @@ class DecimalRounder(BaseAction):
         # `params` is loaded from the asset
         self.fields_to_round = params['decimal_rounder_fields']
 
-## STEP 7: modify `run_change` to use the params
+#### STEP 7: modify `run_change` to use the params
 
+```python
+class DecimalRounder(BaseAction):
+    …
     def run_change(self, submission):
         _data = submission.get(self._destination_field, {})
         _data[self.ID] = {}
@@ -113,12 +120,13 @@ class DecimalRounder(BaseAction):
         return {**submission, self._destination_field: _data}
 ```
 
-TODO: `build_params()` also appears in real-life actions. What is it? It is never called(!) because
-`action_params == True` in `utils/__init__.py` never evaluates to true.
+TODO: `build_params()` also appears in real-life actions but seems to be only used in unit tests, which are the only place where `action_params == True` in `utils/__init__.py` evaluates to true.
 
 #### Step 8: After a submission has come in, POST metadata to the `/advanced_submission_post/` API endpoint
 
 TODO: for number_doubler, we ended up using something like `"this_number": {"number_doubler": {"value": 667}}}`
+
+FIXME: no real-world actions require POSTing the survey response like how `fuel_cost` is shown below. They read from the stored submission data. Actions that accept manual input (manual transcripts and translations) do take that input as POST data from `/advanced_submission_post/<asset uid>` with the submission UUID in the `submission` parameter.
 
 ```
 POST to "/advanced_submission_post/aSsEtUiD"
@@ -135,7 +143,7 @@ This will create a record in the `submission_extras` table with the following va
 GET "/advanced_submission_post/aSsEtUiD?submission=<submissionUuid>"
 
 {
-  "submission": "submissionUuid",
+  "submission": "submissionUuid",  # FIXME: this is not returned; the `_supplementalDetails` are returned unwrapped and directly
   "_supplementalDetails": {
     "decimal_rounder": {
       "fuel_cost": 1.23
@@ -144,9 +152,12 @@ GET "/advanced_submission_post/aSsEtUiD?submission=<submissionUuid>"
 }
 ```
 
-TODO: does GET to `advanced_submission_post` actually work?
+TODO: does GET to `advanced_submission_post` actually work? Yes, and the front end uses it (!) But is there a reason to have it in addition to the regular data API, e.g.
+https://kf.kobotoolbox.org/api/v2/assets/aCHy38fwjmXaBfZkjCyWZa/data/510941a3-cea4-4a9a-81d8-ec0329c964db/?
 
 #### Step 9 (optional): Define a validator
+
+FIXME: This is a mess. `roundednumber` isn't used anywhere. It's probably talking about setting up a schema to validate the output of the action, i.e. `{"decimal_rounder": {"fuel_cost": 1.23}}`. However, it could be referring to validating the POST to `advanced_submission_post`, which for some actions (as described above) would take manual content (like manual transcripts and translations). For the number rounder, though, we would not trivially re-POST the `"fuel_cost": 1.23456` value from the original submission.
 
 Because `advanced_submission_post` data can be sourced from anywhere, it should be validated. The prominent way to do this is with a jsonschema defined in the action class.
 
