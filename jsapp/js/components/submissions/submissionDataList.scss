@@ -1,9 +1,10 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .submission-data-list {
   list-style: none;
   overflow-x: hidden;
   overflow-y: auto;
+  padding: 0;
 }
 
 .submission-data-list-question:not(:first-of-type) {
@@ -18,12 +19,12 @@
 .submission-data-list-question__label {
   font-weight: 600;
   font-size: 14px;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
   margin: 0;
 }
 
 .submission-data-list-question__response {
   font-weight: 400;
   font-size: 16px;
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-gray-800;
 }

@@ -2,11 +2,13 @@
 from django.contrib import admin
 
 from kobo.apps.markdownx_uploader.admin import MarkdownxModelAdminBase
-from .models import InAppMessage, InAppMessageFile
+from .models import InAppMessage
+from .forms import InAppMessageForm
 
 
 class InAppMessageAdmin(MarkdownxModelAdminBase):
 
+    form = InAppMessageForm
     model = InAppMessage
 
     new_message_warning = (
@@ -15,6 +17,10 @@ class InAppMessageAdmin(MarkdownxModelAdminBase):
         'here will not cause it to reappear.'
     )
     readonly_fields = ['uid', 'last_editor']
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.filter(generic_related_objects={})
 
     def get_fieldsets(self, request, obj=None):
         """

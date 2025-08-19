@@ -1,12 +1,13 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .background-audio-player {
-  text-align: left;
+  text-align: initial;
+
   .background-audio-player__label {
     display: block;
     margin-bottom: 6px;
     font-weight: 500;
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
   }
 
   .background-audio-player__audio {

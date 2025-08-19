@@ -1,4 +1,3 @@
-# coding: utf-8
 import os
 import re
 from copy import deepcopy
@@ -6,20 +5,22 @@ from copy import deepcopy
 import pytest
 from django.conf import settings
 from django.db.models import Q
-from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from kpi.exceptions import (
-    SearchQueryTooShortException,
     QueryParserNotSupportedFieldLookup,
+    SearchQueryTooShortException,
 )
-from kpi.models.asset import Asset
-from kpi.utils.autoname import autoname_fields, autoname_fields_to_field
-from kpi.utils.autoname import autovalue_choices_in_place
+from kpi.tests.utils.dicts import convert_hierarchical_keys_to_nested_dict
+from kpi.utils.autoname import (
+    autoname_fields,
+    autoname_fields_to_field,
+    autovalue_choices_in_place,
+)
 from kpi.utils.pyxform_compatibility import allow_choice_duplicates
 from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
-from kpi.utils.submission import get_attachment_filenames_and_xpaths
+from kpi.utils.strings import split_lines_to_list
 from kpi.utils.xml import (
     edit_submission_xml,
     fromstring_preserve_root_xmlns,
@@ -27,6 +28,139 @@ from kpi.utils.xml import (
     strip_nodes,
     xml_tostring,
 )
+
+
+class ConvertHierarchicalKeysToNestedDictTestCase(TestCase):
+
+    def test_regular_group(self):
+        dict_ = {
+            'group_lx4sf58/question_1': 'answer_1',
+            'group_lx4sf58/question_2': 'answer_2',
+        }
+
+        expected = {
+            'group_lx4sf58': {'question_1': 'answer_1', 'question_2': 'answer_2'}
+        }
+
+        assert convert_hierarchical_keys_to_nested_dict(dict_) == expected
+
+    def test_nested_groups(self):
+        dict_ = {'parent_group/middle_group/inner_group/question_1': 'answer_1'}
+
+        expected = {
+            'parent_group': {
+                'middle_group': {'inner_group': {'question_1': 'answer_1'}}
+            }
+        }
+
+        assert convert_hierarchical_keys_to_nested_dict(dict_) == expected
+
+    def test_nested_repeated_groups(self):
+        dict_ = {
+            'formhub/uuid': '61b5029a4d2e42b49a12b9a18c22449f',
+            'group_lq3wx73': [
+                {
+                    'group_lq3wx73/middle_group': [
+                        {
+                            'group_lq3wx73/middle_group/middle_q': 'middle 1.1.1.1',
+                            'group_lq3wx73/middle_group/inner_group': [
+                                {
+                                    'group_lq3wx73/middle_group/inner_group/inner_q':
+                                        'inner 1.1.1.1'
+                                },
+                                {
+                                    'group_lq3wx73/middle_group/inner_group/inner_q':
+                                        'inner 1.1.1.2'
+                                },
+                            ],
+                        },
+                        {
+                            'group_lq3wx73/middle_group/middle_q': 'middle 1.1.2.1',
+                            'group_lq3wx73/middle_group/inner_group': [
+                                {
+                                    'group_lq3wx73/middle_group/inner_group/inner_q':
+                                        'inner 1.1.2.1'
+                                },
+                                {
+                                    'group_lq3wx73/middle_group/inner_group/inner_q':
+                                        'inner 1.1.2.1'
+                                },
+                            ],
+                        },
+                    ]
+                },
+                {
+                    'group_lq3wx73/middle_group': [
+                        {
+                            'group_lq3wx73/middle_group/middle_q': 'middle 1.2.1.1',
+                            'group_lq3wx73/middle_group/inner_group': [
+                                {
+                                    'group_lq3wx73/middle_group/inner_group/inner_q':
+                                        'inner_q 1.2.1.1'
+                                }
+                            ],
+                        }
+                    ]
+                },
+            ],
+        }
+
+        expected = {
+            'formhub': {'uuid': '61b5029a4d2e42b49a12b9a18c22449f'},
+            'group_lq3wx73': [
+                {
+                    'middle_group': [
+                        {
+                            'middle_q': 'middle 1.1.1.1',
+                            'inner_group': [
+                                {'inner_q': 'inner 1.1.1.1'},
+                                {'inner_q': 'inner 1.1.1.2'},
+                            ],
+                        },
+                        {
+                            'middle_q': 'middle 1.1.2.1',
+                            'inner_group': [
+                                {'inner_q': 'inner 1.1.2.1'},
+                                {'inner_q': 'inner 1.1.2.1'},
+                            ],
+                        },
+                    ]
+                },
+                {
+                    'middle_group': [
+                        {
+                            'middle_q': 'middle 1.2.1.1',
+                            'inner_group': [{'inner_q': 'inner_q 1.2.1.1'}],
+                        }
+                    ]
+                },
+            ],
+        }
+        assert convert_hierarchical_keys_to_nested_dict(dict_) == expected
+
+    def test_nested_repeated_groups_in_group(self):
+        dict_ = {
+            'people/person': [
+                {
+                    'people/person/name': 'Julius Caesar',
+                    'people/person/age': 55,
+                },
+                {
+                    'people/person/name': 'Augustus',
+                    'people/person/age': 75,
+                },
+            ],
+        }
+
+        expected = {
+            'people': {
+                'person': [
+                    {'name': 'Julius Caesar', 'age': 55},
+                    {'name': 'Augustus', 'age': 75},
+                ]
+            }
+        }
+        assert convert_hierarchical_keys_to_nested_dict(dict_) == expected
 
 
 class UtilsTestCase(TestCase):
@@ -46,15 +180,15 @@ class UtilsTestCase(TestCase):
 
     def test_sluggify_label(self):
         inp_exps = [
-            [["asdf jkl"],              "asdf_jkl"],
-            [["asdf", ["asdf"]],        "asdf_001"],
-            [["2. asdf"],               "_2_asdf"],
-            [["2. asdf", ["_2_asdf"]],  "_2_asdf_001"],
-            [["asdf#123"],              "asdf_123"],
-            [[" hello "],               "hello"],
+            [['asdf jkl'], 'asdf_jkl'],
+            [['asdf', ['asdf']], 'asdf_001'],
+            [['2. asdf'], '_2_asdf'],
+            [['2. asdf', ['_2_asdf']], '_2_asdf_001'],
+            [['asdf#123'], 'asdf_123'],
+            [[' hello '], 'hello'],
             # FIX THIS when we come up with a better way to summarize
             # arabic and cyrillic text
-            [["أين السوق؟", ["_", "__001"]],  "__002"]
+            [['أين السوق؟', ['_', '__001']], '__002'],
         ]
         for inps, expected in inp_exps:
             inp = inps[0]
@@ -154,7 +288,7 @@ class UtilsTestCase(TestCase):
         self.assertEqual(surv['choices'][0]['$autovalue'], 'A__B_C')
         self.assertEqual(surv['choices'][1]['$autovalue'], 'A_B_C')
 
-    def test_autovalue_choices(self):
+    def test_autovalue_choices_with_different_name_and_label(self):
         surv = {
             'choices': [
                 {'list_name': 'xxx', 'label': 'A B C', 'name': 'D_E_F'},
@@ -184,11 +318,11 @@ class UtilsTestCase(TestCase):
         self.assertEqual(surv['choices'][1]['$autovalue'], part1 + part2)
 
     def test_query_parser(self):
-        query_string = '''
+        query_string = """
             (a:a OR b:b AND c:can't) AND d:do"you"say OR (
                 snakes:🐍🐍 AND NOT alphabet:🍲soup
             ) NOT 'in a house' NOT "with a mouse"
-        '''
+        """
 
         default_field_lookups = [
             'field_a__icontains',
@@ -304,93 +438,11 @@ class UtilsTestCase(TestCase):
             == 'no'
         )
 
-    def test_question_xpaths(self):
-        # TODO Move this test to `api/v2` and make it work with mockbackend
-        #   when kpi#4743 is merged
-        content = {
-            'survey': [
-                {
-                    'name': 'group_ec9yq67',
-                    'type': 'begin_group',
-                    '$kuid': 'zo3lt68',
-                    'label': ['3 levels'],
-                    'required': False,
-                },
-                {
-                    'name': 'group_dq8as25',
-                    'type': 'begin_repeat',
-                    '$kuid': 'mg3vt38',
-                    'label': ['Repeated group - Upper level'],
-                    'required': False,
-                },
-                {
-                    'name': 'group_xt0za80',
-                    'type': 'begin_repeat',
-                    '$kuid': 'pp7xz89',
-                    'label': ['Repeated group - Nested'],
-                    'required': False,
-                },
-                {
-                    'type': 'image',
-                    '$kuid': 'ra2ti71',
-                    'label': ['my_attachment'],
-                    'required': False,
-                },
-                {'type': 'end_repeat', '$kuid': '/pp7xz89'},
-                {'type': 'end_repeat', '$kuid': '/mg3vt38'},
-                {'type': 'end_group', '$kuid': '/zo3lt68'},
-            ],
-            'settings': {},
-            'translated': ['label'],
-            'translations': [None],
-        }
+    def test_split_lines_to_list(self):
 
-        user = get_user_model().objects.create(username='johndoe')
-        asset = Asset.objects.create(content=content, owner=user)
-        attachment_xpaths = asset.get_attachment_xpaths(deployed=False)
-        submission = {
-            'group_ec9yq67/group_dq8as25': [
-                {
-                    'group_ec9yq67/group_dq8as25/group_xt0za80': [
-                        {
-                            'group_ec9yq67/group_dq8as25/group_xt0za80/my_attachment': 'IMG_4266-11_38_22.jpg'
-                        },
-                        {
-                            'group_ec9yq67/group_dq8as25/group_xt0za80/my_attachment': 'كوبو-رائع-10_7_41.jpg'
-                        },
-                    ]
-                },
-                {
-                    'group_ec9yq67/group_dq8as25/group_xt0za80': [
-                        {
-                            'group_ec9yq67/group_dq8as25/group_xt0za80/my_attachment': 'Screenshot 2024-02-14 at 18.31.39-11_38_35.png'
-                        }
-                    ]
-                },
-            ]
-        }
-
-        attachment_basenames = [
-            'IMG_4266-11_38_22.jpg',
-            'كوبو-رايع-10_7_41.jpg',
-            'Screenshot_2024-02-14_at_18.31.39-11_38_35.png'
-        ]
-
-        expected_question_xpaths = [
-            'group_ec9yq67/group_dq8as25[1]/group_xt0za80[1]/my_attachment',
-            'group_ec9yq67/group_dq8as25[1]/group_xt0za80[2]/my_attachment',
-            'group_ec9yq67/group_dq8as25[2]/group_xt0za80[1]/my_attachment'
-        ]
-
-        filenames_and_xpaths = get_attachment_filenames_and_xpaths(
-            submission, attachment_xpaths
-        )
-
-        for idx, att_basename in enumerate(attachment_basenames):
-            assert (
-                filenames_and_xpaths.get(att_basename)
-                == expected_question_xpaths[idx]
-            )
+        value = '\r\nfoo\r\nbar\n\n'
+        expected = ['foo', 'bar']
+        assert split_lines_to_list(value) == expected
 
 
 class XmlUtilsTestCase(TestCase):
@@ -571,21 +623,21 @@ class XmlUtilsTestCase(TestCase):
         )
 
     def test_get_or_create_element(self):
-        initial_xml_with_ns = '''
+        initial_xml_with_ns = """
             <hello xmlns="http://opendatakit.org/submissions">
                 <meta>
                     <instanceID>uuid:abc-123</instanceID>
                 </meta>
             </hello>
-        '''
-        expected_xml_with_ns_after_modification = '''
+        """
+        expected_xml_with_ns_after_modification = """
             <hello xmlns="http://opendatakit.org/submissions">
                 <meta>
                     <instanceID>uuid:def-456</instanceID>
                     <deprecatedID>uuid:abc-123</deprecatedID>
                 </meta>
             </hello>
-        '''
+        """
 
         initial_xml_without_ns = initial_xml_with_ns.replace(
             ' xmlns="http://opendatakit.org/submissions"', ''
@@ -635,7 +687,7 @@ class XmlUtilsTestCase(TestCase):
         }
         for k, v in update_data.items():
             edit_submission_xml(xml_parsed, k, v)
-        xml_expected = '''
+        xml_expected = """
             <root>
                 <group1>
                     <subgroup1>
@@ -679,7 +731,7 @@ class XmlUtilsTestCase(TestCase):
                     </b>
                 </a>
             </root>
-        '''
+        """
         self.__compare_xml(xml_tostring(xml_parsed), xml_expected)
 
     def __compare_xml(self, source: str, target: str) -> bool:

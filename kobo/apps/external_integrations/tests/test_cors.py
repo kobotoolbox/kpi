@@ -2,10 +2,16 @@
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
+from kpi.tests.utils.mixins import RequiresStripeAPIKeyMixin
 from ..models import CorsModel
 
 
-class CorsTests(APITestCase):
+class CorsTests(APITestCase, RequiresStripeAPIKeyMixin):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.create_stripe_api_key()
+
     def setUp(self):
         self.innocuous_url = reverse('environment')
         self.cors_response_header_name = 'Access-Control-Allow-Origin'

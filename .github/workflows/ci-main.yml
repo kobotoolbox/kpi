@@ -1,0 +1,36 @@
+name: CI of main
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  darker:
+    uses: ./.github/workflows/darker.yml
+
+  biome:
+    uses: ./.github/workflows/biome.yml
+
+  pytest:
+    uses: ./.github/workflows/pytest.yml
+
+  npm-test:
+    uses: ./.github/workflows/npm-test.yml
+
+  on-failure:
+    if: |
+      failure() &&
+      (needs.darker.result == 'failure' || needs.darker.result == 'timed_out' ||
+      needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' ||
+      needs.biome.result == 'failure' || needs.biome.result == 'timed_out' ||
+      needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out')
+    needs:
+      - darker
+      - pytest
+      - biome
+      - npm-test
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "Github Actions (main)"
+      content: ":boom: @*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [\"$COMMIT_TITLE\"](${{ github.event.compare }})"

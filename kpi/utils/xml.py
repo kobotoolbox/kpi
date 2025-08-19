@@ -1,4 +1,3 @@
-# coding: utf-8
 from __future__ import annotations
 
 import re
@@ -6,6 +5,7 @@ from typing import Optional, Union
 from xml.dom import Node
 
 from defusedxml import minidom
+from defusedxml.lxml import fromstring
 from django.db.models import F, Q
 from django.db.models.query import QuerySet
 from django_request_cache import cache_for_request
@@ -13,6 +13,7 @@ from lxml import etree
 from shortuuid import ShortUUID
 
 from kobo.apps.form_disclaimer.models import FormDisclaimer
+from kpi.exceptions import DTDForbiddenException, EntitiesForbiddenException
 
 # Goals for the future:
 #
@@ -58,6 +59,50 @@ def add_xml_declaration(
     if use_bytes:
         return xml_.encode()
     return xml_
+
+
+def check_entities(
+    elementtree: etree.ElementTree,
+    dtd_forbidden: bool = False,
+    entities_forbidden: bool = True
+):
+    """
+    This function is to be used with the lxml library using examples
+    found in the defusedxml library since support for lxml is depreciated
+    Does not return content. This function will only raise exceptions if
+    unaccepted content is contained in the XML.
+    """
+
+    docinfo = elementtree.docinfo
+    if docinfo.doctype:
+        if dtd_forbidden:
+            raise DTDForbiddenException
+        if entities_forbidden:
+            raise EntitiesForbiddenException
+
+    if entities_forbidden:
+        for dtd_entity in docinfo.internalDTD, docinfo.externalDTD:
+            if dtd_entity is None:
+                continue
+            for entity in dtd_entity.interentities():
+                raise EntitiesForbiddenException
+
+
+def check_lxml_fromstring(
+    text: str,
+    base_url: str = None,
+    forbid_dtd: bool = False,
+    forbid_entities: bool = True,
+):
+    """
+    This function is used to replace the `lxml.etree.fromstring` method similarly to
+    defusedxml's replacement for the method.
+    Returns an ElementTree object
+    """
+    rootelement = fromstring(text, base_url=base_url)
+    elementtree = rootelement.getroottree()
+    check_entities(elementtree, forbid_dtd, forbid_entities)
+    return rootelement
 
 
 def edit_submission_xml(
@@ -318,26 +363,19 @@ class OmitDefaultNamespacePrefixTreeBuilder(ET.TreeBuilder):
         if self.default_namespace_uri:
             # Remove the Clark notation prefix if it matches the default
             # namespace
-            # TODO remove try/except when Python 3.8 support is removed
-            try:
-                tag = tag.removeprefix('{' + self.default_namespace_uri + '}')
-            except AttributeError:
-                remove_prefix = (
-                    lambda text, prefix: text[len(prefix):]
-                    if text.startswith(prefix)
-                    else text
-                )
-                tag = remove_prefix(tag, '{' + self.default_namespace_uri + '}')
-
+            tag = tag.removeprefix('{' + self.default_namespace_uri + '}')
         return super().start(tag, attrs)
 
 
 class XMLFormWithDisclaimer:
 
-    # TODO support XForm when Kobocat becomes a Django-app
-    def __init__(self, obj: Union['kpi.AssetSnapshot']):
+    def __init__(self, obj: Union['kpi.AssetSnapshot', 'logger.XForm']):
         self._object = obj
         self._unique_id = obj.asset.uid
+
+        # Avoid accessing the `xform_root_node_name` property immediately to prevent
+        # extra database queries. It will be set only when it is actually needed.
+        self._root_tag_name = None
         self._add_disclaimer()
 
     def get_object(self):
@@ -356,6 +394,7 @@ class XMLFormWithDisclaimer:
         translated, disclaimers_dict, default_language_code = value
 
         self._root_node = minidom.parseString(self._object.xml)
+        self._root_tag_name = self._object.xform_root_node_name
 
         if translated:
             self._add_translation_nodes(disclaimers_dict, default_language_code)
@@ -378,7 +417,7 @@ class XMLFormWithDisclaimer:
         # Inject <bind nodeset /> inside <model odk:xforms-version="1.0.0">
         bind_node = self._root_node.createElement('bind')
         bind_node.setAttribute(
-            'nodeset', f'/{self._unique_id}/_{self._unique_id}__disclaimer'
+            'nodeset', f'/{self._root_tag_name}/_{self._unique_id}__disclaimer'
         )
         bind_node.setAttribute('readonly', 'true()')
         bind_node.setAttribute('required', 'false()')
@@ -386,9 +425,9 @@ class XMLFormWithDisclaimer:
         bind_node.setAttribute('relevant', 'false()')
         model_node.appendChild(bind_node)
 
-        # Inject note node inside <{self._unique_id}>
+        # Inject note node inside <{self._root_tag_name}>
         instance_node = model_node.getElementsByTagName('instance')[0]
-        instance_node = instance_node.getElementsByTagName(self._unique_id)[0]
+        instance_node = instance_node.getElementsByTagName(self._root_tag_name)[0]
         instance_node.appendChild(
             self._root_node.createElement(f'_{self._unique_id}__disclaimer')
         )
@@ -407,11 +446,11 @@ class XMLFormWithDisclaimer:
         disclaimer_input_label = self._root_node.createElement('label')
         disclaimer_input.setAttribute('appearance', 'kobo-disclaimer')
         disclaimer_input.setAttribute(
-            'ref', f'/{self._unique_id}/_{self._unique_id}__disclaimer'
+            'ref', f'/{self._root_tag_name}/_{self._unique_id}__disclaimer'
         )
 
         if translated:
-            itext = f'/{self._unique_id}/_{self._unique_id}__disclaimer:label'
+            itext = f'/{self._root_tag_name}/_{self._unique_id}__disclaimer:label'
             disclaimer_input_label.setAttribute(
                 'ref',
                 f"jr:itext('{itext}')",
@@ -439,7 +478,7 @@ class XMLFormWithDisclaimer:
                 disclaimer_translation = self._root_node.createElement('text')
                 disclaimer_translation.setAttribute(
                     'id',
-                    f'/{self._unique_id}/_{self._unique_id}__disclaimer:label',
+                    f'/{self._root_tag_name}/_{self._unique_id}__disclaimer:label',
                 )
                 value = self._root_node.createElement('value')
                 language = n.getAttribute('lang').lower().strip()

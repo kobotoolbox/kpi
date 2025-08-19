@@ -1,8 +1,7 @@
-# coding: utf-8
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 
 from django.conf import settings
 
@@ -10,13 +9,13 @@ from kobo.celery import celery_app
 from kpi.constants import NESTED_MONGO_RESERVED_ATTRIBUTES
 from kpi.utils.strings import base64_encodestring
 
-PermissionFilter = Dict[str, Any]
+PermissionFilter = dict[str, Any]
 
 
 def drop_mock_only(func):
     """
     This decorator should be used on every method that drop data in MongoDB
-    in a testing environment. It ensures that MockMongo is used and no prodction
+    in a testing environment. It ensures that MockMongo is used and no production
     data is deleted
     """
 
@@ -73,7 +72,9 @@ class MongoHelper:
 
     # Match KoBoCAT's variables of ParsedInstance class
     USERFORM_ID = '_userform_id'
+    SUBMISSION_UUID = '_uuid'
     DEFAULT_BATCHSIZE = 1000
+    COLLECTION = 'instances'
 
     @classmethod
     def decode(cls, key):
@@ -89,14 +90,12 @@ class MongoHelper:
         return key
 
     @classmethod
-    def delete(cls, mongo_userform_id: str, submission_ids: list):
-        query = {
-            '_id': {cls.IN_OPERATOR: submission_ids},
-            cls.USERFORM_ID: mongo_userform_id,
-        }
-        delete_counts = settings.MONGO_DB.instances.delete_many(query)
+    def delete_one(cls, query: dict) -> int:
+        return cls._raw_delete(query, many=False)
 
-        return delete_counts == len(submission_ids)
+    @classmethod
+    def delete_many(cls, query: dict) -> int:
+        return cls._raw_delete(query, many=True)
 
     @classmethod
     def encode(cls, key: str) -> str:
@@ -184,6 +183,43 @@ class MongoHelper:
         )
 
     @classmethod
+    def replace_one(cls, document: dict) -> dict:
+        """
+        PyMongo's update_one and update_many methods do not support maxTimeMS queries.
+        Use low-level command instead.
+
+        Unfortunately, MockMongo (in the testing environment) does not support `command`
+        yet.
+        """
+
+        if settings.TESTING:
+            result = settings.MONGO_DB.instances.replace_one(
+                {'_id': document['_id']}, document, upsert=True
+            )
+            return {
+                'matched_count': result.matched_count,
+                'modified_count': result.modified_count,
+                'updated_existing': result.raw_result.get('updatedExisting', False)
+            }
+
+        command = {
+            'update': cls.COLLECTION,
+            'updates': [{
+                'q': {'_id': document['_id']},
+                'u': document,
+                'upsert': True
+            }],
+            'maxTimeMS': cls.get_max_time_ms()
+        }
+        result = settings.MONGO_DB.command(command)
+
+        return {
+            'matched_count': result.get('n', 0),
+            'modified_count': result.get('nModified', 0),
+            'updated_existing': 'upserted' in result
+        }
+
+    @classmethod
     def to_readable_dict(cls, d: dict) -> dict:
         """
         Updates encoded attributes of a dict with human-readable attributes.
@@ -207,15 +243,11 @@ class MongoHelper:
         return d
 
     @classmethod
-    def to_safe_dict(cls, d, reading=False):
+    def to_safe_dict(cls, d: dict, reading: bool = False) -> dict:
         """
         Updates invalid attributes of a dict by encoding disallowed characters
         and, when `reading=False`, expanding dotted keys into nested dicts for
         `NESTED_MONGO_RESERVED_ATTRIBUTES`
-
-        :param d: dict
-        :param reading: boolean.
-        :return: dict
 
         Example:
 
@@ -259,9 +291,12 @@ class MongoHelper:
                     pass
 
             if cls._is_nested_reserved_attribute(key):
-                # If we want to write into Mongo, we need to transform the dot delimited string into a dict
-                # Otherwise, for reading, Mongo query engine reads dot delimited string as a nested object.
-                # Drawback, if a user uses a reserved property with dots, it will be converted as well.
+                # If we want to write into Mongo, we need to transform the dot
+                # delimited string into a dict.
+                # Otherwise, for reading, Mongo query engine reads dot delimited string
+                # as a nested object.
+                # Drawback, if a user uses a reserved property with dots, it will be
+                # converted as well.
                 if not reading and key.count('.') > 0:
                     tree = {}
                     t = tree
@@ -285,6 +320,14 @@ class MongoHelper:
                 d[cls.encode(key)] = value
 
         return d
+
+    @classmethod
+    def update_one(cls, query: dict, update: dict) -> dict[str, int]:
+        return cls._raw_update(query, update, many=False)
+
+    @classmethod
+    def update_many(cls, query: dict, update: dict) -> dict[str, int]:
+        return cls._raw_update(query, update, many=True)
 
     @classmethod
     def get_permission_filters_query(
@@ -340,7 +383,7 @@ class MongoHelper:
     def _get_cursor_and_count(
         cls,
         mongo_userform_id,
-        fields: Optional[dict] = None,
+        fields: Optional[list, dict] = None,
         query: Optional[dict] = None,
         submission_ids: Optional[list] = None,
         permission_filters=None,
@@ -361,10 +404,22 @@ class MongoHelper:
         query = cls.to_safe_dict(query, reading=True)
 
         if fields is not None and len(fields) > 0:
+            # `cls.SUBMISSION_UUID` is mandatory.
+            # It is needed to build the attachment link on fly on API response
+            if cls.SUBMISSION_UUID not in fields:
+                if isinstance(fields, list):
+                    fields.append(cls.SUBMISSION_UUID)
+                else:
+                    fields[cls.SUBMISSION_UUID] = 1
+
             # Retrieve only specified fields from Mongo. Remove
             # `cls.USERFORM_ID` from those fields in case users try to add it.
             if cls.USERFORM_ID in fields:
-                fields.remove(cls.USERFORM_ID)
+                if isinstance(fields, list):
+                    fields.remove(cls.USERFORM_ID)
+                else:
+                    del fields[cls.USERFORM_ID]
+
             fields_to_select = dict(
                 [(cls.encode(field), 1) for field in fields]
             )
@@ -383,26 +438,117 @@ class MongoHelper:
         return cursor, count
 
     @classmethod
-    def _is_attribute_encoded(cls, key):
+    def _is_attribute_encoded(cls, key: str) -> bool:
         """
         Checks if an attribute has been encoded when saved in Mongo.
-
-        :param key: string
-        :return: string
         """
         return key not in cls.KEY_WHITELIST and (
             key.startswith('JA==') or key.count('Lg==') > 0
         )
 
     @staticmethod
-    def _is_nested_reserved_attribute(key):
+    def _is_nested_reserved_attribute(key: str) -> bool:
         """
-        Checks if key starts with one of variables values declared in NESTED_MONGO_RESERVED_ATTRIBUTES
-
-        :param key: string
-        :return: boolean
+        Checks if key starts with one of variables values declared in
+        NESTED_MONGO_RESERVED_ATTRIBUTES
         """
         for reserved_attribute in NESTED_MONGO_RESERVED_ATTRIBUTES:
             if key.startswith('{}.'.format(reserved_attribute)):
                 return True
         return False
+
+    @classmethod
+    def _normalize_update(cls, update: dict) -> dict:
+        """
+        Normalize a MongoDB update to ensure it uses update operators like $set.
+
+        If the update dict already uses an operator (e.g., $set, $unset), it is
+        returned as-is.
+        If not, it wraps the update inside a $set operator.
+        """
+        # Check if the first key is an operator (starts with "$")
+        first_key = next(iter(update), None)
+
+        if first_key is not None and first_key.startswith('$'):
+            # Update already uses an operator, return as-is
+            return update
+
+        # Otherwise, wrap inside $set
+        return {'$set': update}
+
+    @classmethod
+    def _raw_delete(cls, query: dict, many: bool = True) -> int:
+        """
+        PyMongo's delete_one and delete_many methods do not support maxTimeMS queries.
+        Use low-level command instead.
+
+        Unfortunately, MockMongo (in the testing environment) does not support `command`
+        yet.
+        """
+        if settings.TESTING:
+            if many:
+                result = settings.MONGO_DB.instances.delete_many(query)
+            else:
+                result = settings.MONGO_DB.instances.delete_one(query)
+
+            return result.deleted_count
+
+        command = {
+            'delete': cls.COLLECTION,
+            'deletes': [
+                {
+                    'q': query,
+                    'limit': 0 if many else 1,
+                }
+            ],
+            'maxTimeMS': cls.get_max_time_ms(),
+        }
+
+        result = settings.MONGO_DB.command(command)
+        return result.get('n', 0)
+
+    @classmethod
+    def _raw_update(
+        cls, query: dict, update: dict, many: bool = True
+    ) -> dict[str, int]:
+        """
+        PyMongo's update_one and update_many methods do not support maxTimeMS queries.
+        Use low-level command instead.
+
+        Unfortunately, MockMongo (in the testing environment) does not support `command`
+        yet.
+        """
+        if settings.TESTING:
+            if many:
+                result = settings.MONGO_DB.instances.update_many(
+                    query, {'$set': update}
+                )
+            else:
+                result = settings.MONGO_DB.instances.update_one(
+                    query, {'$set': update}
+                )
+
+            return {
+                'matched_count': result.matched_count,
+                'modified_count': result.modified_count,
+            }
+
+        safe_update = cls._normalize_update(update)
+
+        command = {
+            'update': cls.COLLECTION,
+            'updates': [
+                {
+                    'q': query,
+                    'u': safe_update,
+                    'multi': many,
+                }
+            ],
+            'maxTimeMS': cls.get_max_time_ms(),
+        }
+        result = settings.MONGO_DB.command(command)
+
+        return {
+            'matched_count': result.get('n', 0),
+            'modified_count': result.get('nModified', 0),
+        }

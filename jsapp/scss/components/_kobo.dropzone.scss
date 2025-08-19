@@ -1,13 +1,13 @@
-@use "scss/_variables";
-@use '~kobo-common/src/styles/colors';
+@use 'scss/_variables';
+@use 'scss/colors';
 
 // Kobo specific dropzone changes
 
 // Extension of `dropzone` used in settings modals
 .kobo-dropzone {
-  background: colors.$kobo-gray-96;
+  background: colors.$kobo-gray-200;
   padding: 30px;
-  border: 2px dashed colors.$kobo-gray-92;
+  border: 2px dashed colors.$kobo-gray-300;
   cursor: pointer;
   border-radius: 6px;
   text-align: center;
@@ -48,8 +48,8 @@
 .kobo-dropzone--form-media {
   background: colors.$kobo-white;
   padding: 40px;
-  border: 6px dashed colors.$kobo-gray-92;
+  border: 6px dashed colors.$kobo-gray-300;
   font-size: 18px;
   font-weight: 500;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
 }

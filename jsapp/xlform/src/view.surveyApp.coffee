@@ -8,10 +8,10 @@ $rowView = require './view.row'
 $baseView = require './view.pluggedIn.backboneView'
 $viewUtils = require './view.utils'
 alertify = require 'alertifyjs'
-isAssetLockable = require('js/components/locking/lockingUtils').isAssetLockable
-hasAssetRestriction = require('js/components/locking/lockingUtils').hasAssetRestriction
-LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
-LOCKING_UI_CLASSNAMES = require('js/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
+isAssetLockable = require('#/components/locking/lockingUtils').isAssetLockable
+hasAssetRestriction = require('#/components/locking/lockingUtils').hasAssetRestriction
+LockingRestrictionName = require('#/components/locking/lockingConstants').LockingRestrictionName
+LOCKING_UI_CLASSNAMES = require('#/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
 
 module.exports = do ->
   surveyApp = {}
@@ -136,7 +136,7 @@ module.exports = do ->
       @ngScope = options.ngScope
       @surveyStateStore = options.stateStore || {trigger:$.noop, setState:$.noop}
 
-      $(document).on 'click', @deselect_rows
+      $(document).on 'click', @deselect_rows.bind(@)
 
       @survey.settings.on 'change:form_id', (model, value) =>
         $('.form-id').text(value)
@@ -205,7 +205,7 @@ module.exports = do ->
       @activateGroupButton(false)
       return
 
-    deselect_rows: (evt) =>
+    deselect_rows: (evt) ->
       # clicking on survey__row is aleady handled, so we ignore it - we only want
       # to deselet rows when clicking elsewhere
       $etp = $(evt.target).parents('.survey__row')
@@ -333,7 +333,7 @@ module.exports = do ->
       # hide all ways of adding new questions
       if (
         @isLockable() and
-        @hasRestriction(LOCKING_RESTRICTIONS.question_add.name)
+        @hasRestriction(LockingRestrictionName.question_add)
       )
         # "+" buttons
         @$('.js-add-row-button').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
@@ -638,7 +638,7 @@ module.exports = do ->
         @features.multipleQuestions and
         not (
           @isLockable() and
-          @hasRestriction(LOCKING_RESTRICTIONS.question_order_edit.name)
+          @hasRestriction(LockingRestrictionName.question_order_edit)
         )
       )
         @activateSortable()

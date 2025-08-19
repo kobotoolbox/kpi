@@ -9,7 +9,8 @@ $inputDeserializer = require './model.inputDeserializer'
 $inputParser = require './model.inputParser'
 $markdownTable = require './model.utils.markdownTable'
 csv = require './csv'
-LOCKING_PROFILES_PROP_NAME = require('js/components/locking/lockingConstants').LOCKING_PROFILES_PROP_NAME
+LOCKING_PROFILES_PROP_NAME = require('#/components/locking/lockingConstants').LOCKING_PROFILES_PROP_NAME
+txtid = require('#/utils').txtid
 
 module.exports = do ->
   class Survey extends $surveyFragment.SurveyFragment
@@ -58,6 +59,7 @@ module.exports = do ->
       @forEachRow (r)=>
         if typeof r.linkUp is 'function'
           r.linkUp(@context)
+        return
       @linkUpChoiceLists()
 
     @create: (options={}, addlOpts) ->
@@ -86,11 +88,12 @@ module.exports = do ->
         survey.choices.add(options: rowlist.options.toJSON())
         new_row.get('type').set('list', rowlist)
       name_detail = new_row.get('name')
-      name_detail.set 'value', name_detail.deduplicate(survey)
+      return name_detail.set 'value', name_detail.deduplicate(survey)
 
     _ensure_row_list_is_copied: (row)->
       if !row.rows && rowlist = row.getList()
         @choices.add(name: rowlist.get("name"), options: rowlist.options.toJSON())
+      return
 
     insertSurvey: (survey, index=-1, targetGroupId)->
       index = @rows.length if index is -1
@@ -161,9 +164,9 @@ module.exports = do ->
         obj[LOCKING_PROFILES_PROP_NAME] = @lockingProfiles
 
       if stringify
-        JSON.stringify(obj, null, spaces)
+        return JSON.stringify(obj, null, spaces)
       else
-        obj
+        return obj
 
     toJSON: (stringify=false, spaces=4)->
       obj = {}
@@ -181,21 +184,22 @@ module.exports = do ->
             r.export_relevant_values(out, addlSheets)
           else
             console.error 'No r.export_relevant_values. Does this survey have non-standard columns?', r
+          return
 
         @forEachRow fn, includeGroupEnds: true
 
         for sd in @surveyDetails.models when sd.get("value")
           out.push sd.toJSON()
 
-        out
+        return out
 
       for shtName, sheet of addlSheets when sheet.length > 0
         obj[shtName] = sheet.summaryObj(true)
 
       if stringify
-        JSON.stringify(obj, null, spaces)
+        return JSON.stringify(obj, null, spaces)
       else
-        obj
+        return obj
     getSurvey: -> @
     log: (opts={})->
       logFn = opts.log or (a...)-> console.log.apply(console, a)
@@ -205,9 +209,9 @@ module.exports = do ->
           logFn tabs.join('').replace(/-/g, '='), r.get('label').get('value')
           tabs.push('-')
           r.forEachRow(logr, flat: true, includeGroups: true)
-          tabs.pop()
+          return tabs.pop()
         else
-          logFn tabs.join(''), r.get('label').get('value')
+          return logFn tabs.join(''), r.get('label').get('value')
       @forEachRow(logr, flat: true, includeGroups: true)
       return
 
@@ -218,11 +222,14 @@ module.exports = do ->
         if r.get('type').get('value') is 'geopoint'
           hasGps = true
         rowCount++
+        return
       @forEachRow(fn, includeGroups: false)
 
       # summaryObj
-      rowCount: rowCount
-      hasGps: hasGps
+      return {
+        rowCount: rowCount
+        hasGps: hasGps
+      }
     _insertRowInPlace: (row, opts={})->
       if row._parent && !opts.noDetach
         row.detach(silent: true)
@@ -251,13 +258,13 @@ module.exports = do ->
       if _.isString(exclude) or _.isString(add)
         throw new Error("prepCols parameters should be arrays")
       out = _.filter _.uniq( _.flatten cols), (col) -> col not in exclude
-      out.concat.apply(out, add)
+      return out.concat.apply(out, add)
 
     toSsStructure: ()->
       out = {}
       for sheet, content of @toCsvJson()
         out[sheet] = content.rowObjects
-      out
+      return out
     toCsvJson: ()->
       # build an object that can be easily passed to the "csv" library
       # to generate the XL(S)Form spreadsheet
@@ -273,14 +280,16 @@ module.exports = do ->
           colJson = r.toJSON()
           for own key, val of colJson when key not in oCols
             oCols.push key
-          oRows.push colJson
+          return oRows.push colJson
 
         @forEachRow addRowToORows, includeErrors: true, includeGroupEnds: true
         for sd in @surveyDetails.models when sd.get("value")
           addRowToORows(sd)
 
-        columns: oCols
-        rowObjects: oRows
+        return {
+          columns: oCols
+          rowObjects: oRows
+        }
 
 
       choicesCsvJson = do =>
@@ -291,13 +300,13 @@ module.exports = do ->
               list = item.getList()
               if list and !lists.get(list.get('name'))
                 lists.add(list)
-                _getSubLists(list)
-          _getSubLists(r)
+                return _getSubLists(list)
+          return _getSubLists(r)
 
         rows = []
         cols = []
         for choiceList in lists.models
-          choiceList.set("name", $modelUtils.txtid(), silent: true)  unless choiceList.get("name")
+          choiceList.set("name", txtid(), silent: true)  unless choiceList.get("name")
           choiceList.finalize()
           clAtts = choiceList.toJSON()
           clName = clAtts.name
@@ -307,24 +316,26 @@ module.exports = do ->
 
 
         if rows.length > 0
-          columns: @prepCols cols, exclude: ['setManually'], add: ['list_name']
-          rowObjects: rows
+          return {
+            columns: @prepCols cols, exclude: ['setManually'], add: ['list_name']
+            rowObjects: rows
+          }
         else
-          false
+          return false
 
       out.choices = choicesCsvJson  if choicesCsvJson
       out.settings = @settings.toCsvJson()
 
-      out
+      return out
 
     toMarkdown: ()->
-      $markdownTable.csvJsonToMarkdown(@toCsvJson())
+      return $markdownTable.csvJsonToMarkdown(@toCsvJson())
 
     toCSV: ->
       sheeted = csv.sheeted()
       for shtName, content of @toCsvJson()
         sheeted.sheet shtName, csv(content)
-      sheeted.toString()
+      return sheeted.toString()
 
   Survey.load = (csv_repr, _usingSurveyLoadCsv=false)->
     # log('switch to Survey.load.csv')  if !_usingSurveyLoadCsv
@@ -332,22 +343,22 @@ module.exports = do ->
       throw Error("Invalid CSV passed to form builder")
     _deserialized = $inputDeserializer.deserialize csv_repr
     _parsed = $inputParser.parse _deserialized
-    new Survey(_parsed)
+    return new Survey(_parsed)
 
   Survey.load.csv = (csv_repr)->
-    Survey.load(csv_repr, true)
+    return Survey.load(csv_repr, true)
 
   Survey.load.md = (md)->
     sObj = $markdownTable.mdSurveyStructureToObject(md)
-    new Survey(sObj)
+    return new Survey(sObj)
   Survey.loadDict = (obj, baseSurvey)->
     _parsed = $inputParser.parse(obj, baseSurvey)
-    new Survey(_parsed)
+    return new Survey(_parsed)
 
   _is_csv = (csv_repr)->
     # checks that a string has a newline and a comma,
     # a very simplistic test of a csv
-    '\n' in csv_repr and ',' in csv_repr
+    return '\n' in csv_repr and ',' in csv_repr
 
   # Settings (assigned to each $survey.Survey instance)
   class Settings extends $base.BaseModel
@@ -356,8 +367,10 @@ module.exports = do ->
       columns = _.keys(@attributes)
       rowObjects = [@toJSON()]
 
-      columns: columns
-      rowObjects: rowObjects
+      return {
+        columns: columns
+        rowObjects: rowObjects
+      }
     enable_auto_name: () ->
       @auto_name = true
 
@@ -366,13 +379,18 @@ module.exports = do ->
           @changing_form_title = false
         else
           @auto_name = false
+        return
 
       @on 'change:form_title', (model, value) =>
         if @auto_name
           @changing_form_title = true
           @set 'form_id', $modelUtils.sluggifyLabel(value)
+        return
+      return
 
 
 
-  Survey: Survey
-  Settings: Settings
+  return {
+    Survey: Survey
+    Settings: Settings
+  }

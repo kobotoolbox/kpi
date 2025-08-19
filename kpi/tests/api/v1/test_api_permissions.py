@@ -1,10 +1,11 @@
 # coding: utf-8
-from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_COLLECTION
 from kpi.models import Asset, ObjectPermission
+
 # importing module instead of the class, avoid running the tests twice
 from kpi.tests.api.v2 import test_api_permissions
 from kpi.tests.kpi_test_case import KpiTestCase
@@ -40,7 +41,7 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
     def setUp(self):
         super().setUp()
         self.anon = get_anonymous_user()
-        self.super = User.objects.get(username='admin')
+        self.super = User.objects.get(username='adminuser')
         self.super_password = 'pass'
         self.someuser = User.objects.get(username='someuser')
         self.someuser_password = 'someuser'

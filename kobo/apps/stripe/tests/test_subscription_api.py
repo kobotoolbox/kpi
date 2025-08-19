@@ -1,11 +1,10 @@
-from django.contrib.auth.models import User
 from django.urls import reverse
 from djstripe.enums import BillingScheme
 from djstripe.models import Customer
 from model_bakery import baker
 from rest_framework import status
 
-from kobo.apps.organizations.models import Organization
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
@@ -19,8 +18,7 @@ class SubscriptionAPITestCase(BaseTestCase):
         self.url_list = reverse('subscriptions-list')
 
     def _insert_data(self):
-        organization = baker.make(Organization)
-        organization.add_user(self.someuser, is_admin=True)
+        organization = self.someuser.organization
         customer = baker.make(Customer, subscriber=organization)
         self.subscription = baker.make(
             'djstripe.Subscription',

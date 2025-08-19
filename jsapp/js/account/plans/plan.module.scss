@@ -1,18 +1,25 @@
-@use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/breakpoints';
 @use 'sass:color';
 @use 'scss/_variables';
 
+$plans-page-card-width: 290px;
+$plans-page-gap: 20px;
+$plans-page-max-width: $plans-page-card-width * 3 + $plans-page-gap * 2;
+$plan-badge-height: 38px;
+
 .accountPlan {
-  padding: sizes.$x30 sizes.$x40;
-  overflow-y: auto;
+  padding: 30px 40px;
   position: relative;
   height: 100%;
   width: 100%;
   display: flex;
   flex-direction: column;
-  row-gap: sizes.$x20;
+  row-gap: $plans-page-gap;
+}
+
+.accountPlan.showAddOns {
+  padding: 15px 0 0;
 }
 
 .wait {
@@ -26,25 +33,26 @@
 }
 
 .unauthorized {
-  opacity: 50%;
+  opacity: 0.5;
 }
 
 .allPlans {
-  column-gap: sizes.$x20;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  row-gap: $plans-page-gap;
 }
 
 .stripePlans {
-  flex: 1 1 0;
+  flex: 0 0 $plans-page-card-width;
   display: flex;
   flex-direction: column;
+  margin-top: 0;
 }
 
 .intervalToggle {
   background-color: colors.$kobo-light-storm;
-  padding: sizes.$x3;
-  border-radius: sizes.$x4;
+  padding: 3px;
+  border-radius: 4px;
   margin: 0 auto;
 }
 
@@ -52,18 +60,18 @@
   display: none;
   appearance: none;
 
-  &[aria-disabled=true] + label {
+  &[aria-disabled='true'] + label {
     pointer-events: none;
   }
 }
 
 .intervalToggle label {
   color: colors.$kobo-dark-blue;
-  padding: 0 sizes.$x12;
-  font-size: sizes.$x18;
-  line-height: sizes.$x32;
+  padding: 0 12px;
+  font-size: 18px;
+  line-height: 32px;
   display: inline-block;
-  min-width: sizes.$x100;
+  min-width: 100px;
   text-align: center;
   cursor: pointer;
 }
@@ -71,106 +79,88 @@
 .intervalToggle input[type='radio']:checked + label {
   background-color: colors.$kobo-blue;
   color: colors.$kobo-white;
-  border-radius: sizes.$x4;
+  border-radius: 4px;
 
-  &:after {
+  &::after {
     background-color: colors.$kobo-blue;
-    padding: sizes.$x8 sizes.$x12;
+    padding: 8px 12px;
   }
 
-  &:before {
-    width: sizes.$x20;
-    height: sizes.$x20;
+  &::before {
+    width: 20px;
+    height: 20px;
     color: colors.$kobo-light-storm;
-    padding: sizes.$x8 sizes.$x12;
+    padding: 8px 12px;
   }
 
   &:hover {
-      background-color: color.adjust(colors.$kobo-blue, $lightness: -5%);
+    background-color: color.adjust(colors.$kobo-blue, $lightness: -5%);
   }
 }
 
 .intervalToggle input[type='radio'] + label:hover {
   background-color: color.adjust(colors.$kobo-light-storm, $lightness: -5%);
-  border-radius: sizes.$x4;
-}
-
-.planContainer {
-  border-radius: sizes.$x6;
-  border: colors.$kobo-gray-85 solid sizes.$x1;
-  padding: sizes.$x24;
-  flex-grow: 1;
+  border-radius: 4px;
 }
 
 .plansSection {
   display: flex;
   flex-direction: column;
-  row-gap: sizes.$x20;
+  row-gap: $plans-page-gap;
+  align-items: center;
 }
 
 .priceName,
-.enterpriseTitle {
-  color: colors.$kobo-gray-40;
-  font-weight: 700;
-  font-size: sizes.$x24;
-  line-height: sizes.$x32;
+.enterpriseBannerTitle {
+  font-weight: 600;
+  font-size: 25px;
+  line-height: 32px;
   margin: 0;
-  padding: 0 0 sizes.$x12 0;
 }
 
 .priceName {
-  text-align: left;
+  padding: 0 0 12px;
 }
 
 .priceTitle {
   color: colors.$kobo-dark-blue;
-  text-align: left;
-  font-size: sizes.$x18;
-  padding-bottom: sizes.$x16;
-  font-weight: 600;
-  line-height: sizes.$x20;
+  font-size: 20px;
+  padding-bottom: 16px;
+  font-weight: 700;
+  line-height: 20px;
   height: 2em;
 }
 
-.planContainer :global .k-button {
-  margin: sizes.$x24 auto 0;
-  width: 100%;
-  height: sizes.$x38;
-}
-
-.planContainer :global span.k-button__label {
-  text-align: center;
-  width: 100%;
-}
-
-$plan-badge-height: sizes.$x38;
-
-.planContainer:not(.planContainerWithBadge) {
-  margin-top: $plan-badge-height;
-}
-
 .planContainer {
+  border-radius: 6px;
+  border: colors.$kobo-gray-400 solid 1px;
+  padding: 20px;
+  width: $plans-page-card-width;
   display: flex;
   flex-direction: column;
+  height: 100%; // So it stretches to match the height of other containers
 }
 
 .planContainer.planContainerWithBadge {
-  border-radius: 0 0 sizes.$x6 sizes.$x6;
+  border-radius: 0 0 6px 6px;
 }
 
-.featureContainer {
-  height: 18em;
+.planDetailsContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin-bottom: 25px;
 }
 
 .planContainer :global hr {
-  border-bottom: sizes.$x1 solid colors.$kobo-gray-96;
+  border-bottom: 1px solid colors.$kobo-gray-200;
   border-top: none;
-  margin: sizes.$x24 auto;
+  margin: 24px auto;
   width: 100%;
 }
 
 .planContainer :global li {
-  padding: sizes.$x6 0;
+  padding: 6px 0;
   vertical-align: middle;
   display: flex;
   font-weight: 400;
@@ -180,63 +170,61 @@ $plan-badge-height: sizes.$x38;
   height: 100%;
   width: auto;
   display: inline-flex;
-  margin-right: sizes.$x12;
+  line-height: 20px;
+  margin-right: 12px;
 }
 
-.enterprisePlanContainer {
-  flex: 1;
+.selectableFeature {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: -(10px);
+}
+
+.enterpriseBanner {
   display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: colors.$kobo-dark-blue;
+  color: colors.$kobo-white;
+  padding: 24px;
+  border-radius: 6px;
+  height: 100%;
+  margin-bottom: 20px;
+}
+
+.enterpriseBannerText {
+  max-width: 800px;
+}
+
+.enterpriseBannerButtonContainer {
   flex-direction: column;
-  margin-top: sizes.$x38;
+  justify-content: center;
+  width: 113px;
 }
 
-.enterprisePlan {
-  background-color: colors.$kobo-bg-blue;
-  padding: sizes.$x24;
-  overflow: hidden;
-  border-radius: sizes.$x6;
-  flex-grow: 1;
-}
-
-.enterpriseDetails {
-  line-height: sizes.$x24;
-}
-
-a.enterpriseLink {
-  color: colors.$kobo-dark-blue;
-  text-decoration: underline;
-  font-weight: 600;
+.enterpriseBannerDetails {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 22px;
 }
 
 .listTitle {
-  color: colors.$kobo-gray-40;
-  font-size: sizes.$x14;
-  font-weight: 700;
+  color: colors.$kobo-gray-700;
+  font-size: 14px;
+  font-weight: 600;
   padding: 0;
 }
 
 .planContainer ul :global {
-  margin: sizes.$x5 0 0;
+  margin: 5px 0 0;
 }
 
-.expandedContainer > :nth-child(2) {
-  height: 11.2em;
-  margin-bottom: sizes.$x24;
-}
-
-.expandedContainer > :nth-child(3) {
-  height: 7em;
-  margin-bottom: sizes.$x24;
-}
-
-.expandedContainer > :nth-child(4) {
-  height: 7.5em;
-}
-
-.planContainer :last-child {
-  margin-bottom: 0;
-}
-
+// This is the badge on top of the card
 .currentPlan {
   background-color: colors.$kobo-storm;
   color: colors.$kobo-white;
@@ -245,33 +233,85 @@ a.enterpriseLink {
   align-items: center;
   position: relative;
   top: 0;
-  border-radius: sizes.$x6 sizes.$x6 0 0;
-  height: sizes.$x38;
-  width: 100%;
+  border-radius: 6px 6px 0 0;
+  height: $plan-badge-height;
+  width: $plans-page-card-width;
+  font-weight: 700;
+  font-size: 16px;
 }
 
-@media screen and (max-width: breakpoints.$b1440) {
-  .enterprisePlan {
-    font-size: sizes.$x12;
+.comparisonButton {
+  margin-left: auto;
+  margin-right: auto;
+  width: $plans-page-card-width;
+  text-align: center;
+}
+
+.planButton {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+
+  &:not(:empty) {
+    margin-top: auto;
+  }
+}
+
+.scrollToTopButton {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  border-radius: 6px;
+  background-color: colors.$kobo-gray-700;
+  width: 50px;
+  height: 40px;
+	color: colors.$kobo-white;
+	border: none;
+	cursor: pointer;
+  box-shadow: 0 4px 12px 0 rgb(0 0 0 / 20%);
+}
+
+.maximizedCards {
+  width: 100%;
+  display: none;
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .allPlans {
+    column-gap: $plans-page-gap;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch;
+    max-width: $plans-page-max-width;
   }
 
-  .planContainer {
-    font-size: sizes.$x12;
+  .planContainer:not(.planContainerWithBadge) {
+    margin-top: $plan-badge-height;
   }
 
-  .iconContainer {
-    margin-right: sizes.$x10;
+  .enterprisePlanContainer {
+    margin-top: $plan-badge-height;
   }
 
-  .featureContainer {
-    height: 26em;
-  }
-
-  .priceTitle {
-    height: 2.5em;
+  .expandedContainer > :nth-child(2) {
+    min-height: 200px;
   }
 
   .expandedContainer > :nth-child(4) {
-    height: 10.5em;
+    min-height: 120px;
+  }
+
+  .comparisonButton {
+    width: 100%;
+    max-width: $plans-page-max-width;
+  }
+
+  .minimizedCards {
+    display: none;
+  }
+
+  .maximizedCards {
+    display: unset;
   }
 }

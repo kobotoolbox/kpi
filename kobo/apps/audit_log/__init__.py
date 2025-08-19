@@ -9,4 +9,5 @@ class AuditLogAppConfig(AppConfig):
     def ready(self):
         # Makes sure all signal handlers are connected
         from kobo.apps.audit_log import signals
+
         super().ready()

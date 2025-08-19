@@ -1,14 +1,15 @@
-@use '~kobo-common/src/styles/colors';
-@use "scss/_variables";
-@use "scss/libs/_mdl";
+@use 'scss/colors';
+@use 'scss/_variables';
+@use 'scss/libs/_mdl';
 @use 'scss/z-indexes';
+@use 'scss/mixins';
 
 /* ==========================================================================
  * AssetsTable
  * ========================================================================== */
 
 $assets-table-min-width: 820px;
-$assets-table-hover-bg: colors.$kobo-gray-98;
+$assets-table-hover-bg: colors.$kobo-gray-100;
 
 .form-view__cell--assets-table-wrapper {
   min-width: $assets-table-min-width + 2px;
@@ -41,7 +42,7 @@ $assets-table-hover-bg: colors.$kobo-gray-98;
 }
 
 .assets-table__header .assets-table-row .assets-table-row__column {
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-gray-800;
 }
 
 .assets-table__header,
@@ -56,7 +57,7 @@ $assets-table-hover-bg: colors.$kobo-gray-98;
 
 .assets-table__scrollbar-padding {
   // for taking the same space as scrollbar, width is being set in JS code
-  background-color: colors.$kobo-gray-96;
+  background-color: colors.$kobo-gray-200;
   align-self: stretch;
 }
 
@@ -66,25 +67,9 @@ $assets-table-hover-bg: colors.$kobo-gray-98;
   justify-content: space-between;
   align-items: center;
   padding: 10px;
-  color: colors.$kobo-gray-40;
-  background-color: colors.$kobo-gray-96;
+  color: colors.$kobo-gray-700;
+  background-color: colors.$kobo-gray-200;
   height: 40px;
-
-  .mdl-button {
-    margin-left: 0;
-    margin-right: 0;
-    padding-right: 0;
-    padding-left: 12px;
-    line-height: 32px;
-    height: 32px;
-    min-height: 32px;
-
-    .k-icon {
-      font-size: 24px;
-      margin: 0 3px;
-      float: right;
-    }
-  }
 }
 
 .assets-table--MY_LIBRARY,
@@ -104,44 +89,8 @@ $assets-table-hover-bg: colors.$kobo-gray-98;
  * ========================================================================== */
 
 .assets-table-pagination {
-  display: inline-block;
-  color: inherit;
-}
-
-.assets-table-pagination__index {
-  display: inline;
-  margin: 0 10px;
-}
-
-.assets-table-pagination__button {
-  appearance: none;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-  border: 0;
-  cursor: pointer;
-  color: inherit;
-  height: 20px;
-
-  &:hover {
-    opacity: 0.8;
-  }
-
-  &:active {
-    opacity: 0.6;
-  }
-
-  &[disabled] {
-    opacity: 0.5;
-    pointer-events: none;
-  }
-
-  .k-icon {
-    font-size: variables.$base-font-size;
-    margin: 0 3px;
-    display: inline-block;
-    vertical-align: middle;
-  }
+  @include mixins.centerRowFlex;
+  gap: 10px;
 }
 
 /* ==========================================================================
@@ -165,7 +114,7 @@ $assets-table-hover-bg: colors.$kobo-gray-98;
     }
 
     .assets-table-row__column--icon-status {
-      padding: 16px 0 0 0;
+      padding: 16px 0 0;
 
       .k-icon {
         font-size: 24px;
@@ -188,7 +137,7 @@ $assets-table-hover-bg: colors.$kobo-gray-98;
       }
 
       &::after {
-        content: "";
+        content: '';
         background-color: colors.$kobo-teal;
         position: absolute;
         z-index: 0;
@@ -206,7 +155,7 @@ $assets-table-hover-bg: colors.$kobo-gray-98;
   }
 
   &:first-of-type:hover .assets-table-row__column {
-    border-top-color: colors.$kobo-gray-92;
+    border-top-color: colors.$kobo-gray-300;
   }
 
   // columns get very narrow
@@ -222,11 +171,11 @@ $assets-table-hover-bg: colors.$kobo-gray-98;
     white-space: nowrap;
     height: 40px;
     line-height: 20px;
-    background-color: colors.$kobo-gray-96;
+    background-color: colors.$kobo-gray-200;
     padding: 10px;
 
     &:hover {
-      background-color: colors.$kobo-gray-92;
+      background-color: colors.$kobo-gray-300;
     }
 
     .k-icon {
@@ -239,7 +188,7 @@ $assets-table-hover-bg: colors.$kobo-gray-98;
 
       &.k-icon-filter-arrows {
         font-size: 9px;
-        margin-left: 0px !important;
+        margin-left: 0 !important;
       }
     }
 
@@ -248,10 +197,10 @@ $assets-table-hover-bg: colors.$kobo-gray-98;
 
       .popover-menu__toggle {
         display: block;
-        color: currentColor;
+        color: currentcolor;
 
         &:hover {
-          color: currentColor;
+          color: currentcolor;
         }
 
         .k-icon {
@@ -297,9 +246,9 @@ $assets-table-hover-bg: colors.$kobo-gray-98;
   }
 
   .assets-table-row__column {
-    border-top: 1px solid colors.$kobo-gray-92;
+    border-top: 1px solid colors.$kobo-gray-300;
     padding: 20px 10px;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
 
     &[disabled] {
       pointer-events: none;
@@ -312,7 +261,7 @@ $assets-table-hover-bg: colors.$kobo-gray-98;
 
     &.assets-table-row__column--name {
       flex: 1;
-      color: colors.$kobo-gray-24;
+      color: colors.$kobo-gray-800;
     }
 
     &.assets-table-row__column--owner {
@@ -365,8 +314,8 @@ $assets-table-hover-bg: colors.$kobo-gray-98;
   padding: 3px 5px;
   font-size: 12px;
   line-height: 1;
-  color: currentColor;
-  background: colors.$kobo-gray-92;
+  color: currentcolor;
+  background: colors.$kobo-gray-300;
   border-radius: 2px;
 
   &.assets-table-row__tag--gray-circle {

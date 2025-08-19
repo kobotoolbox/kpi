@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 // A custom react-select for validation status
 .kobo-select.kobo-select--validation {
@@ -8,7 +8,7 @@
   }
 
   .kobo-select__menu-list {
-    text-align: left;
+    text-align: initial;
     line-height: 20px;
 
     // override padding for first and last item so it looks like the menu has
@@ -24,7 +24,7 @@
 
   .kobo-select__control {
     padding: 0;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
     background: transparent;
     height: 28px;
     min-height: 28px;
@@ -46,7 +46,7 @@
     position: relative;
 
     &:hover {
-      background-color: colors.$kobo-gray-96;
+      background-color: colors.$kobo-gray-200;
     }
   }
 
@@ -60,7 +60,7 @@
 
     // used to make the clickable area take the whole space
     &::after {
-      content: "";
+      content: '';
       position: absolute;
       top: 0;
       left: 0;
@@ -86,7 +86,7 @@
   .kobo-select__option-badge {
     // Needed for react-select v5.
     grid-area: 1 / 1 / 2 / 3;
-    text-align: left;
+    text-align: initial;
     font-weight: 500;
     line-height: 1;
     font-size: 12px;
@@ -102,7 +102,7 @@
     // This dummy input is used by react-select to close menu onBlur event and
     // other. But it causes the caret indicator to be weirdly positioned when
     // ellipsis overflow kicks in
-    & + [class*="dummyInput-DummyInput"] {
+    & + [class*='dummyInput-DummyInput'] {
       position: absolute;
     }
 
@@ -127,7 +127,7 @@
     }
 
     &.kobo-select__option-badge--validation_status_not_approved {
-      color: colors.$kobo-dark-red;
+      color: colors.$kobo-red;
       background-color: colors.$kobo-light-red;
     }
 

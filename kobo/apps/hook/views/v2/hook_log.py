@@ -1,15 +1,15 @@
 # coding: utf-8
 from django.utils.translation import gettext as t
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, mixins, status, serializers
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.hook.constants import KOBO_INTERNAL_ERROR_STATUS_CODE
+from kobo.apps.hook.filters import HookLogFilter
 from kobo.apps.hook.models.hook_log import HookLog
 from kobo.apps.hook.serializers.v2.hook_log import HookLogSerializer
-from kobo.apps.hook.filters import HookLogFilter
 from kpi.paginators import TinyPaginated
 from kpi.permissions import AssetEditorSubmissionViewerPermission
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
@@ -76,7 +76,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
 
     model = HookLog
 
-    lookup_field = "uid"
+    lookup_field = 'uid'
     serializer_class = HookLogSerializer
     permission_classes = (AssetEditorSubmissionViewerPermission,)
     pagination_class = TinyPaginated
@@ -84,7 +84,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     filterset_class = HookLogFilter
 
     def get_queryset(self):
-        hook_uid = self.get_parents_query_dict().get("hook")
+        hook_uid = self.get_parents_query_dict().get('hook')
         queryset = self.model.objects.filter(hook__uid=hook_uid,
                                              hook__asset__uid=self.asset_uid)
         # Even though we only need 'uid', `select_related('hook__asset__uid')`
@@ -95,7 +95,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
 
         return queryset
 
-    @action(detail=True, methods=["PATCH"])
+    @action(detail=True, methods=['PATCH'])
     def retry(self, request, uid=None, *args, **kwargs):
         """
         Retries to send data to external service.
@@ -103,26 +103,26 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
         :param uid: str
         :return: Response
         """
-        response = {"detail": "",
-                    "status_code": KOBO_INTERNAL_ERROR_STATUS_CODE}
+        response = {'detail': '', 'status_code': KOBO_INTERNAL_ERROR_STATUS_CODE}
         status_code = status.HTTP_200_OK
         hook_log = self.get_object()
 
-        if hook_log.can_retry():
+        if hook_log.can_retry:
             hook_log.change_status()
             success = hook_log.retry()
             if success:
                 # Return status_code of remote server too.
                 # `response["status_code"]` is not the same as `status_code`
-                response["detail"] = hook_log.message
-                response["status_code"] = hook_log.status_code
+                response['detail'] = hook_log.message
+                response['status_code'] = hook_log.status_code
             else:
-                response["detail"] = t(
-                    "An error has occurred when sending the data. Please try again later.")
+                response['detail'] = t(
+                    'An error has occurred when sending the data. '
+                    'Please try again later.'
+                )
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         else:
-            response["detail"] = t(
-                "Data is being or has already been processed")
+            response['detail'] = t('Data is being or has already been processed')
             status_code = status.HTTP_400_BAD_REQUEST
 
         return Response(response, status=status_code)

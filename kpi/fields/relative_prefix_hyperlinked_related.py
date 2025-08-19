@@ -7,6 +7,21 @@ from rest_framework.serializers import HyperlinkedRelatedField
 
 class RelativePrefixHyperlinkedRelatedField(HyperlinkedRelatedField):
 
+    def get_url(self, obj, view_name, request, format):
+        # mostly copied from HyperLinkedRelatedField
+        if hasattr(obj, 'pk') and obj.pk in (None, ''):
+            return None
+
+        # special logic: if obj is a string, just use the value
+        # this allows us to pass dictionaries to the serializer
+        # as well as model instances
+        if isinstance(obj, str):
+            lookup_value = obj
+        else:
+            lookup_value = getattr(obj, self.lookup_field)
+        kwargs = {self.lookup_url_kwarg: lookup_value}
+        return self.reverse(view_name, kwargs=kwargs, request=request, format=format)
+
     def to_internal_value(self, data):
         try:
             http_prefix = data.startswith(('http:', 'https:'))

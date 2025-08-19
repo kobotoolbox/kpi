@@ -5,17 +5,18 @@ from rest_framework import (
 )
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
+from kobo.apps.audit_log.models import AuditType
 from kpi.filters import SearchFilter
-from kpi.models import ExportTask
+from kpi.models import SubmissionExportTask
 from kpi.permissions import ExportTaskPermission
 from kpi.serializers.v2.export_task import ExportTaskSerializer
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-from kpi.views.no_update_model import NoUpdateModelViewSet
 
 
 class ExportTaskViewSet(
-    AssetNestedObjectViewsetMixin, NestedViewSetMixin, NoUpdateModelViewSet
+    AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedNoUpdateModelViewSet
 ):
     """
     ## List of export tasks endpoints
@@ -142,7 +143,7 @@ class ExportTaskViewSet(
     ### CURRENT ENDPOINT
     """
 
-    model = ExportTask
+    model = SubmissionExportTask
     serializer_class = ExportTaskSerializer
     lookup_field = 'uid'
     renderer_classes = [
@@ -159,6 +160,8 @@ class ExportTaskViewSet(
     search_default_field_lookups = [
         'uid__icontains',
     ]
+    log_type = AuditType.PROJECT_HISTORY
+    logged_fields = [('object_id', 'asset.id'), 'asset.owner.username']
 
     def get_queryset(self):
         user = get_database_user(self.request.user)
@@ -166,4 +169,3 @@ class ExportTaskViewSet(
             user=user,
             data__source__icontains=self.kwargs['parent_lookup_asset'],
         )
-

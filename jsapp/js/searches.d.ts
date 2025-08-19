@@ -1,3 +1,3 @@
 export namespace searches {
-  const forceRefreshFormsList: () => void;
+  const forceRefreshFormsList: () => void
 }

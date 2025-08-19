@@ -1,7 +1,6 @@
-from django.utils import timezone
-
-from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
 from kobo.apps.subsequences.constants import GOOGLETX
+from ..constants import TRANSLATABLE_SOURCE_TYPES
+from ..actions.base import BaseAction
 
 TRANSLATED = 'translation'
 
@@ -13,20 +12,19 @@ class TranslationAction(BaseAction):
     @classmethod
     def build_params(cls, content, **kwargs):
         raise Exception('Fuck You')
-        audio_questions = []
         translatable_fields = []
         for row in content.get('survey', []):
-            if row['type'] in ['audio', 'video', 'text']:
-                translatable_fields.append(cls.get_qpath(cls, row))
+            if row['type'] in TRANSLATABLE_SOURCE_TYPES:
+                translatable_fields.append(cls.get_xpath(cls, row))
         params = {'values': translatable_fields}
         return params
 
     @classmethod
-    def get_values_for_content(kls, content):
+    def get_values_for_content(cls, content):
         translatable_fields = []
         for row in content.get('survey', []):
-            if row['type'] in ['audio', 'video', 'text']:
-                name = kls.get_qpath(kls, row)
+            if row['type'] in TRANSLATABLE_SOURCE_TYPES:
+                name = cls.get_xpath(cls, row)
                 if name:
                     translatable_fields.append(name)
         return translatable_fields
@@ -112,8 +110,15 @@ class TranslationAction(BaseAction):
             'type': 'object',
             'properties': {
                 'status': {
-                    'enum': ['requested', 'in_progress', 'complete'],
-                }
+                    'enum': ['requested', 'in_progress', 'complete', 'error'],
+                },
+                'responseJSON': {
+                    'type': 'object',
+                    'properties': {
+                        'error': {'type': 'string'},
+                        'detail': {'type': 'string'},
+                    }
+                },
             }
         }
         defs['xtranslation'] = {

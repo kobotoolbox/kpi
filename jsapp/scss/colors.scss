@@ -1,0 +1,82 @@
+// Kobo global palette of colors.
+
+/*
+ * The Kobo neutral scale
+ */
+
+// (accessible) our black, very very rare, only use if necessary for contrast
+$kobo-gray-900: hsl(225deg 17% 14%); // #1e212a
+
+// (accessible) active text, important text, text on background, top navigation
+// background
+$kobo-gray-800: hsl(225deg 16% 24%); // #333847
+
+// (accessible) default text, inactive text, options text, buttons text,
+// tabs text, notifications background, hover for popups and dropdowns
+$kobo-gray-700: hsl(226deg 16% 42%); // #5a627d
+
+// (readable) clickable icons on hover
+$kobo-gray-600: hsl(225deg 16% 58%); // #828ba5
+
+// icons default (clickable), arrows and indicators default
+$kobo-gray-500: hsl(226deg 16% 70%); // #a6acbf
+
+// inactive icons, some decorative icons
+$kobo-gray-400: hsl(228deg 16% 82%); // #cacdd9
+
+// scroll bars, table lines, dividers, background of clickable icons on hover
+// when also in a highlighted table row
+$kobo-gray-300: hsl(227deg 18% 90%); // #e1e3ea
+
+// default light background, icons on hover, sidebar menu, table headings, …
+$kobo-gray-200: hsl(228deg 16% 94%); // #edeef2
+
+// table row highlight on hover
+$kobo-gray-100: hsl(240deg 20% 98%); // #f9f9fb
+
+// white background
+$kobo-white: hsl(0deg 0% 100%); // #ffffff
+
+/*
+ * Primary colours & shades
+ */
+
+$kobo-dark-blue: hsl(207deg 77% 32%); // #135991
+$kobo-hover-blue: hsl(207deg 77% 43%); // #1977c2
+$kobo-blue: hsl(207deg 90% 54%); // #2095f3
+$kobo-mid-blue: hsl(207deg 90% 77%); // #8fcaf9 (previously $kobo-alt-blue)
+$kobo-light-blue: hsl(207deg 88% 91%); // #d2e9fc (previously $kobo-mid-blue)
+$kobo-bg-blue: hsl(206deg 84% 95%); // #e8f4fd (previously $kobo-light-blue)
+
+$kobo-dark-teal: hsl(185deg 57% 25%); // #1b5e64
+$kobo-hover-teal: hsl(185deg 57% 35%); // #26838c
+$kobo-teal: hsl(185deg 57% 57%); // #52c5d0
+$kobo-mid-teal: hsl(186deg 57% 75%); // #9bdde4
+$kobo-light-teal: hsl(185deg 58% 85%); // #c3ebef
+$kobo-bg-teal: hsl(188deg 60% 95%); // #ebf8fa
+
+/*
+ * Secondary & tertiary colors
+ */
+
+$kobo-storm: hsl(224deg 33% 59%); // #7386b9
+$kobo-mid-storm: hsl(223deg 34% 79%); // #b8c2dc
+$kobo-light-storm: hsl(225deg 31% 95%); // #eef0f6 (previously $kobo-cloud)
+
+$kobo-purple: hsl(290deg 53% 65%); // #c577d5
+$kobo-violet: hsl(290deg 53% 85%); // #e6c5ed
+$kobo-pink: hsl(290deg 53% 93%); // #f4e5f7
+
+$kobo-dark-red: hsl(0deg 100% 26%); // #850000
+$kobo-red: hsl(0deg 100% 31%); // #9d0000 (previously $kobo-dark-red)
+$kobo-mid-red: hsl(0deg 100% 75%); // #ff8080 (previously $kobo-red)
+$kobo-hover-red: hsl(0deg 100% 90%); // #ffcccc
+$kobo-light-red: hsl(0deg 100% 96%); // #ffe9e9
+
+$kobo-dark-amber: hsl(30deg 100% 25%); // #803f00
+$kobo-amber: hsl(29deg 100% 75%); // #ffbe80
+$kobo-light-amber: hsl(30deg 100% 90%); // #ffe8cc
+
+$kobo-dark-green: hsl(146deg 71% 31%); // #178949
+$kobo-green: hsl(146deg 72% 75%); // #92edba
+$kobo-light-green: hsl(147deg 69% 95%); // #e3f9db (previously $kobo-lime)

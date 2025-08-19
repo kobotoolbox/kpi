@@ -3,28 +3,27 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.http import Http404
 from django.utils import timezone
-from rest_framework import renderers, viewsets
+from rest_framework import renderers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from shortuuid import ShortUUID
 
+from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
+from kobo.apps.audit_log.models import AuditType
 from kpi.constants import SUBMISSION_FORMAT_TYPE_XML
 from kpi.models import Asset, AssetFile, PairedData
-from kpi.permissions import (
-    AssetEditorPermission,
-    XMLExternalDataPermission,
-)
-from kpi.serializers.v2.paired_data import PairedDataSerializer
+from kpi.permissions import AssetEditorPermission, XMLExternalDataPermission
 from kpi.renderers import SubmissionXMLRenderer
+from kpi.serializers.v2.paired_data import PairedDataSerializer
 from kpi.utils.hash import calculate_hash
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-from kpi.utils.xml import strip_nodes, add_xml_declaration
+from kpi.utils.xml import add_xml_declaration, strip_nodes
 
 
-class PairedDataViewset(AssetNestedObjectViewsetMixin,
-                        NestedViewSetMixin,
-                        viewsets.ModelViewSet):
+class PairedDataViewset(
+    AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedModelViewSet
+):
     """
     ## List of paired project endpoints
 
@@ -178,13 +177,22 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
     lookup_field = 'paired_data_uid'
     permission_classes = (AssetEditorPermission,)
     serializer_class = PairedDataSerializer
+    log_type = AuditType.PROJECT_HISTORY
+    logged_fields = [
+        ('source_name', 'source.name'),
+        ('object_id', 'asset.id'),
+        'fields',
+        ('source_uid', 'source.uid'),
+        'asset.owner.username',
+    ]
 
-    @action(detail=True,
-            methods=['GET'],
-            permission_classes=[XMLExternalDataPermission],
-            renderer_classes=[SubmissionXMLRenderer],
-            filter_backends=[],
-            )
+    @action(
+        detail=True,
+        methods=['GET'],
+        permission_classes=[XMLExternalDataPermission],
+        renderer_classes=[SubmissionXMLRenderer],
+        filter_backends=[],
+    )
     def external(self, request, paired_data_uid, **kwargs):
         """
         Returns an XML which contains data submitted to paired asset
@@ -226,7 +234,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
                 file_type=AssetFile.PAIRED_DATA,
                 user=self.asset.owner,
             )
-            # When asset file is new, we consider its content as expired to
+            # When the asset file is new, we consider its content as expired to
             # force its creation below
             has_expired = True
         else:
@@ -303,7 +311,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
 
         return Response(xml_)
 
-    def get_object(self):
+    def get_object_override(self):
         obj = self.get_queryset(as_list=False).get(
             self.kwargs[self.lookup_field]
         )
@@ -335,3 +343,15 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
             source__names[record['uid']] = record['name']
         context_['source__names'] = source__names
         return context_
+
+
+class OpenRosaDynamicDataAttachmentViewset(PairedDataViewset):
+    """
+    Only specific to OpenRosa manifest when projects are linked with DDA.
+    Enforce permission and renderer classes at the class level instead to be
+    sure they are taken into account while calling `viewset.as_view()`
+    """
+
+    permission_classes = [XMLExternalDataPermission]
+    renderer_classes = [SubmissionXMLRenderer]
+    filter_backends = []

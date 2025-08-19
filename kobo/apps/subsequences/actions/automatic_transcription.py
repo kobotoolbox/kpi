@@ -1,4 +1,5 @@
 from kobo.apps.subsequences.constants import GOOGLETS
+from ..constants import TRANSCRIBABLE_SOURCE_TYPES
 from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
 
 NOT_REQUESTED = 'NOT_REQUESTED'
@@ -19,17 +20,17 @@ class AutomaticTranscriptionAction(BaseAction):
         raise Exception('Fuck You')
         possible_transcribed_fields = []
         for row in content.get('survey', []):
-            if row['type'] in ['audio', 'video']:
-                possible_transcribed_fields.append(cls.get_qpath(cls, row))
+            if row['type'] in TRANSCRIBABLE_SOURCE_TYPES:
+                possible_transcribed_fields.append(cls.get_xpath(cls, row))
         params = {'values': possible_transcribed_fields, 'services': []}
         return params
 
     @classmethod
-    def get_values_for_content(kls, content):
+    def get_values_for_content(cls, content):
         possible_transcribed_fields = []
         for row in content.get('survey', []):
-            if row['type'] in ['audio', 'video']:
-                possible_transcribed_fields.append(kls.get_qpath(kls, row))
+            if row['type'] in TRANSCRIBABLE_SOURCE_TYPES:
+                possible_transcribed_fields.append(cls.get_xpath(cls, row))
         return possible_transcribed_fields
 
     def load_params(self, params):
@@ -72,7 +73,14 @@ class AutomaticTranscriptionAction(BaseAction):
         defs['_googlets'] = {
             'type': 'object',
             'properties': {
-                'status': {'enum': ['requested', 'in_progress', 'complete']},
+                'status': {'enum': ['requested', 'in_progress', 'complete', 'error']},
+                'responseJSON': {
+                    'type': 'object',
+                    'properties': {
+                        'error': {'type': 'string'},
+                        'detail': {'type': 'string'},
+                    }
+                },
             }
         }
         for field in self.possible_transcribed_fields:
@@ -114,13 +122,13 @@ class AutomaticTranscriptionAction(BaseAction):
                 },
             }
 
-    '''
+    """
     {"value": "My translation", "languageCode": "en", "date": "12today"}
 
     AQ1 Translation (FR)	AQ1 Translation (XZ)
     --------------------    --------------------
     "My translation"
-    '''
+    """
 
     def engines(self):
         manual_name = f'engines/transcript_manual'

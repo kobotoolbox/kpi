@@ -1,0 +1,284 @@
+@use 'scss/colors';
+@use 'scss/mixins';
+@use 'sass:color';
+
+// Because of scrollable content of the table, we need to do something more
+// fancy with rounded corners.
+// The actual radius (used for outer wrapper's borders):
+$universal-table-border-radius: 6px;
+// The radius of the inner elements (used for elements with backgrounds):
+$universal-table-border-radius-inner: $universal-table-border-radius - 2px;
+
+$universal-table-resizer-top: 8px;
+
+$z-index-resizer: 2;
+// For sure pinned needs to be over .resizer, so it doesn't appear in
+// weird/funny position when scrolling table horizontally.
+$z-index-pinned: 3;
+$z-index-pinned-focused-cell: 4;
+$z-index-pinned-header: 5;
+$z-index-pinned-header-hover: 6;
+$z-index-resizer-active: 7;
+$z-index-spinner: 8;
+
+.universalTableRoot {
+  border: 1px solid colors.$kobo-gray-200;
+  background-color: colors.$kobo-white;
+  border-radius: $universal-table-border-radius;
+  width: 100%;
+  // We set it here intentionally, so noone will think about setting it to
+  // `hidden`, as it breaks some non obvious things in the table (e.g. the page
+  // size dropdown in footer).
+  overflow: visible;
+}
+
+.tableContainer {
+  overflow-x: auto;
+  position: relative;
+  border-radius: $universal-table-border-radius-inner;
+}
+
+// If the footer is displayed, don't round bottom corners
+.tableContainer:not(:last-child) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.table {
+  // reset table browser styles first
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-spacing: 0;
+  background-image: none;
+  // the actual styles:
+  background-color: colors.$kobo-white;
+  // box-shadow and borders will not work with positon: sticky otherwise
+  border-collapse: separate !important;
+  // This is needed so that the table takes whole width if there is small amount
+  // of columns
+  min-width: 100%;
+  // Needed for columns to keep the sizes - without this there is a gap between
+  // pinned columns
+  table-layout: fixed;
+}
+
+.tableCell {
+  background-color: colors.$kobo-white;
+}
+
+.tableHeaderCell {
+  background-color: colors.$kobo-gray-100;
+  color: colors.$kobo-gray-700;
+  position: relative;
+  font-size: 12px;
+  font-weight: normal;
+  text-align: initial;
+}
+
+.tableCell,
+.tableHeaderCell {
+  padding: 12px 20px;
+  border-bottom: 1px solid colors.$kobo-gray-200;
+}
+
+.spinnerOverlay {
+  z-index: $z-index-spinner;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 1px; // Take border line into account
+  left: 0;
+  background-color: color.adjust(colors.$kobo-gray-100, $alpha: -0.5);
+  // LoadingSpinner styles handle centering it inside this wrapper
+}
+
+// -----------------------------------------------------------------------------
+// Pinned column styles:
+.tableCell.isPinnedLeft,
+.tableCell.isPinnedRight {
+  z-index: $z-index-pinned;
+}
+
+// Needed so any elements inside of the cell (e.g. dropdown) don't open covered
+// by background of cell below. This is IMPERFECT FIX, as when cell loses focus
+// by clicking somewhere else - the background coverding blinks for split second.
+.tableCell.isPinnedLeft:focus-within,
+.tableCell.isPinnedRight:focus-within {
+  z-index: $z-index-pinned-focused-cell;
+}
+
+.tableHeaderCell.isPinnedLeft,
+.tableHeaderCell.isPinnedRight, {
+  z-index: $z-index-pinned-header;
+}
+
+.tableHeaderCell.isPinnedLeft:hover,
+.tableHeaderCell.isPinnedRight:hover, {
+  z-index: $z-index-pinned-header-hover;
+}
+
+.tableCell.isPinnedLeft,
+.tableHeaderCell.isPinnedLeft,
+.tableCell.isPinnedRight,
+.tableHeaderCell.isPinnedRight {
+  position: sticky;
+}
+
+// No need for shadows and visual distinction for pinned columns - if there is
+// no horizontal scrollbar
+.hasHorizontalScrollbar {
+  .isLastLeftPinnedColumn,
+  .isFirstRightPinnedColumn {
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 7px;
+    }
+  }
+
+  .isLastLeftPinnedColumn {
+    border-right: 1px solid colors.$kobo-gray-200;
+
+    &::after {
+      left: calc(100% + 1px);
+      background: linear-gradient(to left, transparent, rgba(0 0 0 / 6%));
+    }
+  }
+
+  .isFirstRightPinnedColumn {
+    border-left: 1px solid colors.$kobo-gray-200;
+
+    &::after {
+      right: calc(100% + 1px);
+      background: linear-gradient(to right, transparent, rgba(0 0 0 / 6%));
+    }
+  }
+}
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Column resizing styles:
+// We display resizer of a cell on a right side of it, the left side would be
+// handled by previous cell. To make things easier, left side resizer of current
+// cell will be a "fake" resizer.
+.tableHeaderCell::before,
+.resizer {
+  position: absolute;
+  background-color: colors.$kobo-gray-500;
+  width: 1px;
+  top: $universal-table-resizer-top;
+  bottom: $universal-table-resizer-top;
+  z-index: $z-index-resizer;
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+  border-radius: 2px;
+  // We start off with these not being visible
+  display: none;
+}
+
+.tableHeaderCell::before {
+  content: '';
+  left: -1px;
+  pointer-events: none;
+}
+
+.resizer {
+  right: 0;
+}
+
+// We want the resizer to have more active space than what's being seen. This
+// will improve UX by makin it easier to aim and hit it :)
+.resizer::after {
+  content: '';
+  position: absolute;
+  background-color: transparent;
+  width: 24px;
+  height: 150%;
+  top: -25%;
+  left: -12px;
+}
+
+// This is the line that we display while resizing the table. It takes whole
+// height of the table.
+.resizerLine {
+  content: '';
+  position: absolute;
+  top: -1 * $universal-table-resizer-top;
+  width: 100%;
+  // Height is being handled by JS code
+  height: auto;
+  background-color: colors.$kobo-blue;
+}
+
+.resizer:hover {
+  background-color: colors.$kobo-blue;
+  outline: 4px solid colors.$kobo-light-blue;
+}
+
+.resizer.isResizing {
+  background-color: colors.$kobo-blue;
+  outline: none;
+  // We need the resizer to appear over the pinned column - this is needed for
+  // a moment when we resize pinned column.
+  z-index: $z-index-resizer-active;
+}
+
+// We display two resizers when mouse is over the cell for them. We also display
+// them while resizing is being done (useful for a moment, when user drags
+// the resizer further away from the cell, and it didn't move yet due to
+// animation happening or lag).
+// We want to display resizer of this cell, and a fake resizer on the left side.
+// When user moves mouse to the fake resizer, the right-side resizer of
+// the previous cell resizer will be used instead.
+.tableHeaderCell:hover::before,
+.tableHeaderCell:hover .resizer,
+.resizer.isResizing {
+  display: initial;
+}
+
+// On screens without hover we want the resizers to be always visible
+@media (hover: none) {
+  .tableHeaderCell::before,
+  .tableHeaderCell .resizer,
+  .resizer.isResizing {
+    display: initial;
+  }
+}
+
+// We need this to avoid having empty space to the right of the last table
+// column due to the resizer active space ::after "hack"
+.tableHeaderCell:last-child .resizer::after {
+  width: 12px;
+}
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Table footer and pagination styles:
+.tableFooter {
+  @include mixins.centerRowFlex;
+  justify-content: space-between;
+  background-color: colors.$kobo-gray-100;
+  padding: 10px 20px;
+  border-bottom-left-radius: $universal-table-border-radius-inner;
+  border-bottom-right-radius: $universal-table-border-radius-inner;
+}
+
+.pagination {
+  @include mixins.centerRowFlex;
+}
+
+.paginationNumbering {
+  display: inline;
+  margin: 0 15px;
+}
+
+.pageSizeSelect {
+  width: auto !important;
+  min-width: 120px;
+}
+// -----------------------------------------------------------------------------

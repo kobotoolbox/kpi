@@ -3,6 +3,7 @@
 Fabric
 coverage
 coveralls
+ddt
 ipython
 mock
 model-bakery
@@ -11,3 +12,16 @@ pytest
 pytest-cov
 pytest-django
 pytest-env
+pytest-xdist
+fakeredis
+freezegun
+
+# KoboCAT
+httmock
+simplejson
+
+# Formatter and linters
+ruff
+flake8
+flake8-quotes
+darker[isort]

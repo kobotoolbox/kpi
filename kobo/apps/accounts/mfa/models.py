@@ -3,14 +3,11 @@ from django.conf import settings
 from django.contrib import admin
 from django.db import models
 from django.utils.timezone import now
-from trench.admin import (
-    MFAMethod as TrenchMFAMethod,
-    MFAMethodAdmin as TrenchMFAMethodAdmin,
-)
+from trench.admin import MFAMethod as TrenchMFAMethod
+from trench.admin import MFAMethodAdmin as TrenchMFAMethodAdmin
 
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatUserProfile,
-)
+from kobo.apps.openrosa.apps.main.models import UserProfile
+from kpi.models.abstract_models import AbstractTimeStampedModel
 
 
 class MfaAvailableToUser(models.Model):
@@ -18,7 +15,7 @@ class MfaAvailableToUser(models.Model):
     class Meta:
         verbose_name = 'per-user availability'
         verbose_name_plural = 'per-user availabilities'
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self):
         # Used to display the user-friendly representation of MfaAvailableToUser
@@ -35,7 +32,7 @@ class MfaAvailableToUserAdmin(admin.ModelAdmin):
     # list_display = ('user',)
 
 
-class MfaMethod(TrenchMFAMethod):
+class MfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
     """
     Extend DjangoTrench model to add created, modified and last disabled date
     """
@@ -44,8 +41,6 @@ class MfaMethod(TrenchMFAMethod):
         verbose_name = 'MFA Method'
         verbose_name_plural = 'MFA Methods'
 
-    date_created = models.DateTimeField(default=now)
-    date_modified = models.DateTimeField(default=now)
     date_disabled = models.DateTimeField(null=True)
 
     def __str__(self):
@@ -62,33 +57,31 @@ class MfaMethod(TrenchMFAMethod):
         if self.is_active and self.date_disabled:
             self.date_disabled = None
 
-        if not created:
-            self.date_modified = now()
-
         if update_fields:
-            update_fields += ['date_modified', 'date_disabled']
+            update_fields += ['date_disabled']
 
-        super().save(force_insert, force_update, using, update_fields)
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
 
         """
         Update user's profile in KoBoCAT database.
         """
         if not settings.TESTING and not created:
-            KobocatUserProfile.set_mfa_status(
-                user_id=self.user.pk, is_active=self.is_active
-            )
+            UserProfile.set_mfa_status(user_id=self.user.pk, is_active=self.is_active)
 
     def delete(self, using=None, keep_parents=False):
         user_id = self.user.pk
         super().delete(using, keep_parents)
 
         """
-        Update user's profile in KoBoCAT database.
+        Update user's profile in KoboCAT database.
         """
         if not settings.TESTING:
-            KobocatUserProfile.set_mfa_status(
-                user_id=user_id, is_active=False
-            )
+            UserProfile.set_mfa_status(user_id=user_id, is_active=False)
 
 
 class MfaMethodAdmin(TrenchMFAMethodAdmin):

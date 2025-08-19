@@ -9,7 +9,7 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 
 # 2 spaces - frontend files mostly
-[*.{es6,js,jsx,ts,tsx,coffee,scss,css,html,hbs,json,md,yml}]
+[*.{js,jsx,ts,tsx,coffee,scss,css,html,hbs,json,md,yml}]
 indent_size = 2
 
 # 4 spaces - python and others

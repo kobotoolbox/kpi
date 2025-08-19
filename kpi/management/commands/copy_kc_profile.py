@@ -1,9 +1,9 @@
 # coding: utf-8
-from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 
 from hub.models import ExtraUserDetail
-from kpi.deployment_backends.kc_access.utils import get_kc_profile_data
+from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.main import UserProfile
 
 
 class Command(BaseCommand):
@@ -51,7 +51,8 @@ class Command(BaseCommand):
                 user=user)
             if not extra_details.data.get('copied_kc_profile', False) or \
                     options.get('again'):
-                kc_detail = get_kc_profile_data(user.pk)
+
+                kc_detail = UserProfile.to_dict(user_id=user.pk)
                 for k, v in kc_detail.items():
                     if extra_details.data.get(k, None) is None:
                         extra_details.data[k] = v

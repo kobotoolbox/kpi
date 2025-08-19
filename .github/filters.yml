@@ -1,0 +1,37 @@
+# Path filters. Used by workflows/ci.yml to decide which jobs to run.
+
+# If any file changed matches any of the filters in a list, the output for that
+# list is set to the string 'true'.
+
+all:
+  - '.github/workflows/ci-*.yml'      # ci
+  - '.github/workflows/zulip.yml'     # ci
+
+darker:
+  - '{kpi,kobo,hub}/**/*.py'       # .py
+  - 'pyproject.toml'               # rules
+  - '.github/workflows/darker.yml' # ci
+
+biome:
+  - './**/*.(js|jsx|ts|tsx)'           # js or ts files.
+  - 'biome.jsonc'                      # configuration.
+  - '{package*.json,patches/*.patch}'  # npm + postinstall
+  - '.github/workflows/biome.yml'      # ci
+
+pytest:
+  - '{kpi,kobo,hub}/**/*.!(md)'    # backend
+  - 'dependencies/**/*.!(md)'      # pip
+  - 'pyproject.toml'               # (can affect build/tests)
+  - '.github/workflows/pytest.yml' # ci
+
+npm-test:
+  - '{jsapp,test,webpack,static,scripts}/**/*.!(md|py|sh|bash)'               # frontend
+  - '{package*.json,patches/*.patch,scripts/copy_fonts.py}'                   # npm + postinstall
+  - '{tsconfig.json,.swcrc,.babelrc*,.browserslistrc}'                        # compilers
+  - '{.editorconfig,.stylelint*,.eslint*,coffeelint*}'                        # linters
+  - '.gitignore'                                                              # (can affect tools)
+  - '.github/workflows/{npm-test,chromatic}.yml'                              # ci
+
+# Notably, not included:
+# - '.github/workflows/release-*.yml'               # not running on a PR anyways.
+# - '.github/workflows/find_next_release_branch.sh' # not running on a PR anyways.

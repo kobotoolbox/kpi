@@ -9,7 +9,7 @@ module.exports = do ->
     validationLogicParser: $validationLogicParser
 
   _trim = (str)->
-    str.replace(/^[\s\t\uFEFF\xA0]+|[\s\t\uFEFF\xA0]+$/g, '')
+    return str.replace(/^[\s\t\uFEFF\xA0]+|[\s\t\uFEFF\xA0]+$/g, '')
 
   utils.split_paste = (str)->
     out = []
@@ -26,29 +26,7 @@ module.exports = do ->
         if val.length > 0
           orow.push([key, val])
       out_out.push(_.object(orow))
-    out_out
-
-  utils.txtid = ()->
-    # a is text
-    # b is numeric or text
-    # c is mishmash
-    o = 'AAnCAnn'.replace /[AaCn]/g, (c)->
-      randChar= ()->
-        charI = Math.floor(Math.random()*52)
-        charI += (if charI <= 25 then 65 else 71)
-        String.fromCharCode charI
-
-      r = Math.random()
-      if c is 'a'
-        randChar()
-      else if c is 'A'
-        String.fromCharCode 65+(r*26|0)
-      else if c is 'C'
-        newI = Math.floor(r*62)
-        if newI > 52 then (newI - 52) else randChar()
-      else if c is 'n'
-        Math.floor(r*10)
-    o.toLowerCase()
+    return out_out
 
   utils.parseHelper =
     parseSkipLogic: (collection, value, parent_row) ->
@@ -69,12 +47,13 @@ module.exports = do ->
           collection.add(opts, silent: true, _parent: parent_row)
         if parsedValues.operator
           collection.meta.set("delimSelect", parsedValues.operator.toLowerCase())
-        ``
+          return
       catch e
         collection.parseable = false
+        return
 
   utils.sluggifyLabel = (str, other_names=[])->
-    utils.sluggify(str, {
+    return utils.sluggify(str, {
         preventDuplicates: other_names
         lowerCase: false
         preventDuplicateUnderscores: true
@@ -85,7 +64,7 @@ module.exports = do ->
       })
 
   utils.isValidXmlTag = (str)->
-    str.search(/^[a-zA-Z_:]([a-zA-Z0-9_:.])*$/) is 0
+    return str.search(/^[a-zA-Z_:]([a-zA-Z0-9_:.])*$/) is 0
 
   utils.sluggify = (str, opts={})->
     if str == ''
@@ -164,8 +143,8 @@ module.exports = do ->
           if opts.incrementorPadding and increment < Math.pow(10, opts.incrementorPadding)
             increment_str = ("000000000000" + increment).slice(-1 * opts.incrementorPadding)
           attempt = "#{attempt_base}_#{increment_str}"
-        attempt
+        return attempt
 
-    str
+    return str
 
-  utils
+  return utils

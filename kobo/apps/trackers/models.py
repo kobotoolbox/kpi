@@ -1,9 +1,9 @@
-from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Q
 from django.db.models.constraints import UniqueConstraint
 from django.db.models.signals import post_delete
 
+from kobo.apps.kobo_auth.shortcuts import User
 from .utils import update_nlp_counter
 
 

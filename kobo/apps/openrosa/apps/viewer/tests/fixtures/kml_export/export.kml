@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kml xmlns="http://earth.google.com/kml/2.2">
+  <Document>
+  		<name></name>
+			  	<Style id="sh_red-circle">
+			<IconStyle>
+				<scale>1.3</scale>
+				<Icon>
+					<href>http://maps.google.com/mapfiles/kml/paddle/red-circle.png</href>
+				</Icon>
+				<hotSpot x="32" y="1" xunits="pixels" yunits="pixels"/>
+			</IconStyle>
+			<ListStyle>
+				<ItemIcon>
+					<href>http://maps.google.com/mapfiles/kml/paddle/red-circle-lv.png</href>
+				</ItemIcon>
+			</ListStyle>
+		</Style>
+		<StyleMap id="msn_red-circle">
+			<Pair>
+				<key>normal</key>
+				<styleUrl>#sn_red-circle</styleUrl>
+			</Pair>
+			<Pair>
+				<key>highlight</key>
+				<styleUrl>#sh_red-circle</styleUrl>
+			</Pair>
+		</StyleMap>
+	
+		  
+	    <Placemark>	
+	            <name>Survey Instance: {{first}}</name>
+                <Snippet> </Snippet>
+		              <description>
+		                 
+		    			 <![CDATA[<table border="1"><a href="#"><img width="210" class="thumbnail" src="" alt=""></a><tr><td>GPS</td><td>40.81101715564728 -73.96446704864502 -152.0 16.0</td></tr></table>]]>  
+		              </description>
+		              <styleUrl>#sh_red-circle</styleUrl>
+		              <Point>
+				        <coordinates>
+				        	-73.9644670486, 40.8110171556
+				        </coordinates>
+		      		  </Point>
+        </Placemark>
+  
+	    <Placemark>	
+	            <name>Survey Instance: {{second}}</name>
+                <Snippet> </Snippet>
+		              <description>
+		                 
+		    			 <![CDATA[<table border="1"><a href="#"><img width="210" class="thumbnail" src="" alt=""></a><tr><td>GPS</td><td>40.811086893081665 -73.96449387073517 -113.0 16.0</td></tr></table>]]>  
+		              </description>
+		              <styleUrl>#sh_red-circle</styleUrl>
+		              <Point>
+				        <coordinates>
+				        	-73.9644938707, 40.8110868931
+				        </coordinates>
+		      		  </Point>
+        </Placemark>
+
+	</Document>
+</kml>

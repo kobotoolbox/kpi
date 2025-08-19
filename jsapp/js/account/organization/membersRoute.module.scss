@@ -1,0 +1,26 @@
+@use 'scss/colors';
+@use 'scss/breakpoints';
+
+.membersRouteRoot {
+  padding: 20px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.header {
+  margin-bottom: 20px;
+}
+
+h2.headerText {
+  color: colors.$kobo-storm;
+  text-transform: uppercase;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .membersRouteRoot {
+    padding: 50px;
+  }
+}

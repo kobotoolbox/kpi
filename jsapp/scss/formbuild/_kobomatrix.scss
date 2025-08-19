@@ -1,7 +1,7 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .card__kobomatrix {
-  border: 1px solid colors.$kobo-gray-65;
+  border: 1px solid colors.$kobo-gray-500;
   border-top: none;
 }
 
@@ -19,12 +19,12 @@
   background: colors.$kobo-white;
 
   .matrix-items-new {
-    margin: 23px 0px;
+    margin: 23px 0;
     overflow: hidden;
     position: absolute;
-    right: 0px;
-    top: 0px;
-    bottom: 0px;
+    right: 0;
+    top: 0;
+    bottom: 0;
     width: 50px;
     text-align: center;
     padding-top: 10px;
@@ -43,15 +43,15 @@
 .matrix-cols--header {
   display: flex;
   flex-wrap: nowrap;
-  border-top: 1px solid colors.$kobo-gray-92;
-  border-left: 1px solid colors.$kobo-gray-92;
+  border-top: 1px solid colors.$kobo-gray-300;
+  border-left: 1px solid colors.$kobo-gray-300;
 
   .matrix-cols__col {
     flex-grow: 1;
     flex-basis: 0;
     padding: 10px 20px;
     text-align: center;
-    border-right: 1px solid colors.$kobo-gray-92;
+    border-right: 1px solid colors.$kobo-gray-300;
     position: relative;
     padding-right: 30px;
     vertical-align: middle;
@@ -59,8 +59,8 @@
     margin-bottom: -1px;
 
     &.active {
-      background: colors.$kobo-gray-96;
-      border-bottom: 1px solid colors.$kobo-gray-96;
+      background: colors.$kobo-gray-200;
+      border-bottom: 1px solid colors.$kobo-gray-200;
     }
 
     .matrix-cols__colattr--type {
@@ -86,8 +86,8 @@
 
 .matrix-cols__settings {
   width: 100%;
-  background: colors.$kobo-gray-96;
-  border: 1px solid colors.$kobo-gray-92;
+  background: colors.$kobo-gray-200;
+  border: 1px solid colors.$kobo-gray-300;
   border-bottom: none;
   padding: 15px;
   display: none;
@@ -98,10 +98,10 @@
 }
 
 .matrix-cols__settings_inner {
-  text-align: left;
+  text-align: initial;
   width: 500px;
   margin: 0 auto;
-  padding: 0px 20px;
+  padding: 0 20px;
 
   .checkbox {
     display: inline-block;
@@ -124,9 +124,9 @@
       vertical-align: middle;
     }
 
-    > input[type="text"] {
+    > input[type='text'] {
       padding: 4px 8px;
-      border: 1px solid colors.$kobo-gray-65;
+      border: 1px solid colors.$kobo-gray-500;
       border-radius: 4px;
     }
 
@@ -138,7 +138,7 @@
   .matrix-cols__delete {
     width: 100%;
     text-align: right;
-    padding: 10px 0px 10px;
+    padding: 10px 0;
 
     span {
       color: colors.$kobo-red;
@@ -155,10 +155,10 @@
 }
 
 .matrix-cols__options {
-  background: colors.$kobo-gray-96;
-  border: 1px solid colors.$kobo-gray-92;
+  background: colors.$kobo-gray-200;
+  border: 1px solid colors.$kobo-gray-300;
   padding: 10px;
-  margin: 20px 0px;
+  margin: 20px 0;
   clear: both;
 }
 
@@ -172,7 +172,7 @@
     input {
       padding: 4px 8px;
       border-radius: 4px;
-      border: 1px solid colors.$kobo-gray-92;
+      border: 1px solid colors.$kobo-gray-300;
     }
 
     &.matrix-options__value {
@@ -182,7 +182,7 @@
     &.matrix-options__delete {
       width: 5%;
       text-align: right;
-      margin-right: 0px;
+      margin-right: 0;
 
       i {
         font-size: 24px;
@@ -215,19 +215,19 @@
     flex-grow: 1;
     flex-basis: 0;
     padding: 5px;
-    border-top: 1px solid colors.$kobo-gray-92;
+    border-top: 1px solid colors.$kobo-gray-300;
     vertical-align: middle;
     position: relative;
   }
 
   .matrix-cols__col {
-    border-right: 1px solid colors.$kobo-gray-92;
+    border-right: 1px solid colors.$kobo-gray-300;
     text-align: center;
   }
 
   .matrix-items__itemattr {
-    border-right: 1px solid colors.$kobo-gray-92;
-    border-left: 1px solid colors.$kobo-gray-92;
+    border-right: 1px solid colors.$kobo-gray-300;
+    border-left: 1px solid colors.$kobo-gray-300;
     position: relative;
     line-height: 28px;
 
@@ -253,7 +253,7 @@
   }
 
   &--new {
-    border-top: 1px solid colors.$kobo-gray-92;
+    border-top: 1px solid colors.$kobo-gray-300;
 
     i {
       font-size: 20px;
@@ -261,7 +261,7 @@
       opacity: 0.75;
       display: inline-block;
       cursor: pointer;
-      color: colors.$kobo-gray-40;
+      color: colors.$kobo-gray-700;
 
       &:hover {
         color: colors.$kobo-blue;
@@ -271,8 +271,8 @@
 
   .matrix-items__itemsettings {
     width: 100%;
-    background: colors.$kobo-gray-96;
-    border: 1px solid colors.$kobo-gray-92;
+    background: colors.$kobo-gray-200;
+    border: 1px solid colors.$kobo-gray-300;
     border-bottom: none;
     padding: 15px;
     display: none;

@@ -1,88 +1,93 @@
-import LimitBanner from 'js/components/usageLimits/overLimitBanner.component';
-import LimitModal from 'js/components/usageLimits/overLimitModal.component';
-import React, {useContext, useState} from 'react';
-import {Cookies} from 'react-cookie';
-import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
-import {UsageContext} from 'js/account/usage/useUsage.hook';
-import {useExceedingLimits} from 'js/components/usageLimits/useExceedingLimits.hook';
+import React, { useState } from 'react'
 
-const cookies = new Cookies();
+import { Cookies } from 'react-cookie'
+import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
+import { UsageLimitTypes } from '#/account/stripe.types'
+import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
+import { useServiceUsageQuery } from '#/account/usage/useServiceUsageQuery'
+import LimitBanner from '#/components/usageLimits/overLimitBanner.component'
+import LimitModal from '#/components/usageLimits/overLimitModal.component'
+import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
+
+const cookies = new Cookies()
 
 interface LimitNotificationsProps {
-  useModal?: boolean;
-  usagePage?: boolean;
+  useModal?: boolean
+  accountPage?: boolean
 }
 
-const LimitNotifications = ({
-  useModal = false,
-  usagePage = false,
-}: LimitNotificationsProps) => {
-  const [showModal, setShowModal] = useState(false);
-  const [dismissed, setDismissed] = useState(!useModal);
-  const [stripeEnabled, setStripeEnabled] = useState(false);
+const LimitNotifications = ({ useModal = false, accountPage = false }: LimitNotificationsProps) => {
+  const [showModal, setShowModal] = useState(false)
+  const [dismissed, setDismissed] = useState(!useModal)
+  const [stripeEnabled, setStripeEnabled] = useState(false)
 
-  const usage = useContext(UsageContext);
-  const limits = useExceedingLimits();
+  const { billingPeriod } = useBillingPeriod()
+
+  const { data: serviceUsageData } = useServiceUsageQuery()
+
+  const orgQuery = useOrganizationQuery()
 
   useWhenStripeIsEnabled(() => {
-    setStripeEnabled(true);
+    setStripeEnabled(true)
     // only check cookies if we're displaying a modal
     if (!useModal) {
-      return;
+      return
     }
-    const limitsCookie = cookies.get('kpiOverLimitsCookie');
+
+    const limitsCookie = cookies.get('kpiOverLimitsCookie')
     if (
+      (!orgQuery.data?.is_mmo || orgQuery.data?.request_user_role === OrganizationUserRole.owner) &&
       limitsCookie === undefined &&
-      (limits.exceedList.includes('storage') ||
-        limits.exceedList.includes('submission'))
+      (serviceUsageData?.limitExceedList.includes(UsageLimitTypes.STORAGE) ||
+        serviceUsageData?.limitExceedList.includes(UsageLimitTypes.SUBMISSION))
     ) {
-      setShowModal(true);
+      setShowModal(true)
     }
     if (limitsCookie) {
-      setDismissed(true);
+      setDismissed(true)
     }
-  }, [limits]);
+  }, [serviceUsageData, orgQuery.data, useModal])
 
   const modalDismissed = () => {
-    setDismissed(true);
-    const dateNow = new Date();
-    const expireDate = new Date(dateNow.setDate(dateNow.getDate() + 1));
+    setDismissed(true)
+    const dateNow = new Date()
+    const expireDate = new Date(dateNow.setDate(dateNow.getDate() + 1))
     cookies.set('kpiOverLimitsCookie', {
       expires: expireDate,
-    });
-  };
+    })
+  }
 
-  if (!stripeEnabled) {
-    return null;
+  if (!stripeEnabled || !serviceUsageData) {
+    return null
   }
 
   return (
     <>
       {dismissed && (
         <LimitBanner
-          interval={usage.trackingPeriod}
-          limits={limits.exceedList}
-          usagePage={Boolean(usagePage)}
+          interval={billingPeriod}
+          limits={serviceUsageData.limitExceedList}
+          accountPage={Boolean(accountPage)}
         />
       )}
-      {!limits.exceedList.length && (
+      {!serviceUsageData.limitExceedList.length && (
         <LimitBanner
           warning
-          interval={usage.trackingPeriod}
-          limits={limits.warningList}
-          usagePage={Boolean(usagePage)}
+          interval={billingPeriod}
+          limits={serviceUsageData.limitWarningList}
+          accountPage={Boolean(accountPage)}
         />
       )}
       {useModal && (
         <LimitModal
           show={showModal}
-          limits={limits.exceedList}
-          interval={usage.trackingPeriod}
+          limits={serviceUsageData.limitExceedList}
+          interval={billingPeriod}
           dismissed={modalDismissed}
         />
       )}
     </>
-  );
-};
+  )
+}
 
-export default LimitNotifications;
+export default LimitNotifications

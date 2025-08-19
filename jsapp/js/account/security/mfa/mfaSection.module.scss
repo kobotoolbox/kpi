@@ -1,0 +1,51 @@
+@use 'scss/mixins';
+@use 'scss/colors';
+
+.isUnauthorized .bodyMain,
+.isUnauthorized .options {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+// We need stronger specificity
+.body.body {
+  flex: 6;
+  flex-direction: column;
+}
+
+.options {
+  flex: 2;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mfaDescription {
+  margin: 0;
+}
+
+.mfaOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+  width: 100%;
+}
+
+.mfaOptionsRow {
+  @include mixins.centerRowFlex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px;
+  justify-content: space-between;
+  background-color: colors.$kobo-gray-200;
+  border-radius: 6px;
+}
+
+.mfaOptionsLabel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 16px;
+  margin: 0;
+}

@@ -1,14 +1,19 @@
-export type OrderDirection = 'ascending' | 'descending';
+export type OrderDirection = 'ascending' | 'descending'
 
 export const HOME_VIEW = {
   uid: 'kobo_my_projects',
   name: t('My Projects'),
-};
+}
+
+export const ORG_VIEW = {
+  uid: 'kobo_my_organization_projects',
+  name: t('##organization name## Projects'),
+}
 
 export interface ProjectsFilterDefinition {
-  fieldName?: ProjectFieldName;
-  condition?: FilterConditionName;
-  value?: string;
+  fieldName?: ProjectFieldName
+  condition?: FilterConditionName
+  value?: string
 }
 
 // NOTE: if you plan to add a condition, make sure to re-check
@@ -24,14 +29,14 @@ export type FilterConditionName =
   | 'isNot'
   | 'isNotEmpty'
   | 'isNotEmptyObject'
-  | 'startsWith';
+  | 'startsWith'
 interface FilterConditionDefinition {
-  name: FilterConditionName;
-  label: string;
-  requiresValue: boolean;
-  filterQuery: string;
+  name: FilterConditionName
+  label: string
+  requiresValue: boolean
+  filterQuery: string
 }
-type FilterConditions = {[P in FilterConditionName]: FilterConditionDefinition};
+type FilterConditions = { [P in FilterConditionName]: FilterConditionDefinition }
 export const FILTER_CONDITIONS: FilterConditions = {
   is: {
     name: 'is',
@@ -93,7 +98,7 @@ export const FILTER_CONDITIONS: FilterConditions = {
     requiresValue: false,
     filterQuery: 'NOT <field>__iexact:{}',
   },
-};
+}
 
 export type ProjectFieldName =
   | 'countries'
@@ -101,6 +106,7 @@ export type ProjectFieldName =
   | 'dateModified'
   | 'description'
   | 'languages'
+  | 'lastModifiedBy'
   | 'name'
   | 'ownerEmail'
   | 'ownerFullName'
@@ -108,20 +114,20 @@ export type ProjectFieldName =
   | 'ownerUsername'
   | 'sector'
   | 'status'
-  | 'submissions';
+  | 'submissions'
 
 export interface ProjectFieldDefinition {
-  name: ProjectFieldName;
-  label: string;
+  name: ProjectFieldName
+  label: string
   /** Backend property name used for filtering. */
-  apiFilteringName: string;
+  apiFilteringName: string
   /** Backend property name used for ordering. */
-  apiOrderingName: string;
+  apiOrderingName: string
   /** Some of the fields (e.g. `submission`) doesn't allow any filtering yet. */
-  availableConditions: FilterConditionName[];
+  availableConditions: FilterConditionName[]
 }
 
-type ProjectFields = {[P in ProjectFieldName]: ProjectFieldDefinition};
+type ProjectFields = { [P in ProjectFieldName]: ProjectFieldDefinition }
 /**
  * A full list of available fields for projects. Order is important here, as it
  * influences the order these will be displayed in UI.
@@ -137,14 +143,7 @@ export const PROJECT_FIELDS: ProjectFields = {
     label: t('Project name'),
     apiFilteringName: 'name',
     apiOrderingName: 'name',
-    availableConditions: [
-      'contains',
-      'doesNotContain',
-      'endsWith',
-      'is',
-      'isNot',
-      'startsWith',
-    ],
+    availableConditions: ['contains', 'doesNotContain', 'endsWith', 'is', 'isNot', 'startsWith'],
   },
   description: {
     name: 'description',
@@ -167,24 +166,14 @@ export const PROJECT_FIELDS: ProjectFields = {
     label: t('Status'),
     apiFilteringName: '_deployment_status',
     apiOrderingName: '_deployment_status',
-    availableConditions: [
-      'is',
-      'isNot',
-    ],
+    availableConditions: ['is', 'isNot'],
   },
   ownerUsername: {
     name: 'ownerUsername',
     label: t('Owner'),
-    apiFilteringName: 'owner__username',
-    apiOrderingName: 'owner__username',
-    availableConditions: [
-      'contains',
-      'doesNotContain',
-      'endsWith',
-      'is',
-      'isNot',
-      'startsWith',
-    ],
+    apiFilteringName: 'search_field',
+    apiOrderingName: 'search_field',
+    availableConditions: ['contains', 'doesNotContain', 'endsWith', 'is', 'isNot', 'startsWith'],
   },
   ownerFullName: {
     name: 'ownerFullName',
@@ -234,69 +223,47 @@ export const PROJECT_FIELDS: ProjectFields = {
       'startsWith',
     ],
   },
+  lastModifiedBy: {
+    name: 'lastModifiedBy',
+    label: t('Last edited'),
+    apiFilteringName: 'last_modified_by',
+    apiOrderingName: 'last_modified_by',
+    availableConditions: ['contains', 'doesNotContain', 'endsWith', 'is', 'isNot', 'startsWith'],
+  },
   dateModified: {
     name: 'dateModified',
     label: t('Date modified'),
     apiFilteringName: 'date_modified__date',
     apiOrderingName: 'date_modified',
-    availableConditions: [
-      'contains',
-      'doesNotContain',
-      'endsWith',
-      'startsWith',
-    ],
+    availableConditions: ['contains', 'doesNotContain', 'endsWith', 'startsWith'],
   },
   dateDeployed: {
     name: 'dateDeployed',
     label: t('Date deployed'),
     apiFilteringName: 'date_deployed__date',
     apiOrderingName: 'date_deployed',
-    availableConditions: [
-      'contains',
-      'doesNotContain',
-      'endsWith',
-      'startsWith',
-    ],
+    availableConditions: ['contains', 'doesNotContain', 'endsWith', 'startsWith'],
   },
   sector: {
     name: 'sector',
     label: t('Sector'),
     apiFilteringName: 'settings__sector',
     apiOrderingName: 'settings__sector',
-    availableConditions: [
-      'contains',
-      'doesNotContain',
-      'isEmptyObject',
-      'isNotEmptyObject',
-    ],
+    availableConditions: ['contains', 'doesNotContain', 'isEmptyObject', 'isNotEmptyObject'],
   },
   countries: {
     name: 'countries',
     label: t('Countries'),
     apiFilteringName: 'settings__country_codes[]',
     apiOrderingName: 'settings__country_codes[]',
-    availableConditions: [
-      'contains',
-      'doesNotContain',
-      'is',
-      'isEmptyObject',
-      'isNot',
-      'isNotEmptyObject',
-    ],
+    availableConditions: ['contains', 'doesNotContain', 'is', 'isEmptyObject', 'isNot', 'isNotEmptyObject'],
   },
   languages: {
     name: 'languages',
     label: t('Languages'),
     apiFilteringName: 'summary__languages[]',
     apiOrderingName: 'summary__languages[]',
-    availableConditions: [
-      'contains',
-      'doesNotContain',
-      'is',
-      'isEmptyObject',
-      'isNot',
-      'isNotEmptyObject',
-    ],
+    availableConditions: ['contains', 'doesNotContain', 'is', 'isEmptyObject', 'isNot', 'isNotEmptyObject'],
   },
   submissions: {
     name: 'submissions',
@@ -305,7 +272,7 @@ export const PROJECT_FIELDS: ProjectFields = {
     apiOrderingName: 'deployment__submission_count',
     availableConditions: [],
   },
-};
+}
 
 /**
  * The fields that the `/api/v2/project-views/<uid>/assets/` endpoint is able
@@ -315,14 +282,14 @@ export const DEFAULT_ORDERABLE_FIELDS: ProjectFieldName[] = [
   'dateDeployed',
   'dateModified',
   'description',
+  'lastModifiedBy',
   'name',
   'ownerEmail',
   'ownerFullName',
   'ownerOrganization',
-  'ownerUsername',
   'sector',
   'status',
-];
+]
 
 /**
  * The fields that the `/api/v2/assets/` endpoint can order the data by. AKA
@@ -331,10 +298,12 @@ export const DEFAULT_ORDERABLE_FIELDS: ProjectFieldName[] = [
 export const HOME_ORDERABLE_FIELDS: ProjectFieldName[] = [
   'dateModified',
   'dateDeployed',
+  'lastModifiedBy',
   'name',
   'status',
-  'ownerUsername',
-];
+]
+
+export const DEFAULT_EXCLUDED_FIELDS: ProjectFieldName[] = []
 
 /**
  * The inital fields that are going to be displayed. We also use them with
@@ -344,28 +313,26 @@ export const DEFAULT_VISIBLE_FIELDS: ProjectFieldName[] = [
   'countries',
   'dateModified',
   'dateDeployed',
+  'lastModifiedBy',
   'name',
   'ownerUsername',
   'status',
   'submissions',
-];
+]
 
 /** An override default list (instead of DEFAULT_VISIBLE_FIELDS) */
 export const HOME_DEFAULT_VISIBLE_FIELDS: ProjectFieldName[] = [
   'dateModified',
   'dateDeployed',
+  'lastModifiedBy',
   'name',
   'ownerUsername',
   'status',
   'submissions',
-];
+]
 
 /**
  * These are fields not available on the `/api/v2/assets/` endpoint - there is
  * no point in displaying them to the user.
  */
-export const HOME_EXCLUDED_FIELDS: ProjectFieldName[] = [
-  'ownerEmail',
-  'ownerFullName',
-  'ownerOrganization',
-];
+export const HOME_EXCLUDED_FIELDS: ProjectFieldName[] = ['ownerEmail', 'ownerFullName', 'ownerOrganization']

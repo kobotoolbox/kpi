@@ -1,10 +1,8 @@
-@use '~kobo-common/src/styles/colors';
-@use 'scss/sizes';
-@use '../singleProcessingVariables';
+@use 'scss/colors';
 
 .root {
   background-color: colors.$kobo-white;
-  border-radius: sizes.$x6;
-  min-height: sizes.$x150;
+  border-radius: 6px;
+  min-height: 150px;
   flex: 1;
 }

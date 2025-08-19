@@ -2,13 +2,13 @@
 import itertools
 from collections import defaultdict
 
-from django.contrib.auth.models import User
-from django.urls import reverse
 from django.test import TestCase
+from django.urls import reverse
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.reports import report_data
 from kpi.constants import PERM_VIEW_SUBMISSIONS
-from kpi.models import Asset, ExportTask
+from kpi.models import Asset, SubmissionExportTask
 from kpi.utils.strings import to_str
 
 
@@ -27,10 +27,14 @@ class ConflictingVersionsMockDataExports(TestCase):
         self.maxDiff = None
         self.user = User.objects.get(username='someuser')
         self.asset = Asset.objects.get(uid='axD3Wc8ZnfgLXBcURRt5fM')
+        # To avoid cluttering the fixture, redeploy asset to set related XForm properly
+        self.asset.deployment.redeploy(active=True)
         # To avoid cluttering the fixture, assign permissions here
         self.asset.assign_perm(self.user, PERM_VIEW_SUBMISSIONS)
-        self.submissions = self.asset.deployment.get_submissions(
-            self.asset.owner)
+        self.asset.deployment.mock_submissions(
+            submissions=self.asset._deployment_data['submissions'],
+        )
+        self.submissions = self.asset.deployment.get_submissions(self.asset.owner)
         self.submission_id_field = '_id'
         self.formpack, self.submission_stream = report_data.build_formpack(
             self.asset,
@@ -56,7 +60,7 @@ class ConflictingVersionsMockDataExports(TestCase):
             ] = fields_values
 
     @staticmethod
-    def _split_formpack_csv(line, sep=";", quote='"'):
+    def _split_formpack_csv(line, sep=';', quote='"'):
         return [field.strip(quote) for field in to_str(line).split(sep)]
 
     def test_csv_export(self):
@@ -64,7 +68,7 @@ class ConflictingVersionsMockDataExports(TestCase):
         Ignores the order of the rows and columns
         """
 
-        export_task = ExportTask()
+        export_task = SubmissionExportTask()
         export_task.user = self.user
         export_task.data = {
             'source': reverse('asset-detail', args=[self.asset.uid]),

@@ -1,5 +1,4 @@
-@use '~kobo-common/src/styles/colors';
-@use "scss/sizes";
+@use 'scss/colors';
 
 .table-media-preview {
   width: 100%;
@@ -7,18 +6,18 @@
 }
 
 .table-media-preview__audio {
-  padding: sizes.$x32 0 sizes.$x12 0;
+  padding: 32px 0 12px;
   text-align: center;
 
   .audio-player {
     // Needed so it looks centered for the audio illustration above player.
-    margin-right: sizes.$x12;
+    margin-right: 12px;
     padding: 0 20px;
   }
 
   i.k-icon-file-audio {
     font-size: 128px;
-    color: colors.$kobo-gray-92;
+    color: colors.$kobo-gray-300;
   }
 }
 
@@ -28,7 +27,7 @@
 }
 
 .table-media-preview__text {
-  padding: sizes.$x32;
+  padding: 32px;
 }
 
 .table-media-preview-header__options {
@@ -43,8 +42,8 @@
   object-fit: contain;
 }
 
-@media screen and (min-width: 600px) {
+@media screen and (width >= 600px) {
   .table-media-preview {
-    min-width: sizes.$x400;
+    min-width: 400px;
   }
 }

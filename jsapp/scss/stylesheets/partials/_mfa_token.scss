@@ -1,17 +1,15 @@
-@use 'scss/sizes';
-
 // ==========================================================================
 // MFA Token form
 // ==========================================================================
 
 .mfa-token-form .mfa-token-form__header {
-  font-size: sizes.$x18;
+  font-size: 18px;
   font-weight: 600;
-  margin: 0 0 sizes.$x16;
+  margin: 0 0 16px;
 }
 
 .mfa-token-form .mfa-token-form__description {
-  margin: 0 0 sizes.$x30;
+  margin: 0 0 30px;
 }
 
 .mfa-token-form .mfa-token-form__help-toggle {
@@ -19,7 +17,7 @@
 }
 
 .mfa-token-form__help-toggle-wrapper:not(:last-child) {
-  margin-bottom: sizes.$x50;
+  margin-bottom: 50px;
 }
 
 .mfa-token-form__sections {
@@ -41,7 +39,7 @@
 
   .mfa-token-form__help-text {
     flex: 1;
-    margin-bottom: sizes.$x16;
+    margin-bottom: 16px;
     overflow-y: auto;
   }
 }

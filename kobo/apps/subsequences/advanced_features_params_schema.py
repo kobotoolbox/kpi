@@ -1,10 +1,10 @@
-'''
+"""
 When setting "asset.advanced_features", the value is compared
 against this jsonschema.
 
 As "advanced_features" are added to the code, this schema will grow
 to describe what is needed.
-'''
+"""
 
 ADVANCED_FEATURES_PARAMS_SCHEMA = {
     'type': 'object',
@@ -70,10 +70,10 @@ ADVANCED_FEATURES_PARAMS_SCHEMA['$defs'] = {
                 'items': {'$ref': '#/$defs/qualChoice'},
             },
             'scope': {'type': 'string'},
-            'qpath': {'type': 'string'},
+            'xpath': {'type': 'string'},
             'options': {'type': 'object'},
         },
-        'required': ['uuid', 'type', 'labels', 'scope', 'qpath'],
+        'required': ['uuid', 'type', 'labels', 'scope', 'xpath'],
     },
     'qualLabels': {
         'type': 'object',
@@ -92,6 +92,7 @@ ADVANCED_FEATURES_PARAMS_SCHEMA['$defs'] = {
         'required': ['labels', 'uuid'],
     },
 }
+
 ADVANCED_FEATURES_PARAMS_SCHEMA['properties']['qual'] = {
     'type': 'object',
     'additionalProperties': False,

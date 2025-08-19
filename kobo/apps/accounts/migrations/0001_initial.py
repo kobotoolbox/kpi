@@ -6,7 +6,7 @@ from django.db import migrations, models
 
 
 def migrate_email_and_extra_user_detail(apps, schema_editor):
-    User = apps.get_model('auth', 'User')
+    User = apps.get_model('kobo_auth', 'User')
     ImportedVerification = apps.get_model('accounts', 'ImportedVerification')
     EmailAddress = apps.get_model('account', 'EmailAddress')
     ExtraUserDetail = apps.get_model('hub', 'ExtraUserDetail')

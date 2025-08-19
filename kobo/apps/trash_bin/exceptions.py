@@ -6,15 +6,6 @@ class TrashNotImplementedError(NotImplementedError):
     pass
 
 
-class TrashMongoDeleteOrphansError(Exception):
-    def __init__(self, *args, **kwargs):
-        super().__init__(
-            'Could not delete all orphan submissions in MongoDB',
-            *args,
-            **kwargs
-        )
-
-
 class TrashTaskInProgressError(Exception):
     pass
 

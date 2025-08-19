@@ -1,9 +1,9 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .asset-info-box {
   display: flex;
   flex-direction: row;
-  border-bottom: 1px solid colors.$kobo-gray-92;
+  border-bottom: 1px solid colors.$kobo-gray-300;
   padding-bottom: 5px;
   line-height: 24px;
 
@@ -21,34 +21,11 @@
     flex: 1;
 
     label {
-      color: colors.$kobo-gray-40;
+      color: colors.$kobo-gray-700;
 
       &::after {
-        content: ": ";
+        content: ': ';
       }
-    }
-  }
-
-  .asset-info-box__toggle {
-    cursor: pointer;
-    color: colors.$kobo-blue;
-    background: transparent;
-    border: 0;
-    width: 100%;
-    text-align: center;
-
-    &:hover {
-      color: colors.$kobo-dark-blue;
-    }
-
-    &:active {
-      transform: translateY(1px);
-    }
-
-    .k-icon {
-      font-size: 18px;
-      margin-right: 3px;
-      vertical-align: -5px;
     }
   }
 }

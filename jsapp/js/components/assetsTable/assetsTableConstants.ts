@@ -1,5 +1,5 @@
-import {createEnum} from 'js/constants';
-import type {OrderDirection} from 'js/projects/projectViews/constants';
+import { createEnum } from '#/constants'
+import type { OrderDirection } from '#/projects/projectViews/constants'
 
 export enum AssetsTableContextName {
   MY_LIBRARY = 'MY_LIBRARY',
@@ -11,30 +11,38 @@ export const ASSETS_TABLE_CONTEXTS = createEnum([
   AssetsTableContextName.MY_LIBRARY,
   AssetsTableContextName.COLLECTION_CONTENT,
   AssetsTableContextName.PUBLIC_COLLECTIONS,
-]);
+])
 
-export const ORDER_DIRECTIONS: {[id in OrderDirection]: OrderDirection} = {
+export const ORDER_DIRECTIONS: { [id in OrderDirection]: OrderDirection } = {
   ascending: 'ascending',
   descending: 'descending',
-};
-
-export type AssetsTableColumnName = 'date-modified' | 'icon-status' | 'items-count' | 'languages' | 'name' | 'owner' | 'primary-sector' | 'subscribers-count';
-
-export interface AssetsTableColumn {
-  label: string;
-  id: AssetsTableColumnName;
-  /** a backend order property */
-  orderBy?: string | null;
-  defaultValue?: OrderDirection | null;
-  /** a backend filter property */
-  filterBy?: string;
-  /** a path to asset property that holds the data */
-  filterByPath?: string[];
-  /** name of the metadata property that holds the values for the filter */
-  filterByMetadataName?: string;
 }
 
-export const ASSETS_TABLE_COLUMNS: {[id: string]: AssetsTableColumn} = Object.freeze({
+export type AssetsTableColumnName =
+  | 'date-modified'
+  | 'icon-status'
+  | 'items-count'
+  | 'languages'
+  | 'name'
+  | 'owner'
+  | 'primary-sector'
+  | 'subscribers-count'
+
+export interface AssetsTableColumn {
+  label: string
+  id: AssetsTableColumnName
+  /** a backend order property */
+  orderBy?: string | null
+  defaultValue?: OrderDirection | null
+  /** a backend filter property */
+  filterBy?: string
+  /** a path to asset property that holds the data */
+  filterByPath?: string[]
+  /** name of the metadata property that holds the values for the filter */
+  filterByMetadataName?: string
+}
+
+export const ASSETS_TABLE_COLUMNS: { [id: string]: AssetsTableColumn } = Object.freeze({
   'icon-status': {
     label: t('Type'),
     id: 'icon-status',
@@ -87,4 +95,4 @@ export const ASSETS_TABLE_COLUMNS: {[id: string]: AssetsTableColumn} = Object.fr
     filterByPath: ['settings', 'sector'],
     filterByMetadataName: 'sectors',
   },
-});
+})

@@ -37,7 +37,7 @@
   {% endif %}
   {% if config.logo_small %}
     <style>
-      @media screen and (max-width: 767px) {
+      @media screen and (width < 768px) {
         .mdl-layout__header .header__logo {
           background-image: url('{{ config.logo_small }}') !important;
         }
@@ -47,7 +47,7 @@
 {% endblock %}
 
 {% block body %}
-  {# Here the `/jsapp/js/main.es6` file will create and inject some HTML element, so that React SPA would render inside of it. #}
+  {# Here the `/jsapp/js/main.js` file will create and inject some HTML element, so that React SPA would render inside of it. #}
 
   {# We load the main js file here, not in the head, because we need the body element to exist in order to inject stuff into it with JS. #}
   {% render_bundle 'app' 'js' %}
@@ -55,6 +55,6 @@
   {% if google_analytics_token %}
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id={{google_analytics_token}}"></script>
-    <!-- The rest of the GA setup is in `/jsapp/js/main.es6` file -->
+    <!-- The rest of the GA setup is in `/jsapp/js/main.js` file -->
   {% endif %}
 {% endblock %}

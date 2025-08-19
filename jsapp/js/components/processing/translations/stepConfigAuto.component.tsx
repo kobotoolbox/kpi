@@ -1,24 +1,25 @@
-import React from 'react';
-import cx from 'classnames';
-import clonedeep from 'lodash.clonedeep';
-import Button from 'js/components/common/button';
-import RegionSelector from 'js/components/languages/regionSelector';
-import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import type {LanguageCode} from 'js/components/languages/languagesStore';
-import bodyStyles from 'js/components/processing/processingBody.module.scss';
+import React from 'react'
+
+import cx from 'classnames'
+import clonedeep from 'lodash.clonedeep'
+import Button from '#/components/common/button'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import RegionSelector from '#/components/languages/regionSelector'
+import bodyStyles from '#/components/processing/processingBody.module.scss'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
 
 export default function StepConfigAuto() {
   /** Changes the draft region, preserving the other draft properties. */
   function onRegionChange(newVal: LanguageCode | null | undefined) {
-    const newDraft =
-      clonedeep(singleProcessingStore.getTranslationDraft()) || {};
-    newDraft.regionCode = newVal;
-    singleProcessingStore.setTranslationDraft(newDraft);
+    const newDraft = clonedeep(singleProcessingStore.getTranslationDraft()) || {}
+    newDraft.regionCode = newVal
+    singleProcessingStore.setTranslationDraft(newDraft)
   }
 
   /** Goes back from the automatic service configuration step. */
   function cancelAuto() {
-    onRegionChange(undefined);
+    onRegionChange(undefined)
   }
 
   function requestAutoTranslation() {
@@ -26,23 +27,37 @@ export default function StepConfigAuto() {
     // but we should also allow to use the source data language.
     const toLanguageCode =
       singleProcessingStore.getTranslationDraft()?.regionCode ||
-      singleProcessingStore.getTranslationDraft()?.languageCode;
+      singleProcessingStore.getTranslationDraft()?.languageCode
     if (toLanguageCode) {
-      singleProcessingStore.requestAutoTranslation(toLanguageCode);
+      singleProcessingStore.requestAutoTranslation(toLanguageCode)
     }
   }
 
-  const draft = singleProcessingStore.getTranslationDraft();
+  const draft = singleProcessingStore.getTranslationDraft()
 
   if (draft?.languageCode === undefined) {
-    return null;
+    return null
+  }
+
+  if (singleProcessingStore.data.isPollingForTranslation) {
+    return (
+      <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
+        <LoadingSpinner type='big' message={false} />
+
+        <header className={bodyStyles.header}>{t('Automatic translation in progress')}</header>
+
+        {/*
+        Automatic translation is much faster than automatic transcription, but
+        for the consistency sake we use similar UI here.
+        */}
+        <p>{t('Estimated time for completion: ##estimate##').replace('##estimate##', t('less than a minute'))}</p>
+      </div>
+    )
   }
 
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
-      <header className={bodyStyles.header}>
-        {t('Automatic translation of transcript to')}
-      </header>
+      <header className={bodyStyles.header}>{t('Automatic translation of transcript to')}</header>
 
       <RegionSelector
         isDisabled={singleProcessingStore.data.isFetchingData}
@@ -61,15 +76,14 @@ export default function StepConfigAuto() {
             'this service you agree that your transcript text will be sent to ' +
             "Google's servers for the purpose of translation. However, it will not " +
             "be stored on Google's servers beyond the very short period needed for " +
-            'completing the translation.'
+            'completing the translation.',
         )}
       </p>
 
       <footer className={bodyStyles.footer}>
         <div className={bodyStyles.footerCenterButtons}>
           <Button
-            type='frame'
-            color='blue'
+            type='secondary'
             size='m'
             label={t('cancel')}
             onClick={cancelAuto}
@@ -77,8 +91,7 @@ export default function StepConfigAuto() {
           />
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='m'
             label={t('create translation')}
             onClick={requestAutoTranslation}
@@ -87,5 +100,5 @@ export default function StepConfigAuto() {
         </div>
       </footer>
     </div>
-  );
+  )
 }

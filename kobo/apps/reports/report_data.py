@@ -4,13 +4,11 @@ from copy import deepcopy
 
 from django.utils.translation import gettext as t
 from rest_framework import serializers
-from formpack import FormPack
 
+from formpack import FormPack
+from kpi.utils.bugfix import repair_file_column_content_and_save
 from kpi.utils.log import logging
-from .constants import (
-    FUZZY_VERSION_ID_KEY,
-    INFERRED_VERSION_ID_KEY,
-)
+from .constants import FUZZY_VERSION_ID_KEY, INFERRED_VERSION_ID_KEY
 
 
 def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
@@ -20,6 +18,10 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
     then only the newest version of the form is considered, and all submissions
     are assumed to have been collected with that version of the form.
     """
+
+    # Cope with kobotoolbox/formpack#322, which wrote invalid content into the
+    # database
+    repair_file_column_content_and_save(asset)
 
     if asset.has_deployment:
         if use_all_form_versions:
@@ -95,10 +97,6 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
         return submission
 
     if submission_stream is None:
-        _userform_id = asset.deployment.mongo_userform_id
-        if not _userform_id.startswith(asset.owner.username):
-            raise Exception('asset has unexpected `mongo_userform_id`')
-
         submission_stream = asset.deployment.get_submissions(user=asset.owner)
 
     submission_stream = (
@@ -132,15 +130,13 @@ def data_by_identifiers(asset, field_names=None, submission_stream=None,
     if field_names is None:
         field_names = fields_by_name.keys()
     if split_by and (split_by not in fields_by_name):
-        raise serializers.ValidationError({
-            'split_by': t("`{}` not found.").format(split_by)
-        })
+        raise serializers.ValidationError(
+            {'split_by': t('`{}` not found.').format(split_by)}
+        )
     if split_by and (fields_by_name[split_by].data_type != 'select_one'):
-        raise serializers.ValidationError({
-            'split_by':
-                t("`{}` is not a select one question.").format(
-                    split_by)
-        })
+        raise serializers.ValidationError(
+            {'split_by': t('`{}` is not a select one question.').format(split_by)}
+        )
     if report_styles is None:
         report_styles = asset.report_styles
     specified_styles = report_styles.get('specified', {})

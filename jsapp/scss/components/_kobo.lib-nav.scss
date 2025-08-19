@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .lib-nav__header {
   display: flex;
@@ -26,7 +26,7 @@
       padding: 5px 8px;
       width: 100%;
       color: inherit;
-      border: 1px solid colors.$kobo-gray-92;
+      border: 1px solid colors.$kobo-gray-300;
       border-radius: 3px;
       background: colors.$kobo-white;
 
@@ -51,7 +51,7 @@
 .lib-nav__expanded {
   padding-bottom: 10px;
   margin-bottom: 20px;
-  border-bottom: 1px solid colors.$kobo-gray-92;
+  border-bottom: 1px solid colors.$kobo-gray-300;
 
   .lib-nav__expandedToggle {
     flex: 1;

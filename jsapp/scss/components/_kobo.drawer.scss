@@ -1,22 +1,28 @@
+@use 'scss/breakpoints';
 @use 'scss/z-indexes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 // drawer (sidebar)
 
+.page-wrapper--fixed-drawer .k-drawer {
+  left: 0;
+}
+
 .k-drawer {
+  @include box-shadow-mid;
+
+  position: fixed;
+  z-index: z-indexes.$z-kobo-drawer;
+  // We need some pxs more as there is shadow on the drawer.
+  left: -1 * $s-drawer-width - 10px;
+  transition: left 0.5s;
+  background-color: colors.$kobo-white;
   height: calc(100% - #{$layout-desktop-header-height});
   top: $layout-desktop-header-height;
   width: $s-drawer-width;
-  position: absolute;
-  left: 0;
   display: flex;
   flex-direction: row;
-  border-right: 2px solid colors.$kobo-gray-92;
-}
-
-// only add the margin for drawer if drawer exists (e.g. no drawer when logged out)
-.k-drawer + .mdl-layout__content {
-  margin-left: $s-drawer-width; // for drawer
+  border-right: 2px solid colors.$kobo-gray-300;
 }
 
 .k-drawer__primary-icons {
@@ -31,7 +37,7 @@
   font-size: 26px;
   margin: 6px 0;
   text-align: center;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
   padding: 0;
   border-left: 3px solid transparent;
 
@@ -62,7 +68,7 @@
     text-align: center;
     font-weight: normal;
     position: relative;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
 
     &:hover {
       color: colors.$kobo-teal;
@@ -82,29 +88,21 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-
-  button.mdl-button {
-    width: 100%;
-  }
 }
 
-@media screen and (max-width: 999px) {
+@media screen and (min-width: breakpoints.$bMobileMenu) {
   .k-drawer {
-    position: fixed;
-    z-index: z-indexes.$z-kobo-drawer;
-    // We need some pxs more as there is shadow on the drawer.
-    left: -1 * $s-drawer-width - 10px;
-    transition: left 0.5s;
-    background-color: colors.$kobo-white;
-
-    @include box-shadow-mid;
+    position: absolute;
+    left: 0;
+    transition: none;
   }
 
   .page-wrapper--fixed-drawer .k-drawer {
-    left: 0;
+    left: unset;
   }
 
+  // only add the margin for drawer if drawer exists (e.g. no drawer when logged out)
   .k-drawer + .mdl-layout__content {
-    margin-left: 0;
+    margin-left: $s-drawer-width; // for drawer
   }
 }

@@ -1,11 +1,13 @@
+from collections import defaultdict
 from copy import deepcopy
+
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from ..actions.automatic_transcription import AutomaticTranscriptionAction
-from ..actions.translation import TranslationAction
 from ..actions.qual import QualAction
 from ..actions.number_doubler import NumberDoubler
-
-from ..actions.unknown_action import UnknownAction
-
+#from ..actions.unknown_action import UnknownAction
+from ..actions.translation import TranslationAction
+from .deprecation import get_sanitized_advanced_features, get_sanitized_dict_keys
 
 AVAILABLE_ACTIONS = (
     AutomaticTranscriptionAction,
@@ -45,10 +47,9 @@ SUBMISSION_UUID_FIELD = 'meta/rootUuid'
 
 
 def advanced_feature_instances(content, actions):
-    action_instances = []
     for action_id, action_params in actions.items():
         action_kls = ACTIONS_BY_ID[action_id]
-        if action_params:
+        if action_params:  # FIXME: is this really a boolean? We were testing with `==` and later `is`
             action_params = action_kls.build_params(content=content)
         yield action_kls(action_params)
 
@@ -76,7 +77,7 @@ def populate_paths(_content):
             logging.error('missing row name', extra={'path': group_stack})
         # /HOTFIX 2022-12-06
 
-        row['qpath'] = '-'.join([*group_stack, rowname])
+        row['xpath'] = '/'.join([*group_stack, rowname])
     return content
 
 
@@ -94,7 +95,7 @@ def advanced_submission_jsonschema(content, actions, url=None):
     # breakpoint()
     for action_id, action_params in actions.items():
         action_kls = ACTIONS_BY_ID[action_id]
-        if action_params:
+        if action_params:  # FIXME: boolean? See other FIXME
             action_params = action_kls.build_params(content=content)
         if 'values' not in action_params:
             action_params['values'] = action_kls.get_values_for_content(content)
@@ -134,26 +135,43 @@ def stream_with_extras(submission_stream, asset):
     extras = dict(
         asset.submission_extras.values_list('submission_uuid', 'content')
     )
+
+    if asset.advanced_features and (
+        advanced_features := get_sanitized_advanced_features(asset)
+    ):
+        asset.advanced_features = advanced_features
+
     try:
         qual_survey = asset.advanced_features['qual']['qual_survey']
     except KeyError:
         qual_survey = []
+    else:
+        qual_survey = deepcopy(qual_survey)
+
+    # keys are question UUIDs, values are question definitions
     qual_questions_by_uuid = {}
+    # outer keys are question UUIDs, inner keys are choice UUIDs, values are
+    # choice definitions
+    qual_choices_per_question_by_uuid = defaultdict(dict)
     for qual_q in qual_survey:
         try:
             choices = qual_q['choices']
         except KeyError:
             pass
         else:
-            qual_q['choices_by_uuid'] = {c['uuid']: c for c in choices}
+            qual_choices_per_question_by_uuid[qual_q['uuid']] = {
+                c['uuid']: c for c in choices
+            }
         qual_questions_by_uuid[qual_q['uuid']] = qual_q
+
     for submission in submission_stream:
         if SUBMISSION_UUID_FIELD in submission:
-            uuid = submission[SUBMISSION_UUID_FIELD]
+            uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])
         else:
             uuid = submission['_uuid']
-        all_supplemental_details = extras.get(uuid, {})
-        for qpath, supplemental_details in all_supplemental_details.items():
+
+        all_supplemental_details = deepcopy(extras.get(uuid, {}))
+        for supplemental_details in all_supplemental_details.values():
             try:
                 all_qual_responses = supplemental_details['qual']
             except KeyError:
@@ -178,18 +196,29 @@ def stream_with_extras(submission_stream, asset):
                         val = [val]
                     val_expanded = []
                     for v in val:
+                        if v == '':
+                            continue
                         try:
-                            v_ex = qual_q['choices_by_uuid'][v]
+                            v_ex = qual_choices_per_question_by_uuid[
+                                qual_q['uuid']
+                            ][v]
                         except KeyError:
                             # TODO: make sure this can never happen by refusing
                             # to remove qualitative analysis *choices* once
                             # added. They should simply be hidden
                             v_ex = {'uuid': v, 'error': 'unknown choice'}
                         val_expanded.append(v_ex)
-                    if single_choice:
+                    if single_choice and val_expanded:
                         val_expanded = val_expanded[0]
                     qual_response['val'] = val_expanded
-                qual_q.pop('choices_by_uuid', None)
                 qual_response.update(qual_q)
+
+        # Remove `qpath` if present
+        if sanitized_suppl_details := get_sanitized_dict_keys(
+            all_supplemental_details, asset
+        ):
+            all_supplemental_details = sanitized_suppl_details
+
         submission[SUPPLEMENTAL_DETAILS_KEY] = all_supplemental_details
+
         yield submission

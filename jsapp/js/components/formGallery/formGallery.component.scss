@@ -1,25 +1,19 @@
-@use '~kobo-common/src/styles/colors';
-@use 'scss/sizes';
+@use 'scss/colors';
 @use 'scss/breakpoints';
+@use 'scss/mixins';
 
 .gallery {
   background-color: colors.$kobo-white;
 }
 
 .gallery__wrapper {
-  margin: sizes.$x20 sizes.$x50;
-
-  @media screen and (max-width: breakpoints.$b768) {
-    margin-top: sizes.$x8;
-    margin-left: sizes.$x14;
-    margin-right: sizes.$x14;
-  }
+  margin: 8px 14px;
 
   .gallery__footer {
     width: 100%;
     display: flex;
     justify-content: center;
-    margin-top: sizes.$x4;
+    margin-top: 4px;
   }
 }
 
@@ -27,7 +21,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
+  border-bottom: 1px solid colors.$kobo-gray-300;
 }
 
 .gallery__header-icons {
@@ -35,27 +29,40 @@
 }
 
 .gallery__filters {
-  margin-top: sizes.$x20;
-  margin-bottom: sizes.$x20;
+  margin-top: 20px;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
-  gap: sizes.$x6;
+  gap: 6px;
   flex-direction: row;
   flex-wrap: wrap;
 }
 
 .gallery__filters-select {
   flex: 1;
-  margin-right: sizes.$x8;
+  margin-right: 8px;
 }
 
 .gallery__filters-dates input {
-  margin-left: sizes.$x5;
-  margin-right: sizes.$x5;
+  margin-left: 5px;
+  margin-right: 5px;
 }
 
-.gallery-grid {
+.gallery__grid {
   display: flex;
   flex-wrap: wrap;
-  gap: sizes.$x3;
+  gap: 3px;
+}
+
+.gallery-grid-deleted-attachment {
+  min-width: 100px;
+  min-height: 100px;
+  border-radius: var(--mantine-radius-md);
+  background-color: var(--mantine-color-gray-filled);
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .gallery__wrapper {
+    margin: 20px 50px;
+  }
 }

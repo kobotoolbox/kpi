@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 /* ==========================================================================
  * Main
@@ -11,7 +11,7 @@
 
 .main > section.content {
     height: 100%;
-    padding-top:40px;
+    padding-top: 40px;
 }
 
 /* ==========================================================================
@@ -25,6 +25,7 @@
     margin-right: auto;
     margin-left: auto;
     position: relative;
+
     &.empty {
       text-align: center;
       background: colors.$kobo-white;

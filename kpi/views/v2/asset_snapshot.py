@@ -1,27 +1,22 @@
-# coding: utf-8
-import re
 import copy
-from xml.dom import Node
-from typing import Optional
 
 import requests
-from defusedxml import minidom
 from django.conf import settings
-from django.db.models import Q, F
-from django.http import HttpResponseRedirect, Http404
-from rest_framework import renderers, serializers
+from django.http import Http404, HttpResponseRedirect
+from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from kobo.apps.form_disclaimer.models import FormDisclaimer
+from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
+from kobo.apps.audit_log.models import AuditType
+from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import DigestAuthentication, EnketoSessionAuthentication
-from kpi.constants import PERM_VIEW_ASSET
 from kpi.exceptions import SubmissionIntegrityError
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
-from kpi.models import AssetSnapshot, AssetFile, PairedData
-from kpi.permissions import EditSubmissionPermission
+from kpi.models import AssetFile, AssetSnapshot, PairedData
+from kpi.permissions import AssetSnapshotPermission, EditSubmissionPermission
 from kpi.renderers import (
     OpenRosaFormListRenderer,
     OpenRosaManifestRenderer,
@@ -30,16 +25,12 @@ from kpi.renderers import (
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
 from kpi.tasks import enketo_flush_cached_preview
-from kpi.utils.object_permission import get_database_user
-from kpi.utils.project_views import (
-    user_has_project_view_asset_perm,
-)
 from kpi.utils.xml import XMLFormWithDisclaimer
 from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
 
-class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
+class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet):
 
     """
     <span class='label label-danger'>TODO Documentation for this endpoint</span>
@@ -50,15 +41,17 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
     serializer_class = AssetSnapshotSerializer
     lookup_field = 'uid'
     queryset = AssetSnapshot.objects.all()
+    permission_classes = [AssetSnapshotPermission]
 
     renderer_classes = NoUpdateModelViewSet.renderer_classes + [
         XMLRenderer,
     ]
+    log_type = AuditType.PROJECT_HISTORY
 
     @property
     def asset(self):
         if not hasattr(self, '_asset'):
-            self._set_asset()
+            self.get_object()
         return self._asset
 
     def filter_queryset(self, queryset):
@@ -83,8 +76,10 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             owned_snapshots = queryset.none()
             if not user.is_anonymous:
                 owned_snapshots = queryset.filter(owner=user)
-            return owned_snapshots | RelatedAssetPermissionsFilter(
-                ).filter_queryset(self.request, queryset, view=self)
+
+            return owned_snapshots | RelatedAssetPermissionsFilter().filter_queryset(
+                self.request, queryset, view=self
+            )
 
     @action(
         detail=True,
@@ -95,7 +90,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         """
         Implements part of the OpenRosa Form List API.
         This route is used by Enketo when it fetches external resources.
-        It let us specify manifests for preview
+        It lets us specify manifests for preview
         """
         if request.method == 'HEAD':
             return self.get_response_for_head_request()
@@ -108,31 +103,19 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
 
     def get_object(self):
         try:
-            # Trivial case, try access the object with normal flow
-            snapshot = super().get_object()
-        except Http404 as e:
-            # If 404, fall back on project view permissions
-            try:
-                snapshot = self.queryset.select_related('asset').defer(
-                    'asset__content'
-                ).get(uid=self.kwargs[self.lookup_field])
-            except AssetSnapshot.DoesNotExist:
-                raise e
+            snapshot = (
+                self.queryset.select_related('asset')
+                .defer('asset__content')
+                .get(uid=self.kwargs[self.lookup_field])
+            )
+        except AssetSnapshot.DoesNotExist:
+            raise Http404
 
-            user = get_database_user(self.request.user)
+        self._asset = snapshot.asset
+        self.request._request.asset = self._asset
+        self.check_object_permissions(self.request, snapshot)
 
-            if (
-                self.request.method == 'GET'
-                and user_has_project_view_asset_perm(
-                    snapshot.asset, user, PERM_VIEW_ASSET
-                )
-            ):
-                return self._add_disclaimer(snapshot)
-            else:
-                # Access to user is still denied, raise 404
-                raise Http404
-        else:
-            return self._add_disclaimer(snapshot)
+        return self._add_disclaimer(snapshot)
 
     @action(
         detail=True,
@@ -187,7 +170,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             response = requests.post(
                 f'{settings.ENKETO_URL}/{settings.ENKETO_PREVIEW_ENDPOINT}',
                 # bare tuple implies basic auth
-                auth=(settings.ENKETO_API_TOKEN, ''),
+                auth=(settings.ENKETO_API_KEY, ''),
                 data=data
             )
             response.raise_for_status()
@@ -227,29 +210,30 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             return self.get_response_for_head_request()
 
         asset_snapshot = self.get_object()
-
         xml_submission_file = request.data['xml_submission_file']
 
-        # Prepare attachments even if all files are present in `request.FILES`
-        # (i.e.: submission XML and attachments)
-        attachments = None
         # Remove 'xml_submission_file' since it is already handled
         request.FILES.pop('xml_submission_file')
-        if len(request.FILES):
-            attachments = {}
-            for name, attachment in request.FILES.items():
-                attachments[name] = attachment
-
         try:
-            xml_response = asset_snapshot.asset.deployment.edit_submission(
-                xml_submission_file, request.user, attachments
-            )
+            with http_open_rosa_error_handler(
+                lambda: asset_snapshot.asset.deployment.edit_submission(
+                    xml_submission_file, request, request.FILES.values()
+                ),
+                request,
+            ) as handler:
+                if handler.http_error_response:
+                    return handler.http_error_response
+                else:
+                    instance = handler.func_return
+                    response = {
+                        'headers': self.get_headers(),
+                        'data': instance.xml,
+                        'content_type': 'text/xml; charset=utf-8',
+                        'status': status.HTTP_201_CREATED,
+                    }
+                    return Response(**response)
         except SubmissionIntegrityError as e:
             raise serializers.ValidationError(str(e))
-
-        # Add OpenRosa headers to response
-        xml_response['headers'].update(self.get_headers())
-        return Response(**xml_response)
 
     @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):
@@ -285,15 +269,5 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         if not self.action == 'xml_with_disclaimer':
             return snapshot
 
-        self._set_asset(snapshot)
+        # self._set_asset(snapshot)
         return XMLFormWithDisclaimer(snapshot).get_object()
-
-    def _set_asset(self, snapshot: Optional[AssetSnapshot] = None):
-        if not snapshot:
-            snapshot = self.get_object()
-        # Calling `snapshot.asset.__class__` instead of `Asset` to avoid circular
-        # import
-        snapshot.asset = snapshot.asset.__class__.objects.defer(
-            'content'
-        ).get(pk=snapshot.asset_id)
-        setattr(self, '_asset', snapshot.asset)

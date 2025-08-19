@@ -1,0 +1,187 @@
+@use 'scss/colors';
+@use 'scss/breakpoints';
+@use 'js/account/plans/plan.module';
+
+.header {
+  font-size: 18px;
+  font-weight: 700;
+  color: colors.$kobo-storm;
+  text-transform: uppercase;
+}
+
+.caption {
+  text-align: start;
+}
+
+.table {
+  table-layout: fixed;
+  border-collapse: collapse;
+  border-spacing: 0;
+
+  tr {
+    border-top: 1px solid colors.$kobo-light-storm;
+
+    &:last-child {
+      border-bottom: 1px solid colors.$kobo-light-storm;
+    }
+  }
+
+  td {
+    padding-block: 1em;
+    font-weight: 600;
+    font-size: 16px;
+  }
+}
+
+.productAndPrice {
+  line-height: 2em;
+}
+
+.price {
+  color: colors.$kobo-gray-700;
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.oneTimePrice {
+  width: 100%;
+  text-align: center;
+  font-weight: 600;
+  font-size: 16px;
+  color: colors.$kobo-gray-700;
+  padding-right: 15px;
+}
+
+.productName {
+  display: flex;
+  margin-right: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.description {
+  display: none;
+}
+
+.oneTime {
+  display: flex;
+  width: 100%;
+  justify-content: right;
+  gap: 6px;
+}
+
+.purchasedAddOns {
+  padding-top: 2%;
+  padding-bottom: 2%;
+}
+
+.activePrice {
+  text-align: right;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.addonDescription {
+  display: flex;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.row {
+  display: table;
+  width: 100%;
+  align-items: center;
+}
+
+.buy {
+  width: 200px;
+}
+
+.mobileView,
+.purchase {
+  display: flex;
+  vertical-align: center;
+  flex: 1;
+  align-items: center;
+}
+
+.fullScreen {
+  display: none;
+}
+
+@include breakpoints.breakpoint(narrowAndUp) {
+  .table td:nth-child(2) {
+    margin-inline-end: 10em;
+  }
+
+  .description {
+    display: flex;
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .productName {
+    display: table-cell;
+    width: 30%;
+    margin-right: 12px;
+  }
+
+  .fullScreen {
+    display: table-cell;
+  }
+
+  .price {
+    display: table-cell;
+    width: 30%;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .mobileView {
+    display: none;
+  }
+
+  .oneTimePrice,
+  .buyContainer {
+    width: 50%;
+  }
+
+  .oneTime {
+    justify-content: center;
+  }
+
+  .buy {
+    width: 140px;
+    padding-left: 20px;
+    float: right;
+  }
+
+  .purchase {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .selectProducts {
+    flex: 2;
+  }
+
+  .selectPrices {
+    flex: 1;
+  }
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .productAndPrice {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0 20px;
+  }
+
+  .productName {
+    width: 40%;
+  }
+}

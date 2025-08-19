@@ -1,0 +1,15 @@
+.close {
+  color: var(--mantine-color-gray-4);
+  background-color: transparent;
+
+  &:hover {
+    color: var(--mantine-color-gray-2);
+    background-color: transparent;
+  }
+}
+
+.title {
+  font-size: var(--mantine-font-size-xl);
+  font-weight: var(--mantine-heading-font-weight);
+  color: var(--mantine-color-gray-0);
+}

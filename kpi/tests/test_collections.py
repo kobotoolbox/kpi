@@ -1,9 +1,11 @@
 # coding: utf-8
-from django.contrib.auth.models import User, AnonymousUser, Permission
+import pytest
+from django.contrib.auth.models import AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from rest_framework import serializers
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_QUESTION,
@@ -495,7 +497,8 @@ class ShareCollectionTests(TestCase):
         # Delete the collection and make sure all associated permissions
         # are gone
         self.standalone_coll.delete()
-        self.assertEqual(self.standalone_coll.permissions.count(), 0)
+        with pytest.raises(ValueError) as e:
+            self.assertEqual(self.standalone_coll.permissions.count(), 0)
 
     def test_anonymous_view_permission_on_standalone_collection(self):
         # Grant

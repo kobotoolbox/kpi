@@ -2,9 +2,9 @@
 import random
 
 from django.contrib.auth.models import Permission
-from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models import Asset
 
 # random words

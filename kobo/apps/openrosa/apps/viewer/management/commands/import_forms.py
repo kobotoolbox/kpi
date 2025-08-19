@@ -1,0 +1,19 @@
+# coding: utf-8
+#!/usr/bin/env python
+# vim: ai ts=4 sts=4 et sw=4 coding=utf-8
+
+import glob
+import os
+from django.core.management.base import BaseCommand
+from ... import models
+
+
+class Command(BaseCommand):
+    help = "Import a folder of XForms for ODK."
+
+    def handle(self, *args, **kwargs):
+        path = args[0]
+        for form in glob.glob(os.path.join(path, "*")):
+            f = open(form)
+            models.XForm.objects.get_or_create(xml=f.read(), active=False)
+            f.close()

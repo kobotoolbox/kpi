@@ -1,67 +1,71 @@
-import React from 'react';
-import {observer} from 'mobx-react-lite';
-import sessionStore from 'js/stores/session';
-import styles from './ssoSection.module.scss';
-import {deleteSocialAccount} from './sso.api';
-import Button from 'jsapp/js/components/common/button';
-import envStore from 'jsapp/js/envStore';
-import classNames from 'classnames';
+import React, { useCallback } from 'react'
+
+import cx from 'classnames'
+import { observer } from 'mobx-react-lite'
+import securityStyles from '#/account/security/securityRoute.module.scss'
+import Button from '#/components/common/button'
+import envStore, { type SocialApp } from '#/envStore'
+import sessionStore from '#/stores/session'
+import { deleteSocialAccount } from './sso.api'
+import styles from './ssoSection.module.scss'
 
 const SsoSection = observer(() => {
-  const socialApps = envStore.isReady ? envStore.data.social_apps : [];
+  const socialApps = envStore.isReady ? envStore.data.social_apps : []
   const socialAccounts =
-    'social_accounts' in sessionStore.currentAccount
-      ? sessionStore.currentAccount.social_accounts
-      : [];
+    'social_accounts' in sessionStore.currentAccount ? sessionStore.currentAccount.social_accounts : []
 
   const disconnectSocialAccount = () => {
     if (socialAccounts.length) {
-      const socialAccount = socialAccounts[0];
+      const socialAccount = socialAccounts[0]
       deleteSocialAccount(socialAccount.provider, socialAccount.uid).then(
-        sessionStore.refreshAccount.bind(sessionStore)
-      );
+        sessionStore.refreshAccount.bind(sessionStore),
+      )
     }
-  };
+  }
+
+  const providerLink = useCallback(
+    (socialApp: SocialApp) => {
+      let providerPath = ''
+      if (socialApp.provider === 'openid_connect') {
+        providerPath = 'oidc/' + socialApp.provider_id
+      } else {
+        providerPath = socialApp.provider_id || socialApp.provider
+      }
+      return `accounts/${providerPath}/login/?process=connect&next=%2F%23%2Faccount%2Fsecurity`
+    },
+    [sessionStore.currentAccount],
+  )
 
   if (socialApps.length === 0 && socialAccounts.length === 0) {
-    return <></>;
+    return <></>
   }
 
   return (
-    <div className={styles.root}>
-      <div className={styles.titleSection}>
-        <h2 className={styles.title}>{t('Single-Sign On')}</h2>
+    <section className={securityStyles.securitySection}>
+      <div className={securityStyles.securitySectionTitle}>
+        <h2 className={securityStyles.securitySectionTitleText}>{t('Single-Sign On')}</h2>
       </div>
+
       {socialAccounts.length === 0 ? (
-        <div className={styles.bodySection}>
-          <div className={styles.securityDescription}>
-            {t(
-              "Connect your KoboToolbox account with your organization's identity provider for single-sign on (SSO). Afterwards, you will only " +
-                'be able to sign in via SSO unless you disable this setting here. This will also update your email address in case your current ' +
-                'address is different.'
-            )}
-          </div>
+        <div className={cx(securityStyles.securitySectionBody, styles.body)}>
+          {t(
+            "Connect your KoboToolbox account with your organization's identity provider for single-sign on (SSO). Afterwards, you will only " +
+              'be able to sign in via SSO unless you disable this setting here. This will also update your email address in case your current ' +
+              'address is different.',
+          )}
         </div>
       ) : (
-        <div className={styles.bodySection}>{t('Already connected')}</div>
+        <div className={cx(securityStyles.securitySectionBody, styles.body)}>{t('Already connected')}</div>
       )}
 
       {socialAccounts.length === 0 ? (
-        <div className={classNames(styles.optionsSection, styles.ssoSetup)}>
+        <div className={cx(styles.options, styles.ssoSetup)}>
           {socialApps.map((socialApp) => (
-            <a
-              href={
-                'accounts/' +
-                (socialApp.provider_id || socialApp.provider) +
-                '/login/?process=connect&next=%2F%23%2Faccount%2Fsecurity'
-              }
-              className={styles.passwordLink}
-            >
+            <a key={socialApp.name} href={providerLink(socialApp)}>
               <Button
                 label={socialApp.name}
                 size='m'
-                color='blue'
-                type='frame'
+                type='primary'
                 onClick={() => {
                   /*TODO: Handle NavLink and Button*/
                 }}
@@ -70,18 +74,12 @@ const SsoSection = observer(() => {
           ))}
         </div>
       ) : (
-        <div className={styles.optionsSection}>
-          <Button
-            label={t('Disable')}
-            size='m'
-            color='blue'
-            type='frame'
-            onClick={disconnectSocialAccount}
-          />
+        <div className={styles.options}>
+          <Button label={t('Disable')} size='m' type='primary' onClick={disconnectSocialAccount} />
         </div>
       )}
-    </div>
-  );
-});
+    </section>
+  )
+})
 
-export default SsoSection;
+export default SsoSection

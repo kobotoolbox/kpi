@@ -2,9 +2,9 @@
 import sys
 
 from django.core.management.base import BaseCommand
-from django.contrib.auth.models import User
 from django.db import transaction
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.deployment_backends.kc_access.utils import (
     grant_kc_model_level_perms,
     kc_transaction_atomic,

@@ -1,15 +1,12 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./jsapp",
     "paths": {
-      "jsapp/*": ["./*"],
-      "js/*": ["js/*"],
-      "scss/*": ["scss/*"],
-      "test/*": ["test/*"],
+      "#/*": ["./jsapp/js/*"]
     },
     "target": "es2017",
     "module": "es2020",
+    "lib": ["ES2021"],
     "esModuleInterop": true,
     "moduleResolution": "node",
     "strict": true,
@@ -25,11 +22,11 @@
     "skipLibCheck": true,
     "allowJs": true,
     "outDir": "out",
-    "jsx": "react",
-    "plugins": [{ "name": "typescript-plugin-css-modules"}]
+    "jsx": "react-jsx",
+    "plugins": [{ "name": "typescript-plugin-css-modules" }]
   },
-  "include": [
-    "jsapp/**/*.ts",
-    "jsapp/**/*.tsx"
-  ]
+  "ts-node": {
+    "swc": true
+  },
+  "include": ["jsapp/**/*.ts", "jsapp/**/*.tsx", ".storybook/**/*.ts", ".storybook/**/*.tsx"]
 }

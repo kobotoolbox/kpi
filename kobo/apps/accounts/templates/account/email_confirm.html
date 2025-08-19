@@ -36,7 +36,7 @@
     {% url 'account_email' as email_url %}
 
     <p class="registration__message">
-      {% blocktrans %}This e-mail confirmation link expired or is invalid.
+      {% blocktrans trimmed %}This e-mail confirmation link expired or is invalid.
       If you need to request a new link to verify your email address change,
       please go to your account settings page and enter your email address again.{% endblocktrans %}
     </p>

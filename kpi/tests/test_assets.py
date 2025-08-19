@@ -6,11 +6,22 @@ from collections import OrderedDict
 from copy import deepcopy
 
 import openpyxl
-from django.contrib.auth.models import User, AnonymousUser
+from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework import serializers
+from rest_framework import serializers, status
 
+from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models import XForm
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import XFormInstanceParser
+from kobo.apps.organizations.models import Organization
+from kobo.apps.organizations.tasks import transfer_member_data_ownership_to_org
+from kobo.apps.organizations.tests.test_organizations_api import (
+    BaseOrganizationAssetApiTestCase
+)
+from kobo.apps.project_ownership.models import InviteStatusChoices
+from kobo.apps.project_ownership.models.invite import Invite
+from kobo.apps.project_ownership.models.transfer import Transfer
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_COLLECTION,
@@ -778,3 +789,270 @@ class ShareAssetsTest(AssetsTestCase):
         for user_obj in AnonymousUser(), self.anotheruser:
             self.assertTrue(user_obj.has_perm(
                 PERM_VIEW_ASSET, self.asset))
+
+
+class TestAssetNameSettingHandling(AssetsTestCase):
+    """
+    Tests for the 'name' setting in the asset content
+    """
+    def test_asset_name_matches_instance_root(self):
+        """
+        Test if 'name' setting is provided, it should match with the root node.
+        """
+        content = {
+            'survey': [
+                {
+                    'type': 'text',
+                    'name': 'some_text',
+                    'label': 'Enter some text',
+                },
+            ],
+            'settings': {'name': 'custom_root_node_name'}
+        }
+
+        # Create and deploy the asset
+        asset = Asset.objects.create(
+            owner=User.objects.get(username=self.user),
+            content=content,
+            asset_type=ASSET_TYPE_SURVEY
+        )
+        asset.deploy(backend='mock', active=True)
+
+        # Get the deployed XForm and parse it
+        xform = XForm.objects.get(id_string=asset.uid)
+        parser = XFormInstanceParser(xform.xml, xform.data_dictionary())
+
+        # Access the first child element of the <instance> node
+        instance_node = parser.get_root_node().getElementsByTagName('instance')[0]
+        root_element = instance_node.firstChild
+
+        # Assert that the name setting matches the root node name
+        assert root_element.nodeName == 'custom_root_node_name'
+
+    def test_asset_without_name_setting(self):
+        """
+        Test if 'name' setting is not provided, the root node should fall back
+        to asset UID
+        """
+        content = {
+            'survey': [
+                {
+                    'type': 'text',
+                    'name': 'some_text',
+                    'label': 'Enter some text',
+                },
+            ],
+            # No 'name' setting provided in this case
+        }
+
+        # Create and deploy the asset
+        asset = Asset.objects.create(
+            owner=User.objects.get(username=self.user),
+            content=content,
+            asset_type=ASSET_TYPE_SURVEY
+        )
+        asset.deploy(backend='mock', active=True)
+
+        # Get the deployed XForm and parse it
+        xform = XForm.objects.get(id_string=asset.uid)
+        parser = XFormInstanceParser(xform.xml, xform.data_dictionary())
+
+        # Access the first child element of the <instance> node
+        instance_node = parser.get_root_node().getElementsByTagName('instance')[0]
+        root_element = instance_node.firstChild
+
+        # Assert that the root node name is the asset.uid
+        assert root_element.nodeName == asset.uid
+
+
+class AssetSearchFieldTests(TestCase):
+
+    def setUp(self):
+        self.someuser = User.objects.create(username='someuser')
+        self.anotheruser = User.objects.create(username='anotheruser')
+
+    def test_search_fields_populated_on_asset_creation(self):
+        asset = Asset.objects.create(owner=self.someuser)
+
+        self.assertEqual(asset.search_field['owner_username'], self.someuser.username)
+        self.assertEqual(
+            asset.search_field['organization_name'], self.someuser.organization.name
+        )
+
+    def test_search_fields_updated_on_organization_save(self):
+        asset = Asset.objects.create(owner=self.someuser)
+        org_name = asset.search_field['organization_name']
+        organization = Organization.objects.get(name=org_name)
+
+        organization.name = 'Updated Organization'
+        organization.save()
+
+        asset.refresh_from_db()
+        self.assertEqual(
+            asset.search_field['organization_name'], 'Updated Organization'
+        )
+
+    def test_search_fields_updated_on_project_ownership_transfer(self):
+        asset = Asset.objects.create(owner=self.someuser)
+
+        invite = Invite.objects.create(sender=self.someuser, recipient=self.anotheruser)
+        transfer = Transfer.objects.create(invite=invite, asset=asset)
+        transfer.transfer_project()
+
+        asset.refresh_from_db()
+        self.assertEqual(
+            asset.search_field['owner_username'], self.anotheruser.username
+        )
+        self.assertEqual(
+            asset.search_field['organization_name'], self.anotheruser.organization.name
+        )
+
+
+class TestAssetExcludedFromProjectsListFlag(BaseOrganizationAssetApiTestCase):
+    """
+    Tests for the `is_excluded_from_projects_list` flag on assets
+
+    ToDo: Modify this test to use the org invitations API once it's merged to main
+    """
+    def setUp(self):
+        super().setUp()
+        self.organization = self.someuser.organization
+        self.org_owner = self.someuser
+        self.external_user = self.bob
+        self.thirduser = User.objects.create_user(
+            username='thirduser', password='thirduser'
+        )
+        self.asset_list_url = reverse(self._get_endpoint('asset-list'))
+        self.asset_detail_url = lambda uid: reverse(
+            self._get_endpoint('asset-detail'),
+            kwargs={'uid': uid}
+        )
+        self.invite_detail_url = lambda uid: reverse(
+            self._get_endpoint('project-ownership-invite-detail'),
+            kwargs={'uid': uid}
+        )
+        self.org_assets_list_url = lambda org_id: reverse(
+            self._get_endpoint('organizations-assets'),
+            kwargs={'id': org_id}
+        )
+
+    def _add_user_to_organization(self, user, organization):
+        organization.add_user(user)
+
+        # Transfer the ownership of the user's assets to the organization
+        transfer_member_data_ownership_to_org(user.pk)
+
+    def test_asset_is_excluded_from_projects_list_flag(self):
+        # 1. Create an asset owned by the external user
+        external_user_asset = self._create_asset_by_bob()
+
+        # Ensure the flag is not present in the API response
+        self.assertNotIn('is_excluded_from_projects_list', external_user_asset)
+
+        # Verify the flag is `False` for external user's asset initially
+        asset = Asset.objects.get(owner=self.external_user)
+        self.assertFalse(asset.is_excluded_from_projects_list)
+
+        # Ensure the flag is not present in the asset details API response
+        response = self.client.get(self.asset_detail_url(asset.uid))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn('is_excluded_from_projects_list', response.data)
+
+        # 2. Add external user to the org and transfer the asset ownership
+        self._add_user_to_organization(self.external_user, self.organization)
+
+        # Refresh asset instance and verify the flag is now True
+        asset.refresh_from_db()
+        self.assertTrue(asset.is_excluded_from_projects_list)
+
+        # 3. If the org owner transfers the asset explicitly to another user,
+        # the flag should be False
+        invite = Invite.objects.create(
+            sender=self.org_owner, recipient=self.thirduser
+        )
+        Transfer.objects.create(invite=invite, asset=asset)
+        self.client.force_login(self.thirduser)
+        payload = {
+            'status': InviteStatusChoices.ACCEPTED
+        }
+        response = self.client.patch(
+            self.invite_detail_url(invite.uid), data=payload, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        asset.refresh_from_db()
+        self.assertFalse(asset.is_excluded_from_projects_list)
+
+        # 4. Create an asset as the organization owner
+        self.client.force_login(self.org_owner)
+        response = self.create_asset(
+            name='Breakfast',
+            content={
+                'survey': [
+                    {
+                        'name': 'egg',
+                        'type': 'integer',
+                        'label': 'how many eggs?',
+                    },
+                ],
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Ensure the flag is not present in the API response
+        self.assertNotIn('is_excluded_from_projects_list', response.data)
+
+        # Fetch the newly created asset and verify the flag is False
+        owner_asset = Asset.objects.get(name='Breakfast')
+        self.assertFalse(owner_asset.is_excluded_from_projects_list)
+
+    def test_asset_visibility_after_transfer(self):
+        """
+        Test to ensure that an asset shared with an organization owner remains
+        visible after the asset owner joins a different organization
+        """
+        # Step 1: Create an asset owned by an external user
+        response = self._create_asset_by_bob()
+        asset = Asset.objects.get(uid=response.data['uid'])
+
+        # Step 2: External user shares the asset explicitly with OrgA's owner
+        asset.assign_perm(self.org_owner, PERM_VIEW_ASSET)
+        self.assertTrue(self.org_owner.has_perm(PERM_VIEW_ASSET, asset))
+
+        # Step 3: Verify asset visibility in OrgA owner's `My Projects` list
+        response = self.client.get(self.asset_list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            any(obj['uid'] == asset.uid for obj in response.data['results'])
+        )
+
+        # Step 4: Create another organization
+        thirduser_org = Organization.objects.create(
+            id='org1234', name='Another Organization', mmo_override=True
+        )
+        thirduser_org.add_user(self.thirduser, is_admin=True)
+
+        # Add external user to another organization and transfer asset ownership
+        self._add_user_to_organization(self.external_user, thirduser_org)
+
+        # Step 5: Verify that the asset is still visible to OrgA's owner after
+        # the external user joins another organization and transfers assets
+        response = self.client.get(self.asset_list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            any(obj['uid'] == asset.uid for obj in response.data['results'])
+        )
+
+        # Step-6: Verify asset is visible in OrgB owner's `My Org Projects` list
+        self.client.force_login(self.thirduser)
+        response = self.client.get(self.org_assets_list_url(thirduser_org.id))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            any(obj['uid'] == asset.uid for obj in response.data['results'])
+        )
+
+        # Step-7 Verify asset is not visible in OrgB owner's `My Projects` list
+        response = self.client.get(self.asset_list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(
+            any(obj['uid'] == asset.uid for obj in response.data['results'])
+        )

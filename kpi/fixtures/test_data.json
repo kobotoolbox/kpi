@@ -1,146 +1,169 @@
 [
-    {
-        "fields": {
-            "date_joined": "2015-02-12T19:52:14.406Z",
-            "email": "admin@admin.com",
-            "first_name": "",
-            "groups": [],
-            "is_active": true,
-            "is_staff": true,
-            "is_superuser": true,
-            "last_login": "2015-02-12T19:52:14.406Z",
-            "last_name": "",
-            "password": "pbkdf2_sha256$15000$fsiY4ICrvcIa$z8esAlmJ/ip0sR7TZkmpxxt4CWw1O1+cfWLbZ3/ip4E=",
-            "user_permissions": [],
-            "username": "admin"
-        },
-        "model": "auth.user",
-        "pk": 1
+  {
+    "fields": {
+      "date_joined": "2015-02-12T19:52:14.406Z",
+      "email": "admin@admin.com",
+      "first_name": "",
+      "groups": [],
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": true,
+      "last_login": "2015-02-12T19:52:14.406Z",
+      "last_name": "",
+      "password": "pbkdf2_sha256$15000$fsiY4ICrvcIa$z8esAlmJ/ip0sR7TZkmpxxt4CWw1O1+cfWLbZ3/ip4E=",
+      "user_permissions": [],
+      "username": "adminuser"
     },
-    {
-        "fields": {
-            "date_joined": "2015-02-12T19:52:14.406Z",
-            "email": "some@user.com",
-            "first_name": "Some",
-            "groups": [],
-            "is_active": true,
-            "is_staff": false,
-            "is_superuser": false,
-            "last_login": "2015-02-12T19:52:14.406Z",
-            "last_name": "User",
-            "password": "pbkdf2_sha256$15000$AGA044bkjSNO$jQx/SdL6ok6mFPRQhCuWtU9zNNFvRUQ7qexLZgLRiys=",
-            "username": "someuser",
-            "user_permissions" : [
-               ["add_asset", "kpi", "asset"],
-               ["change_asset", "kpi", "asset"],
-               ["delete_asset", "kpi", "asset"],
-               ["manage_asset", "kpi", "asset"],
-               ["view_asset", "kpi", "asset"],
-               ["add_submissions", "kpi", "asset"],
-               ["change_submissions", "kpi", "asset"],
-               ["validate_submissions", "kpi", "asset"],
-               ["delete_submissions", "kpi", "asset"],
-               ["view_submissions", "kpi", "asset"]
-            ]
-        },
-        "model": "auth.user",
-        "pk": 2
+    "model": "kobo_auth.user",
+    "pk": 1
+  },
+  {
+    "fields": {
+      "date_joined": "2015-02-12T19:52:14.406Z",
+      "email": "some@user.com",
+      "first_name": "Some",
+      "groups": [],
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "last_login": "2015-02-12T19:52:14.406Z",
+      "last_name": "User",
+      "password": "pbkdf2_sha256$15000$AGA044bkjSNO$jQx/SdL6ok6mFPRQhCuWtU9zNNFvRUQ7qexLZgLRiys=",
+      "username": "someuser",
+      "user_permissions": [
+        ["add_asset", "kpi", "asset"],
+        ["change_asset", "kpi", "asset"],
+        ["delete_asset", "kpi", "asset"],
+        ["manage_asset", "kpi", "asset"],
+        ["view_asset", "kpi", "asset"],
+        ["add_submissions", "kpi", "asset"],
+        ["change_submissions", "kpi", "asset"],
+        ["validate_submissions", "kpi", "asset"],
+        ["delete_submissions", "kpi", "asset"],
+        ["view_submissions", "kpi", "asset"]
+      ]
     },
-    {
-        "fields": {
-            "date_joined": "2015-02-12T19:52:14.406Z",
-            "email": "another@user.com",
-            "first_name": "Another",
-            "groups": [],
-            "is_active": true,
-            "is_staff": false,
-            "is_superuser": false,
-            "last_login": "2015-02-12T19:52:14.406Z",
-            "last_name": "User",
-            "password": "pbkdf2_sha256$15000$MQp3yLvTajFx$yttM5DVFuGpK8cSJI09tC55SeaEL2geWzk9ZDVMFWRw=",
-            "username": "anotheruser",
-            "user_permissions" : [
-               ["add_asset", "kpi", "asset"],
-               ["change_asset", "kpi", "asset"],
-               ["delete_asset", "kpi", "asset"],
-               ["manage_asset", "kpi", "asset"],
-               ["view_asset", "kpi", "asset"],
-               ["add_submissions", "kpi", "asset"],
-               ["change_submissions", "kpi", "asset"],
-               ["validate_submissions", "kpi", "asset"],
-               ["delete_submissions", "kpi", "asset"],
-               ["view_submissions", "kpi", "asset"]
-            ]
-        },
-        "model": "auth.user",
-        "pk": 3
+    "model": "kobo_auth.user",
+    "pk": 2
+  },
+  {
+    "fields": {
+      "date_joined": "2015-02-12T19:52:14.406Z",
+      "email": "another@user.com",
+      "first_name": "Another",
+      "groups": [],
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "last_login": "2015-02-12T19:52:14.406Z",
+      "last_name": "User",
+      "password": "pbkdf2_sha256$15000$MQp3yLvTajFx$yttM5DVFuGpK8cSJI09tC55SeaEL2geWzk9ZDVMFWRw=",
+      "username": "anotheruser",
+      "user_permissions": [
+        ["add_asset", "kpi", "asset"],
+        ["change_asset", "kpi", "asset"],
+        ["delete_asset", "kpi", "asset"],
+        ["manage_asset", "kpi", "asset"],
+        ["view_asset", "kpi", "asset"],
+        ["add_submissions", "kpi", "asset"],
+        ["change_submissions", "kpi", "asset"],
+        ["validate_submissions", "kpi", "asset"],
+        ["delete_submissions", "kpi", "asset"],
+        ["view_submissions", "kpi", "asset"]
+      ]
     },
-    {
-        "model": "kpi.asset",
-        "pk": 1,
-        "parent": 1,
-        "fields": {
-            "name": "fixture asset",
-            "content": {"survey": [
-                {"type": "text", "label": "fixture q1", "name": "q1", "kuid": "abc"},
-                {"type": "text", "label": "fixture q2", "name": "q2", "kuid": "def"}
-            ]},
-            "date_created": "2015-02-12T19:52:14.406Z",
-            "date_modified": "2015-02-12T19:52:14.406Z",
-            "owner": 2,
-            "uid": "aPEANgNgTH3xzhJGcctURs"
-        }
+    "model": "kobo_auth.user",
+    "pk": 3
+  },
+  {
+    "fields": {
+      "name": "Administrator",
+      "validated_password": true,
+      "user": 1
     },
-    {
-        "model": "kpi.asset",
-        "pk": 2,
-        "parent": 2,
-        "fields": {
-            "name": "fixture asset with translations",
-            "content": {"survey": [
-                {
-                  "type": "text",
-                  "label": "fixture q1",
-                  "label::English": "fixture q1 translated",
-                  "name": "q1",
-                  "kuid": "abc"
-                }, {
-                  "type": "text",
-                  "label": "fixture q2",
-                  "label::English": "fixture q2 translated",
-                  "name": "q2",
-                  "kuid": "def"
-                }
-            ]},
-            "date_created": "2022-04-05T21:00:22.402Z",
-            "date_modified": "2022-04-05T21:00:33.946Z",
-            "owner": 2,
-            "uid": "aPEANgNgTH3xzhJGcctURu"
-        }
+    "model": "main.userprofile",
+    "pk": 1
+  },
+  {
+    "fields": {
+      "name": "Some User",
+      "validated_password": true,
+      "user": 2
     },
-    {
-        "model": "authtoken.token",
-        "pk": 1,
-        "fields": {
-            "key": "3a8da043dd1b669688dae523b015177a1d4201d5",
-            "created": "2017-05-09 10:49:34.273769-04",
-            "user": 3
-        }
+    "model": "main.userprofile",
+    "pk": 2
+  },
+  {
+    "fields": {
+      "name": "Another User",
+      "validated_password": true,
+      "user": 3
     },
-    {
-        "model": "hub.sitewidemessage",
-        "pk": 1,
-        "fields": {
-            "slug": "welcome_message",
-            "body": "Global welcome message"
-        }
-    },
-    {
-        "model": "hub.sitewidemessage",
-        "pk": 2,
-        "fields": {
-            "slug": "welcome_message_fr",
-            "body": "Le message de bienvenue"
-        }
+    "model": "main.userprofile",
+    "pk": 3
+  },
+  {
+    "model": "kpi.asset",
+    "pk": 1,
+    "parent": 1,
+    "fields": {
+      "name": "fixture asset",
+      "content": {
+        "survey": [
+          { "type": "text", "label": "fixture q1", "name": "q1", "kuid": "abc" },
+          { "type": "text", "label": "fixture q2", "name": "q2", "kuid": "def" }
+        ]
+      },
+      "date_created": "2015-02-12T19:52:14.406Z",
+      "date_modified": "2015-02-12T19:52:14.406Z",
+      "owner": 2,
+      "uid": "aPEANgNgTH3xzhJGcctURs"
     }
+  },
+  {
+    "model": "kpi.asset",
+    "pk": 2,
+    "parent": 2,
+    "fields": {
+      "name": "fixture asset with translations",
+      "content": {
+        "survey": [
+          {
+            "type": "text",
+            "label": "fixture q1",
+            "label::English": "fixture q1 translated",
+            "name": "q1",
+            "kuid": "abc"
+          },
+          {
+            "type": "text",
+            "label": "fixture q2",
+            "label::English": "fixture q2 translated",
+            "name": "q2",
+            "kuid": "def"
+          }
+        ]
+      },
+      "date_created": "2022-04-05T21:00:22.402Z",
+      "date_modified": "2022-04-05T21:00:33.946Z",
+      "owner": 2,
+      "uid": "aPEANgNgTH3xzhJGcctURu"
+    }
+  },
+  {
+    "model": "hub.sitewidemessage",
+    "pk": 1,
+    "fields": {
+      "slug": "welcome_message",
+      "body": "Global welcome message"
+    }
+  },
+  {
+    "model": "hub.sitewidemessage",
+    "pk": 2,
+    "fields": {
+      "slug": "welcome_message_fr",
+      "body": "Le message de bienvenue"
+    }
+  }
 ]

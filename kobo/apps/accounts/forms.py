@@ -11,14 +11,13 @@ from allauth.account.utils import (
 from allauth.socialaccount.forms import SignupForm as BaseSocialSignupForm
 from django import forms
 from django.contrib.auth import get_user_model
-from django.conf import settings
 from django.utils.safestring import mark_safe
-from django.utils.translation import gettext, gettext_lazy as t
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as t
 
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
 from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
-
 
 # Only these fields can be controlled by constance.config.USER_METADATA_FIELDS
 CONFIGURABLE_METADATA_FIELDS = (
@@ -131,14 +130,18 @@ class KoboSignupMixin(forms.Form):
             privacy_policy_link = gettext('Privacy Policy')
         self.fields['terms_of_service'].label = mark_safe(
             t('I agree with the ##terms_of_service## and ##privacy_policy##')
-            .replace("##terms_of_service##", terms_of_service_link)
-            .replace("##privacy_policy##", privacy_policy_link)
+            .replace('##terms_of_service##', terms_of_service_link)
+            .replace('##privacy_policy##', privacy_policy_link)
         )
 
         # Remove upstream placeholders
         for field_name in ['username', 'email', 'password1', 'password2']:
             if field_name in self.fields:
                 self.fields[field_name].widget.attrs['placeholder'] = ''
+        if 'password1' in self.fields:
+            # Remove `help_text` on purpose since some guidance is provided by
+            # Constance setting. Moreover it is redundant with error messages.
+            self.fields['password1'].help_text = ''
         if 'password2' in self.fields:
             self.fields['password2'].label = t('Password confirmation')
         if 'email' in self.fields:
@@ -256,9 +259,15 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if settings.UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE:
-            self.fields['email'].widget.attrs['readonly'] = True
+        self.fields['email'].widget.attrs['readonly'] = True
         self.label_suffix = ''
+
+    def clean_email(self):
+        # do not allow any other email besides the one retrieved from the SSO server
+        email = super().clean_email()
+        if email != self.initial['email']:
+            raise forms.ValidationError(t('Email must match SSO server email'))
+        return email
 
 
 class SignupForm(KoboSignupMixin, BaseSignupForm):
@@ -275,7 +284,6 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         'newsletter_subscription',
     ]
 
-
     def clean(self):
         """
         Override parent form to pass extra user's attributes to validation.
@@ -283,10 +291,17 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         super(SignupForm, self).clean()
 
         User = get_user_model()  # noqa
+
         dummy_user = User()
+        # Using `dummy_user`, a temporary User object, to assign attributes that are
+        # validated during the password similarity check.
         user_username(dummy_user, self.cleaned_data.get('username'))
         user_email(dummy_user, self.cleaned_data.get('email'))
-        setattr(dummy_user, 'organization', self.cleaned_data.get('organization', ''))
+        setattr(
+            dummy_user,
+            'organization_name',
+            self.cleaned_data.get('organization', ''),
+        )
         setattr(dummy_user, 'full_name', self.cleaned_data.get('name', ''))
 
         password = self.cleaned_data.get('password1')

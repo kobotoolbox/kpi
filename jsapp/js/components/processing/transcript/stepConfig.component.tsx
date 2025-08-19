@@ -1,74 +1,89 @@
-import React from 'react';
-import cx from 'classnames';
-import clonedeep from 'lodash.clonedeep';
-import Button from 'js/components/common/button';
-import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import LanguageSelector, {
-  resetAllLanguageSelectors,
-} from 'js/components/languages/languageSelector';
-import type {
-  DetailedLanguage,
-  ListLanguage,
-} from 'js/components/languages/languagesStore';
-import TransxAutomaticButton from 'js/components/processing/transxAutomaticButton';
-import envStore from 'js/envStore';
-import bodyStyles from 'js/components/processing/processingBody.module.scss';
+import React, { useMemo, useState } from 'react'
+
+import cx from 'classnames'
+import clonedeep from 'lodash.clonedeep'
+import { UsageLimitTypes } from '#/account/stripe.types'
+import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
+import { useServiceUsageQuery } from '#/account/usage/useServiceUsageQuery'
+import Button from '#/components/common/button'
+import LanguageSelector, { resetAllLanguageSelectors } from '#/components/languages/languageSelector'
+import type { DetailedLanguage, ListLanguage } from '#/components/languages/languagesStore'
+import bodyStyles from '#/components/processing/processingBody.module.scss'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import TransxAutomaticButton from '#/components/processing/transxAutomaticButton'
+import envStore from '#/envStore'
+import NlpUsageLimitBlockModal from '../nlpUsageLimitBlockModal/nlpUsageLimitBlockModal.component'
+import { getAttachmentForProcessing } from './transcript.utils'
 
 export default function StepConfig() {
+  const { data: serviceUsageData } = useServiceUsageQuery()
+  const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
+  const usageLimitBlock = useMemo(
+    () =>
+      serviceUsageData?.limitExceedList.includes(UsageLimitTypes.TRANSCRIPTION) &&
+      envStore.data.usage_limit_enforcement,
+    [serviceUsageData?.limitExceedList, envStore.data.usage_limit_enforcement],
+  )
+  const { billingPeriod } = useBillingPeriod()
+
+  function dismissLimitBlockModal() {
+    setIsLimitBlockModalOpen(false)
+  }
   /** Changes the draft value, preserving the other draft properties. */
   function setDraftValue(newVal: string | undefined) {
-    const newDraft =
-      clonedeep(singleProcessingStore.getTranscriptDraft()) || {};
-    newDraft.value = newVal;
-    singleProcessingStore.setTranscriptDraft(newDraft);
+    const newDraft = clonedeep(singleProcessingStore.getTranscriptDraft()) || {}
+    newDraft.value = newVal
+    singleProcessingStore.setTranscriptDraft(newDraft)
   }
 
   /** Changes the draft language, preserving the other draft properties. */
   function onLanguageChange(newVal: DetailedLanguage | ListLanguage | null) {
-    const newDraft =
-      clonedeep(singleProcessingStore.getTranscriptDraft()) || {};
-    newDraft.languageCode = newVal?.code;
-    singleProcessingStore.setTranscriptDraft(newDraft);
+    const newDraft = clonedeep(singleProcessingStore.getTranscriptDraft()) || {}
+    newDraft.languageCode = newVal?.code
+    singleProcessingStore.setTranscriptDraft(newDraft)
   }
 
   function back() {
-    const draft = singleProcessingStore.getTranscriptDraft();
-    if (
-      draft !== undefined &&
-      draft?.languageCode === undefined &&
-      draft?.value === undefined
-    ) {
-      singleProcessingStore.safelyDeleteTranscriptDraft();
+    const draft = singleProcessingStore.getTranscriptDraft()
+    if (draft !== undefined && draft?.languageCode === undefined && draft?.value === undefined) {
+      singleProcessingStore.safelyDeleteTranscriptDraft()
     }
 
     if (draft?.languageCode !== undefined && draft?.value === undefined) {
-      singleProcessingStore.setTranslationDraft({});
-      resetAllLanguageSelectors();
+      singleProcessingStore.setTranslationDraft({})
+      resetAllLanguageSelectors()
     }
   }
 
   function selectModeManual() {
     // Initialize draft value.
-    setDraftValue('');
+    setDraftValue('')
   }
 
   function selectModeAuto() {
-    const newDraft =
-      clonedeep(singleProcessingStore.getTranscriptDraft()) || {};
+    const newDraft = clonedeep(singleProcessingStore.getTranscriptDraft()) || {}
     // The `null` value tells us that no region was selected yet, but we are
     // interested in regions right now - i.e. when this property exists (is
     // defined) we show the automatic service configuration step.
-    newDraft.regionCode = null;
-    singleProcessingStore.setTranscriptDraft(newDraft);
+    newDraft.regionCode = null
+    singleProcessingStore.setTranscriptDraft(newDraft)
   }
 
-  const draft = singleProcessingStore.getTranscriptDraft();
-  const typeLabel =
-    singleProcessingStore.currentQuestionType || t('source file');
-  const languageSelectorTitle = t(
-    'Please select the original language of the ##type##'
-  ).replace('##type##', typeLabel);
-  const isAutoEnabled = envStore.data.asr_mt_features_enabled;
+  function onAutomaticButtonClick() {
+    if (usageLimitBlock) {
+      setIsLimitBlockModalOpen(true)
+    } else {
+      selectModeAuto()
+    }
+  }
+
+  const draft = singleProcessingStore.getTranscriptDraft()
+  const languageSelectorTitle = t('Please select the original language of the ##type##').replace(
+    '##type##',
+    singleProcessingStore.getProcessedFileLabel(),
+  )
+  const isAutoEnabled = envStore.data.asr_mt_features_enabled
+  const attachment = getAttachmentForProcessing()
 
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
@@ -80,8 +95,7 @@ export default function StepConfig() {
 
       <footer className={bodyStyles.footer}>
         <Button
-          type='bare'
-          color='blue'
+          type='text'
           size='m'
           label={t('back')}
           startIcon='caret-left'
@@ -91,24 +105,26 @@ export default function StepConfig() {
 
         <div className={bodyStyles.footerRightButtons}>
           <Button
-            type='frame'
-            color='blue'
+            type='secondary'
             size='m'
             label={isAutoEnabled ? t('manual') : t('transcribe')}
             onClick={selectModeManual}
-            isDisabled={
-              draft?.languageCode === undefined ||
-              singleProcessingStore.data.isFetchingData
-            }
+            isDisabled={draft?.languageCode === undefined || singleProcessingStore.data.isFetchingData}
           />
-
           <TransxAutomaticButton
-            onClick={selectModeAuto}
+            onClick={onAutomaticButtonClick}
             selectedLanguage={draft?.languageCode}
             type='transcript'
+            disabled={typeof attachment === 'string' || attachment.is_deleted}
+          />
+          <NlpUsageLimitBlockModal
+            isModalOpen={isLimitBlockModalOpen}
+            usageType={UsageLimitTypes.TRANSCRIPTION}
+            dismissed={dismissLimitBlockModal}
+            interval={billingPeriod}
           />
         </div>
       </footer>
     </div>
-  );
+  )
 }

@@ -1,25 +1,24 @@
-@use "scss/mixins";
-@use "scss/sizes";
-@use '~kobo-common/src/styles/colors';
-@use "scss/libs/_mdl";
+@use 'scss/mixins';
+@use 'scss/colors';
+@use 'scss/libs/_mdl';
 
 // nested selector needed for specificity
-.kobo-dropdown[data-name='table-column-sort']  {
+.kobo-dropdown[data-name='table-column-sort'] {
   @include mixins.centerRowFlex;
   display: block;
   width: 100%;
 
   .kobo-dropdown__menu {
     color: colors.$kobo-white;
-    background-color: colors.$kobo-gray-40;
+    background-color: colors.$kobo-gray-700;
     @include mdl.box-shadow;
-    padding: sizes.$x8 0;
-    text-align: left;
-    line-height: sizes.$x20;
-    min-width: sizes.$x150;
+    padding: 8px 0;
+    text-align: initial;
+    line-height: 20px;
+    min-width: 150px;
 
     .sort-dropdown-menu-button:hover {
-      background-color: colors.$kobo-gray-24;
+      background-color: colors.$kobo-gray-800;
     }
   }
 
@@ -45,19 +44,14 @@
   .table-column-sort-dropdown-trigger {
     @include mixins.centerRowFlex;
     align-items: flex-start;
-    text-align: left;
-    line-height: sizes.$x20;
+    // We need to override the default "center" from react-table, but it also
+    // needs to work with `dir="auto"`
+    text-align: initial;
+    line-height: 20px;
+    gap: 5px;
 
     .column-header-title {
       flex: 1;
-
-      &:not(:last-child) {
-        margin-right: sizes.$x5;
-      }
-
-      &:not(:first-child) {
-        margin-left: sizes.$x5;
-      }
     }
 
     .k-icon.k-icon-sort-ascending,
@@ -73,13 +67,13 @@
         float: right;
 
         &.k-icon {
-          font-size: sizes.$x18;
+          font-size: 18px;
         }
       }
 
       &.sort-dropdown-menu-button--active {
         color: colors.$kobo-teal;
-        background-color: colors.$kobo-gray-24; // Assuming we are using `dark` option
+        background-color: colors.$kobo-gray-800; // Assuming we are using `dark` option
       }
     }
   }
@@ -90,22 +84,22 @@
 
   display: block;
   width: 100%;
-  padding: sizes.$x5 sizes.$x10;
-  text-align: left;
-  font-size: sizes.$x12;
+  padding: 5px 10px;
+  text-align: initial;
+  font-size: 12px;
   line-height: inherit;
 
   .k-icon {
     color: inherit;
-    font-size: sizes.$x20;
+    font-size: 20px;
     vertical-align: top;
 
     &:first-child:not(:only-child) {
-      margin-right: sizes.$x5;
+      margin-right: 5px;
     }
 
     &:last-child:not(:only-child) {
-      margin-left: sizes.$x5;
+      margin-left: 5px;
     }
   }
 }

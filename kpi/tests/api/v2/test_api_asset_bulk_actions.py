@@ -1,8 +1,8 @@
-from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.response import Response
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     PERM_CHANGE_ASSET,
@@ -92,7 +92,7 @@ class BaseAssetBulkActionsTestCase(BaseTestCase):
 
     def _login_superuser(self):
         self.client.logout()
-        self.client.login(username='admin', password='pass')
+        self.client.login(username='adminuser', password='pass')
 
     def _login_user(self, userpass: str):
         self.client.logout()

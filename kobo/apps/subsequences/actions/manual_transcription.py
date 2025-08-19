@@ -1,3 +1,4 @@
+from ..constants import TRANSCRIBABLE_SOURCE_TYPES
 from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
 
 PENDING = 'PENDING'
@@ -11,7 +12,7 @@ class ManualTranscriptionAction(BaseAction):
         raise Exception('Fuck You')
         possible_transcribed_fields = []
         for row in content.get('survey', []):
-            if row['type'] in ['audio', 'video']:
+            if row['type'] in TRANSCRIBABLE_SOURCE_TYPES:
                 possible_transcribed_fields.append(cls.get_name(row))
         params = {'values': possible_transcribed_fields}
         return params

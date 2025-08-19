@@ -1,26 +1,27 @@
-# coding: utf-8
 from __future__ import annotations
 
 import json
 import re
+from typing import Optional
 
 from constance import config
 from django.conf import settings
-from django.db.models import QuerySet, F
-from django.utils.translation import gettext as t, ngettext as nt
+from django.db import transaction
+from django.db.models import F
+from django.utils.translation import gettext as t
+from django.utils.translation import ngettext as nt
 from django_request_cache import cache_for_request
-from rest_framework import serializers, exceptions
+from rest_framework import exceptions, serializers
 from rest_framework.fields import empty
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
-from rest_framework.utils.serializer_helpers import ReturnList
 
+from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
+from kobo.apps.organizations.utils import get_real_owner
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
-from kobo.apps.trash_bin.exceptions import (
-    TrashIntegrityError,
-    TrashTaskInProgressError,
-)
+from kobo.apps.subsequences.utils.deprecation import WritableAdvancedFeaturesField
+from kobo.apps.trash_bin.exceptions import TrashIntegrityError, TrashTaskInProgressError
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kobo.apps.trash_bin.utils import move_to_trash, put_back
 from kpi.constants import (
@@ -28,13 +29,13 @@ from kpi.constants import (
     ASSET_STATUS_PRIVATE,
     ASSET_STATUS_PUBLIC,
     ASSET_STATUS_SHARED,
+    ASSET_TYPE_COLLECTION,
     ASSET_TYPE_SURVEY,
     ASSET_TYPES,
-    ASSET_TYPE_COLLECTION,
     PERM_CHANGE_ASSET,
     PERM_CHANGE_METADATA_ASSET,
-    PERM_MANAGE_ASSET,
     PERM_DISCOVER_ASSET,
+    PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
@@ -46,7 +47,6 @@ from kpi.fields import (
 from kpi.models import (
     Asset,
     AssetVersion,
-    AssetExportSettings,
     ObjectPermission,
     UserAssetSubscription,
 )
@@ -57,18 +57,16 @@ from kpi.utils.object_permission import (
     get_user_permission_assignments,
     get_user_permission_assignments_queryset,
 )
-
-from .asset_file import AssetFileSerializer
-
 from kpi.utils.project_views import (
     get_project_view_user_permissions_for_asset,
     user_has_project_view_asset_perm,
     view_has_perm,
 )
 
-from .asset_version import AssetVersionListSerializer
-from .asset_permission_assignment import AssetPermissionAssignmentSerializer
 from .asset_export_settings import AssetExportSettingsSerializer
+from .asset_file import AssetFileSerializer
+from .asset_permission_assignment import AssetPermissionAssignmentSerializer
+from .asset_version import AssetVersionListSerializer
 
 
 class AssetBulkActionsSerializer(serializers.Serializer):
@@ -91,22 +89,23 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         delete_request, put_back_ = self._get_action_type_and_direction(
             validated_data['payload']
         )
-        extra_params = {}
-        if asset_uids := validated_data['payload'].get('asset_uids'):
-            extra_params['asset_uids'] = asset_uids
-        else:
-            extra_params['owner'] = self.__user
 
-        queryset, projects_count = ProjectTrash.toggle_asset_statuses(
-            active=put_back_,
-            toggle_delete=delete_request,
-            **extra_params,
-        )
-        validated_data['project_counts'] = projects_count
+        if not (asset_uids := validated_data['payload'].get('asset_uids')):
+            asset_uids = list(
+                Asset.objects.values_list('uid', flat=True).filter(
+                    owner=self.__user
+                )
+            )
 
         if delete_request:
-            self._toggle_trash(queryset, put_back_)
-
+            queryset, projects_count = self._toggle_trash(asset_uids, put_back_)
+        else:
+            queryset, projects_count = ProjectTrash.toggle_statuses(
+                object_identifiers=asset_uids,
+                active=put_back_,
+                toggle_delete=delete_request,
+            )
+        validated_data['project_counts'] = projects_count
         return validated_data
 
     def validate_payload(self, payload: dict) -> dict:
@@ -130,8 +129,8 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         if delete_request:
             if put_back_:
                 message = nt(
-                    f'%(count)d project has been undeleted',
-                    f'%(count)d projects have been undeleted',
+                    '%(count)d project has been undeleted',
+                    '%(count)d projects have been undeleted',
                     instance['project_counts'],
                 ) % {'count': instance['project_counts']}
             else:
@@ -158,7 +157,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
     def _create_tasks(self, assets: list[dict]):
         try:
-            move_to_trash(
+            return move_to_trash(
                 self.__user, assets, config.PROJECT_TRASH_GRACE_PERIOD, 'asset'
             )
         except TrashIntegrityError:
@@ -170,7 +169,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
     def _delete_tasks(self, assets: list[dict]):
         try:
-            put_back(self.__user, assets, 'asset')
+            return put_back(self.__user, assets, 'asset')
         except TrashTaskInProgressError:
             raise serializers.ValidationError(
                 {'detail': t('One or many projects are already being deleted!')}
@@ -201,6 +200,10 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         if not asset_uids or self.__user.is_superuser:
             return
 
+        user_filter = [self.__user]
+        if self.__user.organization.is_admin(self.__user):
+            user_filter.append(self.__user.organization.owner_user_object)
+
         if not delete_request:
             if ProjectTrash.objects.filter(asset__uid__in=asset_uids).exists():
                 raise exceptions.PermissionDenied()
@@ -208,22 +211,21 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             code_names = get_cached_code_names(Asset)
             perm_dict = code_names[PERM_MANAGE_ASSET]
             objects_count = ObjectPermission.objects.filter(
-                user=self.__user,
+                user__in=user_filter,
                 permission_id=perm_dict['id'],
                 asset__uid__in=asset_uids,
                 deny=False
             ).count()
         else:
             objects_count = Asset.objects.filter(
-                owner=self.__user,
+                owner__in=user_filter,
                 uid__in=asset_uids,
             ).count()
 
         if objects_count != len(asset_uids):
             raise exceptions.PermissionDenied()
 
-    def _toggle_trash(self, queryset: QuerySet, put_back_: bool):
-
+    def _toggle_trash(self, asset_uids: list[str], put_back_: bool):
         # The main goal of the annotation below is to pass always the same
         # metadata attributes to AuditLog model whatever the model and the action.
         # `self._delete_tasks and self._create_tasks` both call utilities which
@@ -232,14 +234,14 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         # E.g: retrieve all actions on asset 'aSWwcERCgsGTsgIx` would be done
         # with `q=metadata__asset_uid:aSWwcERCgsGTsgIx`. It will return
         # all delete submissions and action on the asset itself.
-        assets = queryset.annotate(
+        assets = Asset.all_objects.filter(uid__in=asset_uids).annotate(
             asset_uid=F('uid'), asset_name=F('name')
         ).values('pk', 'asset_uid', 'asset_name')
 
         if put_back_:
-            self._delete_tasks(assets)
+            return self._delete_tasks(assets)
         else:
-            self._create_tasks(assets)
+            return self._create_tasks(assets)
 
     def _validate_action(self, payload: dict):
         try:
@@ -285,8 +287,9 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     owner = RelativePrefixHyperlinkedRelatedField(
-        view_name='user-detail', lookup_field='username', read_only=True)
+        view_name='user-kpi-detail', lookup_field='username', read_only=True)
     owner__username = serializers.ReadOnlyField(source='owner.username')
+    owner_label = serializers.SerializerMethodField()
     url = HyperlinkedIdentityField(
         lookup_field='uid', view_name='asset-detail')
     asset_type = serializers.ChoiceField(choices=ASSET_TYPES)
@@ -296,7 +299,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     report_custom = WritableJSONField(required=False)
     map_styles = WritableJSONField(required=False)
     map_custom = WritableJSONField(required=False)
-    advanced_features = WritableJSONField(required=False)
+    advanced_features = WritableAdvancedFeaturesField(required=False)
     advanced_submission_schema = serializers.SerializerMethodField()
     files = serializers.SerializerMethodField()
     analysis_form_json = serializers.SerializerMethodField()
@@ -317,7 +320,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     permissions = serializers.SerializerMethodField()
     effective_permissions = serializers.SerializerMethodField()
     exports = serializers.SerializerMethodField()
-    export_settings = serializers.SerializerMethodField()
+    export_settings = AssetExportSettingsSerializer(
+        many=True, read_only=True, source='asset_export_settings'
+    )
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.CharField(read_only=True)
     version__content_hash = serializers.CharField(read_only=True)
@@ -329,14 +334,15 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # request more than the first page
         default_limit=100
     )
-    deployment__identifier = serializers.SerializerMethodField()
     deployment__active = serializers.SerializerMethodField()
     deployment__links = serializers.SerializerMethodField()
     deployment__data_download_links = serializers.SerializerMethodField()
     deployment__submission_count = serializers.SerializerMethodField()
+    deployment__encrypted = serializers.SerializerMethodField()
+    deployment__last_submission_time = serializers.SerializerMethodField()
+    deployment__uuid = serializers.SerializerMethodField()
     deployment_status = serializers.SerializerMethodField()
     data = serializers.SerializerMethodField()
-
     # Only add link instead of hooks list to avoid multiple access to DB.
     hooks_link = serializers.SerializerMethodField()
 
@@ -346,86 +352,109 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     access_types = serializers.SerializerMethodField()
     data_sharing = WritableJSONField(required=False)
     paired_data = serializers.SerializerMethodField()
+    project_ownership = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
         lookup_field = 'uid'
-        fields = ('url',
-                  'owner',
-                  'owner__username',
-                  'parent',
-                  'settings',
-                  'asset_type',
-                  'files',
-                  'summary',
-                  'date_created',
-                  'date_modified',
-                  'date_deployed',
-                  'version_id',
-                  'version__content_hash',
-                  'version_count',
-                  'has_deployment',
-                  'deployed_version_id',
-                  'deployed_versions',
-                  'deployment__identifier',
-                  'deployment__links',
-                  'deployment__active',
-                  'deployment__data_download_links',
-                  'deployment__submission_count',
-                  'deployment_status',
-                  'report_styles',
-                  'report_custom',
-                  'advanced_features',
-                  'advanced_submission_schema',
-                  'analysis_form_json',
-                  'map_styles',
-                  'map_custom',
-                  'content',
-                  'downloads',
-                  'embeds',
-                  'xform_link',
-                  'hooks_link',
-                  'tag_string',
-                  'uid',
-                  'kind',
-                  'xls_link',
-                  'name',
-                  'assignable_permissions',
-                  'permissions',
-                  'effective_permissions',
-                  'exports',
-                  'export_settings',
-                  'settings',
-                  'data',
-                  'children',
-                  'subscribers_count',
-                  'status',
-                  'access_types',
-                  'data_sharing',
-                  'paired_data',
-                  )
+        fields = (
+            'url',
+            'owner',
+            'owner__username',
+            'parent',
+            'settings',
+            'asset_type',
+            'files',
+            'summary',
+            'date_created',
+            'date_modified',
+            'date_deployed',
+            'version_id',
+            'version__content_hash',
+            'version_count',
+            'has_deployment',
+            'deployed_version_id',
+            'deployed_versions',
+            'deployment__links',
+            'deployment__active',
+            'deployment__data_download_links',
+            'deployment__submission_count',
+            'deployment__last_submission_time',
+            'deployment__encrypted',
+            'deployment__uuid',
+            'deployment_status',
+            'report_styles',
+            'report_custom',
+            'advanced_features',
+            'advanced_submission_schema',
+            'analysis_form_json',
+            'map_styles',
+            'map_custom',
+            'content',
+            'downloads',
+            'embeds',
+            'xform_link',
+            'hooks_link',
+            'tag_string',
+            'uid',
+            'kind',
+            'xls_link',
+            'name',
+            'assignable_permissions',
+            'permissions',
+            'effective_permissions',
+            'exports',
+            'export_settings',
+            'settings',
+            'data',
+            'children',
+            'subscribers_count',
+            'status',
+            'access_types',
+            'data_sharing',
+            'paired_data',
+            'project_ownership',
+            'owner_label',
+            'last_modified_by'
+        )
+        read_only_fields = ('last_modified_by', 'uid')
         extra_kwargs = {
             'parent': {
                 'lookup_field': 'uid',
             },
-            'uid': {
-                'read_only': True,
-            },
         }
+
+    def create(self, validated_data):
+        current_owner = validated_data['owner']
+        real_owner = get_real_owner(current_owner)
+        if real_owner != current_owner:
+            with transaction.atomic():
+                validated_data['owner'] = real_owner
+                validated_data['is_excluded_from_projects_list'] = True
+                instance = super().create(validated_data)
+                # Does not assign any `*_submissions` permissions because the asset
+                # type equals 'empty'.
+                instance.assign_perm(current_owner, PERM_MANAGE_ASSET)
+        else:
+            validated_data['is_excluded_from_projects_list'] = False
+            instance = super().create(validated_data)
+
+        return instance
 
     def update(self, asset, validated_data):
         request = self.context['request']
         user = request.user
 
+        perms = asset.get_perms(user)
+        validated_data['last_modified_by'] = user.username
         self._set_asset_ids_cache(asset)
 
-        if (
-            not asset.has_perm(user, PERM_CHANGE_ASSET)
-            and user_has_project_view_asset_perm(asset, user, PERM_CHANGE_METADATA_ASSET)
+        if PERM_CHANGE_ASSET not in perms and user_has_project_view_asset_perm(
+            asset, user, PERM_CHANGE_METADATA_ASSET
         ):
             _validated_data = {}
-            if settings := validated_data.get('settings'):
-                _validated_data['settings'] = settings
+            if settings_ := validated_data.get('settings'):
+                _validated_data['settings'] = settings_
             if name := validated_data.get('name'):
                 _validated_data['name'] = name
             return super().update(asset, _validated_data)
@@ -443,7 +472,25 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                     'translations': str(err)
                 })
             validated_data['content'] = asset_content
-        return super().update(asset, validated_data)
+        asset = super().update(asset, validated_data)
+
+        # Restore submission related permissions to the creator of the form
+        if (
+            not asset.has_deployment
+            and asset.asset_type == ASSET_TYPE_SURVEY
+            and PERM_MANAGE_ASSET in perms
+            and not any([perm.endswith('_submissions') for perm in perms])
+        ):
+            # This should only occur when a member of an organization creates a project.
+            # In that case, the request user is the one who just created the project.
+            # If not, something went wrong — we raise a 500 to avoid accidentally
+            # granting full permissions to the wrong user.
+            assert user.username == asset.created_by
+            # Reset permission. Safer than adding missing permissions.
+            asset.remove_perm(user, PERM_MANAGE_ASSET)
+            asset.assign_perm(user, PERM_MANAGE_ASSET)
+
+        return asset
 
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
@@ -578,10 +625,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         else:
             return obj.deployment.version_id
 
-    def get_deployment__identifier(self, obj):
-        if obj.has_deployment:
-            return obj.deployment.identifier
-
     def get_deployment__active(self, obj):
         return obj.has_deployment and obj.deployment.active
 
@@ -591,11 +634,23 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         else:
             return {}
 
+    def get_deployment__encrypted(self, obj):
+        if obj.has_deployment:
+            return obj.deployment.is_encrypted
+        else:
+            return False
+
     def get_deployment__data_download_links(self, obj):
         if obj.has_deployment:
             return obj.deployment.get_data_download_links()
         else:
             return {}
+
+    def get_deployment__last_submission_time(self, obj):
+        if obj.has_deployment:
+            return obj.deployment.last_submission_time
+        else:
+            return None
 
     def get_deployment__submission_count(self, obj):
         if not obj.has_deployment:
@@ -619,6 +674,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             return obj.deployment.submission_count
 
         return None
+
+    def get_deployment__uuid(self, obj):
+        return obj.deployment.form_uuid if obj.has_deployment else None
 
     def get_assignable_permissions(self, asset):
         return [
@@ -660,10 +718,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # No need to read all permissions if `AnonymousUser`'s permissions
         # are found.
         # We assume that `settings.ANONYMOUS_USER_ID` equals -1.
-        perm_assignments = asset.permissions. \
-            values('user_id', 'permission__codename'). \
-            exclude(user_id=asset.owner_id). \
-            order_by('user_id', 'permission__codename')
+        perm_assignments = (
+            asset.permissions.values('user_id', 'permission__codename')
+            .exclude(user_id=asset.owner_id)
+            .order_by('user_id', 'permission__codename')
+        )
 
         return self._get_status(perm_assignments)
 
@@ -688,6 +747,31 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             queryset.all(), many=True, read_only=True, context=context
         ).data
 
+    def get_project_ownership(self, asset) -> Optional[dict]:
+        if not (transfer := asset.transfers.order_by('-date_created').first()):
+            return
+
+        request = self.context.get('request')
+        user = get_database_user(request.user)
+
+        # Do not provide info if user is not concerned by last invite
+        if not (
+            transfer.invite.sender_id == user.pk
+            or transfer.invite.recipient_id == user.pk
+        ):
+            return
+
+        return {
+            'invite': reverse(
+                'project-ownership-invite-detail',
+                args=(transfer.invite.uid,),
+                request=self.context.get('request', None),
+            ),
+            'sender': transfer.invite.sender.username,
+            'recipient': transfer.invite.recipient.username,
+            'status': transfer.invite.status
+        }
+
     def get_exports(self, obj: Asset) -> str:
         return reverse(
             'asset-export-list',
@@ -695,22 +779,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             request=self.context.get('request', None),
         )
 
-    def get_export_settings(self, obj: Asset) -> ReturnList:
-        return AssetExportSettingsSerializer(
-            AssetExportSettings.objects.filter(asset=obj),
-            many=True,
-            read_only=True,
-            context=self.context,
-        ).data
-
-    def get_access_types(self, obj):
+    def get_access_types(self, asset):
         """
         Handles the detail endpoint but also takes advantage of the
         `AssetViewSet.get_serializer_context()` "cache" for the list endpoint,
         if it is present
         """
         # Avoid extra queries if obj is not a collection
-        if obj.asset_type != ASSET_TYPE_COLLECTION:
+        if asset.asset_type != ASSET_TYPE_COLLECTION:
             return None
 
         # User is the owner
@@ -720,7 +796,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             return None
 
         access_types = []
-        if request.user == obj.owner:
+        if request.user == asset.owner:
             access_types.append('owned')
 
         # User can view the collection.
@@ -728,9 +804,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             # The list view should provide a cache
             asset_permission_assignments = self.context[
                 'object_permissions_per_asset'
-            ].get(obj.pk)
+            ].get(asset.pk)
         except KeyError:
-            asset_permission_assignments = obj.permissions.all()
+            asset_permission_assignments = asset.permissions.all()
 
         # We test at the same time whether the collection is public or not
         for obj_permission in asset_permission_assignments:
@@ -742,13 +818,13 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             ):
                 access_types.append('public')
 
-                if request.user == obj.owner:
+                if request.user == asset.owner:
                     # Do not go further, `access_type` cannot be `shared`
                     # and `owned`
                     break
 
             if (
-                request.user != obj.owner
+                request.user != asset.owner
                 and not obj_permission.deny
                 and obj_permission.user == request.user
             ):
@@ -763,10 +839,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         try:
             # The list view should provide a cache
             subscriptions = self.context['user_subscriptions_per_asset'].get(
-                obj.pk, []
+                asset.pk, []
             )
         except KeyError:
-            subscribed = obj.has_subscribed_user(request.user.pk)
+            subscribed = asset.has_subscribed_user(request.user.pk)
         else:
             subscribed = request.user.pk in subscriptions
         if subscribed:
@@ -776,12 +852,43 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         if request.user.is_superuser:
             access_types.append('superuser')
 
+        try:
+            organization = self.context['organizations_per_asset'].get(asset.id)
+        except KeyError:
+            # Fallback on context if it exists (i.e.: asset lists of an organization).
+            # Otherwise, retrieve from the asset owner.
+            organization = self.context.get(
+                'organization', asset.owner.organization
+            )
+
+        if organization.get_user_role(request.user) == ORG_ADMIN_ROLE:
+            access_types.extend(['shared', 'org-admin'])
+            access_types = list(set(access_types))
+
         if not access_types:
             raise Exception(
                 f'{request.user.username} has unexpected access to {obj.uid}'
             )
 
         return access_types
+
+    def get_owner_label(self, asset):
+        try:
+            organization = self.context['organizations_per_asset'].get(asset.id)
+        except KeyError:
+            # Fallback on context if it exists (i.e.: asset lists of an organization).
+            # Otherwise, retrieve from the asset owner.
+            organization = self.context.get(
+                'organization', asset.owner.organization
+            )
+
+        if (
+            organization
+            and organization.is_owner(asset.owner)
+            and organization.is_mmo
+        ):
+            return organization.name
+        return asset.owner.username
 
     def validate_data_sharing(self, data_sharing: dict) -> dict:
         """
@@ -868,6 +975,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return {**self.instance.settings, **settings}
 
     def _content(self, obj):
+        # FIXME: Is this dead code?
         return json.dumps(obj.content)
 
     def _get_status(self, perm_assignments):
@@ -918,9 +1026,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def _table_url(self, obj):
         request = self.context.get('request', None)
-        return reverse('asset-table-view',
-                       args=(obj.uid,),
-                       request=request)
+        return reverse('asset-table-view', args=(obj.uid,), request=request)
 
 
 class AssetListSerializer(AssetSerializer):
@@ -929,37 +1035,42 @@ class AssetListSerializer(AssetSerializer):
         # WARNING! If you're changing something here, please update
         # `Asset.optimize_queryset_for_list()`; otherwise, you'll cause an
         # additional database query for each asset in the list.
-        fields = ('url',
-                  'date_created',
-                  'date_modified',
-                  'date_deployed',
-                  'owner',
-                  'summary',
-                  'owner__username',
-                  'parent',
-                  'uid',
-                  'tag_string',
-                  'settings',
-                  'kind',
-                  'name',
-                  'asset_type',
-                  'version_id',
-                  'has_deployment',
-                  'deployed_version_id',
-                  'deployment__identifier',
-                  'deployment__active',
-                  'deployment__submission_count',
-                  'deployment_status',
-                  'permissions',
-                  'export_settings',
-                  'downloads',
-                  'data',
-                  'subscribers_count',
-                  'status',
-                  'access_types',
-                  'children',
-                  'data_sharing'
-                  )
+        fields = (
+            'url',
+            'date_created',
+            'date_modified',
+            'date_deployed',
+            'owner',
+            'summary',
+            'owner__username',
+            'parent',
+            'uid',
+            'tag_string',
+            'settings',
+            'kind',
+            'name',
+            'asset_type',
+            'version_id',
+            'has_deployment',
+            'deployed_version_id',
+            'deployment__active',
+            'deployment__submission_count',
+            'deployment__last_submission_time',
+            'deployment__encrypted',
+            'deployment__uuid',
+            'deployment_status',
+            'permissions',
+            'export_settings',
+            'downloads',
+            'data',
+            'subscribers_count',
+            'status',
+            'access_types',
+            'children',
+            'data_sharing',
+            'owner_label',
+            'last_modified_by',
+        )
 
     def get_permissions(self, asset):
         try:
@@ -969,7 +1080,7 @@ class AssetListSerializer(AssetSerializer):
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
             # in the list context, `object_permissions_per_asset` should
-            # be always a property of `self.context`
+            # always be a property of `self.context`
             return super().get_permissions(asset)
 
         context = self.context
@@ -1060,9 +1171,14 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'has_deployment',
             'deployment__active',
             'deployment__submission_count',
+            'deployment__encrypted',
+            'deployment__last_submission_time',
+            'deployment__uuid',
             'deployment_status',
             'asset_type',
             'downloads',
+            'owner_label',
+            'last_modified_by',
         )
 
     def get_deployment__submission_count(self, obj: Asset) -> int:

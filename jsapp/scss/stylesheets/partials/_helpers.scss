@@ -21,8 +21,8 @@
   *text-indent: -9999px;
 }
 
-.ir:before {
-  content: "";
+.ir::before {
+  content: '';
   display: block;
   width: 0;
   height: 150%;
@@ -58,13 +58,13 @@
   visibility: hidden;
 }
 
-.clearfix:before,
-.clearfix:after {
-  content: " ";
+.clearfix::before,
+.clearfix::after {
+  content: ' ';
   display: table;
 }
 
-.clearfix:after {
+.clearfix::after {
   clear: both;
 }
 

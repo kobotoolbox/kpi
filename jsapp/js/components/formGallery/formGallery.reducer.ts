@@ -1,14 +1,14 @@
-import type {SubmissionResponse} from 'js/dataInterface';
-import type {FormGalleryAction} from './formGallery.actions';
+import type { SubmissionResponse } from '#/dataInterface'
+import type { FormGalleryAction } from './formGallery.actions'
 
 interface State {
-  submissions: SubmissionResponse[];
-  isLoading: boolean;
-  next: string | null;
-  isFullscreen: boolean;
-  filterQuestion: string | null;
-  startDate: string;
-  endDate: string;
+  submissions: SubmissionResponse[]
+  isLoading: boolean
+  next: string | null
+  isFullscreen: boolean
+  filterQuestion: string | null
+  startDate: string
+  endDate: string
 }
 
 export const initialState: State = {
@@ -20,7 +20,7 @@ export const initialState: State = {
   filterQuestion: null,
   startDate: '',
   endDate: '',
-};
+}
 
 export function reducer(state: State, action: FormGalleryAction): State {
   switch (action.type) {
@@ -30,23 +30,23 @@ export function reducer(state: State, action: FormGalleryAction): State {
         isLoading: true,
         submissions: [],
         next: null,
-      };
+      }
     case 'getSubmissionsCompleted':
       return {
         ...state,
         isLoading: false,
         submissions: action.resp.results,
         next: action.resp.next,
-      };
+      }
     case 'getSubmissionsFailed':
       return {
         ...state,
         isLoading: false,
-      };
+      }
     case 'loadMoreSubmissions':
       return {
         ...state,
-        isLoading: true
+        isLoading: true,
       }
     case 'loadMoreSubmissionsCompleted':
       return {
@@ -54,27 +54,27 @@ export function reducer(state: State, action: FormGalleryAction): State {
         isLoading: false,
         submissions: [...state.submissions, ...action.resp.results],
         next: action.resp.next,
-      };
+      }
     case 'toggleFullscreen':
       return {
         ...state,
         isFullscreen: !state.isFullscreen,
-      };
+      }
     case 'setFilterQuestion':
       return {
         ...state,
         filterQuestion: action.question,
-      };
+      }
     case 'setStartDate':
       return {
         ...state,
         startDate: action.value,
-      };
+      }
     case 'setEndDate':
       return {
         ...state,
         endDate: action.value,
-      };
+      }
   }
-  return state;
+  return state
 }

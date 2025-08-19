@@ -1,0 +1,16 @@
+.root {
+  padding: 12px 24px;
+
+  &:not(:last-child) {
+    margin-bottom: 24px;
+  }
+
+  &:not(:first-child) {
+    margin-top: 24px;
+  }
+}
+
+.message {
+  font-size: var(--mantine-font-size-md);
+  color: var(--mantine-color-gray-1);
+}

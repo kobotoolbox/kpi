@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.utils.translation import gettext_lazy as t
 from rest_framework import exceptions, status
+from rest_framework.exceptions import APIException
 
 
 class AbstractMethodError(NotImplementedError):
@@ -25,6 +26,10 @@ class AssetAdjustContentError(Exception):
 
 
 class AttachmentNotFoundException(Exception):
+    pass
+
+
+class AttachmentUidMismatchException(Exception):
     pass
 
 
@@ -66,6 +71,28 @@ class DeploymentNotFound(Exception):
         super().__init__(message)
 
 
+class DTDForbiddenException(Exception):
+    """
+    Exception to be used when DTDs are forbidden while parsing XML using the
+    LXML library
+    """
+
+    def __init__(self, message=t('XML contains forbidden DTDs')):
+        self.message = message
+        super().__init__(self.message)
+
+
+class EntitiesForbiddenException(Exception):
+    """
+    Exception to be used when Entities are forbidden while parsing XML
+    using the LXML library
+    """
+
+    def __int__(self, message=t('XML contains forbidden entities')):
+        self.message = message
+        super().__init__(self.message)
+
+
 class FFMpegException(Exception):
     pass
 
@@ -91,7 +118,8 @@ class InvalidSearchException(exceptions.APIException):
 
 
 class InvalidXFormException(Exception):
-    pass
+    def __init__(self, message=t('Deployment links to an unexpected KoboCAT XForm')):
+        super().__init__(message)
 
 
 class InvalidXPathException(Exception):
@@ -134,6 +162,10 @@ class KobocatProfileException(Exception):
     pass
 
 
+class MissingXFormException(Exception):
+    pass
+
+
 class NotSupportedFormatException(Exception):
     pass
 
@@ -164,6 +196,18 @@ class ReadOnlyModelError(Exception):
         super().__init__(msg, *args, **kwargs)
 
 
+class RetryAfterAPIException(APIException):
+    default_code = 'retry_after'
+    default_detail = 'Please try again later.'
+    status_code = 429
+
+    def __init__(self, detail=None, retry_after=60):
+        if detail is None:
+            detail = self.default_detail
+        self.retry_after = retry_after
+        super().__init__(detail)
+
+
 class SearchQueryTooShortException(InvalidSearchException):
     default_detail = t('Your query is too short')
     default_code = 'query_too_short'
@@ -175,6 +219,12 @@ class SubmissionIntegrityError(Exception):
 
 class SubmissionNotFoundException(Exception):
     pass
+
+
+class UsageLimitExceededException(exceptions.APIException):
+    status_code = status.HTTP_402_PAYMENT_REQUIRED
+    default_detail = t('The owner of this asset has exeeded their usage limit')
+    default_code = 'usage_limit_exceeded'
 
 
 class XPathNotFoundException(Exception):

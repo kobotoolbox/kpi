@@ -1,24 +1,23 @@
 # coding: utf-8
 import re
-from datetime import datetime, date
+from datetime import date, datetime
 
 from django.contrib.auth.decorators import user_passes_test
 from django.core.files.storage import default_storage
-from django.http import HttpResponse, StreamingHttpResponse, Http404
+from django.http import Http404, HttpResponse, StreamingHttpResponse
 from django.urls import reverse
 from django.utils import timezone
 
 from kobo.settings.base import KOBOFORM_URL
 from .tasks import (
-    generate_country_report,
     generate_continued_usage_report,
+    generate_country_report,
     generate_domain_report,
     generate_forms_count_by_submission_range,
     generate_media_storage_report,
-    generate_user_count_by_organization,
-    generate_user_statistics_report,
     generate_user_details_report,
     generate_user_report,
+    generate_user_statistics_report,
 )
 
 
@@ -224,35 +223,6 @@ def media_storage(request):
 
 
 @user_passes_test(lambda u: u.is_superuser)
-def user_count_by_organization(request):
-    """
-    Generates a report that counts the number of users per organization
-    """
-    # Generate the file basename
-    base_filename = 'user-count-by-organization_{}_{}_{}.csv'.format(
-        re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
-        date.today(),
-        datetime.now().microsecond
-    )
-
-    # Generate the CSV file
-    filename = _base_filename_to_full_filename(
-        base_filename, request.user.username)
-    generate_user_count_by_organization.delay(filename)
-
-    # Generate page text
-    template_ish = (
-        f'<html><head><title>Users by organization report</title></head>'
-        f'<body>Your report is being generated. Once finished, it will be '
-        f'available at <a href="{base_filename}">{base_filename}</a>.<br>'
-        f'If you receive a 404, please refresh your browser periodically until '
-        f'your request succeeds.</body></html>'
-    )
-
-    return HttpResponse(template_ish)
-
-
-@user_passes_test(lambda u: u.is_superuser)
 def user_report(request):
     """
     Generates a detailed report with a users details
@@ -330,6 +300,7 @@ def user_statistics_report(request):
     return HttpResponse(template_ish)
 
 
+@user_passes_test(lambda u: u.is_superuser)
 def user_details_report(request):
 
     # Get the date filters from the query and set defaults

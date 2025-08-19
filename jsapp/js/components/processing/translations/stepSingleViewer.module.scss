@@ -1,0 +1,15 @@
+@use 'scss/breakpoints';
+
+.newButtonLabel {
+  display: none;
+}
+
+@include breakpoints.breakpoint(wideAndUp) {
+  .newButtonLabel {
+    display: initial;
+  }
+
+  .newButtonLabelShort {
+    display: none;
+  }
+}

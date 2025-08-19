@@ -1,21 +1,20 @@
-@use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/breakpoints';
+@use 'scss/mixins';
+@use 'scss/colors';
 
-@media print {
-  .root {
+.root {
+  width: 100%;
+
+  @media print {
     display: none;
   }
 }
 
-.root {
-  width: 100%;
-}
-
 .tabs {
   background: colors.$kobo-white;
-  border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
+  border-bottom: 1px solid colors.$kobo-gray-300;
   text-align: center;
-  height: sizes.$x48;
+  height: 48px;
   position: relative;
   display: flex;
   flex-direction: row;
@@ -26,28 +25,56 @@
 .tab {
   background: transparent;
   border: none;
-  border-bottom: sizes.$x2 solid transparent;
+  border-bottom: 2px solid transparent;
   text-transform: uppercase;
-  line-height: sizes.$x48;
-  margin: 0 sizes.$x30;
-  font-size: sizes.$x15;
+  line-height: 48px;
   cursor: pointer;
   position: relative;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
   font-weight: normal;
 
   &:hover,
   &.active {
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
   }
 
   &.active {
     font-weight: 700;
-    border-bottom: sizes.$x4 solid colors.$kobo-teal;
+    border-bottom: 4px solid colors.$kobo-teal;
   }
 
   &.disabled {
     pointer-events: none;
     opacity: 0.5;
+  }
+}
+
+@include breakpoints.breakpoint(veryNarrow) {
+  .tabs {
+    padding-left: 10px;
+    padding-right: 10px;
+    gap: 15px;
+  }
+
+  .tab {
+    @include mixins.textEllipsis;
+  }
+}
+
+@include breakpoints.breakpoint(narrow) {
+  .tabs {
+    gap: 30px;
+  }
+}
+
+@include breakpoints.breakpoint(narrowAndUp) {
+  .tab {
+    font-size: 15px;
+  }
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .tabs {
+    gap: 60px;
   }
 }

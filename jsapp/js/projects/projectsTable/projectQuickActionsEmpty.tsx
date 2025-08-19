@@ -1,8 +1,9 @@
-import React from 'react';
-import Button from 'js/components/common/button';
-import styles from './projectActions.module.scss';
+import React from 'react'
 
-const NO_PROJECT_SELECTED = t('No project selected');
+import Button from '#/components/common/button'
+import styles from './projectActions.module.scss'
+
+const NO_PROJECT_SELECTED = t('No project selected')
 
 /**
  * Inactive Quick Actions buttons. Show these when zero projects are selected
@@ -14,8 +15,7 @@ export default function ProjectQuickActionsEmpty() {
       {/* Archive / Unarchive */}
       <Button
         isDisabled
-        type='bare'
-        color='storm'
+        type='secondary'
         size='s'
         startIcon='archived'
         tooltip={t('Archive/Unarchive') + ' – ' + NO_PROJECT_SELECTED}
@@ -25,8 +25,7 @@ export default function ProjectQuickActionsEmpty() {
       {/* Share */}
       <Button
         isDisabled
-        type='bare'
-        color='storm'
+        type='secondary'
         size='s'
         startIcon='user-share'
         tooltip={t('Share project') + ' – ' + NO_PROJECT_SELECTED}
@@ -36,13 +35,12 @@ export default function ProjectQuickActionsEmpty() {
       {/* Delete */}
       <Button
         isDisabled
-        type='bare'
-        color='storm'
+        type='secondary-danger'
         size='s'
         startIcon='trash'
         tooltip={t('Delete') + ' – ' + NO_PROJECT_SELECTED}
         tooltipPosition='right'
       />
     </div>
-  );
+  )
 }

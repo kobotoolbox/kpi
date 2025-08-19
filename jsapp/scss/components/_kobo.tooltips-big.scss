@@ -1,26 +1,26 @@
 @use 'scss/z-indexes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/breakpoints';
+@use 'scss/colors';
 
 // This is an alternative tooltip component for displaying more complex content;
 // if possible use the other one (`data-tip` from `_kobo.tooltips.scss`)
-@media screen and (max-width: 767px) {
-  .k-tooltip {
-    display: none;
-  }
+.k-tooltip {
+  display: none;
 }
 
-@media screen and (min-width: 768px) {
+@media screen and (min-width: breakpoints.$b768) {
   .k-tooltip__parent {
     position: relative;
 
     .k-tooltip {
+      display: block;
       pointer-events: none;
       position: absolute;
       font-size: 13px;
       font-weight: normal;
       line-height: 1.35em;
       color: colors.$kobo-white;
-      background-color: colors.$kobo-gray-40;
+      background-color: colors.$kobo-gray-700;
       padding: 6px 12px;
       top: calc(100% + 6px);
       left: 50%;
@@ -44,12 +44,12 @@
       }
 
       &::before {
-        border-bottom: 5px solid colors.$kobo-gray-40;
+        border-bottom: 5px solid colors.$kobo-gray-700;
         border-left: 5px solid transparent;
         border-right: 5px solid transparent;
         position: absolute;
         top: -5px;
-        content: "";
+        content: '';
         width: 0;
         height: 0;
         left: 50%;

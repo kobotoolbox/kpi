@@ -1,6 +1,7 @@
 # coding: utf-8
-import xml.etree.ElementTree as ET
 import re
+
+from defusedxml import ElementTree as ET
 
 from kpi.utils.hash import calculate_hash
 

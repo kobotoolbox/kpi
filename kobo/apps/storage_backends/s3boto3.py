@@ -2,10 +2,12 @@
 
 import logging
 
-import storages.backends.s3boto3 as upstream
+import storages.backends.s3 as upstream
+from django.utils.deconstruct import deconstructible
 
 
-class S3Boto3StorageFile(upstream.S3Boto3StorageFile):
+@deconstructible
+class S3File(upstream.S3File):
     def __init__(self, name, mode, storage, buffer_size=None):
         super().__init__(name, mode, storage, buffer_size)
         self._remote_file_size = 0
@@ -31,9 +33,10 @@ class S3Boto3StorageFile(upstream.S3Boto3StorageFile):
             self.file.truncate()
 
 
-upstream.S3Boto3StorageFile = S3Boto3StorageFile
+upstream.S3File = S3File
 
 
-class S3Boto3Storage(upstream.S3Boto3Storage):
-    # Uses the overridden S3Boto3StorageFile
+@deconstructible
+class S3Boto3Storage(upstream.S3Storage):
+    # Uses the overridden S3File
     pass

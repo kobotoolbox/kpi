@@ -244,6 +244,7 @@ do ->
         ,end group,,
         """
       ###
+      return
 
     describe 'group creation', ->
       beforeEach ->

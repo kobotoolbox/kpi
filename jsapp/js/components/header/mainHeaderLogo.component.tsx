@@ -1,8 +1,9 @@
-import React from 'react';
-import bem, {makeBem} from 'js/bem';
+import React from 'react'
 
-bem.Header = makeBem(null, 'header');
-bem.Header__logo = makeBem(bem.Header, 'logo', 'span');
+import bem, { makeBem } from '#/bem'
+
+bem.Header = makeBem(null, 'header')
+bem.Header__logo = makeBem(bem.Header, 'logo', 'span')
 
 /**
  * Instance logo to be displayed in the app header.
@@ -17,5 +18,5 @@ export default function MainHeaderLogo() {
         <bem.Header__logo />
       </a>
     </span>
-  );
+  )
 }

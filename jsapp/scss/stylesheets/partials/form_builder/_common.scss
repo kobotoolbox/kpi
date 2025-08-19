@@ -1,10 +1,10 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 %card-content {
   border: $cardBorderStyle;
   border-top-width: 1px;
   background: colors.$kobo-white;
-  margin-top:-2px;
+  margin-top: -2px;
   position: relative;
 }
 
@@ -12,28 +12,31 @@
     border: $cardBorderStyle;
     border-top-width: 1px;
     background: colors.$kobo-white;
-    margin-top:-2px;
+    margin-top: -2px;
     position: relative;
 
-    &:after, &:before {
+    &::after,
+ &::before {
         bottom: 100%;
         left: 50%;
         border: solid transparent;
-        content: " ";
+        content: ' ';
         height: 0;
         width: 0;
         position: absolute;
         pointer-events: none;
     }
-    &:after {
+
+    &::after {
         border-color: rgba(colors.$kobo-white, 0);
         border-bottom-color: colors.$kobo-white;
         border-width: 8px;
         margin-left: -8px;
     }
-    &:before {
-        border-color: rgba(colors.$kobo-gray-65, 0);
-        border-bottom-color: colors.$kobo-gray-65;
+
+    &::before {
+        border-color: rgba(colors.$kobo-gray-500, 0);
+        border-bottom-color: colors.$kobo-gray-500;
         border-width: 9px;
         margin-left: -9px;
     }

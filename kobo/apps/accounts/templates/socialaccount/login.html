@@ -1,4 +1,4 @@
-{% extends "socialaccount/base.html" %}
+{% extends "account/base.html" %}
 {% load static %}
 {% load i18n %}
 {% load get_provider_appname %}
@@ -13,30 +13,31 @@
     {# "Connect" #}
     <h1>{% trans "Set up Single Sign On" %}</h1>
                    {# "Connect with SSO" #}
-    <p>{% blocktrans %}Click the button below to connect your KoboToolbox account with your {{ appname }} account.{% endblocktrans %}
+    <p>{% blocktrans trimmed %}Click the button below to connect your KoboToolbox account with your {{ appname }} account.{% endblocktrans %}
     </p>
     <p>{% trans "This will allow you to use single sign-on (SSO) in the future." %}</p>
     <button
       type="submit"
       class="kobo-button kobo-button--sso kobo-button--fullwidth"
     >
-      {% blocktrans %}Connect with {{ appname }}{% endblocktrans %}
+      {% blocktrans trimmed %}Connect with {{ appname }}{% endblocktrans %}
     </button>
   {% else %}
     {# "Log in" #}
     <h1>{% trans "Log in with " %} {{ appname }}</h1>
 
-    <p>{% blocktrans %}Log in to KoboToolbox with your {{ appname }} account.{% endblocktrans %}</p>
+    <p>{% blocktrans trimmed %}Log in to KoboToolbox with your {{ appname }} account.{% endblocktrans %}</p>
     <button
       type="submit"
       class="kobo-button kobo-button--sso kobo-button--fullwidth"
     >
-      {% blocktrans %}Log in{% endblocktrans %}
+      {% blocktrans trimmed %}Log in{% endblocktrans %}
     </button>
   {% endif %}
   {% csrf_token %}
   <p class="or-go-back">
-    {% trans "or" %} <a href="javascript:history.back()">{% trans "go back" %}</a>
+    {% trans "or" %} <a href="{% url 'account_login' %}">{% trans "go back" %}</a>
   </p>
+  {% include "../legal/registration_legal.html" with config=config %}
 </form>
 {% endblock %}

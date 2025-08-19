@@ -1,0 +1,23 @@
+.kobo-pot-transfers ul {
+  margin-left: unset !important;
+  padding-left: unset !important;
+}
+
+.kobo-pot-transfers div.readonly {
+  padding: unset !important;
+}
+
+.aligned.kobo-pot-transfers label {
+  min-width: 60px !important;
+  width: 60px !important;
+  font-weight: bold;
+}
+
+.kobo-pot-transfers ol>li {
+  list-style-type: square !important;
+  list-style-position: outside !important;
+}
+
+.kobo-pot-transfers .error {
+  color: red;
+}

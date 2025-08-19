@@ -2,27 +2,27 @@ from django.core.exceptions import ValidationError
 from djstripe.models import (
     Price,
     Product,
-    Session,
     Subscription,
     SubscriptionItem,
     SubscriptionSchedule,
 )
 from rest_framework import serializers
 
+from kobo.apps.stripe.models import PlanAddOn
+
 
 class OneTimeAddOnSerializer(serializers.ModelSerializer):
-    payment_intent = serializers.SlugRelatedField(
-        slug_field='status',
-        read_only=True,
-        many=False,
-    )
-
     class Meta:
-        model = Session
+        model = PlanAddOn
         fields = (
-            'metadata',
+            'id',
             'created',
-            'payment_intent',
+            'is_available',
+            'usage_limits',
+            'total_usage_limits',
+            'limits_remaining',
+            'organization',
+            'product',
         )
 
 
@@ -70,6 +70,7 @@ class ChangePlanSerializer(PriceIdSerializer):
         required=True,
         allow_empty=False,
     )
+    quantity = serializers.IntegerField(required=False, default=1, min_value=1)
 
     class Meta:
         model = Subscription
@@ -84,6 +85,7 @@ class CustomerPortalSerializer(serializers.Serializer):
         required=False,
         allow_empty=True,
     )
+    quantity = serializers.IntegerField(required=False, default=1, min_value=1)
 
     def validate_organization_id(self, organization_id):
         if organization_id.startswith('org'):
@@ -97,6 +99,7 @@ class CustomerPortalSerializer(serializers.Serializer):
 
 class CheckoutLinkSerializer(PriceIdSerializer):
     organization_id = serializers.CharField(required=False)
+    quantity = serializers.IntegerField(required=False, default=1, min_value=1)
 
 
 class PriceSerializer(BasePriceSerializer):
@@ -133,7 +136,7 @@ class SubscriptionItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SubscriptionItem
-        fields = ('id', 'price')
+        fields = ('id', 'price', 'quantity')
 
 
 class SubscriptionScheduleSerializer(serializers.ModelSerializer):

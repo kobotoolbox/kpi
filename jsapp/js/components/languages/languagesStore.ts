@@ -1,44 +1,45 @@
-import $ from 'jquery';
-import type {FailResponse} from 'js/dataInterface';
-import {ROOT_URL} from 'js/constants';
+import $ from 'jquery'
+import { endpoints } from '#/api.endpoints'
+import { ROOT_URL } from '#/constants'
+import type { FailResponse } from '#/dataInterface'
 
 /**
  * A language code is a string (type alias), but it is more helpful to pass it
  * around, than vague "string".
  */
-export type LanguageCode = string;
+export type LanguageCode = string
 
-export type TransxServiceCode = string;
+export type TransxServiceCode = string
 
 export interface LanguageBase {
   /** API endpoint for detailed language data. */
-  url: string;
-  name: string;
-  code: LanguageCode;
+  url: string
+  name: string
+  code: LanguageCode
   /** This marks the most popular and featured languages in UI. */
-  featured: boolean;
+  featured: boolean
 }
 
 /** Name and identifier of given service. */
 interface ListLanguageService {
-  code: TransxServiceCode;
-  name: string;
+  code: TransxServiceCode
+  name: string
 }
 
 export interface ListLanguage extends LanguageBase {
   /** A list of available transcription services for given language. */
-  transcription_services: ListLanguageService[];
+  transcription_services: ListLanguageService[]
   /** A list of available translation services for given language. */
-  translation_services: ListLanguageService[];
+  translation_services: ListLanguageService[]
 }
 
 interface DetailedLanguageRegion {
-  code: LanguageCode;
-  name: string;
+  code: LanguageCode
+  name: string
 }
 
 interface DetailedLanguageServices {
-  [serviceCode: TransxServiceCode]: {[languageCode: LanguageCode]: LanguageCode};
+  [serviceCode: TransxServiceCode]: { [languageCode: LanguageCode]: LanguageCode }
 }
 
 export interface DetailedLanguage extends LanguageBase {
@@ -46,17 +47,17 @@ export interface DetailedLanguage extends LanguageBase {
    * A list of regions for given language with their unique language codes,
    * e.g. "Canada", "Belgium", "France", and "Switzerland" for French (fr).
    */
-  regions: DetailedLanguageRegion[];
+  regions: DetailedLanguageRegion[]
   /**
    * A list of available transcription services for given language with a map of
    * "ours to theirs" language codes.
    */
-  transcription_services: DetailedLanguageServices;
+  transcription_services: DetailedLanguageServices
   /**
    * A list of available translation services for given language with a map of
    * "ours to theirs" language codes.
    */
-  translation_services: DetailedLanguageServices;
+  translation_services: DetailedLanguageServices
 }
 
 /**
@@ -68,8 +69,8 @@ export interface DetailedLanguage extends LanguageBase {
  * If you need a list of languages, please use `languagesStore`.
  */
 class LanguagesStore {
-  private detailedLanguages: Map<LanguageCode, DetailedLanguage> = new Map();
-  private languages: Map<LanguageCode, ListLanguage> = new Map();
+  private detailedLanguages: Map<LanguageCode, DetailedLanguage> = new Map()
+  private languages: Map<LanguageCode, ListLanguage> = new Map()
 
   /**
    * Returns a promise that gets you a single language (with extended data).
@@ -77,24 +78,24 @@ class LanguagesStore {
    */
   public getLanguage(languageCode: LanguageCode): Promise<DetailedLanguage> {
     return new Promise((resolve, reject) => {
-      const language = this.detailedLanguages.get(languageCode);
+      const language = this.detailedLanguages.get(languageCode)
       if (language) {
-        resolve(language);
+        resolve(language)
       } else {
         $.ajax({
           dataType: 'json',
           method: 'GET',
-          url: `${ROOT_URL}/api/v2/languages/${languageCode}/`,
+          url: `${ROOT_URL}${endpoints.LANGUAGE_DETAIL_URL.replace(':language_id', languageCode)}`,
         })
           .done((response: DetailedLanguage) => {
-            this.detailedLanguages.set(response.code, response);
-            resolve(response);
+            this.detailedLanguages.set(response.code, response)
+            resolve(response)
           })
           .fail((response: FailResponse) => {
-            reject(response.responseText);
-          });
+            reject(response.responseText)
+          })
       }
-    });
+    })
   }
 
   /**
@@ -104,8 +105,8 @@ class LanguagesStore {
    */
   public setListLanguages(languages: ListLanguage[]) {
     languages.forEach((language) => {
-      this.languages.set(language.code, language);
-    });
+      this.languages.set(language.code, language)
+    })
   }
 
   /**
@@ -115,22 +116,18 @@ class LanguagesStore {
   public getLanguageName(languageCode: LanguageCode): Promise<string> {
     return new Promise((resolve, reject) => {
       // First we try to get the name from memoized data.
-      const languageName = (
-        this.detailedLanguages.get(languageCode)?.name ||
-        this.languages.get(languageCode)?.name
-      );
+      const languageName = this.detailedLanguages.get(languageCode)?.name || this.languages.get(languageCode)?.name
       if (languageName) {
-        resolve(languageName);
+        resolve(languageName)
       } else {
         this.getLanguage(languageCode)
           .then((language: DetailedLanguage) => {
-            resolve(language.name);
+            resolve(language.name)
           })
-          .catch(reject);
+          .catch(reject)
       }
-    });
+    })
   }
 }
 
-export default new LanguagesStore();
-
+export default new LanguagesStore()

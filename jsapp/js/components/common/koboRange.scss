@@ -1,9 +1,9 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 @mixin rangeTrack() {
-  -webkit-appearance: none;
+  appearance: none;
   border-radius: 10px;
-  background: colors.$kobo-gray-92;
+  background: colors.$kobo-gray-300;
   height: 8px;
 }
 
@@ -26,7 +26,7 @@
   }
 
   .kobo-range__max-value {
-    color: colors.$kobo-gray-65;
+    color: colors.$kobo-gray-500;
   }
 
   .kobo-range__unit:not(:first-child) {
@@ -45,17 +45,19 @@ input[type='range'].kobo-range__input--default {
     box-shadow: -10005px 0 0 10000px colors.$kobo-blue;
   }
 }
+
 input[type='range'].kobo-range__input--warning {
   &::-moz-range-progress {
-    background-color: colors.$kobo-red;
+    background-color: colors.$kobo-mid-red;
   }
 
   // Chrome slider is hacked by using shadow
   &::-webkit-slider-thumb {
-    background-color: colors.$kobo-red;
-    box-shadow: -10005px 0 0 10000px colors.$kobo-red;
+    background-color: colors.$kobo-mid-red;
+    box-shadow: -10005px 0 0 10000px colors.$kobo-mid-red;
   }
 }
+
 input[type='range'].kobo-range__input--teal {
   &::-moz-range-progress {
     background-color: colors.$kobo-teal;
@@ -63,14 +65,14 @@ input[type='range'].kobo-range__input--teal {
 
   // Chrome slider is hacked by using shadow
   &::-webkit-slider-thumb {
-    background-color: colors.$kobo-red;
+    background-color: colors.$kobo-mid-red;
     box-shadow: -10005px 0 0 10000px colors.$kobo-teal;
   }
 }
 
 input[type='range'].kobo-range__input {
   // General input styling across browsers
-  -webkit-appearance: none;
+  appearance: none;
   width: 100%;
   background: transparent;
   cursor: pointer;
@@ -111,10 +113,10 @@ input[type='range'].kobo-range__input {
   }
 
   &::-moz-range-track {
-    @include rangeTrack
-  }
+    @include rangeTrack;
+ }
 
   &::-ms-track {
-    @include rangeTrack
-  }
+    @include rangeTrack;
+ }
 }

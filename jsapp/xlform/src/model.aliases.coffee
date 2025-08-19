@@ -36,19 +36,19 @@ module.exports = do ->
 
   q = {}
   q.groupable = ()->
-    _.flatten [
-                aliases('group')
-                aliases('repeat')
-                aliases('score')
-                aliases('rank')
-                aliases('kobomatrix')
-              ]
+    return _.flatten [
+      aliases('group')
+      aliases('repeat')
+      aliases('score')
+      aliases('rank')
+      aliases('kobomatrix')
+    ]
 
   q.groupsOrRepeats = ()->
-    _.flatten [aliases('group'), aliases('repeat')]
+    return _.flatten [aliases('group'), aliases('repeat')]
 
   q.requiredSheetNameList = ()->
-    ['survey']
+    return ['survey']
 
   q.testGroupable = (type)->
     # Returns an object if type is group or repeat (begin or end)
@@ -66,14 +66,14 @@ module.exports = do ->
       out = {type: 'kobomatrix'}
     if out and out.type
       out.begin = !type.match(/end/)
-    out
+    return out
 
   q.testGroupOrRepeat = (type)->
     console.error("q.testGroupOrRepeat is renamed to q.testGroupable")
-    q.testGroupable(type)
+    return q.testGroupable(type)
 
   q.hiddenTypes = ()->
-    _.flatten [
+    return _.flatten [
       ['imei', 'deviceid'],
       ['start'],
       ['end'],
@@ -87,4 +87,4 @@ module.exports = do ->
   aliases.custom = q
 
   aliases.q = aliases.custom
-  aliases
+  return aliases

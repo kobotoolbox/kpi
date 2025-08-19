@@ -1,53 +1,32 @@
-import type {ReactElement} from 'react';
-import React from 'react';
-import type {IconName} from 'jsapp/fonts/k-icons';
-import Icon from 'js/components/common/icon';
-import './inlineMessage.scss';
+import './inlineMessage.scss'
 
-export type InlineMessageType = 'default' | 'error' | 'success' | 'warning';
+import React from 'react'
+
+import cx from 'classnames'
+import Icon from '#/components/common/icon'
+import type { IconName } from '#/k-icons'
+
+/** Influences the background color and the icon color */
+export type InlineMessageType = 'default' | 'error' | 'success' | 'warning' | 'info'
 
 interface InlineMessageProps {
-  type: InlineMessageType;
-  icon?: IconName;
-  message: ReactElement<any, any> | string;
+  type: InlineMessageType
+  message: React.ReactNode
+  icon?: IconName
   /** Additional class names. */
-  classNames?: string[];
-  'data-cy'?: string;
+  className?: string
 }
 
 /**
- * An inline message component.
+ * An inline message component. It's a rounded corners box with a background and
+ * an optional icon displayed on the left side.
  */
-class InlineMessage extends React.Component<InlineMessageProps, {}> {
-  render() {
-    let classNames: string[] = [];
+export default function InlineMessage(props: InlineMessageProps) {
+  return (
+    <figure className={cx(['k-inline-message', `k-inline-message--type-${props.type}`, props.className])}>
+      {props.icon && <Icon name={props.icon} size='m' />}
 
-    // Additional class names.
-    if (this.props.classNames) {
-      classNames = this.props.classNames;
-    }
-
-    // Base class with mandatory ones.
-    classNames.push('k-inline-message');
-    classNames.push(`k-inline-message--type-${this.props.type}`);
-
-    return (
-      <figure className={classNames.join(' ')}>
-        {this.props.icon &&
-          <Icon name={this.props.icon} size='m'/>
-        }
-
-        {this.props.message &&
-          <p
-            className='k-inline-message__message'
-            data-cy={this.props['data-cy']}
-          >
-            {this.props.message}
-          </p>
-        }
-      </figure>
-    );
-  }
+      <p className='k-inline-message__message'>{props.message}</p>
+    </figure>
+  )
 }
-
-export default InlineMessage;

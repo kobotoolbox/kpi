@@ -1,6 +1,4 @@
-# coding: utf-8
-from django.contrib.auth.models import User
-
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     PERM_CHANGE_ASSET,

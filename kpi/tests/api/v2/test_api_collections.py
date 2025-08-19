@@ -1,12 +1,13 @@
 # coding: utf-8
 import re
 
-from django.contrib.auth.models import User, AnonymousUser
+from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from django.utils.translation import gettext as t
 from rest_framework import status
 from rest_framework.response import Response
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_BLOCK,
     ASSET_TYPE_COLLECTION,
@@ -49,16 +50,12 @@ class CollectionsTests(BaseTestCase):
         self.assertEqual(response.data['name'], 'my collection')
 
     def test_collection_detail(self):
-        url = reverse(
-            self._get_endpoint("asset-detail"), kwargs={"uid": self.coll.uid}
-        )
-        response = self.client.get(url, format="json")
-        self.assertEqual(response.data["name"], "test collection")
+        url = reverse(self._get_endpoint('asset-detail'), kwargs={'uid': self.coll.uid})
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.data['name'], 'test collection')
 
     def test_collection_delete(self):
-        url = reverse(
-            self._get_endpoint("asset-detail"), kwargs={"uid": self.coll.uid}
-        )
+        url = reverse(self._get_endpoint('asset-detail'), kwargs={'uid': self.coll.uid})
         # DRF will return 200 if JSON format is not specified
         # FIXME: why is `format='json'` as a keyword argument not working?!
         # https://www.django-rest-framework.org/api-guide/testing/#using-the-format-argument
@@ -68,9 +65,7 @@ class CollectionsTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_collection_rename(self):
-        url = reverse(
-            self._get_endpoint("asset-detail"), kwargs={"uid": self.coll.uid}
-        )
+        url = reverse(self._get_endpoint('asset-detail'), kwargs={'uid': self.coll.uid})
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['name'], 'test collection')
@@ -95,7 +90,7 @@ class CollectionsTests(BaseTestCase):
 
     def test_collection_filtered_list(self):
 
-        another_user = User.objects.get(username="anotheruser")
+        another_user = User.objects.get(username='anotheruser')
         list_url = reverse(self._get_endpoint('asset-list'))
         block = Asset.objects.create(
             asset_type=ASSET_TYPE_BLOCK,
@@ -186,7 +181,7 @@ class CollectionsTests(BaseTestCase):
         # Logged in as another user, retrieve public and discoverable collections.
         # Should have 1 because it returns all public collections no matter
         # if user has subscribed to it or not.
-        self.login_as_other_user(username="anotheruser", password="anotheruser")
+        self.login_as_other_user(username='anotheruser', password='anotheruser')
         query_string = 'status=public-discoverable&q=asset_type:collection'
         url = f'{list_url}?{query_string}'
         response = self.client.get(url)
@@ -219,56 +214,54 @@ class CollectionsTests(BaseTestCase):
 
     def test_collection_statuses_and_access_types(self):
 
-        another_user = User.objects.get(username="anotheruser")
+        another_user = User.objects.get(username='anotheruser')
 
         public_collection = Asset.objects.create(
             asset_type=ASSET_TYPE_COLLECTION,
             name='public collection',
-            owner=another_user
+            owner=another_user,
         )
         shared_collection = Asset.objects.create(
             asset_type=ASSET_TYPE_COLLECTION,
             name='shared collection',
-            owner=another_user
+            owner=another_user,
         )
         subscribed_collection = Asset.objects.create(
             asset_type=ASSET_TYPE_COLLECTION,
             name='subscribed collection',
-            owner=another_user
+            owner=another_user,
         )
 
         shared_subscribed_collection = Asset.objects.create(
             asset_type=ASSET_TYPE_COLLECTION,
             name='shared & subscribed collection',
-            owner=another_user
+            owner=another_user,
         )
 
         # Make `public_collection` and `subscribed_collection` public-discoverable
         public_collection.assign_perm(AnonymousUser(), PERM_DISCOVER_ASSET)
         subscribed_collection.assign_perm(AnonymousUser(), PERM_DISCOVER_ASSET)
-        shared_subscribed_collection.assign_perm(AnonymousUser(),
-                                                 PERM_DISCOVER_ASSET)
+        shared_subscribed_collection.assign_perm(AnonymousUser(), PERM_DISCOVER_ASSET)
 
         # Make `shared_collection` and `shared_subscribed_collection` shared
         shared_collection.assign_perm(self.someuser, PERM_VIEW_ASSET)
         shared_subscribed_collection.assign_perm(self.someuser, PERM_VIEW_ASSET)
 
         # Subscribe `someuser` to `subscribed_collection`.
-        subscription_url = reverse(
-            self._get_endpoint('userassetsubscription-list'))
+        subscription_url = reverse(self._get_endpoint('userassetsubscription-list'))
         asset_detail_url = self.absolute_reverse(
             self._get_endpoint('asset-detail'),
-            kwargs={'uid': subscribed_collection.uid})
-        response = self.client.post(subscription_url, data={
-            'asset': asset_detail_url})
+            kwargs={'uid': subscribed_collection.uid},
+        )
+        response = self.client.post(subscription_url, data={'asset': asset_detail_url})
         assert response.status_code == status.HTTP_201_CREATED
 
         # Subscribe `someuser` to `shared_subscribed_collection`.
         asset_detail_url = self.absolute_reverse(
             self._get_endpoint('asset-detail'),
-            kwargs={'uid': shared_subscribed_collection.uid})
-        response = self.client.post(subscription_url, data={
-            'asset': asset_detail_url})
+            kwargs={'uid': shared_subscribed_collection.uid},
+        )
+        response = self.client.post(subscription_url, data={'asset': asset_detail_url})
         assert response.status_code == status.HTTP_201_CREATED
 
         list_url = reverse(self._get_endpoint('asset-list'))
@@ -280,31 +273,27 @@ class CollectionsTests(BaseTestCase):
         expected = {
             'public collection': {
                 'status': 'public-discoverable',
-                'access_types': ['public']
+                'access_types': ['public'],
             },
             'shared collection': {
                 'status': 'shared',
-                'access_types': ['shared']
+                'access_types': ['shared'],
             },
             'subscribed collection': {
                 'status': 'public-discoverable',
-                'access_types': ['public', 'subscribed']
+                'access_types': ['public', 'subscribed'],
             },
-            'test collection': {
-                'status': 'private',
-                'access_types': ['owned']
-            },
+            'test collection': {'status': 'private', 'access_types': ['owned']},
             'shared & subscribed collection': {
                 'status': 'public-discoverable',
-                'access_types': ['public', 'shared', 'subscribed']
-            }
+                'access_types': ['public', 'shared', 'subscribed'],
+            },
         }
 
         for collection in response.data['results']:
             expected_collection = expected[collection.get('name')]
             assert expected_collection['status'] == collection['status']
-            assert expected_collection['access_types'] \
-                   == collection['access_types']
+            assert expected_collection['access_types'] == collection['access_types']
 
     def test_collection_subscribe(self):
         public_collection = Asset.objects.create(
@@ -314,7 +303,7 @@ class CollectionsTests(BaseTestCase):
         )
         public_collection.assign_perm(AnonymousUser(), PERM_DISCOVER_ASSET)
 
-        self.login_as_other_user(username="anotheruser", password="anotheruser")
+        self.login_as_other_user(username='anotheruser', password='anotheruser')
 
         asset_list_url = reverse(self._get_endpoint('asset-list'))
         coll_list_url = f'{asset_list_url}?q=asset_type:collection'
@@ -357,13 +346,12 @@ class CollectionsTests(BaseTestCase):
         )
         public_collection.assign_perm(AnonymousUser(), PERM_DISCOVER_ASSET)
 
-        self.login_as_other_user(username="anotheruser", password="anotheruser")
+        self.login_as_other_user(username='anotheruser', password='anotheruser')
 
         asset_list_url = reverse(self._get_endpoint('asset-list'))
         coll_list_url = f'{asset_list_url}?q=asset_type:collection'
         sub_list_url = reverse(self._get_endpoint('userassetsubscription-list'))
-        subscrbd_coll_url = \
-            f"{asset_list_url}?q=parent__uid:{public_collection.uid}"
+        subscrbd_coll_url = f'{asset_list_url}?q=parent__uid:{public_collection.uid}'
         pub_coll_url = BaseTestCase.absolute_reverse(
             self._get_endpoint('asset-detail'),
             kwargs={'uid': public_collection.uid},
@@ -378,11 +366,11 @@ class CollectionsTests(BaseTestCase):
         data = {'asset': pub_coll_url}
         response = self.client.post(sub_list_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        assert response.data["asset"] == pub_coll_url
+        assert response.data['asset'] == pub_coll_url
 
         # we should be able to get its children with its uid
         expected_child_uid = [
-            c for c in public_collection.children.values_list("uid", flat=True)
+            c for c in public_collection.children.values_list('uid', flat=True)
         ]
         response = self.client.get(subscrbd_coll_url)
         response_child_uid = [c['uid'] for c in response.data['results']]
@@ -397,14 +385,14 @@ class CollectionsTests(BaseTestCase):
         public_collection.assign_perm(AnonymousUser(), PERM_DISCOVER_ASSET)
 
         # subscribe with the ORM
-        another_user = User.objects.get(username="anotheruser")
+        another_user = User.objects.get(username='anotheruser')
         subscription = UserAssetSubscription.objects.create(
             user=another_user, asset=public_collection
         )
 
         asset_list_url = reverse(self._get_endpoint('asset-list'))
         coll_list_url = f'{asset_list_url}?q=asset_type:collection'
-        self.login_as_other_user(username="anotheruser", password="anotheruser")
+        self.login_as_other_user(username='anotheruser', password='anotheruser')
 
         # we should see the collection in our asset list
         response = self.client.get(coll_list_url)
@@ -428,7 +416,7 @@ class CollectionsTests(BaseTestCase):
         self.assertEqual(response.data['count'], 0)
 
     def test_collection_cannot_subscribe_if_not_public(self):
-        self.login_as_other_user(username="anotheruser", password="anotheruser")
+        self.login_as_other_user(username='anotheruser', password='anotheruser')
         asset_list_url = reverse(self._get_endpoint('asset-list'))
         coll_list_url = f'{asset_list_url}?q=asset_type:collection'
         sub_list_url = reverse(self._get_endpoint('userassetsubscription-list'))

@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 // alertify overrides
 
@@ -8,12 +8,12 @@
 }
 
 .alertify .ajs-dialog {
-  box-shadow: 2px 2px 15px 2px rgba(colors.$kobo-gray-24, 0.15);
+  box-shadow: 2px 2px 15px 2px rgba(colors.$kobo-gray-800, 0.15);
 }
 
 .alertify .ajs-header {
-  margin: 0px;
-  padding: 0px;
+  margin: 0;
+  padding: 0;
   padding-bottom: 18px;
   font-size: 18px;
   font-weight: bold;
@@ -22,28 +22,28 @@
 .alertify.ajs-closable .ajs-commands button {
   width: 32px;
   height: 32px;
-  padding: 0px;
+  padding: 0;
 }
 
 .alertify.ajs-closable .ajs-commands button.ajs-close {
   background: transparent;
   font-size: 24px;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
 
   &:hover {
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
   }
 }
 
-.alertify.ajs-closable .ajs-commands button.ajs-close:before {
+.alertify.ajs-closable .ajs-commands button.ajs-close::before {
   content: '\00d7';
 }
 
 .alertify.ajs-closable .ajs-commands {
-  margin: 0px;
+  margin: 0;
   top: 20px;
   right: 20px;
-  padding: 0px;
+  padding: 0;
 }
 
 .alertify .ajs-body {
@@ -51,7 +51,7 @@
 }
 
 .alertify .ajs-body .ajs-content {
-  padding: 0px;
+  padding: 0;
 
   pre {
     max-height: 250px;
@@ -66,12 +66,12 @@
 
 .alertify .ajs-dialog {
   max-width: 550px;
-  padding: 30px 30px 0 30px;
+  padding: 30px 30px 0;
 }
 
 .alertify .ajs-footer {
   margin: -4px;
-  padding: 17px 0px;
+  padding: 17px 0;
 
   .ajs-buttons.ajs-primary {
     text-align: right;
@@ -101,7 +101,7 @@
   }
 }
 
-@media screen and (max-height: 600px) {
+@media screen and (height <= 600px) {
   .alertify .ajs-dialog {
     margin-top: 4%;
     margin-bottom: 4%;
@@ -113,7 +113,7 @@
   }
 }
 
-@media screen and (max-height: 475px) {
+@media screen and (height <= 475px) {
   .alertify .ajs-dialog {
     margin-top: 2%;
     margin-bottom: 2%;
@@ -130,7 +130,7 @@
   .ajs-message.ajs-error,
   .ajs-message.ajs-success,
   .ajs-message.ajs-warning {
-    background: colors.$kobo-gray-24;
+    background: colors.$kobo-gray-800;
     color: colors.$kobo-white;
     padding: 17px 24px;
     padding-right: 44px;
@@ -140,7 +140,7 @@
     line-height: 1.3em;
   }
 
-  .ajs-message.ajs-error {box-shadow: 0 2px 0 0 colors.$kobo-red inset;}
+  .ajs-message.ajs-error {box-shadow: 0 2px 0 0 colors.$kobo-mid-red inset;}
   .ajs-message.ajs-success {box-shadow: 0 2px 0 0 colors.$kobo-green inset;}
   .ajs-message.ajs-warning {box-shadow: 0 2px 0 0 colors.$kobo-amber inset;}
 
@@ -175,7 +175,7 @@
     margin-top: 20px;
     padding-top: 20px;
     padding-bottom: 20px;
-    border-top: 1px solid colors.$kobo-gray-92;
+    border-top: 1px solid colors.$kobo-gray-300;
     font-weight: bold;
   }
 }

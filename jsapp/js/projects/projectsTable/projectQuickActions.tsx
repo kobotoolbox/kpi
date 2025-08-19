@@ -1,56 +1,47 @@
-import React from 'react';
-import type {
-  AssetResponse,
-  ProjectViewAsset,
-  DeploymentResponse,
-} from 'js/dataInterface';
-import {ASSET_TYPES} from 'js/constants';
-import Button from 'js/components/common/button';
-import styles from './projectActions.module.scss';
-import {getAssetDisplayName} from 'jsapp/js/assetUtils';
-import {
-  archiveAsset,
-  unarchiveAsset,
-  deleteAsset,
-  manageAssetSharing,
-} from 'jsapp/js/assetQuickActions';
-import {userCan} from 'js/components/permissions/utils';
-import customViewStore from 'js/projects/customViewStore';
+import React from 'react'
+
+import { archiveAsset, deleteAsset, manageAssetSharing, unarchiveAsset } from '#/assetQuickActions'
+import { getAssetDisplayName } from '#/assetUtils'
+import Button from '#/components/common/button'
+import { userCan } from '#/components/permissions/utils'
+import { ASSET_TYPES } from '#/constants'
+import type { AssetResponse, DeploymentResponse, ProjectViewAsset } from '#/dataInterface'
+import customViewStore from '#/projects/customViewStore'
+import styles from './projectActions.module.scss'
 
 interface ProjectQuickActionsProps {
-  asset: AssetResponse | ProjectViewAsset;
+  asset: AssetResponse | ProjectViewAsset
 }
 
 /**
  * Quick Actions (Archive, Share, Delete) buttons. Use these when a single
  * project is selected in the Project Table.
+ *
+ * Note that for zero projects selected we display `ProjectQuickActionsEmpty`
+ * instead.
  */
-export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
+const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
   // The `userCan` method requires `permissions` property to be present in the
   // `asset` object. For performance reasons `ProjectViewAsset` doesn't have
   // that property, and it is fine, as we don't expect Project View to have
   // a lot of options available.
-  const isChangingPossible = userCan('change_asset', props.asset);
-  const isManagingPossible = userCan('manage_asset', props.asset);
+  const isChangingPossible = userCan('change_asset', asset)
+  const isManagingPossible = userCan('manage_asset', asset)
+  const isProjectViewAsset = !('permissions' in asset)
 
   return (
     <div className={styles.root}>
       {/* Archive / Unarchive */}
       {/* Archive a deployed project */}
-      {props.asset.deployment_status === 'deployed' && (
+      {asset.deployment_status === 'deployed' && (
         <Button
-          isDisabled={
-            !isChangingPossible ||
-            props.asset.asset_type !== ASSET_TYPES.survey.id ||
-            !props.asset.has_deployment
-          }
-          type='bare'
-          color='storm'
+          isDisabled={!isChangingPossible || asset.asset_type !== ASSET_TYPES.survey.id || !asset.has_deployment}
+          type='secondary'
           size='s'
           startIcon='archived'
           onClick={() =>
-            archiveAsset(props.asset, (response: DeploymentResponse) => {
-              customViewStore.handleAssetChanged(response.asset);
+            archiveAsset(asset, (response: DeploymentResponse) => {
+              customViewStore.handleAssetChanged(response.asset)
             })
           }
           tooltip={t('Archive project')}
@@ -58,20 +49,15 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
         />
       )}
       {/* Un-archive a deployed project */}
-      {props.asset.deployment_status === 'archived' && (
+      {asset.deployment_status === 'archived' && (
         <Button
-          isDisabled={
-            !isChangingPossible ||
-            props.asset.asset_type !== ASSET_TYPES.survey.id ||
-            !props.asset.has_deployment
-          }
-          type='bare'
-          color='storm'
+          isDisabled={!isChangingPossible || asset.asset_type !== ASSET_TYPES.survey.id || !asset.has_deployment}
+          type='secondary'
           size='s'
           startIcon='archived'
           onClick={() =>
-            unarchiveAsset(props.asset, (response: DeploymentResponse) => {
-              customViewStore.handleAssetChanged(response.asset);
+            unarchiveAsset(asset, (response: DeploymentResponse) => {
+              customViewStore.handleAssetChanged(response.asset)
             })
           }
           tooltip={t('Unarchive project')}
@@ -79,11 +65,10 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
         />
       )}
       {/* Show tooltip, since drafts can't be archived/unarchived */}
-      {props.asset.deployment_status === 'draft' && (
+      {asset.deployment_status === 'draft' && (
         <Button
           isDisabled
-          type='bare'
-          color='storm'
+          type='secondary'
           size='s'
           startIcon='archived'
           tooltip={t('Draft project selected')}
@@ -93,37 +78,31 @@ export default function ProjectQuickActions(props: ProjectQuickActionsProps) {
 
       {/* Share */}
       <Button
-        isDisabled={!isManagingPossible}
-        type='bare'
-        color='storm'
+        isDisabled={!isManagingPossible && !isProjectViewAsset}
+        type='secondary'
         size='s'
         startIcon='user-share'
-        onClick={() => manageAssetSharing(props.asset.uid)}
+        onClick={() => manageAssetSharing(asset.uid)}
         tooltip={t('Share project')}
         tooltipPosition='right'
       />
 
       {/* Delete */}
       <Button
-        isDisabled={!isChangingPossible}
-        type='bare'
-        color='storm'
+        isDisabled={!isManagingPossible}
+        type='secondary-danger'
         size='s'
         startIcon='trash'
         onClick={() =>
-          deleteAsset(
-            props.asset,
-            getAssetDisplayName(props.asset).final,
-            (deletedAssetUid: string) => {
-              customViewStore.handleAssetsDeleted([deletedAssetUid]);
-            }
-          )
+          deleteAsset(asset, getAssetDisplayName(asset).final, (deletedAssetUid: string) => {
+            customViewStore.handleAssetsDeleted([deletedAssetUid])
+          })
         }
-        tooltip={
-          isChangingPossible ? t('Delete 1 project') : t('Delete project')
-        }
+        tooltip={isManagingPossible ? t('Delete 1 project') : t('Delete project')}
         tooltipPosition='right'
       />
     </div>
-  );
+  )
 }
+
+export default ProjectQuickActions

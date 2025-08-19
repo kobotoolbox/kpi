@@ -1,9 +1,9 @@
 # coding: utf-8
 from django.apps import AppConfig
-from django.core.checks import register, Tags
+from django.core.checks import Tags, register
 
-from kpi.utils.two_database_configuration_checker import \
-    TwoDatabaseConfigurationChecker
+import kpi.utils.monkey_patching  # noqa
+from kpi.utils.two_database_configuration_checker import TwoDatabaseConfigurationChecker
 
 
 class KpiConfig(AppConfig):
@@ -12,7 +12,7 @@ class KpiConfig(AppConfig):
     def ready(self, *args, **kwargs):
         # Register signals only when the app is ready to avoid issues with models
         # not loaded yet.
-        import kpi.signals
+        import kpi.signals  # noqa
 
         return super().ready(*args, **kwargs)
 

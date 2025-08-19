@@ -1,7 +1,7 @@
-from django.contrib.auth.models import User
 from django.core.exceptions import FieldError, ValidationError
 from django.db import models
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.utils.object_permission import get_database_user
 
 

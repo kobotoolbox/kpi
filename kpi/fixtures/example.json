@@ -1,357 +1,357 @@
 [
-    {
-        "fields": {
-            "codename": "add_logentry",
-            "content_type": 1,
-            "name": "Can add log entry"
-        },
-        "model": "auth.permission",
-        "pk": 1
+  {
+    "fields": {
+      "codename": "add_logentry",
+      "content_type": 1,
+      "name": "Can add log entry"
     },
-    {
-        "fields": {
-            "codename": "change_logentry",
-            "content_type": 1,
-            "name": "Can change log entry"
-        },
-        "model": "auth.permission",
-        "pk": 2
+    "model": "auth.permission",
+    "pk": 1
+  },
+  {
+    "fields": {
+      "codename": "change_logentry",
+      "content_type": 1,
+      "name": "Can change log entry"
     },
-    {
-        "fields": {
-            "codename": "delete_logentry",
-            "content_type": 1,
-            "name": "Can delete log entry"
-        },
-        "model": "auth.permission",
-        "pk": 3
+    "model": "auth.permission",
+    "pk": 2
+  },
+  {
+    "fields": {
+      "codename": "delete_logentry",
+      "content_type": 1,
+      "name": "Can delete log entry"
     },
-    {
-        "fields": {
-            "codename": "add_permission",
-            "content_type": 2,
-            "name": "Can add permission"
-        },
-        "model": "auth.permission",
-        "pk": 4
+    "model": "auth.permission",
+    "pk": 3
+  },
+  {
+    "fields": {
+      "codename": "add_permission",
+      "content_type": 2,
+      "name": "Can add permission"
     },
-    {
-        "fields": {
-            "codename": "change_permission",
-            "content_type": 2,
-            "name": "Can change permission"
-        },
-        "model": "auth.permission",
-        "pk": 5
+    "model": "auth.permission",
+    "pk": 4
+  },
+  {
+    "fields": {
+      "codename": "change_permission",
+      "content_type": 2,
+      "name": "Can change permission"
     },
-    {
-        "fields": {
-            "codename": "delete_permission",
-            "content_type": 2,
-            "name": "Can delete permission"
-        },
-        "model": "auth.permission",
-        "pk": 6
+    "model": "auth.permission",
+    "pk": 5
+  },
+  {
+    "fields": {
+      "codename": "delete_permission",
+      "content_type": 2,
+      "name": "Can delete permission"
     },
-    {
-        "fields": {
-            "codename": "add_group",
-            "content_type": 3,
-            "name": "Can add group"
-        },
-        "model": "auth.permission",
-        "pk": 7
+    "model": "auth.permission",
+    "pk": 6
+  },
+  {
+    "fields": {
+      "codename": "add_group",
+      "content_type": 3,
+      "name": "Can add group"
     },
-    {
-        "fields": {
-            "codename": "change_group",
-            "content_type": 3,
-            "name": "Can change group"
-        },
-        "model": "auth.permission",
-        "pk": 8
+    "model": "auth.permission",
+    "pk": 7
+  },
+  {
+    "fields": {
+      "codename": "change_group",
+      "content_type": 3,
+      "name": "Can change group"
     },
-    {
-        "fields": {
-            "codename": "delete_group",
-            "content_type": 3,
-            "name": "Can delete group"
-        },
-        "model": "auth.permission",
-        "pk": 9
+    "model": "auth.permission",
+    "pk": 8
+  },
+  {
+    "fields": {
+      "codename": "delete_group",
+      "content_type": 3,
+      "name": "Can delete group"
     },
-    {
-        "fields": {
-            "codename": "add_user",
-            "content_type": 4,
-            "name": "Can add user"
-        },
-        "model": "auth.permission",
-        "pk": 10
+    "model": "auth.permission",
+    "pk": 9
+  },
+  {
+    "fields": {
+      "codename": "add_user",
+      "content_type": 4,
+      "name": "Can add user"
     },
-    {
-        "fields": {
-            "codename": "change_user",
-            "content_type": 4,
-            "name": "Can change user"
-        },
-        "model": "auth.permission",
-        "pk": 11
+    "model": "auth.permission",
+    "pk": 10
+  },
+  {
+    "fields": {
+      "codename": "change_user",
+      "content_type": 4,
+      "name": "Can change user"
     },
-    {
-        "fields": {
-            "codename": "delete_user",
-            "content_type": 4,
-            "name": "Can delete user"
-        },
-        "model": "auth.permission",
-        "pk": 12
+    "model": "auth.permission",
+    "pk": 11
+  },
+  {
+    "fields": {
+      "codename": "delete_user",
+      "content_type": 4,
+      "name": "Can delete user"
     },
-    {
-        "fields": {
-            "codename": "add_contenttype",
-            "content_type": 5,
-            "name": "Can add content type"
-        },
-        "model": "auth.permission",
-        "pk": 13
+    "model": "auth.permission",
+    "pk": 12
+  },
+  {
+    "fields": {
+      "codename": "add_contenttype",
+      "content_type": 5,
+      "name": "Can add content type"
     },
-    {
-        "fields": {
-            "codename": "change_contenttype",
-            "content_type": 5,
-            "name": "Can change content type"
-        },
-        "model": "auth.permission",
-        "pk": 14
+    "model": "auth.permission",
+    "pk": 13
+  },
+  {
+    "fields": {
+      "codename": "change_contenttype",
+      "content_type": 5,
+      "name": "Can change content type"
     },
-    {
-        "fields": {
-            "codename": "delete_contenttype",
-            "content_type": 5,
-            "name": "Can delete content type"
-        },
-        "model": "auth.permission",
-        "pk": 15
+    "model": "auth.permission",
+    "pk": 14
+  },
+  {
+    "fields": {
+      "codename": "delete_contenttype",
+      "content_type": 5,
+      "name": "Can delete content type"
     },
-    {
-        "fields": {
-            "codename": "add_session",
-            "content_type": 6,
-            "name": "Can add session"
-        },
-        "model": "auth.permission",
-        "pk": 16
+    "model": "auth.permission",
+    "pk": 15
+  },
+  {
+    "fields": {
+      "codename": "add_session",
+      "content_type": 6,
+      "name": "Can add session"
     },
-    {
-        "fields": {
-            "codename": "change_session",
-            "content_type": 6,
-            "name": "Can change session"
-        },
-        "model": "auth.permission",
-        "pk": 17
+    "model": "auth.permission",
+    "pk": 16
+  },
+  {
+    "fields": {
+      "codename": "change_session",
+      "content_type": 6,
+      "name": "Can change session"
     },
-    {
-        "fields": {
-            "codename": "delete_session",
-            "content_type": 6,
-            "name": "Can delete session"
-        },
-        "model": "auth.permission",
-        "pk": 18
+    "model": "auth.permission",
+    "pk": 17
+  },
+  {
+    "fields": {
+      "codename": "delete_session",
+      "content_type": 6,
+      "name": "Can delete session"
     },
-    {
-        "fields": {
-            "codename": "add_asset",
-            "content_type": 7,
-            "name": "Can add asset"
-        },
-        "model": "auth.permission",
-        "pk": 19
+    "model": "auth.permission",
+    "pk": 18
+  },
+  {
+    "fields": {
+      "codename": "add_asset",
+      "content_type": 7,
+      "name": "Can add asset"
     },
-    {
-        "fields": {
-            "codename": "change_asset",
-            "content_type": 7,
-            "name": "Can change asset"
-        },
-        "model": "auth.permission",
-        "pk": 20
+    "model": "auth.permission",
+    "pk": 19
+  },
+  {
+    "fields": {
+      "codename": "change_asset",
+      "content_type": 7,
+      "name": "Can change asset"
     },
-    {
-        "fields": {
-            "codename": "delete_asset",
-            "content_type": 7,
-            "name": "Can delete asset"
-        },
-        "model": "auth.permission",
-        "pk": 21
+    "model": "auth.permission",
+    "pk": 20
+  },
+  {
+    "fields": {
+      "codename": "delete_asset",
+      "content_type": 7,
+      "name": "Can delete asset"
     },
-    {
-        "fields": {
-            "codename": "add_collection",
-            "content_type": 8,
-            "name": "Can add collection"
-        },
-        "model": "auth.permission",
-        "pk": 22
+    "model": "auth.permission",
+    "pk": 21
+  },
+  {
+    "fields": {
+      "codename": "add_collection",
+      "content_type": 8,
+      "name": "Can add collection"
     },
-    {
-        "fields": {
-            "codename": "change_collection",
-            "content_type": 8,
-            "name": "Can change collection"
-        },
-        "model": "auth.permission",
-        "pk": 23
+    "model": "auth.permission",
+    "pk": 22
+  },
+  {
+    "fields": {
+      "codename": "change_collection",
+      "content_type": 8,
+      "name": "Can change collection"
     },
-    {
-        "fields": {
-            "codename": "delete_collection",
-            "content_type": 8,
-            "name": "Can delete collection"
-        },
-        "model": "auth.permission",
-        "pk": 24
+    "model": "auth.permission",
+    "pk": 23
+  },
+  {
+    "fields": {
+      "codename": "delete_collection",
+      "content_type": 8,
+      "name": "Can delete collection"
     },
-    {
-        "fields": {
-            "codename": "add_asset",
-            "content_type": 9,
-            "name": "Can add asset"
-        },
-        "model": "auth.permission",
-        "pk": 25
+    "model": "auth.permission",
+    "pk": 24
+  },
+  {
+    "fields": {
+      "codename": "add_asset",
+      "content_type": 9,
+      "name": "Can add asset"
     },
-    {
-        "fields": {
-            "codename": "change_asset",
-            "content_type": 9,
-            "name": "Can change asset"
-        },
-        "model": "auth.permission",
-        "pk": 26
+    "model": "auth.permission",
+    "pk": 25
+  },
+  {
+    "fields": {
+      "codename": "change_asset",
+      "content_type": 9,
+      "name": "Can change asset"
     },
-    {
-        "fields": {
-            "codename": "delete_asset",
-            "content_type": 9,
-            "name": "Can delete asset"
-        },
-        "model": "auth.permission",
-        "pk": 27
+    "model": "auth.permission",
+    "pk": 26
+  },
+  {
+    "fields": {
+      "codename": "delete_asset",
+      "content_type": 9,
+      "name": "Can delete asset"
     },
-    {
-        "fields": {
-            "codename": "add_assetrevision",
-            "content_type": 10,
-            "name": "Can add asset revision"
-        },
-        "model": "auth.permission",
-        "pk": 28
+    "model": "auth.permission",
+    "pk": 27
+  },
+  {
+    "fields": {
+      "codename": "add_assetrevision",
+      "content_type": 10,
+      "name": "Can add asset revision"
     },
-    {
-        "fields": {
-            "codename": "change_assetrevision",
-            "content_type": 10,
-            "name": "Can change asset revision"
-        },
-        "model": "auth.permission",
-        "pk": 29
+    "model": "auth.permission",
+    "pk": 28
+  },
+  {
+    "fields": {
+      "codename": "change_assetrevision",
+      "content_type": 10,
+      "name": "Can change asset revision"
     },
-    {
-        "fields": {
-            "codename": "delete_assetrevision",
-            "content_type": 10,
-            "name": "Can delete asset revision"
-        },
-        "model": "auth.permission",
-        "pk": 30
+    "model": "auth.permission",
+    "pk": 29
+  },
+  {
+    "fields": {
+      "codename": "delete_assetrevision",
+      "content_type": 10,
+      "name": "Can delete asset revision"
     },
-    {
-        "fields": {
-            "codename": "add_collection",
-            "content_type": 11,
-            "name": "Can add collection"
-        },
-        "model": "auth.permission",
-        "pk": 31
+    "model": "auth.permission",
+    "pk": 30
+  },
+  {
+    "fields": {
+      "codename": "add_collection",
+      "content_type": 11,
+      "name": "Can add collection"
     },
-    {
-        "fields": {
-            "codename": "change_collection",
-            "content_type": 11,
-            "name": "Can change collection"
-        },
-        "model": "auth.permission",
-        "pk": 32
+    "model": "auth.permission",
+    "pk": 31
+  },
+  {
+    "fields": {
+      "codename": "change_collection",
+      "content_type": 11,
+      "name": "Can change collection"
     },
-    {
-        "fields": {
-            "codename": "delete_collection",
-            "content_type": 11,
-            "name": "Can delete collection"
-        },
-        "model": "auth.permission",
-        "pk": 33
+    "model": "auth.permission",
+    "pk": 32
+  },
+  {
+    "fields": {
+      "codename": "delete_collection",
+      "content_type": 11,
+      "name": "Can delete collection"
     },
-    {
-        "fields": {
-            "date_joined": "2015-02-13T05:51:08.316Z",
-            "email": "admin@admin.com",
-            "first_name": "",
-            "groups": [],
-            "is_active": true,
-            "is_staff": true,
-            "is_superuser": true,
-            "last_login": "2015-02-17T19:04:49.686Z",
-            "last_name": "",
-            "password": "pbkdf2_sha256$15000$emqJEJJTMCVh$96EoTTM7AWA74e2uI7JtOvSwB7ijI27sB3PDamiSgE8=",
-            "user_permissions": [],
-            "username": "admin"
-        },
-        "model": "auth.user",
-        "pk": 1
+    "model": "auth.permission",
+    "pk": 33
+  },
+  {
+    "fields": {
+      "date_joined": "2015-02-13T05:51:08.316Z",
+      "email": "admin@admin.com",
+      "first_name": "",
+      "groups": [],
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": true,
+      "last_login": "2015-02-17T19:04:49.686Z",
+      "last_name": "",
+      "password": "pbkdf2_sha256$15000$emqJEJJTMCVh$96EoTTM7AWA74e2uI7JtOvSwB7ijI27sB3PDamiSgE8=",
+      "user_permissions": [],
+      "username": "admin"
     },
-    {
-        "fields": {
-            "asset_type": "block",
-            "body": "{\"survey\": [[\"name\", \"type\", \"label\", \"required\"], [\"group1\", \"begin group\", \"Group 1\", \"false\"], [\"Enter_a_number_001\", \"decimal\", \"Enter a number\", \"false\"], [\"Enter_a_date\", \"date\", \"Enter a date\", \"false\"], [null, \"end group\", null, null], [\"new_question\", \"select_multiple od8ai33\", \"new question\", \"false\"], [\"group2\", \"begin group\", \"Group 2\", \"false\"], [\"new_question_001\", \"text\", \"new question\", \"false\"], [\"Enter_a_number\", \"integer\", \"Enter a number\", \"false\"], [null, \"end group\", null, null], [\"start\", \"start\", null, null], [\"end\", \"end\", null, null]], \"choices\": [[\"list name\", \"name\", \"label\"], [\"od8ai33\", \"option_1\", \"Option 1\"], [\"od8ai33\", \"option_2\", \"Option 2\"]]}",
-            "collection": 1,
-            "created": "2015-02-13T18:40:23.411Z",
-            "owner": 1,
-            "settings": null,
-            "title": "",
-            "uid": "hjQm4PCz",
-            "version_uid": "Mo4iE"
-        },
-        "model": "kpi.asset",
-        "pk": 1
+    "model": "kobo_auth.user",
+    "pk": 1
+  },
+  {
+    "fields": {
+      "asset_type": "block",
+      "body": "{\"survey\": [[\"name\", \"type\", \"label\", \"required\"], [\"group1\", \"begin group\", \"Group 1\", \"false\"], [\"Enter_a_number_001\", \"decimal\", \"Enter a number\", \"false\"], [\"Enter_a_date\", \"date\", \"Enter a date\", \"false\"], [null, \"end group\", null, null], [\"new_question\", \"select_multiple od8ai33\", \"new question\", \"false\"], [\"group2\", \"begin group\", \"Group 2\", \"false\"], [\"new_question_001\", \"text\", \"new question\", \"false\"], [\"Enter_a_number\", \"integer\", \"Enter a number\", \"false\"], [null, \"end group\", null, null], [\"start\", \"start\", null, null], [\"end\", \"end\", null, null]], \"choices\": [[\"list name\", \"name\", \"label\"], [\"od8ai33\", \"option_1\", \"Option 1\"], [\"od8ai33\", \"option_2\", \"Option 2\"]]}",
+      "collection": 1,
+      "created": "2015-02-13T18:40:23.411Z",
+      "owner": 1,
+      "settings": null,
+      "title": "",
+      "uid": "hjQm4PCz",
+      "version_uid": "Mo4iE"
     },
-    {
-        "fields": {
-            "asset_type": "survey",
-            "body": "{\"survey\": [[\"type\", \"name\", \"label\", \"audio\", \"hint\", \"appearance\", \"choice_filter\", \"constraint\", \"bind:jr:constraintMsg\", \"constraint-msg\", \"default\", \"readonly\", \"relevant\", \"required\"], [\"note\", \"intro\", \"This form showcases the different available _widgets_. \\\\n\\\\nThe hints explain how these widgets were created. The form logo was added by simply uploading a file called form_logo.png in the Media section of the form settings page in formhub.\\\\n\\\\nThe XLS Form source is [here](https://docs.google.com/spreadsheet/ccc?key=0Al3Mw5sknZoPdEpPa29tamFCc1o2bmFVR3RaemlSRXc&usp=sharing).\", null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"text_widgets\", \"Text widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"text\", \"my_string\", \"Text widget\", null, \"Can be short or long but always one line (type = text)\", null, null, null, null, null, null, null, null, null], [\"text\", \"my_long_text\", \"Multiline Text widget in enketo (in ODK collect this a normal text field)\", null, \"Can be multiple lines (type=text, appearance = multiline)\", \"multiline\", null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"number_widgets\", \"Number widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"integer\", \"my_int\", \"Integer widget (try entering a number > 10)\", null, \"This field has a constraint (type=integer, constraint=.<10)\", null, null, \". < 10\", \"number must be less than 10\", \"Requires a number less than 10\", null, null, null, null], [\"decimal\", \"my_decimal\", \"Decimal widget (allows only number > 10.51 and < 18.39)\", null, \"This field has a constraint (type=decimal, constraint=. > 10.51 and . < 18.39)\", null, null, \". > 10.51 and . < 18.39\", \"number must be between 10.51 and 18.39\", \"Requires a number between 10.51 and 18.39\", \"18.31\", null, null, null], [\"integer\", \"my_distress\", \"Distress widget\", null, \"A highly specific widget to measure distress\", \"distress\", null, \". >= 0 and . <= 10\", null, \"Requires a number between 0 and 10\", null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"date_time_widgets\", \"Date and time widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"date\", \"my_date\", \"Date widget (this one allows only future dates and has a default value)\", null, \"This field has a constraint (type=date, constraint=.>= today())\", null, null, \". >= today()\", \"only future dates allowed\", \"Requires a date that is not before today\", \"2010-06-15\", null, null, null], [\"date\", \"my_date_month_year\", \"Month-year widget\", null, \"Simply specify an appearance style (type=date, appearance=month-year)\", \"month-year\", null, null, null, null, null, null, null, null], [\"date\", \"my_date_year\", \"Year widget (year only)\", null, \"Simply specify and appearance style (type=date, appearance=year)\", \"year\", null, null, null, null, null, null, null, null], [\"time\", \"my_time\", \"Time widget\", null, \"Times are easy! (type=time)\", null, null, null, null, null, null, null, null, null], [\"dateTime\", \"dateTime\", \"Date and time widget\", null, \"For exact times, will be converted to UTC/GMT (type=dateTime)\", null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"select_widgets\", \"Basic Select widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"select_multiple list\", \"my_select\", \"Select multiple widget (don't pick c and d together)\", null, \"Using a list specified in the choices worksheet (type=select_multiple list)\", null, null, \"not(selected(., 'c') and selected(., 'd'))\", \"option c and d cannot be selected together\", \"You cannot select c and d both\", \"a c\", null, null, null], [\"select_multiple list\", \"select_horizontal_compact\", \"Select multiple widget displaying horizontally (in Enketo)\", null, \"(type = select_multiple, appearance=horizontal-compact)\", \"horizontal-compact\", null, null, null, null, null, null, null, null], [\"select_multiple list2\", \"select_horizontal\", \"Select one displaying horizontally but in columns (in Enketo)\", null, \"(type=select_multiple, appearance=horizontal)\", \"horizontal\", null, null, null, null, null, null, null, null], [\"select_one list2\", \"my_select1\", \"Select one widget\", null, \"Scroll down to see default selection (type=select_one list2, default=8)\", null, null, null, null, null, \"8\", null, null, null], [\"select_one yes_no\", \"select1_horizontal_compact\", \"Select one displaying compactly and horizontally  (in Enketo)\", null, \"(type=select_one, appearance=horizontal-compact)\", \"horizontal-compact\", null, null, null, null, null, null, null, null], [\"select_one list2\", \"select1_horizontal\", \"Select one displaying horizontally but in columns (in Enketo)\", null, \"(type=select_one, appearance=horizontal)\", \"horizontal\", null, null, null, null, null, null, null, null], [\"select one agree5\", \"select1_likert\", \"Likert widget\", null, \"(type=select_one, appearance=likert)\", \"likert\", null, null, null, null, null, null, null, null], [\"select_one list\", \"spinner\", \"Spinner widget: select one\", null, \"Showing a pull-down list of options (type=select_one list, appearance=minimal)\", \"minimal\", null, null, null, null, null, null, null, null], [\"select_multiple list\", \"spinner_all\", \"Spinner widget: select multiple\", null, \"Showing a pull-down list of options (type=select_multiple list, appearance=minimal)\", \"minimal\", null, null, null, null, null, null, null, null], [\"select_one list\", \"selectadvance\", \"Select widget - auto advance\", null, \"Advance to the next question immediate after selection in ODK Collect. (type=select_one list, appearance=quick)\", \"quick\", null, null, null, null, null, null, null, null], [\"select_one a_b\", \"grid_test\", \"Grid select one widget\", null, \"Make sure to put a.jpg and b.jpg in the form-media folder to see images here. (type=select_one a_b, appearance=compact)\", \"compact\", null, null, null, null, null, null, null, null], [\"select_one a_b\", \"grid_test_audio\", \"Grid auto-advance widget\", null, \"Same as previous but this one advances to the next question automatically in ODK Collect. (type=select_one a_b, appearance=quickcompact)\", \"quickcompact\", null, null, null, null, null, null, null, null], [\"begin_group\", \"table_list_test\", \"List group\", null, \"Shows all questions on one page in ODK Collect (appearance=field-list)\", \"field-list\", null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_test_label\", \"Table\", null, \"Show only the labels of these options and not the inputs (type=select_one yes_no, appearance=label)\", \"label\", null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_1\", \"Q1\", null, \"Show only the inputs of these options and not the labels (type=select_one yes_no, appearance=list-nolabel)\", \"list-nolabel\", null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_2\", \"Question 2\", null, \"Show only the inputs of these options and not the labels (type=select_one yes_no, appearance=list-nolabel)\", \"list-nolabel\", null, null, null, null, null, null, null, null], [\"end group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin group\", \"table_list_test2\", \"Table (made with an easier method)\", null, \"A much easier way to do the same (appearance=table-list) but it may slow down your form a bit.\", \"table-list\", null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_3\", \"Q1\", null, \"No need to do anything special here\", null, null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_4\", \"Question 2\", null, \"No need to do anything special here\", null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin group\", \"happy_sad_table_2\", \"Table with image labels\", null, \"Shows all questions on one page in ODK Collect (appearance=field-list)\", \"field-list\", null, null, null, null, null, null, null, null], [\"select_multiple  happy_sad\", \"happy_sad_second_method\", \"Select mood\", null, \"Show only the labels of these options and not the inputs (type=select_one yes_no, appearance=label)\", \"label\", null, null, null, null, null, null, null, null], [\"select_multiple  happy_sad\", \"happy_sad_brian2\", \"Brian\", null, \"Show only the inputs of these options and not the labels (type=select_one yes_no, appearance=list-nolabel)\", \"list-nolabel\", null, null, null, null, null, null, null, null], [\"select_multiple happy_sad\", \"happy_sad_michael2\", \"Michael\", null, \"Show only the inputs of these options and not the labels (type=select_one yes_no, appearance=list-nolabel)\", \"list-nolabel\", null, null, null, null, null, null, null, null], [\"end group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin group\", \"happy_sad_table\", \"Table with image labels (made using an easier method)\", null, \"A much easier way to do the same (appearance=table-list)\", \"table-list\", null, null, null, null, null, null, null, null], [\"select_multiple  happy_sad\", \"happy_sad_brian\", \"Brian\", null, null, null, null, null, null, null, null, null, null, null], [\"select_multiple happy_sad\", \"happy_sad_michael\", \"Michael\", null, null, null, null, null, null, null, null, null, null, null], [\"end group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"cascading_widgets\", \"Cascading Select widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"group1\", \"Cascading Selects with Radio Buttons\", null, null, null, null, null, null, null, null, null, null, null], [\"select_one countries\", \"country\", \"Country\", null, null, null, null, null, null, null, null, null, null, null], [\"select_one cities\", \"city\", \"City\", null, \"Using a choice filter to update options based on a previous answer (choice_filter: country = ${country})\", null, \"country=${country}\", null, null, null, null, null, null, null], [\"select_one neighborhoods\", \"neighborhood\", \"Neighborhood\", null, \"Using a choice filter to update options based on previous answers (choice_filter: country = ${country} and city = ${city})\", null, \"country=${country} and city=${city}\", null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"group2\", \"Cascading Selects with Pulldowns\", null, null, null, null, null, null, null, null, null, null, null], [\"select_one countries\", \"country2\", \"Country\", null, \"(appearance: minimal)\", \"minimal\", null, null, null, null, null, null, null, null], [\"select_one cities\", \"city2\", \"City\", null, \"Using a choice filter to update options based on a previous answer (choice_filter: country = ${country2},  appearance: minimal)\", \"minimal\", \"country=${country2}\", null, null, null, null, null, null, null], [\"select_one neighborhoods\", \"neighborhood2\", \"Neighborhood\", null, \"Using a choice filter to update options based on previous answers (choice_filter: country = ${country2} and city = ${city2}, appearance = minimal)\", \"minimal\", \"country=${country2} and city=${city2}\", null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"geopoint_widgets\", \"GPS widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"geopoint\", \"my_geopoint\", \"Geopoint widget\", null, \"This will record the gps location. In enketo it also shows a map. (type=geopoint)\", null, null, null, null, null, null, null, null, null], [\"geopoint\", \"my_geopoint_m\", \"Geopoint with map Widget\", null, \"This will record the gps location. In enketo is is the same as the previous.  (type=geopoint, appearance=maps)\", \"maps\", null, null, null, null, null, null, null, null], [\"geopoint\", \"my_geopoint_hide\", \"Geopoint widget that hides input fields by default\", null, \"To show a larger map (on desktop screens), you can hide the input fields. (appearance = hide-input)\", \"maps hide-input\", null, null, null, null, null, null, null, null], [\"geotrace\", \"my_geotrace\", \"Geotrace widget\", null, \"This will record a sequence/line of geopoints (type=geotrace, appearance=maps hide-input)\", \"maps hide-input\", null, null, null, null, null, null, null, null], [\"geoshape\", \"my_geoshape\", \"Geoshape widget\", null, \"This will record a closed sequence/polygon of geopoints (type=geoshape, appearance=maps hide-input)\", \"maps hide-input\", null, null, null, null, \"7.9377 -11.5845 0 0;7.9324 -11.5902 0 0;7.927 -11.5857 0 0;7.925 -11.578 0 0;7.9267 -11.5722 0 0;7.9325 -11.5708 0 0;7.9372 -11.5737 0 0;7.9393 -11.579 0 0;7.9377 -11.5845 0 0\", null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"media_widgets\", \"Media input widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"image\", \"my_image\", \"Image widget\", null, \"This will launch the camera. Not supported in enketo at the moment (type=image)\", null, null, null, null, null, null, null, null, null], [\"audio\", \"my_audio\", \"Audio widget\", null, \"This will launch the audio recorder. Not supported in enketo at the moment (type=audio)\", null, null, null, null, null, null, null, null, null], [\"video\", \"my_video\", \"Video widget\", null, \"This will launch the video recorder. Not supported in enketo at the moment (type=video)\", null, null, null, null, null, null, null, null, null], [\"barcode\", \"my_barcode\", \"Barcode widget\", null, \"Scans multi-format 1d/2d barcodes. In enketo it allows manual entry (type=barcode)\", null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"display_widgets\", \"Display widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"note\", \"my_output\", \"Note widget. In notes you can emphasize _words_ or _multiple words_ or __strongly emphasize something__.\\\\nYou can also use a line break to start a new sentence.\\\\n\\\\nThe decimal number you entered was ${my_decimal}.\", null, \"This is a note and it uses a value of another field in its label (type=note)\", null, null, null, null, null, null, \"yes\", null, null], [\"text\", \"text_media\", \"You can add a sound recording, an image and a video to any input label or to a note.\", \"goldeneagle.mp3\", \"Add the file name in the audio column on your survey sheet. Make sure you upload this file when you publish your form.\", null, null, null, null, null, null, null, null, null], [\"select_one list1\", \"select_media\", \"You can also add media to choices. Choose your favorite bird.\", null, \"Add the file name in the image column on your choices sheet. Make sure you upload this file when you publish your form.\", null, null, null, null, null, null, null, null, null], [\"trigger\", \"my_trigger\", \"Acknowledge widget\", null, \"Prompts for confirmation. Useful to combine with required or relevant. (type=trigger)\", null, null, null, null, null, null, null, null, \"yes\"], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null]], \"choices\": [[\"list name\", \"name\", \"label\", \"image\", \"country\", \"city\"], [\"list\", \"a\", \"option a\", null, null, null], [\"list\", \"b\", \"option b\", null, null, null], [\"list\", \"c\", \"option c\", null, null, null], [\"list\", \"d\", \"option d\", null, null, null], [\"list1\", \"king\", \"kingfisher\", \"kingfisher.png\", null, null], [\"list1\", \"pig\", \"pigeon\", \"pigeon.png\", null, null], [\"list1\", \"nut\", \"nuthatch\", \"nuthatch.png\", null, null], [\"list2\", \"1\", \"option 1\", null, null, null], [\"list2\", \"2\", \"option 2\", null, null, null], [\"list2\", \"3\", \"option 3\", null, null, null], [\"list2\", \"4\", \"option 4\", null, null, null], [\"list2\", \"5\", \"option 5\", null, null, null], [\"list2\", \"6\", \"option 6\", null, null, null], [\"list2\", \"7\", \"option 7\", null, null, null], [\"list2\", \"8\", \"option 8\", null, null, null], [\"yes_no\", \"yes\", \"Yes\", null, null, null], [\"yes_no\", \"no\", \"No\", null, null, null], [\"yes_no\", \"dk\", \"Don't Know\", null, null, null], [\"yes_no\", \"na\", \"Not Applicable\", null, null, null], [\"agree5\", \"1\", \"strongly disagree\", null, null, null], [\"agree5\", \"2\", \"disagree\", null, null, null], [\"agree5\", \"3\", \"neither agree nor disagree\", null, null, null], [\"agree5\", \"4\", \"agree\", null, null, null], [\"agree5\", \"5\", \"strongly agree\", null, null, null], [\"a_b\", \"a\", null, \"a.jpg\", null, null], [\"a_b\", \"b\", null, \"b.jpg\", null, null], [\"happy_sad\", \"happy\", null, \"happy.jpg\", null, null], [\"happy_sad\", \"sad\", null, \"sad.jpg\", null, null], [\"countries\", \"nl\", \"The Netherlands\", null, null, null], [\"countries\", \"usa\", \"United States\", null, null, null], [\"cities\", \"ams\", \"Amsterdam\", null, \"nl\", null], [\"cities\", \"den\", \"Denver\", null, \"usa\", null], [\"cities\", \"nyc\", \"New York City\", null, \"usa\", null], [\"cities\", \"la\", \"Los Angeles\", null, \"usa\", null], [\"cities\", \"rot\", \"Rotterdam\", null, \"nl\", null], [\"cities\", \"dro\", \"Dronten\", null, \"nl\", null], [\"neighborhoods\", \"bronx\", \"Bronx\", null, \"usa\", \"nyc\"], [\"neighborhoods\", \"harlem\", \"Harlem\", null, \"usa\", \"nyc\"], [\"neighborhoods\", \"belair\", \"Bel Air\", null, \"usa\", \"la\"], [\"neighborhoods\", \"wes\", \"Westerpark\", null, \"nl\", \"ams\"], [\"neighborhoods\", \"parkhill\", \"Park Hill\", null, \"usa\", \"den\"], [\"neighborhoods\", \"haven\", \"Harbor\", null, \"nl\", \"rot\"], [\"neighborhoods\", \"dam\", \"Dam\", null, \"nl\", \"ams\"], [\"neighborhoods\", \"centrum\", \"Downtown\", null, \"nl\", \"rot\"], [\"neighborhoods\", \"haven\", \"Harbor\", null, \"nl\", \"dro\"]]}",
-            "collection": 1,
-            "created": "2015-02-13T19:05:12.486Z",
-            "owner": 1,
-            "settings": "[[\"title\",\"id_string\",\"style\"],[\"Widgets\",\"widgets\",\"theme-formhub\"]]",
-            "title": "Enketo Widgets",
-            "uid": "jWa7nubC",
-            "version_uid": "sctuu"
-        },
-        "model": "kpi.asset",
-        "pk": 2
+    "model": "kpi.asset",
+    "pk": 1
+  },
+  {
+    "fields": {
+      "asset_type": "survey",
+      "body": "{\"survey\": [[\"type\", \"name\", \"label\", \"audio\", \"hint\", \"appearance\", \"choice_filter\", \"constraint\", \"bind:jr:constraintMsg\", \"constraint-msg\", \"default\", \"readonly\", \"relevant\", \"required\"], [\"note\", \"intro\", \"This form showcases the different available _widgets_. \\\\n\\\\nThe hints explain how these widgets were created. The form logo was added by simply uploading a file called form_logo.png in the Media section of the form settings page in formhub.\\\\n\\\\nThe XLS Form source is [here](https://docs.google.com/spreadsheet/ccc?key=0Al3Mw5sknZoPdEpPa29tamFCc1o2bmFVR3RaemlSRXc&usp=sharing).\", null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"text_widgets\", \"Text widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"text\", \"my_string\", \"Text widget\", null, \"Can be short or long but always one line (type = text)\", null, null, null, null, null, null, null, null, null], [\"text\", \"my_long_text\", \"Multiline Text widget in enketo (in ODK collect this a normal text field)\", null, \"Can be multiple lines (type=text, appearance = multiline)\", \"multiline\", null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"number_widgets\", \"Number widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"integer\", \"my_int\", \"Integer widget (try entering a number > 10)\", null, \"This field has a constraint (type=integer, constraint=.<10)\", null, null, \". < 10\", \"number must be less than 10\", \"Requires a number less than 10\", null, null, null, null], [\"decimal\", \"my_decimal\", \"Decimal widget (allows only number > 10.51 and < 18.39)\", null, \"This field has a constraint (type=decimal, constraint=. > 10.51 and . < 18.39)\", null, null, \". > 10.51 and . < 18.39\", \"number must be between 10.51 and 18.39\", \"Requires a number between 10.51 and 18.39\", \"18.31\", null, null, null], [\"integer\", \"my_distress\", \"Distress widget\", null, \"A highly specific widget to measure distress\", \"distress\", null, \". >= 0 and . <= 10\", null, \"Requires a number between 0 and 10\", null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"date_time_widgets\", \"Date and time widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"date\", \"my_date\", \"Date widget (this one allows only future dates and has a default value)\", null, \"This field has a constraint (type=date, constraint=.>= today())\", null, null, \". >= today()\", \"only future dates allowed\", \"Requires a date that is not before today\", \"2010-06-15\", null, null, null], [\"date\", \"my_date_month_year\", \"Month-year widget\", null, \"Simply specify an appearance style (type=date, appearance=month-year)\", \"month-year\", null, null, null, null, null, null, null, null], [\"date\", \"my_date_year\", \"Year widget (year only)\", null, \"Simply specify and appearance style (type=date, appearance=year)\", \"year\", null, null, null, null, null, null, null, null], [\"time\", \"my_time\", \"Time widget\", null, \"Times are easy! (type=time)\", null, null, null, null, null, null, null, null, null], [\"dateTime\", \"dateTime\", \"Date and time widget\", null, \"For exact times, will be converted to UTC/GMT (type=dateTime)\", null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"select_widgets\", \"Basic Select widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"select_multiple list\", \"my_select\", \"Select multiple widget (don't pick c and d together)\", null, \"Using a list specified in the choices worksheet (type=select_multiple list)\", null, null, \"not(selected(., 'c') and selected(., 'd'))\", \"option c and d cannot be selected together\", \"You cannot select c and d both\", \"a c\", null, null, null], [\"select_multiple list\", \"select_horizontal_compact\", \"Select multiple widget displaying horizontally (in Enketo)\", null, \"(type = select_multiple, appearance=horizontal-compact)\", \"horizontal-compact\", null, null, null, null, null, null, null, null], [\"select_multiple list2\", \"select_horizontal\", \"Select one displaying horizontally but in columns (in Enketo)\", null, \"(type=select_multiple, appearance=horizontal)\", \"horizontal\", null, null, null, null, null, null, null, null], [\"select_one list2\", \"my_select1\", \"Select one widget\", null, \"Scroll down to see default selection (type=select_one list2, default=8)\", null, null, null, null, null, \"8\", null, null, null], [\"select_one yes_no\", \"select1_horizontal_compact\", \"Select one displaying compactly and horizontally  (in Enketo)\", null, \"(type=select_one, appearance=horizontal-compact)\", \"horizontal-compact\", null, null, null, null, null, null, null, null], [\"select_one list2\", \"select1_horizontal\", \"Select one displaying horizontally but in columns (in Enketo)\", null, \"(type=select_one, appearance=horizontal)\", \"horizontal\", null, null, null, null, null, null, null, null], [\"select one agree5\", \"select1_likert\", \"Likert widget\", null, \"(type=select_one, appearance=likert)\", \"likert\", null, null, null, null, null, null, null, null], [\"select_one list\", \"spinner\", \"Spinner widget: select one\", null, \"Showing a pull-down list of options (type=select_one list, appearance=minimal)\", \"minimal\", null, null, null, null, null, null, null, null], [\"select_multiple list\", \"spinner_all\", \"Spinner widget: select multiple\", null, \"Showing a pull-down list of options (type=select_multiple list, appearance=minimal)\", \"minimal\", null, null, null, null, null, null, null, null], [\"select_one list\", \"selectadvance\", \"Select widget - auto advance\", null, \"Advance to the next question immediate after selection in ODK Collect. (type=select_one list, appearance=quick)\", \"quick\", null, null, null, null, null, null, null, null], [\"select_one a_b\", \"grid_test\", \"Grid select one widget\", null, \"Make sure to put a.jpg and b.jpg in the form-media folder to see images here. (type=select_one a_b, appearance=compact)\", \"compact\", null, null, null, null, null, null, null, null], [\"select_one a_b\", \"grid_test_audio\", \"Grid auto-advance widget\", null, \"Same as previous but this one advances to the next question automatically in ODK Collect. (type=select_one a_b, appearance=quickcompact)\", \"quickcompact\", null, null, null, null, null, null, null, null], [\"begin_group\", \"table_list_test\", \"List group\", null, \"Shows all questions on one page in ODK Collect (appearance=field-list)\", \"field-list\", null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_test_label\", \"Table\", null, \"Show only the labels of these options and not the inputs (type=select_one yes_no, appearance=label)\", \"label\", null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_1\", \"Q1\", null, \"Show only the inputs of these options and not the labels (type=select_one yes_no, appearance=list-nolabel)\", \"list-nolabel\", null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_2\", \"Question 2\", null, \"Show only the inputs of these options and not the labels (type=select_one yes_no, appearance=list-nolabel)\", \"list-nolabel\", null, null, null, null, null, null, null, null], [\"end group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin group\", \"table_list_test2\", \"Table (made with an easier method)\", null, \"A much easier way to do the same (appearance=table-list) but it may slow down your form a bit.\", \"table-list\", null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_3\", \"Q1\", null, \"No need to do anything special here\", null, null, null, null, null, null, null, null, null], [\"select_one yes_no\", \"table_list_4\", \"Question 2\", null, \"No need to do anything special here\", null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin group\", \"happy_sad_table_2\", \"Table with image labels\", null, \"Shows all questions on one page in ODK Collect (appearance=field-list)\", \"field-list\", null, null, null, null, null, null, null, null], [\"select_multiple  happy_sad\", \"happy_sad_second_method\", \"Select mood\", null, \"Show only the labels of these options and not the inputs (type=select_one yes_no, appearance=label)\", \"label\", null, null, null, null, null, null, null, null], [\"select_multiple  happy_sad\", \"happy_sad_brian2\", \"Brian\", null, \"Show only the inputs of these options and not the labels (type=select_one yes_no, appearance=list-nolabel)\", \"list-nolabel\", null, null, null, null, null, null, null, null], [\"select_multiple happy_sad\", \"happy_sad_michael2\", \"Michael\", null, \"Show only the inputs of these options and not the labels (type=select_one yes_no, appearance=list-nolabel)\", \"list-nolabel\", null, null, null, null, null, null, null, null], [\"end group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin group\", \"happy_sad_table\", \"Table with image labels (made using an easier method)\", null, \"A much easier way to do the same (appearance=table-list)\", \"table-list\", null, null, null, null, null, null, null, null], [\"select_multiple  happy_sad\", \"happy_sad_brian\", \"Brian\", null, null, null, null, null, null, null, null, null, null, null], [\"select_multiple happy_sad\", \"happy_sad_michael\", \"Michael\", null, null, null, null, null, null, null, null, null, null, null], [\"end group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"cascading_widgets\", \"Cascading Select widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"group1\", \"Cascading Selects with Radio Buttons\", null, null, null, null, null, null, null, null, null, null, null], [\"select_one countries\", \"country\", \"Country\", null, null, null, null, null, null, null, null, null, null, null], [\"select_one cities\", \"city\", \"City\", null, \"Using a choice filter to update options based on a previous answer (choice_filter: country = ${country})\", null, \"country=${country}\", null, null, null, null, null, null, null], [\"select_one neighborhoods\", \"neighborhood\", \"Neighborhood\", null, \"Using a choice filter to update options based on previous answers (choice_filter: country = ${country} and city = ${city})\", null, \"country=${country} and city=${city}\", null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"group2\", \"Cascading Selects with Pulldowns\", null, null, null, null, null, null, null, null, null, null, null], [\"select_one countries\", \"country2\", \"Country\", null, \"(appearance: minimal)\", \"minimal\", null, null, null, null, null, null, null, null], [\"select_one cities\", \"city2\", \"City\", null, \"Using a choice filter to update options based on a previous answer (choice_filter: country = ${country2},  appearance: minimal)\", \"minimal\", \"country=${country2}\", null, null, null, null, null, null, null], [\"select_one neighborhoods\", \"neighborhood2\", \"Neighborhood\", null, \"Using a choice filter to update options based on previous answers (choice_filter: country = ${country2} and city = ${city2}, appearance = minimal)\", \"minimal\", \"country=${country2} and city=${city2}\", null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"geopoint_widgets\", \"GPS widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"geopoint\", \"my_geopoint\", \"Geopoint widget\", null, \"This will record the gps location. In enketo it also shows a map. (type=geopoint)\", null, null, null, null, null, null, null, null, null], [\"geopoint\", \"my_geopoint_m\", \"Geopoint with map Widget\", null, \"This will record the gps location. In enketo is is the same as the previous.  (type=geopoint, appearance=maps)\", \"maps\", null, null, null, null, null, null, null, null], [\"geopoint\", \"my_geopoint_hide\", \"Geopoint widget that hides input fields by default\", null, \"To show a larger map (on desktop screens), you can hide the input fields. (appearance = hide-input)\", \"maps hide-input\", null, null, null, null, null, null, null, null], [\"geotrace\", \"my_geotrace\", \"Geotrace widget\", null, \"This will record a sequence/line of geopoints (type=geotrace, appearance=maps hide-input)\", \"maps hide-input\", null, null, null, null, null, null, null, null], [\"geoshape\", \"my_geoshape\", \"Geoshape widget\", null, \"This will record a closed sequence/polygon of geopoints (type=geoshape, appearance=maps hide-input)\", \"maps hide-input\", null, null, null, null, \"7.9377 -11.5845 0 0;7.9324 -11.5902 0 0;7.927 -11.5857 0 0;7.925 -11.578 0 0;7.9267 -11.5722 0 0;7.9325 -11.5708 0 0;7.9372 -11.5737 0 0;7.9393 -11.579 0 0;7.9377 -11.5845 0 0\", null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"media_widgets\", \"Media input widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"image\", \"my_image\", \"Image widget\", null, \"This will launch the camera. Not supported in enketo at the moment (type=image)\", null, null, null, null, null, null, null, null, null], [\"audio\", \"my_audio\", \"Audio widget\", null, \"This will launch the audio recorder. Not supported in enketo at the moment (type=audio)\", null, null, null, null, null, null, null, null, null], [\"video\", \"my_video\", \"Video widget\", null, \"This will launch the video recorder. Not supported in enketo at the moment (type=video)\", null, null, null, null, null, null, null, null, null], [\"barcode\", \"my_barcode\", \"Barcode widget\", null, \"Scans multi-format 1d/2d barcodes. In enketo it allows manual entry (type=barcode)\", null, null, null, null, null, null, null, null, null], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null], [\"begin_group\", \"display_widgets\", \"Display widgets\", null, null, null, null, null, null, null, null, null, null, null], [\"note\", \"my_output\", \"Note widget. In notes you can emphasize _words_ or _multiple words_ or __strongly emphasize something__.\\\\nYou can also use a line break to start a new sentence.\\\\n\\\\nThe decimal number you entered was ${my_decimal}.\", null, \"This is a note and it uses a value of another field in its label (type=note)\", null, null, null, null, null, null, \"yes\", null, null], [\"text\", \"text_media\", \"You can add a sound recording, an image and a video to any input label or to a note.\", \"goldeneagle.mp3\", \"Add the file name in the audio column on your survey sheet. Make sure you upload this file when you publish your form.\", null, null, null, null, null, null, null, null, null], [\"select_one list1\", \"select_media\", \"You can also add media to choices. Choose your favorite bird.\", null, \"Add the file name in the image column on your choices sheet. Make sure you upload this file when you publish your form.\", null, null, null, null, null, null, null, null, null], [\"trigger\", \"my_trigger\", \"Acknowledge widget\", null, \"Prompts for confirmation. Useful to combine with required or relevant. (type=trigger)\", null, null, null, null, null, null, null, null, \"yes\"], [\"end_group\", null, null, null, null, null, null, null, null, null, null, null, null, null]], \"choices\": [[\"list name\", \"name\", \"label\", \"image\", \"country\", \"city\"], [\"list\", \"a\", \"option a\", null, null, null], [\"list\", \"b\", \"option b\", null, null, null], [\"list\", \"c\", \"option c\", null, null, null], [\"list\", \"d\", \"option d\", null, null, null], [\"list1\", \"king\", \"kingfisher\", \"kingfisher.png\", null, null], [\"list1\", \"pig\", \"pigeon\", \"pigeon.png\", null, null], [\"list1\", \"nut\", \"nuthatch\", \"nuthatch.png\", null, null], [\"list2\", \"1\", \"option 1\", null, null, null], [\"list2\", \"2\", \"option 2\", null, null, null], [\"list2\", \"3\", \"option 3\", null, null, null], [\"list2\", \"4\", \"option 4\", null, null, null], [\"list2\", \"5\", \"option 5\", null, null, null], [\"list2\", \"6\", \"option 6\", null, null, null], [\"list2\", \"7\", \"option 7\", null, null, null], [\"list2\", \"8\", \"option 8\", null, null, null], [\"yes_no\", \"yes\", \"Yes\", null, null, null], [\"yes_no\", \"no\", \"No\", null, null, null], [\"yes_no\", \"dk\", \"Don't Know\", null, null, null], [\"yes_no\", \"na\", \"Not Applicable\", null, null, null], [\"agree5\", \"1\", \"strongly disagree\", null, null, null], [\"agree5\", \"2\", \"disagree\", null, null, null], [\"agree5\", \"3\", \"neither agree nor disagree\", null, null, null], [\"agree5\", \"4\", \"agree\", null, null, null], [\"agree5\", \"5\", \"strongly agree\", null, null, null], [\"a_b\", \"a\", null, \"a.jpg\", null, null], [\"a_b\", \"b\", null, \"b.jpg\", null, null], [\"happy_sad\", \"happy\", null, \"happy.jpg\", null, null], [\"happy_sad\", \"sad\", null, \"sad.jpg\", null, null], [\"countries\", \"nl\", \"The Netherlands\", null, null, null], [\"countries\", \"usa\", \"United States\", null, null, null], [\"cities\", \"ams\", \"Amsterdam\", null, \"nl\", null], [\"cities\", \"den\", \"Denver\", null, \"usa\", null], [\"cities\", \"nyc\", \"New York City\", null, \"usa\", null], [\"cities\", \"la\", \"Los Angeles\", null, \"usa\", null], [\"cities\", \"rot\", \"Rotterdam\", null, \"nl\", null], [\"cities\", \"dro\", \"Dronten\", null, \"nl\", null], [\"neighborhoods\", \"bronx\", \"Bronx\", null, \"usa\", \"nyc\"], [\"neighborhoods\", \"harlem\", \"Harlem\", null, \"usa\", \"nyc\"], [\"neighborhoods\", \"belair\", \"Bel Air\", null, \"usa\", \"la\"], [\"neighborhoods\", \"wes\", \"Westerpark\", null, \"nl\", \"ams\"], [\"neighborhoods\", \"parkhill\", \"Park Hill\", null, \"usa\", \"den\"], [\"neighborhoods\", \"haven\", \"Harbor\", null, \"nl\", \"rot\"], [\"neighborhoods\", \"dam\", \"Dam\", null, \"nl\", \"ams\"], [\"neighborhoods\", \"centrum\", \"Downtown\", null, \"nl\", \"rot\"], [\"neighborhoods\", \"haven\", \"Harbor\", null, \"nl\", \"dro\"]]}",
+      "collection": 1,
+      "created": "2015-02-13T19:05:12.486Z",
+      "owner": 1,
+      "settings": "[[\"title\",\"id_string\",\"style\"],[\"Widgets\",\"widgets\",\"theme-formhub\"]]",
+      "title": "Enketo Widgets",
+      "uid": "jWa7nubC",
+      "version_uid": "sctuu"
     },
-    {
-        "fields": {
-            "name": "example xlsforms",
-            "owner": 1,
-            "parent": null,
-            "uid": "YS3DuZ7GuhN7ZcP2jFNGBH"
-        },
-        "model": "kpi.collection",
-        "pk": 1
-    }
+    "model": "kpi.asset",
+    "pk": 2
+  },
+  {
+    "fields": {
+      "name": "example xlsforms",
+      "owner": 1,
+      "parent": null,
+      "uid": "YS3DuZ7GuhN7ZcP2jFNGBH"
+    },
+    "model": "kpi.collection",
+    "pk": 1
+  }
 ]

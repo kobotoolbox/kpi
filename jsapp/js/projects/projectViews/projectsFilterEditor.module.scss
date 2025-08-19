@@ -1,15 +1,14 @@
 @use 'scss/mixins';
-@use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .root {
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  gap: sizes.$x6;
+  gap: 6px;
 
   & + & {
-    margin-top: sizes.$x8;
+    margin-top: 8px;
   }
 }
 
@@ -40,7 +39,7 @@
   display: block;
   color: colors.$kobo-storm;
   font-weight: 600;
-  font-size: sizes.$x13;
+  font-size: 13px;
   line-height: 1.2;
-  margin-bottom: sizes.$x5;
+  margin-bottom: 5px;
 }

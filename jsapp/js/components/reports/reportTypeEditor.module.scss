@@ -1,0 +1,76 @@
+@use 'scss/colors';
+@use 'scss/mixins';
+
+.root {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.style {
+  width: 140px;
+  min-height: 140px;
+  text-align: center;
+  background-size: auto 80px;
+  background-position: center 15px;
+  background-repeat: no-repeat;
+
+  &[data-name='vertical'] {
+    background-image: url('~../../../img/chart-vertical.svg');
+  }
+
+  &[data-name='horizontal'] {
+    background-image: url('~../../../img/chart-horizontal.svg');
+  }
+
+  &[data-name='donut'] {
+    background-image: url('~../../../img/chart-donut.svg');
+  }
+
+  &[data-name='area'] {
+    background-image: url('~../../../img/chart-area.svg');
+  }
+
+  &[data-name='pie'] {
+    background-image: url('~../../../img/chart-pie.svg');
+  }
+
+  &[data-name='line'] {
+    background-image: url('~../../../img/chart-line.svg');
+  }
+
+  &[data-name='polar'] {
+    background-image: url('~../../../img/chart-polar.svg');
+  }
+
+  &[data-name='radar'] {
+    background-image: url('~../../../img/chart-radar.svg');
+  }
+}
+
+// <input>
+.styleInput {
+  display: none;
+}
+
+// <label>
+.styleLabel {
+  padding-top: 100px;
+  font-weight: 400;
+  line-height: 20px;
+  min-height: inherit;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  display: block;
+  width: 100%;
+  cursor: pointer;
+}
+
+.styleInput:checked + .styleLabel {
+  border-color: colors.$kobo-blue;
+}
+
+.styleInput:not(:checked):hover + .styleLabel {
+  border-color: colors.$kobo-gray-400;
+}

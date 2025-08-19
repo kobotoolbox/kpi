@@ -1,24 +1,23 @@
-import React from 'react';
-import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import StepBegin from './stepBegin.component';
-import StepConfig from './stepConfig.component';
-import StepConfigAuto from './stepConfigAuto.component';
-import StepEditor from './stepEditor.component';
-import StepViewer from './stepViewer.component';
+import React from 'react'
+
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import StepBegin from './stepBegin.component'
+import StepConfig from './stepConfig.component'
+import StepConfigAuto from './stepConfigAuto.component'
+import StepEditor from './stepEditor.component'
+import StepViewer from './stepViewer.component'
 
 export default class TranscriptTab extends React.Component<{}> {
-  private unlisteners: Function[] = [];
+  private unlisteners: Function[] = []
 
   componentDidMount() {
-    this.unlisteners.push(
-      singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
-    );
+    this.unlisteners.push(singleProcessingStore.listen(this.onSingleProcessingStoreChange, this))
   }
 
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {
-      clb();
-    });
+      clb()
+    })
   }
 
   /**
@@ -27,60 +26,54 @@ export default class TranscriptTab extends React.Component<{}> {
    * store changes :shrug:.
    */
   onSingleProcessingStoreChange() {
-    this.forceUpdate();
+    this.forceUpdate()
   }
 
   /** Identifies what step should be displayed based on the data itself. */
   render() {
-    const draft = singleProcessingStore.getTranscriptDraft();
+    const draft = singleProcessingStore.getTranscriptDraft()
 
     // Step 1: Begin - the step where there is nothing yet.
-    if (
-      singleProcessingStore.getTranscript() === undefined &&
-      draft === undefined
-    ) {
-      return <StepBegin />;
+    if (singleProcessingStore.getTranscript() === undefined && draft === undefined) {
+      return <StepBegin />
     }
 
     // Step 2: Config - for selecting the transcript language and mode.
-    // We display it when there is ongoing draft, but it doesn't have a language 
+    // We display it when there is ongoing draft, but it doesn't have a language
     // or a value, and the region code is not selected.
     if (
       draft !== undefined &&
       (draft.languageCode === undefined || draft.value === undefined) &&
       draft.regionCode === undefined
     ) {
-      return <StepConfig />;
+      return <StepConfig />
     }
 
-    // Step 2.1: Config Automatic - for selecting region and other automatic 
+    // Step 2.1: Config Automatic - for selecting region and other automatic
     // options.
-    // We display it when there is ongoing draft, but it doesn't have a language 
+    // We display it when there is ongoing draft, but it doesn't have a language
     // or a value, and the region code is selected.
     if (
       draft !== undefined &&
       (draft.languageCode === undefined || draft.value === undefined) &&
       draft.regionCode !== undefined
     ) {
-      return <StepConfigAuto />;
+      return <StepConfigAuto />
     }
 
     // Step 3: Editor - display editor of draft transcript.
     if (draft !== undefined) {
-      return <StepEditor />;
+      return <StepEditor />
     }
 
     // Step 4: Viewer - display existing (on backend) transcript.
-    // We display it when there is transcript in the store, and there is no 
+    // We display it when there is transcript in the store, and there is no
     // ongoing draft (we only support single transcript ATM).
-    if (
-      singleProcessingStore.getTranscript() !== undefined &&
-      draft === undefined
-    ) {
-      return <StepViewer />;
+    if (singleProcessingStore.getTranscript() !== undefined && draft === undefined) {
+      return <StepViewer />
     }
 
     // Should not happen, but we need to return something.
-    return null;
+    return null
   }
 }

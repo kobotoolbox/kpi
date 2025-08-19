@@ -2,12 +2,8 @@ from django.contrib import admin
 from django.db import transaction
 
 from kobo.apps.markdownx_uploader.admin import MarkdownxModelAdminBase
-from kpi.deployment_backends.kc_access.shadow_models import KobocatFormDisclaimer
-from .models import (
-    FormDisclaimer,
-    OverriddenFormDisclaimer,
-)
 from .forms import FormDisclaimerForm, OverriddenFormDisclaimerForm
+from .models import FormDisclaimer, OverriddenFormDisclaimer
 
 
 class FormDisclaimerAdmin(MarkdownxModelAdminBase):
@@ -44,10 +40,12 @@ class FormDisclaimerAdmin(MarkdownxModelAdminBase):
         to_delete_ids = list(queryset.values_list('pk', flat=True))
         with transaction.atomic():
             super().delete_queryset(request, queryset)
-            KobocatFormDisclaimer.objects.filter(pk__in=to_delete_ids).delete()
 
 
 class OverridenFormDisclaimerAdmin(FormDisclaimerAdmin):
+
+    class Media:
+        js = ['admin/js/disable_per_asset_message.js']
 
     form = OverriddenFormDisclaimerForm
     add_form = OverriddenFormDisclaimerForm
@@ -61,8 +59,11 @@ class OverridenFormDisclaimerAdmin(FormDisclaimerAdmin):
         'asset__owner__username',
     ]
     autocomplete_fields = ['language', 'asset']
-    fields = ['asset', 'hidden', 'language', 'message']
     exclude = ['default']
+    fieldsets = [
+        (None, {'fields': ['asset', 'hidden']}),
+        ('Override default disclaimer', {'fields': ['language', 'message']}),
+    ]
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)

@@ -1,43 +1,21 @@
-@use "scss/mixins";
-@use '~kobo-common/src/styles/colors';
-@use "scss/libs/_mdl";
-@use "scss/_variables";
+@use 'scss/mixins';
+@use 'scss/colors';
+@use 'scss/libs/_mdl';
+@use 'scss/_variables';
 
 // nested selector needed for specificity
-.kobo-dropdown[data-name='columns-hide-dropdown']  {
+.kobo-dropdown[data-name='columns-hide-dropdown'] {
   @include mixins.centerRowFlex;
-  margin-right: 10px;
+  margin-right: 20px;
 
   .kobo-dropdown__menu {
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
     background-color: colors.$kobo-white;
     @include mdl.box-shadow;
     padding: 9px 0;
-    text-align: left;
+    text-align: initial;
     line-height: 20px;
     min-width: 150px;
-  }
-}
-
-.columns-hide-dropdown-trigger {
-  cursor: pointer;
-  background: none;
-  border: none;
-  margin: 0;
-  padding: 0;
-  color: colors.$kobo-gray-55;
-  font-size: variables.$base-font-size;
-  font-weight: 500;
-  line-height: 24px;
-
-  &:hover {
-    color: colors.$kobo-blue;
-  }
-
-  .k-icon {
-    font-size: 22px;
-    vertical-align: top;
-    margin-right: 5px;
   }
 }
 
@@ -49,7 +27,7 @@
     margin: 0;
     font-size: 12px;
     line-height: 18px;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
 
     &:not(:first-child) {
       margin-top: 10px;
@@ -64,6 +42,7 @@
     max-height: 200px;
     margin: 10px 0;
     overflow-y: auto;
+    padding: 0;
 
     .columns-hide-form__list-item {
       &:not(:first-child) {

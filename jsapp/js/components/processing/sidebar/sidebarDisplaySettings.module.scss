@@ -1,19 +1,18 @@
-@use '~kobo-common/src/styles/colors';
-@use 'scss/sizes';
+@use 'scss/colors';
 
 .root {
   display: flex;
   justify-content: right;
-  padding-top: sizes.$x18;
-  padding-bottom: sizes.$x10;
+  align-items: center;
+  height: 48px;
 }
 
 .description {
-  padding-bottom: sizes.$x36;
+  padding-bottom: 36px;
 }
 
 .display:not(:last-child) {
-  padding-bottom: sizes.$x36;
+  padding-bottom: 36px;
 }
 
 .wrapWithParens {
@@ -26,7 +25,20 @@
   }
 }
 
-.options {
-  margin: 0 !important;
+// We need to win the specificity here
+ul.options.options {
+  margin: 0;
+}
+
+.questionList {
+  margin: 12px 0 0 36px;
+}
+
+.checkbox {
+  padding: 12px;
+  margin-top: 6px;
+  max-height: 140px; // ~4.5 times the size of a checkbox, makes 4 checkboxes visible
+  border: 1px solid colors.$kobo-gray-300;
+  border-radius: 2px;
   overflow-y: auto;
 }

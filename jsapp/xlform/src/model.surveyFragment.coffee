@@ -1,4 +1,3 @@
-
 _ = require 'underscore'
 Backbone = require 'backbone'
 $base = require './model.base'
@@ -8,9 +7,10 @@ $utils = require './model.utils'
 $configs = require './model.configs'
 $surveyDetail = require './model.surveyDetail'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
+txtid = require('#/utils').txtid
 
 module.exports = do ->
-  _t = require("utils").t
+  _t = require("#/utils").t
 
   surveyFragment = {}
 
@@ -27,10 +27,10 @@ module.exports = do ->
 
       extend_to_row = (val, key)=>
         if _.isFunction(val)
-          rr[key] = (args...)->
-            val.apply(rr, args)
+          return rr[key] = (args...)->
+            return val.apply(rr, args)
         else
-          rr[key] = val
+          return rr[key] = val
       _.each @, extend_to_row
       extend_to_row(@forEachRow, 'forEachRow')
 
@@ -43,18 +43,20 @@ module.exports = do ->
         obj =
           export_relevant_values: (surv, addl)->
             surv.push _.extend({}, _end_json)
+            return
           toJSON: ->
-            _.extend({}, _end_json)
-
-        cb(obj)  if ctxt.includeGroupEnds
+            return _.extend({}, _end_json)
+        if ctxt.includeGroupEnds
+          return cb(obj)
 
       _toJSON = rr.toJSON
 
       rr.clone = ()->
         console.error('clone kobomatrix rows')
+        return
 
       rr.toJSON = ()->
-        _.extend _toJSON.call(rr), {
+        return _.extend _toJSON.call(rr), {
           'type': "begin_#{rr._beginEndKey()}"
         }, @_additionalJson?()
 
@@ -67,12 +69,12 @@ module.exports = do ->
 
 
     _kobomatrix_cols: ->
-      @rows
+      return @rows
 
     _isSelectQuestion: -> false
     get_type: -> $skipLogicHelpers.question_types['default']
     _beginEndKey: ->
-      'kobomatrix'
+      return 'kobomatrix'
 
     linkUp: (ctx)->
       @getList = ()=> @items
@@ -82,20 +84,22 @@ module.exports = do ->
       if kobomatrix_list
         items[kobomatrix_list] = @getSurvey().choices.get(kobomatrix_list)
       else
-        kobomatrix_list = @.set('kobo--matrix_list', "matrix_#{$utils.txtid()}")
+        kobomatrix_list = @.set('kobo--matrix_list', "matrix_#{txtid()}")
         items[kobomatrix_list] = @getSurvey().choices.create()
 
       @rows.each (row)=>
         if listName = row.get('select_from_list_name')?.get('value')
           items[listName] = @getSurvey().choices.get(listName)
+        return
 
       @items = items
-      @items
+      return @items
 
 
   passFunctionToMetaModel = (obj, fname)->
     obj["__#{fname}"] = obj[fname]
     obj[fname] = (args...) -> obj._meta[fname].apply(obj._meta, args)
+    return
 
   _forEachRow = (cb, ctx)->
     @_beforeIterator(cb, ctx)  if '_beforeIterator' of @
@@ -111,11 +115,13 @@ module.exports = do ->
         cb(r)  if ctx.includeErrors
       else
         cb(r)
+      return
     @_afterIterator(cb, ctx)  if '_afterIterator' of @
     return
 
   class surveyFragment.SurveyFragment extends $base.BaseCollection
-    constructor: (a,b)->
+    constructor: (arg, opts)->
+      super(arg, opts)
       @rows = new Rows([], _parent: @)
       @_meta = new Backbone.Model()
       passFunctionToMetaModel(@, "set")
@@ -123,7 +129,6 @@ module.exports = do ->
       passFunctionToMetaModel(@, "on")
       passFunctionToMetaModel(@, "off")
       passFunctionToMetaModel(@, "trigger")
-      super(a,b)
     _validate: ->
       @clearErrors()
       isValid = true
@@ -138,11 +143,14 @@ module.exports = do ->
       return isValid
     clearErrors: () ->
       @errors = []
+      return
     addError: (message) ->
       @errors.push message
+      return
     linkUp: (ctx)-> @invoke('linkUp', ctx)
     forEachRow: (cb, ctx={})->
       _forEachRow.apply(@, [cb, ctx])
+      return
     getRowDescriptors: () ->
       descriptors = []
       @forEachRow (row) ->
@@ -150,28 +158,31 @@ module.exports = do ->
           label: row.getValue('label')
           name: row.getValue('name')
         descriptors.push(descriptor)
-      descriptors
+        return
+      return descriptors
     findRowByCid: (cid, options={})->
       match = false
       fn = (row)->
         if row.cid is cid
           match = row
+          return match
         # maybe implement a way to bust out
         # of this loop with false response.
-        !match
+        return !match
       @forEachRow fn, options
-      match
+      return match
 
     findRowByName: (name, opts)->
       match = false
       @forEachRow (row)->
         if (row.getValue("name") || $utils.sluggifyLabel row.getValue('label')) is name
           match = row
+          return match
         # maybe implement a way to bust out
         # of this loop with false response.
-        !match
+        return !match
       ,opts
-      match
+      return match
     addRowAtIndex: (r, index)-> @addRow(r, at: index)
     addRow: (r, opts={})->
       if (afterRow = opts.after)
@@ -186,14 +197,15 @@ module.exports = do ->
         opts.at = index
       else
         opts._parent = @rows
-      opts._parent.add r, opts
+      return opts._parent.add r, opts
 
     detach: ->
       @_parent.remove(@)
-      ``
+      return
 
     remove: (item)->
       item.detach()
+      return
 
     _addGroup: (opts)->
       # move to surveyFrag
@@ -209,8 +221,9 @@ module.exports = do ->
 
       rowCids = []
       @forEachRow (
-          (r)->
-            rowCids.push(r.cid)
+        (r)->
+          rowCids.push(r.cid)
+          return
         ), includeGroups: true, includeErrors: true
 
       lowest_i = false
@@ -232,29 +245,29 @@ module.exports = do ->
       @getSurvey()._insertRowInPlace grp, addOpts
       par = addOpts.parent or @getSurvey().rows
       par.trigger('add', grp)
+      return
 
     _allRows: ->
       # move to surveyFrag
       rows = []
       @forEachRow ((r)-> rows.push(r)  if r.constructor.kls is "Row"), {}
-      rows
+      return rows
 
     finalize: ->
       # move to surveyFrag
       @forEachRow ((r)=> r.finalize()), includeGroups: true
-      @
+      return @
 
   class surveyFragment.Group extends $row.BaseRow
     @kls = "Group"
     @key = "group"
-    constructor: (a={}, b)->
-      __rows = a.__rows or []
-      if a.label == undefined
-        a.label = ''
-      @_parent = a._parent
-      delete a.__rows
+    constructor: (arg={}, opts)->
+      __rows = arg.__rows or []
+      delete arg.__rows
+      if arg.label == undefined
+        arg.label = ''
+      super(arg, opts)
       @rows = new Rows([], _parent: @)
-      super(a,b)
       @rows.add __rows  if __rows
       for row in __rows
         row._parent = row.collection = @rows
@@ -275,13 +288,14 @@ module.exports = do ->
       @set('_isRepeat', typeIsRepeat)
       @convertAttributesToRowDetails()
       if @getValue('type') is 'kobomatrix'
-        new KobomatrixMixin(@)
+        return new KobomatrixMixin(@)
 
     addRowAtIndex: (row, index) ->
       row._parent = @rows
       @rows.add(row, at:index)
+      return
     _isRepeat: ()->
-      !!(@get("_isRepeat")?.get("value"))
+      return !!(@get("_isRepeat")?.get("value"))
 
     autoname: ->
       name = @getValue('name')
@@ -294,12 +308,15 @@ module.exports = do ->
           validXmlTag: true
         new_name = $utils.sluggify(@getValue('label'), slgOpts)
         @setDetail('name', new_name)
+      return
 
     finalize: ->
       @autoname()
+      return
 
     detach: (opts)->
       @_parent.remove(@, opts)
+      return
 
     splitApart: ->
       startingIndex = @_parent.models.indexOf(@)
@@ -311,25 +328,31 @@ module.exports = do ->
 
     _beforeIterator: (cb, ctxt)->
       cb(@groupStart())  if ctxt.includeGroupEnds
+      return
     _afterIterator: (cb, ctxt)->
       cb(@groupEnd())  if ctxt.includeGroupEnds
+      return
 
     forEachRow: (cb, ctx={})->
       _forEachRow.apply(@, [cb, ctx])
+      return
 
     _groupOrRepeatKey: ->
-      if @_isRepeat() then "repeat" else "group"
+      if @_isRepeat() then return "repeat" else return "group"
 
     groupStart: ->
       group = @
-      export_relevant_values: (surv, shts)-> surv.push(@toJSON())
-      toJSON: ->
-        out = {}
-        for k, val of group.attributes
-          if k isnt '_isRepeat'
-            out[k] = val.getValue()
-        out.type = "begin_#{group._groupOrRepeatKey()}"
-        out
+      return {
+        export_relevant_values: (surv, shts)-> surv.push(@toJSON())
+        toJSON: ->
+          out = {}
+          for k, val of group.attributes
+            if k isnt '_isRepeat'
+              out[k] = val.getValue()
+          out.type = "begin_#{group._groupOrRepeatKey()}"
+          return out
+      }
+
     groupEnd: ->
       group = @
       _kuid = @getValue("$kuid")
@@ -337,16 +360,21 @@ module.exports = do ->
         type: "end_#{@_groupOrRepeatKey()}"
         $kuid: "/#{_kuid}"
 
-      export_relevant_values: (surv, shts)->
-        surv.push _.extend {}, _as_json
-      toJSON: ()->
-        _.extend {}, _as_json
+      return {
+        export_relevant_values: (surv, shts)->
+          surv.push _.extend {}, _as_json
+          return
+        toJSON: ()->
+          return _.extend {}, _as_json
+      }
 
   INVALID_TYPES_AT_THIS_STAGE = ['begin_group', 'end_group', 'begin_repeat', 'end_repeat']
   _determineConstructorByParams = (obj)->
     formSettingsTypes = do ->
+      result = []
       for key, val of $configs.defaultSurveyDetails
-        val.name
+        result.push val.name
+      return result
     type = obj?.type
     if type in INVALID_TYPES_AT_THIS_STAGE
       # inputParser should have converted groups and repeats into a structure by this point
@@ -355,13 +383,14 @@ module.exports = do ->
     if type in formSettingsTypes
       # e.g. "today"
       throw new Error("#{type} is not properly handled as a SurveyDetail")
-      $surveyDetail.SurveyDetail
+      return $surveyDetail.SurveyDetail
     else if type is 'score'
-      $row.Row
+      return $row.Row
     else if type in ['group', 'repeat', 'kobomatrix']
-      surveyFragment.Group
+      return surveyFragment.Group
     else
-      $row.Row
+      return $row.Row
+    return
 
   class Rows extends $base.BaseCollection
     constructor: (args...)->
@@ -371,10 +400,10 @@ module.exports = do ->
     model: (obj, ctxt)->
       RowConstructor = _determineConstructorByParams(obj)
       try
-        new RowConstructor(obj, _.extend({}, ctxt, _parent: ctxt.collection))
+        return new RowConstructor(obj, _.extend({}, ctxt, _parent: ctxt.collection))
       catch e
         # Store exceptions in with the survey
-        new $row.RowError(obj, _.extend({}, ctxt, error: e, _parent: ctxt.collection))
+        return new $row.RowError(obj, _.extend({}, ctxt, error: e, _parent: ctxt.collection))
     comparator: (m)-> m.ordinal
 
-  surveyFragment
+  return surveyFragment

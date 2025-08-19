@@ -1,39 +1,25 @@
-import React from 'react';
-import {Navigate, Route} from 'react-router-dom';
-import RequireAuth from 'js/router/requireAuth';
-import {ROUTES} from 'js/router/routerConstants';
+import React from 'react'
 
-const ChangePasswordRoute = React.lazy(
-  () => import(/* webpackPrefetch: true */ './changePasswordRoute.component')
-);
-const SecurityRoute = React.lazy(
-  () => import(/* webpackPrefetch: true */ './security/securityRoute.component')
-);
-const PlanRoute = React.lazy(
-  () => import(/* webpackPrefetch: true */ './plans/plan.component')
-);
-const AccountSettings = React.lazy(
-  () => import(/* webpackPrefetch: true */ './accountSettingsRoute')
-);
-const DataStorage = React.lazy(
-  () => import(/* webpackPrefetch: true */ './usage/usage.component')
-);
-
-export const ACCOUNT_ROUTES: {readonly [key: string]: string} = {
-  ACCOUNT_SETTINGS: ROUTES.ACCOUNT_ROOT + '/settings',
-  USAGE: ROUTES.ACCOUNT_ROOT + '/usage',
-  SECURITY: ROUTES.ACCOUNT_ROOT + '/security',
-  PLAN: ROUTES.ACCOUNT_ROOT + '/plan',
-  CHANGE_PASSWORD: ROUTES.ACCOUNT_ROOT + '/change-password',
-};
+import { Navigate, Route } from 'react-router-dom'
+import { OrganizationUserRole } from '#/account/organization/organizationQuery'
+import {
+  ACCOUNT_ROUTES,
+  AccountSettings,
+  AddOnsRoute,
+  ChangePasswordRoute,
+  DataStorage,
+  MembersRoute,
+  OrganizationSettingsRoute,
+  PlansRoute,
+  SecurityRoute,
+} from '#/account/routes.constants'
+import { RequireOrgPermissions } from '#/router/RequireOrgPermissions.component'
+import RequireAuth from '#/router/requireAuth'
 
 export default function routes() {
   return (
     <>
-      <Route
-        path=''
-        element={<Navigate to={ACCOUNT_ROUTES.ACCOUNT_SETTINGS} replace />}
-      />
+      <Route path='' element={<Navigate to={ACCOUNT_ROUTES.ACCOUNT_SETTINGS} replace />} />
       <Route
         path={ACCOUNT_ROUTES.SECURITY}
         element={
@@ -44,17 +30,56 @@ export default function routes() {
       />
       <Route
         path={ACCOUNT_ROUTES.PLAN}
+        index
         element={
           <RequireAuth>
-            <PlanRoute />
+            <RequireOrgPermissions
+              validRoles={[OrganizationUserRole.owner]}
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+            >
+              <PlansRoute />
+            </RequireOrgPermissions>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={ACCOUNT_ROUTES.ADD_ONS}
+        index
+        element={
+          <RequireAuth>
+            <RequireOrgPermissions
+              validRoles={[OrganizationUserRole.owner]}
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+            >
+              <AddOnsRoute />
+            </RequireOrgPermissions>
           </RequireAuth>
         }
       />
       <Route
         path={ACCOUNT_ROUTES.USAGE}
+        index
         element={
           <RequireAuth>
-            <DataStorage />
+            <RequireOrgPermissions
+              validRoles={[OrganizationUserRole.owner, OrganizationUserRole.admin]}
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+            >
+              <DataStorage activeRoute={ACCOUNT_ROUTES.USAGE} />
+            </RequireOrgPermissions>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN}
+        element={
+          <RequireAuth>
+            <RequireOrgPermissions
+              validRoles={[OrganizationUserRole.owner, OrganizationUserRole.admin]}
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+            >
+              <DataStorage activeRoute={ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN} />
+            </RequireOrgPermissions>
           </RequireAuth>
         }
       />
@@ -74,6 +99,30 @@ export default function routes() {
           </RequireAuth>
         }
       />
+      <Route
+        path={ACCOUNT_ROUTES.ORGANIZATION_MEMBERS}
+        element={
+          <RequireAuth>
+            <RequireOrgPermissions mmoOnly redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}>
+              <MembersRoute />
+            </RequireOrgPermissions>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={ACCOUNT_ROUTES.ORGANIZATION_SETTINGS}
+        element={
+          <RequireAuth>
+            <RequireOrgPermissions
+              validRoles={[OrganizationUserRole.owner, OrganizationUserRole.admin]}
+              mmoOnly
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+            >
+              <OrganizationSettingsRoute />
+            </RequireOrgPermissions>
+          </RequireAuth>
+        }
+      />
     </>
-  );
+  )
 }
