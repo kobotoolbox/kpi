@@ -31,8 +31,8 @@ import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { formatTime, notify } from '#/utils'
-import LimitNotifications from '../usageLimits/limitNotifications.component'
 import ActionIcon from '../common/ActionIcon'
+import LimitNotifications from '../usageLimits/limitNotifications.component'
 
 const DVCOUNT_LIMIT_MINIMUM = 20
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url
