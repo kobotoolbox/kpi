@@ -1016,7 +1016,7 @@ SPECTACULAR_SETTINGS = {
         'kpi.authentication.TokenAuthentication',
     ],
     'ENUM_NAME_OVERRIDES': {
-        'InviteStatusChoicesEnum': 'kobo.apps.project_ownership.models.choices.InviteStatusChoices.choices'  # noqa
+        'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices'  # noqa
     }
 }
 
