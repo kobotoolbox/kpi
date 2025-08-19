@@ -5,9 +5,8 @@ import { useState } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import cx from 'classnames'
 import { useParams } from 'react-router-dom'
+import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import { QueryKeys } from '#/query/queryKeys'
-import PaginatedQueryUniversalTable, { DEFAULT_PAGE_SIZE } from '#/universalTable/PaginatedQueryUniversalTable'
-import type { UniversalTableColumn } from '#/universalTable/universalTable.component'
 import { formatTime } from '#/utils'
 import type { KoboSelectOption } from '../common/koboSelect'
 import KoboSelect from '../common/koboSelect'
@@ -112,7 +111,7 @@ export default function FormActivity() {
           </KoboModal>
         )}
 
-        <PaginatedQueryUniversalTable<ActivityLogsItem>
+        <UniversalTable<ActivityLogsItem>
           pagination={pagination}
           setPagination={setPagination}
           columns={columns}

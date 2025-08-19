@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import UniversalTable, { DEFAULT_PAGE_SIZE } from '#/UniversalTable'
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import Button from '#/components/common/button'
 import ExportToEmailButton from '#/components/exportToEmailButton/exportToEmailButton.component'
 import { QueryKeys } from '#/query/queryKeys'
 import sessionStore from '#/stores/session'
-import PaginatedQueryUniversalTable, { DEFAULT_PAGE_SIZE } from '#/universalTable/PaginatedQueryUniversalTable'
 import { formatTime } from '#/utils'
 import { type AccessLog, getAccessLogs, startAccessLogsExport } from './accessLogs.query'
 
@@ -47,7 +47,7 @@ export default function AccessLogsSection() {
         </div>
       </header>
 
-      <PaginatedQueryUniversalTable<AccessLog>
+      <UniversalTable<AccessLog>
         pagination={pagination}
         setPagination={setPagination}
         queryResult={queryResult}

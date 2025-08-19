@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { Box, Divider, Group, Stack, Text, Title } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import InviteModal from '#/account/organization/InviteModal'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 import subscriptionStore from '#/account/subscriptionStore'
@@ -13,8 +14,6 @@ import Badge from '#/components/common/badge'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore from '#/envStore'
 import { QueryKeys } from '#/query/queryKeys'
-import PaginatedQueryUniversalTable, { DEFAULT_PAGE_SIZE } from '#/universalTable/PaginatedQueryUniversalTable'
-import type { UniversalTableColumn } from '#/universalTable/universalTable.component'
 import { formatDate } from '#/utils'
 import InviteeActionsDropdown from './InviteeActionsDropdown'
 import MemberActionsDropdown from './MemberActionsDropdown'
@@ -232,7 +231,7 @@ export default function MembersRoute() {
         </Box>
       )}
 
-      <PaginatedQueryUniversalTable<OrganizationMemberListItem>
+      <UniversalTable<OrganizationMemberListItem>
         columns={columns}
         queryResult={queryResult}
         pagination={pagination}

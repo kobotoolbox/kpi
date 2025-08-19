@@ -16,7 +16,7 @@ import KoboSelect from '#/components/common/koboSelect'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { useViewportSize } from '#/hooks/useViewportSize'
 import { generateUuid } from '#/utils'
-import styles from './universalTable.module.scss'
+import styles from './UniversalTableCore.module.scss'
 
 export interface UniversalTableColumn<DataItem> {
   /**
@@ -97,7 +97,7 @@ const DEFAULT_COLUMN_SIZE = {
  * expect to get user pagination requests through the callback function named
  * `onRequestPaginationChange`.
  */
-export default function UniversalTable<DataItem>(props: UniversalTableProps<DataItem>) {
+export default function UniversalTableCore<DataItem>(props: UniversalTableProps<DataItem>) {
   // We need table height for the resizers
   const [tableHeight, setTableHeight] = useState(0)
   const [hasHorizontalScrollbar, setHasHorizontalScrollbar] = useState(false)

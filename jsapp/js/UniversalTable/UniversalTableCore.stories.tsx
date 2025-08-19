@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import UniversalTable, { type UniversalTableColumn } from './universalTable.component'
+import UniversalTable, { type UniversalTableColumn } from './UniversalTableCore'
 import {
   type UniversalTableExampleDataItem,
   createUniversalTableExampleDataColumns,
   mockData,
-} from './universalTable.mocks'
+} from './UniversalTableCore.mocks'
 
 interface CustomArgs {
   hasColumnsPinnedLeft: 'none' | 'one' | 'multiple'
