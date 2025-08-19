@@ -1,31 +1,49 @@
-import React, { useState, useMemo } from 'react'
+import React, { useMemo } from 'react'
 
 import type { UseQueryResult } from '@tanstack/react-query'
-import type { Record } from 'immutable'
-import type { PaginatedResponse } from '#/dataInterface'
 import UniversalTable from './universalTable.component'
 import type { UniversalTableColumn } from './universalTable.component'
 
-type PaginatedQueryHookData = Record<string, string | number | boolean>
-
-export type PaginatedQueryHookParams = {
+export interface Pagination {
   limit: number
   offset: number
-} & PaginatedQueryHookData
+}
 
-type PaginatedQueryHook<DataItem> = (params: PaginatedQueryHookParams) => UseQueryResult<PaginatedResponse<DataItem>>
+export interface PaginatedListResponseData<Datum = never> {
+  count: number
+  /** @nullable */
+  next?: string | null
+  /** @nullable */
+  previous?: string | null
+  results: Datum[]
+}
 
-interface PaginatedQueryUniversalTableProps<DataItem> {
-  queryHook: PaginatedQueryHook<DataItem>
-  queryHookData?: PaginatedQueryHookData
+export type PaginatedListResponse<Datum = never> =
+  | PaginatedListResponse.Ok<Datum>
+  | PaginatedListResponse.NotFound
+export namespace PaginatedListResponse {
+  export interface Ok<Datum = never> {
+    data: PaginatedListResponseData<Datum>
+    status: 200
+  }
+  export interface NotFound {
+    data: unknown
+    status: 404
+  }
+}
+
+interface PaginatedQueryUniversalTableProps<Datum> {
   // Below are props from `UniversalTable` that should come from the parent
   // component (these are kind of "configuration" props). The other
   // `UniversalTable` props are being handled here internally.
-  columns: Array<UniversalTableColumn<DataItem>>
+  columns: Array<UniversalTableColumn<Datum>>
+  queryResult: UseQueryResult<PaginatedListResponse<Datum>>
+  pagination: Pagination
+  setPagination: (pagination: Pagination) => unknown
 }
 
-const PAGE_SIZES = [10, 30, 50, 100]
-const DEFAULT_PAGE_SIZE = PAGE_SIZES[0]
+export const PAGE_SIZES = [10, 30, 50, 100]
+export const DEFAULT_PAGE_SIZE = PAGE_SIZES[0]
 
 /**
  * This is a wrapper component for `UniversalTable`. It should be used in
@@ -50,32 +68,26 @@ const DEFAULT_PAGE_SIZE = PAGE_SIZES[0]
  *
  * All the rest of the functionalities are the same as `UniversalTable`.
  */
-export default function PaginatedQueryUniversalTable<DataItem>(props: PaginatedQueryUniversalTableProps<DataItem>) {
-  const [pagination, setPagination] = useState({
-    limit: DEFAULT_PAGE_SIZE,
-    offset: 0,
-  })
-
-  const paginatedQuery = props.queryHook({
-    ...props.queryHookData,
-    limit: pagination.limit,
-    offset: pagination.offset,
-  })
-
+export default function PaginatedQueryUniversalTable<Datum>({
+  columns,
+  pagination,
+  queryResult,
+  setPagination,
+}: PaginatedQueryUniversalTableProps<Datum>) {
   const availablePages = useMemo(
-    () => Math.ceil((paginatedQuery.data?.count ?? 0) / pagination.limit),
-    [paginatedQuery.data, pagination],
+    () => (queryResult.data?.status === 200 ? Math.ceil(queryResult.data?.data?.count / pagination.limit) : 0),
+    [pagination.limit, queryResult.data?.status, (queryResult.data?.data as PaginatedListResponseData<Datum>).count],
   )
 
   const currentPageIndex = useMemo(() => Math.ceil(pagination.offset / pagination.limit), [pagination])
 
-  const data = paginatedQuery.data?.results || []
+  if (queryResult.data?.status === 404) return null
 
   return (
-    <UniversalTable<DataItem>
-      columns={props.columns}
-      data={data}
-      isSpinnerVisible={paginatedQuery.isFetching}
+    <UniversalTable<Datum>
+      columns={columns}
+      data={queryResult.data?.data.results ?? []}
+      isSpinnerVisible={queryResult.isFetching}
       pageIndex={currentPageIndex}
       pageCount={availablePages}
       pageSize={pagination.limit}
