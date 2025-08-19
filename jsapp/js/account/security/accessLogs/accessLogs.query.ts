@@ -1,9 +1,6 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { fetchGet, fetchPost } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import type { FailResponse, PaginatedResponse } from '#/dataInterface'
-import { QueryKeys } from '#/query/queryKeys'
-import type { PaginatedQueryHookParams } from '#/universalTable/paginatedQueryUniversalTable.component'
 
 export interface AccessLog {
   /** User URL */
@@ -23,27 +20,18 @@ export interface AccessLog {
   count: number
 }
 
-async function getAccessLogs(limit: number, offset: number) {
+export async function getAccessLogs(limit: number, offset: number) {
   const params = new URLSearchParams({
     limit: limit.toString(),
     offset: offset.toString(),
   })
-  return fetchGet<PaginatedResponse<AccessLog>>(endpoints.ACCESS_LOGS_URL + '?' + params, {
-    errorMessageDisplay: t('There was an error getting the list.'),
-  })
-}
-
-export default function useAccessLogsQuery({ limit, offset }: PaginatedQueryHookParams) {
-  return useQuery({
-    queryKey: [QueryKeys.accessLogs, limit, offset],
-    queryFn: () => getAccessLogs(limit, offset),
-    placeholderData: keepPreviousData,
-    // We might want to improve this in future, for now let's not retry
-    retry: false,
-    // The `refetchOnWindowFocus` option is `true` by default, I'm setting it
-    // here so we don't forget about it.
-    refetchOnWindowFocus: true,
-  })
+  // Note: little crust ahead of time to make a simpler transition to generated react-query helpers.
+  return {
+    status: 200 as const,
+    data: await fetchGet<PaginatedResponse<AccessLog>>(endpoints.ACCESS_LOGS_URL + '?' + params, {
+      errorMessageDisplay: t('There was an error getting the list.'),
+    }),
+  }
 }
 
 /**
