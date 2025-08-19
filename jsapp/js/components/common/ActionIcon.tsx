@@ -3,7 +3,7 @@ import type { ActionIconProps as ActionIconPropsMantine } from '@mantine/core/li
 import { forwardRef } from 'react'
 import type { IconName } from '#/k-icons'
 import Icon, { type IconSize } from './icon'
-import { TooltipProps } from '@mantine/core/lib/components'
+import type { TooltipProps } from '@mantine/core/lib/components'
 
 export interface ActionIconProps extends Omit<ActionIconPropsMantine, 'size'> {
   /** Text for tooltip */
