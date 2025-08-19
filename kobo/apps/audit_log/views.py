@@ -163,6 +163,9 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         AuditLog.objects.select_related('user').all().order_by('-date_created')
     )
     filter_backends = (SearchFilter,)
+    # audit logs have no n-to-many fields, so don't bother running "distinct" on
+    # search results
+    skip_distinct = True
 
     search_default_field_lookups = [
         'app_label__icontains',
