@@ -67,6 +67,7 @@ class DecimalRounder(BaseAction):
 ```
 
 TODO: `run_change()` is never called. Ouch! Is the `revise_field()` method its successor?
+Maybe `run_change()` is correct for actions that do not take edits
 
 #### Step 4a: modify `ADVANCED_FEATURES_PARAMS_SCHEMA`
 

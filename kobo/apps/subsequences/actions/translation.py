@@ -11,7 +11,6 @@ class TranslationAction(BaseAction):
 
     @classmethod
     def build_params(cls, content, **kwargs):
-        raise Exception('Fuck You')
         translatable_fields = []
         for row in content.get('survey', []):
             if row['type'] in TRANSLATABLE_SOURCE_TYPES:

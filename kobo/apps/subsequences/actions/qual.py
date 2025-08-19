@@ -8,7 +8,6 @@ class QualAction(BaseAction):
 
     @classmethod
     def build_params(cls, content, **kwargs):
-        raise Exception('Fuck You')
         _fields = []
         for row in content.get('survey', []):
             if row['type'] in QUAL_SOURCE_TYPES:

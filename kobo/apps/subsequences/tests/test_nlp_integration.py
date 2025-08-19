@@ -49,14 +49,14 @@ class NLPIntegrationTestCase(TestCase):
     def test_param_builder(self):
         AutomaticTranscriptionAction.TRANSCRIPTION_SERVICES = TEST_TRANSCRIPTION_SERVICES
         survey = self.asset.content
-        built_params = AutomaticTranscriptionAction.build_params({}, survey)
+        built_params = AutomaticTranscriptionAction.build_params(content=survey)
         assert built_params['values'] == ['ask_a_question']
         assert 'services' in built_params
 
 
     def test_instantiate_action_with_params(self):
         survey = self.asset.content
-        action_params = AutomaticTranscriptionAction.build_params({}, survey)
+        action_params = AutomaticTranscriptionAction.build_params(content=survey)
         action_instance = AutomaticTranscriptionAction(action_params)
         assert action_instance is not None
 
@@ -66,7 +66,7 @@ class NLPIntegrationTestCase(TestCase):
         submission = {'ask_a_question': 'blah.mp3', '_attachments': [
             {'filename': 'blah.mp3', }
         ]}
-        action_params = AutomaticTranscriptionAction.build_params({}, survey)
+        action_params = AutomaticTranscriptionAction.build_params(content=survey)
         action_instance = AutomaticTranscriptionAction(action_params)
 
         # check that the changes ARE needed

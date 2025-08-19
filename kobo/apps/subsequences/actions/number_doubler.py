@@ -25,7 +25,16 @@ class NumberDoubler(BaseAction):
     def has_change(self, original, edit):
         return True
 
+    def run_change(self, submission):
+        additions = submission.get(self._destination_field, {})
+        for key, dest_key in self.values.items():
+            original = submission.get(key)
+            additions[dest_key] = double_number(original)
+        return {**submission, self._destination_field: additions}
+
     def revise_field(self, previous, edit):
+        # FIXME: idk if this makes sense here. Maybe `run_change()` is correct
+        # for actions that do not take edits
         return {'value': double_number(edit['value'])}
 
     def check_submission_status(self, submission):
@@ -56,7 +65,7 @@ class NumberDoubler(BaseAction):
         values = []
         for row in content.get('survey', []):
             if row['type'] in ['integer', 'decimal']:
-                values.append(cls.get_qpath(cls, row))
+                values.append(cls.get_xpath(cls, row))
         return values
 
     def modify_jsonschema(self, schema):

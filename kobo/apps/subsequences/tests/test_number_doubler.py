@@ -4,8 +4,8 @@ from ..actions.number_doubler import NumberDoubler
 
 def _survey_and_submission_with_numerics():
     survey = {'survey': [
-              {'type': 'number', 'name': 'num1'},
-              {'type': 'number', 'name': 'num2'},
+              {'type': 'integer', 'name': 'num1'},
+              {'type': 'integer', 'name': 'num2'},
               {'type': 'decimal', 'name': 'num3'},
               {'type': 'decimal', 'name': 'num4'},
               ]}
@@ -13,7 +13,7 @@ def _survey_and_submission_with_numerics():
     return (survey, submission)
 
 def test_param_builder():
-    survey = _survey_and_submission_with_numerics()[0]
+    survey, _ = _survey_and_submission_with_numerics()
     built_params = NumberDoubler.build_params(content=survey)
     assert 'values' in built_params
     # assert built_params['values']['num1'] == 'num1_doubled'

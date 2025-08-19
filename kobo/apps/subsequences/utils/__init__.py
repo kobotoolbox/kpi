@@ -49,7 +49,10 @@ SUBMISSION_UUID_FIELD = 'meta/rootUuid'
 def advanced_feature_instances(content, actions):
     for action_id, action_params in actions.items():
         action_kls = ACTIONS_BY_ID[action_id]
-        if action_params:  # FIXME: is this really a boolean? We were testing with `==` and later `is`
+        # FIXME: calling `build_params()` when `action_params` is already a
+        # valid dict breaks everything, but `action_params` being a simple
+        # boolean `True` is used by unit tests
+        if action_params is True:
             action_params = action_kls.build_params(content=content)
         yield action_kls(action_params)
 
@@ -95,7 +98,10 @@ def advanced_submission_jsonschema(content, actions, url=None):
     # breakpoint()
     for action_id, action_params in actions.items():
         action_kls = ACTIONS_BY_ID[action_id]
-        if action_params:  # FIXME: boolean? See other FIXME
+        # FIXME: calling `build_params()` when `action_params` is already a
+        # valid dict breaks everything, but `action_params` being a simple
+        # boolean `True` is used by unit tests
+        if action_params is True:
             action_params = action_kls.build_params(content=content)
         if 'values' not in action_params:
             action_params['values'] = action_kls.get_values_for_content(content)
