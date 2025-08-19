@@ -8,7 +8,8 @@
     "paths": {
         "/{username}/formList": {
             "get": {
-                "operationId": "formList_list_2",
+                "operationId": "form_list_anonymous",
+                "description": "## Implement part of the OpenRosa Form List API\n\nThese endpoints are used for adding submissions, depending on the authenticated status of the user.\n\nAdding a submission as an anonymous user:\n`/{username}/formList`\n\nAdding a submission as an authenticated user:\n`/formList`\n\n\n⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -32,23 +33,20 @@
                 "responses": {
                     "200": {
                         "content": {
-                            "text/xml": {
+                            "application/xml": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/XFormList"
-                                    }
+                                    "$ref": "#/components/schemas/XFormList"
                                 }
                             }
                         },
-                        "description": ""
+                        "description": null
                     }
                 }
             }
         },
         "/{username}/submission": {
             "post": {
-                "operationId": "submission_create_2",
+                "operationId": "submission_anonymous",
                 "description": "Implements OpenRosa Api [FormSubmissionAPI](        https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI)\n\n## Submit an XML XForm submission\n\n<pre class=\"prettyprint\">\n<b>POST</b> /api/v1/submissions</pre>\n> Example\n>\n>       curl -X POST -F xml_submission_file=@/path/to/submission.xml     https://example.com/api/v1/submissions\n\n## Submit an JSON XForm submission\n\n<pre class=\"prettyprint\">\n<b>POST</b> /api/v1/submissions</pre>\n> Example\n>\n>       curl -X POST -d '{\"id\": \"[form ID]\", \"submission\": [the JSON]}     http://localhost:8000/api/v1/submissions -u user:pass -H \"Content-Type:     application/json\"\n\nHere is some example JSON, it would replace `[the JSON]` above:\n>       {\n>           \"transport\": {\n>               \"available_transportation_types_to_referral_facility\":     [\"ambulance\", \"bicycle\"],\n>               \"loop_over_transport_types_frequency\": {\n>                   \"ambulance\": {\n>                       \"frequency_to_referral_facility\": \"daily\"\n>                   },\n>                   \"bicycle\": {\n>                       \"frequency_to_referral_facility\": \"weekly\"\n>                   },\n>                   \"boat_canoe\": null,\n>                   \"bus\": null,\n>                   \"donkey_mule_cart\": null,\n>                   \"keke_pepe\": null,\n>                   \"lorry\": null,\n>                   \"motorbike\": null,\n>                   \"taxi\": null,\n>                   \"other\": null\n>               }\n>           }\n>           \"meta\": {\n>               \"instanceID\": \"uuid:f3d8dc65-91a6-4d0f-9e97-802128083390\"\n>           }\n>       }",
                 "parameters": [
                     {
@@ -85,7 +83,7 @@
                     {}
                 ],
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "No response body"
                     }
                 }
@@ -93,7 +91,7 @@
         },
         "/{username}/xformsManifest/{id}": {
             "get": {
-                "operationId": "xformsManifest_retrieve_2",
+                "operationId": "manifest_anonymous",
                 "parameters": [
                     {
                         "in": "path",
@@ -139,7 +137,8 @@
         },
         "/formList": {
             "get": {
-                "operationId": "formList_list",
+                "operationId": "form_list_authenticated",
+                "description": "## Implement part of the OpenRosa Form List API\n\nThese endpoints are used for adding submissions, depending on the authenticated status of the user.\n\nAdding a submission as an anonymous user:\n`/{username}/formList`\n\nAdding a submission as an authenticated user:\n`/formList`\n\n\n⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n",
                 "tags": [
                     "OpenRosa Form List"
                 ],
@@ -152,23 +151,20 @@
                 "responses": {
                     "200": {
                         "content": {
-                            "text/xml": {
+                            "application/xml": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/XFormList"
-                                    }
+                                    "$ref": "#/components/schemas/XFormList"
                                 }
                             }
                         },
-                        "description": ""
+                        "description": null
                     }
                 }
             }
         },
         "/submission": {
             "post": {
-                "operationId": "submission_create",
+                "operationId": "submission_authenticated",
                 "description": "Implements OpenRosa Api [FormSubmissionAPI](        https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI)\n\n## Submit an XML XForm submission\n\n<pre class=\"prettyprint\">\n<b>POST</b> /api/v1/submissions</pre>\n> Example\n>\n>       curl -X POST -F xml_submission_file=@/path/to/submission.xml     https://example.com/api/v1/submissions\n\n## Submit an JSON XForm submission\n\n<pre class=\"prettyprint\">\n<b>POST</b> /api/v1/submissions</pre>\n> Example\n>\n>       curl -X POST -d '{\"id\": \"[form ID]\", \"submission\": [the JSON]}     http://localhost:8000/api/v1/submissions -u user:pass -H \"Content-Type:     application/json\"\n\nHere is some example JSON, it would replace `[the JSON]` above:\n>       {\n>           \"transport\": {\n>               \"available_transportation_types_to_referral_facility\":     [\"ambulance\", \"bicycle\"],\n>               \"loop_over_transport_types_frequency\": {\n>                   \"ambulance\": {\n>                       \"frequency_to_referral_facility\": \"daily\"\n>                   },\n>                   \"bicycle\": {\n>                       \"frequency_to_referral_facility\": \"weekly\"\n>                   },\n>                   \"boat_canoe\": null,\n>                   \"bus\": null,\n>                   \"donkey_mule_cart\": null,\n>                   \"keke_pepe\": null,\n>                   \"lorry\": null,\n>                   \"motorbike\": null,\n>                   \"taxi\": null,\n>                   \"other\": null\n>               }\n>           }\n>           \"meta\": {\n>               \"instanceID\": \"uuid:f3d8dc65-91a6-4d0f-9e97-802128083390\"\n>           }\n>       }",
                 "parameters": [
                     {
@@ -196,7 +192,7 @@
                     {}
                 ],
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "No response body"
                     }
                 }
@@ -204,7 +200,7 @@
         },
         "/xformsManifest/{id}": {
             "get": {
-                "operationId": "xformsManifest_retrieve",
+                "operationId": "manifest_authenticated",
                 "parameters": [
                     {
                         "in": "path",
@@ -243,55 +239,47 @@
     "components": {
         "schemas": {
             "XFormList": {
-                "type": "object",
-                "properties": {
-                    "formID": {
-                        "type": "string",
-                        "readOnly": true
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "formID": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "majorMinorVersion": {
+                            "type": "string"
+                        },
+                        "version": {
+                            "type": "string"
+                        },
+                        "hash": {
+                            "type": "string"
+                        },
+                        "description": {
+                            "type": "string"
+                        },
+                        "downloadUrl": {
+                            "type": "string",
+                            "format": "uri",
+                            "example": "https://kf.kobotoolbox.org/forms/6/form.xml"
+                        },
+                        "manifestUrl": {
+                            "type": "string",
+                            "format": "uri",
+                            "example": "https://kf.kobotoolbox.org/xformsManifest/6"
+                        }
                     },
-                    "name": {
-                        "type": "string",
-                        "readOnly": true
-                    },
-                    "majorMinorVersion": {
-                        "type": "object",
-                        "additionalProperties": {},
-                        "readOnly": true
-                    },
-                    "version": {
-                        "type": "object",
-                        "additionalProperties": {},
-                        "readOnly": true
-                    },
-                    "hash": {
-                        "type": "string",
-                        "readOnly": true
-                    },
-                    "descriptionText": {
-                        "type": "string",
-                        "readOnly": true
-                    },
-                    "downloadUrl": {
-                        "type": "string",
-                        "format": "uri",
-                        "readOnly": true
-                    },
-                    "manifestUrl": {
-                        "type": "string",
-                        "format": "uri",
-                        "readOnly": true
+                    "xml": {
+                        "name": "xform"
                     }
                 },
-                "required": [
-                    "descriptionText",
-                    "downloadUrl",
-                    "formID",
-                    "hash",
-                    "majorMinorVersion",
-                    "manifestUrl",
-                    "name",
-                    "version"
-                ]
+                "xml": {
+                    "name": "xforms",
+                    "wrapped": true
+                }
             }
         },
         "securitySchemes": {

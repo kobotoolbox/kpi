@@ -6,7 +6,20 @@ info:
 paths:
   /{username}/formList:
     get:
-      operationId: formList_list_2
+      operationId: form_list_anonymous
+      description: |
+        ## Implement part of the OpenRosa Form List API
+
+        These endpoints are used for adding submissions, depending on the authenticated status of the user.
+
+        Adding a submission as an anonymous user:
+        `/{username}/formList`
+
+        Adding a submission as an authenticated user:
+        `/formList`
+
+
+        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
       parameters:
       - in: path
         name: username
@@ -22,15 +35,13 @@ paths:
       responses:
         '200':
           content:
-            text/xml:
+            application/xml:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/XFormList'
-          description: ''
+                $ref: '#/components/schemas/XFormList'
+          description: null
   /{username}/submission:
     post:
-      operationId: submission_create_2
+      operationId: submission_anonymous
       description: |-
         Implements OpenRosa Api [FormSubmissionAPI](        https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI)
 
@@ -96,11 +107,11 @@ paths:
       - TokenAuth: []
       - {}
       responses:
-        '201':
+        '200':
           description: No response body
   /{username}/xformsManifest/{id}:
     get:
-      operationId: xformsManifest_retrieve_2
+      operationId: manifest_anonymous
       parameters:
       - in: path
         name: id
@@ -128,7 +139,20 @@ paths:
           description: ''
   /formList:
     get:
-      operationId: formList_list
+      operationId: form_list_authenticated
+      description: |
+        ## Implement part of the OpenRosa Form List API
+
+        These endpoints are used for adding submissions, depending on the authenticated status of the user.
+
+        Adding a submission as an anonymous user:
+        `/{username}/formList`
+
+        Adding a submission as an authenticated user:
+        `/formList`
+
+
+        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
       tags:
       - OpenRosa Form List
       security:
@@ -137,15 +161,13 @@ paths:
       responses:
         '200':
           content:
-            text/xml:
+            application/xml:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/XFormList'
-          description: ''
+                $ref: '#/components/schemas/XFormList'
+          description: null
   /submission:
     post:
-      operationId: submission_create
+      operationId: submission_authenticated
       description: |-
         Implements OpenRosa Api [FormSubmissionAPI](        https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI)
 
@@ -205,11 +227,11 @@ paths:
       - TokenAuth: []
       - {}
       responses:
-        '201':
+        '200':
           description: No response body
   /xformsManifest/{id}:
     get:
-      operationId: xformsManifest_retrieve
+      operationId: manifest_authenticated
       parameters:
       - in: path
         name: id
@@ -232,45 +254,35 @@ paths:
 components:
   schemas:
     XFormList:
-      type: object
-      properties:
-        formID:
-          type: string
-          readOnly: true
-        name:
-          type: string
-          readOnly: true
-        majorMinorVersion:
-          type: object
-          additionalProperties: {}
-          readOnly: true
-        version:
-          type: object
-          additionalProperties: {}
-          readOnly: true
-        hash:
-          type: string
-          readOnly: true
-        descriptionText:
-          type: string
-          readOnly: true
-        downloadUrl:
-          type: string
-          format: uri
-          readOnly: true
-        manifestUrl:
-          type: string
-          format: uri
-          readOnly: true
-      required:
-      - descriptionText
-      - downloadUrl
-      - formID
-      - hash
-      - majorMinorVersion
-      - manifestUrl
-      - name
-      - version
+      type: array
+      items:
+        type: object
+        properties:
+          formID:
+            type: string
+          name:
+            type: string
+          majorMinorVersion:
+            type: string
+          version:
+            type: string
+          hash:
+            type: string
+          description:
+            type: string
+          downloadUrl:
+            type: string
+            format: uri
+            example: https://kf.kobotoolbox.org/forms/6/form.xml
+          manifestUrl:
+            type: string
+            format: uri
+            example: https://kf.kobotoolbox.org/xformsManifest/6
+        xml:
+          name: xform
+      xml:
+        name: xforms
+        wrapped: true
   securitySchemes:
     BasicAuth:
       type: http
