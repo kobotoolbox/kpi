@@ -125,9 +125,10 @@ class XFormSubmissionApi(
     filter_backends = (filters.AnonDjangoObjectPermissionFilter,)
     model = Instance
     permission_classes = (permissions.AllowAny,)
-    renderer_classes = (TemplateXMLRenderer,
-                        JSONRenderer,
-                        BrowsableAPIRenderer)
+    renderer_classes = [
+        TemplateXMLRenderer,
+        JSONRenderer,
+    ]
     serializer_class = SubmissionSerializer
     template_name = 'submission.xml'
     log_type = AuditType.PROJECT_HISTORY
