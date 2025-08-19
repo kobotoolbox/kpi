@@ -35,7 +35,9 @@ class ServiceUsageViewSet(viewsets.GenericViewSet):
     - docs/api/v2/service_usage/list.md
     """
 
-    renderer_classes = (renderers.JSONRenderer,)
+    renderer_classes = [
+        renderers.JSONRenderer,
+    ]
     pagination_class = None
     permission_classes = (IsAuthenticated,)
 
