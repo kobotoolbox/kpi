@@ -7,7 +7,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, permissions, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotAuthenticated
-from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
