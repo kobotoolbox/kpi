@@ -131,10 +131,13 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
-    def test_over_limit_submission_rejection_authenticated(self):
+    @patch(
+        'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances'
+    )
+    def test_over_limit_submission_rejection_authenticated(self, mock_usage):
         """
         Ensure submissions by an authenticated user are rejected if asset owner
-        is over their storage or submission limit
+        is over their storage or submission limit and that usage
         """
         path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
@@ -154,14 +157,17 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                     'exceeded': True,
                 },
             }
+            mock_usage.return_value = mock_balances
             with patch(
-                'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
-                return_value=mock_balances,
-            ):
+                'kobo.apps.stripe.utils.limit_enforcement.check_exceeded_limit',
+                return_value=None,
+            ) as patched:
                 request = self.factory.post('/submission', data, format='json')
                 auth = DigestAuth('bob', 'bobbob')
                 request.META.update(auth(request.META, response))
                 response = self.view(request, username=self.user.username)
+                patched.assert_any_call(self.user, UsageType.SUBMISSION)
+                patched.assert_any_call(self.user, UsageType.STORAGE_BYTES)
                 self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
 
             mock_balances = {
@@ -170,10 +176,11 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 },
                 UsageType.SUBMISSION: None,
             }
+            mock_usage.return_value = mock_balances
             with patch(
-                'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
-                return_value=mock_balances,
-            ):
+                'kobo.apps.stripe.utils.limit_enforcement.check_exceeded_limit',
+                return_value=None,
+            ) as patched:
                 request = self.factory.post('/submission', data, format='json')
                 response = self.view(request)
                 self.assertEqual(response.status_code, 401)
@@ -181,6 +188,8 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 auth = DigestAuth('bob', 'bobbob')
                 request.META.update(auth(request.META, response))
                 response = self.view(request, username=self.user.username)
+                patched.assert_any_call(self.user, UsageType.SUBMISSION)
+                patched.assert_any_call(self.user, UsageType.STORAGE_BYTES)
                 self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
 
     @pytest.mark.skipif(
