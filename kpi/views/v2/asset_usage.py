@@ -35,7 +35,9 @@ class AssetUsageViewSet(ListModelMixin, viewsets.GenericViewSet):
     - docs/api/v2/asset_usage/list.md
     """
 
-    renderer_classes = (renderers.JSONRenderer,)
+    renderer_classes = [
+        renderers.JSONRenderer,
+    ]
     permission_classes = (IsAuthenticated,)
     serializer_class = AssetUsageSerializer
     pagination_class = AssetUsagePagination
