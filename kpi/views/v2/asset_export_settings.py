@@ -167,9 +167,9 @@ class AssetExportSettingsViewSet(
     model = AssetExportSettings
     lookup_field = 'uid'
     serializer_class = AssetExportSettingsSerializer
-    renderer_classes = (
+    renderer_classes = [
         renderers.JSONRenderer,
-    )
+    ]
     permission_classes = (AssetExportSettingsPermission,)
 
     def get_queryset(self):
