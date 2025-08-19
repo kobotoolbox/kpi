@@ -228,6 +228,62 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
         finally:
             lock.release()
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @requires_stripe
+    @override_config(AUTO_DELETE_ATTACHMENTS=True)
+    def test_auto_delete_excess_attachments_clears_counters_and_cache(
+        self, **stripe_models
+    ):
+        """
+        After deleting attachments, the task should clear the usage cache
+        and remove the ExceededLimitCounter if the user is no longer exceeding.
+        """
+        ExceededLimitCounter = stripe_models['exceeded_limit_counter_model']
+
+        # Create a counter for the user
+        counter = ExceededLimitCounter.objects.create(
+            user=self.owner,
+            limit_type=UsageType.STORAGE_BYTES,
+            days=config.LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD + 1,
+        )
+        self.assertTrue(Attachment.objects.filter(pk=self.attachment.pk).exists())
+
+        # First, pretend user is over limit → triggers deletion of attachments
+        over_quota_balances = {
+            UsageType.STORAGE_BYTES: {
+                'effective_limit': 1,
+                'balance_value': -1,
+                'balance_percent': 200,
+                'exceeded': True,
+            }
+        }
+
+        # After cleanup, pretend user is back under limit
+        under_quota_balances = {
+            UsageType.STORAGE_BYTES: {
+                'effective_limit': 100000,
+                'balance_value': 50000,
+                'balance_percent': 50,
+                'exceeded': False,
+            }
+        }
+
+        with patch(
+            'kobo.apps.trash_bin.tasks.attachment.ServiceUsageCalculator.get_usage_balances',
+            side_effect=[over_quota_balances, under_quota_balances],
+        ):
+            auto_delete_excess_attachments(self.owner.pk)
+
+        # Attachment should be deleted
+        self.assertFalse(Attachment.objects.filter(pk=self.attachment.pk).exists())
+
+        # Counter should be removed since user is now under limit
+        self.assertFalse(
+            ExceededLimitCounter.objects.filter(id=counter.id).exists()
+        )
+
     def _create_submissions_with_attachments(self, count=1):
         """
         Helper method to add new submissions with attachments to the asset
