@@ -132,7 +132,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
     @patch(
-        'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances'
+        'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances'  # noqa: E501
     )
     def test_over_limit_submission_rejection_authenticated(self, mock_usage):
         """
