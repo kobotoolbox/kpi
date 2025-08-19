@@ -29,6 +29,7 @@ npm-test:
   - '{package*.json,patches/*.patch,scripts/copy_fonts.py}'                   # npm + postinstall
   - '{tsconfig.json,.swcrc,.babelrc*,.browserslistrc}'                        # compilers
   - '{.editorconfig,.stylelint*,.eslint*,coffeelint*}'                        # linters
+  - '.storybook/**/*'                                                         # storybook
   - '.gitignore'                                                              # (can affect tools)
   - '.github/workflows/{npm-test,chromatic}.yml'                              # ci
 
