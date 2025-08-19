@@ -48,27 +48,33 @@ export const PAGE_SIZES = [10, 30, 50, 100]
 export const DEFAULT_PAGE_SIZE = PAGE_SIZES[0]
 
 /**
- * This is a wrapper component for `UniversalTable`. It should be used in
- * situations when you use `react-query` to fetch data, and the data is
- * paginated. This component handles pagination in a neat, DRY way.
+ * Displays paginated data directly from a `react-query` hook.
+ * For displaying custom data structures use UniversalTableCore directly.
  *
- * This component receives a `queryHook` prop, which is a function that should
- * return a `react-query` query object. This function should be a paginated ready
- * query function, meaning that it should accept an object with the following
- * properties:
- * - `limit`: number of items per page
- * - `offset`: offset of the page
- * - `...`: any other data that you need to pass to the query (passed via the `queryHookData` prop)
+ * Boilerplate:
  *
- * While the `limit` and `offset` properties are used internally to handle the
- * pagination, the rest of the properties are passed to the `queryHook` function
- * when fetching data via the `queryHookData` prop.
+ * ```tsx
+ * import UniversalTable, { DEFAULT_PAGE_SIZE } from '#/UniversalTable'
  *
- * The queryHookData prop is an object containing any other data that you need
- * to pass to the query, like ids or filters. This data will be passed to the
- * `queryHook` function along with `limit` and `offset`.
- *
- * All the rest of the functionalities are the same as `UniversalTable`.
+ * const Example = () => {
+ *   const [pagination, setPagination] = useState({
+ *     limit: DEFAULT_PAGE_SIZE,
+ *     offset: 0,
+ *   })
+ *   const queryResult = useQuery({
+ *     ...
+ *   })
+ *   return <UniversalTable<Datum>
+ *     pagination={pagination}
+ *     setPagination={setPagination}
+ *     queryResult={queryResult}
+ *     columns={[
+ *       { key: 'name', label: t('Name'), cellFormatter: (datum: Datum) => datum.name.toLowerCase() },
+ *       ...
+ *     ]}
+ *   />
+ * }
+ * ```
  */
 export default function UniversalTable<Datum>({
   columns,
