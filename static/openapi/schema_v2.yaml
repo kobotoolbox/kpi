@@ -6323,7 +6323,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedInviteResponseList'
+                $ref: '#/components/schemas/InviteCreateResponse'
           description: null
         '404':
           content:
@@ -10785,6 +10785,39 @@ components:
       required:
       - invitees
       - role
+    InviteCreateResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          url:
+            type: string
+            format: uri
+            example: https://kf.kobotoolbox.org/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/
+          invited_by:
+            type: string
+            format: uri
+            example: https://kf.kobotoolbox.org/api/v2/users/bob/
+          status:
+            type: string
+          invitee_role:
+            enum:
+            - admin
+            - member
+            type: string
+            description: |-
+              * `admin` - admin
+              * `member` - member
+          organization_name:
+            type: string
+          created:
+            type: string
+            format: date-time
+          modified:
+            type: string
+            format: date-time
+          invitee:
+            type: string
     InviteResponse:
       type: object
       properties:
@@ -11180,14 +11213,6 @@ components:
         * `admin` - admin
         * `member` - member
         * `owner` - owner
-    MemberPatchRequestRoleEnum:
-      enum:
-      - admin
-      - member
-      type: string
-      description: |-
-        * `admin` - admin
-        * `member` - member
     OpenRosaXFormResponse:
       type: object
       properties:
