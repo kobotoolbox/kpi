@@ -10,6 +10,10 @@ ADVANCED_FEATURES_PARAMS_SCHEMA = {
     'type': 'object',
     'additionalProperties': False,
     'properties': {
+        # FIXME: YES!!! Just make sure all of these keys are the IDs of the
+        # actions, import the actions, and call some staticmethod on each to
+        # shove their schemas in here similarly to what's being done at the end
+        # for `qual`
         'transcript': {
             'type': 'object',
             'properties': {
@@ -46,6 +50,8 @@ ADVANCED_FEATURES_PARAMS_SCHEMA = {
 
 # User-defined qualitative analysis forms
 ADVANCED_FEATURES_PARAMS_SCHEMA['$defs'] = {
+    # FIXME: can all this stuff be nested within `qual`, i.e. the ID of the action? it'd be nice if `$defs` allows that
+    # The answer is Yes
     'qualQuestionType': {
         'type': 'string',
         'enum': [
