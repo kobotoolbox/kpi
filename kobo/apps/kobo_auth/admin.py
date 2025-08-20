@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 
 from kobo.apps.kobo_auth.models import DataCollector, DataCollectorGroup
 from kobo.apps.kobo_auth.shortcuts import User
@@ -69,7 +70,9 @@ class DataCollectorGroupAdmin(admin.ModelAdmin):
         available_assets = get_objects_for_user(
             owner, perms=[PERM_MANAGE_ASSET], klass=Asset.objects.defer('content')
         )
-        available_assets = available_assets.filter(data_collector_group__isnull=True)
+        available_assets = available_assets.filter(
+            Q(data_collector_group__isnull=True) | Q(data_collector_group=obj)
+        )
         form.base_fields['assets'].queryset = available_assets
         return form
 
