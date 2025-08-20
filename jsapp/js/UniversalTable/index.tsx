@@ -82,7 +82,7 @@ export default function UniversalTable<Datum>({
 }: UniversalTableProps<Datum>) {
   const availablePages = useMemo(
     () => (queryResult.data?.status === 200 ? Math.ceil(queryResult.data?.data?.count / pagination.limit) : 0),
-    [pagination.limit, queryResult.data?.status, (queryResult.data?.data as PaginatedListResponseData<Datum>).count],
+    [pagination.limit, queryResult.data?.status, (queryResult.data?.data as PaginatedListResponseData<Datum>)?.count],
   )
 
   const currentPageIndex = useMemo(() => Math.ceil(pagination.offset / pagination.limit), [pagination])
