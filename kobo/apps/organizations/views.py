@@ -46,7 +46,8 @@ from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
-    open_api_204_empty_response, open_api_201_created_response,
+    open_api_201_created_response,
+    open_api_204_empty_response,
 )
 from kpi.views.v2.asset import AssetViewSet
 from ..accounts.mfa.models import MfaMethod

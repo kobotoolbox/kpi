@@ -1,16 +1,10 @@
 from rest_framework import serializers
 
 from kobo.apps.project_ownership.schema_extensions.v2.project_ownership.invites.fields import (  # noqa
-    StatusEnumField
+    StatusEnumField,
 )
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
-from .fields import (
-    InvitedByUrlField,
-    InviteesField,
-    InviteRoleField,
-    InviteUrlField,
-)
-
+from .fields import InvitedByUrlField, InviteesField, InviteRoleField, InviteUrlField
 
 InviteCreatePayload = inline_serializer_class(
     name='InviteCreatePayload',
