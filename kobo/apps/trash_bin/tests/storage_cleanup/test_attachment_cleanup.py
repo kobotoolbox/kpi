@@ -47,6 +47,9 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
             schedule_auto_attachment_cleanup_for_users()
             mock_task.assert_not_called()
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_auto_delete_excess_attachments_user_within_limit(self):
         """
         Test that no attachments are deleted if user is under quota
@@ -67,6 +70,9 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
             self.attachment.refresh_from_db()
             self.assertTrue(Attachment.objects.filter(pk=self.attachment.pk).exists())
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_auto_delete_excess_attachments_user_exceeds_limit(self):
         """
         Test that attachments are soft deleted when a user is over quota
@@ -87,6 +93,9 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
             self.attachment.refresh_from_db()
             self.assertFalse(Attachment.objects.filter(pk=self.attachment.pk).exists())
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_auto_delete_trashes_minimum_attachments_to_meet_limit(self):
         """
         Test only the minimum number of attachments are soft-deleted to bring
@@ -177,6 +186,9 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
             schedule_auto_attachment_cleanup_for_users()
             mock_task.assert_called_once_with(self.owner.pk)
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_auto_delete_excess_attachments_ignores_missing_balance_info(self):
         """
         If `ServiceUsageCalculator` returns no info for 'storage_bytes',
@@ -227,6 +239,62 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
                     mock_task.assert_not_called()
         finally:
             lock.release()
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @requires_stripe
+    @override_config(AUTO_DELETE_ATTACHMENTS=True)
+    def test_auto_delete_excess_attachments_clears_counters_and_cache(
+        self, **stripe_models
+    ):
+        """
+        After deleting attachments, the task should clear the usage cache
+        and remove the ExceededLimitCounter if the user is no longer exceeding.
+        """
+        ExceededLimitCounter = stripe_models['exceeded_limit_counter_model']
+
+        # Create a counter for the user
+        counter = ExceededLimitCounter.objects.create(
+            user=self.owner,
+            limit_type=UsageType.STORAGE_BYTES,
+            days=config.LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD + 1,
+        )
+        self.assertTrue(Attachment.objects.filter(pk=self.attachment.pk).exists())
+
+        # Initially, assume user is over quota
+        over_quota_balances = {
+            UsageType.STORAGE_BYTES: {
+                'effective_limit': 1,
+                'balance_value': -1,
+                'balance_percent': 200,
+                'exceeded': True,
+            }
+        }
+
+        # After cleanup, assume user is under quota
+        under_quota_balances = {
+            UsageType.STORAGE_BYTES: {
+                'effective_limit': 100000,
+                'balance_value': 50000,
+                'balance_percent': 50,
+                'exceeded': False,
+            }
+        }
+
+        with patch(
+            'kobo.apps.trash_bin.tasks.attachment.ServiceUsageCalculator.get_usage_balances',  # noqa
+            side_effect=[over_quota_balances, under_quota_balances],
+        ):
+            auto_delete_excess_attachments(self.owner.pk)
+
+        # Attachment should be deleted
+        self.assertFalse(Attachment.objects.filter(pk=self.attachment.pk).exists())
+
+        # Counter should be removed since user is now under limit
+        self.assertFalse(
+            ExceededLimitCounter.objects.filter(id=counter.id).exists()
+        )
 
     def _create_submissions_with_attachments(self, count=1):
         """
