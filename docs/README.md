@@ -59,7 +59,13 @@ Example:
     tags=['My-Category'],
     description='Returns a list of my objects.',
     request=None,
-    responses={200: OpenApiResponse(CategoryInlineSerializer)},
+    responses=open_api_200_ok_response(
+        MySerializer(),
+        require_auth=False,
+        raise_access_forbidden=False,
+        raise_not_found=False,
+        validate_payload=False,
+    ),
     examples=[
       OpenApiExample(
           name='Example 1',
@@ -106,19 +112,34 @@ You can also use it to document custom actions with specific serializers or desc
 Example:
 
 ```python
+@extend_schema(
+    tags=['My-Category'],
+)
 @extend_schema_view(
     list=extend_schema(
-        description=read_md('category', 'category/list'),
-        request=None,
-        responses={200: OpenApiResponse(CategoryListInlineSerializer)},
+      description=read_md('category', 'category/list.md'),
+      request=None,
+      responses=open_api_200_ok_response(
+        MySerializer(),
+        require_auth=False,
+        raise_access_forbidden=False,
+        raise_not_found=False,
+        validate_payload=False,
+      ),
     ),
     create=extend_schema(
-        description=read_md('category', 'category/create'),
-        request=None,
-        responses={200: OpenApiResponse(CategoryCreateInlineSerializer)},
+        description=read_md('category', 'category/create.md'),
+        request={'application/json': MySerializer},
+        responses=open_api_201_response_created(
+          MySerializer(),
+          require_auth=False,
+          raise_access_forbidden=False,
+          raise_not_found=False,
+          validate_payload=False,
+        ),
     ),
     my_custom_action=extend_schema(
-        description='My custom action'
+        description=read_md('category', 'category/custom_action.md')
     )
 )
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -128,6 +149,11 @@ class CategoryViewSet(viewsets.ModelViewSet):
 Note: `read_md` is a small utility that loads a Markdown file from the Django app where
 the viewset is defined. Its implementation is available at:
 `kpi/utils/schema_extensions/markdown.py`
+
+Note: `open_api_***_[...]` (example: open_api_200_ok_response) is a utility that generate the response
+for the schema and incorporate the possible error for said endpoint. Its implementation is
+available at:
+`kpi/utils/schema_extensions/response.py`
 
 This structure keeps your schema annotations centralized and maintainable, especially in
 large projects.
@@ -149,7 +175,6 @@ Example:
 ```python
 @extend_schema(
     tags=['My-Category'],
-    description='Returns a list of my objects.'
 ```
 
 Using consistent and meaningful tags improves the developer experience when navigating
