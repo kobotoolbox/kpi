@@ -4,14 +4,19 @@ from kobo.apps.project_ownership.schema_extensions.v2.project_ownership.invites.
     StatusEnumField
 )
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
-from .fields import InvitedByUrlField, InviteesField, InviteUrlField
+from .fields import (
+    InvitedByUrlField,
+    InviteesField,
+    InviteRoleField,
+    InviteUrlField,
+)
 
 
 InviteCreatePayload = inline_serializer_class(
     name='InviteCreatePayload',
     fields={
         'invitees': InviteesField(),
-        'role': serializers.CharField(),
+        'role': InviteRoleField(),
     },
 )
 
@@ -20,7 +25,7 @@ InvitePatchPayload = inline_serializer_class(
     name='InvitePatchPayload',
     fields={
         'status': serializers.CharField(),
-        'role': serializers.CharField(),
+        'role': InviteRoleField(),
     },
 )
 
@@ -31,7 +36,7 @@ InviteResponse = inline_serializer_class(
         'url': InviteUrlField(),
         'invited_by': InvitedByUrlField(),
         'status': StatusEnumField(),
-        'invitee_role': serializers.CharField(),
+        'invitee_role': InviteRoleField(),
         'organization_name': serializers.CharField(),
         'created': serializers.DateTimeField(),
         'modified': serializers.DateTimeField(),
