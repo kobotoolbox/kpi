@@ -21,7 +21,6 @@ from django.db import models, transaction
 from django.db.models import CharField, F, Value
 from django.db.models.functions import Concat
 from django.db.models.query import QuerySet
-from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as t
 from formpack.constants import KOBO_LOCK_SHEET
@@ -38,6 +37,7 @@ from openpyxl.utils.exceptions import InvalidFileException
 from private_storage.fields import PrivateFileField
 from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
 from rest_framework import exceptions
+from rest_framework.reverse import reverse
 from werkzeug.http import parse_options_header
 
 from kobo.apps.reports.report_data import build_formpack
@@ -1152,15 +1152,17 @@ class SubmissionSynchronousExport(SubmissionExportTaskBase):
         unique_together = (('user', 'asset_export_settings', 'format_type'),)
 
     @classmethod
-    def generate_or_return_existing(cls, user, asset_export_settings):
+    def generate_or_return_existing(cls, user, asset_export_settings, request=None):
         age_cutoff = utcnow() - datetime.timedelta(
             seconds=constance.config.SYNCHRONOUS_EXPORT_CACHE_MAX_AGE
         )
         format_type = asset_export_settings.export_settings['type']
         data = asset_export_settings.export_settings.copy()
-        data['source'] = reverse(
-            'asset-detail', args=[asset_export_settings.asset.uid]
+        asset_url = reverse(
+            'asset-detail', args=[asset_export_settings.asset.uid], request=request
         )
+        # Keep only the relative URL, do not hardcode the domain name
+        data['source'] = asset_url.replace(settings.KOBOFORM_URL, '')
         criteria = {
             'user': user,
             'asset_export_settings': asset_export_settings,

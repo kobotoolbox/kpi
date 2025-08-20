@@ -233,8 +233,9 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
         settings_obj.export_settings['type'] = format_type
 
         export = SubmissionSynchronousExport.generate_or_return_existing(
-           user=user,
-           asset_export_settings=settings_obj,
+            user=user,
+            asset_export_settings=settings_obj,
+            request=request,
         )
 
         if export.status == export.ERROR:
