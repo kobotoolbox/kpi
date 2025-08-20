@@ -499,7 +499,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     create=extend_schema(
         description=read_md('organizations', 'invites/create.md'),
         request={'application/json': InviteCreatePayload},
-        responses=open_api_200_ok_response(
+        responses=open_api_201_created_response(
             InviteResponse(many=True),
             require_auth=False,
             raise_access_forbidden=False,
@@ -533,8 +533,8 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     partial_update=extend_schema(
         description=read_md('organizations', 'invites/update.md'),
         request={'application/json': InvitePatchPayload},
-        responses=open_api_201_created_response(
-            InviteResponse(many=True),
+        responses=open_api_200_ok_response(
+            InviteResponse(many=False),
             require_auth=False,
         ),
         parameters=[
