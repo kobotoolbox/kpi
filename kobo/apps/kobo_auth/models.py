@@ -99,6 +99,9 @@ class DataCollectorGroup(models.Model):
     uid = KpiUidField(uid_prefix='dcg', primary_key=True)
     name = fields.CharField(max_length=200)
 
+    def __str__(self):
+        return '{} ({})'.format(self.name, self.uid)
+
 
 class DataCollector(models.Model):
     uid = KpiUidField(uid_prefix='dc', primary_key=True)

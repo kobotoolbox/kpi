@@ -79,7 +79,7 @@ class DataCollectorGroupAdmin(admin.ModelAdmin):
 
 @admin.register(DataCollector)
 class DataCollectorAdmin(admin.ModelAdmin):
-    list_display = ('name', 'group')
+    list_display = ('name', 'group', 'token')
     fields = ['name', 'group', 'token', 'uid']
     readonly_fields = ['uid', 'token']
     actions = ['rotate_token']
