@@ -25,7 +25,7 @@ from kpi.schema_extensions.v2.invites.schema import (
 from kpi.schema_extensions.v2.invites.serializers import (
     InviteCreatePayload,
     InvitePatchPayload,
-    InviteResponse,
+    InviteResponse, InviteCreateResponse,
 )
 from kpi.schema_extensions.v2.members.serializers import (
     MemberListResponse,
@@ -501,7 +501,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         description=read_md('organizations', 'invites/create.md'),
         request={'application/json': InviteCreatePayload},
         responses=open_api_201_created_response(
-            InviteResponse(many=True),
+            InviteCreateResponse(many=False),
             require_auth=False,
             raise_access_forbidden=False,
         ),

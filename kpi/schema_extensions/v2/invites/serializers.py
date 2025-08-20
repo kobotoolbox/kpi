@@ -15,6 +15,21 @@ InviteCreatePayload = inline_serializer_class(
 )
 
 
+InviteCreateResponse = inline_serializer_class(
+    name='InviteCreateResponse',
+    fields={
+        'url': InviteUrlField(),
+        'invited_by': InvitedByUrlField(),
+        'status': StatusEnumField(),
+        'invitee_role': InviteRoleField(),
+        'organization_name': serializers.CharField(),
+        'created': serializers.DateTimeField(),
+        'modified': serializers.DateTimeField(),
+        'invitee': serializers.CharField(),
+    },
+)
+
+
 InvitePatchPayload = inline_serializer_class(
     name='InvitePatchPayload',
     fields={
