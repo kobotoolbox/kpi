@@ -6,10 +6,11 @@ from constance import config
 from django.conf import settings
 from django.core.cache import cache
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.stripe.utils.import_management import requires_stripe
-from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.stripe.utils.limit_enforcement import update_or_remove_limit_counter
 from kobo.celery import celery_app
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..exceptions import TrashTaskInProgressError
@@ -93,7 +94,8 @@ def schedule_auto_attachment_cleanup_for_users(**stripe_models):
 
 
 @celery_app.task(queue='kpi_low_priority_queue')
-def auto_delete_excess_attachments(user_id: int):
+@requires_stripe
+def auto_delete_excess_attachments(user_id: int, **stripe_models):
     cache_key = f'auto_delete_excess_attachments_lock_for_user_{user_id}'
     lock_timeout = settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT
     with cache.lock(
@@ -143,5 +145,16 @@ def auto_delete_excess_attachments(user_id: int):
             config.ATTACHMENT_TRASH_GRACE_PERIOD,
             'attachment',
         )
+
+        ServiceUsageCalculator(user).clear_cache()
+        ExceededLimitCounter = stripe_models['exceeded_limit_counter_model']
+        counter = (
+            ExceededLimitCounter.objects
+            .filter(user=user, limit_type=UsageType.STORAGE_BYTES)
+            .select_related('user')
+            .first()
+        )
+        if counter:
+            update_or_remove_limit_counter(counter)
     else:
         logging.info(f'No attachments to trash for user `{user_id}`.')
