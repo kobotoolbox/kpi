@@ -1,10 +1,9 @@
+from django import forms
 from django.contrib import admin, messages
 
-from kobo.apps.kobo_auth.models import DataCollectorGroup, DataCollector
-from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.kobo_auth.models import DataCollector, DataCollectorGroup
 from kpi.constants import ASSET_TYPE_SURVEY
-from kpi.models import Asset, ObjectPermission
-from django import forms
+from kpi.models import Asset
 
 
 class DataCollectorGroupAddForm(forms.ModelForm):
@@ -43,12 +42,12 @@ class DataCollectorAdmin(admin.ModelAdmin):
     list_display = ('name', 'group')
     fields = ['name', 'group', 'token', 'uid']
     readonly_fields = ['uid', 'token']
+    actions = ['rotate_token']
 
     @admin.action(description='Rotate token')
     def rotate_token(self, request, queryset):
         for data_collector in queryset:
-            data_collector.token = None
-            data_collector.save()
+            data_collector.rotate_token()
             self.message_user(
                 request,
                 f'Token for {data_collector.name} has been rotated',

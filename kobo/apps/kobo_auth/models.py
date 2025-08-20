@@ -115,7 +115,7 @@ class DataCollector(models.Model):
         super().save()
 
     def rotate_token(self):
-        self.token = self.generate_key()
+        self.token = None
         self.save()
 
     @classmethod
