@@ -1,5 +1,5 @@
 import jsonschema
-#from ..constants import TRANSCRIBABLE_SOURCE_TYPES
+from ..constants import TRANSCRIBABLE_SOURCE_TYPES
 #from ..actions.base import BaseAction
 
 """
