@@ -231,7 +231,7 @@ class Asset(
         related_name='assets',
         null=True,
         blank=True,
-        on_delete=models.SET_NULL
+        on_delete=models.SET_NULL,
     )
 
     # `_deployment_data` must **NOT** be touched directly by anything except
