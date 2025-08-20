@@ -47,6 +47,9 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
             schedule_auto_attachment_cleanup_for_users()
             mock_task.assert_not_called()
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_auto_delete_excess_attachments_user_within_limit(self):
         """
         Test that no attachments are deleted if user is under quota
@@ -67,6 +70,9 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
             self.attachment.refresh_from_db()
             self.assertTrue(Attachment.objects.filter(pk=self.attachment.pk).exists())
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_auto_delete_excess_attachments_user_exceeds_limit(self):
         """
         Test that attachments are soft deleted when a user is over quota
@@ -87,6 +93,9 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
             self.attachment.refresh_from_db()
             self.assertFalse(Attachment.objects.filter(pk=self.attachment.pk).exists())
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_auto_delete_trashes_minimum_attachments_to_meet_limit(self):
         """
         Test only the minimum number of attachments are soft-deleted to bring
@@ -177,6 +186,9 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
             schedule_auto_attachment_cleanup_for_users()
             mock_task.assert_called_once_with(self.owner.pk)
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_auto_delete_excess_attachments_ignores_missing_balance_info(self):
         """
         If `ServiceUsageCalculator` returns no info for 'storage_bytes',
@@ -271,7 +283,7 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
         }
 
         with patch(
-            'kobo.apps.trash_bin.tasks.attachment.ServiceUsageCalculator.get_usage_balances',
+            'kobo.apps.trash_bin.tasks.attachment.ServiceUsageCalculator.get_usage_balances',  # noqa
             side_effect=[over_quota_balances, under_quota_balances],
         ):
             auto_delete_excess_attachments(self.owner.pk)
