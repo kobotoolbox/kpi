@@ -29,12 +29,12 @@ dynamically based on context (e.g., `self.action`, HTTP method, or request param
 **drf-spectacular** may not be able to infer the correct schema automatically.
 
 Additionally, not all field types are natively supported. For example, fields like
-`SerializerMethodField()` do not expose their output type, and will appear as `string`
-by default in the generated schema.
+`SerializerMethodField()` do not expose their output type, and will appear as `{}`
+in the generated schema and be interpreted as `string` by default.
 
 In these cases, it's necessary to explicitly annotate views using the decorators mentioned
-earlier (`@extend_schema`, `@extend_schema_view`) to provide custom schema definitions for
-requests and responses.
+earlier (`@extend_schema`, `@extend_schema_view`) but also `@extend_schema_field` to provide
+custom schema definitions for requests and responses.
 
 ---
 
@@ -48,6 +48,9 @@ specify details that cannot be inferred automatically, such as:
 - `description`: to provide contextual help or usage notes
 - `request`: to declare the expected input format
 - `responses`: to define one or multiple possible response schemas
+- `parameters`: to define parameters that weren't picked up or wrongly defined
+- `examples`: to define specific schema examples (`anyOf` and `oneOf`)
+- `operation_id`: to define custom operation_id when twos are overlapping
 
 Example:
 
@@ -57,11 +60,28 @@ Example:
     description='Returns a list of my objects.',
     request=None,
     responses={200: OpenApiResponse(CategoryInlineSerializer)},
+    examples=[
+      OpenApiExample(
+          name='Example 1',
+          value={
+              'field 1': generate_example_from_schema(FIELD_SCHEMA),
+              'field 2': generate_example_from_schema(FIELD_SCHEMA),
+          },
+          request_only=True,
+      ),
+      OpenApiExample(
+          name='Example 2',
+          value={
+              'field 3': generate_example_from_schema(FIELD_SCHEMA),
+              'field 4': generate_example_from_schema(FIELD_SCHEMA),
+          },
+          request_only=True,
+      ),
+  ],
 )
 ```
 
-This is especially useful for custom actions or views that use `SerializerMethodField`,
-dynamic serializers, or skip request bodies.
+This is especially useful for custom actions or to skip request and/or response bodies if needed.
 
 ---
 
