@@ -24,8 +24,9 @@ from kpi.schema_extensions.v2.invites.schema import (
 )
 from kpi.schema_extensions.v2.invites.serializers import (
     InviteCreatePayload,
+    InviteCreateResponse,
     InvitePatchPayload,
-    InviteResponse, InviteCreateResponse,
+    InviteResponse,
 )
 from kpi.schema_extensions.v2.members.serializers import (
     MemberListResponse,
