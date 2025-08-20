@@ -1,16 +1,17 @@
 from django import forms
 from django.contrib import admin, messages
+from django.core.exceptions import ValidationError
 
 from kobo.apps.kobo_auth.models import DataCollector, DataCollectorGroup
 from kobo.apps.kobo_auth.shortcuts import User
-from kpi.constants import ASSET_TYPE_SURVEY, PERM_MANAGE_ASSET
+from kpi.constants import PERM_MANAGE_ASSET
 from kpi.models import Asset
 from kpi.utils.object_permission import get_objects_for_user
 
 
 class DataCollectorGroupAddForm(forms.ModelForm):
     assets = forms.ModelMultipleChoiceField(
-        queryset=Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY).only('uid', 'name'),
+        queryset=Asset.objects.none(),
         required=False,
         widget=forms.CheckboxSelectMultiple
     )
@@ -23,10 +24,30 @@ class DataCollectorGroupAddForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['owner'].widget.attrs['disabled'] = 'disabled'
         if self.instance and self.instance.pk:
             self.fields['assets'].initial = self.instance.assets.all()
             self.fields['owner'].initial = self.instance.owner
+        else:
+            # don't allow asset selection until we have an owner
+            self.fields['assets'].widget = forms.MultipleHiddenInput()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        assets = cleaned_data['assets']
+        owner = cleaned_data['owner']
+        bad_assets = []
+        for asset in assets:
+            if not asset.has_perm(owner, PERM_MANAGE_ASSET):
+                bad_assets.append(asset)
+        if len(bad_assets) > 0:
+            bad_assets_as_string = ', '.join(
+                [bad_asset.name for bad_asset in bad_assets]
+            )
+            raise ValidationError(
+                f'User {owner.username} does not have manage project'
+                f' permissions for {bad_assets_as_string}'
+            )
+        return cleaned_data
 
 
 @admin.register(DataCollectorGroup)
@@ -35,8 +56,6 @@ class DataCollectorGroupAdmin(admin.ModelAdmin):
     form = DataCollectorGroupAddForm
 
     def save_model(self, request, obj, form, change):
-        if not obj.pk:
-            obj.owner = request.user
         assets = form.cleaned_data['assets']
         super().save_model(request, obj, form, change)
         obj.assets.set(assets)
@@ -46,7 +65,10 @@ class DataCollectorGroupAdmin(admin.ModelAdmin):
         owner = obj.owner if obj else request.user
         if not obj:
             form.base_fields['owner'].initial = owner
-        available_assets = get_objects_for_user(owner, perms=[PERM_MANAGE_ASSET])
+        # only show assets for which the DC group owner has MANAGE_ASSET perms
+        available_assets = get_objects_for_user(
+            owner, perms=[PERM_MANAGE_ASSET], klass=Asset.objects.defer('content')
+        )
         form.base_fields['assets'].queryset = available_assets
         return form
 
@@ -67,9 +89,3 @@ class DataCollectorAdmin(admin.ModelAdmin):
                 f'Token for {data_collector.name} has been rotated',
                 level=messages.SUCCESS,
             )
-
-
-
-
-
-
