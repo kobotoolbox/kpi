@@ -51,6 +51,10 @@ class BulkUpdateSubmissionsClientException(exceptions.ValidationError):
     default_code = 'bulk_update_submissions_client_error'
 
 
+class ConcurrentExportException(Exception):
+    pass
+
+
 class DeploymentDataException(Exception):
 
     def __init__(self, *args, **kwargs):
