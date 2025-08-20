@@ -69,6 +69,7 @@ class DataCollectorGroupAdmin(admin.ModelAdmin):
         available_assets = get_objects_for_user(
             owner, perms=[PERM_MANAGE_ASSET], klass=Asset.objects.defer('content')
         )
+        available_assets = available_assets.filter(data_collector_group__isnull=True)
         form.base_fields['assets'].queryset = available_assets
         return form
 
