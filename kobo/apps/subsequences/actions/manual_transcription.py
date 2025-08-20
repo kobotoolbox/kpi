@@ -7,9 +7,9 @@ from ..constants import TRANSCRIBABLE_SOURCE_TYPES
 
 * (check!) a unique identifier for the action
 * three jsonschemas:
-  1. one to validate the parameters used to configure the action
+  1. (check!) one to validate the parameters used to configure the action
     * `ADVANCED_FEATURES_PARAMS_SCHEMA`
-  2. one to validate users' requests to invoke the action, which many contain content (e.g. a manual transcript)
+  2. (check!) one to validate users' requests to invoke the action, which many contain content (e.g. a manual transcript)
     * the result of `modify_jsonschema()`
   3. one to validate the result of the action - the result of `modify_jsonschema()`
     * OH NO, this doesn't happen at all yet
