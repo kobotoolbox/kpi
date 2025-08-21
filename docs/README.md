@@ -160,6 +160,29 @@ large projects.
 
 ---
 
+## @extend\_schema\_field
+
+The `@extend_schema_field` decorator allows you to annotate standard `SerializerMethodField` methods
+in the serializers. This allows you to decorate the field directly without having to use the `WithSchemaField`
+util (see below). This allows you to write off any errors regading unknown types that could arise when generating
+the schema.
+
+```python
+    myfield_field = serializers.SerializerMethodField()
+
+    @extend_schema_field(MyCustomField)
+    def get_myfield(self, obj):
+        ...
+
+    OR
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_myfield(self, obj):
+        ...
+```
+
+---
+
 ## Tags
 
 Tags are used to group related endpoints together in the generated documentation.
@@ -184,7 +207,7 @@ the API documentation.
 
 ## Inline Serializers
 
-Inline serializers are defined using `inline_serializer()` when you want precise control
+Inline serializers are defined using `inline_serializer_class()` when you want precise control
 over the schema structure, especially for responses that are not backed by a traditional
 DRF `Serializer` class.
 
@@ -194,7 +217,7 @@ custom endpoints with specific structure requirements.
 Example:
 
 ```python
-CategoryListInlineSerializer = inline_serializer(
+CategoryListInlineSerializer = inline_serializer_class(
     name='CategoryListInlineSerializer',
     fields={
         'url': serializers.URLField(),  # It's better to use a custom field (like `metadata` below) to generate the desired schema.  # noqa
@@ -248,21 +271,19 @@ Example:
 
 ```python
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
-from drf_spectacular.plumbing import build_basic_type
+from drf_spectacular.plumbing import build_basic_type, build_object_type
 from drf_spectacular.types import OpenApiTypes
 
 class CategoryMetaDataFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'path.to.CategoryMetaDataField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return {
-            'type': 'object',
-            'properties': {
-                'source': build_basic_type(OpenApiTypes.STR),
-                'category_type': build_basic_type(OpenApiTypes.STR),
-                'ip_address': build_basic_type(OpenApiTypes.STR),
+        return build_object_type(
+            properties={
+                'my_field': build_basic_type(OpenApiTypes.STR),
             }
-        }
+        )
+
 ```
 
 This allows you to fully control how your custom field is represented in the generated
@@ -275,6 +296,91 @@ Alternatively, you could directly use `'rest_framework.fields.JSONField'` as the
 `target_class` to apply the extension to all JSONField instances globally. However,
 this is not recommended if you use multiple JSONFields in your API, as they would all
 share the same schema definition, which may not reflect their actual structure.
+
+When trying to document a `oneOf` or `anyOf` field two steps are required. First, the one
+must have its examples in the endpoint (see above), and second, it must overload the serializer
+to give its examples to the schema. When overloading the schema, it is important to put each
+field as `required` in our example so that no error arises when generating the schema.
+
+Example:
+
+```python
+from drf_spectacular.extensions import OpenApiSerializerExtension
+from drf_spectacular.plumbing import build_basic_type, build_object_type
+from drf_spectacular.types import OpenApiTypes
+
+class CategoryMetaDataSerializerExtension(OpenApiSerializerExtension):
+    target_class = 'path.to.CategoryMetaDataSerializer'
+
+    def map_serializer(self, auto_schema, direction):
+
+        return {
+            'oneOf': [
+                build_object_type(
+                    required=[
+                        'field_1',
+                        'field_2',
+                    ],
+                    properties={
+                        'field_1': build_basic_type(OpenApiTypes.STR),
+                        'field_2': build_basic_type(OpenApiTypes.STR),
+                    }
+                ),
+                build_object_type(
+                    required=[
+                        'field_3',
+                        'field_4',
+                    ],
+                    properties={
+                        'field_3': build_basic_type(OpenApiTypes.STR),
+                        'field_4': build_basic_type(OpenApiTypes.STR),
+                    }
+                ),
+            ]
+        }
+```
+This extension directly overloads the custom serializer and tells the schema that it is a `oneOf`, meaning the
+fields will appear separated. It is quite important, even if we want to show only two fields at the same time,
+that each field is present in the serializer so it can get picked up.
+
+Example:
+
+```python
+from rest_framework import serializers
+
+from kpi.utils.schema_extensions.serializers import inline_serializer_class
+
+MyCustomSerializer = inline_serializer_class(
+    name='MyCustomSerializer',
+    fields={
+        'field_1': serializers.CharField(),
+        'field_2': serializers.CharField(),
+        'field_3': serializers.CharField(),
+        'field_4': serializers.CharField(),
+    },
+)
+```
+
+In the same way, if our wrapper is incorrect and cannot be modified to taste with a normal extension, it
+is possible to put in a custom one in the extensions.
+
+Example:
+
+```python
+class CategoryMetaDataSerializerExtension(OpenApiSerializerExtension):
+    target_class = 'path.to.CategoryMetaDataSerializer'
+
+    def map_serializer(self, auto_schema, direction):
+        return build_array_type(
+          schema=build_object_type(
+              properties={
+                  'field_1': build_basic_type(OpenApiTypes.STR),
+                  'field_2': build_basic_type(OpenApiTypes.STR),
+                  'field_3': build_basic_type(OpenApiTypes.STR),
+              }
+          )
+        )
+```
 
 ---
 
