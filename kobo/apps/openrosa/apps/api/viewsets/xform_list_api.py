@@ -26,8 +26,9 @@ from kobo.apps.openrosa.libs.serializers.xform_serializer import (
     XFormListSerializer,
     XFormManifestSerializer,
 )
-from kobo.apps.openrosa.schema_extensions.v2.manifest.serializers import \
-    OpenRosaFormManifestResponse
+from kobo.apps.openrosa.schema_extensions.v2.manifest.serializers import (
+    OpenRosaFormManifestResponse,
+)
 from kpi.authentication import DigestAuthentication
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.models.object_permission import ObjectPermission
@@ -251,7 +252,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             error_media_type='application/xml',
         ),
         tags=['OpenRosa Form Manifest'],
-        operation_id='manifest_anonymous'
+        operation_id='manifest_anonymous',
     )
     @action(detail=False, methods=['GET'])
     def manifest_anonymous(self, request, *args, **kwargs):
@@ -268,7 +269,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             error_media_type='application/xml',
         ),
         tags=['OpenRosa Form Manifest'],
-        operation_id='manifest_authenticated'
+        operation_id='manifest_authenticated',
     )
     @action(detail=False, methods=['GET'])
     def manifest_authenticated(self, request, *args, **kwargs):

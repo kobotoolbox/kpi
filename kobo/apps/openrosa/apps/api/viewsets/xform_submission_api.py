@@ -24,8 +24,10 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     safe_create_instance,
 )
 from kobo.apps.openrosa.libs.utils.string import dict_lists2strings
-from kobo.apps.openrosa.schema_extensions.v2.submission.serializers import \
-    OpenRosaResponse, OpenRosaPayload
+from kobo.apps.openrosa.schema_extensions.v2.submission.serializers import (
+    OpenRosaPayload,
+    OpenRosaResponse,
+)
 from kpi.authentication import (
     BasicAuthentication,
     DigestAuthentication,

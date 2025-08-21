@@ -1,4 +1,4 @@
-from drf_spectacular.extensions import OpenApiSerializerFieldExtension, OpenApiSerializerExtension
+from drf_spectacular.extensions import OpenApiSerializerExtension
 from drf_spectacular.plumbing import (
     build_array_type,
     build_basic_type,
@@ -18,9 +18,9 @@ class OpenRosaManifestSerializerExtension(OpenApiSerializerExtension):
                 'filename': build_basic_type(OpenApiTypes.STR),
                 'hash': build_basic_type(OpenApiTypes.STR),
                 'downloadUrl': build_url_type(
-                'api_v2:xform-download-openrosa',
+                    'api_v2:xform-download-openrosa',
                     form_media_id='123',
-                    media_id='456'
+                    media_id='456',
                 ),
             }
         )
