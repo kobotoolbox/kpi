@@ -11,7 +11,12 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.models import Asset, AssetExportSettings, SubmissionExportTask
+from kpi.models import (
+    Asset,
+    AssetExportSettings,
+    SubmissionExportTask,
+    SubmissionSynchronousExport,
+)
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.test_mock_data_exports import MockDataExportsBase
 from kpi.tests.utils.transaction import immediate_on_commit
@@ -311,6 +316,76 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         )
         response = self.client.delete(detail_url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_synchronus_export_when_existing_failed(self):
+        es = self._create_export_settings()
+        synchronous_exports_url = reverse(
+            self._get_endpoint('asset-export-settings-synchronous-data'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'uid': es.uid,
+                'format': 'csv',
+            },
+        )
+        self.client.login(username='someuser', password='someuser')
+        response = self.client.get(synchronous_exports_url, follow=True)
+        assert response.status_code == status.HTTP_200_OK
+
+        synch_exp = SubmissionSynchronousExport.objects.all()
+        assert len(synch_exp) == 1
+        synch_exp = synch_exp[0]
+        assert synch_exp.status == SubmissionSynchronousExport.COMPLETE
+
+        synch_exp.status = SubmissionSynchronousExport.ERROR
+        synch_exp.save()
+
+        response = self.client.get(synchronous_exports_url, follow=True)
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.content.startswith('Synchronous export failed'.encode())
+        assert 'Retry-After' not in response.headers
+
+        created = synch_exp.date_created
+        synch_exp.date_created = created.replace(year=created.year - 1)
+        synch_exp.save()
+
+        response = self.client.get(synchronous_exports_url, follow=True)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_synchronus_export_when_existing_processing(self):
+        es = self._create_export_settings()
+        synchronous_exports_url = reverse(
+            self._get_endpoint('asset-export-settings-synchronous-data'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'uid': es.uid,
+                'format': 'csv',
+            },
+        )
+        self.client.login(username='someuser', password='someuser')
+        response = self.client.get(synchronous_exports_url, follow=True)
+        assert response.status_code == status.HTTP_200_OK
+
+        synch_exp = SubmissionSynchronousExport.objects.all()
+        assert len(synch_exp) == 1
+        synch_exp = synch_exp[0]
+        assert synch_exp.status == SubmissionSynchronousExport.COMPLETE
+
+        synch_exp.status = SubmissionSynchronousExport.PROCESSING
+        synch_exp.save()
+
+        response = self.client.get(synchronous_exports_url, follow=True)
+        assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+        assert response.content.startswith(
+            'Another client has already requested this synchronous export'.encode()
+        )
+        assert 'Retry-After' in response.headers
+
+        created = synch_exp.date_created
+        synch_exp.date_created = created.replace(year=created.year - 1)
+        synch_exp.save()
+
+        response = self.client.get(synchronous_exports_url, follow=True)
+        assert response.status_code == status.HTTP_200_OK
 
     def test_synchronous_csv_export_matches_async_export(self):
         es = self._create_export_settings()
