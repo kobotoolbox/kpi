@@ -14987,7 +14987,7 @@
                         }
                     },
                     "role": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/InviteeRoleEnum"
                     }
                 },
                 "required": [
@@ -15012,7 +15012,7 @@
                         "$ref": "#/components/schemas/InviteStatusChoicesEnum"
                     },
                     "invitee_role": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/InviteeRoleEnum"
                     },
                     "created": {
                         "type": "string",
@@ -15040,15 +15040,21 @@
                 "enum": [
                     "accepted",
                     "cancelled",
-                    "complete",
                     "declined",
                     "expired",
-                    "failed",
-                    "in_progress",
-                    "pending"
+                    "pending",
+                    "resent"
                 ],
                 "type": "string",
-                "description": "* `accepted` - Accepted\n* `cancelled` - Cancelled\n* `complete` - Complete\n* `declined` - Declined\n* `expired` - Expired\n* `failed` - Failed\n* `in_progress` - In Progress\n* `pending` - Pending"
+                "description": "* `accepted` - Accepted\n* `cancelled` - Cancelled\n* `declined` - Declined\n* `expired` - Expired\n* `pending` - Pending\n* `resent` - Resent"
+            },
+            "InviteeRoleEnum": {
+                "enum": [
+                    "admin",
+                    "member"
+                ],
+                "type": "string",
+                "description": "* `admin` - admin\n* `member` - member"
             },
             "Language": {
                 "type": "object",
@@ -15435,15 +15441,13 @@
                                 "enum": [
                                     "accepted",
                                     "cancelled",
-                                    "complete",
                                     "declined",
                                     "expired",
-                                    "failed",
-                                    "in_progress",
-                                    "pending"
+                                    "pending",
+                                    "resent"
                                 ],
                                 "type": "string",
-                                "description": "* `accepted` - Accepted\n* `cancelled` - Cancelled\n* `complete` - Complete\n* `declined` - Declined\n* `expired` - Expired\n* `failed` - Failed\n* `in_progress` - In Progress\n* `pending` - Pending"
+                                "description": "* `accepted` - Accepted\n* `cancelled` - Cancelled\n* `declined` - Declined\n* `expired` - Expired\n* `pending` - Pending\n* `resent` - Resent"
                             },
                             "invitee_role": {
                                 "enum": [
@@ -15501,14 +15505,6 @@
                 ],
                 "type": "string",
                 "description": "* `admin` - admin\n* `member` - member\n* `owner` - owner"
-            },
-            "MemberPatchRequestRoleEnum": {
-                "enum": [
-                    "admin",
-                    "member"
-                ],
-                "type": "string",
-                "description": "* `admin` - admin\n* `member` - member"
             },
             "OpenRosaXFormResponse": {
                 "type": "object",
@@ -17454,7 +17450,7 @@
                 "type": "object",
                 "properties": {
                     "role": {
-                        "$ref": "#/components/schemas/MemberPatchRequestRoleEnum"
+                        "$ref": "#/components/schemas/InviteeRoleEnum"
                     }
                 }
             },
