@@ -4,10 +4,9 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models.query import QuerySet
 from django.http import Http404
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -30,7 +29,8 @@ from .schema_extensions.v2.serializers import (
     ProjectViewAssetResponse,
     ProjectViewExportCreateResponse,
     ProjectViewExportResponse,
-    ProjectViewUserResponse, ProjectViewListResponse,
+    ProjectViewListResponse,
+    ProjectViewUserResponse,
 )
 from .serializers import ProjectViewSerializer
 

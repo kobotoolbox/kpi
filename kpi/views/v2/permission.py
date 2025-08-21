@@ -2,7 +2,6 @@
 from django.contrib.auth.models import Permission
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
-from rest_framework.renderers import JSONRenderer
 
 from kpi.models.asset import Asset
 from kpi.schema_extensions.v2.permissions.serializers import PermissionResponse

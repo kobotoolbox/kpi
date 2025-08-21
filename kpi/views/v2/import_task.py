@@ -3,7 +3,6 @@ import base64
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, status, viewsets
-from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 

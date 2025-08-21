@@ -1,5 +1,5 @@
 from drf_spectacular.utils import extend_schema
-from rest_framework import renderers, viewsets
+from rest_framework import viewsets
 from rest_framework.mixins import ListModelMixin
 
 from kpi.models.asset import Asset
