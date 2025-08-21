@@ -264,12 +264,12 @@
                         "downloadUrl": {
                             "type": "string",
                             "format": "uri",
-                            "example": "http://kf.kobo.local/forms/6/form.xml"
+                            "example": "https://kf.kobotoolbox.org/forms/6/form.xml"
                         },
                         "manifestUrl": {
                             "type": "string",
                             "format": "uri",
-                            "example": "http://kf.kobo.local/xformsManifest/6"
+                            "example": "https://kf.kobotoolbox.org/xformsManifest/6"
                         }
                     },
                     "xml": {
