@@ -1,4 +1,9 @@
 import jsonschema
+from copy import deepcopy
+
+# from django.utils import timezone
+from datetime import datetime as timezone
+
 #from ..constants import TRANSCRIBABLE_SOURCE_TYPES
 #from ..actions.base import BaseAction
 
@@ -40,12 +45,24 @@ idea of example content in asset.advanced_features (what kind of actions are act
 """
 
 class BaseAction:
+
+    DATE_CREATED_FIELD = 'dateCreated'
+    DATE_MODIFIED_FIELD = 'dateModified'
+    DELETE = '⌫'
+
     @classmethod
     def validate_params(cls, params):
         jsonschema.validate(params, cls.params_schema)
 
     def validate_data(self, data):
         jsonschema.validate(data, self.data_schema)
+
+    def record_repr(self, record : dict) -> dict:
+        raise NotImplementedError()
+
+    def revise_field(self, submission_extra: dict, edit: dict) -> dict:
+        raise NotImplementedError
+
 
 class ManualTranscriptionAction(BaseAction):
     ID = 'manual_transcription'
@@ -115,8 +132,11 @@ class ManualTranscriptionAction(BaseAction):
             'type': 'object',
         }
 
-    @property
+    def record_repr(self, record : dict) -> dict:
+        return record.get('transcript', '')
+
     @classmethod
+    @property
     def result_schema(cls):
         """
         we also need a schema to define the final result that will be written
@@ -125,3 +145,28 @@ class ManualTranscriptionAction(BaseAction):
         we need to solve the problem of storing multiple results for a single action
         """
         raise NotImplementedError
+
+    def revise_field(self, submission_extra: dict, edit: dict) -> dict:
+        """
+        """
+
+        if self.record_repr(edit) == self.DELETE:
+            return {}
+
+        now_str = timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        revision = deepcopy(submission_extra)
+        new_record = deepcopy(edit)
+        revisions = revision.pop('revisions', [])
+
+        revision_creation_date = revision.pop(self.DATE_MODIFIED_FIELD, now_str)
+        record_creation_date = revision.pop(self.DATE_CREATED_FIELD, now_str)
+        revision[self.DATE_CREATED_FIELD] = revision_creation_date
+        new_record[self.DATE_MODIFIED_FIELD] = now_str
+
+        if submission_extra:
+            revisions.insert(0, revision)
+            new_record['revisions'] = revisions
+
+        new_record[self.DATE_CREATED_FIELD] = record_creation_date
+
+        return new_record
