@@ -126,33 +126,71 @@ class ManualTranscriptionAction(BaseAction):
             }
         }
         """
+        # languages = []
+        # for individual_params in self.params:
+        #    languages.append(individual_params['language'])
+
+        # return {
+        #     'oneOf': [
+        #         {
+        #             'additionalProperties': False,
+        #             'properties': {
+        #                 'language': {
+        #                     'type': 'string',
+        #                     'enum': languages,
+        #                 },
+        #                 'transcript': {
+        #                     'type': 'string',
+        #                 },
+        #             },
+        #             'required': ['language', 'transcript'],
+        #             'type': 'object',
+        #         },
+        #         {
+        #             # also allow an empty object (used to delete the transcript)
+        #             'additionalProperties': False,
+        #             'type': 'object',
+        #         },
+        #     ]
+        # }
+        return {
+            '$schema': 'https://json-schema.org/draft/2020-12/schema',
+            'title': 'Data with optional transcript',
+            'type': 'object',
+            'additionalProperties': False,
+            'properties': {
+                'language': {'$ref': '#/$defs/lang'},
+                'transcript': {'$ref': '#/$defs/transcript'}
+            },
+            'allOf': [
+                {
+                    '$ref': '#/$defs/lang_transcript_dependency'
+                }
+            ],
+            '$defs': {
+                'lang': {'type': 'string', 'enum': self.languages},
+                'transcript': {'type': 'string'},
+                'lang_transcript_dependency': {
+                    'allOf': [
+                        {
+                            'if': {'required': ['language']},
+                            'then': {'required': ['transcript']}
+                        },
+                        {
+                            'if': {'required': ['transcript']},
+                            'then': {'required': ['language']}
+                        }
+                    ]
+                }
+            }
+        }
+
+    @property
+    def languages(self) -> list[str]:
         languages = []
         for individual_params in self.params:
             languages.append(individual_params['language'])
-
-        return {
-            'oneOf': [
-                {
-                    'additionalProperties': False,
-                    'properties': {
-                        'language': {
-                            'type': 'string',
-                            'enum': languages,
-                        },
-                        'transcript': {
-                            'type': 'string',
-                        },
-                    },
-                    'required': ['language', 'transcript'],
-                    'type': 'object',
-                },
-                {
-                    # also allow an empty object (used to delete the transcript)
-                    'additionalProperties': False,
-                    'type': 'object',
-                },
-            ]
-        }
+        return languages
 
     def record_repr(self, record: dict) -> dict:
         return record.get('transcript', '')
@@ -165,7 +203,7 @@ class ManualTranscriptionAction(BaseAction):
 
         we need to solve the problem of storing multiple results for a single action
         """
-        return {
+        schema = {
             '$schema': 'https://json-schema.org/draft/2020-12/schema',
             'title': 'Transcript with revisions',
             'type': 'object',
@@ -184,18 +222,25 @@ class ManualTranscriptionAction(BaseAction):
             'required': ['_dateCreated', '_dateModified'],
             'allOf': [
                 {
-                    'if': {'required': ['language']},
-                    'then': {'required': ['transcript']},
-                },
-                {
-                    'if': {'required': ['transcript']},
-                    'then': {'required': ['language']},
-                },
+                    '$ref': '#/$defs/lang_transcript_dependency'
+                }
             ],
             '$defs': {
-                'lang': {'type': 'string', 'enum': ['fr', 'en', 'es']},
+                'lang': {'type': 'string', 'enum':  self.languages},
                 'transcript': {'type': 'string'},
                 'dateTime': {'type': 'string', 'format': 'date-time'},
+                'lang_transcript_dependency': {
+                    'allOf': [
+                        {
+                            'if': {'required': ['language']},
+                            'then': {'required': ['transcript']}
+                        },
+                        {
+                            'if': {'required': ['transcript']},
+                            'then': {'required': ['language']}
+                        }
+                    ]
+                },
                 'revision': {
                     'type': 'object',
                     'additionalProperties': False,
@@ -207,17 +252,75 @@ class ManualTranscriptionAction(BaseAction):
                     'required': ['_dateCreated'],
                     'allOf': [
                         {
-                            'if': {'required': ['language']},
-                            'then': {'required': ['transcript']},
-                        },
-                        {
-                            'if': {'required': ['transcript']},
-                            'then': {'required': ['language']},
-                        },
+                            "$ref": "#/$defs/lang_transcript_dependency"
+                        }
                     ],
                 },
             },
         }
+
+        schema_1 = {
+            '$schema': 'https://json-schema.org/draft/2020-12/schema',
+            'title': 'Transcript with revisions',
+            'type': 'object',
+            'additionalProperties': False,
+            'properties': {
+                'revisions': {
+                    'type': 'array',
+                    'minItems': 1,
+                    'items': {'$ref': '#/$defs/revision'},
+                },
+                '_dateCreated': {'$ref': '#/$defs/dateTime'},
+                '_dateModified': {'$ref': '#/$defs/dateTime'},
+            },
+            'required': ['_dateCreated', '_dateModified'],
+            '$defs': {
+                'dateTime': {'type': 'string', 'format': 'date-time'},
+                'revision': {
+                    'type': 'object',
+                    'additionalProperties': False,
+                    'properties': {
+                        '_dateCreated': {'$ref': '#/$defs/dateTime'},
+                    },
+                    'required': ['_dateCreated'],
+                }
+            },
+        }
+
+        data_schema = deepcopy(self.data_schema)
+        skipped_attributes = ['$schema', 'title', 'type']
+        for key, value in data_schema.items():
+            if key in skipped_attributes:
+                continue
+            if key in schema_1:
+                if isinstance(schema_1[key], dict):
+                    schema_1[key].update(data_schema[key])
+                elif isinstance(schema_1[key], list):
+                    schema_1[key].extend(data_schema[key])
+                else:
+                    schema_1[key] = data_schema[key]
+            else:
+                schema_1[key] = data_schema[key]
+
+        skipped_attributes = ['$schema', 'title', '$defs']
+        destination_dict = schema_1['$defs']['revision']
+        for key, value in data_schema.items():
+            if key in skipped_attributes:
+                continue
+
+            if key in destination_dict:
+                if isinstance(destination_dict[key], dict):
+                    destination_dict[key].update(data_schema[key])
+                elif isinstance(destination_dict[key], list):
+                    destination_dict[key].extend(data_schema[key])
+                else:
+                    destination_dict[key] = data_schema[key]
+            else:
+                destination_dict[key] = data_schema[key]
+
+        assert schema_1 == schema
+
+        return schema
 
 
     def revise_field(self, submission_extra: dict, edit: dict) -> dict:
