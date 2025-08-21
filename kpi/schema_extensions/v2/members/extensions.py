@@ -7,7 +7,7 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 from rest_framework import serializers
 
-from kobo.apps.project_ownership.models.choices import InviteStatusChoices
+from kobo.apps.organizations.models import OrganizationInviteStatusChoices
 from kobo.apps.project_ownership.schema_extensions.v2.project_ownership.invites.extensions import (  # noqa
     StatusEnumFieldExtension,
 )
@@ -33,7 +33,7 @@ class InviteFieldExtension(OpenApiSerializerFieldExtension):
                 'invited_by': USER_URL_SCHEMA,
                 'status': build_choice_field(
                     field=serializers.ChoiceField(
-                        choices=InviteStatusChoices.choices
+                        choices=OrganizationInviteStatusChoices.choices
                     )
                 ),
                 'invitee_role': build_choice_field(
