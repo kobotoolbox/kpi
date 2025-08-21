@@ -24,6 +24,7 @@ from kpi.schema_extensions.v2.invites.schema import (
 )
 from kpi.schema_extensions.v2.invites.serializers import (
     InviteCreatePayload,
+    InviteCreateResponse,
     InvitePatchPayload,
     InviteResponse,
 )
@@ -46,6 +47,7 @@ from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
+    open_api_201_created_response,
     open_api_204_empty_response,
 )
 from kpi.views.v2.asset import AssetViewSet
@@ -499,8 +501,8 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     create=extend_schema(
         description=read_md('organizations', 'invites/create.md'),
         request={'application/json': InviteCreatePayload},
-        responses=open_api_200_ok_response(
-            InviteResponse(many=True),
+        responses=open_api_201_created_response(
+            InviteCreateResponse(many=False),
             require_auth=False,
             raise_access_forbidden=False,
         ),
