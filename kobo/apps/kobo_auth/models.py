@@ -1,9 +1,10 @@
-
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django_request_cache import cache_for_request
 
-from kobo.apps.openrosa.libs.constants import OPENROSA_APP_LABELS
+from kobo.apps.openrosa.libs.constants import (
+    OPENROSA_APP_LABELS,
+)
 from kobo.apps.openrosa.libs.permissions import get_model_permission_codenames
 from kobo.apps.organizations.models import Organization, create_organization
 from kpi.utils.database import update_autofield_sequence, use_db
