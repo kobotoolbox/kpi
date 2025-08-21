@@ -74,7 +74,7 @@ def test_transcript_revisions_are_retained_in_supplemental_details():
         return fake_sup_det
 
     first = {'language': 'en', 'transcript': 'No idea'}
-    second = {'language': 'fr', 'transcript': 'Ne pas idée'}
+    second = {'language': 'fr', 'transcript': "Pas d'idée"}
 
     # now call imaginary method to store first transcript
     fake_sup_det.update(first)
