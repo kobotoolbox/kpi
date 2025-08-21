@@ -49,7 +49,7 @@ def test_transcript_is_stored_in_supplemental_details():
     pass
 
 
-def test_transcript_revisions_are_retained_in_supplemental_details():
+def test_transcript_revisions_are_retained_in_supplemental_details__fake():
     fake_sup_det = {}
 
     def get_supplemental_details():
@@ -74,7 +74,7 @@ def test_transcript_revisions_are_retained_in_supplemental_details():
         return fake_sup_det
 
     first = {'language': 'en', 'transcript': 'No idea'}
-    second = {'language': 'fr', 'transcript': 'Ne pas idée'}
+    second = {'language': 'fr', 'transcript': "Pas d'idée"}
 
     # now call imaginary method to store first transcript
     fake_sup_det.update(first)
@@ -118,3 +118,46 @@ def test_transcript_revisions_are_retained_in_supplemental_details():
 
     # the record itself should encompass the second transcript
     assert sup_det.items() >= second.items()
+
+
+def test_transcript_revisions_are_retained_in_supplemental_details__realish():
+    xpath = 'group_name/question_name'  # irrelevant for this test
+    params = [{'language': 'fr'}, {'language': 'en'}]
+    action = ManualTranscriptionAction(xpath, params)
+
+    first = {'language': 'en', 'transcript': 'No idea'}
+    second = {'language': 'fr', 'transcript': "Pas d'idée"}
+
+    mock_sup_det = action.revise_field({}, first)
+
+    assert mock_sup_det['language'] == 'en'
+    assert mock_sup_det['transcript'] == 'No idea'
+    assert mock_sup_det['_dateCreated'] == mock_sup_det['_dateModified']
+    # ehh... should we initialize with an empty list on the first edit
+    # assert mock_sup_det['_revisions'] == []
+    first_time = mock_sup_det['_dateCreated']
+
+    mock_sup_det = action.revise_field(mock_sup_det, second)
+    assert len(mock_sup_det['_revisions']) == 1
+
+    # the revision should encompass the first transcript
+    assert mock_sup_det['_revisions'][0].items() >= first.items()
+
+    # the revision should have a creation timestamp equal to that of the first
+    # transcript
+    assert mock_sup_det['_revisions'][0]['_dateCreated'] == first_time
+
+    # revisions should not list a modification timestamp
+    assert '_dateModified' not in mock_sup_det['_revisions']
+
+    # the record itself (not revision) should have an unchanged creation
+    # timestamp
+    assert mock_sup_det['_dateCreated'] == first_time
+
+    # the record itself should have an updated modification timestamp
+    assert dateutil.parser.parse(
+        mock_sup_det['_dateModified']
+    ) > dateutil.parser.parse(mock_sup_det['_dateCreated'])
+
+    # the record itself should encompass the second transcript
+    assert mock_sup_det.items() >= second.items()

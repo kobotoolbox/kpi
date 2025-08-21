@@ -44,10 +44,22 @@ idea of example content in asset.advanced_features (what kind of actions are act
 }
 """
 
+def utc_datetime_to_simplified_iso8601(dt):
+    # https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date-time-string-format
+    if dt.utcoffset():
+        raise NotImplementedError('Only UTC datetimes are supported')
+    return dt.isoformat().replace("+00:00", "Z")
+
 class BaseAction:
 
-    DATE_CREATED_FIELD = 'dateCreated'
-    DATE_MODIFIED_FIELD = 'dateModified'
+    # is a leading underscore a good convention for marking things that must
+    # not be set by the action result? alternatively, we could nest all the
+    # action results inside some object or, we could nest all the
+    # non-action-result metadata-type things inside an object, and protect that
+    # from being overwritten by the action
+    DATE_CREATED_FIELD = '_dateCreated'
+    DATE_MODIFIED_FIELD = '_dateModified'
+    REVISIONS_FIELD = '_revisions'
     DELETE = '⌫'
 
     @classmethod
@@ -151,12 +163,14 @@ class ManualTranscriptionAction(BaseAction):
         """
 
         if self.record_repr(edit) == self.DELETE:
+            # we might want to retain the revisions. also, we might want to
+            # trash the whole approach with the weird delete character
             return {}
 
-        now_str = timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        now_str = utc_datetime_to_simplified_iso8601(timezone.now())
         revision = deepcopy(submission_extra)
         new_record = deepcopy(edit)
-        revisions = revision.pop('revisions', [])
+        revisions = revision.pop(self.REVISIONS_FIELD, [])
 
         revision_creation_date = revision.pop(self.DATE_MODIFIED_FIELD, now_str)
         record_creation_date = revision.pop(self.DATE_CREATED_FIELD, now_str)
@@ -164,8 +178,8 @@ class ManualTranscriptionAction(BaseAction):
         new_record[self.DATE_MODIFIED_FIELD] = now_str
 
         if submission_extra:
-            revisions.insert(0, revision)
-            new_record['revisions'] = revisions
+            revisions.insert(0, revision)  # valid approach, but opposite what i was imaginging. TODO: add unit test for the behavior we agree upon :)
+            new_record[self.REVISIONS_FIELD] = revisions
 
         new_record[self.DATE_CREATED_FIELD] = record_creation_date
 
