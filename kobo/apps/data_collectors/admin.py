@@ -3,7 +3,7 @@ from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 
-from kobo.apps.kobo_auth.models import DataCollector, DataCollectorGroup
+from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.models import Asset
@@ -14,7 +14,7 @@ class DataCollectorGroupAddForm(forms.ModelForm):
     assets = forms.ModelMultipleChoiceField(
         queryset=Asset.objects.none(),
         required=False,
-        widget=forms.CheckboxSelectMultiple
+        widget=forms.CheckboxSelectMultiple,
     )
     name = forms.CharField()
     owner = forms.ModelChoiceField(queryset=User.objects.all())
