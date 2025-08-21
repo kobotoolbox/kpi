@@ -32,7 +32,7 @@ idea of example content in asset.advanced_features (what kind of actions are act
                 {'language': 'bn'},
                 {'language': 'es'},
             ],
-            'manual_translation': [{'language': 'fr'}],
+            'manual_translation': [{'language': 'fr'}, {'language': 'en'}],
         },
         'my_video_question': {
             'manual_transcription': [{'language': 'en'}],
@@ -42,12 +42,49 @@ idea of example content in asset.advanced_features (what kind of actions are act
         },
     },
 }
+
+idea of example data in SubmissionExtras based on the above
+{
+    'version': '20250820',
+    'submission': '<some submission uuid>',
+    'my_audio_question': {
+        'manual_transcription': {
+            'transcript': 'هائج',
+            'language': 'ar',
+            '_dateCreated': '2025-08-21T20:55:42.012053Z',
+            '_dateModified': '2025-08-21T20:57:28.154567Z',
+            '_revisions': [
+                {
+                    'transcript': 'فارغ',
+                    'language': 'ar',
+                    '_dateCreated': '2025-08-21T20:55:42.012053Z',
+                }
+            ],
+        },
+        # WIP 'manual_translation': [{'language': 'fr'}, {'language': 'en'}],
+    },
+    'my_video_question': {
+        'manual_transcription': {
+            'transcript': 'sea horse sea hell',
+            'language': 'en',
+            '_dateCreated': '2025-08-21T21:06:20.059117Z',
+            '_dateModified': '2025-08-21T21:06:20.059117Z',
+        },
+    },
+    'my_number_question': {
+        'number_multiplier': {
+            'numberMultiplied': 99,
+            '_dateCreated': '2025-08-21T21:09:34.504546Z',
+            '_dateModified': '2025-08-21T21:09:34.504546Z',
+        },
+    },
+}
 """
 
 
 def utc_datetime_to_simplified_iso8601(dt):
     # https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date-time-string-format
-    if dt.utcoffset():
+    if dt.utcoffset() or not dt.tzinfo:
         raise NotImplementedError('Only UTC datetimes are supported')
     return dt.isoformat().replace("+00:00", "Z")
 
