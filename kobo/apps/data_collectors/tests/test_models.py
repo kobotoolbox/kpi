@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from .models import DataCollector, DataCollectorGroup
+from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 
 
 class TestDataCollector(TestCase):
