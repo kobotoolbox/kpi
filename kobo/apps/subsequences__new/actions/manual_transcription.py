@@ -67,7 +67,27 @@ idea of example data in SubmissionExtras based on the above
                 }
             ],
         },
-        'manual_translation': [{'language': 'fr'}, {'language': 'en'}],
+        'manual_translation': [
+            {
+                'language': 'en',
+                'translation': 'berserk',
+                '_dateCreated': '2025-08-21T21:39:42.141306Z',
+                '_dateModified': '2025-08-21T21:39:42.141306Z',
+            },
+            {
+                'language': 'es',
+                'translation': 'enloquecido',
+                '_dateCreated': '2025-08-21T21:40:54.644308Z',
+                '_dateModified': '2025-08-21T22:00:10.862880Z',
+                '_revisions': [
+                    {
+                        'translation': 'loco',
+                        'language': 'es',
+                        '_dateCreated': '2025-08-21T21:40:54.644308Z',
+                    }
+                ],
+            },
+        ],
     },
     'my_video_question': {
         'manual_transcription': {
