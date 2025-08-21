@@ -17,6 +17,12 @@ def build_url_type(viewname: str, **kwargs) -> dict:
     This utility helps produce meaningful URLs in Swagger UI, instead of dummy or
     unrelated placeholders.
     """
+    DEV_DOMAIN_NAMES = [
+        'http://kpi',
+        'http://kf.kobo.local',
+        'http://kf.kobo.localhost',
+    ]
+
     example_url = settings.KOBOFORM_URL + '/api/v2/' + viewname
     if ':' in viewname:
         _, viewname = viewname.split(':')
@@ -86,8 +92,13 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         for key, value in kwargs.items():
             example_url = example_url.replace(f'{{{key}}}', value)
 
+    koboform_url = settings.KOBOFORM_URL
+
+    if koboform_url in DEV_DOMAIN_NAMES:
+        koboform_url = 'https://kf.kobotoolbox.org'
+
     return {
         'type': 'string',
         'format': 'uri',
-        'example': settings.KOBOFORM_URL + example_url,
+        'example': koboform_url + example_url,
     }

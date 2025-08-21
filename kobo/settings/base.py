@@ -1016,15 +1016,8 @@ SPECTACULAR_SETTINGS = {
         'kpi.authentication.TokenAuthentication',
     ],
     'ENUM_NAME_OVERRIDES': {
-        'kobo.apps.project_ownership.schema_extensions.v2.project_ownership.invites.fields.StatusEnumField':  # noqa
-        [
-            ('accepted', 'Accepted'),
-            ('cancelled', 'Cancelled'),
-            ('declined', 'Declined'),
-            ('expired', 'Expired'),
-            ('pending', 'Pending'),
-            ('resent', 'Resent'),
-        ]
+        'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
+        'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM'  # noqa
     }
 }
 

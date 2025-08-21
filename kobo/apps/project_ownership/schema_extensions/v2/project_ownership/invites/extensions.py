@@ -15,6 +15,7 @@ from kpi.schema_extensions.v2.generic.schema import (
     USER_URL_SCHEMA,
 )
 from kpi.utils.schema_extensions.url_builder import build_url_type
+from kobo.apps.organizations.models import OrganizationInviteStatusChoices
 
 
 class InviteAssetFieldExtension(OpenApiSerializerFieldExtension):
@@ -41,21 +42,13 @@ class RecipientSenderUrlFieldExtension(OpenApiSerializerFieldExtension):
 
 
 class StatusEnumFieldExtension(OpenApiSerializerFieldExtension):
-    CHOICES = [
-      ('accepted', 'Accepted'),
-      ('cancelled', 'Cancelled'),
-      ('declined', 'Declined'),
-      ('expired', 'Expired'),
-      ('pending', 'Pending'),
-      ('resent', 'Resent'),
-    ]
 
     target_class = 'kobo.apps.project_ownership.schema_extensions.v2.project_ownership.invites.fields.StatusEnumField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
         return build_choice_field(
             field=serializers.ChoiceField(
-                choices=StatusEnumFieldExtension.CHOICES
+                choices=OrganizationInviteStatusChoices.choices
             )
         )
 
