@@ -1,23 +1,20 @@
 # coding: utf-8
+import datetime
 import re
 
+import constance
+from django.conf import settings
 from django.http import FileResponse, HttpResponse, HttpResponseRedirect
+from django.utils import timezone
 from django.utils.translation import gettext as t
-from rest_framework import (
-    renderers,
-    serializers,
-    viewsets,
-)
-from rest_framework import status
+from rest_framework import renderers, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.models import AssetExportSettings, SubmissionSynchronousExport
 from kpi.permissions import AssetExportSettingsPermission
 from kpi.renderers import SubmissionCSVRenderer, SubmissionXLSXRenderer
-from kpi.serializers.v2.asset_export_settings import (
-    AssetExportSettingsSerializer,
-)
+from kpi.serializers.v2.asset_export_settings import AssetExportSettingsSerializer
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
@@ -236,17 +233,59 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
         settings_obj.export_settings['type'] = format_type
 
         export = SubmissionSynchronousExport.generate_or_return_existing(
-           user=user,
-           asset_export_settings=settings_obj,
+            user=user,
+            asset_export_settings=settings_obj,
+            request=request,
         )
-        if export.status != export.COMPLETE:
+
+        if export.status == export.ERROR:
             # The problem has already been logged by `ImportExportTask.run()`,
             # but pass some information of dubious usefulness back to the
             # client.
+            retry_after = int(
+                (
+                    export.date_created
+                    + datetime.timedelta(
+                        seconds=constance.config.SYNCHRONOUS_EXPORT_CACHE_MAX_AGE
+                    )
+                    - timezone.now()
+                ).total_seconds()
+            )
+            response_content = (
+                'Synchronous export failed. Some useful information may appear'
+                ' below.'
+            )
+            if retry_after > 1:
+                response_content += (
+                    f' You may retry again after {retry_after} seconds. Sooner'
+                    ' retries will return the same error without attempting'
+                    ' the export again'
+                )
+            response_content += f'\n\n{export.messages}\n'
             return HttpResponse(
-                'Synchronous export failed: ' + str(export.messages),
+                response_content,
                 content_type='text/plain',
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        if export.status in (export.CREATED, export.PROCESSING):
+            expected_latest_finish = export.date_created + datetime.timedelta(
+                seconds=settings.SYNCHRONOUS_REQUEST_TIME_LIMIT
+            )
+            # There's no guarantee that
+            # `seconds=settings.SYNCHRONOUS_REQUEST_TIME_LIMIT` matches the
+            # actual uWSGI worker limits, so never offer a retry time less than
+            # 5 seconds from now
+            retry_after = max(
+                5,
+                int((expected_latest_finish - timezone.now()).total_seconds()),
+            )
+            return HttpResponse(
+                'Another client has already requested this synchronous export.'
+                f' Please try again after {retry_after} seconds\n',
+                content_type='text/plain',
+                headers={'Retry-After': retry_after},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
         bad_user_agent = False
