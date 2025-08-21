@@ -6,7 +6,8 @@ from constance import config
 from constance.test import override_config
 from django.conf import settings
 from django.core.cache import cache
-from django.test import TestCase
+from django.urls import reverse
+from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Attachment
@@ -16,10 +17,14 @@ from kobo.apps.trash_bin.tasks.attachment import (
     auto_delete_excess_attachments,
     schedule_auto_attachment_cleanup_for_users
 )
+from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
-class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
+class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
     def setUp(self):
         self.owner = User.objects.create(username='owner')
         self.asset, self.xform, self.instance, self.owner_profile, self.attachment = (
@@ -90,8 +95,23 @@ class AttachmentCleanupTestCase(TestCase, AssetSubmissionTestMixin):
             return_value=mock_balances,
         ):
             auto_delete_excess_attachments(self.owner.pk)
-            self.attachment.refresh_from_db()
-            self.assertFalse(Attachment.objects.filter(pk=self.attachment.pk).exists())
+
+        # Attachment should be soft-deleted
+        self.assertFalse(Attachment.objects.filter(pk=self.attachment.pk).exists())
+
+        # API should now return `is_deleted=True` for this attachment
+        self.client.force_login(self.owner)
+        submission_detail_url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.instance.pk,
+            },
+        )
+        response = self.client.get(submission_detail_url)
+        assert response.status_code == status.HTTP_200_OK
+        for attachment in response.data['_attachments']:
+            assert attachment['is_deleted'] is True
 
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'

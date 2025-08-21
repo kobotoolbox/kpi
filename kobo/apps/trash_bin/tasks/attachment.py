@@ -8,6 +8,7 @@ from django.core.cache import cache
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Attachment
+from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.stripe.utils.import_management import requires_stripe
 from kobo.apps.stripe.utils.limit_enforcement import update_or_remove_limit_counter
@@ -123,6 +124,7 @@ def auto_delete_excess_attachments(user_id: int, **stripe_models):
     )
 
     attachments_to_trash = []
+    submission_ids = set()
     trashed_bytes = 0
     queryset = Attachment.objects.filter(user_id=user_id).order_by('date_created').only(
         'pk', 'uid', 'media_file_basename', 'media_file_size'
@@ -134,6 +136,7 @@ def auto_delete_excess_attachments(user_id: int, **stripe_models):
             'attachment_uid': att.uid,
             'attachment_basename': att.media_file_basename,
         })
+        submission_ids.add(att.instance_id)
         trashed_bytes += att.media_file_size
         if trashed_bytes >= exceeded_bytes:
             break
@@ -146,6 +149,10 @@ def auto_delete_excess_attachments(user_id: int, **stripe_models):
             'attachment',
         )
 
+        # Update the `is_deleted` flag in Mongo
+        ParsedInstance.bulk_update_attachments(list(submission_ids))
+
+        # Clear the cache and update the limit counter
         ServiceUsageCalculator(user).clear_cache()
         ExceededLimitCounter = stripe_models['exceeded_limit_counter_model']
         counter = (
