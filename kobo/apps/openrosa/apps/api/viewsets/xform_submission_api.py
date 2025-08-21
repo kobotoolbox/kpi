@@ -7,7 +7,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, permissions, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotAuthenticated
-from rest_framework.renderers import JSONRenderer
+from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
@@ -125,10 +125,11 @@ class XFormSubmissionApi(
     filter_backends = (filters.AnonDjangoObjectPermissionFilter,)
     model = Instance
     permission_classes = (permissions.AllowAny,)
-    renderer_classes = [
+    renderer_classes = (
         TemplateXMLRenderer,
         JSONRenderer,
-    ]
+        BrowsableAPIRenderer
+    )
     serializer_class = SubmissionSerializer
     template_name = 'submission.xml'
     log_type = AuditType.PROJECT_HISTORY
