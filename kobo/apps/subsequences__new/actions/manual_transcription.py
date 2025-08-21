@@ -84,7 +84,7 @@ idea of example data in SubmissionExtras based on the above
 
 def utc_datetime_to_simplified_iso8601(dt):
     # https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date-time-string-format
-    if dt.utcoffset() or not dt.tzinfo:
+    if dt.utcoffset():  # or not dt.tzinfo:
         raise NotImplementedError('Only UTC datetimes are supported')
     return dt.isoformat().replace("+00:00", "Z")
 
