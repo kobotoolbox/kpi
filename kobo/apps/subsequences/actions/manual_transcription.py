@@ -1,5 +1,5 @@
 import jsonschema
-#from ..constants import TRANSCRIBABLE_SOURCE_TYPES
+from ..constants import TRANSCRIBABLE_SOURCE_TYPES
 #from ..actions.base import BaseAction
 
 """
@@ -125,3 +125,10 @@ class ManualTranscriptionAction(BaseAction):
         we need to solve the problem of storing multiple results for a single action
         """
         raise NotImplementedError
+
+
+    def load_params(self, params):
+        """
+        idk maybe we use this to read the language out of `Asset.advanced_features`
+        """
+        self.possible_transcribed_fields = params['values']
