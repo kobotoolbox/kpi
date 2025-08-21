@@ -113,6 +113,126 @@ class BaseAction:
     def record_repr(self, record: dict) -> dict:
         raise NotImplementedError()
 
+    @property
+    def result_schema(self):
+        """
+        we also need a schema to define the final result that will be written
+        into SubmissionExtras
+
+        we need to solve the problem of storing multiple results for a single action
+        """
+
+        # We want schema to look like this at the end
+        # schema_orig = {
+        #     '$schema': 'https://json-schema.org/draft/2020-12/schema',
+        #     'title': 'Transcript with revisions',
+        #     'type': 'object',
+        #     'additionalProperties': False,
+        #     'properties': {
+        #         'language': {'$ref': '#/$defs/lang'},
+        #         'transcript': {'$ref': '#/$defs/transcript'},
+        #         'revisions': {
+        #             'type': 'array',
+        #             'minItems': 1,
+        #             'items': {'$ref': '#/$defs/revision'},
+        #         },
+        #         '_dateCreated': {'$ref': '#/$defs/dateTime'},
+        #         '_dateModified': {'$ref': '#/$defs/dateTime'},
+        #     },
+        #     'required': ['_dateCreated', '_dateModified'],
+        #     'allOf': [
+        #         {
+        #             '$ref': '#/$defs/lang_transcript_dependency'
+        #         }
+        #     ],
+        #     '$defs': {
+        #         'lang': {'type': 'string', 'enum':  self.languages},
+        #         'transcript': {'type': 'string'},
+        #         'dateTime': {'type': 'string', 'format': 'date-time'},
+        #         'lang_transcript_dependency': {
+        #             'allOf': [
+        #                 {
+        #                     'if': {'required': ['language']},
+        #                     'then': {'required': ['transcript']}
+        #                 },
+        #                 {
+        #                     'if': {'required': ['transcript']},
+        #                     'then': {'required': ['language']}
+        #                 }
+        #             ]
+        #         },
+        #         'revision': {
+        #             'type': 'object',
+        #             'additionalProperties': False,
+        #             'properties': {
+        #                 'language': {'$ref': '#/$defs/lang'},
+        #                 'transcript': {'$ref': '#/$defs/transcript'},
+        #                 '_dateCreated': {'$ref': '#/$defs/dateTime'},
+        #             },
+        #             'required': ['_dateCreated'],
+        #             'allOf': [
+        #                 {
+        #                     "$ref": "#/$defs/lang_transcript_dependency"
+        #                 }
+        #             ],
+        #         },
+        #     },
+        # }
+
+        result_schema_template = {
+            '$schema': 'https://json-schema.org/draft/2020-12/schema',
+            'type': 'object',
+            'additionalProperties': False,
+            'properties': {
+                self.REVISIONS_FIELD: {
+                    'type': 'array',
+                    'minItems': 1,
+                    'items': {'$ref': '#/$defs/revision'},
+                },
+                self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
+                self.DATE_MODIFIED_FIELD: {'$ref': '#/$defs/dateTime'},
+            },
+            'required': [self.DATE_CREATED_FIELD, self.DATE_MODIFIED_FIELD],
+            '$defs': {
+                'dateTime': {'type': 'string', 'format': 'date-time'},
+                'revision': {
+                    'type': 'object',
+                    'additionalProperties': False,
+                    'properties': {
+                        self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
+                    },
+                    'required': [self.DATE_CREATED_FIELD],
+                }
+            },
+        }
+
+        def _inject_data_schema(destination_schema: dict, skipped_keys: list) -> dict:
+
+            for key, value in self.data_schema.items():
+                if key in skipped_keys:
+                    continue
+
+                if key in destination_schema:
+                    if isinstance(destination_schema[key], dict):
+                        destination_schema[key].update(self.data_schema[key])
+                    elif isinstance(destination_schema[key], list):
+                        destination_schema[key].extend(self.data_schema[key])
+                    else:
+                        destination_schema[key] = self.data_schema[key]
+                else:
+                    destination_schema[key] = self.data_schema[key]
+
+        # Inject data schema in result schema template
+        schema = deepcopy(result_schema_template)
+        _inject_data_schema(schema, ['$schema', 'title', 'type'])
+
+        # Also inject data schema in the revision definition
+        _inject_data_schema(
+            schema['$defs']['revision'], ['$schema', 'title', '$defs']
+        )
+
+        return schema
+
     def revise_field(self, submission_extra: dict, edit: dict) -> dict:
         raise NotImplementedError
 
@@ -251,127 +371,6 @@ class ManualTranscriptionAction(BaseAction):
 
     def record_repr(self, record: dict) -> dict:
         return record.get('transcript', '')
-
-    @property
-    def result_schema(self):
-        """
-        we also need a schema to define the final result that will be written
-        into SubmissionExtras
-
-        we need to solve the problem of storing multiple results for a single action
-        """
-
-        # We want schema to look like this at the end
-        # schema_orig = {
-        #     '$schema': 'https://json-schema.org/draft/2020-12/schema',
-        #     'title': 'Transcript with revisions',
-        #     'type': 'object',
-        #     'additionalProperties': False,
-        #     'properties': {
-        #         'language': {'$ref': '#/$defs/lang'},
-        #         'transcript': {'$ref': '#/$defs/transcript'},
-        #         'revisions': {
-        #             'type': 'array',
-        #             'minItems': 1,
-        #             'items': {'$ref': '#/$defs/revision'},
-        #         },
-        #         '_dateCreated': {'$ref': '#/$defs/dateTime'},
-        #         '_dateModified': {'$ref': '#/$defs/dateTime'},
-        #     },
-        #     'required': ['_dateCreated', '_dateModified'],
-        #     'allOf': [
-        #         {
-        #             '$ref': '#/$defs/lang_transcript_dependency'
-        #         }
-        #     ],
-        #     '$defs': {
-        #         'lang': {'type': 'string', 'enum':  self.languages},
-        #         'transcript': {'type': 'string'},
-        #         'dateTime': {'type': 'string', 'format': 'date-time'},
-        #         'lang_transcript_dependency': {
-        #             'allOf': [
-        #                 {
-        #                     'if': {'required': ['language']},
-        #                     'then': {'required': ['transcript']}
-        #                 },
-        #                 {
-        #                     'if': {'required': ['transcript']},
-        #                     'then': {'required': ['language']}
-        #                 }
-        #             ]
-        #         },
-        #         'revision': {
-        #             'type': 'object',
-        #             'additionalProperties': False,
-        #             'properties': {
-        #                 'language': {'$ref': '#/$defs/lang'},
-        #                 'transcript': {'$ref': '#/$defs/transcript'},
-        #                 '_dateCreated': {'$ref': '#/$defs/dateTime'},
-        #             },
-        #             'required': ['_dateCreated'],
-        #             'allOf': [
-        #                 {
-        #                     "$ref": "#/$defs/lang_transcript_dependency"
-        #                 }
-        #             ],
-        #         },
-        #     },
-        # }
-
-        result_schema_template = {
-            '$schema': 'https://json-schema.org/draft/2020-12/schema',
-            'type': 'object',
-            'additionalProperties': False,
-            'properties': {
-                self.REVISIONS_FIELD: {
-                    'type': 'array',
-                    'minItems': 1,
-                    'items': {'$ref': '#/$defs/revision'},
-                },
-                self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
-                self.DATE_MODIFIED_FIELD: {'$ref': '#/$defs/dateTime'},
-            },
-            'required': [self.DATE_CREATED_FIELD, self.DATE_MODIFIED_FIELD],
-            '$defs': {
-                'dateTime': {'type': 'string', 'format': 'date-time'},
-                'revision': {
-                    'type': 'object',
-                    'additionalProperties': False,
-                    'properties': {
-                        self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
-                    },
-                    'required': [self.DATE_CREATED_FIELD],
-                }
-            },
-        }
-
-        def _inject_data_schema(destination_schema: dict, skipped_keys: list) -> dict:
-
-            for key, value in self.data_schema.items():
-                if key in skipped_keys:
-                    continue
-
-                if key in destination_schema:
-                    if isinstance(destination_schema[key], dict):
-                        destination_schema[key].update(self.data_schema[key])
-                    elif isinstance(destination_schema[key], list):
-                        destination_schema[key].extend(self.data_schema[key])
-                    else:
-                        destination_schema[key] = self.data_schema[key]
-                else:
-                    destination_schema[key] = self.data_schema[key]
-
-        # Inject data schema in result schema template
-        schema = deepcopy(result_schema_template)
-        _inject_data_schema(schema, ['$schema', 'title', 'type'])
-
-        # Also inject data schema in the revision definition
-        _inject_data_schema(
-            schema['$defs']['revision'], ['$schema', 'title', '$defs']
-        )
-
-        return schema
-
 
     def revise_field(self, submission_extra: dict, edit: dict) -> dict:
         """
