@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('logger', '0047_instancehistory_root_uuid_and_more'),
+        ('logger', '0047_instancehistory_root_uuid'),
     ]
 
     if settings.SKIP_HEAVY_MIGRATIONS:
