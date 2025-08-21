@@ -8,7 +8,6 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 from rest_framework import serializers
 
-from kobo.apps.project_ownership.models.choices import InviteStatusChoices
 from kpi.schema_extensions.v2.generic.schema import (
     ASSET_URL_SCHEMA,
     GENERIC_ARRAY_SCHEMA,
