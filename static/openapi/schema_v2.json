@@ -8570,11 +8570,11 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/PaginatedInviteResponseList"
+                                    "$ref": "#/components/schemas/InviteCreateResponse"
                                 }
                             }
                         },
@@ -14987,13 +14987,66 @@
                         }
                     },
                     "role": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/InviteeRoleEnum"
                     }
                 },
                 "required": [
                     "invitees",
                     "role"
                 ]
+            },
+            "InviteCreateResponse": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "url": {
+                            "type": "string",
+                            "format": "uri",
+                            "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/"
+                        },
+                        "invited_by": {
+                            "type": "string",
+                            "format": "uri",
+                            "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                        },
+                        "status": {
+                            "type": "string"
+                        },
+                        "invitee_role": {
+                            "enum": [
+                                "admin",
+                                "member"
+                            ],
+                            "type": "string",
+                            "description": "* `admin` - admin\n* `member` - member"
+                        },
+                        "organization_name": {
+                            "type": "string"
+                        },
+                        "created": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "modified": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "invitee": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "created",
+                        "invited_by",
+                        "invitee",
+                        "invitee_role",
+                        "modified",
+                        "organization_name",
+                        "status",
+                        "url"
+                    ]
+                }
             },
             "InviteResponse": {
                 "type": "object",
@@ -15012,6 +15065,9 @@
                         "$ref": "#/components/schemas/InviteStatusChoicesEnum"
                     },
                     "invitee_role": {
+                        "$ref": "#/components/schemas/InviteeRoleEnum"
+                    },
+                    "organization_name": {
                         "type": "string"
                     },
                     "created": {
@@ -15032,6 +15088,7 @@
                     "invitee",
                     "invitee_role",
                     "modified",
+                    "organization_name",
                     "status",
                     "url"
                 ]
@@ -15040,15 +15097,21 @@
                 "enum": [
                     "accepted",
                     "cancelled",
-                    "complete",
                     "declined",
                     "expired",
-                    "failed",
-                    "in_progress",
-                    "pending"
+                    "pending",
+                    "resent"
                 ],
                 "type": "string",
-                "description": "* `accepted` - Accepted\n* `cancelled` - Cancelled\n* `complete` - Complete\n* `declined` - Declined\n* `expired` - Expired\n* `failed` - Failed\n* `in_progress` - In Progress\n* `pending` - Pending"
+                "description": "* `accepted` - Accepted\n* `cancelled` - Cancelled\n* `declined` - Declined\n* `expired` - Expired\n* `pending` - Pending\n* `resent` - Resent"
+            },
+            "InviteeRoleEnum": {
+                "enum": [
+                    "admin",
+                    "member"
+                ],
+                "type": "string",
+                "description": "* `admin` - admin\n* `member` - member"
             },
             "Language": {
                 "type": "object",
@@ -15435,15 +15498,13 @@
                                 "enum": [
                                     "accepted",
                                     "cancelled",
-                                    "complete",
                                     "declined",
                                     "expired",
-                                    "failed",
-                                    "in_progress",
-                                    "pending"
+                                    "pending",
+                                    "resent"
                                 ],
                                 "type": "string",
-                                "description": "* `accepted` - Accepted\n* `cancelled` - Cancelled\n* `complete` - Complete\n* `declined` - Declined\n* `expired` - Expired\n* `failed` - Failed\n* `in_progress` - In Progress\n* `pending` - Pending"
+                                "description": "* `accepted` - Accepted\n* `cancelled` - Cancelled\n* `declined` - Declined\n* `expired` - Expired\n* `pending` - Pending\n* `resent` - Resent"
                             },
                             "invitee_role": {
                                 "enum": [
@@ -15501,14 +15562,6 @@
                 ],
                 "type": "string",
                 "description": "* `admin` - admin\n* `member` - member\n* `owner` - owner"
-            },
-            "MemberPatchRequestRoleEnum": {
-                "enum": [
-                    "admin",
-                    "member"
-                ],
-                "type": "string",
-                "description": "* `admin` - admin\n* `member` - member"
             },
             "OpenRosaXFormResponse": {
                 "type": "object",
@@ -17454,7 +17507,7 @@
                 "type": "object",
                 "properties": {
                     "role": {
-                        "$ref": "#/components/schemas/MemberPatchRequestRoleEnum"
+                        "$ref": "#/components/schemas/InviteeRoleEnum"
                     }
                 }
             },
