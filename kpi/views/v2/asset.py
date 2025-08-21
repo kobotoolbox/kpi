@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -41,7 +42,7 @@ from kpi.permissions import (
     ReportPermission,
     get_perm_name,
 )
-from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, XlsRenderer
+from kpi.renderers import SSJsonRenderer, XFormRenderer, XlsRenderer
 from kpi.schema_extensions.v2.assets.schema import (
     ASSET_CLONE_FROM_SCHEMA,
     ASSET_CONTENT_SCHEMA,
@@ -383,7 +384,6 @@ class AssetViewSet(
         SearchFilter,
         AssetOrderingFilter,
     ]
-    renderer_classes = [AssetJsonRenderer]
     # Terms that can be used to search and filter return values
     # from a query `q`
     search_default_field_lookups = [
@@ -705,7 +705,7 @@ class AssetViewSet(
     def get_renderers(self):
         if self.action == 'retrieve':
             return [
-                AssetJsonRenderer(),
+                JSONRenderer(),
                 SSJsonRenderer(),
                 XFormRenderer(),
                 XlsRenderer(),

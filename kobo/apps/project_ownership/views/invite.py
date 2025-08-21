@@ -1,5 +1,4 @@
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
-from rest_framework.renderers import JSONRenderer
 
 from kpi.permissions import IsAuthenticated
 from kpi.utils.schema_extensions.markdown import read_md
@@ -104,9 +103,6 @@ class InviteViewSet(AuditLoggedModelViewSet):
     filter_backends = (InviteFilter, )
     log_type = 'project-history'
     logged_fields = ['recipient.username', 'status', 'transfers']
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     def get_queryset(self):
 

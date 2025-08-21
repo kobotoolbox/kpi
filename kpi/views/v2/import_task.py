@@ -3,7 +3,6 @@ import base64
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, status, viewsets
-from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
@@ -78,9 +77,6 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ImportTask.objects.all()
     serializer_class = ImportTaskSerializer
     lookup_field = 'uid'
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     def get_serializer_class(self):
         if self.action == 'list':

@@ -1,7 +1,6 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.renderers import JSONRenderer
 
 from hub.models import SitewideMessage
 from kpi.schema_extensions.v2.tos.serializers import TermsOfServiceResponse
@@ -55,6 +54,3 @@ class TermsOfServiceViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = TermsOfServiceSerializer
     pagination_class = None
     permission_classes = (IsAuthenticated,)
-    renderer_classes = [
-        JSONRenderer,
-    ]

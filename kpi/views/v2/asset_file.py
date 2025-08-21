@@ -8,7 +8,6 @@ from drf_spectacular.utils import (
 )
 from private_storage.views import PrivateStorageDetailView
 from rest_framework.decorators import action
-from rest_framework.renderers import JSONRenderer
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
@@ -168,9 +167,6 @@ class AssetFileViewSet(
         'download_url',
         ('object_id', 'asset.id'),
         'asset.owner.username',
-    ]
-    renderer_classes = [
-        JSONRenderer,
     ]
 
     def get_queryset(self):

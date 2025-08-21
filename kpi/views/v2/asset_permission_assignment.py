@@ -209,7 +209,6 @@ class AssetPermissionAssignmentViewSet(
     pagination_class = None
     log_type = AuditType.PROJECT_HISTORY
     logged_fields = ['asset.id', 'asset.owner.username']
-    renderer_classes = [renderers.JSONRenderer]
     # filter_backends = Just kidding! Look at this instead:
     #     kpi.utils.object_permission.get_user_permission_assignments_queryset
 

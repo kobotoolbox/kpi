@@ -10,8 +10,8 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kpi.filters import SearchFilter
 from kpi.models.import_export_task import (
     AccessLogExportTask,
-    ProjectHistoryLogExportTask,
     ImportExportStatusChoices,
+    ProjectHistoryLogExportTask,
 )
 from kpi.permissions import IsAuthenticated
 from kpi.tasks import export_task_in_background
@@ -73,7 +73,6 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     model = AuditLog
     serializer_class = AuditLogSerializer
     permission_classes = (SuperUserPermission,)
-    renderer_classes = (JSONRenderer,)
     queryset = (
         AuditLog.objects.select_related('user').all().order_by('-date_created')
     )

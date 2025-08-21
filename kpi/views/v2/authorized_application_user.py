@@ -2,7 +2,6 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import exceptions, mixins, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
-from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 from kobo.apps.audit_log.models import AccessLog
@@ -26,9 +25,6 @@ class AuthorizedApplicationUserViewSet(
     serializer_class = CreateUserSerializer
     lookup_field = 'username'
     versioning_class = APIV2Versioning
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     @action(detail=False, methods=['POST'])
     def authenticate_user(self, request):

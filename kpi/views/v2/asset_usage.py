@@ -1,5 +1,5 @@
 from drf_spectacular.utils import extend_schema
-from rest_framework import renderers, viewsets
+from rest_framework import viewsets
 from rest_framework.mixins import ListModelMixin
 
 from kpi.models.asset import Asset
@@ -35,7 +35,6 @@ class AssetUsageViewSet(ListModelMixin, viewsets.GenericViewSet):
     - docs/api/v2/asset_usage/list.md
     """
 
-    renderer_classes = (renderers.JSONRenderer,)
     permission_classes = (IsAuthenticated,)
     serializer_class = AssetUsageSerializer
     pagination_class = AssetUsagePagination

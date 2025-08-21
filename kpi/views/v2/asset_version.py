@@ -1,7 +1,6 @@
 # coding: utf-8
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import viewsets
-from rest_framework.renderers import JSONRenderer
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.models import AssetVersion
@@ -80,9 +79,6 @@ class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
     model = AssetVersion
     lookup_field = 'uid'
     permission_classes = (AssetVersionReadOnlyPermission,)
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     def get_serializer_class(self):
         if self.action == 'list':

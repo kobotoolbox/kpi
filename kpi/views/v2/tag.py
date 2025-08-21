@@ -1,7 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
-from rest_framework.renderers import JSONRenderer
 from taggit.models import Tag
 
 from kpi.constants import PERM_VIEW_ASSET
@@ -42,9 +41,6 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = TagSerializer
     lookup_field = 'taguid__uid'
     filter_backends = (SearchFilter,)
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     """
     Viewset for managing the current user's tags

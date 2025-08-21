@@ -1,7 +1,6 @@
 # coding: utf-8
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
-from rest_framework.renderers import JSONRenderer
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
@@ -55,6 +54,3 @@ class TranscriptionServiceViewSet(BaseViewSet):
 
     serializer_class = TranscriptionServiceSerializer
     queryset = TranscriptionService.objects.all()
-    renderer_classes = [
-        JSONRenderer,
-    ]

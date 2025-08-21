@@ -2,7 +2,6 @@ from django.db.models import Prefetch
 from django.shortcuts import Http404
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import viewsets
-from rest_framework.renderers import JSONRenderer
 
 from kpi.permissions import IsAuthenticated
 from kpi.utils.schema_extensions.markdown import read_md
@@ -56,9 +55,6 @@ class TransferViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uid'
     permission_classes = (IsAuthenticated,)
     serializer_class = TransferDetailSerializer
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     def get_queryset(self):
 

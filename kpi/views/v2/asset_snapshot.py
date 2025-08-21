@@ -241,7 +241,6 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
     queryset = AssetSnapshot.objects.all()
     permission_classes = [AssetSnapshotPermission]
 
-    renderer_classes = [JSONRenderer]
     log_type = AuditType.PROJECT_HISTORY
 
     @property

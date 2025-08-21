@@ -16,11 +16,6 @@ from kpi.constants import GEO_QUESTION_TYPES
 from kpi.utils.xml import add_xml_declaration
 
 
-class AssetJsonRenderer(renderers.JSONRenderer):
-    media_type = 'application/json'
-    format = 'json'
-
-
 class MediaFileRenderer(renderers.BaseRenderer):
 
     media_type = '*/*'

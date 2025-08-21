@@ -2,7 +2,6 @@ from django.conf import settings
 from django.http import Http404
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import mixins, viewsets
-from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -54,7 +53,6 @@ class AssetCountsViewSet(
     """
     parent_model = Asset
     permission_classes = [ViewSubmissionPermission]
-    renderer_classes = [JSONRenderer]
 
     def list(self, request, *args, **kwargs):
         if not self.asset.has_deployment:

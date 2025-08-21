@@ -1,7 +1,6 @@
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -78,7 +77,6 @@ class AttachmentDeleteViewSet(
     # FIXME: Future refactoring is needed for permissions in openrosa_backend.py to
     # avoid checking validating partial permissions in both the permission class
     # here and in the backend
-    renderer_classes = [JSONRenderer]
     permission_classes = [AttachmentDeletionPermission]
     http_method_names = ['delete']
 

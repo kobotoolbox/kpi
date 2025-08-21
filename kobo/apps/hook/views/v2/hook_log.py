@@ -4,7 +4,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -92,7 +91,6 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     pagination_class = TinyPaginated
     filter_backends = (DjangoFilterBackend,)
     filterset_class = HookLogFilter
-    renderer_classes = [JSONRenderer]
 
     def get_queryset(self):
         hook_uid = self.get_parents_query_dict().get('hook')

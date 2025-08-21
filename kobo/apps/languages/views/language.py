@@ -2,7 +2,6 @@
 from collections import defaultdict
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework.renderers import JSONRenderer
 
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
@@ -48,9 +47,6 @@ class LanguageViewSet(BaseViewSet):
 
     serializer_class = LanguageListSerializer
     min_search_characters = 2
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     def get_queryset(self):
         if self.action == 'list':

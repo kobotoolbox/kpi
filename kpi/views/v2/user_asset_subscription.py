@@ -1,7 +1,6 @@
 # coding: utf-8
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
-from rest_framework.renderers import JSONRenderer
 
 from kpi.models import UserAssetSubscription
 from kpi.schema_extensions.v2.asset_subscriptions.serializers import (
@@ -73,8 +72,6 @@ class UserAssetSubscriptionViewSet(viewsets.ModelViewSet):
     queryset = UserAssetSubscription.objects.none()
     serializer_class = UserAssetSubscriptionSerializer
     lookup_field = 'uid'
-
-    renderer_classes = [JSONRenderer]
 
     def get_queryset(self):
         user = get_database_user(self.request.user)

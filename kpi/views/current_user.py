@@ -4,7 +4,6 @@ from django.utils.timezone import now
 from django.utils.translation import gettext as t
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import permissions, status, viewsets
-from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -63,9 +62,6 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     serializer_class = CurrentUserSerializer
     permission_classes = [permissions.IsAuthenticated]
     versioning_class = APIV2Versioning
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     def get_object(self):
         return self.request.user
