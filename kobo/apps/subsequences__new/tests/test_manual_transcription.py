@@ -44,6 +44,41 @@ def test_invalid_transcript_data_fails_validation():
     with pytest.raises(jsonschema.exceptions.ValidationError):
         action.validate_data(data)
 
+def test_valid_result_passes_validation():
+    xpath = 'group_name/question_name'  # irrelevant for this test
+    params = [{'language': 'fr'}, {'language': 'en'}]
+    action = ManualTranscriptionAction(xpath, params)
+
+    first = {'language': 'fr', 'transcript': 'un'}
+    second = {'language': 'en', 'transcript': 'two'}
+    third = {'language': 'fr', 'transcript': 'trois'}
+    fourth = {}
+    fifth = {'language': 'en', 'transcript': 'fifth'}
+    mock_sup_det = {}
+    for data in first, second, third, fourth, fifth:
+        mock_sup_det = action.revise_field(mock_sup_det, data)
+    action.validate_result(mock_sup_det)
+
+def test_invalid_result_fails_validation():
+    xpath = 'group_name/question_name'  # irrelevant for this test
+    params = [{'language': 'fr'}, {'language': 'en'}]
+    action = ManualTranscriptionAction(xpath, params)
+
+    first = {'language': 'fr', 'transcript': 'un'}
+    second = {'language': 'en', 'transcript': 'two'}
+    third = {'language': 'fr', 'transcript': 'trois'}
+    fourth = {}
+    fifth = {'language': 'en', 'transcript': 'fifth'}
+    mock_sup_det = {}
+    for data in first, second, third, fourth, fifth:
+        mock_sup_det = action.revise_field(mock_sup_det, data)
+
+    # erroneously add '_dateModified' onto a revision
+    mock_sup_det['_revisions'][0]['_dateModified'] = mock_sup_det['_revisions'][0]['_dateCreated']
+
+    with pytest.raises(jsonschema.exceptions.ValidationError):
+        action.validate_result(mock_sup_det)
+
 
 def test_transcript_is_stored_in_supplemental_details():
     pass
@@ -191,8 +226,6 @@ def test_setting_transcript_to_empty_object():
     assert 'transcript' not in mock_sup_det
     assert mock_sup_det['_revisions'][0]['transcript'] == "Pas d'idée"
 
-    print(mock_sup_det)
-
 def test_latest_revision_is_first():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
@@ -209,6 +242,3 @@ def test_latest_revision_is_first():
     assert mock_sup_det['transcript'] == 'trois'
     assert mock_sup_det['_revisions'][0]['transcript'] == 'deux'
     assert mock_sup_det['_revisions'][1]['transcript'] == 'un'
-
-    import json
-    print(json.dumps(mock_sup_det, indent=2))
