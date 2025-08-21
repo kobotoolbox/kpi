@@ -10818,6 +10818,15 @@ components:
             format: date-time
           invitee:
             type: string
+        required:
+        - created
+        - invited_by
+        - invitee
+        - invitee_role
+        - modified
+        - organization_name
+        - status
+        - url
     InviteResponse:
       type: object
       properties:

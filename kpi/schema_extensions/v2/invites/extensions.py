@@ -91,6 +91,16 @@ class InviteResponseListSerializerExtension(OpenApiSerializerExtension):
     def map_serializer(self, auto_schema, direction):
         return build_array_type(
             schema=build_object_type(
+                required=[
+                    'url',
+                    'invited_by',
+                    'status',
+                    'invitee_role',
+                    'organization_name',
+                    'created',
+                    'modified',
+                    'invitee',
+                ],
                 properties={
                     'url': build_url_type(
                         'api_v2:organization-invites-detail',
