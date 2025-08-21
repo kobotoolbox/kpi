@@ -12,4 +12,5 @@ class OpenRosaAppConfig(AppConfig):
         # in the UI.
         from kobo.apps.openrosa.schema_extensions.v2.formlist import extensions  # noqa F401
         from kobo.apps.openrosa.schema_extensions.v2.manifest import extensions  # noqa F401
+        from kobo.apps.openrosa.schema_extensions.v2.submission import extensions  # noqa F401
         super().ready()
