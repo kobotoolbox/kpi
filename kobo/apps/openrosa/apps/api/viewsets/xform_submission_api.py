@@ -3,7 +3,7 @@ import re
 
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, permissions, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotAuthenticated
@@ -24,6 +24,10 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     safe_create_instance,
 )
 from kobo.apps.openrosa.libs.utils.string import dict_lists2strings
+from kobo.apps.openrosa.schema_extensions.v2.submission.serializers import (
+    OpenRosaPayload,
+    OpenRosaResponse,
+)
 from kpi.authentication import (
     BasicAuthentication,
     DigestAuthentication,
@@ -31,6 +35,8 @@ from kpi.authentication import (
     TokenAuthentication,
 )
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 from ..utils.xml import extract_confirmation_message
 
@@ -66,6 +72,32 @@ def create_instance_from_json(username, request):
     return safe_create_instance(username, xml_file, [], None, request=request)
 
 
+@extend_schema_view(
+    create_authenticated=extend_schema(
+        description=read_md('openrosa', 'submission/authenticated.md'),
+        request={'multipart/form-data': OpenRosaPayload},
+        responses=open_api_200_ok_response(
+            OpenRosaResponse,
+            media_type='application/xml',
+            error_media_type='application/xml',
+            raise_access_forbidden=False,
+        ),
+        tags=['OpenRosa Form Submission'],
+        operation_id='submission_authenticated',
+    ),
+    create_anonymous=extend_schema(
+        description=read_md('openrosa', 'submission/anonymous.md'),
+        request={'multipart/form-data': OpenRosaPayload},
+        responses=open_api_200_ok_response(
+            OpenRosaResponse,
+            media_type='application/xml',
+            error_media_type='application/xml',
+            raise_access_forbidden=False,
+        ),
+        tags=['OpenRosa Form Submission'],
+        operation_id='submission_anonymous',
+    ),
+)
 class XFormSubmissionApi(
     OpenRosaHeadersMixin,
     mixins.CreateModelMixin,
@@ -73,6 +105,15 @@ class XFormSubmissionApi(
     AuditLoggedViewSet,
 ):
     """
+    ViewSet for managing the enketo submission
+
+    Available actions:
+    - create        → POST /submission
+    - create        → POST /{username}/submission
+
+    Documentation:
+    - docs/api/v2/submission/create.md
+
     Implements OpenRosa Api [FormSubmissionAPI](\
         https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI)
 
@@ -156,16 +197,10 @@ class XFormSubmissionApi(
             and not issubclass(auth_class, SessionAuthentication)
         ]
 
-    @extend_schema(
-        tags=['OpenRosa Form Submission'], operation_id='submission_authenticated'
-    )
     @action(detail=False, methods=['POST'])
     def create_authenticated(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
-    @extend_schema(
-        tags=['OpenRosa Form Submission'], operation_id='submission_anonymous'
-    )
     @action(detail=False, methods=['POST'])
     def create_anonymous(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)

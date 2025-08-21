@@ -10,5 +10,13 @@ class OpenRosaAppConfig(AppConfig):
         # a JSONField() as it only gets tagged as a '{}' (meaning in the schema that
         # the type was unknown and will return to default (string)) and seen as string
         # in the UI.
-        from kobo.apps.openrosa.schema_extensions.v2.formlist import extensions  # noqa F401
+        from kobo.apps.openrosa.schema_extensions.v2.formlist import (  # noqa F401
+            extensions,
+        )
+        from kobo.apps.openrosa.schema_extensions.v2.manifest import (  # noqa F401
+            extensions,
+        )
+        from kobo.apps.openrosa.schema_extensions.v2.submission import (  # noqa F401
+            extensions,
+        )
         super().ready()
