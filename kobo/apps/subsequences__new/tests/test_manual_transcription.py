@@ -133,8 +133,7 @@ def test_transcript_revisions_are_retained_in_supplemental_details__realish():
     assert mock_sup_det['language'] == 'en'
     assert mock_sup_det['transcript'] == 'No idea'
     assert mock_sup_det['_dateCreated'] == mock_sup_det['_dateModified']
-    # ehh... should we initialize with an empty list on the first edit
-    # assert mock_sup_det['_revisions'] == []
+    assert '_revisions' not in mock_sup_det
     first_time = mock_sup_det['_dateCreated']
 
     mock_sup_det = action.revise_field(mock_sup_det, second)
@@ -161,3 +160,55 @@ def test_transcript_revisions_are_retained_in_supplemental_details__realish():
 
     # the record itself should encompass the second transcript
     assert mock_sup_det.items() >= second.items()
+
+def test_setting_transcript_to_empty_string():
+    xpath = 'group_name/question_name'  # irrelevant for this test
+    params = [{'language': 'fr'}, {'language': 'en'}]
+    action = ManualTranscriptionAction(xpath, params)
+
+    first = {'language': 'fr', 'transcript': "Pas d'idée"}
+    second = {'language': 'fr', 'transcript': ''}
+
+    mock_sup_det = action.revise_field({}, first)
+    assert mock_sup_det['transcript'] == "Pas d'idée"
+
+    mock_sup_det = action.revise_field(mock_sup_det, second)
+    assert mock_sup_det['transcript'] == ''
+    assert mock_sup_det['_revisions'][0]['transcript'] == "Pas d'idée"
+
+def test_setting_transcript_to_empty_object():
+    xpath = 'group_name/question_name'  # irrelevant for this test
+    params = [{'language': 'fr'}, {'language': 'en'}]
+    action = ManualTranscriptionAction(xpath, params)
+
+    first = {'language': 'fr', 'transcript': "Pas d'idée"}
+    second = {}
+
+    mock_sup_det = action.revise_field({}, first)
+    assert mock_sup_det['transcript'] == "Pas d'idée"
+
+    mock_sup_det = action.revise_field(mock_sup_det, second)
+    assert 'transcript' not in mock_sup_det
+    assert mock_sup_det['_revisions'][0]['transcript'] == "Pas d'idée"
+
+    print(mock_sup_det)
+
+def test_latest_revision_is_first():
+    xpath = 'group_name/question_name'  # irrelevant for this test
+    params = [{'language': 'fr'}, {'language': 'en'}]
+    action = ManualTranscriptionAction(xpath, params)
+
+    first = {'language': 'fr', 'transcript': 'un'}
+    second = {'language': 'fr', 'transcript': 'deux'}
+    third = {'language': 'fr', 'transcript': 'trois'}
+
+    mock_sup_det = {}
+    for data in first, second, third:
+        mock_sup_det = action.revise_field(mock_sup_det, data)
+
+    assert mock_sup_det['transcript'] == 'trois'
+    assert mock_sup_det['_revisions'][0]['transcript'] == 'deux'
+    assert mock_sup_det['_revisions'][1]['transcript'] == 'un'
+
+    import json
+    print(json.dumps(mock_sup_det, indent=2))

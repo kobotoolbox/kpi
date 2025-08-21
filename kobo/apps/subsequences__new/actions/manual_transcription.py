@@ -4,8 +4,8 @@ from copy import deepcopy
 # from django.utils import timezone
 from datetime import datetime as timezone
 
-#from ..constants import TRANSCRIBABLE_SOURCE_TYPES
-#from ..actions.base import BaseAction
+# from ..constants import TRANSCRIBABLE_SOURCE_TYPES
+# from ..actions.base import BaseAction
 
 """
 ### All actions must have the following components
@@ -44,11 +44,13 @@ idea of example content in asset.advanced_features (what kind of actions are act
 }
 """
 
+
 def utc_datetime_to_simplified_iso8601(dt):
     # https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date-time-string-format
     if dt.utcoffset():
         raise NotImplementedError('Only UTC datetimes are supported')
     return dt.isoformat().replace("+00:00", "Z")
+
 
 class BaseAction:
 
@@ -60,7 +62,6 @@ class BaseAction:
     DATE_CREATED_FIELD = '_dateCreated'
     DATE_MODIFIED_FIELD = '_dateModified'
     REVISIONS_FIELD = '_revisions'
-    DELETE = '⌫'
 
     @classmethod
     def validate_params(cls, params):
@@ -69,7 +70,7 @@ class BaseAction:
     def validate_data(self, data):
         jsonschema.validate(data, self.data_schema)
 
-    def record_repr(self, record : dict) -> dict:
+    def record_repr(self, record: dict) -> dict:
         raise NotImplementedError()
 
     def revise_field(self, submission_extra: dict, edit: dict) -> dict:
@@ -130,42 +131,98 @@ class ManualTranscriptionAction(BaseAction):
             languages.append(individual_params['language'])
 
         return {
-            'additionalProperties': False,
-            'properties': {
-                'language': {
-                    'type': 'string',
-                    'enum': languages,
+            'oneOf': [
+                {
+                    'additionalProperties': False,
+                    'properties': {
+                        'language': {
+                            'type': 'string',
+                            'enum': languages,
+                        },
+                        'transcript': {
+                            'type': 'string',
+                        },
+                    },
+                    'required': ['language', 'transcript'],
+                    'type': 'object',
                 },
-                'transcript': {
-                    'type': 'string',
+                {
+                    # also allow an empty object (used to delete the transcript)
+                    'additionalProperties': False,
+                    'type': 'object',
                 },
-            },
-            'required': ['language', 'transcript'],
-            'type': 'object',
+            ]
         }
 
-    def record_repr(self, record : dict) -> dict:
+    def record_repr(self, record: dict) -> dict:
         return record.get('transcript', '')
 
-    @classmethod
     @property
-    def result_schema(cls):
+    def result_schema(self):
         """
         we also need a schema to define the final result that will be written
         into SubmissionExtras
 
         we need to solve the problem of storing multiple results for a single action
         """
-        raise NotImplementedError
+        return {
+            '$schema': 'https://json-schema.org/draft/2020-12/schema',
+            'title': 'Transcript with revisions',
+            'type': 'object',
+            'additionalProperties': False,
+            'properties': {
+                'language': {'$ref': '#/$defs/lang'},
+                'transcript': {'$ref': '#/$defs/transcript'},
+                'revisions': {
+                    'type': 'array',
+                    'minItems': 1,
+                    'items': {'$ref': '#/$defs/revision'},
+                },
+                '_dateCreated': {'$ref': '#/$defs/dateTime'},
+                '_dateModified': {'$ref': '#/$defs/dateTime'},
+            },
+            'required': ['_dateCreated', '_dateModified'],
+            'allOf': [
+                {
+                    'if': {'required': ['language']},
+                    'then': {'required': ['transcript']},
+                },
+                {
+                    'if': {'required': ['transcript']},
+                    'then': {'required': ['language']},
+                },
+            ],
+            '$defs': {
+                'lang': {'type': 'string', 'enum': ['fr', 'en', 'es']},
+                'transcript': {'type': 'string'},
+                'dateTime': {'type': 'string', 'format': 'date-time'},
+                'revision': {
+                    'type': 'object',
+                    'additionalProperties': False,
+                    'properties': {
+                        'language': {'$ref': '#/$defs/lang'},
+                        'transcript': {'$ref': '#/$defs/transcript'},
+                        '_dateCreated': {'$ref': '#/$defs/dateTime'},
+                    },
+                    'required': ['_dateCreated'],
+                    'allOf': [
+                        {
+                            'if': {'required': ['language']},
+                            'then': {'required': ['transcript']},
+                        },
+                        {
+                            'if': {'required': ['transcript']},
+                            'then': {'required': ['language']},
+                        },
+                    ],
+                },
+            },
+        }
+
 
     def revise_field(self, submission_extra: dict, edit: dict) -> dict:
-        """
-        """
-
-        if self.record_repr(edit) == self.DELETE:
-            # we might want to retain the revisions. also, we might want to
-            # trash the whole approach with the weird delete character
-            return {}
+        """ """
+        self.validate_data(edit)
 
         now_str = utc_datetime_to_simplified_iso8601(timezone.now())
         revision = deepcopy(submission_extra)
@@ -178,7 +235,7 @@ class ManualTranscriptionAction(BaseAction):
         new_record[self.DATE_MODIFIED_FIELD] = now_str
 
         if submission_extra:
-            revisions.insert(0, revision)  # valid approach, but opposite what i was imaginging. TODO: add unit test for the behavior we agree upon :)
+            revisions.insert(0, revision)
             new_record[self.REVISIONS_FIELD] = revisions
 
         new_record[self.DATE_CREATED_FIELD] = record_creation_date
