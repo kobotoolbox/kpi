@@ -10781,7 +10781,7 @@ components:
           items:
             type: string
         role:
-          type: string
+          $ref: '#/components/schemas/InviteeRoleEnum'
       required:
       - invitees
       - role
@@ -10799,7 +10799,7 @@ components:
         status:
           $ref: '#/components/schemas/InviteStatusChoicesEnum'
         invitee_role:
-          type: string
+          $ref: '#/components/schemas/InviteeRoleEnum'
         created:
           type: string
           format: date-time
@@ -10820,22 +10820,26 @@ components:
       enum:
       - accepted
       - cancelled
-      - complete
       - declined
       - expired
-      - failed
-      - in_progress
       - pending
+      - resent
       type: string
       description: |-
         * `accepted` - Accepted
         * `cancelled` - Cancelled
-        * `complete` - Complete
         * `declined` - Declined
         * `expired` - Expired
-        * `failed` - Failed
-        * `in_progress` - In Progress
         * `pending` - Pending
+        * `resent` - Resent
+    InviteeRoleEnum:
+      enum:
+      - admin
+      - member
+      type: string
+      description: |-
+        * `admin` - admin
+        * `member` - member
     Language:
       type: object
       properties:
@@ -11112,22 +11116,18 @@ components:
               enum:
               - accepted
               - cancelled
-              - complete
               - declined
               - expired
-              - failed
-              - in_progress
               - pending
+              - resent
               type: string
               description: |-
                 * `accepted` - Accepted
                 * `cancelled` - Cancelled
-                * `complete` - Complete
                 * `declined` - Declined
                 * `expired` - Expired
-                * `failed` - Failed
-                * `in_progress` - In Progress
                 * `pending` - Pending
+                * `resent` - Resent
             invitee_role:
               enum:
               - admin
@@ -11177,14 +11177,6 @@ components:
         * `admin` - admin
         * `member` - member
         * `owner` - owner
-    MemberPatchRequestRoleEnum:
-      enum:
-      - admin
-      - member
-      type: string
-      description: |-
-        * `admin` - admin
-        * `member` - member
     OpenRosaXFormResponse:
       type: object
       properties:
@@ -12586,7 +12578,7 @@ components:
       type: object
       properties:
         role:
-          $ref: '#/components/schemas/MemberPatchRequestRoleEnum'
+          $ref: '#/components/schemas/InviteeRoleEnum'
     PatchedOrganizationPatchPayload:
       type: object
       properties:

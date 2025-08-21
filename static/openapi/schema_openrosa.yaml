@@ -10,16 +10,9 @@ paths:
       description: |
         ## Implement part of the OpenRosa Form List API
 
-        These endpoints are used for adding submissions, depending on the authenticated status of the user.
-
-        Adding a submission as an anonymous user:
-        `/{username}/formList`
-
-        Adding a submission as an authenticated user:
-        `/formList`
-
-
         ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+
+        This endpoint is used for adding submissions as anonymous user.
       parameters:
       - in: path
         name: username
@@ -42,50 +35,13 @@ paths:
   /{username}/submission:
     post:
       operationId: submission_anonymous
-      description: |-
-        Implements OpenRosa Api [FormSubmissionAPI](        https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI)
+      description: |+
+        ## Implement the OpenRosa Form Submission API
 
-        ## Submit an XML XForm submission
+        ⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
-        <pre class="prettyprint">
-        <b>POST</b> /api/v1/submissions</pre>
-        > Example
-        >
-        >       curl -X POST -F xml_submission_file=@/path/to/submission.xml     https://example.com/api/v1/submissions
+        This endpoint is used for adding submissions as an anonymous user.
 
-        ## Submit an JSON XForm submission
-
-        <pre class="prettyprint">
-        <b>POST</b> /api/v1/submissions</pre>
-        > Example
-        >
-        >       curl -X POST -d '{"id": "[form ID]", "submission": [the JSON]}     http://localhost:8000/api/v1/submissions -u user:pass -H "Content-Type:     application/json"
-
-        Here is some example JSON, it would replace `[the JSON]` above:
-        >       {
-        >           "transport": {
-        >               "available_transportation_types_to_referral_facility":     ["ambulance", "bicycle"],
-        >               "loop_over_transport_types_frequency": {
-        >                   "ambulance": {
-        >                       "frequency_to_referral_facility": "daily"
-        >                   },
-        >                   "bicycle": {
-        >                       "frequency_to_referral_facility": "weekly"
-        >                   },
-        >                   "boat_canoe": null,
-        >                   "bus": null,
-        >                   "donkey_mule_cart": null,
-        >                   "keke_pepe": null,
-        >                   "lorry": null,
-        >                   "motorbike": null,
-        >                   "taxi": null,
-        >                   "other": null
-        >               }
-        >           }
-        >           "meta": {
-        >               "instanceID": "uuid:f3d8dc65-91a6-4d0f-9e97-802128083390"
-        >           }
-        >       }
       parameters:
       - in: query
         name: format
@@ -102,16 +58,68 @@ paths:
         required: true
       tags:
       - OpenRosa Form Submission
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OpenRosaPayload'
+        required: true
       security:
       - BasicAuth: []
       - TokenAuth: []
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaResponse'
+          description: null
+        '401':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '404':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
   /{username}/xformsManifest/{id}:
     get:
       operationId: manifest_anonymous
+      description: |
+        ## Implement part of the OpenRosa Manifest API
+
+        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+
+        This endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.
+        This endpoints will also open the form in **creation** mode and is used as an anonymous user.
       parameters:
       - in: path
         name: id
@@ -133,9 +141,20 @@ paths:
       responses:
         '200':
           content:
-            text/xml:
+            application/xml:
               schema:
-                $ref: '#/components/schemas/XFormList'
+                $ref: '#/components/schemas/OpenRosaFormManifestResponse'
+          description: null
+        '404':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
           description: ''
   /formList:
     get:
@@ -143,16 +162,9 @@ paths:
       description: |
         ## Implement part of the OpenRosa Form List API
 
-        These endpoints are used for adding submissions, depending on the authenticated status of the user.
-
-        Adding a submission as an anonymous user:
-        `/{username}/formList`
-
-        Adding a submission as an authenticated user:
-        `/formList`
-
-
         ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+
+        This endpoint is used for adding submissions as authenticated user.
       tags:
       - OpenRosa Form List
       security:
@@ -168,50 +180,13 @@ paths:
   /submission:
     post:
       operationId: submission_authenticated
-      description: |-
-        Implements OpenRosa Api [FormSubmissionAPI](        https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI)
+      description: |+
+        ## Implement the OpenRosa Form Submission API
 
-        ## Submit an XML XForm submission
+        ⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
-        <pre class="prettyprint">
-        <b>POST</b> /api/v1/submissions</pre>
-        > Example
-        >
-        >       curl -X POST -F xml_submission_file=@/path/to/submission.xml     https://example.com/api/v1/submissions
+        This endpoint is used for adding submissions as an authenticated user.
 
-        ## Submit an JSON XForm submission
-
-        <pre class="prettyprint">
-        <b>POST</b> /api/v1/submissions</pre>
-        > Example
-        >
-        >       curl -X POST -d '{"id": "[form ID]", "submission": [the JSON]}     http://localhost:8000/api/v1/submissions -u user:pass -H "Content-Type:     application/json"
-
-        Here is some example JSON, it would replace `[the JSON]` above:
-        >       {
-        >           "transport": {
-        >               "available_transportation_types_to_referral_facility":     ["ambulance", "bicycle"],
-        >               "loop_over_transport_types_frequency": {
-        >                   "ambulance": {
-        >                       "frequency_to_referral_facility": "daily"
-        >                   },
-        >                   "bicycle": {
-        >                       "frequency_to_referral_facility": "weekly"
-        >                   },
-        >                   "boat_canoe": null,
-        >                   "bus": null,
-        >                   "donkey_mule_cart": null,
-        >                   "keke_pepe": null,
-        >                   "lorry": null,
-        >                   "motorbike": null,
-        >                   "taxi": null,
-        >                   "other": null
-        >               }
-        >           }
-        >           "meta": {
-        >               "instanceID": "uuid:f3d8dc65-91a6-4d0f-9e97-802128083390"
-        >           }
-        >       }
       parameters:
       - in: query
         name: format
@@ -222,16 +197,68 @@ paths:
           - xml
       tags:
       - OpenRosa Form Submission
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OpenRosaPayload'
+        required: true
       security:
       - BasicAuth: []
       - TokenAuth: []
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaResponse'
+          description: null
+        '401':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '404':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
   /xformsManifest/{id}:
     get:
       operationId: manifest_authenticated
+      description: |
+        ## Implement part of the OpenRosa Manifest API
+
+        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+
+        This endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.
+        This endpoints will also open the form in **creation** mode and is used as an authenticated user.
       parameters:
       - in: path
         name: id
@@ -247,12 +274,84 @@ paths:
       responses:
         '200':
           content:
-            text/xml:
+            application/xml:
               schema:
-                $ref: '#/components/schemas/XFormList'
+                $ref: '#/components/schemas/OpenRosaFormManifestResponse'
+          description: null
+        '404':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
           description: ''
 components:
   schemas:
+    ErrorDetail:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
+    ErrorObject:
+      type: object
+      properties:
+        detail: {}
+      required:
+      - detail
+    OpenRosaFormManifestResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          filename:
+            type: string
+          hash:
+            type: string
+          downloadUrl:
+            type: string
+            format: uri
+            example: https://kf.kobotoolbox.org/xformsMedia/123/456.jpg
+        xml:
+          name: xform
+      xml:
+        name: xforms
+        wrapped: true
+    OpenRosaPayload:
+      type: object
+      properties:
+        xml_submission_file:
+          type: string
+      required:
+      - xml_submission_file
+    OpenRosaResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        submissionMetadata:
+          type: object
+          properties:
+            id:
+              type: string
+            instanceID:
+              type: string
+            submissionDate:
+              type: string
+              format: date-time
+            markedAsCompleteDate:
+              type: string
+              format: date-time
+            isComplete:
+              type: boolean
+      required:
+      - message
+      - submissionMetadata
     XFormList:
       type: array
       items:
