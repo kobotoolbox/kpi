@@ -26,6 +26,9 @@ from kobo.apps.openrosa.libs.serializers.xform_serializer import (
     XFormListSerializer,
     XFormManifestSerializer,
 )
+from kobo.apps.openrosa.schema_extensions.v2.manifest.serializers import (
+    OpenRosaFormManifestResponse,
+)
 from kpi.authentication import DigestAuthentication
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.models.object_permission import ObjectPermission
@@ -238,19 +241,53 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             xform.xml_with_disclaimer, headers=self.get_openrosa_headers()
         )
 
-    @extend_schema(tags=['OpenRosa Form Manifest'], operation_id='manifest_anonymous')
+    @extend_schema(
+        description=read_md('openrosa', 'manifest/anonymous.md'),
+        responses=open_api_200_ok_response(
+            OpenRosaFormManifestResponse,
+            media_type='application/xml',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+            error_media_type='application/xml',
+        ),
+        tags=['OpenRosa Form Manifest'],
+        operation_id='manifest_anonymous',
+    )
     @action(detail=False, methods=['GET'])
     def manifest_anonymous(self, request, *args, **kwargs):
         return self.manifest(request, *args, **kwargs)
 
     @extend_schema(
-        tags=['OpenRosa Form Manifest'], operation_id='manifest_authenticated'
+        description=read_md('openrosa', 'manifest/authenticated.md'),
+        responses=open_api_200_ok_response(
+            OpenRosaFormManifestResponse,
+            media_type='application/xml',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+            error_media_type='application/xml',
+        ),
+        tags=['OpenRosa Form Manifest'],
+        operation_id='manifest_authenticated',
     )
     @action(detail=False, methods=['GET'])
     def manifest_authenticated(self, request, *args, **kwargs):
         return self.manifest(request, *args, **kwargs)
 
+    @action(detail=True, methods=['GET'])
     def manifest(self, request, *args, **kwargs):
+        """
+
+        ViewSet for managing enketo form list
+
+        Available actions:
+        - xform_manifest (anonymous)         → GET /{username}/xformManifest/{id}
+        - xform_manifest (authenticated)     → GET /xformManifest/{id}
+
+        Documentation:
+        - docs/api/v2/manifest/list.md
+        """
         xform = self.get_object()
         media_files = {}
         expired_objects = False
