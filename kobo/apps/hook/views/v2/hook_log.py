@@ -92,7 +92,6 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     pagination_class = TinyPaginated
     filter_backends = (DjangoFilterBackend,)
     filterset_class = HookLogFilter
-    renderer_classes = [JSONRenderer]
 
     def get_queryset(self):
         hook_uid = self.get_parents_query_dict().get('hook')

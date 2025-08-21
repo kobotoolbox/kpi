@@ -26,9 +26,6 @@ class AuthorizedApplicationUserViewSet(
     serializer_class = CreateUserSerializer
     lookup_field = 'username'
     versioning_class = APIV2Versioning
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     @action(detail=False, methods=['POST'])
     def authenticate_user(self, request):

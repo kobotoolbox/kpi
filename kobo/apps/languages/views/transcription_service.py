@@ -55,6 +55,3 @@ class TranscriptionServiceViewSet(BaseViewSet):
 
     serializer_class = TranscriptionServiceSerializer
     queryset = TranscriptionService.objects.all()
-    renderer_classes = [
-        JSONRenderer,
-    ]

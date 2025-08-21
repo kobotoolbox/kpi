@@ -63,9 +63,6 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     serializer_class = CurrentUserSerializer
     permission_classes = [permissions.IsAuthenticated]
     versioning_class = APIV2Versioning
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     def get_object(self):
         return self.request.user

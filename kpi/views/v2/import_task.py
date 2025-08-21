@@ -78,9 +78,6 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ImportTask.objects.all()
     serializer_class = ImportTaskSerializer
     lookup_field = 'uid'
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     def get_serializer_class(self):
         if self.action == 'list':

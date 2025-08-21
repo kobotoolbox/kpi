@@ -136,9 +136,6 @@ class ProjectViewViewSet(
     min_search_characters = 2
     ordering_fields = AssetOrderingFilter.DEFAULT_ORDERING_FIELDS
     queryset = ProjectView.objects.all()
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     def get_queryset(self, *args, **kwargs):
         user = get_database_user(self.request.user)

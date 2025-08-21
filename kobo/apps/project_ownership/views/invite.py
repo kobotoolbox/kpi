@@ -104,9 +104,6 @@ class InviteViewSet(AuditLoggedModelViewSet):
     filter_backends = (InviteFilter, )
     log_type = 'project-history'
     logged_fields = ['recipient.username', 'status', 'transfers']
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     def get_queryset(self):
 

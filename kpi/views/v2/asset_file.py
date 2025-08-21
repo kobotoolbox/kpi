@@ -169,9 +169,6 @@ class AssetFileViewSet(
         ('object_id', 'asset.id'),
         'asset.owner.username',
     ]
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     def get_queryset(self):
         _queryset = self.model.objects.filter(asset__uid=self.asset_uid)

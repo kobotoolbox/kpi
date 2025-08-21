@@ -42,9 +42,6 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = TagSerializer
     lookup_field = 'taguid__uid'
     filter_backends = (SearchFilter,)
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     """
     Viewset for managing the current user's tags

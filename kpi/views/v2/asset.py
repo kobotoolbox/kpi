@@ -384,7 +384,6 @@ class AssetViewSet(
         SearchFilter,
         AssetOrderingFilter,
     ]
-    renderer_classes = [JSONRenderer]
     # Terms that can be used to search and filter return values
     # from a query `q`
     search_default_field_lookups = [

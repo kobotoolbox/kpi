@@ -54,7 +54,6 @@ class AssetCountsViewSet(
     """
     parent_model = Asset
     permission_classes = [ViewSubmissionPermission]
-    renderer_classes = [JSONRenderer]
 
     def list(self, request, *args, **kwargs):
         if not self.asset.has_deployment:

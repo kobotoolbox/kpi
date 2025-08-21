@@ -53,9 +53,6 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     model = Permission
     lookup_field = 'codename'
     serializer_class = PermissionSerializer
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset(*args, **kwargs)

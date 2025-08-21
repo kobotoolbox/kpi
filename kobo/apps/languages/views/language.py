@@ -48,9 +48,6 @@ class LanguageViewSet(BaseViewSet):
 
     serializer_class = LanguageListSerializer
     min_search_characters = 2
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     def get_queryset(self):
         if self.action == 'list':

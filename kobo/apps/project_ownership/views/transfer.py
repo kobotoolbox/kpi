@@ -56,9 +56,6 @@ class TransferViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'uid'
     permission_classes = (IsAuthenticated,)
     serializer_class = TransferDetailSerializer
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     def get_queryset(self):
 

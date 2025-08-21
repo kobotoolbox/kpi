@@ -78,7 +78,6 @@ class AttachmentDeleteViewSet(
     # FIXME: Future refactoring is needed for permissions in openrosa_backend.py to
     # avoid checking validating partial permissions in both the permission class
     # here and in the backend
-    renderer_classes = [JSONRenderer]
     permission_classes = [AttachmentDeletionPermission]
     http_method_names = ['delete']
 

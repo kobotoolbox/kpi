@@ -54,6 +54,3 @@ class TranslationServiceViewSet(BaseViewSet):
 
     serializer_class = TranslationServiceSerializer
     queryset = TranslationService.objects.all()
-    renderer_classes = [
-        JSONRenderer,
-    ]

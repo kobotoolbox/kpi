@@ -74,8 +74,6 @@ class UserAssetSubscriptionViewSet(viewsets.ModelViewSet):
     serializer_class = UserAssetSubscriptionSerializer
     lookup_field = 'uid'
 
-    renderer_classes = [JSONRenderer]
-
     def get_queryset(self):
         user = get_database_user(self.request.user)
         criteria = {'user': user}

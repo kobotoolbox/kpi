@@ -80,9 +80,6 @@ class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
     model = AssetVersion
     lookup_field = 'uid'
     permission_classes = (AssetVersionReadOnlyPermission,)
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     def get_serializer_class(self):
         if self.action == 'list':

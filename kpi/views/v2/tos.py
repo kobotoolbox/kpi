@@ -55,6 +55,3 @@ class TermsOfServiceViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = TermsOfServiceSerializer
     pagination_class = None
     permission_classes = (IsAuthenticated,)
-    renderer_classes = [
-        JSONRenderer,
-    ]
