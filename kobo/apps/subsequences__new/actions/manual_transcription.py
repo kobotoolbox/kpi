@@ -1,8 +1,14 @@
+import datetime
 import jsonschema
 from copy import deepcopy
 
 # from django.utils import timezone
-from datetime import datetime as timezone
+class FakeDjangoTimezoneUtil:
+    @staticmethod
+    def now():
+        from zoneinfo import ZoneInfo
+        return datetime.datetime.now(tz=ZoneInfo('UTC'))
+timezone = FakeDjangoTimezoneUtil()
 
 # from ..constants import TRANSCRIBABLE_SOURCE_TYPES
 # from ..actions.base import BaseAction
@@ -61,7 +67,7 @@ idea of example data in SubmissionExtras based on the above
                 }
             ],
         },
-        # WIP 'manual_translation': [{'language': 'fr'}, {'language': 'en'}],
+        'manual_translation': [{'language': 'fr'}, {'language': 'en'}],
     },
     'my_video_question': {
         'manual_transcription': {
@@ -82,14 +88,22 @@ idea of example data in SubmissionExtras based on the above
 """
 
 
-def utc_datetime_to_simplified_iso8601(dt):
+def utc_datetime_to_js_str(dt: datetime.datetime) -> str:
+    """
+    Return a string to represent a `datetime` following the simplification of
+    the ISO 8601 format used by JavaScript
+    """
     # https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date-time-string-format
-    if dt.utcoffset():  # or not dt.tzinfo:
+    if dt.utcoffset() or not dt.tzinfo:
         raise NotImplementedError('Only UTC datetimes are supported')
     return dt.isoformat().replace("+00:00", "Z")
 
 
 class BaseAction:
+    def something_to_get_the_data_back_out(self):
+        # might need to deal with multiple columns for one action
+        # ^ definitely will
+        raise NotImplementedError
 
     # is a leading underscore a good convention for marking things that must
     # not be set by the action result? alternatively, we could nest all the
@@ -382,7 +396,7 @@ class ManualTranscriptionAction(BaseAction):
         self.validate_data(edit)
         self.raise_for_any_leading_underscore_key(edit)
 
-        now_str = utc_datetime_to_simplified_iso8601(timezone.now())
+        now_str = utc_datetime_to_js_str(timezone.now())
         revision = deepcopy(submission_extra)
         new_record = deepcopy(edit)
         revisions = revision.pop(self.REVISIONS_FIELD, [])
