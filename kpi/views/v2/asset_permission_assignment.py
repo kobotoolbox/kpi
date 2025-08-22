@@ -7,7 +7,7 @@ from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
 )
-from rest_framework import exceptions, renderers, status
+from rest_framework import exceptions, status
 from rest_framework.decorators import action
 from rest_framework.mixins import (
     CreateModelMixin,
@@ -215,7 +215,6 @@ class AssetPermissionAssignmentViewSet(
     @action(
         detail=False,
         methods=['POST'],
-        renderer_classes=[renderers.JSONRenderer],
         url_path='bulk',
     )
     def bulk_assignments(self, request, *args, **kwargs):
@@ -240,7 +239,6 @@ class AssetPermissionAssignmentViewSet(
     @action(
         detail=False,
         methods=['PATCH'],
-        renderer_classes=[renderers.JSONRenderer],
     )
     def clone(self, request, *args, **kwargs):
         source_asset_uid = self.request.data[CLONE_ARG_NAME]

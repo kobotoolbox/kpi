@@ -9,7 +9,6 @@ from .fields import (
     TransferField,
 )
 
-
 ProjectInviteCreatePayload = inline_serializer_class(
     name='ProjectInviteCreatePayload',
     fields={

@@ -15,9 +15,9 @@ class KpiConfig(AppConfig):
             create_mfa_method_command,
             deactivate_mfa_method_command,
         )
+
         # Monkey-patch `django-trench` to avoid duplicating lots of code in views,
         # and serializers just for few line changes.
-
         # Changed behaviours:
         # 1. Stop blocking deactivation of primary method
         trench.command.deactivate_mfa_method.deactivate_mfa_method_command = (

@@ -16,6 +16,6 @@ class AuditLogAppConfig(AppConfig):
         # the type was unknown and will return to default (string)) and seen as string
         # in the UI.
         from .schema_extensions.v2.access_logs import extensions  # noqa F401
-        from .schema_extensions.v2.history import extensions  # noqa F401
         from .schema_extensions.v2.audit_logs import extensions  # noqa F401
+        from .schema_extensions.v2.history import extensions  # noqa F401
         super().ready()

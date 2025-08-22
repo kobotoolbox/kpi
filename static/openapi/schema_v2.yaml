@@ -1687,6 +1687,14 @@ paths:
         ## Duplicate submission
         Duplicates the data of a submission
       parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - geojson
+          - json
+          - xml
       - in: path
         name: id
         schema:
@@ -1716,6 +1724,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DataResponse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/DataResponse'
           description: null
         '404':
           content:
@@ -1742,6 +1753,14 @@ paths:
 
         `/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.
       parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - geojson
+          - json
+          - xml
       - in: path
         name: id
         schema:
@@ -1763,6 +1782,9 @@ paths:
         '200':
           content:
             application/json:
+              schema:
+                $ref: '#/components/schemas/EnketoEditResponse'
+            application/xml:
               schema:
                 $ref: '#/components/schemas/EnketoEditResponse'
           description: null
@@ -1802,6 +1824,14 @@ paths:
 
         `/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.
       parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - geojson
+          - json
+          - xml
       - in: path
         name: id
         schema:
@@ -1823,6 +1853,9 @@ paths:
         '200':
           content:
             application/json:
+              schema:
+                $ref: '#/components/schemas/EnketoEditResponse'
+            application/xml:
               schema:
                 $ref: '#/components/schemas/EnketoEditResponse'
           description: null
@@ -1920,6 +1953,14 @@ paths:
 
         `/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/view/`: redirect to the enketo url submission with a 302 code.
       parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - geojson
+          - json
+          - xml
       - in: path
         name: id
         schema:
@@ -1941,6 +1982,9 @@ paths:
         '200':
           content:
             application/json:
+              schema:
+                $ref: '#/components/schemas/EnketoViewResponse'
+            application/xml:
               schema:
                 $ref: '#/components/schemas/EnketoViewResponse'
           description: null
@@ -1978,6 +2022,14 @@ paths:
 
         `/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/view/`: redirect to the enketo url submission with a 302 code.
       parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - geojson
+          - json
+          - xml
       - in: path
         name: id
         schema:
@@ -1999,6 +2051,9 @@ paths:
         '200':
           content:
             application/json:
+              schema:
+                $ref: '#/components/schemas/EnketoViewResponse'
+            application/xml:
               schema:
                 $ref: '#/components/schemas/EnketoViewResponse'
           description: null
@@ -2031,6 +2086,14 @@ paths:
         ## Get validation statuses
         Retrieves the validation status of a submission.
       parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - geojson
+          - json
+          - xml
       - in: path
         name: id
         schema:
@@ -2052,6 +2115,9 @@ paths:
         '200':
           content:
             application/json:
+              schema:
+                $ref: '#/components/schemas/DataValidationStatusUpdateResponse'
+            application/xml:
               schema:
                 $ref: '#/components/schemas/DataValidationStatusUpdateResponse'
           description: null
@@ -2077,6 +2143,14 @@ paths:
         - `validation_status_not_approved`
         - `validation_status_on_hold`
       parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - geojson
+          - json
+          - xml
       - in: path
         name: id
         schema:
@@ -2105,6 +2179,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DataValidationStatusUpdateResponse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/DataValidationStatusUpdateResponse'
           description: null
         '404':
           content:
@@ -2122,6 +2199,14 @@ paths:
       description: |
         ## Delete validation status
       parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - geojson
+          - json
+          - xml
       - in: path
         name: id
         schema:
@@ -2173,6 +2258,14 @@ paths:
 
         *"group_1/sub_group_1/.../sub_group_n/question_1": "new value"*
       parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - geojson
+          - json
+          - xml
       - in: path
         name: parent_lookup_asset
         schema:
@@ -2193,6 +2286,9 @@ paths:
         '200':
           content:
             application/json:
+              schema:
+                $ref: '#/components/schemas/DataBulkUpdateResponse'
+            application/xml:
               schema:
                 $ref: '#/components/schemas/DataBulkUpdateResponse'
           description: null
@@ -2240,6 +2336,14 @@ paths:
 
         ### !! Due to limitations with DRF-Spectacular current version not fully supporting AOS 3.1, DELETE actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint. !!
       parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - geojson
+          - json
+          - xml
       - in: path
         name: parent_lookup_asset
         schema:
@@ -2285,6 +2389,14 @@ paths:
         >           "detail": "{number_of_submissions} submissions have been updated"
         >        }
       parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - geojson
+          - json
+          - xml
       - in: path
         name: parent_lookup_asset
         schema:
@@ -2305,6 +2417,9 @@ paths:
         '200':
           content:
             application/json:
+              schema:
+                $ref: '#/components/schemas/DataStatusesUpdate'
+            application/xml:
               schema:
                 $ref: '#/components/schemas/DataStatusesUpdate'
           description: null
@@ -2357,6 +2472,14 @@ paths:
 
         ### !! Due to limitations with DRF-Spectacular current version not fully supporting AOS 3.1, DELETE actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint. !!
       parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - geojson
+          - json
+          - xml
       - in: path
         name: parent_lookup_asset
         schema:

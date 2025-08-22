@@ -1,8 +1,5 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
-from drf_spectacular.plumbing import (
-    build_array_type,
-    build_object_type,
-)
+from drf_spectacular.plumbing import build_array_type, build_object_type
 
 from kpi.schema_extensions.v2.generic.schema import (
     ASSET_URL_SCHEMA,
@@ -40,5 +37,5 @@ class TransferUrlFieldExtension(OpenApiSerializerFieldExtension):
         return build_url_type(
             'api_v2:project-ownership-transfer-detail',
             parent_lookup_invite_uid='poi52fGkwDjQeZkUxcaou39q',
-            uid='pot54pTqM5qwKdZ4wnNdiwDY'
+            uid='pot54pTqM5qwKdZ4wnNdiwDY',
         )
