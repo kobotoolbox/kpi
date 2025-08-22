@@ -38,7 +38,7 @@ urlpatterns = [
         name='authenticate_user',
     ),
     path(
-        'api/v2/authorized-application/authenticate_user/',
+        'api/v2/authorized_application/authenticate_user/',
         AuthorizedApplicationUserViewSet.as_view({'post': 'authenticate_user'}),
         name='authorized-application-authenticate-user',
     ),

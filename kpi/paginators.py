@@ -136,7 +136,7 @@ class DataPagination(LimitOffsetPagination):
     max_limit = settings.SUBMISSION_LIST_LIMIT
 
 
-class FastAssetPagination(Paginated):
+class FastPagination(Paginated):
     """
     Pagination class optimized for faster counting for DISTINCT queries on large tables.
 

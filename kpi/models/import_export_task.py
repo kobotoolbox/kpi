@@ -21,7 +21,6 @@ from django.db import models, transaction
 from django.db.models import CharField, F, Value
 from django.db.models.functions import Concat
 from django.db.models.query import QuerySet
-from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as t
 from formpack.constants import KOBO_LOCK_SHEET
@@ -38,6 +37,7 @@ from openpyxl.utils.exceptions import InvalidFileException
 from private_storage.fields import PrivateFileField
 from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
 from rest_framework import exceptions
+from rest_framework.reverse import reverse
 from werkzeug.http import parse_options_header
 
 from kobo.apps.reports.report_data import build_formpack
@@ -52,7 +52,7 @@ from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.exceptions import XlsFormatException
+from kpi.exceptions import ConcurrentExportException, XlsFormatException
 from kpi.fields import KpiUidField
 from kpi.models import Asset
 from kpi.utils.data_exports import (
@@ -120,18 +120,25 @@ class ImportExportTask(models.Model):
         asynchronous task runner (Celery)
         """
         with transaction.atomic():
-            # FIXME: use `select_for_update`
-            _refetched_self = self._meta.model.objects.get(pk=self.pk)
+            _refetched_self = self._meta.model.objects.select_for_update().get(
+                pk=self.pk
+            )
             self.status = _refetched_self.status
             del _refetched_self
-            if self.status == ImportExportStatusChoices.COMPLETE:
-                return
-            elif self.status != ImportExportStatusChoices.CREATED:
-                # possibly a concurrent task?
-                raise Exception(
+            if self.status == ImportExportStatusChoices.PROCESSING:
+                raise ConcurrentExportException(
                     'only recently created {}s can be executed'.format(
                         self._meta.model_name)
                 )
+            elif self.status in (ImportExportStatusChoices.COMPLETE, ImportExportStatusChoices.ERROR):
+                # There is no action to take. To retry an `ERROR`ed export, the
+                # status must first be reset to `CREATED`
+                return
+            elif self.status != ImportExportStatusChoices.CREATED:
+                # Sanity check in case someone adds a new export status without
+                # updating this code
+                raise NotImplementedError
+
             self.status = ImportExportStatusChoices.PROCESSING
             self.save(update_fields=['status'])
 
@@ -922,7 +929,6 @@ class SubmissionExportTaskBase(ImportExportTask):
         `PrivateFileField`. Should be called by the `run()` method of the
         superclass. The `submission_stream` method is provided for testing
         """
-        source_url = self.data.get('source', False)
         flatten = self.data.get('flatten', True)
         export_type = self.data.get('type', '').lower()
         if export_type == 'xlsx':
@@ -1153,42 +1159,42 @@ class SubmissionSynchronousExport(SubmissionExportTaskBase):
         unique_together = (('user', 'asset_export_settings', 'format_type'),)
 
     @classmethod
-    def generate_or_return_existing(cls, user, asset_export_settings):
+    def generate_or_return_existing(cls, user, asset_export_settings, request=None):
         age_cutoff = utcnow() - datetime.timedelta(
             seconds=constance.config.SYNCHRONOUS_EXPORT_CACHE_MAX_AGE
         )
         format_type = asset_export_settings.export_settings['type']
         data = asset_export_settings.export_settings.copy()
-        data['source'] = reverse(
-            'asset-detail', args=[asset_export_settings.asset.uid]
+        asset_url = reverse(
+            'asset-detail', args=[asset_export_settings.asset.uid], request=request
         )
+        # Keep only the relative URL, do not hardcode the domain name
+        data['source'] = asset_url.replace(settings.KOBOFORM_URL, '')
         criteria = {
             'user': user,
             'asset_export_settings': asset_export_settings,
             'format_type': format_type,
         }
 
-        # An object (a row) must be created (inserted) before it can be locked
-        cls.objects.get_or_create(**criteria, defaults={'data': data})
+        export, _ = cls.objects.get_or_create(**criteria, defaults={'data': data})
+        if export.date_created < age_cutoff:
+            # The existing export is too old; reset its state so it can be
+            # reborn
+            with transaction.atomic():
+                export = cls.objects.select_for_update().get(**criteria)
+                export.data = data
+                export.status = ImportExportStatusChoices.CREATED
+                export.date_created = utcnow()
+                export.result.delete(save=False)
+                export.save()
+            try:
+                export.run()
+            except ConcurrentExportException:
+                # It's the caller's responsibility to interpret the `PENDING`
+                # status of the export appropriately
+                pass
 
-        with transaction.atomic():
-            # Lock the object (and block until a lock can be obtained) to
-            # prevent the same export from running concurrently
-            export = cls.objects.select_for_update().get(**criteria)
-
-            if (
-                export.status == ImportExportStatusChoices.COMPLETE
-                and export.date_created >= age_cutoff
-            ):
-                return export
-
-            export.data = data
-            export.status = ImportExportStatusChoices.CREATED
-            export.date_created = utcnow()
-            export.result.delete(save=False)
-            export.save()
-            export.run()
-            return export
+        return export
 
 
 def _get_xls_format(decoded_str):

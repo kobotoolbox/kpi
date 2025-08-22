@@ -1,9 +1,8 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { fetchGet, fetchPost } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import type { FailResponse, LabelValuePair, PaginatedResponse } from '#/dataInterface'
 import { QueryKeys } from '#/query/queryKeys'
-import type { PaginatedQueryHookParams } from '#/universalTable/paginatedQueryUniversalTable.component'
 import { AUDIT_ACTION_TYPES, HIDDEN_AUDIT_ACTIONS } from './activity.constants'
 import type { ActivityLogsItem, AssetHistoryActionsResponse } from './activity.constants'
 
@@ -12,7 +11,7 @@ import type { ActivityLogsItem, AssetHistoryActionsResponse } from './activity.c
  * @param limit Pagination parameter: number of items per page
  * @param offset Pagination parameter: offset of the page
  */
-const getActivityLogs = async ({
+export const getActivityLogs = async ({
   assetUid,
   actionFilter,
   limit,
@@ -38,9 +37,12 @@ const getActivityLogs = async ({
 
   const endpointUrl = endpoints.ASSET_HISTORY.replace(':asset_uid', assetUid)
 
-  return await fetchGet<PaginatedResponse<ActivityLogsItem>>(`${endpointUrl}?${params}`, {
-    errorMessageDisplay: t('There was an error getting activity logs.'),
-  })
+  return {
+    status: 200 as const,
+    data: await fetchGet<PaginatedResponse<ActivityLogsItem>>(`${endpointUrl}?${params}`, {
+      errorMessageDisplay: t('There was an error getting activity logs.'),
+    }),
+  }
 }
 
 /**
@@ -85,25 +87,6 @@ export const startActivityLogsExport = (assetUid: string) =>
       throw failResponse
     },
   )
-
-/**
- * This is a hook that fetches activity logs from the server.
- *
- * @param itemLimit Pagination parameter: number of items per page
- * @param pageOffset Pagination parameter: offset of the page
- */
-export const useActivityLogsQuery = ({ limit, offset, assetUid, actionFilter }: PaginatedQueryHookParams) =>
-  useQuery({
-    queryKey: [QueryKeys.activityLogs, assetUid, actionFilter, limit, offset],
-    queryFn: () =>
-      getActivityLogs({
-        assetUid: assetUid as string,
-        actionFilter: actionFilter as string,
-        limit,
-        offset,
-      }),
-    placeholderData: keepPreviousData,
-  })
 
 /**
  * This is a hook to fetch the filter options for the activity logs.

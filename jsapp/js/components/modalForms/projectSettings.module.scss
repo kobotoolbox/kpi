@@ -14,7 +14,8 @@
   margin-bottom: 30px;
 }
 
-.projectDetails {
+// `.modal` has it's own padding, we don't need it
+.projectDetails:not(.modal) {
   padding: 40px;
 }
 
