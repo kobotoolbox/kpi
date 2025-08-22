@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 from django.db.models import Q
 from django.shortcuts import Http404
 from jsonschema import validate
@@ -14,7 +12,7 @@ from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.subsequences.models import SubmissionExtras
 from kobo.apps.subsequences.utils.deprecation import get_sanitized_dict_keys
 from kpi.models import Asset
-from kpi.permissions import SubmissionPermission
+from kpi.permissions import AdvancedSubmissionPermission
 from kpi.views.environment import check_asr_mt_access_for_user
 
 
@@ -52,15 +50,6 @@ def _check_asr_mt_access_if_applicable(user, posted_data):
                     # abuse the API, so don't bother translators with the
                     # message string
                     raise PermissionDenied('ASR/MT features are not available')
-
-
-class AdvancedSubmissionPermission(SubmissionPermission):
-    """
-    Regular `SubmissionPermission` maps POST to `add_submissions`, but
-    `change_submissions` should be required here
-    """
-    perms_map = deepcopy(SubmissionPermission.perms_map)
-    perms_map['POST'] = ['%(app_label)s.change_%(model_name)s']
 
 
 class AdvancedSubmissionView(AuditLoggedApiView):
