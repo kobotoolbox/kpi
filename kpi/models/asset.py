@@ -18,7 +18,6 @@ from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
-from kobo.apps.subsequences__new.actions import ADVANCED_FEATURES_PARAMS_SCHEMA
 from kobo.apps.subsequences.utils import (
     advanced_feature_instances,
     advanced_submission_jsonschema,
@@ -30,6 +29,7 @@ from kobo.apps.subsequences.utils.deprecation import (
     qpath_to_xpath,
 )
 from kobo.apps.subsequences.utils.parse_known_cols import parse_known_cols
+from kobo.apps.subsequences__new.schemas import ACTION_PARAMS_SCHEMA
 from kpi.constants import (
     ASSET_TYPE_BLOCK,
     ASSET_TYPE_COLLECTION,
@@ -1304,7 +1304,7 @@ class Asset(
 
         jsonschema.validate(
             instance=self.advanced_features,
-            schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
+            schema=ACTION_PARAMS_SCHEMA,
         )
 
     @property

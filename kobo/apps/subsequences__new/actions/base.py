@@ -278,10 +278,13 @@ class BaseAction:
         """
         return action_data
 
-    def revise_field(
+    def revise_field(self, *args, **kwargs):
+        # TODO: remove this alias
+        return self.revise_data(*args, **kwargs)
+
+    def revise_data(
         self, submission: dict, submission_supplement: dict, edit: dict
     ) -> dict:
-        # maybe rename to revise_data?
         """
         for actions that may have lengthy data, are we content to store the
         entirety of the data for each revision, or do we need some kind of
@@ -305,6 +308,8 @@ class BaseAction:
             new_record[self.REVISIONS_FIELD] = revisions
 
         new_record[self.DATE_CREATED_FIELD] = record_creation_date
+
+        self.validate_result(new_record)
 
         return new_record
 
@@ -344,5 +349,3 @@ class BaseAction:
         # from kobo.apps.organizations.constants import UsageType
         # return UsageType.ASR_SECONDS
         raise NotImplementedError()
-
-
