@@ -1,4 +1,5 @@
 from django.urls import path
+from rest_framework.renderers import JSONRenderer
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
 from kobo.apps.audit_log.urls import router as audit_log_router
@@ -36,7 +37,7 @@ from kpi.views.v2.user import UserViewSet
 from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
 
 
-class ExtendedDefaultRouterWithPathAliases(ExtendedDefaultRouter):
+class OpenRosaCompatibleExtendedRouter(ExtendedDefaultRouter):
     """
     Historically, all of this application's endpoints have used trailing
     slashes (the DRF default). Requests missing their trailing slashes have
@@ -57,6 +58,11 @@ class ExtendedDefaultRouterWithPathAliases(ExtendedDefaultRouter):
             'assetsnapshot-manifest': 'asset_snapshots/<uid>/manifest',
             'assetsnapshot-submission': 'asset_snapshots/<uid>/submission',
         }
+
+        # Remove the original urls matching the names
+        original_urls = [url for url in urls if url.name not in names_to_alias_paths]
+
+        # Add only alias versions
         alias_urls = []
         for url in urls:
             if url.name in names_to_alias_paths:
@@ -64,15 +70,15 @@ class ExtendedDefaultRouterWithPathAliases(ExtendedDefaultRouter):
                 # only consider the first match
                 del names_to_alias_paths[url.name]
                 alias_urls.append(
-                    path(alias_paths, url.callback, name=f'{url.name}-alias')
+                    path(alias_paths, url.callback, name=f'{url.name}-openrosa')
                 )
-        urls.extend(alias_urls)
-        return urls
+        original_urls.extend(alias_urls)
+        return original_urls
 
 
 URL_NAMESPACE = 'api_v2'
 
-router_api_v2 = ExtendedDefaultRouterWithPathAliases()
+router_api_v2 = OpenRosaCompatibleExtendedRouter()
 asset_routes = router_api_v2.register(r'assets', AssetViewSet, basename='asset')
 
 asset_routes.register(r'counts',
@@ -197,3 +203,27 @@ router_api_v2.register(
     AuthorizedApplicationUserViewSet,
     basename='authorized_applications',
 )
+
+
+# Create aliases here instead of using complex regex patterns in the `url_path`
+# parameter of the @action decorator. DRF and drf-spectacular struggle to interpret
+# them correctly, often resulting in broken routes and schema generation errors.
+enketo_url_aliases = [
+    path(
+        'assets/<parent_lookup_asset>/data/<pk>/edit/',
+        DataViewSet.as_view({'get': 'enketo_edit'}, renderer_classes=[JSONRenderer]),
+        name='submission-enketo-edit-legacy',
+    ),
+    path(
+        'assets/<parent_lookup_asset>/data/<pk>/enketo/redirect/edit/',
+        DataViewSet.as_view({'get': 'enketo_edit'}, renderer_classes=[JSONRenderer]),
+        name='submission-enketo-edit-redirect',
+    ),
+    path(
+        'assets/<parent_lookup_asset>/data/<pk>/enketo/redirect/view/',
+        DataViewSet.as_view({'get': 'enketo_view'}, renderer_classes=[JSONRenderer]),
+        name='submission-enketo-view-redirect',
+    ),
+]
+
+urls_patterns = router_api_v2.urls + enketo_url_aliases

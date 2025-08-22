@@ -1,23 +1,45 @@
 from django.db import transaction
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.filters import SearchFilter
 from kpi.models.import_export_task import (
     AccessLogExportTask,
-    ImportExportTask,
+    ImportExportStatusChoices,
     ProjectHistoryLogExportTask,
 )
 from kpi.paginators import FastPagination, Paginated
 from kpi.permissions import IsAuthenticated
 from kpi.tasks import export_task_in_background
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_202_accepted_response,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditLog, ProjectHistoryLog
 from .permissions import SuperUserPermission, ViewProjectHistoryLogsPermission
+from .schema_extensions.v2.access_logs.serializers import (
+    AccessLogResponse,
+    ExportCreateResponse,
+    ExportListResponse,
+)
+from .schema_extensions.v2.audit_logs.serializers import (
+    AuditLogResponse,
+    ExportHistoryResponse,
+    ProjectHistoryLogResponse,
+)
+from .schema_extensions.v2.history.serializers import (
+    HistoryActionResponse,
+    HistoryExportResponse,
+    HistoryListResponse,
+)
 from .serializers import (
     AccessLogSerializer,
     AuditLogSerializer,
@@ -25,140 +47,33 @@ from .serializers import (
 )
 
 
+@extend_schema(
+    tags=['Audit Logs'],
+)
+@extend_schema_view(
+    list=extend_schema(
+        description=read_md('audit_log', 'audit_logs/list.md'),
+        parameters=[
+            OpenApiParameter(
+                name='q',
+                required=False,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+            ),
+        ],
+        responses=open_api_200_ok_response(
+            AuditLogResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
+    )
+)
 class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
-    """
-    Audit logs
-
-    Lists actions performed by users.
-    Only available for superusers.
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/audit-logs/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/api/v2/audit-logs/
-
-    > Response 200
-
-    >       {
-    >           "count": 2,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >               {
-    >                    "app_label": "foo",
-    >                    "model_name": "bar",
-    >                    "user": "http://kf.kobo.local/api/v2/users/kobo_user/",
-    >                    "user_uid": "u12345",
-    >                    "action": "delete",
-    >                    "date_created": "2024-10-01T00:01:00Z",
-    >                    "log_type": "asset-management",
-    >               },
-    >               {
-    >                    "app_label": "kobo_auth",
-    >                    "model_name": "user",
-    >                    "user": "http://kf.kobo.local/api/v2/users/another_user/",
-    >                    "user_uid": "u12345",
-    >                    "username": "another_user",
-    >                    "action": "auth",
-    >                    "metadata": {
-    >                        "source": "Firefox (Ubuntu)",
-    >                        "auth_type": "Digest",
-    >                        "ip_address": "1.2.3.4"
-    >                   },
-    >                    "date_created": "2024-10-01T00:00:00Z",
-    >                    "log_type": "access"
-    >                },
-    >           ]
-    >       }
-
-    Results from this endpoint can be filtered by a Boolean query specified in the
-    `q` parameter.
-
-    **Filterable fields:**
-
-    1. app_label
-
-    2. model_name
-
-    3. action
-
-        a. Available actions:
-
-        * create
-        * delete
-        * in-trash
-        * put-back
-        * remove
-        * update
-        * auth
-
-    4. log_type
-
-        a. Available log types:
-
-        * access
-        * project-history
-        * data-editing
-        * submission-management
-        * user-management
-        * asset-management
-
-    5. date_created
-
-    6. user_uid
-
-    7. user__*
-
-        a. user__username
-
-        b. user__email
-
-        c. user__is_superuser
-
-    8. metadata__*
-
-        a. metadata__asset_uid
-
-        b. metadata__auth_type
-
-        c. some logs may have additional filterable fields in the metadata
-
-    **Some examples:**
-
-    1. All deleted submissions<br>
-        `api/v2/audit-logs/?q=action:delete`
-
-    2. All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`<br>
-        `api/v2/audit-logs/?q=action:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`
-
-    3. All submissions deleted by a specific user `my_username`<br>
-        `api/v2/audit-logs/?q=action:delete AND user__username:my_username`
-
-    4. All deleted submissions submitted after a specific date<br>
-        `/api/v2/audit-logs/?q=action:delete AND date_created__gte:2022-11-15`
-
-    5. All deleted submissions submitted after a specific date **and time**<br>
-        `/api/v2/audit-logs/?q=action:delete AND date_created__gte:"2022-11-15 20:34"`
-
-    6. All authentications from superusers<br>
-        `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`
-
-    *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces
-    (e.g. date and time "2022-11-15 20:34")*
-
-    ### CURRENT ENDPOINT
-    """
+    """ """
 
     model = AuditLog
     serializer_class = AuditLogSerializer
     permission_classes = (SuperUserPermission,)
-    renderer_classes = (
-        BrowsableAPIRenderer,
-        JSONRenderer,
-    )
     queryset = (
         AuditLog.objects.select_related('user').all().order_by('-date_created')
     )
@@ -175,165 +90,50 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     pagination_class = FastPagination
 
 
+@extend_schema(
+    tags=['Access Logs'],
+    description=read_md('audit_log', 'access_logs/list'),
+    responses=open_api_200_ok_response(
+        AccessLogResponse,
+        require_auth=False,
+        validate_payload=False,
+        raise_not_found=False,
+    ),
+)
 class AllAccessLogViewSet(AuditLogViewSet):
     """
-    Access logs
+    ViewSet for managing all users' access logs. Only available to superusers.
 
-    Lists all access logs for all users. Only available to superusers.
+    Available actions:
+    - list       → GET /api/v2/access-logs/exports/
 
-    Submissions will be grouped together by user by hour
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/access-logs/
-
-    > Response 200
-
-    >       {
-    >           "count": 10,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >                {
-    >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "u12345",
-    >                    "username": "admin",
-    >                    "metadata": {
-    >                        "source": "Firefox (Ubuntu)",
-    >                        "auth_type": "digest",
-    >                        "ip_address": "172.18.0.6"
-    >                   },
-    >                    "date_created": "2024-08-19T16:48:58Z",
-    >                },
-    >                {
-    >                    "user": "http://localhost/api/v2/users/someuser/",
-    >                    "user_uid": "u5678",
-    >                    "username": "someuser",
-    >                    "metadata": {
-    >                        "auth_type": "submission-group",
-    >                    },
-    >                    "date_created": "2024-08-19T16:00:00Z"
-    >                },
-    >                ...
-    >           ]
-    >       }
-
-    Results from this endpoint can be filtered by a Boolean query
-    specified in the `q` parameter.
-
-    **Filterable fields:**
-
-    1. date_created
-
-    2. user_uid
-
-    3. user__*
-
-        a. user__username
-
-        b. user__email
-
-        c. user__is_superuser
-
-    4. metadata__*
-
-        a. metadata__auth_type
-
-            available auth types:
-
-            i. django-loginas
-
-            ii. token
-
-            iii. digest
-
-            iv. basic
-
-            v. submission-group
-
-            vi. kpi.backends.ModelBackend
-
-            vii. authorized-application
-
-            viii. oauth2
-
-            ix. unknown
-
-        b. metadata__source
-
-        c. metadata__ip_address
-
-        d. metadata__initial_user_uid
-
-        e. metadata__initial_user_username
-
-        f. metadata__authorized_app_name
-
-    This endpoint can be paginated with 'offset' and 'limit' parameters, eg
-    >      curl -X GET https://[kpi-url]/access-logs/?offset=100&limit=50
+    Documentation:
+    - docs/api/v2/access_logs/list.md
     """
-
     queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     serializer_class = AccessLogSerializer
     pagination_class = Paginated
 
 
+@extend_schema(
+    tags=['Access Logs'],
+    description=read_md('audit_log', 'access_logs/me/list'),
+    responses=open_api_200_ok_response(
+        AccessLogResponse,
+        validate_payload=False,
+        raise_access_forbidden=False,
+        raise_not_found=False,
+    ),
+)
 class AccessLogViewSet(AuditLogViewSet):
     """
-    Access logs
+    ViewSet for listing a user's access logs
 
-    Lists all access logs for the authenticated user
+    Available actions:
+    - list       → GET /api/v2/access-logs/me/
 
-    Submissions will be grouped together by hour
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/me/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/access-logs/me/
-
-    > Response 200
-
-    >       {
-    >           "count": 10,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >                {
-    >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "u12345",
-    >                    "username": "admin",
-    >                    "metadata": {
-    >                        "source": "Firefox (Ubuntu)",
-    >                        "auth_type": "Digest",
-    >                        "ip_address": "172.18.0.6"
-    >                    },
-    >                    "date_created": "2024-08-19T16:48:58Z"
-    >                },
-    >                {
-    >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "u12345",
-    >                    "username": "admin",
-    >                    "metadata": {
-    >                        "auth_type": "submission-group",
-    >                    },
-    >                    "date_created": "2024-08-19T16:00:00Z"
-    >                },
-    >                ...
-    >           ]
-    >       }
-
-    This endpoint can be paginated with 'offset' and 'limit' parameters, eg
-    >      curl -X GET https://[kpi-url]/access-logs/me/?offset=100&limit=50
-
-    will return entries 100-149
-
+    Documentation:
+    - docs/api/v2/access_logs/me/list.md
     """
 
     queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
@@ -613,6 +413,17 @@ def generate_ph_view_set_logstring(description, path, example_path, all):
     """
 
 
+@extend_schema_view(
+    list=extend_schema(
+        description=read_md('audit_log', 'audit_logs/project_history_logs/list.md'),
+        responses=open_api_200_ok_response(
+            ProjectHistoryLogResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
+        tags=['Project History Logs'],
+    )
+)
 class AllProjectHistoryLogViewSet(AuditLogViewSet):
     __doc__ = generate_ph_view_set_logstring(
         'List all project history logs for all projects. Only available to superusers.',
@@ -625,10 +436,37 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     serializer_class = ProjectHistoryLogSerializer
     filter_backends = (SearchFilter,)
 
+    @extend_schema(
+        methods=['GET'],
+        description=read_md(
+            'audit_log', 'audit_logs/project_history_logs/export_list.md'
+        ),
+        responses=open_api_202_accepted_response(
+            ExportHistoryResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
+        tags=['Project History Logs'],
+    )
+    @extend_schema(
+        methods=['POST'],
+        description=read_md(
+            'audit_log', 'audit_logs/project_history_logs/export_create.md'
+        ),
+        request=None,
+        responses=open_api_202_accepted_response(
+            ExportHistoryResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
+        tags=['Project History Logs'],
+    )
     @action(detail=False, methods=['GET', 'POST'])
     def export(self, request, *args, **kwargs):
         in_progress = ProjectHistoryLogExportTask.objects.filter(
-            user=request.user, asset_uid=None, status=ImportExportTask.PROCESSING
+            user=request.user,
+            asset_uid=None,
+            status=ImportExportStatusChoices.PROCESSING,
         ).count()
         if in_progress > 0:
             return Response(
@@ -655,46 +493,66 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
         )
 
         return Response(
-            {f'status: {export_task.status}'},
+            {'status': export_task.status},
             status=status.HTTP_202_ACCEPTED,
         )
 
 
+@extend_schema(
+    tags=['History'],
+    parameters=[
+        OpenApiParameter(
+            name='parent_lookup_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent assets',
+        ),
+    ],
+)
+@extend_schema_view(
+    actions=extend_schema(
+        description=read_md('audit_log', 'history/action.md'),
+        responses=open_api_200_ok_response(
+            HistoryActionResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
+    ),
+    export=extend_schema(
+        description=read_md('audit_log', 'history/export.md'),
+        request=None,
+        responses=open_api_202_accepted_response(
+            HistoryExportResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
+    ),
+    list=extend_schema(
+        description=read_md('audit_log', 'history/list.md'),
+        responses=open_api_200_ok_response(
+            HistoryListResponse,
+            require_auth=False,
+            validate_payload=False,
+        ),
+    ),
+)
 class ProjectHistoryLogViewSet(
     AuditLogViewSet, AssetNestedObjectViewsetMixin, NestedViewSetMixin
 ):
-    __doc__ = (
-        generate_ph_view_set_logstring(
-            'Lists all project history logs for a single project. Only available to'
-            " those with 'manage_asset' permissions.",
-            '/api/v2/assets/<code>{asset_uid}</code>/history/',
-            '/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/history/',
-            False,
-        )
-        + """
-    ### Actions
-
-    Retrieves distinct actions performed on the asset.
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/history/actions
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/axpCMM5zWS6kWpHv9Vg/history/actions
-
-    > Response 200
-
-    >       {
-    >           "actions": [
-    >               "update-name",
-    >               "update-content",
-    >               "deploy",
-    >               ...
-    >           ]
-    >       }
     """
-    )
+    ViewSet for managing the current project's history
+
+    Available actions:
+    - action        → GET   /api/v2/asset/{parent_lookup_asset}/history/action/
+    - export        → POST  /api/v2/asset/{parent_lookup_asset}/history/
+    - list          → GET   /api/v2/asset/{parent_lookup_asset}/history/
+
+    Documentation:
+    - docs/api/v2/history/action.md
+    - docs/api/v2/history/export.md
+    - docs/api/v2/history/list.md
+    """
 
     serializer_class = ProjectHistoryLogSerializer
     model = ProjectHistoryLog
@@ -722,7 +580,7 @@ class ProjectHistoryLogViewSet(
         in_progress = ProjectHistoryLogExportTask.objects.filter(
             user=request.user,
             asset_uid=self.asset_uid,
-            status=ImportExportTask.PROCESSING,
+            status=ImportExportStatusChoices.PROCESSING,
         ).count()
         if in_progress > 0:
             return Response(
@@ -750,7 +608,7 @@ class ProjectHistoryLogViewSet(
             )
         )
         return Response(
-            {f'status: {export_task.status}'},
+            {'status': export_task.status},
             status=status.HTTP_202_ACCEPTED,
         )
 
@@ -758,6 +616,19 @@ class ProjectHistoryLogViewSet(
 class BaseAccessLogsExportViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
     lookup_field = 'uid'
+
+    # By default, we explicitly set the pagination class because drf-spectacular uses
+    # the `pagination_class` to generate the schema — even if the actual response
+    # from the viewset actions does not use pagination.
+    # If `pagination_class` is not specified, drf-spectacular falls back to the global
+    # DRF setting, which can result in incorrect schema generation.
+    pagination_class = None
+
+    # We explicitly set `renderer_classes` because drf-spectacular uses it to generate
+    # the schema, even if the viewset doesn’t override the renderers or return content
+    # that would need them. Without this, it falls back to the default DRF settings,
+    # which may not reflect the actual behavior of the viewset.
+    renderer_classes = (JSONRenderer,)
 
     def create_task(self, request, get_all_logs):
 
@@ -777,7 +648,7 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
         )
 
         return Response(
-            {f'status: {export_task.status}'},
+            {'status': export_task.status},
             status=status.HTTP_202_ACCEPTED,
         )
 
@@ -795,57 +666,48 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
         return Response(tasks_data, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=['Access Logs'],
+)
+@extend_schema_view(
+    list=extend_schema(
+        description=read_md('audit_log', 'access_logs/me/exports/list'),
+        request=None,
+        responses=open_api_200_ok_response(
+            ExportListResponse,
+            validate_payload=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+        ),
+    ),
+    create=extend_schema(
+        description=read_md('audit_log', 'access_logs/me/exports/create'),
+        request=None,
+        responses=open_api_202_accepted_response(
+            ExportCreateResponse,
+            validate_payload=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+        ),
+    ),
+)
 class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     """
-    Access logs export
+    ViewSet for managing the current user's access logs export
 
-    Lists all access logs export tasks for the authenticated user
+    Available actions:
+    - list       → GET /api/v2/access-logs/me/export/
+    - create     → POST /api/v2/access-logs/me/export/
 
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/me/export
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/access-logs/me/export
-
-    > Response 200
-    >
-    >       [
-    >           {
-    >               "uid": "aleooVUrhe3cRrLY5urRhxLA",
-    >               "status": "complete",
-    >               "date_created": "2024-11-26T21:27:08.403181Z"
-    >           },
-    >           {
-    >               "uid": "aleMzK7RnuaPokb86TZF2N4d",
-    >               "status": "complete",
-    >               "date_created": "2024-11-26T20:18:55.982974Z"
-    >           }
-    >       ]
-
-    ### Creates an export task
-
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/access-log/me/export
-    </pre>
-
-    > Example
-    >
-    >       curl -X POST https://[kpi-url]/access-logs/me/export
-
-    > Response 202
-    >
-    >       [
-    >           "status: created"
-    >       ]
-    >
+    Documentation:
+    - docs/api/v2/access_logs/me/exports/list.md
+    - docs/api/v2/access_logs/me/exports/create.md
     """
 
     def create(self, request, *args, **kwargs):
         if AccessLogExportTask.objects.filter(
             user=request.user,
-            status=AccessLogExportTask.PROCESSING,
+            status=ImportExportStatusChoices.PROCESSING,
             get_all_logs=False,
         ).exists():
             return Response(
@@ -862,52 +724,42 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
         return self.list_tasks(request.user)
 
 
+@extend_schema(
+    tags=['Access Logs'],
+)
+@extend_schema_view(
+    list=extend_schema(
+        description=read_md('audit_log', 'access_logs/exports/list'),
+        request=None,
+        responses=open_api_200_ok_response(
+            ExportListResponse,
+            require_auth=False,
+            validate_payload=False,
+            raise_not_found=False,
+        ),
+    ),
+    create=extend_schema(
+        description=read_md('audit_log', 'access_logs/exports/create'),
+        request=None,
+        responses=open_api_202_accepted_response(
+            ExportCreateResponse,
+            raise_not_found=False,
+            validate_payload=False,
+        ),
+    ),
+)
 class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     """
-    Access logs export
+    ViewSet for managing exports of every users' access logs
 
-    Lists all access logs export tasks for all users. Only available to superusers.
 
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/export
-    </pre>
+    Available actions:
+    - list       → GET /api/v2/access-logs/export/
+    - create     → POST /api/v2/access-logs/export/
 
-    > Example
-    >
-
-    >       curl -X GET https://[kpi-url]/access-logs/export
-
-    > Response 200
-    >
-    >       [
-    >           {
-    >               "uid": "aleooVUrhe3cRrLY5urRhxLA",
-    >               "status": "complete",
-    >               "date_created": "2024-11-26T21:27:08.403181Z"
-    >           },
-    >           {
-    >               "uid": "aleMzK7RnuaPokb86TZF2N4d",
-    >               "status": "complete",
-    >               "date_created": "2024-11-26T20:18:55.982974Z"
-    >           }
-    >       ]
-
-    ### Creates an export task
-
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/access-log/export
-    </pre>
-
-    > Example
-    >
-    >       curl -X POST https://[kpi-url]/access-logs/export
-
-    > Response 202
-    >
-    >       [
-    >           "status: created"
-    >       ]
-    >
+    Documentation:
+    - docs/api/v2/access_logs/exports/list.md
+    - docs/api/v2/access_logs/exports/create.md
     """
 
     permission_classes = (SuperUserPermission,)
@@ -916,7 +768,7 @@ class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
         # Check if the superuser has a task running for all
         if AccessLogExportTask.objects.filter(
             user=request.user,
-            status=AccessLogExportTask.PROCESSING,
+            status=ImportExportStatusChoices.PROCESSING,
             get_all_logs=True,
         ).exists():
             return Response(
