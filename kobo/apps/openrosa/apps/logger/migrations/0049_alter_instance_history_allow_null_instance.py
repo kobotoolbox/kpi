@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('logger', '0046_merge_20250703_2154'),
+        ('logger', '0048_alter_instancehistory_root_uuid'),
     ]
 
     operations = [
