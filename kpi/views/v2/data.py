@@ -85,7 +85,7 @@ from kpi.utils.xml import (
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
-            description='UID of the parent asset',
+            description='Asset identifier',
         ),
     ],
 )
@@ -98,11 +98,11 @@ from kpi.utils.xml import (
         ),
         parameters=[
             OpenApiParameter(
-                name='id',
-                type=int,
+                name='submission_id_or_root_uuid',
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Submission identifier',
             ),
         ],
     ),
@@ -117,11 +117,11 @@ from kpi.utils.xml import (
         ),
         parameters=[
             OpenApiParameter(
-                name='id',
-                type=int,
+                name='submission_id_or_root_uuid',
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Submission identifier',
             ),
         ],
     ),
@@ -146,11 +146,11 @@ from kpi.utils.xml import (
         ),
         parameters=[
             OpenApiParameter(
-                name='id',
-                type=int,
+                name='submission_id_or_root_uuid',
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Submission identifier',
             ),
         ],
     ),
@@ -164,20 +164,22 @@ class DataViewSet(
     Available actions:
     - bulk                  → DELETE /api/v2/assets/
     - bulk                  → PATCH /api/v2/asset_usage/
-    - delete                → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}
-    - duplicate             → POST /api/v2/asset_usage/{parent_lookup_asset}/data/duplicate  # noqa
-    - list                  → GET /api/v2/asset_usage/{parent_lookup_asset}/data
-    - retrieve              → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}
-    - validation_status     → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
-    - validation_status     → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
-    - validation_status     → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
-    - validation_statuses   → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
-    - validation_statuses   → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
-    - enketo_edit           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/edit/
-    - enketo_edit           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/edit/
-    - enketo_edit           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/edit/
-    - enketo_view           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/view/
-    - enketo_view           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/view/
+    - delete                → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/
+    - duplicate             → POST /api/v2/asset_usage/{parent_lookup_asset}/data/duplicate/  # noqa
+    - list                  → GET /api/v2/asset_usage/{parent_lookup_asset}/data/
+    - retrieve              → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/
+    - validation_status     → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/validation_status/  # noqa
+    - validation_status     → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/validation_status/  # noqa
+    - validation_status     → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/validation_status/  # noqa
+    - validation_statuses   → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/validation_statuses/  # noqa
+    - validation_statuses   → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/validation_statuses/  # noqa
+    - enketo_edit           → GET /api/v2/assets/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/edit/
+    - enketo_edit           → GET /api/v2/assets/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/enketo/edit/
+    - enketo_edit           → GET /api/v2/assets/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/enketo/redirect/edit/
+    - enketo_view           → GET /api/v2/assets/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/enketo/view/
+    - enketo_view           → GET /api/v2/assets/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/enketo/redirect/view/
+    - supplement            → GET /api/v2/assets/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/supplement/
+    - supplement            → PATCH /api/v2/assets/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/supplement/
 
     Documentation:
     - docs/api/v2/data/bulk_delete.md
@@ -193,6 +195,8 @@ class DataViewSet(
     - docs/api/v2/data/validation_statuses_update.md
     - docs/api/v2/data/enketo_view.md
     - docs/api/v2/data/enketo_edit.md
+    - docs/api/v2/data/supplement_retrieve.md
+    - docs/api/v2/data/supplement_update.md
     """
 
     parent_model = Asset
@@ -264,7 +268,7 @@ class DataViewSet(
     )
     def duplicate(self, request, submission_id_or_root_uuid: int, *args, **kwargs):
         """
-        Creates a duplicate of the submission with a given `pk`
+        Creates a duplicate of the submission with a given `submission_id_or_root_uuid`
         """
         deployment = self._get_deployment()
         # Coerce to int because the back-end only finds matches with the same type
@@ -306,11 +310,11 @@ class DataViewSet(
         ),
         parameters=[
             OpenApiParameter(
-                name='id',
-                type=int,
+                name='submission_id_or_root_uuid',
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Submission identifier',
             ),
         ],
     )
@@ -342,11 +346,11 @@ class DataViewSet(
         ),
         parameters=[
             OpenApiParameter(
-                name='id',
-                type=int,
+                name='submission_id_or_root_uuid',
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Submission `id` or `rootUuid`',
             ),
         ],
     )
@@ -465,9 +469,39 @@ class DataViewSet(
         submission = list(submissions)[0]
         return Response(submission)
 
+    @extend_schema(
+        methods=['GET'],
+        description=read_md('kpi', 'data/supplement_retrieve.md'),
+        request={'application/json': DataValidationStatusUpdatePayload},
+        responses=open_api_200_ok_response(DataValidationStatusUpdateResponse),
+        parameters=[
+            OpenApiParameter(
+                name='submission_id_or_root_uuid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='Submission identifier',
+            ),
+        ],
+    )
+    @extend_schema(
+        methods=['PATCH'],
+        description=read_md('kpi', 'data/supplement_update.md'),
+        request={'application/json': DataValidationStatusUpdatePayload},
+        responses=open_api_200_ok_response(DataValidationStatusUpdateResponse),
+        parameters=[
+            OpenApiParameter(
+                name='submission_id_or_root_uuid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='Submission identifier',
+            ),
+        ],
+    )
     @action(
         detail=True,
-        methods=['PATCH'],
+        methods=['GET', 'PATCH'],
         permission_classes=[AdvancedSubmissionPermission],
     )
     def supplemental(self, request, submission_id_or_root_uuid: str, *args, **kwargs):
@@ -486,24 +520,30 @@ class DataViewSet(
 
         deployment = self._get_deployment()
         try:
-            submission = next(deployment.get_submissions(
+            submission = list(deployment.get_submissions(
                 user=request.user,
                 query={'meta/rootUuid': add_uuid_prefix(submission_root_uuid)}
-            ))
-        except StopIteration:
+            ))[0]
+        except IndexError:
             raise Http404
 
         submission_root_uuid = submission[deployment.SUBMISSION_ROOT_UUID_XPATH]
 
+        if request.method == 'GET':
+            return Response(retrieve_supplemental_data(self.asset, submission_root_uuid))
+
         post_data = request.data
+
         try:
-            handle_incoming_data(self.asset, submission, post_data)
+            supplemental_data = handle_incoming_data(
+                self.asset, submission, post_data
+            )
         except InvalidAction:
             raise serializers.ValidationError({'detail': 'Invalid action'})
         except InvalidXPath:
             raise serializers.ValidationError({'detail': 'Invalid question name'})
 
-        return Response(retrieve_supplemental_data(self.asset, submission_root_uuid))
+        return Response(supplemental_data)
 
     @extend_schema(
         methods=['PATCH'],
@@ -517,11 +557,11 @@ class DataViewSet(
         ),
         parameters=[
             OpenApiParameter(
-                name='id',
-                type=int,
+                name='submission_id_or_root_uuid',
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Submission identifier',
             ),
         ],
     )
@@ -534,11 +574,11 @@ class DataViewSet(
         ),
         parameters=[
             OpenApiParameter(
-                name='id',
-                type=int,
+                name='submission_id_or_root_uuid',
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Submission identifier',
             ),
         ],
     )
@@ -554,11 +594,11 @@ class DataViewSet(
         ),
         parameters=[
             OpenApiParameter(
-                name='id',
-                type=int,
+                name='submission_id_or_root_uuid',
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Submission identifier',
             ),
         ],
     )
