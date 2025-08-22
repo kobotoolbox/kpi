@@ -541,7 +541,7 @@ class TestFormSubmission(TestBase):
         assert history_object.xform_instance == instance
 
         instance.delete()
-        history_object = InstanceHistory.objects.first()
+        history_object.refresh_from_db()
 
         assert history_object.xform_instance is None
 
