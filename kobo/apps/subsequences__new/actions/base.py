@@ -280,6 +280,8 @@ class BaseAction:
 
     def revise_field(self, *args, **kwargs):
         # TODO: remove this alias
+        import warnings
+        warnings.warn('Oh no, this method is going away!', DeprecationWarning)
         return self.revise_data(*args, **kwargs)
 
     def revise_data(
