@@ -4,7 +4,7 @@ import type { UseQueryResult } from '@tanstack/react-query'
 import UniversalTableCore from './UniversalTableCore'
 import type { UniversalTableColumn } from './UniversalTableCore'
 
-export { UniversalTableColumn } from './UniversalTableCore'
+export type { UniversalTableColumn } from './UniversalTableCore'
 
 export interface Pagination {
   limit: number

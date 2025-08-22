@@ -11,6 +11,7 @@ from kpi.models.import_export_task import (
     ImportExportTask,
     ProjectHistoryLogExportTask,
 )
+from kpi.paginators import FastPagination, Paginated
 from kpi.permissions import IsAuthenticated
 from kpi.tasks import export_task_in_background
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
@@ -162,12 +163,16 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         AuditLog.objects.select_related('user').all().order_by('-date_created')
     )
     filter_backends = (SearchFilter,)
+    # audit logs have no n-to-many fields, so don't bother running "distinct" on
+    # search results
+    skip_distinct = True
 
     search_default_field_lookups = [
         'app_label__icontains',
         'model_name__icontains',
         'metadata__icontains',
     ]
+    pagination_class = FastPagination
 
 
 class AllAccessLogViewSet(AuditLogViewSet):
@@ -274,6 +279,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
 
     queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     serializer_class = AccessLogSerializer
+    pagination_class = Paginated
 
 
 class AccessLogViewSet(AuditLogViewSet):
@@ -334,6 +340,7 @@ class AccessLogViewSet(AuditLogViewSet):
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)
     serializer_class = AccessLogSerializer
+    pagination_class = Paginated
 
 
 def generate_ph_view_set_logstring(description, path, example_path, all):

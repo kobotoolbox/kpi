@@ -29,11 +29,13 @@ from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
     PERM_CHANGE_SUBMISSIONS,
+    PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models.asset import Asset
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.xml import (
     edit_submission_xml,
@@ -46,8 +48,11 @@ from ..models import SubmissionExtras
 
 class BaseSubsequenceTestCase(APITestCase):
 
+    fixtures = ['test_data']
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
     def setUp(self):
-        user = User.objects.create_user(username='someuser', email='user@example.com')
+        user = User.objects.get(username='someuser')
         self.asset = Asset(
             owner=user,
             content={'survey': [{'type': 'audio', 'label': 'q1', 'name': 'q1'}]},
@@ -773,3 +778,45 @@ class GoogleNLPSubmissionTest(BaseTestCase):
         }
         res = self.client.post(url, data, format='json')
         self.assertContains(res, 'complete')
+
+
+class SubsequencePartialPermissionSubmissionTest(BaseSubsequenceTestCase):
+    """
+    Ensure that users with partial change_submission permission cannot access or
+    update submission supplement data, especially for submissions they are not
+    authorized to view.
+    """
+
+    def test_cannot_post_data(self):
+        anotheruser = User.objects.get(username='anotheruser')
+        partial_perms = {
+            PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': anotheruser.username}]
+        }
+        self.asset.assign_perm(
+            anotheruser, PERM_PARTIAL_SUBMISSIONS, partial_perms=partial_perms
+        )
+        self.client.force_login(anotheruser)
+        url = reverse('advanced-submission-post', args=[self.asset.uid])
+        data = {
+            'submission': self.submission_uuid,
+            'q1': {
+                'transcript': {'value': 'test transcription', 'languageCode': 'en'},
+            },
+        }
+        response = self.client.post(url, data, format='json')
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_cannot_read_data(self):
+        anotheruser = User.objects.get(username='anotheruser')
+        partial_perms = {
+            PERM_VIEW_SUBMISSIONS: [{'_submitted_by': anotheruser.username}]
+        }
+        self.asset.assign_perm(
+            anotheruser, PERM_PARTIAL_SUBMISSIONS, partial_perms=partial_perms
+        )
+        self.client.force_login(anotheruser)
+        url = reverse('advanced-submission-post', args=[self.asset.uid])
+        response = self.client.get(
+            f'{url}?submission={self.submission_uuid}', format='json'
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND

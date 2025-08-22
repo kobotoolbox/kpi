@@ -17,6 +17,7 @@ from taggit.utils import require_instance_manager
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
+from kobo.apps.data_collectors.models import DataCollectorGroup
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
 from kobo.apps.subsequences__new.actions import ADVANCED_FEATURES_PARAMS_SCHEMA
 from kobo.apps.subsequences.utils import (
@@ -223,6 +224,13 @@ class Asset(
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
     settings = models.JSONField(default=dict)
+    data_collector_group = models.ForeignKey(
+        DataCollectorGroup,
+        related_name='assets',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
 
     # `_deployment_data` must **NOT** be touched directly by anything except
     # the `deployment` property provided by `DeployableMixin`.
