@@ -168,7 +168,6 @@ class AssetViewSet(AssetViewSetV2):
     @action(
         detail=True,
         methods=["PATCH"],
-        renderer_classes=[renderers.JSONRenderer],
     )
     def permissions(self, request, uid):
         target_asset = self.get_object()
