@@ -137,7 +137,8 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
     def test_over_limit_submission_rejection_authenticated(self, mock_usage):
         """
         Ensure submissions by an authenticated user are rejected if asset owner
-        is over their storage or submission limit and that usage
+        is over their storage or submission limit and that check_exceeded_limit
+        is run.
         """
         path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
