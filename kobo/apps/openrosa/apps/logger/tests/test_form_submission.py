@@ -845,3 +845,36 @@ class TestFormSubmission(TestBase):
             Instance.objects.order_by('pk').last().xml_hash,
             created_instance.xml_hash,
         )
+
+    def test_instance_history_contains_necessary_fields(self):
+        xml_submission_file_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid.xml',
+        )
+
+        # make first submission
+        self._make_submission(xml_submission_file_path)
+        initial_instance = Instance.objects.order_by('-pk')[0]
+        initial_uuid = initial_instance.uuid
+        root_uuid = initial_instance.root_uuid
+        # edited submission
+        xml_submission_file_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid_edited.xml',
+        )
+        self._make_submission(xml_submission_file_path)
+        history_obj = (
+            InstanceHistory.objects.filter(xform_instance=initial_instance)
+            .order_by('-date_created')
+            .first()
+        )
+        self.assertEqual(history_obj.root_uuid, root_uuid)
+        self.assertEqual(history_obj.uuid, initial_uuid)
