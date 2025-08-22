@@ -184,7 +184,7 @@ class AssetViewSet(AssetViewSetV2):
             if not target_asset.copy_permissions_from(source_asset):
                 http_status = status.HTTP_400_BAD_REQUEST
                 response = {
-                    'detail': "Source and destination objects don't seem to have the same type"
+                    'detail': "Source and destination objects don't seem to have the same type"  # noqa
                 }
         else:
             raise exceptions.PermissionDenied()
