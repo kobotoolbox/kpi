@@ -234,7 +234,6 @@ class Asset(
         on_delete=models.SET_NULL,
     )
 
-
     # `_deployment_data` must **NOT** be touched directly by anything except
     # the `deployment` property provided by `DeployableMixin`.
     # ToDo Move the field to another table with one-to-one relationship
