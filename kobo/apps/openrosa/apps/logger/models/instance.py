@@ -364,5 +364,5 @@ class InstanceHistory(AbstractTimeStampedModel):
     )
     xml = models.TextField()
     # old instance id
-    uuid = models.CharField(max_length=249, default='', db_index=True, null=True)
+    uuid = models.CharField(max_length=249, default='', db_index=True)
     root_uuid = models.CharField(max_length=249, null=True, db_index=True)
