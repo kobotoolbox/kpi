@@ -1,4 +1,3 @@
-from typing import Optional
 
 from kobo.apps.subsequences.models import (
     SubmissionExtras,  # just bullshit for now
@@ -31,7 +30,9 @@ class InvalidXPath(Exception):
 # - dispatch_incoming_data
 # - process_action_request
 # - run_action
-def handle_incoming_data(asset: Asset, submission: dict, incoming_data: dict):
+def handle_incoming_data(
+    asset: Asset, submission: dict, incoming_data: dict
+) -> dict:
     # it'd be better if this returned the same thing as retrieve_supplemental_data
     schema_version = incoming_data.pop('_version')
     if schema_version != '20250820':
@@ -46,6 +47,8 @@ def handle_incoming_data(asset: Asset, submission: dict, incoming_data: dict):
     supplemental_data = SubmissionExtras.objects.get_or_create(
         asset=asset, submission_uuid=submission_uuid
     )[0].content  # lock it?
+
+    retrieved_supplemental_data = {}
 
     for question_xpath, data_for_this_question in incoming_data.items():
         try:
@@ -70,16 +73,24 @@ def handle_incoming_data(asset: Asset, submission: dict, incoming_data: dict):
             question_supplemental_data = supplemental_data.setdefault(
                 question_xpath, {}
             )
-            action_supplemental_data = question_supplemental_data.setdefault(action_id, {})
+            action_supplemental_data = question_supplemental_data.setdefault(
+                action_id, {}
+            )
             action_supplemental_data = action.revise_field(
                 submission, action_supplemental_data, action_data
             )
             question_supplemental_data[action_id] = action_supplemental_data
+            retrieved_supplemental_data.setdefault(question_xpath, {})[
+                action_id
+            ] = action.retrieve_data(action_supplemental_data)
 
     supplemental_data['_version'] = schema_version
     SubmissionExtras.objects.filter(
         asset=asset, submission_uuid=submission_uuid
     ).update(content=supplemental_data)
+
+    retrieved_supplemental_data['_version'] = schema_version
+    return retrieved_supplemental_data
 
 
 def retrieve_supplemental_data(asset: Asset, submission_uuid: str) -> dict:
@@ -99,11 +110,11 @@ def retrieve_supplemental_data(asset: Asset, submission_uuid: str) -> dict:
         # TODO: migrate from old per-asset schema
         raise NotImplementedError
 
-    processed_supplemental_data = {}
+    retrieved_supplemental_data = {}
 
     for question_xpath, data_for_this_question in supplemental_data.items():
         processed_data_for_this_question = (
-            processed_supplemental_data.setdefault(question_xpath, {})
+            retrieved_supplemental_data.setdefault(question_xpath, {})
         )
         action_configs = asset.advanced_features['_actionConfigs']
         try:
@@ -140,5 +151,5 @@ def retrieve_supplemental_data(asset: Asset, submission_uuid: str) -> dict:
                 action_data
             )
 
-    processed_supplemental_data['_version'] = schema_version
-    return processed_supplemental_data
+    retrieved_supplemental_data['_version'] = schema_version
+    return retrieved_supplemental_data
