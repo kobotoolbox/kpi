@@ -1,3 +1,5 @@
+# NOT USED anymore, to be removed
+
 from typing import Type, TypeAlias, Union
 
 from .actions.manual_transcription import ManualTranscriptionAction
