@@ -27,13 +27,13 @@ class InvalidXPath(Exception):
 # - dispatch_incoming_data
 # - process_action_request
 # - run_action
-def handle_incoming_data(asset: Asset, data: dict):
+def handle_incoming_data(asset: Asset, submission_uuid: str, data: dict):
     schema_version = data.pop('_version')
     if schema_version != '20250820':
         # TODO: migrate from old per-submission schema
         raise NotImplementedError
 
-    submission_uuid = data.pop('_submission')  # not needed in POST data bc of nested endpoint
+    # TODO: validate that such a submission even exists!
     supplemental_data = SubmissionExtras.objects.get_or_create(
         asset=asset, submission_uuid=submission_uuid
     )[0].content  # lock it?
@@ -44,7 +44,7 @@ def handle_incoming_data(asset: Asset, data: dict):
             raise NotImplementedError
         try:
             action_configs_for_this_question = asset.advanced_features[
-                '_schema'
+                '_actionConfigs'
             ][question_xpath]
         except KeyError as e:
             raise InvalidXPath from e
