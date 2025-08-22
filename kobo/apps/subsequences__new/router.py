@@ -31,7 +31,7 @@ def handle_incoming_data(asset, data):
         # TODO: migrate from old per-submission schema
         raise NotImplementedError
 
-    submission_uuid = data.pop('_submission')
+    submission_uuid = data.pop('_submission')  # not needed in POST data bc of nested endpoint
     supplemental_data = SubmissionExtras.objects.get_or_create(
         asset=asset, submission_uuid=submission_uuid
     ).content  # lock it?
