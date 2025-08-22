@@ -164,7 +164,7 @@ large projects.
 
 The `@extend_schema_field` decorator allows you to annotate standard `SerializerMethodField` methods
 in the serializers. This allows you to decorate the field directly without having to use the `WithSchemaField`
-util (see below). This allows you to write off any errors regading unknown types that could arise when generating
+util (see below). This allows you to write off any errors regarding unknown types that could arise when generating
 the schema.
 
 ```python
@@ -361,7 +361,7 @@ MyCustomSerializer = inline_serializer_class(
 )
 ```
 
-In the same way, if our wrapper is incorrect and cannot be modified to taste with a normal extension, it
+In the same way, if our wrapper is incorrect and cannot be modified to our taste with a normal extension, it
 is possible to put in a custom one in the extensions.
 
 Example:
