@@ -16,6 +16,7 @@ from kobo.apps.openrosa.apps.api.viewsets.user import UserViewSet
 from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import XFormListApi
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
+from kpi.models.asset import Asset
 from .utils.rest_framework.views import OpenRosaAPIView
 
 
@@ -299,6 +300,10 @@ class MultiLookupRouter(routers.DefaultRouter):
                 -H "Authorization: Bearer ACCESS_TOKEN"
             """
             _ignore_model_permissions = True
+
+            class Meta:
+                model = Asset
+                fields = '__all__'
 
             def get(self, request, format=None):
                 ret = {}

@@ -17,6 +17,7 @@ from kpi.models import (
     SubmissionExportTask,
     SubmissionSynchronousExport,
 )
+from kpi.models.import_export_task import ImportExportStatusChoices
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.test_mock_data_exports import MockDataExportsBase
 from kpi.tests.utils.transaction import immediate_on_commit
@@ -334,9 +335,9 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         synch_exp = SubmissionSynchronousExport.objects.all()
         assert len(synch_exp) == 1
         synch_exp = synch_exp[0]
-        assert synch_exp.status == SubmissionSynchronousExport.COMPLETE
+        assert synch_exp.status == ImportExportStatusChoices.COMPLETE
 
-        synch_exp.status = SubmissionSynchronousExport.ERROR
+        synch_exp.status = ImportExportStatusChoices.ERROR
         synch_exp.save()
 
         response = self.client.get(synchronous_exports_url, follow=True)
@@ -368,9 +369,9 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         synch_exp = SubmissionSynchronousExport.objects.all()
         assert len(synch_exp) == 1
         synch_exp = synch_exp[0]
-        assert synch_exp.status == SubmissionSynchronousExport.COMPLETE
+        assert synch_exp.status == ImportExportStatusChoices.COMPLETE
 
-        synch_exp.status = SubmissionSynchronousExport.PROCESSING
+        synch_exp.status = ImportExportStatusChoices.PROCESSING
         synch_exp.save()
 
         response = self.client.get(synchronous_exports_url, follow=True)
@@ -446,9 +447,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
 
     def test_synchronous_csv_export_anonymous_with_permission(self):
         self.asset.assign_perm(get_anonymous_user(), PERM_VIEW_SUBMISSIONS)
-
         es = self._create_export_settings()
-
         synchronous_exports_url = reverse(
             self._get_endpoint('asset-export-settings-synchronous-data'),
             kwargs={

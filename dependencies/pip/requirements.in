@@ -112,3 +112,6 @@ modilabs-python-utils
 djangorestframework-csv
 djangorestframework-jsonp
 pandas
+
+# Api Documentation
+drf-spectacular
