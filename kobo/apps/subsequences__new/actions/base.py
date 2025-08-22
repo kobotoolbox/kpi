@@ -1,14 +1,12 @@
 import datetime
-import jsonschema
 from copy import deepcopy
 
-# from django.utils import timezone
-class FakeDjangoTimezoneUtil:
-    @staticmethod
-    def now():
-        from zoneinfo import ZoneInfo
-        return datetime.datetime.now(tz=ZoneInfo('UTC'))
-timezone = FakeDjangoTimezoneUtil()
+import jsonschema
+from django.conf import settings
+
+from kobo.apps.kobo_auth.shortcuts import User
+from kpi.exceptions import UsageLimitExceededException
+from kpi.utils.usage_calculator import ServiceUsageCalculator
 
 """
 ### All actions must have the following components
@@ -113,7 +111,7 @@ def utc_datetime_to_js_str(dt: datetime.datetime) -> str:
     # https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date-time-string-format
     if dt.utcoffset() or not dt.tzinfo:
         raise NotImplementedError('Only UTC datetimes are supported')
-    return dt.isoformat().replace("+00:00", "Z")
+    return dt.isoformat().replace('+00:00', 'Z')
 
 
 class BaseAction:
@@ -228,11 +226,13 @@ class BaseAction:
                         self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
                     },
                     'required': [self.DATE_CREATED_FIELD],
-                }
+                },
             },
         }
 
-        def _inject_data_schema(destination_schema: dict, skipped_keys: list) -> dict:
+        def _inject_data_schema(
+            destination_schema: dict, skipped_keys: list
+        ) -> dict:
 
             for key, value in self.data_schema.items():
                 if key in skipped_keys:
@@ -259,6 +259,18 @@ class BaseAction:
 
         return schema
 
+    def check_limits(self, user: User):
+
+        if not settings.STRIPE_ENABLED or not self._is_usage_limited:
+            return
+
+        calculator = ServiceUsageCalculator(user)
+        balances = calculator.get_usage_balances()
+
+        balance = balances[self._limit_identifier]
+        if balance and balance['exceeded']:
+            raise UsageLimitExceededException()
+
     def revise_field(self, submission_extra: dict, edit: dict) -> dict:
         raise NotImplementedError
 
@@ -279,4 +291,23 @@ class BaseAction:
             except AttributeError:
                 continue
             if match:
-                raise Exception('An unexpected key with a leading underscore was found')
+                raise Exception(
+                    'An unexpected key with a leading underscore was found'
+                )
+
+    @property
+    def _is_usage_limited(self):
+        """
+        Returns whether an action should check for usage limits.
+        """
+        raise NotImplementedError()
+
+    @property
+    def _limit_identifier(self):
+        # Example for automatic transcription
+        #
+        # from kobo.apps.organizations.constants import UsageType
+        # return UsageType.ASR_SECONDS
+        raise NotImplementedError()
+
+
