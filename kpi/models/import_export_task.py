@@ -130,7 +130,10 @@ class ImportExportTask(models.Model):
                     'only recently created {}s can be executed'.format(
                         self._meta.model_name)
                 )
-            elif self.status in (ImportExportStatusChoices.COMPLETE, ImportExportStatusChoices.ERROR):
+            elif self.status in (
+                ImportExportStatusChoices.COMPLETE,
+                ImportExportStatusChoices.ERROR
+            ):
                 # There is no action to take. To retry an `ERROR`ed export, the
                 # status must first be reset to `CREATED`
                 return

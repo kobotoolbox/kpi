@@ -10,7 +10,6 @@ from django.utils.translation import gettext as t
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import serializers, status, viewsets
-from rest_framework import renderers, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -23,7 +22,6 @@ from kpi.schema_extensions.v2.export_settings.serializers import (
     ExportSettingResponse,
     ExportSettingUpdatePayload,
 )
-from kpi.serializers.v2.asset_export_settings import AssetExportSettingsSerializer
 from kpi.serializers.v2.asset_export_settings import AssetExportSettingsSerializer
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
@@ -249,7 +247,10 @@ class AssetExportSettingsViewSet(
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-        if export.status in (ImportExportStatusChoices.CREATED, ImportExportStatusChoices.PROCESSING):
+        if export.status in (
+            ImportExportStatusChoices.CREATED,
+            ImportExportStatusChoices.PROCESSING
+        ):
             expected_latest_finish = export.date_created + datetime.timedelta(
                 seconds=settings.SYNCHRONOUS_REQUEST_TIME_LIMIT
             )
