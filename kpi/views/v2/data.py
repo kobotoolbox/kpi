@@ -513,6 +513,8 @@ class DataViewSet(
         from kobo.apps.subsequences__new.router import (
             handle_incoming_data,
             retrieve_supplemental_data,
+        )
+        from kobo.apps.subsequences__new.exceptions import (
             InvalidAction,
             InvalidXPath,
         )
