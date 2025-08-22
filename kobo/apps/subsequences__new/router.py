@@ -1,7 +1,7 @@
 from kobo.apps.subsequences.models import (
     SubmissionExtras,  # just bullshit for now
 )
-
+from kpi.models import Asset
 from .actions import ACTION_IDS_TO_CLASSES
 
 
@@ -22,8 +22,12 @@ class InvalidXPath(Exception):
 
     pass
 
-
-def handle_incoming_data(asset, data):
+# ChatGPT suggestions:
+# - dispatch_action_payload
+# - dispatch_incoming_data
+# - process_action_request
+# - run_action
+def handle_incoming_data(asset: Asset, data: dict):
     schema_version = data.pop('_version')
     if schema_version != '20250820':
         # TODO: migrate from old per-submission schema
