@@ -91,7 +91,7 @@
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
     "@storybook/addon-a11y": "^9.0.0-beta.11",
     "@storybook/addon-docs": "^9.0.17",
-    "@storybook/addon-links": "^9.0.0-beta.11",
+    "@storybook/addon-links": "^9.1.3",
     "@storybook/addon-webpack5-compiler-swc": "^2.1.0",
     "@storybook/react-webpack5": "^9.0.18",
     "@storybook/test-runner": "^0.24.0-next.1",
