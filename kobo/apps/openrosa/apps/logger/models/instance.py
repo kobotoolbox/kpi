@@ -360,7 +360,10 @@ class InstanceHistory(AbstractTimeStampedModel):
         app_label = 'logger'
 
     xform_instance = models.ForeignKey(
-        Instance, related_name='submission_history', on_delete=models.CASCADE
+        Instance,
+        related_name='submission_history',
+        null=True,
+        on_delete=models.SET_NULL,
     )
     xml = models.TextField()
     # old instance id
