@@ -29,7 +29,7 @@ from .serializers import EmailAddressSerializer, SocialAccountSerializer
             raise_not_found=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     create=extend_schema(
         description=read_md('accounts', 'me/email/create.md'),
@@ -38,8 +38,8 @@ from .serializers import EmailAddressSerializer, SocialAccountSerializer
             EmailAddressSerializer,
             raise_not_found=False,
             raise_access_forbidden=False,
-        )
-    )
+        ),
+    ),
 )
 class EmailAddressViewSet(
     mixins.CreateModelMixin,
@@ -73,16 +73,14 @@ class EmailAddressViewSet(
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@extend_schema(
-    tags=['Me']
-)
+@extend_schema(tags=['Me'])
 @extend_schema_view(
     destroy=extend_schema(
         description=read_md('accounts', 'me/social/delete.md'),
         responses=open_api_204_empty_response(
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     list=extend_schema(
         description=read_md('accounts', 'me/social/list.md'),
@@ -91,7 +89,7 @@ class EmailAddressViewSet(
             raise_not_found=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     retrieve=extend_schema(
         description=read_md('accounts', 'me/social/retrieve.md'),
@@ -99,7 +97,7 @@ class EmailAddressViewSet(
             SocialAccountSerializer,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
 )
 class SocialAccountViewSet(
@@ -129,7 +127,6 @@ class SocialAccountViewSet(
     serializer_class = SocialAccountSerializer
     permission_classes = (IsAuthenticated,)
     versioning_class = APIV2Versioning
-    renderer_classes = [JSONRenderer,]
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)

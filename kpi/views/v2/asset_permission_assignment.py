@@ -7,7 +7,7 @@ from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
 )
-from rest_framework import exceptions, renderers, status
+from rest_framework import exceptions, status
 from rest_framework.decorators import action
 from rest_framework.mixins import (
     CreateModelMixin,

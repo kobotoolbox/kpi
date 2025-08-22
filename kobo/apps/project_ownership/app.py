@@ -13,7 +13,7 @@ class ProjectOwnershipAppConfig(AppConfig):
         from .schema_extensions.v2.project_ownership.invites import (  # noqa F401
             extensions,
         )
-        from .schema_extensions.v2.project_ownership.transfers import(  # noqa F401
+        from .schema_extensions.v2.project_ownership.transfers import (  # noqa F401
             extensions,
         )
         super().ready()

@@ -8,6 +8,7 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 from rest_framework import serializers
 
+from kobo.apps.organizations.models import OrganizationInviteStatusChoices
 from kpi.schema_extensions.v2.generic.schema import (
     ASSET_URL_SCHEMA,
     GENERIC_ARRAY_SCHEMA,
@@ -15,7 +16,6 @@ from kpi.schema_extensions.v2.generic.schema import (
     USER_URL_SCHEMA,
 )
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from kobo.apps.organizations.models import OrganizationInviteStatusChoices
 
 
 class InviteAssetFieldExtension(OpenApiSerializerFieldExtension):

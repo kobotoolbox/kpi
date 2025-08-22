@@ -39,9 +39,7 @@ class CreatePayloadFieldExtensions(OpenApiSerializerFieldExtension):
                                 properties={
                                     '_submission_time': build_object_type(
                                         properties={
-                                            '$gte': build_basic_type(
-                                                OpenApiTypes.DATE
-                                            )
+                                            '$gte': build_basic_type(OpenApiTypes.DATE)
                                         }
                                     )
                                 }

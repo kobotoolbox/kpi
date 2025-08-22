@@ -8,6 +8,5 @@ class TOSDetailURLFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
-            'api_v2:terms-of-service-detail',
-            slug='terms_of_service_fr'
+            'api_v2:terms-of-service-detail', slug='terms_of_service_fr'
         )

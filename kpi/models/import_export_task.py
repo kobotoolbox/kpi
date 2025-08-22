@@ -132,7 +132,7 @@ class ImportExportTask(models.Model):
                 )
             elif self.status in (
                 ImportExportStatusChoices.COMPLETE,
-                ImportExportStatusChoices.ERROR
+                ImportExportStatusChoices.ERROR,
             ):
                 # There is no action to take. To retry an `ERROR`ed export, the
                 # status must first be reset to `CREATED`
