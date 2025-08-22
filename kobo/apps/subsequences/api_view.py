@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 import constance
 from django.conf import settings
 from django.db.models import Q
@@ -19,8 +17,8 @@ from kobo.apps.subsequences.models import SubmissionExtras
 from kobo.apps.subsequences.utils.deprecation import get_sanitized_dict_keys
 from kpi.exceptions import UsageLimitExceededException
 from kpi.models import Asset
-from kpi.permissions import SubmissionPermission
 from kpi.utils.usage_calculator import ServiceUsageCalculator
+from kpi.permissions import AdvancedSubmissionPermission
 from kpi.views.environment import check_asr_mt_access_for_user
 
 
@@ -73,15 +71,6 @@ def _check_asr_mt_access_if_applicable(user, posted_data):
                 balance = balances[UsageType.ASR_SECONDS]
                 if balance and balance['exceeded']:
                     raise UsageLimitExceededException()
-
-
-class AdvancedSubmissionPermission(SubmissionPermission):
-    """
-    Regular `SubmissionPermission` maps POST to `add_submissions`, but
-    `change_submissions` should be required here
-    """
-    perms_map = deepcopy(SubmissionPermission.perms_map)
-    perms_map['POST'] = ['%(app_label)s.change_%(model_name)s']
 
 
 class AdvancedSubmissionView(AuditLoggedApiView):
