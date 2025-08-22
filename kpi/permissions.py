@@ -389,6 +389,25 @@ class SubmissionPermission(AssetNestedObjectPermission):
         return user_permissions
 
 
+class AdvancedSubmissionPermission(SubmissionPermission):
+    """
+    Regular `SubmissionPermission` maps POST to `add_submissions`, but
+    `change_submissions` should be required here
+    """
+
+    perms_map = deepcopy(SubmissionPermission.perms_map)
+    perms_map['POST'] = ['%(app_label)s.change_%(model_name)s']
+
+    def _get_user_permissions(
+        self, asset: Asset, user: 'settings.AUTH_USER_MODEL'
+    ) -> list:
+        """
+        Overrides parent method to exclude partial permissions
+        """
+
+        return super(SubmissionPermission, self)._get_user_permissions(asset, user)
+
+
 class AttachmentDeletionPermission(SubmissionPermission):
     """
     Permissions for deleting attachments.
