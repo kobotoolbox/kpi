@@ -10,8 +10,8 @@ from kpi.views.environment import EnvironmentView
 from kpi.views.token import TokenView
 from kpi.views.v2.authorized_application_user import AuthorizedApplicationUserViewSet
 from kpi.views.v2.logout import logout_from_all_devices
-from .router_api_v1 import router_api_v1
-from .router_api_v2 import URL_NAMESPACE, router_api_v2
+from .router_api_v1 import urls_patterns as router_api_v1_urls
+from .router_api_v2 import URL_NAMESPACE, urls_patterns as router_api_v2_urls
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See
@@ -26,8 +26,8 @@ urlpatterns = [
         'patch': 'partial_update',
         'delete': 'destroy',
     }), name='currentuser-detail'),
-    re_path(r'^', include(router_api_v1.urls)),
-    re_path(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
+    re_path(r'^', include(router_api_v1_urls)),
+    re_path(r'^api/v2/', include((router_api_v2_urls, URL_NAMESPACE))),
     path('', include('kobo.apps.accounts.urls')),
     path('', include('kobo.apps.service_health.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
