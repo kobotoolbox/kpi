@@ -18,9 +18,9 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.audit_log.utils import SubmissionUpdate
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix, \
+    add_uuid_prefix
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
-from kobo.apps.subsequences__new.utils.action_loader import get_action_class
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
@@ -38,6 +38,7 @@ from kpi.exceptions import (
 from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
+    AdvancedSubmissionPermission,
     DuplicateSubmissionPermission,
     EditLinkSubmissionPermission,
     SubmissionPermission,
@@ -528,12 +529,59 @@ class DataViewSet(
         submission = list(submissions)[0]
         return Response(submission)
 
-    @action(detail=True, methods=['PATCH'])
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        permission_classes=[AdvancedSubmissionPermission]
+    )
     def supplemental(self, request, submission_uuid, *args, **kwargs):
 
-        # Do something with John's work
-        return Response({'detail': 'Not implemented'})
+        ### TO BE MOVED
+        from kobo.apps.subsequences__new.router import (
+            handle_incoming_data,
+            InvalidAction,
+            InvalidXPath,
+        )
+        def retrieve_supplemental_data():
+            return {
+                "q1": {
+                    "manual_transcription": {
+                        "transcript": "I speak English, yes!",
+                        "language": "en",
+                        "dateModified": "2025-08-22T15:34:46Z",
+                        "dateCreated": "2025-08-20T09:20:21Z",
+                        "revisions": [
+                            {
+                                "transcript": "No speak English :-(",
+                                "dateCreated": "2025-08-20T09:20:21Z",
+                                "language": "en"
+                            }
+                        ]
+                    }
+                }
+            }
 
+        ### END TO BE MOVED
+
+        deployment = self._get_deployment()
+        try:
+            submission = next(deployment.get_submissions(
+                user=request.user,
+                query={'meta/rootUuid': add_uuid_prefix(submission_uuid)}
+            ))
+        except StopIteration:
+            raise Http404
+         submission_root_uuid = submission[deployment.SUBMISSION_ROOT_UUID_XPATH]
+
+        post_data = request.data
+        try:
+            handle_incoming_data(submission_root_uuid, post_data)
+        except InvalidAction:
+            raise serializers.ValidationError({'detail': 'Invalid action'})
+        except InvalidXPath:
+            raise serializers.ValidationError({'detail': 'Invalid question name'})
+
+        return Response(retrieve_supplemental_data(self.asset, submission_root_uuid))
 
     @action(detail=True, methods=['GET', 'PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer],
