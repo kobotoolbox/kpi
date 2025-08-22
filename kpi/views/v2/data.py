@@ -1,6 +1,7 @@
 import copy
 import json
 import re
+from typing import Union
 
 import requests
 from django.conf import settings
@@ -19,8 +20,10 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.audit_log.utils import SubmissionUpdate
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix, \
-    add_uuid_prefix
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    remove_uuid_prefix,
+    add_uuid_prefix,
+)
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
@@ -202,6 +205,7 @@ class DataViewSet(
     pagination_class = DataPagination
     log_type = AuditType.PROJECT_HISTORY
     logged_fields = []
+    lookup_field = 'submission_id_or_root_uuid'
 
     @extend_schema(
         methods=['PATCH'],
@@ -234,10 +238,10 @@ class DataViewSet(
 
         return Response(**response)
 
-    def destroy(self, request, pk, *args, **kwargs):
+    def destroy(self, request, submission_id_or_root_uuid: int, *args, **kwargs):
         deployment = self._get_deployment()
-        # Coerce to int because back end only finds matches with same type
-        submission_id = positive_int(pk)
+        # Coerce to int because the back-end only finds matches with the same type
+        submission_id = positive_int(submission_id_or_root_uuid)
 
         if deployment.delete_submission(submission_id, user=request.user):
             response = {
@@ -258,13 +262,13 @@ class DataViewSet(
         renderer_classes=[renderers.JSONRenderer],
         permission_classes=[DuplicateSubmissionPermission],
     )
-    def duplicate(self, request, pk, *args, **kwargs):
+    def duplicate(self, request, submission_id_or_root_uuid: int, *args, **kwargs):
         """
         Creates a duplicate of the submission with a given `pk`
         """
         deployment = self._get_deployment()
-        # Coerce to int because the back end only finds matches with the same type
-        submission_id = positive_int(pk)
+        # Coerce to int because the back-end only finds matches with the same type
+        submission_id = positive_int(submission_id_or_root_uuid)
         original_submission = deployment.get_submission(
             submission_id=submission_id, user=request.user, fields=['_id', '_uuid']
         )
@@ -317,8 +321,8 @@ class DataViewSet(
         permission_classes=[EditLinkSubmissionPermission],
         url_path='enketo/edit',
     )
-    def enketo_edit(self, request, pk, *args, **kwargs):
-        submission_id = positive_int(pk)
+    def enketo_edit(self, request, submission_id_or_root_uuid: int, *args, **kwargs):
+        submission_id = positive_int(submission_id_or_root_uuid)
         enketo_response = self._get_enketo_link(request, submission_id, 'edit')
         if enketo_response.status_code in (
             status.HTTP_201_CREATED, status.HTTP_200_OK
@@ -353,8 +357,8 @@ class DataViewSet(
         permission_classes=[ViewSubmissionPermission],
         url_path='enketo/view',
     )
-    def enketo_view(self, request, pk, *args, **kwargs):
-        submission_id = positive_int(pk)
+    def enketo_view(self, request, submission_id_or_root_uuid: int, *args, **kwargs):
+        submission_id = positive_int(submission_id_or_root_uuid)
         enketo_response = self._get_enketo_link(request, submission_id, 'view')
         return self._handle_enketo_redirect(request, enketo_response, *args, **kwargs)
 
@@ -409,7 +413,13 @@ class DataViewSet(
 
         return Response(list(submissions))
 
-    def retrieve(self, request, pk, *args, **kwargs):
+    def retrieve(
+        self,
+        request,
+        submission_id_or_root_uuid: Union[int, str],
+        *args,
+        **kwargs
+    ):
         """
         Retrieve a submission by its primary key or its UUID.
 
@@ -426,14 +436,11 @@ class DataViewSet(
         }
         filters = self._filter_mongo_query(request)
 
-        # Unfortunately, Django expects that the URL parameter is `pk`,
-        # its name cannot be changed (easily).
-        submission_id_or_uuid = pk
         try:
-            submission_id_or_uuid = positive_int(submission_id_or_uuid)
+            submission_id_or_root_uuid = positive_int(submission_id_or_root_uuid)
         except ValueError:
             if not re.match(
-                r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}', submission_id_or_uuid
+                r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}', submission_id_or_root_uuid
             ):
                 raise Http404
 
@@ -443,10 +450,10 @@ class DataViewSet(
                 raise serializers.ValidationError(
                     {'query': t('Value must be valid JSON.')}
                 )
-            query['_uuid'] = submission_id_or_uuid
+            query['_uuid'] = submission_id_or_root_uuid
             filters['query'] = query
         else:
-            params['submission_ids'] = [submission_id_or_uuid]
+            params['submission_ids'] = [submission_id_or_root_uuid]
 
         # Join all parameters to be passed to `deployment.get_submissions()`
         params.update(filters)
@@ -462,43 +469,26 @@ class DataViewSet(
         detail=True,
         methods=['PATCH'],
         permission_classes=[AdvancedSubmissionPermission],
-        lookup_field='submission_uuid',
-        lookup_url_kwarg='submission_uuid',
     )
-    def supplemental(self, request, submission_uuid, *args, **kwargs):
+    def supplemental(self, request, submission_id_or_root_uuid: str, *args, **kwargs):
+
+        # make it clear, a root uuid is expected here
+        submission_root_uuid = submission_id_or_root_uuid
 
         ### TO BE MOVED
         from kobo.apps.subsequences__new.router import (
             handle_incoming_data,
+            retrieve_supplemental_data,
             InvalidAction,
             InvalidXPath,
         )
-        def retrieve_supplemental_data():
-            return {
-                "q1": {
-                    "manual_transcription": {
-                        "transcript": "I speak English, yes!",
-                        "language": "en",
-                        "dateModified": "2025-08-22T15:34:46Z",
-                        "dateCreated": "2025-08-20T09:20:21Z",
-                        "revisions": [
-                            {
-                                "transcript": "No speak English :-(",
-                                "dateCreated": "2025-08-20T09:20:21Z",
-                                "language": "en"
-                            }
-                        ]
-                    }
-                }
-            }
-
         ### END TO BE MOVED
 
         deployment = self._get_deployment()
         try:
             submission = next(deployment.get_submissions(
                 user=request.user,
-                query={'meta/rootUuid': add_uuid_prefix(submission_uuid)}
+                query={'meta/rootUuid': add_uuid_prefix(submission_root_uuid)}
             ))
         except StopIteration:
             raise Http404
@@ -507,7 +497,7 @@ class DataViewSet(
 
         post_data = request.data
         try:
-            handle_incoming_data(submission_root_uuid, post_data)
+            handle_incoming_data(self.asset, submission, post_data)
         except InvalidAction:
             raise serializers.ValidationError({'detail': 'Invalid action'})
         except InvalidXPath:
@@ -576,10 +566,12 @@ class DataViewSet(
         detail=True, methods=['GET', 'PATCH', 'DELETE'],
         permission_classes=[SubmissionValidationStatusPermission]
     )
-    def validation_status(self, request, pk, *args, **kwargs):
+    def validation_status(
+        self, request, submission_id_or_root_uuid: int, *args, **kwargs
+    ):
         deployment = self._get_deployment()
-        # Coerce to int because back end only finds matches with same type
-        submission_id = positive_int(pk)
+        # Coerce to int because the back-end only finds matches with the same type
+        submission_id = positive_int(submission_id_or_root_uuid)
         if request.method == 'GET':
             json_response = deployment.get_validation_status(
                 submission_id=submission_id,

@@ -210,17 +210,17 @@ router_api_v2.register(
 # them correctly, often resulting in broken routes and schema generation errors.
 enketo_url_aliases = [
     path(
-        'assets/<parent_lookup_asset>/data/<pk>/edit/',
+        'assets/<parent_lookup_asset>/data/<submission_id_or_root_uuid>/edit/',
         DataViewSet.as_view({'get': 'enketo_edit'}, renderer_classes=[JSONRenderer]),
         name='submission-enketo-edit-legacy',
     ),
     path(
-        'assets/<parent_lookup_asset>/data/<pk>/enketo/redirect/edit/',
+        'assets/<parent_lookup_asset>/data/<submission_id_or_root_uuid>/enketo/redirect/edit/',
         DataViewSet.as_view({'get': 'enketo_edit'}, renderer_classes=[JSONRenderer]),
         name='submission-enketo-edit-redirect',
     ),
     path(
-        'assets/<parent_lookup_asset>/data/<pk>/enketo/redirect/view/',
+        'assets/<parent_lookup_asset>/data/<submission_id_or_root_uuid>/enketo/redirect/view/',
         DataViewSet.as_view({'get': 'enketo_view'}, renderer_classes=[JSONRenderer]),
         name='submission-enketo-view-redirect',
     ),

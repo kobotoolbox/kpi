@@ -392,7 +392,7 @@ class BaseOrganizationAdminsDataApiTestCase(BaseOrganizationAssetApiTestCase):
             self._get_endpoint('submission-detail'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': self.submission['_id'],
+                'submission_id_or_root_uuid': self.submission['_id'],
             },
         )
         self.submission_list_url = reverse(
@@ -870,7 +870,7 @@ class OrganizationAdminsValidationStatusApiTestCase(
             self._get_endpoint('submission-validation-status'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': self.submission['_id'],
+                'submission_id_or_root_uuid': self.submission['_id'],
             },
         )
         self.validation_statuses_url = reverse(

@@ -123,7 +123,7 @@ class AttachmentTrashAdminTestCase(BaseTestCase, AssetSubmissionTestMixin):
             self._get_endpoint('submission-detail'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': self.instance.pk,
+                'submission_id_or_root_uuid': self.instance.pk,
             },
         )
         response = self.client.get(submission_detail_url)

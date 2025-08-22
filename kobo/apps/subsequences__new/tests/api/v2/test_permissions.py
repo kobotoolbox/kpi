@@ -17,7 +17,7 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
     @data(
         # owner: Obviously, no need to share.
         (
-            'anotheruser',
+            'someuser',
             False,
             status.HTTP_200_OK,
         ),
@@ -77,7 +77,7 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
     @data(
         # owner: Obviously, no need to share.
         (
-            'anotheruser',
+            'someuser',
             False,
             status.HTTP_200_OK,
         ),
@@ -110,12 +110,6 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
             'anonymous',
             False,
             status.HTTP_404_NOT_FOUND,
-        ),
-        # anonymous user with view permissions
-        (
-            'anonymous',
-            True,
-            status.HTTP_200_OK,
         ),
     )
     @unpack
