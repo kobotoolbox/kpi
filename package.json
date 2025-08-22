@@ -84,7 +84,7 @@
     "@babel/preset-env": "^7.22.5",
     "@biomejs/biome": "^1.9.4",
     "@eslint/compat": "^1.2.4",
-    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.17.0",
     "@faker-js/faker": "^9.9.0",
     "@jest/create-cache-key-function": "^30.0.5",
