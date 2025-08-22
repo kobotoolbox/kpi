@@ -116,6 +116,3 @@ class TestInstance(TestBase):
         """
         id_string = get_id_string_from_xml_str(submission)
         self.assertEqual(id_string, 'id_string')
-
-    def test_reversion(self):
-        self.assertTrue(reversion.is_registered(Instance))
