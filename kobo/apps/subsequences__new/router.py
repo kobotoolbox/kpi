@@ -56,6 +56,7 @@ def handle_incoming_data(asset, data):
                 raise InvalidAction from e
 
             action = action_class(question_xpath, action_params)
+            action.check_limits(asset.owner)
             # action.validate_data(action_data)  # called by revise_field
             supplemental_data = action.revise_field(supplemental_data, action_data)
 
