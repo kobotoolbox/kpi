@@ -1,10 +1,8 @@
 from kobo.apps.subsequences.models import (
-    SubmissionExtras,
-)  # just bullshit for now
+    SubmissionExtras,  # just bullshit for now
+)
 
-from .actions import ACTIONS
-
-ids_to_actions = {a.ID: a for a in ACTIONS}
+from .actions import ACTION_IDS_TO_CLASSES
 
 
 class InvalidAction(Exception):
@@ -34,7 +32,7 @@ def handle_incoming_data(asset, data):
     submission_uuid = data.pop('_submission')  # not needed in POST data bc of nested endpoint
     supplemental_data = SubmissionExtras.objects.get_or_create(
         asset=asset, submission_uuid=submission_uuid
-    ).content  # lock it?
+    )[0].content  # lock it?
 
     for question_xpath, data_for_this_question in data.items():
         if asset.advanced_features['_version'] != '20250820':
@@ -49,7 +47,7 @@ def handle_incoming_data(asset, data):
 
         for action_id, action_data in data_for_this_question.items():
             try:
-                action_class = ids_to_actions[action_id]
+                action_class = ACTION_IDS_TO_CLASSES[action_id]
             except KeyError as e:
                 raise InvalidAction from e
             try:
@@ -59,8 +57,8 @@ def handle_incoming_data(asset, data):
 
             action = action_class(question_xpath, action_params)
             # action.validate_data(action_data)  # called by revise_field
-            action.revise_field(supplemental_data, action_data)
+            supplemental_data = action.revise_field(supplemental_data, action_data)
 
-        SubmissionExtras.objects.filter(
-            asset=asset, submission_uuid=submission_uuid
-        ).update(content=supplemental_data)
+    SubmissionExtras.objects.filter(
+        asset=asset, submission_uuid=submission_uuid
+    ).update(content=supplemental_data)
