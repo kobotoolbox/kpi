@@ -20,6 +20,7 @@ from kobo.apps.audit_log.models import AuditType
 from kobo.apps.audit_log.utils import SubmissionUpdate
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
+from kobo.apps.subsequences__new.utils.action_loader import get_action_class
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
@@ -526,6 +527,13 @@ class DataViewSet(
 
         submission = list(submissions)[0]
         return Response(submission)
+
+    @action(detail=True, methods=['PATCH'])
+    def supplemental(self, request, submission_uuid, *args, **kwargs):
+
+        # Do something with John's work
+        return Response({'detail': 'Not implemented'})
+
 
     @action(detail=True, methods=['GET', 'PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer],
