@@ -133,6 +133,7 @@ INSTALLED_APPS = (
     'kobo.apps.project_views.apps.ProjectViewAppConfig',
     'kobo.apps.languages.apps.LanguageAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
+    'kobo.apps.data_collectors.DataCollectorsConfig',
     'kobo.apps.mass_emails.MassEmailsConfig',
     'kobo.apps.trackers.TrackersConfig',
     'kobo.apps.trash_bin.TrashBinAppConfig',
