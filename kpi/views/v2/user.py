@@ -92,7 +92,6 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=['GET'],
-            renderer_classes=[renderers.JSONRenderer],
             url_path=r'migrate(?:/(?P<task_id>[\d\w\-]+))?')
     def migrate(self, request, task_id: str = None, **kwargs):
         request_user = request.user
