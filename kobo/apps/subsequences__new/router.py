@@ -1,10 +1,10 @@
-
 from kobo.apps.subsequences.models import (
     SubmissionExtras,  # just bullshit for now
 )
 from kpi.models import Asset
 
 from .actions import ACTION_IDS_TO_CLASSES
+from .schemas import validate_submission_supplement
 
 
 class InvalidAction(Exception):
@@ -30,10 +30,14 @@ class InvalidXPath(Exception):
 # - dispatch_incoming_data
 # - process_action_request
 # - run_action
-def handle_incoming_data(
+def handle_incoming_data(*args, **kwargs):
+    # TODO: remove this alias
+    return revise_supplemental_data(*args, **kwargs)
+
+
+def revise_supplemental_data(
     asset: Asset, submission: dict, incoming_data: dict
 ) -> dict:
-    # it'd be better if this returned the same thing as retrieve_supplemental_data
     schema_version = incoming_data.pop('_version')
     if schema_version != '20250820':
         # TODO: migrate from old per-submission schema
@@ -85,6 +89,7 @@ def handle_incoming_data(
             ] = action.retrieve_data(action_supplemental_data)
 
     supplemental_data['_version'] = schema_version
+    validate_submission_supplement(asset, supplemental_data)
     SubmissionExtras.objects.filter(
         asset=asset, submission_uuid=submission_uuid
     ).update(content=supplemental_data)
@@ -126,6 +131,11 @@ def retrieve_supplemental_data(asset: Asset, submission_uuid: str) -> dict:
             # Allow this for now, but maybe forbid later and also forbid
             # removing things from the asset-level action configuration?
             # Actions could be disabled or hidden instead of being removed
+
+            # FIXME: divergence between the asset-level configuration and
+            # submission-level supplemental data is going to cause schema
+            # validation failures! We defo need to forbid removal of actions
+            # and instead provide a way to mark them as deleted
             continue
 
         for action_id, action_data in data_for_this_question.items():
