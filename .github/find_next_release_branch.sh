@@ -4,7 +4,7 @@
 
 set -eu
 
-current_branch=`git rev-parse --abbrev-ref HEAD`
+current_branch='release/2.025.34' # debug
 
 release_version=`echo "${current_branch}" | cut -d '/' -f 2`
 minor=`echo "${release_version}" | cut -d '.' -f 2`

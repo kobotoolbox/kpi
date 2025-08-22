@@ -1,0 +1,42 @@
+name: Find previous and next release branches
+
+on:
+  workflow_call:
+    outputs:
+      current_branch:
+        value: ${{ jobs.version.outputs.current_branch }}
+      current_tag:
+        value: ${{ jobs.version.outputs.current_tag }}
+      prev_branch:
+        value: ${{ jobs.version.outputs.prev_branch }}
+      prev_tag:
+        value: ${{ jobs.version.outputs.prev_tag }}
+      prev_tag_exact:
+        value: ${{ jobs.version.outputs.prev_tag_exact }}
+      prev_released:
+        value: ${{ jobs.version.outputs.prev_released }}
+      next_branch:
+        value: ${{ jobs.version.outputs.next_branch }}
+      next_tag:
+        value: ${{ jobs.version.outputs.next_tag }}
+
+jobs:
+  version:
+    runs-on: ubuntu-24.04
+    outputs:
+      current_branch: ${{ steps.prev.outputs.current_branch }}
+      current_tag: ${{ steps.prev.outputs.current_tag }}
+      prev_branch: ${{ steps.prev.outputs.prev_branch }}
+      prev_tag: ${{ steps.prev.outputs.prev_tag }}
+      prev_tag_exact: ${{ steps.prev.outputs.prev_tag_exact }}
+      prev_released: ${{ steps.prev.outputs.prev_released }}
+      next_branch: ${{ steps.next.outputs.next_branch }}
+      next_tag: ${{ steps.next.outputs.next_tag }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Find next release tag and branch
+      id: next
+      run: ./.github/find_next_release_branch.sh
+    - name: Find prev release tag and branch
+      id: prev
+      run: ./.github/find_prev_release_branch.sh

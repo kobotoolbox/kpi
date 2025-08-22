@@ -4,7 +4,7 @@
 
 set -eu
 
-current_branch=`git rev-parse --abbrev-ref HEAD`
+current_branch='release/2.025.34' # debug
 
 release_version=`echo "${current_branch}" | cut -d '/' -f 2`
 minor=`echo "${release_version}" | cut -d '.' -f 2`
@@ -42,6 +42,8 @@ do
 done
 
 echo "prev_tag=${prev_tag}" >> $GITHUB_OUTPUT
+prev_tag_exact="$(git tag -l 2.025.14* | tail -1)"
+echo "prev_tag_exact=${prev_tag_exact}" >> $GITHUB_OUTPUT
 echo "prev_branch=${prev_branch}" >> $GITHUB_OUTPUT
 echo "Previous release branch: '${prev_branch}'"
 
