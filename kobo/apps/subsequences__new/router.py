@@ -31,9 +31,9 @@ class InvalidXPath(Exception):
 # - dispatch_incoming_data
 # - process_action_request
 # - run_action
-def handle_incoming_data(asset: Asset, submission: dict, data: dict):
+def handle_incoming_data(asset: Asset, submission: dict, incoming_data: dict):
     # it'd be better if this returned the same thing as retrieve_supplemental_data
-    schema_version = data.pop('_version')
+    schema_version = incoming_data.pop('_version')
     if schema_version != '20250820':
         # TODO: migrate from old per-submission schema
         raise NotImplementedError
@@ -47,7 +47,7 @@ def handle_incoming_data(asset: Asset, submission: dict, data: dict):
         asset=asset, submission_uuid=submission_uuid
     )[0].content  # lock it?
 
-    for question_xpath, data_for_this_question in data.items():
+    for question_xpath, data_for_this_question in incoming_data.items():
         try:
             action_configs_for_this_question = asset.advanced_features[
                 '_actionConfigs'
@@ -67,12 +67,14 @@ def handle_incoming_data(asset: Asset, submission: dict, data: dict):
 
             action = action_class(question_xpath, action_params)
             action.check_limits(asset.owner)
-            action_supplemental_data = supplemental_data.setdefault(
+            question_supplemental_data = supplemental_data.setdefault(
                 question_xpath, {}
-            ).setdefault(action_id, {})
+            )
+            action_supplemental_data = question_supplemental_data.setdefault(action_id, {})
             action_supplemental_data = action.revise_field(
                 submission, action_supplemental_data, action_data
             )
+            question_supplemental_data[action_id] = action_supplemental_data
 
     supplemental_data['_version'] = schema_version
     SubmissionExtras.objects.filter(
