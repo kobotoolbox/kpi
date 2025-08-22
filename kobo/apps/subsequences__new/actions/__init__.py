@@ -6,7 +6,7 @@ ACTION_IDS_TO_CLASSES = {a.ID: a for a in ACTIONS}
 
 ADVANCED_FEATURES_PARAMS_SCHEMA = {  # rename?
     'properties': {
-        '_schema': {
+        '_actionConfigs': {
             'additionalProperties': False,
             'patternProperties': {
                 # not the full complexity of XPath, but a slash-delimited path

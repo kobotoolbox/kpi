@@ -45,7 +45,7 @@ def test_valid_result_passes_validation():
     fifth = {'language': 'en', 'transcript': 'fifth'}
     mock_sup_det = {}
     for data in first, second, third, fourth, fifth:
-        mock_sup_det = action.revise_field(mock_sup_det, data)
+        mock_sup_det = action.revise_field({}, mock_sup_det, data)
     action.validate_result(mock_sup_det)
 
 def test_invalid_result_fails_validation():
@@ -60,7 +60,7 @@ def test_invalid_result_fails_validation():
     fifth = {'language': 'en', 'transcript': 'fifth'}
     mock_sup_det = {}
     for data in first, second, third, fourth, fifth:
-        mock_sup_det = action.revise_field(mock_sup_det, data)
+        mock_sup_det = action.revise_field({}, mock_sup_det, data)
 
     # erroneously add '_dateModified' onto a revision
     mock_sup_det['_revisions'][0]['_dateModified'] = mock_sup_det['_revisions'][0]['_dateCreated']
@@ -81,7 +81,7 @@ def test_transcript_revisions_are_retained_in_supplemental_details():
     first = {'language': 'en', 'transcript': 'No idea'}
     second = {'language': 'fr', 'transcript': "Pas d'idée"}
 
-    mock_sup_det = action.revise_field({}, first)
+    mock_sup_det = action.revise_field({}, {}, first)
 
     assert mock_sup_det['language'] == 'en'
     assert mock_sup_det['transcript'] == 'No idea'
@@ -89,7 +89,7 @@ def test_transcript_revisions_are_retained_in_supplemental_details():
     assert '_revisions' not in mock_sup_det
     first_time = mock_sup_det['_dateCreated']
 
-    mock_sup_det = action.revise_field(mock_sup_det, second)
+    mock_sup_det = action.revise_field({}, mock_sup_det, second)
     assert len(mock_sup_det['_revisions']) == 1
 
     # the revision should encompass the first transcript
@@ -122,10 +122,10 @@ def test_setting_transcript_to_empty_string():
     first = {'language': 'fr', 'transcript': "Pas d'idée"}
     second = {'language': 'fr', 'transcript': ''}
 
-    mock_sup_det = action.revise_field({}, first)
+    mock_sup_det = action.revise_field({}, {}, first)
     assert mock_sup_det['transcript'] == "Pas d'idée"
 
-    mock_sup_det = action.revise_field(mock_sup_det, second)
+    mock_sup_det = action.revise_field({}, mock_sup_det, second)
     assert mock_sup_det['transcript'] == ''
     assert mock_sup_det['_revisions'][0]['transcript'] == "Pas d'idée"
 
@@ -137,10 +137,10 @@ def test_setting_transcript_to_empty_object():
     first = {'language': 'fr', 'transcript': "Pas d'idée"}
     second = {}
 
-    mock_sup_det = action.revise_field({}, first)
+    mock_sup_det = action.revise_field({}, {}, first)
     assert mock_sup_det['transcript'] == "Pas d'idée"
 
-    mock_sup_det = action.revise_field(mock_sup_det, second)
+    mock_sup_det = action.revise_field({}, mock_sup_det, second)
     assert 'transcript' not in mock_sup_det
     assert mock_sup_det['_revisions'][0]['transcript'] == "Pas d'idée"
 
@@ -155,7 +155,7 @@ def test_latest_revision_is_first():
 
     mock_sup_det = {}
     for data in first, second, third:
-        mock_sup_det = action.revise_field(mock_sup_det, data)
+        mock_sup_det = action.revise_field({}, mock_sup_det, data)
 
     assert mock_sup_det['transcript'] == 'trois'
     assert mock_sup_det['_revisions'][0]['transcript'] == 'deux'
