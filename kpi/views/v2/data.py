@@ -220,7 +220,11 @@ class DataViewSet(
             validate_payload=False, require_auth=False, raise_access_forbidden=False
         ),
     )
-    @action(detail=False, methods=['PATCH', 'DELETE'])
+    @action(
+        detail=False,
+        methods=['PATCH', 'DELETE'],
+        renderer_classes=[renderers.JSONRenderer],
+    )
     def bulk(self, request, *args, **kwargs):
         if request.method == 'DELETE':
             response = self._bulk_delete(request)
@@ -251,6 +255,7 @@ class DataViewSet(
         detail=True,
         methods=['POST'],
         permission_classes=[DuplicateSubmissionPermission],
+        renderer_classes=[renderers.JSONRenderer],
     )
     def duplicate(self, request, pk, *args, **kwargs):
         """
@@ -309,6 +314,7 @@ class DataViewSet(
         methods=['GET'],
         permission_classes=[EditLinkSubmissionPermission],
         url_path='enketo/edit',
+        renderer_classes=[renderers.JSONRenderer],
     )
     def enketo_edit(self, request, pk, *args, **kwargs):
         submission_id = positive_int(pk)
@@ -344,6 +350,7 @@ class DataViewSet(
         methods=['GET'],
         permission_classes=[ViewSubmissionPermission],
         url_path='enketo/view',
+        renderer_classes=[renderers.JSONRenderer],
     )
     def enketo_view(self, request, pk, *args, **kwargs):
         submission_id = positive_int(pk)
@@ -507,8 +514,12 @@ class DataViewSet(
             ),
         ],
     )
-    @action(detail=True, methods=['GET', 'PATCH', 'DELETE'],
-            permission_classes=[SubmissionValidationStatusPermission])
+    @action(
+        detail=True,
+        methods=['GET', 'PATCH', 'DELETE'],
+        permission_classes=[SubmissionValidationStatusPermission],
+        renderer_classes=[renderers.JSONRenderer],
+    )
     def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
         # Coerce to int because back end only finds matches with same type
@@ -547,8 +558,12 @@ class DataViewSet(
             raise_access_forbidden=False,
         ),
     )
-    @action(detail=False, methods=['PATCH', 'DELETE'],
-            permission_classes=[SubmissionValidationStatusPermission])
+    @action(
+        detail=False,
+        methods=['PATCH', 'DELETE'],
+        permission_classes=[SubmissionValidationStatusPermission],
+        renderer_classes=[renderers.JSONRenderer],
+    )
     def validation_statuses(self, request, *args, **kwargs):
         deployment = self._get_deployment()
         bulk_actions_validator = DataBulkActionsValidator(
