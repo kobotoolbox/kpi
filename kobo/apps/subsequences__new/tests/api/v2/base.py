@@ -77,7 +77,7 @@ class SubsequenceBaseTestCase(KpiTestCase):
         self.asset.deployment.mock_submissions([submission_data])
         self.client.force_login(user)
         self.supplement_details_url = reverse(
-            self._get_endpoint('submission-supplemental'),
+            self._get_endpoint('submission-supplement'),
             args=[self.asset.uid, self.submission_uuid]
         )
 

@@ -56,6 +56,8 @@ from kpi.schema_extensions.v2.data.serializers import (
     DataBulkUpdateResponse,
     DataResponse,
     DataStatusesUpdate,
+    DataSupplementPayload,
+    DataSupplementResponse,
     DataValidationStatusesUpdatePayload,
     DataValidationStatusUpdatePayload,
     DataValidationStatusUpdateResponse,
@@ -472,8 +474,7 @@ class DataViewSet(
     @extend_schema(
         methods=['GET'],
         description=read_md('kpi', 'data/supplement_retrieve.md'),
-        request={'application/json': DataValidationStatusUpdatePayload},
-        responses=open_api_200_ok_response(DataValidationStatusUpdateResponse),
+        responses=open_api_200_ok_response(DataSupplementResponse), # TODO CHANGEME
         parameters=[
             OpenApiParameter(
                 name='submission_id_or_root_uuid',
@@ -487,8 +488,8 @@ class DataViewSet(
     @extend_schema(
         methods=['PATCH'],
         description=read_md('kpi', 'data/supplement_update.md'),
-        request={'application/json': DataValidationStatusUpdatePayload},
-        responses=open_api_200_ok_response(DataValidationStatusUpdateResponse),
+        request={'application/json': DataSupplementPayload},
+        responses=open_api_200_ok_response(DataSupplementResponse),
         parameters=[
             OpenApiParameter(
                 name='submission_id_or_root_uuid',
@@ -502,9 +503,10 @@ class DataViewSet(
     @action(
         detail=True,
         methods=['GET', 'PATCH'],
+        renderer_classes=[renderers.JSONRenderer],
         permission_classes=[AdvancedSubmissionPermission],
     )
-    def supplemental(self, request, submission_id_or_root_uuid: str, *args, **kwargs):
+    def supplement(self, request, submission_id_or_root_uuid: str, *args, **kwargs):
 
         # make it clear, a root uuid is expected here
         submission_root_uuid = submission_id_or_root_uuid

@@ -23,6 +23,10 @@ class DataBulkUpdateResultField(serializers.ListField):
     pass
 
 
+class DataSupplementPayloadField(serializers.JSONField):
+    pass
+
+
 class DataValidationPayloadField(serializers.JSONField):
     pass
 

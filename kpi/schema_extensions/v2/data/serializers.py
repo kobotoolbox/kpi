@@ -6,6 +6,7 @@ from .fields import (
     DataBulkDeleteField,
     DataBulkUpdatePayloadField,
     DataBulkUpdateResultField,
+    DataSupplementPayloadField,
     DataValidationPayloadField,
     EmptyListField,
     EmptyObjectField,
@@ -68,6 +69,21 @@ DataStatusesUpdate = inline_serializer_class(
         'detail': serializers.CharField(),
     },
 )
+
+DataSupplementPayload = inline_serializer_class(
+    name='DataSupplementPayload',
+    fields={
+        '_version': serializers.CharField(),
+        'question_name_xpath': serializers.JSONField(),
+    }
+)
+
+
+DataSupplementResponse = inline_serializer_class(
+    name='DataSupplementResponse',
+    fields={}
+)
+
 
 DataValidationStatusUpdatePayload = inline_serializer_class(
     name='DataValidationStatusUpdatePayload',

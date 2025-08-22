@@ -1,4 +1,7 @@
-from drf_spectacular.extensions import OpenApiSerializerFieldExtension
+from drf_spectacular.extensions import (
+    OpenApiSerializerExtension,
+    OpenApiSerializerFieldExtension,
+)
 from drf_spectacular.plumbing import (
     build_array_type,
     build_basic_type,
@@ -88,6 +91,48 @@ class DataBulkUpdateResultFieldExtension(OpenApiSerializerFieldExtension):
                     'message': GENERIC_STRING_SCHEMA,
                 }
             )
+        )
+
+
+class DataSupplementPayloadExtension(OpenApiSerializerExtension):
+    target_class = 'kpi.schema_extensions.v2.data.serializers.DataSupplementPayload'
+
+    def map_serializer(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                '_version': {
+                    'type': 'string',
+                    'example': '20250812',
+                },
+                'question_name_xpath': build_object_type(
+                    additionalProperties=False,
+                    properties={
+                        'manual_transcription': build_object_type(
+                            additionalProperties=False,
+                            properties={
+                                'language': GENERIC_STRING_SCHEMA,
+                                'transcript': GENERIC_STRING_SCHEMA,
+                            },
+                            required=['language', 'transcript'],
+                        ),
+                        'manual_translation': build_array_type(
+                            schema=build_object_type(
+                                additionalProperties=False,
+                                properties={
+                                    'language': GENERIC_STRING_SCHEMA,
+                                    'translation': GENERIC_STRING_SCHEMA,
+                                },
+                                required=['language', 'translation'],
+                            ),
+                            min_length=1,
+                        )
+                    },
+                    anyOf=[
+                        {'required': ['manual_transcription']},
+                        {'required': ['manual_translation']},
+                    ],
+                ),
+            }
         )
 
 
