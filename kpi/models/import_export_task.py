@@ -1190,12 +1190,13 @@ class SubmissionSynchronousExport(SubmissionExportTaskBase):
                 export.date_created = utcnow()
                 export.result.delete(save=False)
                 export.save()
-            try:
-                export.run()
-            except ConcurrentExportException:
-                # It's the caller's responsibility to interpret the `PENDING`
-                # status of the export appropriately
-                pass
+
+        try:
+            export.run()
+        except ConcurrentExportException:
+            # It's the caller's responsibility to interpret the `PENDING`
+            # status of the export appropriately
+            pass
 
         return export
 
