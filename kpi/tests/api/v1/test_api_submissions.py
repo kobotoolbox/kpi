@@ -104,7 +104,7 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
             self._get_endpoint('submission-detail'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': submission['_id'],
+                'submission_id_or_root_uuid': submission['_id'],
             },
         )
 
@@ -122,7 +122,7 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
             self._get_endpoint('submission-detail'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': submission['_id'],
+                'submission_id_or_root_uuid': submission['_id'],
             },
         )
         response = self.client.delete(url, HTTP_ACCEPT='application/json')

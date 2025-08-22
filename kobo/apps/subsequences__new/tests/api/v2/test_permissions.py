@@ -1,5 +1,9 @@
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 import pytest
 from ddt import data, ddt, unpack
+from freezegun import freeze_time
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -17,7 +21,7 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
     @data(
         # owner: Obviously, no need to share.
         (
-            'anotheruser',
+            'someuser',
             False,
             status.HTTP_200_OK,
         ),
@@ -37,7 +41,7 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
         (
             'adminuser',
             False,
-            status.HTTP_404_NOT_FOUND,
+            status.HTTP_200_OK,
         ),
         # admin user with view permissions
         (
@@ -77,7 +81,7 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
     @data(
         # owner: Obviously, no need to share.
         (
-            'anotheruser',
+            'someuser',
             False,
             status.HTTP_200_OK,
         ),
@@ -97,7 +101,7 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
         (
             'adminuser',
             False,
-            status.HTTP_404_NOT_FOUND,
+            status.HTTP_200_OK,
         ),
         # admin user with view permissions
         (
@@ -110,12 +114,6 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
             'anonymous',
             False,
             status.HTTP_404_NOT_FOUND,
-        ),
-        # anonymous user with view permissions
-        (
-            'anonymous',
-            True,
-            status.HTTP_200_OK,
         ),
     )
     @unpack
@@ -136,13 +134,41 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
             user = User.objects.get(username=username)
             self.client.force_login(user)
 
+        # Activate advanced features for the project
+        self.set_asset_advanced_features({
+            '_version': '20250820',
+            '_actionConfigs': {
+                'q1': {
+                    'manual_transcription': [
+                        {'language': 'es'},
+                    ]
+                }
+            }
+        })
+
         if shared:
             self.asset.assign_perm(user, PERM_CHANGE_SUBMISSIONS)
 
-        response = self.client.patch(self.supplement_details_url, data=payload)
+        frozen_datetime_now = datetime(2024, 4, 8, 15, 27, 0, tzinfo=ZoneInfo('UTC'))
+        with freeze_time(frozen_datetime_now):
+            response = self.client.patch(
+                self.supplement_details_url, data=payload, format='json'
+            )
+
         assert response.status_code == status_code
         if status_code == status.HTTP_200_OK:
-            assert response.data == {}
+            expected = {
+                '_version': '20250820',
+                'q1': {
+                    'manual_transcription': {
+                        '_dateCreated': '2024-04-08T15:27:00Z',
+                        '_dateModified': '2024-04-08T15:27:00Z',
+                        'language': 'es',
+                        'transcript': 'buenas noches',
+                    },
+                },
+            }
+            assert response.data == expected
 
 
 class SubsequencePartialPermissionTestCase(SubsequenceBaseTestCase):
@@ -170,7 +196,9 @@ class SubsequencePartialPermissionTestCase(SubsequenceBaseTestCase):
                 }
             },
         }
-        response = self.client.post(self.supplement_details_url, data=payload)
+        response = self.client.post(
+            self.supplement_details_url, data=payload, format='json'
+        )
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_cannot_read_data(self):

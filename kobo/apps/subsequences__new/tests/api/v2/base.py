@@ -83,4 +83,8 @@ class SubsequenceBaseTestCase(KpiTestCase):
 
     def set_asset_advanced_features(self, features):
         self.asset.advanced_features = features
-        self.asset.save(update_fields=['advanced_features'])
+        self.asset.save(
+            adjust_content=False,
+            create_version=False,
+            update_fields=['advanced_features'],
+        )

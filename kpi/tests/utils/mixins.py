@@ -152,7 +152,7 @@ class SubmissionDeleteTestCaseMixin:
             self._get_endpoint('submission-detail'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': submission['_id'],
+                'submission_id_or_root_uuid': submission['_id'],
             },
         )
 
@@ -197,7 +197,7 @@ class SubmissionEditTestCaseMixin:
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': self.submission['_id'],
+                'submission_id_or_root_uuid': self.submission['_id'],
             },
         )
 
@@ -352,7 +352,7 @@ class SubmissionViewTestCaseMixin:
             self._get_endpoint('submission-enketo-view'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': self.submission['_id'],
+                'submission_id_or_root_uuid': self.submission['_id'],
             },
         )
 

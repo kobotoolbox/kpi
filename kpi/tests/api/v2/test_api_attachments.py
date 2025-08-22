@@ -187,7 +187,7 @@ class AttachmentApiTests(BaseAssetTestCase):
                 self._get_endpoint('submission-duplicate'),
                 kwargs={
                     'parent_lookup_asset': self.asset.uid,
-                    'pk': submission['_id'],
+                    'submission_id_or_root_uuid': submission['_id'],
                 },
             )
             response = self.client.post(duplicate_url, {'format': 'json'})

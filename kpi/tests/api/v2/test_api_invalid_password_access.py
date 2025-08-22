@@ -128,7 +128,7 @@ class InvalidPasswordAccessAPITestCase(BaseTestCase):
                 kwargs={
                     'format': 'json',
                     'parent_lookup_asset': self.asset.uid,
-                    'pk': submission_id,
+                    'submission_id_or_root_uuid': submission_id,
                 },
             ),
             **headers,

@@ -1520,7 +1520,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             self._get_endpoint('submission-duplicate'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': submission['_id'],
+                'submission_id_or_root_uuid': submission['_id'],
             },
         )
         # whoever performs the duplication request will be considered the submitter
@@ -1654,7 +1654,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 'api_v2:submission-validation-status',
                 kwargs={
                     'parent_lookup_asset': self.asset.uid,
-                    'pk': submission['_id'],
+                    'submission_id_or_root_uuid': submission['_id'],
                 },
             ),
             request_data={'validation_status.uid': 'validation_status_on_hold'},
@@ -1786,7 +1786,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 'api_v2:submission-detail',
                 kwargs={
                     'parent_lookup_asset': self.asset.uid,
-                    'pk': submission['_id'],
+                    'submission_id_or_root_uuid': submission['_id'],
                 },
             ),
             request_data={},
