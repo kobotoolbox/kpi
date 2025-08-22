@@ -1,8 +1,6 @@
 from copy import deepcopy
 
-from django.utils import timezone
-
-from .base import BaseAction, utc_datetime_to_js_str
+from .base import BaseAction
 
 
 class ManualTranscriptionAction(BaseAction):
@@ -150,34 +148,6 @@ class ManualTranscriptionAction(BaseAction):
         )
 
         return schema
-
-    def revise_field(self, submission_extra: dict, edit: dict) -> dict:
-        """
-        really, we want to generalize this to all actions.
-        for actions that may have lengthy data, are we content to store the
-        entirety of the data for each revision, or do we need some kind of
-        differencing system?
-        """
-        self.validate_data(edit)
-        self.raise_for_any_leading_underscore_key(edit)
-
-        now_str = utc_datetime_to_js_str(timezone.now())
-        revision = deepcopy(submission_extra)
-        new_record = deepcopy(edit)
-        revisions = revision.pop(self.REVISIONS_FIELD, [])
-
-        revision_creation_date = revision.pop(self.DATE_MODIFIED_FIELD, now_str)
-        record_creation_date = revision.pop(self.DATE_CREATED_FIELD, now_str)
-        revision[self.DATE_CREATED_FIELD] = revision_creation_date
-        new_record[self.DATE_MODIFIED_FIELD] = now_str
-
-        if submission_extra:
-            revisions.insert(0, revision)
-            new_record[self.REVISIONS_FIELD] = revisions
-
-        new_record[self.DATE_CREATED_FIELD] = record_creation_date
-
-        return new_record
 
     @property
     def _is_usage_limited(self):

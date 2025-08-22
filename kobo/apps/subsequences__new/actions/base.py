@@ -3,6 +3,7 @@ from copy import deepcopy
 
 import jsonschema
 from django.conf import settings
+from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import UsageLimitExceededException
@@ -133,9 +134,6 @@ class BaseAction:
 
     def validate_result(self, result):
         jsonschema.validate(result, self.result_schema)
-
-    def record_repr(self, record: dict) -> dict:
-        raise NotImplementedError()
 
     @property
     def result_schema(self):
@@ -271,8 +269,45 @@ class BaseAction:
         if balance and balance['exceeded']:
             raise UsageLimitExceededException()
 
-    def revise_field(self, submission_extra: dict, edit: dict) -> dict:
-        raise NotImplementedError
+    def retrieve_data(self, action_data: dict) -> dict:
+        """
+        `action_data` must be ONLY the data for this particular action
+        instance, not the entire SubmissionExtras caboodle
+
+        descendant classes could override with special manipulation if needed
+        """
+        return action_data
+
+    def revise_field(
+        self, submission: dict, submission_supplement: dict, edit: dict
+    ) -> dict:
+        # maybe rename to revise_data?
+        """
+        for actions that may have lengthy data, are we content to store the
+        entirety of the data for each revision, or do we need some kind of
+        differencing system?
+        """
+        self.validate_data(edit)
+        self.raise_for_any_leading_underscore_key(edit)
+
+        now_str = utc_datetime_to_js_str(timezone.now())
+        revision = deepcopy(submission_supplement)
+        new_record = deepcopy(edit)
+        revisions = revision.pop(self.REVISIONS_FIELD, [])
+
+        revision_creation_date = revision.pop(self.DATE_MODIFIED_FIELD, now_str)
+        record_creation_date = revision.pop(self.DATE_CREATED_FIELD, now_str)
+        revision[self.DATE_CREATED_FIELD] = revision_creation_date
+        new_record[self.DATE_MODIFIED_FIELD] = now_str
+
+        if submission_supplement:
+            revisions.insert(0, revision)
+            new_record[self.REVISIONS_FIELD] = revisions
+
+        new_record[self.DATE_CREATED_FIELD] = record_creation_date
+
+        return new_record
+
 
     @staticmethod
     def raise_for_any_leading_underscore_key(d: dict):

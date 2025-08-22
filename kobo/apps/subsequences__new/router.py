@@ -1,7 +1,10 @@
+from typing import Optional
+
 from kobo.apps.subsequences.models import (
     SubmissionExtras,  # just bullshit for now
 )
 from kpi.models import Asset
+
 from .actions import ACTION_IDS_TO_CLASSES
 
 
@@ -22,26 +25,29 @@ class InvalidXPath(Exception):
 
     pass
 
+
 # ChatGPT suggestions:
 # - dispatch_action_payload
 # - dispatch_incoming_data
 # - process_action_request
 # - run_action
-def handle_incoming_data(asset: Asset, submission_uuid: str, data: dict):
+def handle_incoming_data(asset: Asset, submission: dict, data: dict):
+    # it'd be better if this returned the same thing as retrieve_supplemental_data
     schema_version = data.pop('_version')
     if schema_version != '20250820':
         # TODO: migrate from old per-submission schema
         raise NotImplementedError
 
-    # TODO: validate that such a submission even exists!
+    if asset.advanced_features['_version'] != schema_version:
+        # TODO: migrate from old per-asset schema
+        raise NotImplementedError
+
+    submission_uuid = submission['meta/rootUuid']  # constant?
     supplemental_data = SubmissionExtras.objects.get_or_create(
         asset=asset, submission_uuid=submission_uuid
     )[0].content  # lock it?
 
     for question_xpath, data_for_this_question in data.items():
-        if asset.advanced_features['_version'] != '20250820':
-            # TODO: migrate from old per-asset schema
-            raise NotImplementedError
         try:
             action_configs_for_this_question = asset.advanced_features[
                 '_actionConfigs'
@@ -61,9 +67,76 @@ def handle_incoming_data(asset: Asset, submission_uuid: str, data: dict):
 
             action = action_class(question_xpath, action_params)
             action.check_limits(asset.owner)
-            # action.validate_data(action_data)  # called by revise_field
-            supplemental_data = action.revise_field(supplemental_data, action_data)
+            action_supplemental_data = supplemental_data.setdefault(
+                question_xpath, {}
+            ).setdefault(action_id, {})
+            action_supplemental_data = action.revise_field(
+                submission, action_supplemental_data, action_data
+            )
 
+    supplemental_data['_version'] = schema_version
     SubmissionExtras.objects.filter(
         asset=asset, submission_uuid=submission_uuid
     ).update(content=supplemental_data)
+
+
+def retrieve_supplemental_data(asset: Asset, submission_uuid: str) -> dict:
+    try:
+        supplemental_data = SubmissionExtras.objects.get(
+            asset=asset, submission_uuid=submission_uuid
+        ).content
+    except SubmissionExtras.DoesNotExist:
+        return {}
+
+    schema_version = supplemental_data.pop('_version')
+    if schema_version != '20250820':
+        # TODO: migrate from old per-submission schema
+        raise NotImplementedError
+
+    if asset.advanced_features['_version'] != schema_version:
+        # TODO: migrate from old per-asset schema
+        raise NotImplementedError
+
+    processed_supplemental_data = {}
+
+    for question_xpath, data_for_this_question in supplemental_data.items():
+        processed_data_for_this_question = (
+            processed_supplemental_data.setdefault(question_xpath, {})
+        )
+        action_configs = asset.advanced_features['_actionConfigs']
+        try:
+            action_configs_for_this_question = action_configs[question_xpath]
+        except KeyError:
+            # There's still supplemental data for this question at the
+            # submission level, but the question is no longer configured at the
+            # asset level.
+            # Allow this for now, but maybe forbid later and also forbid
+            # removing things from the asset-level action configuration?
+            # Actions could be disabled or hidden instead of being removed
+            continue
+
+        for action_id, action_data in data_for_this_question.items():
+            try:
+                action_class = ACTION_IDS_TO_CLASSES[action_id]
+            except KeyError:
+                # An action class present in the submission data no longer
+                # exists in the application code
+                # TODO: log an error
+                continue
+            try:
+                action_params = action_configs_for_this_question[action_id]
+            except KeyError:
+                # An action class present in the submission data is no longer
+                # configured at the asset level for this question
+                # Allow this for now, but maybe forbid later and also forbid
+                # removing things from the asset-level action configuration?
+                # Actions could be disabled or hidden instead of being removed
+                continue
+
+            action = action_class(question_xpath, action_params)
+            processed_data_for_this_question[action_id] = action.retrieve_data(
+                action_data
+            )
+
+    processed_supplemental_data['_version'] = schema_version
+    return processed_supplemental_data
