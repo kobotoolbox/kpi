@@ -18,9 +18,7 @@ from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
-from kobo.apps.subsequences.advanced_features_params_schema import (
-    ADVANCED_FEATURES_PARAMS_SCHEMA,
-)
+from kobo.apps.subsequences__new.actions import ADVANCED_FEATURES_PARAMS_SCHEMA
 from kobo.apps.subsequences.utils import (
     advanced_feature_instances,
     advanced_submission_jsonschema,
