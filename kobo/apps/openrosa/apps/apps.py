@@ -19,4 +19,5 @@ class OpenRosaAppConfig(AppConfig):
         from kobo.apps.openrosa.schema_extensions.v2.submission import (  # noqa F401
             extensions,
         )
+
         super().ready()

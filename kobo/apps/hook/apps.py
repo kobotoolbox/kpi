@@ -12,4 +12,5 @@ class HookAppConfig(AppConfig):
         # in the UI.
         from .schema_extensions.v2.hooks import extensions  # noqa F401
         from .schema_extensions.v2.hooks.logs import extensions  # noqa F401
+
         super().ready()

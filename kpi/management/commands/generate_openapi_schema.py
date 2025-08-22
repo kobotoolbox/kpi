@@ -6,7 +6,6 @@ from kpi.utils.spectacular_processing import (
     V2APISchemaGenerator,
 )
 
-
 SCHEMA_GENERATORS = {
     'openrosa': OpenRosaAPISchemaGenerator,
     'api_v2': V2APISchemaGenerator,
@@ -26,13 +25,13 @@ class Command(BaseCommand):
             '--schema',
             choices=SCHEMA_GENERATORS.keys(),
             required=True,
-            help='Which schema to generate (e.g. "api_v2", "openrosa")'
+            help='Which schema to generate (e.g. "api_v2", "openrosa")',
         )
         parser.add_argument(
             '--format',
             choices=FORMAT_RENDERERS.keys(),
             default='openapi',
-            help='Output format: openapi (default) or openapi-json'
+            help='Output format: openapi (default) or openapi-json',
         )
         parser.add_argument(
             '--file',
@@ -68,8 +67,6 @@ class Command(BaseCommand):
         else:
             # fallback to stdout
             output = (
-                rendered.decode('utf-8')
-                if isinstance(rendered, bytes)
-                else rendered
+                rendered.decode('utf-8') if isinstance(rendered, bytes) else rendered
             )
             self.stdout.write(output)

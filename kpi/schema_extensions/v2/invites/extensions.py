@@ -79,9 +79,7 @@ class InviteRoleFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_choice_field(
-            field=serializers.ChoiceField(
-                choices=ROLE_CHOICES_PAYLOAD_ENUM
-            )
+            field=serializers.ChoiceField(choices=ROLE_CHOICES_PAYLOAD_ENUM)
         )
 
 
@@ -116,6 +114,6 @@ class InviteResponseListSerializerExtension(OpenApiSerializerExtension):
                     'created': build_basic_type(OpenApiTypes.DATETIME),
                     'modified': build_basic_type(OpenApiTypes.DATETIME),
                     'invitee': GENERIC_STRING_SCHEMA,
-                }
+                },
             )
         )
