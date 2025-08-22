@@ -96,7 +96,7 @@ class AssetCreateRequestSerializerExtension(OpenApiSerializerExtension):
                         'name': ASSET_NAME_SCHEMA,
                         'clone_from': ASSET_CLONE_FROM_SCHEMA,
                         'asset_type': ASSET_TYPE_SCHEMA,
-                    }
+                    },
                 ),
                 build_object_type(
                     required=[
@@ -108,7 +108,7 @@ class AssetCreateRequestSerializerExtension(OpenApiSerializerExtension):
                         'name': ASSET_NAME_SCHEMA,
                         'settings': ASSET_SETTINGS_SCHEMA,
                         'asset_type': ASSET_TYPE_SCHEMA,
-                    }
+                    },
                 ),
             ]
         }
@@ -127,14 +127,14 @@ class AssetPatchRequestSerializerExtension(OpenApiSerializerExtension):
                     properties={
                         'content': ASSET_CONTENT_SCHEMA,
                         'name': ASSET_NAME_SCHEMA,
-                    }
+                    },
                 ),
                 build_object_type(
                     required=['enabled', 'fields'],
                     properties={
                         'enabled': ASSET_ENABLED_SCHEMA,
                         'fields': ASSET_FIELDS_SCHEMA,
-                    }
+                    },
                 ),
             ]
         }
@@ -208,14 +208,14 @@ class BulkPayloadSerializerExtension(OpenApiSerializerExtension):
                     properties={
                         'asset_uids': BULK_ASSET_UIDS_SCHEMA,
                         'action': BULK_ACTION_SCHEMA,
-                    }
+                    },
                 ),
                 build_object_type(
                     required=['confirm', 'action'],
                     properties={
                         'confirm': BULK_CONFIRM_SCHEMA,
                         'action': BULK_ACTION_SCHEMA,
-                    }
+                    },
                 ),
             ]
         }

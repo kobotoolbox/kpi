@@ -1,8 +1,8 @@
 import os
 
 from django.templatetags.static import static
-from drf_spectacular.views import SpectacularSwaggerView
 from drf_spectacular.utils import extend_schema
+from drf_spectacular.views import SpectacularSwaggerView
 from rest_framework.response import Response
 
 

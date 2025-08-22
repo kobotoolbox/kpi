@@ -220,8 +220,7 @@ class DataViewSet(
             validate_payload=False, require_auth=False, raise_access_forbidden=False
         ),
     )
-    @action(detail=False, methods=['PATCH', 'DELETE'],
-            renderer_classes=[renderers.JSONRenderer])
+    @action(detail=False, methods=['PATCH', 'DELETE'])
     def bulk(self, request, *args, **kwargs):
         if request.method == 'DELETE':
             response = self._bulk_delete(request)
@@ -251,7 +250,6 @@ class DataViewSet(
     @action(
         detail=True,
         methods=['POST'],
-        renderer_classes=[renderers.JSONRenderer],
         permission_classes=[DuplicateSubmissionPermission],
     )
     def duplicate(self, request, pk, *args, **kwargs):
@@ -309,7 +307,6 @@ class DataViewSet(
     @action(
         detail=True,
         methods=['GET'],
-        renderer_classes=[renderers.JSONRenderer],
         permission_classes=[EditLinkSubmissionPermission],
         url_path='enketo/edit',
     )
@@ -345,7 +342,6 @@ class DataViewSet(
     @action(
         detail=True,
         methods=['GET'],
-        renderer_classes=[renderers.JSONRenderer],
         permission_classes=[ViewSubmissionPermission],
         url_path='enketo/view',
     )
@@ -512,7 +508,6 @@ class DataViewSet(
         ],
     )
     @action(detail=True, methods=['GET', 'PATCH', 'DELETE'],
-            renderer_classes=[renderers.JSONRenderer],
             permission_classes=[SubmissionValidationStatusPermission])
     def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
@@ -553,7 +548,6 @@ class DataViewSet(
         ),
     )
     @action(detail=False, methods=['PATCH', 'DELETE'],
-            renderer_classes=[renderers.JSONRenderer],
             permission_classes=[SubmissionValidationStatusPermission])
     def validation_statuses(self, request, *args, **kwargs):
         deployment = self._get_deployment()

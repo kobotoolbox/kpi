@@ -19,7 +19,6 @@ class TokenAuthExtension(OpenApiAuthenticationExtension):
             'in': 'header',
             'name': 'Authorization',
             'description': (
-                'Token-based authentication. '
-                'Use the format: `Token <your-token>`'
-            )
+                'Token-based authentication. ' 'Use the format: `Token <your-token>`'
+            ),
         }

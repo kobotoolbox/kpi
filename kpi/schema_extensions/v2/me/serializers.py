@@ -5,8 +5,8 @@ from .fields import (
     ExtraDetailField,
     GitRevField,
     GravatarField,
-    ProjectUrlField,
     OrganizationField,
+    ProjectUrlField,
     SocialAccountField,
 )
 

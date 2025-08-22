@@ -34,21 +34,20 @@ from ..serializers import TransferDetailSerializer
         responses=open_api_200_ok_response(
             TransferListResponse,
             validate_payload=False,
-        )
+        ),
     ),
 )
 class TransferViewSet(viewsets.ReadOnlyModelViewSet):
-
     """
-        Viewset for transfers
+    Viewset for transfers
 
-        Available actions:
-        - list           → GET       /api/v2/project-ownership/invites/{parent_lookup_invite_uid}/transfers/  # noqa
-        - retrieve       → GET       /api/v2/project-ownership/invites/{parent_lookup_invite_uid}/transfers/{uid}/  # noqa
+    Available actions:
+    - list           → GET       /api/v2/project-ownership/invites/{parent_lookup_invite_uid}/transfers/  # noqa
+    - retrieve       → GET       /api/v2/project-ownership/invites/{parent_lookup_invite_uid}/transfers/{uid}/  # noqa
 
-        Documentation:
-        - docs/api/v2/transfers/list.md
-        - docs/api/v2/transfers/retrieve.md
+    Documentation:
+    - docs/api/v2/transfers/list.md
+    - docs/api/v2/transfers/retrieve.md
     """
 
     model = Transfer

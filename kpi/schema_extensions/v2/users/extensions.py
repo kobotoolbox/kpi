@@ -1,7 +1,5 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
-from drf_spectacular.plumbing import (
-    build_object_type,
-)
+from drf_spectacular.plumbing import build_object_type
 
 from kpi.schema_extensions.v2.generic.schema import (
     GENERIC_ARRAY_SCHEMA,

@@ -411,12 +411,11 @@ class AssetViewSet(
     @action(
         detail=False,
         methods=['POST'],
-        renderer_classes=[renderers.JSONRenderer],
     )
     def bulk(self, request, *args, **kwargs):
         return Response(self._bulk_asset_actions(request.data))
 
-    @action(detail=True, renderer_classes=[renderers.JSONRenderer])
+    @action(detail=True)
     def content(self, request, uid):
         asset = self.get_object()
         return Response({
@@ -811,8 +810,7 @@ class AssetViewSet(
         serializer = self.get_serializer(self.__filtered_queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['GET'],
-            renderer_classes=[renderers.JSONRenderer])
+    @action(detail=False, methods=['GET'])
     def hash(self, request):
         """
         Creates an hash of `version_id` of all accessible assets by the user.
@@ -848,8 +846,7 @@ class AssetViewSet(
                 'hash': hash_
             })
 
-    @action(detail=False, methods=['GET'],
-            renderer_classes=[renderers.JSONRenderer])
+    @action(detail=False, methods=['GET'])
     def metadata(self, request):
         queryset = self.filter_queryset(self.get_queryset())
         metadata = self.get_metadata(queryset)
@@ -886,7 +883,6 @@ class AssetViewSet(
         detail=True,
         permission_classes=[ReportPermission],
         methods=['GET'],
-        renderer_classes=[renderers.JSONRenderer],
     )
     def reports(self, request, *args, **kwargs):
         asset = self.get_object()
@@ -896,7 +892,7 @@ class AssetViewSet(
                                              context=self.get_serializer_context())
         return Response(serializer.data)
 
-    @action(detail=True, renderer_classes=[renderers.JSONRenderer])
+    @action(detail=True)
     def valid_content(self, request, uid):
         asset = self.get_object()
         return Response({
