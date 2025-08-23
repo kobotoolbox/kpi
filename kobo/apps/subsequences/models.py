@@ -41,7 +41,7 @@ class SubmissionSupplement(SubmissionExtras):
             # TODO: migrate from old per-asset schema
             raise NotImplementedError
 
-        submission_uuid = submission['meta/rootUuid']  # constant?
+        submission_uuid = remove_uuid_prefix(submission['meta/rootUuid'])  # constant?
         supplemental_data = SubmissionExtras.objects.get_or_create(
             asset=asset, submission_uuid=submission_uuid
         )[
