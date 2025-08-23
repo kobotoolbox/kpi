@@ -1,6 +1,8 @@
 from django.db import models
 
-from kpi.models import Asset
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    remove_uuid_prefix,
+)
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from .actions import ACTION_IDS_TO_CLASSES
 from .exceptions import InvalidAction, InvalidXPath
@@ -11,7 +13,7 @@ class SubmissionExtras(AbstractTimeStampedModel):
     submission_uuid = models.CharField(max_length=249)
     content = models.JSONField(default=dict)
     asset = models.ForeignKey(
-        Asset,
+        'kpi.Asset',
         related_name='submission_extras',
         on_delete=models.CASCADE,
     )
@@ -29,7 +31,7 @@ class SubmissionSupplement(SubmissionExtras):
         return f'Supplement for submission {self.submission_uuid}'
 
     def revise_data(
-        asset: Asset, submission: dict, incoming_data: dict
+        asset: 'kpi.Asset', submission: dict, incoming_data: dict
     ) -> dict:
         schema_version = incoming_data.pop('_version')
         if schema_version != '20250820':
@@ -91,12 +93,22 @@ class SubmissionSupplement(SubmissionExtras):
         return retrieved_supplemental_data
 
 
-    def retrieve_data(asset: Asset, submission_uuid: str) -> dict:
-        try:
-            supplemental_data = SubmissionExtras.objects.get(
-                asset=asset, submission_uuid=submission_uuid
-            ).content
-        except SubmissionExtras.DoesNotExist:
+    def retrieve_data(asset: 'kpi.Asset', submission_root_uuid: str | None = None, prefetched_supplement: dict | None = None) -> dict:
+        if (submission_root_uuid is None) == (prefetched_supplement is None):
+            raise ValueError('Specify either `submission_root_uuid` or `prefetched_supplement`')
+
+        if submission_root_uuid:
+            submission_uuid = remove_uuid_prefix(submission_root_uuid)
+            try:
+                supplemental_data = SubmissionExtras.objects.get(
+                    asset=asset, submission_uuid=submission_uuid
+                ).content
+            except SubmissionExtras.DoesNotExist:
+                supplemental_data = None
+        else:
+            supplemental_data = prefetched_supplement
+
+        if not supplemental_data:
             return {}
 
         schema_version = supplemental_data.pop('_version')
