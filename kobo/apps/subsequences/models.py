@@ -93,6 +93,8 @@ class SubmissionSupplement(SubmissionExtras):
             asset=asset, submission_uuid=submission_uuid
         ).update(content=supplemental_data)
 
+        # FIXME: bug! this will not return data from the other actions (and
+        # questions?) that were not affected by the revision
         retrieved_supplemental_data['_version'] = schema_version
         return retrieved_supplemental_data
 
