@@ -81,7 +81,10 @@ DataSupplementPayload = inline_serializer_class(
 
 DataSupplementResponse = inline_serializer_class(
     name='DataSupplementResponse',
-    fields={}
+    fields={
+        '_version': serializers.CharField(),
+        'question_name_xpath': serializers.JSONField(),
+    }
 )
 
 
