@@ -11,6 +11,7 @@ class SubmissionSupplement(SubmissionExtras):
         proxy = True
         app_label = 'subsequences'
 
+    @staticmethod
     def revise_data(
         asset: Asset, submission: dict, incoming_data: dict
     ) -> dict:

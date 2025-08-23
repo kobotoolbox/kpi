@@ -86,9 +86,6 @@ class ManualTranscriptionAction(BaseAction):
             languages.append(individual_params['language'])
         return languages
 
-    def record_repr(self, record: dict) -> dict:
-        return record.get('value', '')
-
     @property
     def result_schema(self):
 
@@ -123,7 +120,7 @@ class ManualTranscriptionAction(BaseAction):
         self._inject_data_schema(schema, ['$schema', 'title', 'type'])
 
         # Also inject data schema in the revision definition
-        self.__inject_data_schema(
+        self._inject_data_schema(
             schema['$defs']['revision'], ['$schema', 'title', '$defs']
         )
 

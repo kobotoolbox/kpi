@@ -5,6 +5,7 @@ from .base import BaseAction
 
 class ManualTranslationAction(BaseAction):
     ID = 'manual_translation'
+    item_reference_property = 'language'
 
     def __init__(self, source_question_xpath, params):
         self.source_question_xpath = source_question_xpath
@@ -84,9 +85,6 @@ class ManualTranslationAction(BaseAction):
         for individual_params in self.params:
             languages.append(individual_params['language'])
         return languages
-
-    def record_repr(self, record: dict) -> dict:
-        return record.get('value', '')
 
     @property
     def result_schema(self):

@@ -8,6 +8,7 @@ from django.utils import timezone
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
+from ..exceptions import InvalidItem
 
 """
 ### All actions must have the following components
@@ -125,6 +126,9 @@ class BaseAction:
     DATE_MODIFIED_FIELD = '_dateModified'
     REVISIONS_FIELD = '_revisions'
 
+    # Change my name, my parents hate me when I was born
+    item_reference_property = None
+
     def check_limits(self, user: User):
 
         if not settings.STRIPE_ENABLED or not self._is_usage_limited:
@@ -184,7 +188,22 @@ class BaseAction:
         self.raise_for_any_leading_underscore_key(edit)
 
         now_str = utc_datetime_to_js_str(timezone.now())
-        revision = deepcopy(submission_supplement)
+        item_index = None
+        submission_supplement_copy = deepcopy(submission_supplement)
+        if not self.item_reference_property:
+            revision = submission_supplement_copy
+        else:
+            needle = edit[self.item_reference_property]
+            revision = {}
+            if not isinstance(submission_supplement, list):
+                raise InvalidItem
+
+            for idx, item in enumerate(submission_supplement):
+                if needle == item[self.item_reference_property]:
+                    revision = deepcopy(item)
+                    item_index = idx
+                    break
+
         new_record = deepcopy(edit)
         revisions = revision.pop(self.REVISIONS_FIELD, [])
 
@@ -193,11 +212,24 @@ class BaseAction:
         revision[self.DATE_CREATED_FIELD] = revision_creation_date
         new_record[self.DATE_MODIFIED_FIELD] = now_str
 
-        if submission_supplement:
-            revisions.insert(0, revision)
-            new_record[self.REVISIONS_FIELD] = revisions
+        if not self.item_reference_property:
+            if submission_supplement:
+                revisions.insert(0, revision)
+                new_record[self.REVISIONS_FIELD] = revisions
+        else:
+            if item_index is not None:
+                revisions.insert(0, revision)
+                new_record[self.REVISIONS_FIELD] = revisions
 
         new_record[self.DATE_CREATED_FIELD] = record_creation_date
+
+        if self.item_reference_property:
+            if item_index is None:
+                submission_supplement_copy.append(new_record)
+            else:
+                submission_supplement_copy[item_index] = new_record
+
+            new_record = submission_supplement_copy
 
         self.validate_result(new_record)
 
