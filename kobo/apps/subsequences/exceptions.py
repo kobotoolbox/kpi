@@ -1,20 +1,16 @@
-class AudioTooLongError(Exception):
-    """Audio file is too long for specified speech service"""
+class InvalidAction(Exception):
+    """
+    The referenced action does not exist or was not configured for the given
+    question XPath at the asset level
+    """
 
-
-class SubsequenceTimeoutError(Exception):
     pass
 
 
-class TranscriptionResultsNotFound(Exception):
+class InvalidXPath(Exception):
     """
-    No results returned by specified transcription service
+    The referenced question XPath was not configured for supplemental data at
+    the asset level
     """
 
-
-class TranslationAsyncResultAvailable(Exception):
-    pass
-
-
-class TranslationResultsNotFound(Exception):
     pass
