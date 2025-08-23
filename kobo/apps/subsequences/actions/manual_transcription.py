@@ -1,51 +1,7 @@
-import jsonschema
-from ..constants import TRANSCRIBABLE_SOURCE_TYPES
-#from ..actions.base import BaseAction
+from copy import deepcopy
 
-"""
-### All actions must have the following components
+from .base import BaseAction
 
-* (check!) a unique identifier for the action
-* three jsonschemas:
-  1. (check!) one to validate the parameters used to configure the action
-    * `ADVANCED_FEATURES_PARAMS_SCHEMA`
-  2. (check!) one to validate users' requests to invoke the action, which many contain content (e.g. a manual transcript)
-    * the result of `modify_jsonschema()`
-  3. one to validate the result of the action - the result of `modify_jsonschema()`
-    * OH NO, this doesn't happen at all yet
-* a handler that receives a submission (and other metadata) and processes it
-"""
-
-"""
-idea of example content in asset.advanced_features (what kind of actions are activated per question)
-{
-    'version': '20250820',
-    'schema': {
-        'my_audio_question': {
-            'manual_transcription': [
-                {'language': 'ar'},
-                {'language': 'bn'},
-                {'language': 'es'},
-            ],
-            'manual_translation': [{'language': 'fr'}],
-        },
-        'my_video_question': {
-            'manual_transcription': [{'language': 'en'}],
-        },
-        'my_number_question': {
-            'number_multiplier': [{'multiplier': 3}],
-        },
-    },
-}
-"""
-
-class BaseAction:
-    @classmethod
-    def validate_params(cls, params):
-        jsonschema.validate(params, cls.params_schema)
-
-    def validate_data(self, data):
-        jsonschema.validate(data, self.data_schema)
 
 class ManualTranscriptionAction(BaseAction):
     ID = 'manual_transcription'
@@ -87,48 +43,89 @@ class ManualTranscriptionAction(BaseAction):
     @property
     def data_schema(self):  # for lack of a better name
         """
-        (currently) POST to "/advanced_submission_post/aSsEtUiD"
-        POST to "/api/v2/assets/<asset uid>/data/<submission uuid>/supplemental"  # idk, rename?
+        POST to "/api/v2/assets/<asset uid>/data/<submission uuid>/supplemental"
         {
             'manual_transcription': {
                 'language': 'es',
-                'transcript': 'Almorzamos muy bien hoy',
+                'value': 'Almorzamos muy bien hoy',
             }
         }
         """
-        languages = []
-        for individual_params in self.params:
-            languages.append(individual_params['language'])
 
         return {
+            '$schema': 'https://json-schema.org/draft/2020-12/schema',
+            'type': 'object',
             'additionalProperties': False,
             'properties': {
-                'language': {
-                    'type': 'string',
-                    'enum': languages,
-                },
-                'transcript': {
-                    'type': 'string',
+                'language': {'$ref': '#/$defs/lang'},
+                'value': {'$ref': '#/$defs/transcript'},
+            },
+            'allOf': [{'$ref': '#/$defs/lang_transcript_dependency'}],
+            '$defs': {
+                'lang': {'type': 'string', 'enum': self.languages},
+                'transcript': {'type': 'string'},
+                'lang_transcript_dependency': {
+                    'allOf': [
+                        {
+                            'if': {'required': ['language']},
+                            'then': {'required': ['value']},
+                        },
+                        {
+                            'if': {'required': ['value']},
+                            'then': {'required': ['language']},
+                        },
+                    ]
                 },
             },
-            'required': ['language', 'transcript'],
-            'type': 'object',
         }
 
     @property
-    @classmethod
-    def result_schema(cls):
-        """
-        we also need a schema to define the final result that will be written
-        into SubmissionExtras
+    def languages(self) -> list[str]:
+        languages = []
+        for individual_params in self.params:
+            languages.append(individual_params['language'])
+        return languages
 
-        we need to solve the problem of storing multiple results for a single action
-        """
-        raise NotImplementedError
+    @property
+    def result_schema(self):
 
+        schema = {
+            '$schema': 'https://json-schema.org/draft/2020-12/schema',
+            'type': 'object',
+            'additionalProperties': False,
+            'properties': {
+                self.REVISIONS_FIELD: {
+                    'type': 'array',
+                    'minItems': 1,
+                    'items': {'$ref': '#/$defs/revision'},
+                },
+                self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
+                self.DATE_MODIFIED_FIELD: {'$ref': '#/$defs/dateTime'},
+            },
+            'required': [self.DATE_CREATED_FIELD, self.DATE_MODIFIED_FIELD],
+            '$defs': {
+                'dateTime': {'type': 'string', 'format': 'date-time'},
+                'revision': {
+                    'type': 'object',
+                    'additionalProperties': False,
+                    'properties': {
+                        self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
+                    },
+                    'required': [self.DATE_CREATED_FIELD],
+                },
+            },
+        }
 
-    def load_params(self, params):
-        """
-        idk maybe we use this to read the language out of `Asset.advanced_features`
-        """
-        self.possible_transcribed_fields = params['values']
+        # Inject data schema in result schema template
+        self._inject_data_schema(schema, ['$schema', 'title', 'type'])
+
+        # Also inject data schema in the revision definition
+        self._inject_data_schema(
+            schema['$defs']['revision'], ['$schema', 'title', '$defs']
+        )
+
+        return schema
+
+    @property
+    def _is_usage_limited(self):
+        return False

@@ -1,128 +1,294 @@
 import datetime
-from zoneinfo import ZoneInfo
+from copy import deepcopy
 
+import jsonschema
+from django.conf import settings
 from django.utils import timezone
 
-from kobo.apps.subsequences.constants import GOOGLETS, GOOGLETX
+from kobo.apps.kobo_auth.shortcuts import User
+from kpi.exceptions import UsageLimitExceededException
+from kpi.utils.usage_calculator import ServiceUsageCalculator
+from ..exceptions import InvalidItem
 
-ACTION_NEEDED = 'ACTION_NEEDED'
-PASSES = 'PASSES'
+"""
+### All actions must have the following components
+
+* (check!) a unique identifier for the action
+* three jsonschemas:
+  1. (check!) one to validate the parameters used to configure the action
+    * `ADVANCED_FEATURES_PARAMS_SCHEMA`
+  2. (check!) one to validate users' requests to invoke the action, which many contain content (e.g. a manual transcript)
+    * the result of `modify_jsonschema()`
+  3. one to validate the result of the action - the result of `modify_jsonschema()`
+    * OH NO, this doesn't happen at all yet
+* a handler that receives a submission (and other metadata) and processes it
+"""
+
+"""
+idea of example content in asset.advanced_features (what kind of actions are activated per question)
+{
+    '_version': '20250820',
+    '_schema': {
+        'my_audio_question': {
+            'manual_transcription': [
+                {'language': 'ar'},
+                {'language': 'bn'},
+                {'language': 'es'},
+            ],
+            'manual_translation': [{'language': 'fr'}, {'language': 'en'}],
+        },
+        'my_video_question': {
+            'manual_transcription': [{'language': 'en'}],
+        },
+        'my_number_question': {
+            'number_multiplier': [{'multiplier': 3}],
+        },
+    },
+}
+
+idea of example data in SubmissionExtras based on the above
+{
+    '_version': '20250820',
+    '_submission': '<some submission uuid>',
+    'my_audio_question': {
+        'manual_transcription': {
+            'transcript': 'هائج',
+            'language': 'ar',
+            '_dateCreated': '2025-08-21T20:55:42.012053Z',
+            '_dateModified': '2025-08-21T20:57:28.154567Z',
+            '_revisions': [
+                {
+                    'transcript': 'فارغ',
+                    'language': 'ar',
+                    '_dateCreated': '2025-08-21T20:55:42.012053Z',
+                }
+            ],
+        },
+        'manual_translation': [
+            {
+                'language': 'en',
+                'translation': 'berserk',
+                '_dateCreated': '2025-08-21T21:39:42.141306Z',
+                '_dateModified': '2025-08-21T21:39:42.141306Z',
+            },
+            {
+                'language': 'es',
+                'translation': 'enloquecido',
+                '_dateCreated': '2025-08-21T21:40:54.644308Z',
+                '_dateModified': '2025-08-21T22:00:10.862880Z',
+                '_revisions': [
+                    {
+                        'translation': 'loco',
+                        'language': 'es',
+                        '_dateCreated': '2025-08-21T21:40:54.644308Z',
+                    }
+                ],
+            },
+        ],
+    },
+    'my_video_question': {
+        'manual_transcription': {
+            'transcript': 'sea horse sea hell',
+            'language': 'en',
+            '_dateCreated': '2025-08-21T21:06:20.059117Z',
+            '_dateModified': '2025-08-21T21:06:20.059117Z',
+        },
+    },
+    'my_number_question': {
+        'number_multiplier': {
+            'numberMultiplied': 99,
+            '_dateCreated': '2025-08-21T21:09:34.504546Z',
+            '_dateModified': '2025-08-21T21:09:34.504546Z',
+        },
+    },
+}
+"""
+
+
+def utc_datetime_to_js_str(dt: datetime.datetime) -> str:
+    """
+    Return a string to represent a `datetime` following the simplification of
+    the ISO 8601 format used by JavaScript
+    """
+    # https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date-time-string-format
+    if dt.utcoffset() or not dt.tzinfo:
+        raise NotImplementedError('Only UTC datetimes are supported')
+    return dt.isoformat().replace('+00:00', 'Z')
 
 
 class BaseAction:
-    ID = None
-    _destination_field = '_supplementalDetails'
+    def something_to_get_the_data_back_out(self):
+        # might need to deal with multiple columns for one action
+        # ^ definitely will
+        raise NotImplementedError
 
-    DATE_CREATED_FIELD = 'dateCreated'
-    DATE_MODIFIED_FIELD = 'dateModified'
-    DELETE = '⌫'
+    DATE_CREATED_FIELD = '_dateCreated'
+    DATE_MODIFIED_FIELD = '_dateModified'
+    REVISIONS_FIELD = '_revisions'
 
-    def __init__(self, params):
-        self.load_params(params)
+    # Change my name, my parents hate me when I was born
+    item_reference_property = None
 
-    def cur_time(self):
-        return datetime.datetime.now(tz=ZoneInfo('UTC')).strftime('%Y-%m-%dT%H:%M:%SZ')
+    def check_limits(self, user: User):
 
-    def load_params(self, params):
-        raise NotImplementedError('subclass must define a load_params method')
+        if not settings.STRIPE_ENABLED or not self._is_usage_limited:
+            return
 
-    def run_change(self, params):
-        raise NotImplementedError('subclass must define a run_change method')
+        calculator = ServiceUsageCalculator(user)
+        balances = calculator.get_usage_balances()
 
-    def check_submission_status(self, submission):
-        return PASSES
+        balance = balances[self._limit_identifier]
+        if balance and balance['exceeded']:
+            raise UsageLimitExceededException()
 
-    def modify_jsonschema(self, schema):
-        return schema
+    @classmethod
+    def validate_params(cls, params):
+        jsonschema.validate(params, cls.params_schema)
 
-    def compile_revised_record(self, content, edits):
+    def validate_data(self, data):
+        jsonschema.validate(data, self.data_schema)
+
+    def validate_result(self, result):
+        jsonschema.validate(result, self.result_schema)
+
+    @property
+    def result_schema(self):
         """
-        a method that applies changes to a json structure and appends previous
-        changes to a revision history
+        we also need a schema to define the final result that will be written
+        into SubmissionExtras
+
+        we need to solve the problem of storing multiple results for a single action
         """
+        return NotImplementedError
 
-        # TODO: should this handle managing `DATE_CREATED_FIELD`,
-        # `DATE_MODIFIED_FIELD`, etc. instead of delegating that to
-        # `revise_record()` as it currently does?
+    def retrieve_data(self, action_data: dict) -> dict:
+        """
+        `action_data` must be ONLY the data for this particular action
+        instance, not the entire SubmissionExtras caboodle
 
-        if self.ID is None:
-            return content
-        for field_name, vals in edits.items():
-            if field_name == 'submission':
-                continue
+        descendant classes could override with special manipulation if needed
+        """
+        return action_data
 
-            erecord = vals.get(self.ID)
-            o_keyval = content.get(field_name, {})
-            for extra in [GOOGLETX, GOOGLETS]:
-                if extra in vals:
-                    o_keyval[extra] = vals[extra]
-                    content[field_name] = o_keyval
+    def revise_field(self, *args, **kwargs):
+        # TODO: remove this alias
+        import warnings
+        warnings.warn('Oh no, this method is going away!', DeprecationWarning)
+        return self.revise_data(*args, **kwargs)
 
-            orecord = o_keyval.get(self.ID)
-            if erecord is None:
-                continue
-            if self.is_auto_request(erecord):
-                content[field_name].update(
-                    self.auto_request_repr(erecord)
-                )
-                continue
-            if orecord is None:
-                compiled_record = self.init_field(erecord)
-            elif not self.has_change(orecord, erecord):
-                continue
+    def revise_data(
+        self, submission: dict, submission_supplement: dict, edit: dict
+    ) -> dict:
+        """
+        for actions that may have lengthy data, are we content to store the
+        entirety of the data for each revision, or do we need some kind of
+        differencing system?
+        """
+        self.validate_data(edit)
+        self.raise_for_any_leading_underscore_key(edit)
+
+        now_str = utc_datetime_to_js_str(timezone.now())
+        item_index = None
+        submission_supplement_copy = deepcopy(submission_supplement)
+        if not self.item_reference_property:
+            revision = submission_supplement_copy
+        else:
+            needle = edit[self.item_reference_property]
+            revision = {}
+            if not isinstance(submission_supplement, list):
+                raise InvalidItem
+
+            for idx, item in enumerate(submission_supplement):
+                if needle == item[self.item_reference_property]:
+                    revision = deepcopy(item)
+                    item_index = idx
+                    break
+
+        new_record = deepcopy(edit)
+        revisions = revision.pop(self.REVISIONS_FIELD, [])
+
+        revision_creation_date = revision.pop(self.DATE_MODIFIED_FIELD, now_str)
+        record_creation_date = revision.pop(self.DATE_CREATED_FIELD, now_str)
+        revision[self.DATE_CREATED_FIELD] = revision_creation_date
+        new_record[self.DATE_MODIFIED_FIELD] = now_str
+
+        if not self.item_reference_property:
+            if submission_supplement:
+                revisions.insert(0, revision)
+                new_record[self.REVISIONS_FIELD] = revisions
+        else:
+            if item_index is not None:
+                revisions.insert(0, revision)
+                new_record[self.REVISIONS_FIELD] = revisions
+
+        new_record[self.DATE_CREATED_FIELD] = record_creation_date
+
+        if self.item_reference_property:
+            if item_index is None:
+                submission_supplement_copy.append(new_record)
             else:
-                compiled_record = self.revise_field(orecord, erecord)
-            o_keyval[self.ID] = compiled_record
-            content[field_name] = o_keyval
-        return content
+                submission_supplement_copy[item_index] = new_record
 
-    def auto_request_repr(self, erecord):
+            new_record = submission_supplement_copy
+
+        self.validate_result(new_record)
+
+        return new_record
+
+
+    @staticmethod
+    def raise_for_any_leading_underscore_key(d: dict):
+        """
+        Keys with leading underscores are reserved for metadata like
+        `_dateCreated`, `_dateModified`, and `_revisions`. No key with a
+        leading underscore should be present in data POSTed by a client or
+        generated by an action.
+
+        Schema validation should block invalid keys, but this method exists as
+        a redundant check to guard against schema mistakes.
+        """
+        for k in list(d.keys()):
+            try:
+                match = k.startswith('_')
+            except AttributeError:
+                continue
+            if match:
+                raise Exception(
+                    'An unexpected key with a leading underscore was found'
+                )
+
+    @property
+    def _is_usage_limited(self):
+        """
+        Returns whether an action should check for usage limits.
+        """
         raise NotImplementedError()
 
-    def is_auto_request(self, erecord):
-        return self.record_repr(erecord) == 'GOOGLE'
+    def _inject_data_schema(self, destination_schema: dict, skipped_keys: list):
+        """
+        Utility function to inject data schema into another schema to
+        avoid repeating the same schema.
+        Useful to produce result schema.
+        """
 
-    def init_field(self, edit):
-        edit[self.DATE_CREATED_FIELD] = \
-            edit[self.DATE_MODIFIED_FIELD] = \
-            str(timezone.now()).split('.')[0]
-        return {**edit, 'revisions': []}
+        for key, value in self.data_schema.items():
+            if key in skipped_keys:
+                continue
 
-    def revise_field(self, original, edit):
-        if self.record_repr(edit) == self.DELETE:
-            return {}
-        record = {**original}
-        revisions = record.pop('revisions', [])
-        if self.DATE_CREATED_FIELD in record:
-            del record[self.DATE_CREATED_FIELD]
-        edit[self.DATE_MODIFIED_FIELD] = \
-            edit[self.DATE_CREATED_FIELD] = \
-            str(timezone.now()).split('.')[0]
-        if len(revisions) > 0:
-            date_modified = revisions[-1].get(self.DATE_MODIFIED_FIELD)
-            edit[self.DATE_CREATED_FIELD] = date_modified
-        return {**edit, 'revisions': [record, *revisions]}
+            if key in destination_schema:
+                if isinstance(destination_schema[key], dict):
+                    destination_schema[key].update(self.data_schema[key])
+                elif isinstance(destination_schema[key], list):
+                    destination_schema[key].extend(self.data_schema[key])
+                else:
+                    destination_schema[key] = self.data_schema[key]
+            else:
+                destination_schema[key] = self.data_schema[key]
 
-    def record_repr(self, record):
-        return record.get('value')
-
-    def has_change(self, original, edit):
-        return self.record_repr(original) != self.record_repr(edit)
-
-    @classmethod
-    def build_params(cls, *args, **kwargs):
-        raise NotImplementedError(f'{cls.__name__} has not implemented a build_params method')
-
-    def get_xpath(self, row):
-        # return the full path...
-        for name_field in ['xpath', 'name', '$autoname']:
-            if name_field in row:
-                return row[name_field]
-        return None
-
-    @classmethod
-    def get_name(cls, row):
-        for name_field in ['name', '$autoname']:
-            if name_field in row:
-                return row[name_field]
-        return None
+    @property
+    def _limit_identifier(self):
+        # Example for automatic transcription
+        #
+        # from kobo.apps.organizations.constants import UsageType
+        # return UsageType.ASR_SECONDS
+        raise NotImplementedError()
