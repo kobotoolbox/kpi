@@ -30,6 +30,7 @@ class SubmissionSupplement(SubmissionExtras):
     def __repr__(self):
         return f'Supplement for submission {self.submission_uuid}'
 
+    @staticmethod
     def revise_data(asset: 'kpi.Asset', submission: dict, incoming_data: dict) -> dict:
         schema_version = incoming_data.get('_version')
         if schema_version != '20250820':
@@ -103,6 +104,7 @@ class SubmissionSupplement(SubmissionExtras):
         retrieved_supplemental_data['_version'] = schema_version
         return retrieved_supplemental_data
 
+    @staticmethod
     def retrieve_data(
         asset: 'kpi.Asset',
         submission_root_uuid: str | None = None,
