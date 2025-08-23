@@ -3,27 +3,26 @@ from copy import deepcopy
 from .base import BaseAction
 
 
-class ManualTranscriptionAction(BaseAction):
-    ID = 'manual_transcription'
+class ManualTranslationAction(BaseAction):
+    ID = 'manual_translation'
 
     def __init__(self, source_question_xpath, params):
         self.source_question_xpath = source_question_xpath
         self.params = params
 
     """
-    For an audio question called `my_audio_question` that's transcribed
+    For an audio question called `my_audio_question` that's translated
     into 3 languages, the schema for `Asset.advanced_features` might look
     like:
         'my_audio_question': {
-            'manual_transcription': [
-                {'language': 'ar'},
-                {'language': 'bn'},
+            'manual_translation': [
+                {'language': 'fr'},
                 {'language': 'es'},
             ],
         }
 
     The `params_schema` attribute defines the shape of the array where each
-    element is an object with a single string property for the transcript
+    element is an object with a single string property for the translation
     language.
     """
     params_schema = {
@@ -45,7 +44,7 @@ class ManualTranscriptionAction(BaseAction):
         """
         POST to "/api/v2/assets/<asset uid>/data/<submission uuid>/supplemental"
         {
-            'manual_transcription': {
+            'manual_translation': {
                 'language': 'es',
                 'value': 'Almorzamos muy bien hoy',
             }
@@ -58,13 +57,13 @@ class ManualTranscriptionAction(BaseAction):
             'additionalProperties': False,
             'properties': {
                 'language': {'$ref': '#/$defs/lang'},
-                'value': {'$ref': '#/$defs/transcript'},
+                'value': {'$ref': '#/$defs/translation'},
             },
-            'allOf': [{'$ref': '#/$defs/lang_transcript_dependency'}],
+            'allOf': [{'$ref': '#/$defs/lang_translation_dependency'}],
             '$defs': {
                 'lang': {'type': 'string', 'enum': self.languages},
-                'transcript': {'type': 'string'},
-                'lang_transcript_dependency': {
+                'translation': {'type': 'string'},
+                'lang_translation_dependency': {
                     'allOf': [
                         {
                             'if': {'required': ['language']},
@@ -92,8 +91,7 @@ class ManualTranscriptionAction(BaseAction):
     @property
     def result_schema(self):
 
-        schema = {
-            '$schema': 'https://json-schema.org/draft/2020-12/schema',
+        localized_value_schema = {
             'type': 'object',
             'additionalProperties': False,
             'properties': {
@@ -106,6 +104,19 @@ class ManualTranscriptionAction(BaseAction):
                 self.DATE_MODIFIED_FIELD: {'$ref': '#/$defs/dateTime'},
             },
             'required': [self.DATE_CREATED_FIELD, self.DATE_MODIFIED_FIELD],
+        }
+
+        # Inject data schema in result schema template
+        self._inject_data_schema(localized_value_schema, ['$schema', 'title', 'type'])
+
+        # Move localized_value_schema definitions to main schema
+        localized_value_schema_defs = localized_value_schema.pop('$defs')
+
+        schema = {
+            '$schema': 'https://json-schema.org/draft/2020-12/schema',
+            'type': 'array',
+            'additionalProperties': False,
+            'items': {'$ref': '#/$defs/localized_value_schema'},
             '$defs': {
                 'dateTime': {'type': 'string', 'format': 'date-time'},
                 'revision': {
@@ -116,14 +127,13 @@ class ManualTranscriptionAction(BaseAction):
                     },
                     'required': [self.DATE_CREATED_FIELD],
                 },
+                'localized_value_schema': localized_value_schema,
+                **localized_value_schema_defs,
             },
         }
 
-        # Inject data schema in result schema template
-        self._inject_data_schema(schema, ['$schema', 'title', 'type'])
-
         # Also inject data schema in the revision definition
-        self.__inject_data_schema(
+        self._inject_data_schema(
             schema['$defs']['revision'], ['$schema', 'title', '$defs']
         )
 

@@ -125,6 +125,18 @@ class BaseAction:
     DATE_MODIFIED_FIELD = '_dateModified'
     REVISIONS_FIELD = '_revisions'
 
+    def check_limits(self, user: User):
+
+        if not settings.STRIPE_ENABLED or not self._is_usage_limited:
+            return
+
+        calculator = ServiceUsageCalculator(user)
+        balances = calculator.get_usage_balances()
+
+        balance = balances[self._limit_identifier]
+        if balance and balance['exceeded']:
+            raise UsageLimitExceededException()
+
     @classmethod
     def validate_params(cls, params):
         jsonschema.validate(params, cls.params_schema)
@@ -143,131 +155,7 @@ class BaseAction:
 
         we need to solve the problem of storing multiple results for a single action
         """
-
-        # We want schema to look like this at the end
-        # schema_orig = {
-        #     '$schema': 'https://json-schema.org/draft/2020-12/schema',
-        #     'title': 'Transcript with revisions',
-        #     'type': 'object',
-        #     'additionalProperties': False,
-        #     'properties': {
-        #         'language': {'$ref': '#/$defs/lang'},
-        #         'transcript': {'$ref': '#/$defs/transcript'},
-        #         'revisions': {
-        #             'type': 'array',
-        #             'minItems': 1,
-        #             'items': {'$ref': '#/$defs/revision'},
-        #         },
-        #         '_dateCreated': {'$ref': '#/$defs/dateTime'},
-        #         '_dateModified': {'$ref': '#/$defs/dateTime'},
-        #     },
-        #     'required': ['_dateCreated', '_dateModified'],
-        #     'allOf': [
-        #         {
-        #             '$ref': '#/$defs/lang_transcript_dependency'
-        #         }
-        #     ],
-        #     '$defs': {
-        #         'lang': {'type': 'string', 'enum':  self.languages},
-        #         'transcript': {'type': 'string'},
-        #         'dateTime': {'type': 'string', 'format': 'date-time'},
-        #         'lang_transcript_dependency': {
-        #             'allOf': [
-        #                 {
-        #                     'if': {'required': ['language']},
-        #                     'then': {'required': ['transcript']}
-        #                 },
-        #                 {
-        #                     'if': {'required': ['transcript']},
-        #                     'then': {'required': ['language']}
-        #                 }
-        #             ]
-        #         },
-        #         'revision': {
-        #             'type': 'object',
-        #             'additionalProperties': False,
-        #             'properties': {
-        #                 'language': {'$ref': '#/$defs/lang'},
-        #                 'transcript': {'$ref': '#/$defs/transcript'},
-        #                 '_dateCreated': {'$ref': '#/$defs/dateTime'},
-        #             },
-        #             'required': ['_dateCreated'],
-        #             'allOf': [
-        #                 {
-        #                     "$ref": "#/$defs/lang_transcript_dependency"
-        #                 }
-        #             ],
-        #         },
-        #     },
-        # }
-
-        result_schema_template = {
-            '$schema': 'https://json-schema.org/draft/2020-12/schema',
-            'type': 'object',
-            'additionalProperties': False,
-            'properties': {
-                self.REVISIONS_FIELD: {
-                    'type': 'array',
-                    'minItems': 1,
-                    'items': {'$ref': '#/$defs/revision'},
-                },
-                self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
-                self.DATE_MODIFIED_FIELD: {'$ref': '#/$defs/dateTime'},
-            },
-            'required': [self.DATE_CREATED_FIELD, self.DATE_MODIFIED_FIELD],
-            '$defs': {
-                'dateTime': {'type': 'string', 'format': 'date-time'},
-                'revision': {
-                    'type': 'object',
-                    'additionalProperties': False,
-                    'properties': {
-                        self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
-                    },
-                    'required': [self.DATE_CREATED_FIELD],
-                },
-            },
-        }
-
-        def _inject_data_schema(
-            destination_schema: dict, skipped_keys: list
-        ) -> dict:
-
-            for key, value in self.data_schema.items():
-                if key in skipped_keys:
-                    continue
-
-                if key in destination_schema:
-                    if isinstance(destination_schema[key], dict):
-                        destination_schema[key].update(self.data_schema[key])
-                    elif isinstance(destination_schema[key], list):
-                        destination_schema[key].extend(self.data_schema[key])
-                    else:
-                        destination_schema[key] = self.data_schema[key]
-                else:
-                    destination_schema[key] = self.data_schema[key]
-
-        # Inject data schema in result schema template
-        schema = deepcopy(result_schema_template)
-        _inject_data_schema(schema, ['$schema', 'title', 'type'])
-
-        # Also inject data schema in the revision definition
-        _inject_data_schema(
-            schema['$defs']['revision'], ['$schema', 'title', '$defs']
-        )
-
-        return schema
-
-    def check_limits(self, user: User):
-
-        if not settings.STRIPE_ENABLED or not self._is_usage_limited:
-            return
-
-        calculator = ServiceUsageCalculator(user)
-        balances = calculator.get_usage_balances()
-
-        balance = balances[self._limit_identifier]
-        if balance and balance['exceeded']:
-            raise UsageLimitExceededException()
+        return NotImplementedError
 
     def retrieve_data(self, action_data: dict) -> dict:
         """
@@ -343,6 +231,27 @@ class BaseAction:
         Returns whether an action should check for usage limits.
         """
         raise NotImplementedError()
+
+    def _inject_data_schema(self, destination_schema: dict, skipped_keys: list):
+        """
+        Utility function to inject data schema into another schema to
+        avoid repeating the same schema.
+        Useful to produce result schema.
+        """
+
+        for key, value in self.data_schema.items():
+            if key in skipped_keys:
+                continue
+
+            if key in destination_schema:
+                if isinstance(destination_schema[key], dict):
+                    destination_schema[key].update(self.data_schema[key])
+                elif isinstance(destination_schema[key], list):
+                    destination_schema[key].extend(self.data_schema[key])
+                else:
+                    destination_schema[key] = self.data_schema[key]
+            else:
+                destination_schema[key] = self.data_schema[key]
 
     @property
     def _limit_identifier(self):
