@@ -31,7 +31,7 @@ class SubmissionSupplement(SubmissionExtras):
         return f'Supplement for submission {self.submission_uuid}'
 
     def revise_data(asset: 'kpi.Asset', submission: dict, incoming_data: dict) -> dict:
-        schema_version = incoming_data.pop('_version')
+        schema_version = incoming_data.get('_version')
         if schema_version != '20250820':
             # TODO: migrate from old per-submission schema
             raise NotImplementedError
@@ -50,6 +50,10 @@ class SubmissionSupplement(SubmissionExtras):
         retrieved_supplemental_data = {}
 
         for question_xpath, data_for_this_question in incoming_data.items():
+            if question_xpath == '_version':
+                # FIXME: what's a better way? skip all leading underscore keys?
+                # pop off the known special keys first?
+                continue
             try:
                 action_configs_for_this_question = asset.advanced_features[
                     '_actionConfigs'
