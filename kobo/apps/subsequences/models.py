@@ -1,21 +1,37 @@
-from kobo.apps.subsequences.models import (
-    SubmissionExtras,  # just bullshit for now
-)
-from kpi.models import Asset
+from django.db import models
+
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
+from kpi.models.abstract_models import AbstractTimeStampedModel
 from .actions import ACTION_IDS_TO_CLASSES
 from .exceptions import InvalidAction, InvalidXPath
 from .schemas import validate_submission_supplement
 
+
+class SubmissionExtras(AbstractTimeStampedModel):
+    # TODO: trash this and rename the model
+    submission_uuid = models.CharField(max_length=249)
+    content = models.JSONField(default=dict)
+    asset = models.ForeignKey(
+        'kpi.Asset',
+        related_name='submission_extras',
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        # ideally `submission_uuid` is universally unique, but its uniqueness
+        # per-asset is most important
+        unique_together = (('asset', 'submission_uuid'),)
+
+
 class SubmissionSupplement(SubmissionExtras):
     class Meta(SubmissionExtras.Meta):
         proxy = True
-        app_label = 'subsequences'
 
-    @staticmethod
-    def revise_data(
-        asset: Asset, submission: dict, incoming_data: dict
-    ) -> dict:
-        schema_version = incoming_data.pop('_version')
+    def __repr__(self):
+        return f'Supplement for submission {self.submission_uuid}'
+
+    def revise_data(asset: 'kpi.Asset', submission: dict, incoming_data: dict) -> dict:
+        schema_version = incoming_data.get('_version')
         if schema_version != '20250820':
             # TODO: migrate from old per-submission schema
             raise NotImplementedError
@@ -27,11 +43,17 @@ class SubmissionSupplement(SubmissionExtras):
         submission_uuid = submission['meta/rootUuid']  # constant?
         supplemental_data = SubmissionExtras.objects.get_or_create(
             asset=asset, submission_uuid=submission_uuid
-        )[0].content  # lock it?
+        )[
+            0
+        ].content  # lock it?
 
         retrieved_supplemental_data = {}
 
         for question_xpath, data_for_this_question in incoming_data.items():
+            if question_xpath == '_version':
+                # FIXME: what's a better way? skip all leading underscore keys?
+                # pop off the known special keys first?
+                continue
             try:
                 action_configs_for_this_question = asset.advanced_features[
                     '_actionConfigs'
@@ -76,16 +98,33 @@ class SubmissionSupplement(SubmissionExtras):
             asset=asset, submission_uuid=submission_uuid
         ).update(content=supplemental_data)
 
+        # FIXME: bug! this will not return data from the other actions (and
+        # questions?) that were not affected by the revision
         retrieved_supplemental_data['_version'] = schema_version
         return retrieved_supplemental_data
 
+    def retrieve_data(
+        asset: 'kpi.Asset',
+        submission_root_uuid: str | None = None,
+        prefetched_supplement: dict | None = None,
+    ) -> dict:
+        if (submission_root_uuid is None) == (prefetched_supplement is None):
+            raise ValueError(
+                'Specify either `submission_root_uuid` or `prefetched_supplement`'
+            )
 
-    def retrieve_data(asset: Asset, submission_uuid: str) -> dict:
-        try:
-            supplemental_data = SubmissionExtras.objects.get(
-                asset=asset, submission_uuid=submission_uuid
-            ).content
-        except SubmissionExtras.DoesNotExist:
+        if submission_root_uuid:
+            submission_uuid = remove_uuid_prefix(submission_root_uuid)
+            try:
+                supplemental_data = SubmissionExtras.objects.get(
+                    asset=asset, submission_uuid=submission_uuid
+                ).content
+            except SubmissionExtras.DoesNotExist:
+                supplemental_data = None
+        else:
+            supplemental_data = prefetched_supplement
+
+        if not supplemental_data:
             return {}
 
         schema_version = supplemental_data.pop('_version')
@@ -100,8 +139,8 @@ class SubmissionSupplement(SubmissionExtras):
         retrieved_supplemental_data = {}
 
         for question_xpath, data_for_this_question in supplemental_data.items():
-            processed_data_for_this_question = (
-                retrieved_supplemental_data.setdefault(question_xpath, {})
+            processed_data_for_this_question = retrieved_supplemental_data.setdefault(
+                question_xpath, {}
             )
             action_configs = asset.advanced_features['_actionConfigs']
             try:

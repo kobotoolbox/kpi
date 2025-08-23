@@ -6,6 +6,7 @@ from ..actions.manual_transcription import ManualTranscriptionAction
 
 EMPTY_SUBMISSION = {}
 
+
 def test_valid_params_pass_validation():
     params = [{'language': 'fr'}, {'language': 'es'}]
     ManualTranscriptionAction.validate_params(params)
@@ -33,6 +34,7 @@ def test_invalid_transcript_data_fails_validation():
     with pytest.raises(jsonschema.exceptions.ValidationError):
         action.validate_data(data)
 
+
 def test_valid_result_passes_validation():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
@@ -47,6 +49,7 @@ def test_valid_result_passes_validation():
     for data in first, second, third, fourth, fifth:
         mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
     action.validate_result(mock_sup_det)
+
 
 def test_invalid_result_fails_validation():
     xpath = 'group_name/question_name'  # irrelevant for this test
@@ -63,7 +66,9 @@ def test_invalid_result_fails_validation():
         mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
     # erroneously add '_dateModified' onto a revision
-    mock_sup_det['_revisions'][0]['_dateModified'] = mock_sup_det['_revisions'][0]['_dateCreated']
+    mock_sup_det['_revisions'][0]['_dateModified'] = mock_sup_det['_revisions'][0][
+        '_dateCreated'
+    ]
 
     with pytest.raises(jsonschema.exceptions.ValidationError):
         action.validate_result(mock_sup_det)
@@ -107,12 +112,13 @@ def test_transcript_revisions_are_retained_in_supplemental_details():
     assert mock_sup_det['_dateCreated'] == first_time
 
     # the record itself should have an updated modification timestamp
-    assert dateutil.parser.parse(
-        mock_sup_det['_dateModified']
-    ) > dateutil.parser.parse(mock_sup_det['_dateCreated'])
+    assert dateutil.parser.parse(mock_sup_det['_dateModified']) > dateutil.parser.parse(
+        mock_sup_det['_dateCreated']
+    )
 
     # the record itself should encompass the second transcript
     assert mock_sup_det.items() >= second.items()
+
 
 def test_setting_transcript_to_empty_string():
     xpath = 'group_name/question_name'  # irrelevant for this test
@@ -129,6 +135,7 @@ def test_setting_transcript_to_empty_string():
     assert mock_sup_det['value'] == ''
     assert mock_sup_det['_revisions'][0]['value'] == 'Aucune idée'
 
+
 def test_setting_transcript_to_empty_object():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
@@ -143,6 +150,7 @@ def test_setting_transcript_to_empty_object():
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
     assert 'value' not in mock_sup_det
     assert mock_sup_det['_revisions'][0]['value'] == 'Aucune idée'
+
 
 def test_latest_revision_is_first():
     xpath = 'group_name/question_name'  # irrelevant for this test

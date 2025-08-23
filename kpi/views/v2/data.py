@@ -21,8 +21,8 @@ from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.audit_log.utils import SubmissionUpdate
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
-    remove_uuid_prefix,
     add_uuid_prefix,
+    remove_uuid_prefix,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import EnketoSessionAuthentication
@@ -233,8 +233,9 @@ class DataViewSet(
         ),
     )
     @action(
-        detail=False, methods=['PATCH', 'DELETE'],
-        renderer_classes=[renderers.JSONRenderer]
+        detail=False,
+        methods=['PATCH', 'DELETE'],
+        renderer_classes=[renderers.JSONRenderer],
     )
     def bulk(self, request, *args, **kwargs):
         if request.method == 'DELETE':
@@ -420,11 +421,7 @@ class DataViewSet(
         return Response(list(submissions))
 
     def retrieve(
-        self,
-        request,
-        submission_id_or_root_uuid: Union[int, str],
-        *args,
-        **kwargs
+        self, request, submission_id_or_root_uuid: Union[int, str], *args, **kwargs
     ):
         """
         Retrieve a submission by its primary key or its UUID.
@@ -474,7 +471,7 @@ class DataViewSet(
     @extend_schema(
         methods=['GET'],
         description=read_md('kpi', 'data/supplement_retrieve.md'),
-        responses=open_api_200_ok_response(DataSupplementResponse), # TODO CHANGEME
+        responses=open_api_200_ok_response(DataSupplementResponse),  # TODO CHANGEME
         parameters=[
             OpenApiParameter(
                 name='submission_id_or_root_uuid',
@@ -512,36 +509,36 @@ class DataViewSet(
         submission_root_uuid = submission_id_or_root_uuid
 
         ### TO BE MOVED
-        from kobo.apps.subsequences__new.router import (
+        from kobo.apps.subsequences.exceptions import InvalidAction, InvalidXPath
+        from kobo.apps.subsequences.router import (
             handle_incoming_data,
             retrieve_supplemental_data,
         )
-        from kobo.apps.subsequences__new.exceptions import (
-            InvalidAction,
-            InvalidXPath,
-        )
+
         ### END TO BE MOVED
 
         deployment = self._get_deployment()
         try:
-            submission = list(deployment.get_submissions(
-                user=request.user,
-                query={'meta/rootUuid': add_uuid_prefix(submission_root_uuid)}
-            ))[0]
+            submission = list(
+                deployment.get_submissions(
+                    user=request.user,
+                    query={'meta/rootUuid': add_uuid_prefix(submission_root_uuid)},
+                )
+            )[0]
         except IndexError:
             raise Http404
 
         submission_root_uuid = submission[deployment.SUBMISSION_ROOT_UUID_XPATH]
 
         if request.method == 'GET':
-            return Response(retrieve_supplemental_data(self.asset, submission_root_uuid))
+            return Response(
+                retrieve_supplemental_data(self.asset, submission_root_uuid)
+            )
 
         post_data = request.data
 
         try:
-            supplemental_data = handle_incoming_data(
-                self.asset, submission, post_data
-            )
+            supplemental_data = handle_incoming_data(self.asset, submission, post_data)
         except InvalidAction:
             raise serializers.ValidationError({'detail': 'Invalid action'})
         except InvalidXPath:
@@ -607,8 +604,9 @@ class DataViewSet(
         ],
     )
     @action(
-        detail=True, methods=['GET', 'PATCH', 'DELETE'],
-        permission_classes=[SubmissionValidationStatusPermission]
+        detail=True,
+        methods=['GET', 'PATCH', 'DELETE'],
+        permission_classes=[SubmissionValidationStatusPermission],
     )
     def validation_status(
         self, request, submission_id_or_root_uuid: int, *args, **kwargs

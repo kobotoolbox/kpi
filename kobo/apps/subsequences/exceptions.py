@@ -14,6 +14,7 @@ class InvalidItem(Exception):
 
     pass
 
+
 class InvalidXPath(Exception):
     """
     The referenced question XPath was not configured for supplemental data at

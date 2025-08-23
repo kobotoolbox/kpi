@@ -1,19 +1,19 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-import pytest
 from ddt import data, ddt, unpack
 from freezegun import freeze_time
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.subsequences__new.tests.api.v2.base import SubsequenceBaseTestCase
+from kobo.apps.subsequences.tests.api.v2.base import SubsequenceBaseTestCase
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.utils.object_permission import get_anonymous_user
+
 
 @ddt
 class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
@@ -135,16 +135,18 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
             self.client.force_login(user)
 
         # Activate advanced features for the project
-        self.set_asset_advanced_features({
-            '_version': '20250820',
-            '_actionConfigs': {
-                'q1': {
-                    'manual_transcription': [
-                        {'language': 'es'},
-                    ]
-                }
+        self.set_asset_advanced_features(
+            {
+                '_version': '20250820',
+                '_actionConfigs': {
+                    'q1': {
+                        'manual_transcription': [
+                            {'language': 'es'},
+                        ]
+                    }
+                },
             }
-        })
+        )
 
         if shared:
             self.asset.assign_perm(user, PERM_CHANGE_SUBMISSIONS)
