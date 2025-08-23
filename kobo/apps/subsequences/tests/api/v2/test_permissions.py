@@ -7,7 +7,7 @@ from freezegun import freeze_time
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.subsequences__new.tests.api.v2.base import SubsequenceBaseTestCase
+from kobo.apps.subsequences.tests.api.v2.base import SubsequenceBaseTestCase
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,

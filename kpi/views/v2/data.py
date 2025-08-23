@@ -512,11 +512,11 @@ class DataViewSet(
         submission_root_uuid = submission_id_or_root_uuid
 
         ### TO BE MOVED
-        from kobo.apps.subsequences__new.router import (
+        from kobo.apps.subsequences.router import (
             handle_incoming_data,
             retrieve_supplemental_data,
         )
-        from kobo.apps.subsequences__new.exceptions import (
+        from kobo.apps.subsequences.exceptions import (
             InvalidAction,
             InvalidXPath,
         )

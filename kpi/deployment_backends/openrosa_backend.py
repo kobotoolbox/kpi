@@ -46,7 +46,6 @@ from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
 from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, publish_xls_form
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
-from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
@@ -1567,7 +1566,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             add_supplemental_details_to_query = False
 
         if add_supplemental_details_to_query:
-            mongo_cursor = stream_with_extras(mongo_cursor, self.asset)
+            raise NotImplementedError  # FIXME
 
         all_attachment_xpaths = self.asset.get_all_attachment_xpaths()
 

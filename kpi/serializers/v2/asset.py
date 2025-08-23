@@ -346,9 +346,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     advanced_features = WriteableJsonWithSchemaField(
         schema_field=AdvancedFeatureField, required=False
     )
-    advanced_submission_schema = serializers.SerializerMethodField()
     files = serializers.SerializerMethodField()
-    analysis_form_json = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
     summary = ReadOnlyFieldWithSchemaField(schema_field=SummaryField)
     xform_link = serializers.SerializerMethodField()
@@ -438,8 +436,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             'report_styles',
             'report_custom',
             'advanced_features',
-            'advanced_submission_schema',
-            'analysis_form_json',
             'map_styles',
             'map_custom',
             'content',
@@ -564,16 +560,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             read_only=True,
             context=self.context,
         ).data
-
-    @extend_schema_field(AdvancedSubmissionSchemaField)
-    def get_advanced_submission_schema(self, obj):
-        req = self.context.get('request')
-        url = req.build_absolute_uri(f'/advanced_submission_post/{obj.uid}')
-        return obj.get_advanced_submission_schema(url=url)
-
-    @extend_schema_field(AnalysisFormJsonField)
-    def get_analysis_form_json(self, obj):
-        return obj.analysis_form_json()
 
     def get_deployment_status(self, obj: Asset) -> str:
         if deployment_status := obj.deployment_status:

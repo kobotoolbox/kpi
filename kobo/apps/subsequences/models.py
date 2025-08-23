@@ -1,15 +1,32 @@
-from kobo.apps.subsequences.models import (
-    SubmissionExtras,  # just bullshit for now
-)
+from django.db import models
+
 from kpi.models import Asset
+from kpi.models.abstract_models import AbstractTimeStampedModel
 from .actions import ACTION_IDS_TO_CLASSES
 from .exceptions import InvalidAction, InvalidXPath
 from .schemas import validate_submission_supplement
 
+class SubmissionExtras(AbstractTimeStampedModel):
+    # TODO: trash this and rename the model
+    submission_uuid = models.CharField(max_length=249)
+    content = models.JSONField(default=dict)
+    asset = models.ForeignKey(
+        Asset,
+        related_name='submission_extras',
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        # ideally `submission_uuid` is universally unique, but its uniqueness
+        # per-asset is most important
+        unique_together = (('asset', 'submission_uuid'),)
+
 class SubmissionSupplement(SubmissionExtras):
     class Meta(SubmissionExtras.Meta):
         proxy = True
-        app_label = 'subsequences'
+
+    def __repr__(self):
+        return f'Supplement for submission {self.submission_uuid}'
 
     def revise_data(
         asset: Asset, submission: dict, incoming_data: dict
