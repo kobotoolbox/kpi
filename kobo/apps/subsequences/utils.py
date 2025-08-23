@@ -1,5 +1,3 @@
-from collections import defaultdict
-from copy import deepcopy
 from typing import Generator
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
@@ -15,7 +13,9 @@ def stream_with_supplements(asset: 'kpi.models.Asset', submission_stream: Genera
     # submissions and supplements, then yield each of those, and grab again from
     # the database only once the page is exhausted
     extras = dict(
-        SubmissionSupplement.objects.filter(asset=asset).values_list('submission_uuid', 'content')
+        SubmissionSupplement.objects.filter(asset=asset).values_list(
+            'submission_uuid', 'content'
+        )
     )
 
     if not asset.advanced_features:
@@ -25,7 +25,6 @@ def stream_with_supplements(asset: 'kpi.models.Asset', submission_stream: Genera
     for submission in submission_stream:
         submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])
         submission[SUPPLEMENT_KEY] = SubmissionSupplement.retrieve_data(
-            asset,
-            prefetched_supplement=extras.get(submission_uuid)
+            asset, prefetched_supplement=extras.get(submission_uuid)
         )
         yield submission

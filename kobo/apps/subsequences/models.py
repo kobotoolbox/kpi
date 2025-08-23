@@ -1,12 +1,11 @@
 from django.db import models
 
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
-    remove_uuid_prefix,
-)
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from .actions import ACTION_IDS_TO_CLASSES
 from .exceptions import InvalidAction, InvalidXPath
 from .schemas import validate_submission_supplement
+
 
 class SubmissionExtras(AbstractTimeStampedModel):
     # TODO: trash this and rename the model
@@ -23,6 +22,7 @@ class SubmissionExtras(AbstractTimeStampedModel):
         # per-asset is most important
         unique_together = (('asset', 'submission_uuid'),)
 
+
 class SubmissionSupplement(SubmissionExtras):
     class Meta(SubmissionExtras.Meta):
         proxy = True
@@ -30,9 +30,7 @@ class SubmissionSupplement(SubmissionExtras):
     def __repr__(self):
         return f'Supplement for submission {self.submission_uuid}'
 
-    def revise_data(
-        asset: 'kpi.Asset', submission: dict, incoming_data: dict
-    ) -> dict:
+    def revise_data(asset: 'kpi.Asset', submission: dict, incoming_data: dict) -> dict:
         schema_version = incoming_data.pop('_version')
         if schema_version != '20250820':
             # TODO: migrate from old per-submission schema
@@ -45,7 +43,9 @@ class SubmissionSupplement(SubmissionExtras):
         submission_uuid = submission['meta/rootUuid']  # constant?
         supplemental_data = SubmissionExtras.objects.get_or_create(
             asset=asset, submission_uuid=submission_uuid
-        )[0].content  # lock it?
+        )[
+            0
+        ].content  # lock it?
 
         retrieved_supplemental_data = {}
 
@@ -92,10 +92,15 @@ class SubmissionSupplement(SubmissionExtras):
         retrieved_supplemental_data['_version'] = schema_version
         return retrieved_supplemental_data
 
-
-    def retrieve_data(asset: 'kpi.Asset', submission_root_uuid: str | None = None, prefetched_supplement: dict | None = None) -> dict:
+    def retrieve_data(
+        asset: 'kpi.Asset',
+        submission_root_uuid: str | None = None,
+        prefetched_supplement: dict | None = None,
+    ) -> dict:
         if (submission_root_uuid is None) == (prefetched_supplement is None):
-            raise ValueError('Specify either `submission_root_uuid` or `prefetched_supplement`')
+            raise ValueError(
+                'Specify either `submission_root_uuid` or `prefetched_supplement`'
+            )
 
         if submission_root_uuid:
             submission_uuid = remove_uuid_prefix(submission_root_uuid)
@@ -123,8 +128,8 @@ class SubmissionSupplement(SubmissionExtras):
         retrieved_supplemental_data = {}
 
         for question_xpath, data_for_this_question in supplemental_data.items():
-            processed_data_for_this_question = (
-                retrieved_supplemental_data.setdefault(question_xpath, {})
+            processed_data_for_this_question = retrieved_supplemental_data.setdefault(
+                question_xpath, {}
             )
             action_configs = asset.advanced_features['_actionConfigs']
             try:

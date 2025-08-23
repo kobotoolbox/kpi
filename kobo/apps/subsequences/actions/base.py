@@ -162,6 +162,7 @@ class BaseAction:
     def revise_field(self, *args, **kwargs):
         # TODO: remove this alias
         import warnings
+
         warnings.warn('Oh no, this method is going away!', DeprecationWarning)
         return self.revise_data(*args, **kwargs)
 
@@ -195,7 +196,6 @@ class BaseAction:
 
         return new_record
 
-
     @staticmethod
     def raise_for_any_leading_underscore_key(d: dict):
         """
@@ -213,9 +213,7 @@ class BaseAction:
             except AttributeError:
                 continue
             if match:
-                raise Exception(
-                    'An unexpected key with a leading underscore was found'
-                )
+                raise Exception('An unexpected key with a leading underscore was found')
 
     @property
     def _is_usage_limited(self):
