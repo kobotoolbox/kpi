@@ -48,7 +48,7 @@ class ManualTranscriptionAction(BaseAction):
         {
             'manual_transcription': {
                 'language': 'es',
-                'transcript': 'Almorzamos muy bien hoy',
+                'value': 'Almorzamos muy bien hoy',
             }
         }
         """
@@ -59,7 +59,7 @@ class ManualTranscriptionAction(BaseAction):
             'additionalProperties': False,
             'properties': {
                 'language': {'$ref': '#/$defs/lang'},
-                'transcript': {'$ref': '#/$defs/transcript'},
+                'value': {'$ref': '#/$defs/transcript'},
             },
             'allOf': [{'$ref': '#/$defs/lang_transcript_dependency'}],
             '$defs': {
@@ -69,10 +69,10 @@ class ManualTranscriptionAction(BaseAction):
                     'allOf': [
                         {
                             'if': {'required': ['language']},
-                            'then': {'required': ['transcript']},
+                            'then': {'required': ['value']},
                         },
                         {
-                            'if': {'required': ['transcript']},
+                            'if': {'required': ['value']},
                             'then': {'required': ['language']},
                         },
                     ]
@@ -88,7 +88,7 @@ class ManualTranscriptionAction(BaseAction):
         return languages
 
     def record_repr(self, record: dict) -> dict:
-        return record.get('transcript', '')
+        return record.get('value', '')
 
     @property
     def result_schema(self):

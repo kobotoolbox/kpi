@@ -123,7 +123,7 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
             'q1': {
                 'manual_transcription': {
                     'language': 'es',
-                    'transcript': 'buenas noches',
+                    'value': 'buenas noches',
                 }
             },
         }
@@ -164,7 +164,7 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
                         '_dateCreated': '2024-04-08T15:27:00Z',
                         '_dateModified': '2024-04-08T15:27:00Z',
                         'language': 'es',
-                        'transcript': 'buenas noches',
+                        'value': 'buenas noches',
                     },
                 },
             }
@@ -192,7 +192,7 @@ class SubsequencePartialPermissionTestCase(SubsequenceBaseTestCase):
             'q1': {
                 'manual_transcription': {
                     'language': 'es',
-                    'transcript': 'buenas noches',
+                    'value': 'buenas noches',
                 }
             },
         }
