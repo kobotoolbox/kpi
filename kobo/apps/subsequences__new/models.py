@@ -54,10 +54,15 @@ class SubmissionSupplement(SubmissionExtras):
                 question_supplemental_data = supplemental_data.setdefault(
                     question_xpath, {}
                 )
-                action_supplemental_data = question_supplemental_data.setdefault(
-                    action_id, {}
+                default_action_supplemental_data = (
+                    {}
+                    if action.item_reference_property is None
+                    else []
                 )
-                action_supplemental_data = action.revise_field(
+                action_supplemental_data = question_supplemental_data.setdefault(
+                    action_id, default_action_supplemental_data
+                )
+                action_supplemental_data = action.revise_data(
                     submission, action_supplemental_data, action_data
                 )
                 question_supplemental_data[action_id] = action_supplemental_data
