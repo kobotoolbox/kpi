@@ -116,10 +116,6 @@ def utc_datetime_to_js_str(dt: datetime.datetime) -> str:
 
 
 class BaseAction:
-    def something_to_get_the_data_back_out(self):
-        # might need to deal with multiple columns for one action
-        # ^ definitely will
-        raise NotImplementedError
 
     DATE_CREATED_FIELD = '_dateCreated'
     DATE_MODIFIED_FIELD = '_dateModified'
@@ -150,10 +146,7 @@ class BaseAction:
     @property
     def result_schema(self):
         """
-        we also need a schema to define the final result that will be written
-        into SubmissionExtras
-
-        we need to solve the problem of storing multiple results for a single action
+        must be implemented by subclasses
         """
         return NotImplementedError
 
@@ -162,7 +155,7 @@ class BaseAction:
         `action_data` must be ONLY the data for this particular action
         instance, not the entire SubmissionExtras caboodle
 
-        descendant classes could override with special manipulation if needed
+        subclasses could override with special manipulation if needed
         """
         return action_data
 
@@ -176,9 +169,8 @@ class BaseAction:
         self, submission: dict, submission_supplement: dict, edit: dict
     ) -> dict:
         """
-        for actions that may have lengthy data, are we content to store the
-        entirety of the data for each revision, or do we need some kind of
-        differencing system?
+        `submission` argument for future use by subclasses
+        this method might need to be made more friendly for overriding
         """
         self.validate_data(edit)
         self.raise_for_any_leading_underscore_key(edit)

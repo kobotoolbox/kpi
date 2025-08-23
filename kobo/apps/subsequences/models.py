@@ -75,7 +75,7 @@ class SubmissionSupplement(SubmissionExtras):
                 action_supplemental_data = question_supplemental_data.setdefault(
                     action_id, {}
                 )
-                action_supplemental_data = action.revise_field(
+                action_supplemental_data = action.revise_data(
                     submission, action_supplemental_data, action_data
                 )
                 question_supplemental_data[action_id] = action_supplemental_data
