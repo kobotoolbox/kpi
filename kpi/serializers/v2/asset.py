@@ -436,6 +436,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             'report_styles',
             'report_custom',
             'advanced_features',
+            'supplemental_output_fields',
             'map_styles',
             'map_custom',
             'content',

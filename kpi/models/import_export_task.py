@@ -1040,18 +1040,15 @@ class SubmissionExportTaskBase(ImportExportTask):
         )
 
         if source.has_advanced_features:
-            submission_stream = stream_with_supplements(source, submission_stream)
+            submission_stream = stream_with_supplements(source, submission_stream, for_output=True)
 
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions
         )
 
         if source.has_advanced_features:
-            raise NotImplementedError  # FIXME
-            """
-            pack.extend_survey(…)
-            omit_question_types=['qual_note']
-            """
+            pack.extend_survey(source.supplemental_output_fields)
+            # FIXME: (when rebuilding support for qual) omit_question_types=['qual_note']
 
         # Wrap the submission stream in a generator that records the most
         # recent timestamp

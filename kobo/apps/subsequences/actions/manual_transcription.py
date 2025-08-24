@@ -5,10 +5,6 @@ class ManualTranscriptionAction(BaseAction):
     ID = 'manual_transcription'
     lookup_config = ActionLookupConfig({}, None)
 
-    def __init__(self, source_question_xpath, params):
-        self.source_question_xpath = source_question_xpath
-        self.params = params
-
     """
     For an audio question called `my_audio_question` that's transcribed
     into 3 languages, the schema for `Asset.advanced_features` might look
@@ -38,6 +34,32 @@ class ManualTranscriptionAction(BaseAction):
             'type': 'object',
         },
     }
+
+    def _get_output_field_name(self, language: str) -> str:
+        language = language.split('-')[0]  # ignore region if any
+        return f"{self.source_question_xpath}/transcription__{language}"
+
+    def get_output_fields(self) -> list[dict]:
+        return [
+            {
+                'language': params['language'],
+                'name': self._get_output_field_name(params['language']),
+                'source': self.source_question_xpath,
+                'type': 'transcript',
+            } for params in self.params
+        ]
+
+    def transform_data_for_output(self, action_data: dict) -> list[dict]:
+        # keep next to `get_output_fields()` for now
+
+        # Sir, there's only one current transcript per response
+        return {
+            self._get_output_field_name(action_data['language']): {
+                'language': action_data['language'],
+                'value': action_data['value'],
+                "_dateAccepted": action_data[self.DATE_MODIFIED_FIELD],
+            }
+        }
 
     @property
     def data_schema(self):  # for lack of a better name

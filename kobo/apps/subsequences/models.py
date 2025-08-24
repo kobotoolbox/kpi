@@ -106,7 +106,15 @@ class SubmissionSupplement(SubmissionExtras):
         asset: 'kpi.Asset',
         submission_root_uuid: str | None = None,
         prefetched_supplement: dict | None = None,
-    ) -> dict:
+        for_output: bool = False,
+    ) -> dict | list[dict]:
+        """
+        `for_output = True` returns a flattened and simplified list of columns
+        (field names) and values contributed by each enabled action, for use in
+        exports and the like. Where multiple actions attempt to provide the
+        same column, the most recently accepted action result is used as the
+        value
+        """
         if (submission_root_uuid is None) == (prefetched_supplement is None):
             raise ValueError(
                 'Specify either `submission_root_uuid` or `prefetched_supplement`'
@@ -136,6 +144,7 @@ class SubmissionSupplement(SubmissionExtras):
             raise NotImplementedError
 
         retrieved_supplemental_data = {}
+        data_for_output = {}
 
         for question_xpath, data_for_this_question in supplemental_data.items():
             processed_data_for_this_question = retrieved_supplemental_data.setdefault(
@@ -177,9 +186,30 @@ class SubmissionSupplement(SubmissionExtras):
                     continue
 
                 action = action_class(question_xpath, action_params)
-                processed_data_for_this_question[action_id] = action.retrieve_data(
-                    action_data
-                )
+
+                retrieved_data = action.retrieve_data(action_data)
+                processed_data_for_this_question[action_id] = retrieved_data
+                if for_output:
+                    # Arbitrate the output data so that each column is only
+                    # represented once, and that the most recently accepted
+                    # action result is used as the value
+                    transformed_data = action.transform_data_for_output(retrieved_data)
+                    for field_name, field_data in transformed_data.items():
+                        # Omit `_dateAccepted` from the output data
+                        new_acceptance_date = field_data.pop('_dateAccepted', None)
+                        if not new_acceptance_date:
+                            # Never return unaccepted data
+                            continue
+                        existing_acceptance_date = data_for_output.get(field_name, {}).get('_dateAccepted')
+                        if (
+                            not existing_acceptance_date
+                            or existing_acceptance_date < new_acceptance_date
+                        ):
+                            data_for_output[field_name] = field_data
 
         retrieved_supplemental_data['_version'] = schema_version
+
+        if for_output:
+            return data_for_output
+
         return retrieved_supplemental_data

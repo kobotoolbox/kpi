@@ -1,4 +1,3 @@
-import datetime
 from copy import deepcopy
 from dataclasses import dataclass
 
@@ -10,6 +9,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..exceptions import InvalidItem
+from ..time_utils import utc_datetime_to_js_str
 
 """
 ### All actions must have the following components
@@ -104,18 +104,6 @@ idea of example data in SubmissionExtras based on the above
 }
 """
 
-
-def utc_datetime_to_js_str(dt: datetime.datetime) -> str:
-    """
-    Return a string to represent a `datetime` following the simplification of
-    the ISO 8601 format used by JavaScript
-    """
-    # https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date-time-string-format
-    if dt.utcoffset() or not dt.tzinfo:
-        raise NotImplementedError('Only UTC datetimes are supported')
-    return dt.isoformat().replace('+00:00', 'Z')
-
-
 @dataclass
 class ActionLookupConfig:
     """
@@ -137,6 +125,10 @@ class BaseAction:
 
     lookup_config: ActionLookupConfig | None = None
 
+    def __init__(self, source_question_xpath, params):
+        self.source_question_xpath = source_question_xpath
+        self.params = params
+
     def check_limits(self, user: User):
 
         if not settings.STRIPE_ENABLED or not self._is_usage_limited:
@@ -148,6 +140,25 @@ class BaseAction:
         balance = balances[self._limit_identifier]
         if balance and balance['exceeded']:
             raise UsageLimitExceededException()
+
+    def get_output_fields(self) -> list[dict]:
+        """
+        Returns a list of fields contributed by this action to outputted
+        submission data as shown in exports, the table view UI, etc.
+
+        For a manual transcription to French, this might look like:
+            [
+                {
+                    'language': 'fr',
+                    'name': 'group_name/question_name/transcript__fr',
+                    'source': 'group_name/question_name',
+                    'type': 'transcript',
+                }
+            ]
+
+        Must be implemented by subclasses.
+        """
+        raise NotImplementedError()
 
     @classmethod
     def validate_params(cls, params):
@@ -164,7 +175,7 @@ class BaseAction:
         """
         must be implemented by subclasses
         """
-        return NotImplementedError
+        raise NotImplementedError()
 
     def retrieve_data(self, action_data: dict) -> dict:
         """

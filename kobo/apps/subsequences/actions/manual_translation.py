@@ -3,12 +3,7 @@ from .base import BaseAction, ActionLookupConfig
 
 class ManualTranslationAction(BaseAction):
     ID = 'manual_translation'
-
     lookup_config = ActionLookupConfig([], 'language')
-
-    def __init__(self, source_question_xpath, params):
-        self.source_question_xpath = source_question_xpath
-        self.params = params
 
     """
     For an audio question called `my_audio_question` that's translated
@@ -38,6 +33,31 @@ class ManualTranslationAction(BaseAction):
             'type': 'object',
         },
     }
+
+    def _get_output_field_name(self, language: str) -> str:
+        language = language.split('-')[0]  # ignore region if any
+        return f"{self.source_question_xpath}/translation__{language}"
+
+    def get_output_fields(self):
+        return [
+            {
+                'language': params['language'],
+                'name': self._get_output_field_name(params['language']),
+                'source': self.source_question_xpath,
+                'type': 'translation',
+            } for params in self.params
+        ]
+
+    def transform_data_for_output(self, action_data: list[dict]) -> list[dict]:
+        # keep next to `get_output_fields()` for now
+        return {
+            self._get_output_field_name(translation_data['language']): {
+                'language': translation_data['language'],
+                'value': translation_data['value'],
+                '_dateAccepted': translation_data[self.DATE_MODIFIED_FIELD],
+            }
+            for translation_data in action_data
+        }
 
     @property
     def data_schema(self):  # for lack of a better name
