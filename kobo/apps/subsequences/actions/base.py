@@ -49,7 +49,6 @@ idea of example content in asset.advanced_features (what kind of actions are act
 idea of example data in SubmissionExtras based on the above
 {
     '_version': '20250820',
-    '_submission': '<some submission uuid>',
     'my_audio_question': {
         'manual_transcription': {
             'transcript': 'هائج',
@@ -136,6 +135,12 @@ class BaseAction:
         balance = balances[self._limit_identifier]
         if balance and balance['exceeded']:
             raise UsageLimitExceededException()
+
+    @property
+    def default_type(self):
+        if self.result_schema['type'] == 'array':
+            return []
+        return {}
 
     @classmethod
     def validate_params(cls, params):

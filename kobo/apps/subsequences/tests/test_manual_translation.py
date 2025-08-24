@@ -3,25 +3,26 @@ import jsonschema
 import pytest
 
 from .constants import EMPTY_SUBMISSION
-from ..actions.manual_transcription import ManualTranscriptionAction
+from ..actions.manual_translation import ManualTranslationAction
+
+DEFAULT_SUPPLEMENT_DATA = []
 
 
 def test_valid_params_pass_validation():
     params = [{'language': 'fr'}, {'language': 'es'}]
-    ManualTranscriptionAction.validate_params(params)
+    ManualTranslationAction.validate_params(params)
 
 
 def test_invalid_params_fail_validation():
     params = [{'language': 123}, {'language': 'es'}]
     with pytest.raises(jsonschema.exceptions.ValidationError):
-        ManualTranscriptionAction.validate_params(params)
+        ManualTranslationAction.validate_params(params)
 
 
-def test_valid_transcript_data_passes_validation():
+def test_valid_translation_data_passes_validation():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
-    action = ManualTranscriptionAction(xpath, params)
-
+    action = ManualTranslationAction(xpath, params)
     # Trivial case
     data = {'language': 'fr', 'value': 'Aucune idée'}
     action.validate_data(data)
@@ -35,10 +36,11 @@ def test_valid_transcript_data_passes_validation():
     action.validate_data(data)
 
 
-def test_invalid_transcript_data_fails_validation():
+def test_invalid_translation_data_fails_validation():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
-    action = ManualTranscriptionAction(xpath, params)
+    action = ManualTranslationAction(xpath, params)
+
     data = {'language': 'en', 'value': 'No idea'}
     with pytest.raises(jsonschema.exceptions.ValidationError):
         action.validate_data(data)
@@ -47,11 +49,10 @@ def test_invalid_transcript_data_fails_validation():
     with pytest.raises(jsonschema.exceptions.ValidationError):
         action.validate_data(data)
 
-
 def test_valid_result_passes_validation():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
-    action = ManualTranscriptionAction(xpath, params)
+    action = ManualTranslationAction(xpath, params)
 
     first = {'language': 'fr', 'value': 'un'}
     second = {'language': 'en', 'value': 'two'}
@@ -67,7 +68,7 @@ def test_valid_result_passes_validation():
 def test_invalid_result_fails_validation():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
-    action = ManualTranscriptionAction(xpath, params)
+    action = ManualTranslationAction(xpath, params)
 
     first = {'language': 'fr', 'value': 'un'}
     second = {'language': 'en', 'value': 'two'}
@@ -79,92 +80,100 @@ def test_invalid_result_fails_validation():
         mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
     # erroneously add '_dateModified' onto a revision
-    mock_sup_det['_revisions'][0]['_dateModified'] = mock_sup_det['_revisions'][0][
-        '_dateCreated'
-    ]
+    first_revision = mock_sup_det[0]['_revisions'][0]
+    first_revision['_dateModified'] = first_revision['_dateCreated']
 
     with pytest.raises(jsonschema.exceptions.ValidationError):
         action.validate_result(mock_sup_det)
 
 
-def test_transcript_revisions_are_retained_in_supplemental_details():
+def test_translation_revisions_are_retained_in_supplemental_details():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
-    action = ManualTranscriptionAction(xpath, params)
+    action = ManualTranslationAction(xpath, params)
 
     first = {'language': 'en', 'value': 'No idea'}
     second = {'language': 'fr', 'value': 'Aucune idée'}
+    third = {'language': 'en', 'value': 'No clue'}
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, action.default_type, first)
 
-    assert mock_sup_det['language'] == 'en'
-    assert mock_sup_det['value'] == 'No idea'
-    assert mock_sup_det['_dateCreated'] == mock_sup_det['_dateModified']
-    assert '_revisions' not in mock_sup_det
-    first_time = mock_sup_det['_dateCreated']
+    assert len(mock_sup_det) == 1
+    assert mock_sup_det[0]['language'] == 'en'
+    assert mock_sup_det[0]['value'] == 'No idea'
+    assert mock_sup_det[0]['_dateCreated'] == mock_sup_det[0]['_dateModified']
+    assert '_revisions' not in mock_sup_det[0]
+    first_time = mock_sup_det[0]['_dateCreated']
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
-    assert len(mock_sup_det['_revisions']) == 1
+    assert len(mock_sup_det) == 2
+    assert mock_sup_det[1]['language'] == 'fr'
+    assert mock_sup_det[1]['value'] == 'Aucune idée'
+    assert mock_sup_det[1]['_dateCreated'] == mock_sup_det[1]['_dateModified']
+    assert '_revisions' not in mock_sup_det[1]
 
-    # the revision should encompass the first transcript
-    assert mock_sup_det['_revisions'][0].items() >= first.items()
+    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, third)
+    assert len(mock_sup_det) == 2
+
+    # the revision should encompass the first translation
+    assert mock_sup_det[0]['_revisions'][0].items() >= first.items()
 
     # the revision should have a creation timestamp equal to that of the first
-    # transcript
-    assert mock_sup_det['_revisions'][0]['_dateCreated'] == first_time
+    # translation
+    assert mock_sup_det[0]['_revisions'][0]['_dateCreated'] == first_time
 
     # revisions should not list a modification timestamp
-    assert '_dateModified' not in mock_sup_det['_revisions'][0]
+    assert '_dateModified' not in mock_sup_det[0]['_revisions'][0]
 
     # the record itself (not revision) should have an unchanged creation
     # timestamp
-    assert mock_sup_det['_dateCreated'] == first_time
+    assert mock_sup_det[0]['_dateCreated'] == first_time
 
     # the record itself should have an updated modification timestamp
-    assert dateutil.parser.parse(mock_sup_det['_dateModified']) > dateutil.parser.parse(
-        mock_sup_det['_dateCreated']
+    assert dateutil.parser.parse(mock_sup_det[0]['_dateModified']) > dateutil.parser.parse(
+        mock_sup_det[0]['_dateCreated']
     )
 
-    # the record itself should encompass the second transcript
-    assert mock_sup_det.items() >= second.items()
+    # the record itself should encompass the second translation
+    assert mock_sup_det[0].items() >= third.items()
 
 
-def test_setting_transcript_to_empty_string():
+def test_setting_translation_to_empty_string():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
-    action = ManualTranscriptionAction(xpath, params)
+    action = ManualTranslationAction(xpath, params)
 
     first = {'language': 'fr', 'value': 'Aucune idée'}
     second = {'language': 'fr', 'value': ''}
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, action.default_type, first)
-    assert mock_sup_det['value'] == 'Aucune idée'
+    assert mock_sup_det[0]['value'] == 'Aucune idée'
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
-    assert mock_sup_det['value'] == ''
-    assert mock_sup_det['_revisions'][0]['value'] == 'Aucune idée'
+    assert mock_sup_det[0]['value'] == ''
+    assert mock_sup_det[0]['_revisions'][0]['value'] == 'Aucune idée'
 
 
-def test_setting_transcript_to_none():
+def test_setting_translation_to_none():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
-    action = ManualTranscriptionAction(xpath, params)
+    action = ManualTranslationAction(xpath, params)
 
     first = {'language': 'fr', 'value': 'Aucune idée'}
     second = {'language': 'fr', 'value': None}
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, action.default_type, first)
-    assert mock_sup_det['value'] == 'Aucune idée'
+    assert mock_sup_det[0]['value'] == 'Aucune idée'
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
-    assert mock_sup_det['value'] is None
-    assert mock_sup_det['_revisions'][0]['value'] == 'Aucune idée'
+    assert mock_sup_det[0]['value'] is None
+    assert mock_sup_det[0]['_revisions'][0]['value'] == 'Aucune idée'
 
 
 def test_latest_revision_is_first():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
-    action = ManualTranscriptionAction(xpath, params)
+    action = ManualTranslationAction(xpath, params)
 
     first = {'language': 'fr', 'value': 'un'}
     second = {'language': 'fr', 'value': 'deux'}
@@ -174,6 +183,6 @@ def test_latest_revision_is_first():
     for data in first, second, third:
         mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
-    assert mock_sup_det['value'] == 'trois'
-    assert mock_sup_det['_revisions'][0]['value'] == 'deux'
-    assert mock_sup_det['_revisions'][1]['value'] == 'un'
+    assert mock_sup_det[0]['value'] == 'trois'
+    assert mock_sup_det[0]['_revisions'][0]['value'] == 'deux'
+    assert mock_sup_det[0]['_revisions'][1]['value'] == 'un'

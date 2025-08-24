@@ -198,7 +198,7 @@ class SubsequencePartialPermissionTestCase(SubsequenceBaseTestCase):
                 }
             },
         }
-        response = self.client.post(
+        response = self.client.patch(
             self.supplement_details_url, data=payload, format='json'
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND

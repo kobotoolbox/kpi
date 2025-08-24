@@ -56,24 +56,12 @@ class ManualTranslationAction(BaseAction):
             'additionalProperties': False,
             'properties': {
                 'language': {'$ref': '#/$defs/lang'},
-                'value': {'$ref': '#/$defs/translation'},
+                'value': {'$ref': '#/$defs/value'},
             },
-            'allOf': [{'$ref': '#/$defs/lang_translation_dependency'}],
+            'required': ['language', 'value'],
             '$defs': {
                 'lang': {'type': 'string', 'enum': self.languages},
-                'translation': {'type': 'string'},
-                'lang_translation_dependency': {
-                    'allOf': [
-                        {
-                            'if': {'required': ['language']},
-                            'then': {'required': ['value']},
-                        },
-                        {
-                            'if': {'required': ['value']},
-                            'then': {'required': ['language']},
-                        },
-                    ]
-                },
+                'value': {'type': ['string', 'null']},
             },
         }
 
