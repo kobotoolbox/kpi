@@ -1,7 +1,7 @@
 from kpi.models import Asset
 
-from kobo.apps.subsequences.models import SubmissionExtras
-from kobo.apps.subsequences.utils import stream_with_extras
+from kobo.apps.subsequences__old.models import SubmissionExtrasOld
+from kobo.apps.subsequences__old.utils import stream_with_extras
 
 from kobo.apps.reports.report_data import build_formpack
 
@@ -38,7 +38,7 @@ def run_on_asset(asset):
 
 def run(asset_uid):
     if asset_uid is None:
-        asset = SubmissionExtras.ojects.last().asset
+        asset = SubmissionExtrasOld.ojects.last().asset
     else:
         asset = Asset.objects.get(uid=asset_uid)
     run_on_asset(asset)

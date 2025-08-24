@@ -8,13 +8,13 @@ from .constants import GOOGLETS, GOOGLETX
 from .utils.determine_export_cols_with_values import determine_export_cols_indiv
 
 
-class SubmissionExtras(AbstractTimeStampedModel):
+class SubmissionExtrasOld:
 
     submission_uuid = models.CharField(max_length=249)
     content = models.JSONField(default=dict)
     asset = models.ForeignKey(
         Asset,
-        related_name='submission_extras',
+        related_name='submission_extras_old',
         on_delete=models.CASCADE,
     )
 

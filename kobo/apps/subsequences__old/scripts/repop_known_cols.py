@@ -7,20 +7,20 @@ import json
 
 from django.core.paginator import Paginator
 
-from kobo.apps.subsequences.models import SubmissionExtras
-from kobo.apps.subsequences.utils.deprecation import (
+from kobo.apps.subsequences__old.models import SubmissionExtrasOld
+from kobo.apps.subsequences__old.utils.deprecation import (
     get_sanitized_dict_keys,
     get_sanitized_known_columns,
 )
-from kobo.apps.subsequences.utils.determine_export_cols_with_values import (
+from kobo.apps.subsequences__old.utils.determine_export_cols_with_values import (
     determine_export_cols_with_values,
 )
 from kpi.models.asset import Asset
 
 
 def migrate_subex_content(
-    sub_ex: SubmissionExtras, asset: Asset, save=True
-) -> SubmissionExtras:
+    sub_ex: SubmissionExtrasOld, asset: Asset, save=True
+) -> SubmissionExtrasOld:
     content_string = json.dumps(sub_ex.content)
     if '"translated"' in content_string:  # migration
         content_string = content_string.replace(
@@ -69,7 +69,7 @@ def migrate_advanced_features(asset, save=True):
 def run(asset_uid=None):
 
     if asset_uid == '!':
-        SubmissionExtras.objects.all().delete()
+        SubmissionExtrasOld.objects.all().delete()
         for asset in Asset.objects.exclude(advanced_features__exact={}).iterator():
             asset.advanced_features = {}
             asset.save(create_version=False)
@@ -116,7 +116,7 @@ def run(asset_uid=None):
                 )
 
             if updated_submission_extras:
-                SubmissionExtras.objects.bulk_update(
+                SubmissionExtrasOld.objects.bulk_update(
                     updated_submission_extras, ['content']
                 )
     else:

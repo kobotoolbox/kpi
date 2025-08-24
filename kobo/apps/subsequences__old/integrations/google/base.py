@@ -15,7 +15,7 @@ from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.utils.log import logging
 from ...constants import GOOGLE_CACHE_TIMEOUT, make_nlp_async_cache_key
 from ...exceptions import SubsequenceTimeoutError
-from ...models import SubmissionExtras
+from ...models import SubmissionExtrasOld
 from .utils import google_credentials_from_constance_config
 
 
@@ -30,7 +30,7 @@ class GoogleService(ABC):
     API_VERSION = None
     API_RESOURCE = None
 
-    def __init__(self, submission: SubmissionExtras):
+    def __init__(self, submission: SubmissionExtrasOld):
         super().__init__()
         self.submission = submission
         self.asset = submission.asset

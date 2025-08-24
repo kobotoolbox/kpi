@@ -1,4 +1,4 @@
-from kobo.apps.subsequences.utils.parse_known_cols import parse_known_cols
+from kobo.apps.subsequences__old.utils.parse_known_cols import parse_known_cols
 
 
 def test_known_cols_transc_duplicates():

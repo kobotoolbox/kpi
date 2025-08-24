@@ -120,7 +120,7 @@ class ManualTranscriptionAction(BaseAction):
     def result_schema(cls):
         """
         we also need a schema to define the final result that will be written
-        into SubmissionExtras
+        into SubmissionExtrasOld
 
         we need to solve the problem of storing multiple results for a single action
         """

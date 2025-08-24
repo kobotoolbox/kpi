@@ -5,8 +5,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from kobo.apps.openrosa.apps.logger.exceptions import ConflictingSubmissionUUIDError
-from kobo.apps.subsequences.models import SubmissionExtras
-from kobo.apps.subsequences.utils import stream_with_extras
+from kobo.apps.subsequences__old.models import SubmissionExtrasOld
+from kobo.apps.subsequences__old.utils import stream_with_extras
 from kpi.models import Asset
 
 
@@ -155,7 +155,7 @@ class TestSubmissionStream(TestCase):
             },
         ]
         for subex in subexes:
-            SubmissionExtras.objects.create(**subex)
+            SubmissionExtrasOld.objects.create(**subex)
 
     def setUp(self):
         self._create_asset()
@@ -182,7 +182,7 @@ class TestSubmissionStream(TestCase):
 
         asset = Asset.objects.create()
 
-        SubmissionExtras.objects.create(
+        SubmissionExtrasOld.objects.create(
             asset=asset,
             submission_uuid='aaa',
             content={
@@ -213,7 +213,7 @@ class TestSubmissionStream(TestCase):
                 }
             },
         )
-        SubmissionExtras.objects.create(
+        SubmissionExtrasOld.objects.create(
             asset=asset,
             submission_uuid='bbb',
             content={
@@ -292,7 +292,7 @@ class TestSubmissionStream(TestCase):
 
     def test_stream_with_extras_ignores_empty_qual_responses(self):
         # Modify submission extras 'val' to be an empty string
-        submission_extras = SubmissionExtras.objects.get(
+        submission_extras = SubmissionExtrasOld.objects.get(
             submission_uuid='1c05898e-b43c-491d-814c-79595eb84e81'
         )
         content = submission_extras.content

@@ -14,7 +14,7 @@ from ..actions.automatic_transcription import (
     PENDING,
 )
 from ..constants import GOOGLETS, GOOGLETX
-from ..models import SubmissionExtras
+from ..models import SubmissionExtrasOld
 
 TEST_TRANSCRIPTION_SERVICES = [
     'acme_1_speech2text',
@@ -90,8 +90,8 @@ class NLPIntegrationTestCase(TestCase):
         example_fs_key = [*sdeets.keys()][0]
         assert sdeets[example_fs_key] == PENDING
 
-    @patch('kobo.apps.subsequences.integrations.google.google_transcribe.GoogleTranscriptionService')
-    @patch('kobo.apps.subsequences.integrations.google.google_translate.GoogleTranslationService')
+    @patch('kobo.apps.subsequences__old.integrations.google.google_transcribe.GoogleTranscriptionService')
+    @patch('kobo.apps.subsequences__old.integrations.google.google_translate.GoogleTranslationService')
     def test_transcription_requested(
         self,
         mock_TranslationService,
@@ -100,7 +100,7 @@ class NLPIntegrationTestCase(TestCase):
         mock_transcript_object = Mock(process_data=Mock(return_value={}))
         mock_TranscriptionService.return_value = mock_transcript_object
 
-        submission = SubmissionExtras.objects.create(
+        submission = SubmissionExtrasOld.objects.create(
             asset = self.asset,
             submission_uuid='123abc',
             content={
@@ -116,7 +116,7 @@ class NLPIntegrationTestCase(TestCase):
         mock_translation_object = Mock(process_data=Mock(return_value={}))
         mock_TranslationService.return_value = mock_translation_object
 
-        submission = SubmissionExtras.objects.create(
+        submission = SubmissionExtrasOld.objects.create(
             asset = self.asset,
             submission_uuid='1234abcd',
             content={

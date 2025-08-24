@@ -1,5 +1,5 @@
-from kobo.apps.subsequences.models import SubmissionExtras
-from kobo.apps.subsequences.utils import stream_with_extras
+from kobo.apps.subsequences__old.models import SubmissionExtrasOld
+from kobo.apps.subsequences__old.utils import stream_with_extras
 
 from kobo.apps.reports.report_data import build_formpack
 
@@ -11,7 +11,7 @@ most recent translation / transcription:
 
 
 def run():
-    latest_xtra = SubmissionExtras.objects.last()
+    latest_xtra = SubmissionExtrasOld.objects.last()
     asset = latest_xtra.asset
     user = asset.owner
     submission_stream = asset.deployment.get_submissions(

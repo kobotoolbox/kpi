@@ -121,6 +121,7 @@ INSTALLED_APPS = (
     'kobo.apps.superuser_stats.SuperuserStatsAppConfig',
     'kobo.apps.service_health',
     'kobo.apps.subsequences',
+    'kobo.apps.subsequences__old',  # Temporary hack to make pytest start
     'constance',
     'kobo.apps.hook.apps.HookAppConfig',
     'django_celery_beat',

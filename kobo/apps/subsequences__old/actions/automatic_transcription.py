@@ -1,4 +1,4 @@
-from kobo.apps.subsequences.constants import GOOGLETS
+from kobo.apps.subsequences__old.constants import GOOGLETS
 from ..constants import TRANSCRIBABLE_SOURCE_TYPES
 from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
 

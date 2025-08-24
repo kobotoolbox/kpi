@@ -3,7 +3,7 @@ from zoneinfo import ZoneInfo
 
 from django.utils import timezone
 
-from kobo.apps.subsequences.constants import GOOGLETS, GOOGLETX
+from kobo.apps.subsequences__old.constants import GOOGLETS, GOOGLETX
 
 ACTION_NEEDED = 'ACTION_NEEDED'
 PASSES = 'PASSES'

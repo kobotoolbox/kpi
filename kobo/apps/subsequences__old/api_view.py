@@ -12,9 +12,9 @@ from kobo.apps.audit_log.base_views import AuditLoggedApiView
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.organizations.constants import UsageType
-from kobo.apps.subsequences.constants import GOOGLETS, GOOGLETX
-from kobo.apps.subsequences.models import SubmissionExtras
-from kobo.apps.subsequences.utils.deprecation import get_sanitized_dict_keys
+from kobo.apps.subsequences__old.constants import GOOGLETS, GOOGLETX
+from kobo.apps.subsequences__old.models import SubmissionExtrasOld
+from kobo.apps.subsequences__old.utils.deprecation import get_sanitized_dict_keys
 from kpi.exceptions import UsageLimitExceededException
 from kpi.models import Asset
 from kpi.utils.usage_calculator import ServiceUsageCalculator
@@ -138,6 +138,6 @@ def get_submission_processing(asset, s_uuid):
             submission_extra.content = content
 
         return Response(submission_extra.content)
-    except SubmissionExtras.DoesNotExist:
-        # submission might exist but no SubmissionExtras object has been created
+    except SubmissionExtrasOld.DoesNotExist:
+        # submission might exist but no SubmissionExtrasOld object has been created
         return Response({'info': f'nothing found for submission: {s_uuid}'})

@@ -1,4 +1,4 @@
-from kobo.apps.subsequences.constants import GOOGLETX
+from kobo.apps.subsequences__old.constants import GOOGLETX
 from ..constants import TRANSLATABLE_SOURCE_TYPES
 from ..actions.base import BaseAction
 

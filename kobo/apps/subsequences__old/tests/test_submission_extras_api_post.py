@@ -43,7 +43,7 @@ from kpi.utils.xml import (
     xml_tostring,
 )
 from ..constants import GOOGLETS, GOOGLETX
-from ..models import SubmissionExtras
+from ..models import SubmissionExtrasOld
 
 
 class BaseSubsequenceTestCase(APITestCase):
@@ -568,7 +568,7 @@ class GoogleNLPSubmissionTest(BaseTestCase):
         CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}},
     )
     @override_config(ASR_MT_INVITEE_USERNAMES='*')
-    @patch('kobo.apps.subsequences.integrations.google.google_translate.translate')
+    @patch('kobo.apps.subsequences__old.integrations.google.google_translate.translate')
     @patch('google.cloud.speech.SpeechClient')
     @patch('google.cloud.storage.Client')
     def test_google_services_usage_limit_checks(self, m1, m2, translate):
@@ -605,7 +605,7 @@ class GoogleNLPSubmissionTest(BaseTestCase):
             UsageType.MT_CHARACTERS: {'exceeded': True},
         }
         with patch(
-            'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',
+            'kobo.apps.subsequences__old.api_view.ServiceUsageCalculator.get_usage_balances',
             return_value=mock_balances,
         ):
             data = {
@@ -630,7 +630,7 @@ class GoogleNLPSubmissionTest(BaseTestCase):
             UsageType.MT_CHARACTERS: {'exceeded': False},
         }
         with patch(
-            'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',
+            'kobo.apps.subsequences__old.api_view.ServiceUsageCalculator.get_usage_balances',
             return_value=mock_balances,
         ):
             data = {
@@ -657,7 +657,7 @@ class GoogleNLPSubmissionTest(BaseTestCase):
         CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}},
     )
     @override_config(ASR_MT_INVITEE_USERNAMES='*')
-    @patch('kobo.apps.subsequences.integrations.google.google_translate.translate')
+    @patch('kobo.apps.subsequences__old.integrations.google.google_translate.translate')
     @patch('google.cloud.speech.SpeechClient')
     @patch('google.cloud.storage.Client')
     def test_google_services_usage_limit_checks_disabled(self, m1, m2, translate):
@@ -694,7 +694,7 @@ class GoogleNLPSubmissionTest(BaseTestCase):
             UsageType.MT_CHARACTERS: {'exceeded': True},
         }
         with patch(
-            'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',
+            'kobo.apps.subsequences__old.api_view.ServiceUsageCalculator.get_usage_balances',
             return_value=mock_balances,
         ):
             data = {
@@ -723,7 +723,7 @@ class GoogleNLPSubmissionTest(BaseTestCase):
             '_submitted_by': self.user.username
         }
         self.asset.deployment.mock_submissions([submission])
-        SubmissionExtras.objects.create(
+        SubmissionExtrasOld.objects.create(
             submission_uuid=submission_id,
             content={'q1': {'transcript': {'value': 'hello'}}},
             asset=self.asset
@@ -744,8 +744,8 @@ class GoogleNLPSubmissionTest(BaseTestCase):
         STRIPE_ENABLED=False,
     )
     @override_config(ASR_MT_INVITEE_USERNAMES='*')
-    @patch('kobo.apps.subsequences.integrations.google.google_translate.translate')
-    @patch('kobo.apps.subsequences.integrations.google.base.storage')
+    @patch('kobo.apps.subsequences__old.integrations.google.google_translate.translate')
+    @patch('kobo.apps.subsequences__old.integrations.google.base.storage')
     def test_google_translate_post(self, storage, translate):
         url = reverse('advanced-submission-post', args=[self.asset.uid])
         submission_id = 'abc123-def456'

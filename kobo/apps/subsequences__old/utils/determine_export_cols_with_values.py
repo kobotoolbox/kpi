@@ -35,7 +35,7 @@ def get_lang_code(key, tvals):
 
 def determine_export_cols_indiv(sub_ex_content):
     """
-    used primarily when a SubmissionExtras object is saved.
+    used primarily when a SubmissionExtrasOld object is saved.
 
     iterates through content to see which questions have
     transcripts/translations that need to end up in the export
