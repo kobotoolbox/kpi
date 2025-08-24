@@ -25,6 +25,6 @@ def stream_with_supplements(asset: 'kpi.models.Asset', submission_stream: Genera
     for submission in submission_stream:
         submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])
         submission[SUPPLEMENT_KEY] = SubmissionSupplement.retrieve_data(
-            asset, prefetched_supplement=extras.get(submission_uuid)
+            asset, prefetched_supplement=extras.get(submission_uuid, {})
         )
         yield submission
