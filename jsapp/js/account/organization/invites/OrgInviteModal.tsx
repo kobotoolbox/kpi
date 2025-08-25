@@ -4,18 +4,13 @@ import { Button, FocusTrap, Group, Modal, Stack, Text } from '@mantine/core'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 import subscriptionStore from '#/account/subscriptionStore'
 import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
-import {
-  getOrganizationsInvitesListQueryKey,
-  getOrganizationsInvitesRetrieveQueryKey,
-  useOrganizationsInvitesPartialUpdate,
-  useOrganizationsInvitesRetrieve,
-} from '#/api/react-query/organization-invites'
+import { useOrganizationsInvitesRetrieve } from '#/api/react-query/organization-invites'
 import Alert from '#/components/common/alert'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore from '#/envStore'
-import { queryClient } from '#/query/queryClient'
 import { useSession } from '#/stores/useSession'
 import { notify } from '#/utils'
+import useOrganizationsInvitesPartialUpdate from '../useOrganizationsInvitesPartialUpdate'
 
 /**
  * Displays a modal to a user that got an invitation for joining an organization. There is a possibility to accept or
@@ -29,21 +24,13 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   const [userResponseType, setUserResponseType] = useState<InviteStatusChoicesEnum | null>(null)
   const session = useSession()
   const orgInvitesQuery = useOrganizationsInvitesRetrieve(props.orgId, props.inviteId)
-  const orgInvitesPatch = useOrganizationsInvitesPartialUpdate({
-    mutation: {
-      onSuccess: (_data, variables) => {
-        queryClient.invalidateQueries({ queryKey: getOrganizationsInvitesListQueryKey(variables.organizationId) })
-        queryClient.invalidateQueries({
-          queryKey: getOrganizationsInvitesRetrieveQueryKey(variables.organizationId, variables.guid),
-        })
-      },
-    },
+  const orgInvitesPatchMutation = useOrganizationsInvitesPartialUpdate({
     request: {
       notifyAboutError: false,
     },
   })
   const handleOrgInvitesPatch = (status: InviteStatusChoicesEnum) => {
-    return orgInvitesPatch.mutateAsync({ organizationId: props.orgId, guid: props.inviteId, data: { status } })
+    return orgInvitesPatchMutation.mutateAsync({ organizationId: props.orgId, guid: props.inviteId, data: { status } })
   }
   // We handle all the errors through query and BE responses, but for some edge cases we have this:
   const [miscError, setMiscError] = useState<string | undefined>()
@@ -98,6 +85,8 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   let content: React.ReactNode = null
   let title: React.ReactNode = null
 
+  // TODO: investigate the error flows!
+
   // Case 1: loading data.
   if (orgInvitesQuery.isLoading) {
     content = <LoadingSpinner />
@@ -115,12 +104,12 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
     content = <Alert type='error'>{memberInviteErrorMessage}</Alert>
   }
   // Case 3: failed to accept or decline invitation (API response).
-  else if (orgInvitesPatch.isError) {
+  else if (orgInvitesPatchMutation.data?.status == 403) {
     title = t('Unable to join ##TEAM_OR_ORGANIZATION_NAME##').replace('##TEAM_OR_ORGANIZATION_NAME##', orgName)
     // Fallback message
     let patchMemberInviteErrorMessage = t('Failed to respond to invitation')
-    if (orgInvitesPatch.error?.detail) {
-      patchMemberInviteErrorMessage = orgInvitesPatch.error.detail as string
+    if (orgInvitesPatchMutation.data.data.detail) {
+      patchMemberInviteErrorMessage = orgInvitesPatchMutation.data.data.detail as string
     }
     content = (
       <Stack>
