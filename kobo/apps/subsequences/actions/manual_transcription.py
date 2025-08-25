@@ -1,41 +1,11 @@
 from typing import Any
 
-from .base import BaseAction, ActionClassConfig
+from .base import ActionClassConfig, BaseLanguageAction
 
 
-class ManualTranscriptionAction(BaseAction):
+class ManualTranscriptionAction(BaseLanguageAction):
     ID = 'manual_transcription'
     action_class_config = ActionClassConfig({}, None, False)
-
-    """
-    For an audio question called `my_audio_question` that's transcribed
-    into 3 languages, the schema for `Asset.advanced_features` might look
-    like:
-        'my_audio_question': {
-            'manual_transcription': [
-                {'language': 'ar'},
-                {'language': 'bn'},
-                {'language': 'es'},
-            ],
-        }
-
-    The `params_schema` attribute defines the shape of the array where each
-    element is an object with a single string property for the transcript
-    language.
-    """
-    params_schema = {
-        'type': 'array',
-        'items': {
-            'additionalProperties': False,
-            'properties': {
-                'language': {
-                    'type': 'string',
-                }
-            },
-            'required': ['language'],
-            'type': 'object',
-        },
-    }
 
     def _get_output_field_name(self, language: str) -> str:
         language = language.split('-')[0]  # ignore region if any
@@ -59,7 +29,7 @@ class ManualTranscriptionAction(BaseAction):
             self._get_output_field_name(action_data['language']): {
                 'language': action_data['language'],
                 'value': action_data['value'],
-                "_dateAccepted": action_data[self.DATE_MODIFIED_FIELD],
+                self.DATE_ACCEPTED_FIELD: action_data[self.DATE_MODIFIED_FIELD],
             }
         }
 
@@ -91,13 +61,6 @@ class ManualTranscriptionAction(BaseAction):
         }
 
     @property
-    def languages(self) -> list[str]:
-        languages = []
-        for individual_params in self.params:
-            languages.append(individual_params['language'])
-        return languages
-
-    @property
     def result_schema(self):
 
         schema = {
@@ -112,6 +75,7 @@ class ManualTranscriptionAction(BaseAction):
                 },
                 self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
                 self.DATE_MODIFIED_FIELD: {'$ref': '#/$defs/dateTime'},
+                self.DATE_ACCEPTED_FIELD: {'$ref': '#/$defs/dateTime'},
             },
             'required': [self.DATE_CREATED_FIELD, self.DATE_MODIFIED_FIELD],
             '$defs': {
@@ -121,6 +85,7 @@ class ManualTranscriptionAction(BaseAction):
                     'additionalProperties': False,
                     'properties': {
                         self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
+                        self.DATE_ACCEPTED_FIELD: {'$ref': '#/$defs/dateTime'},
                     },
                     'required': [self.DATE_CREATED_FIELD],
                 },

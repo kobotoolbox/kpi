@@ -1,25 +1,11 @@
 from kobo.apps.organizations.constants import UsageType
-from .base import BaseAction, ActionClassConfig
+from .base import ActionClassConfig, BaseLanguageAction
 from ..integrations.google.google_transcribe import GoogleTranscriptionService
 
 
-class AutomaticGoogleTranscriptionAction(BaseAction):
+class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
     ID = 'automatic_google_transcription'
     action_class_config = ActionClassConfig({}, None, True)
-
-    params_schema = {
-        'type': 'array',
-        'items': {
-            'additionalProperties': False,
-            'properties': {
-                'language': {
-                    'type': 'string',
-                }
-            },
-            'required': ['language'],
-            'type': 'object',
-        },
-    }
 
     @property
     def automated_data_schema(self) -> dict:
@@ -121,13 +107,6 @@ class AutomaticGoogleTranscriptionAction(BaseAction):
                 'accepted': {'type': 'boolean'},
             },
         }
-
-    @property
-    def languages(self) -> list[str]:
-        languages = []
-        for individual_params in self.params:
-            languages.append(individual_params['language'])
-        return languages
 
     @property
     def result_schema(self):

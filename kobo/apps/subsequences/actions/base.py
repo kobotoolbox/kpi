@@ -357,3 +357,43 @@ class BaseAction:
     def _limit_identifier(self):
         # See AutomaticGoogleTranscriptionAction._limit_identifier() for example
         raise NotImplementedError()
+
+
+class BaseLanguageAction(BaseAction):
+
+    """
+    For an audio question called `my_audio_question` that's transcribed
+    into 3 languages, the schema for `Asset.advanced_features` might look
+    like:
+        'my_audio_question': {
+            'language_action_id': [
+                {'language': 'ar'},
+                {'language': 'bn'},
+                {'language': 'es'},
+            ],
+        }
+
+    The `params_schema` attribute defines the shape of the array where each
+    element is an object with a single string property for the transcript
+    language.
+    """
+    params_schema = {
+        'type': 'array',
+        'items': {
+            'additionalProperties': False,
+            'properties': {
+                'language': {
+                    'type': 'string',
+                }
+            },
+            'required': ['language'],
+            'type': 'object',
+        },
+    }
+
+    @property
+    def languages(self) -> list[str]:
+        languages = []
+        for individual_params in self.params:
+            languages.append(individual_params['language'])
+        return languages

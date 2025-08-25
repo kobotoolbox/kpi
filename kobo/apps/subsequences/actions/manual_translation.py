@@ -1,38 +1,9 @@
-from .base import BaseAction, ActionClassConfig
+from .base import ActionClassConfig, BaseLanguageAction
 
 
-class ManualTranslationAction(BaseAction):
+class ManualTranslationAction(BaseLanguageAction):
     ID = 'manual_translation'
     action_class_config = ActionClassConfig([], 'language', False)
-
-    """
-    For an audio question called `my_audio_question` that's translated
-    into 3 languages, the schema for `Asset.advanced_features` might look
-    like:
-        'my_audio_question': {
-            'manual_translation': [
-                {'language': 'fr'},
-                {'language': 'es'},
-            ],
-        }
-
-    The `params_schema` attribute defines the shape of the array where each
-    element is an object with a single string property for the translation
-    language.
-    """
-    params_schema = {
-        'type': 'array',
-        'items': {
-            'additionalProperties': False,
-            'properties': {
-                'language': {
-                    'type': 'string',
-                }
-            },
-            'required': ['language'],
-            'type': 'object',
-        },
-    }
 
     def _get_output_field_name(self, language: str) -> str:
         language = language.split('-')[0]  # ignore region if any
@@ -87,13 +58,6 @@ class ManualTranslationAction(BaseAction):
         }
 
     @property
-    def languages(self) -> list[str]:
-        languages = []
-        for individual_params in self.params:
-            languages.append(individual_params['language'])
-        return languages
-
-    @property
     def result_schema(self):
 
         localized_value_schema = {
@@ -107,6 +71,7 @@ class ManualTranslationAction(BaseAction):
                 },
                 self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
                 self.DATE_MODIFIED_FIELD: {'$ref': '#/$defs/dateTime'},
+                self.DATE_ACCEPTED_FIELD: {'$ref': '#/$defs/dateTime'},
             },
             'required': [self.DATE_CREATED_FIELD, self.DATE_MODIFIED_FIELD],
         }
@@ -129,6 +94,7 @@ class ManualTranslationAction(BaseAction):
                     'additionalProperties': False,
                     'properties': {
                         self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
+                        self.DATE_ACCEPTED_FIELD: {'$ref': '#/$defs/dateTime'},
                     },
                     'required': [self.DATE_CREATED_FIELD],
                 },
