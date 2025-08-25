@@ -21,8 +21,8 @@ class AssetVersion(AbstractTimeStampedModel):
                               on_delete=models.CASCADE)
     name = models.CharField(null=True, max_length=255)
 
-    # preserving _reversion_version in case we don't save all that we
-    # need to in the first migration from reversion to AssetVersion
+    # preserve old reversion_version_ids so we can map old submissions to the
+    # correct AssetVersion
     _reversion_version_id = models.IntegerField(null=True, blank=True)
     version_content = models.JSONField()
     uid_aliases = models.JSONField(null=True)
@@ -38,7 +38,7 @@ class AssetVersion(AbstractTimeStampedModel):
     def _deployed_content(self):
         if self.deployed_content is not None:
             return self.deployed_content
-        legacy_names = self._reversion_version is not None
+        legacy_names = self._reversion_version_id is not None
         if legacy_names:
             return to_xlsform_structure(self.version_content,
                                         deprecated_autoname=True)
