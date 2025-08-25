@@ -13,10 +13,15 @@ from googleapiclient import discovery
 
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.utils.log import logging
-from ...constants import GOOGLE_CACHE_TIMEOUT, make_nlp_async_cache_key
+from ...constants import (
+    SUBMISSION_UUID_FIELD,
+    GOOGLE_CACHE_TIMEOUT,
+    SUBSEQUENCES_ASYNC_CACHE_KEY,
+)
 from ...exceptions import SubsequenceTimeoutError
-from ...models import SubmissionExtrasOld
-from .utils import google_credentials_from_constance_config
+# from ...models import SubmissionSupplement
+# from ..utils.cache import generate_cache_key
+from ..utils.google import google_credentials_from_constance_config
 
 
 class GoogleService(ABC):
@@ -30,11 +35,10 @@ class GoogleService(ABC):
     API_VERSION = None
     API_RESOURCE = None
 
-    def __init__(self, submission: SubmissionExtrasOld):
+    def __init__(self, submission: dict, asset: 'kpi.models.Asset', *args, **kwargs):
         super().__init__()
         self.submission = submission
-        self.asset = submission.asset
-        self.user = submission.asset.owner
+        self.asset = asset  # Need to retrieve the attachment content
         self.credentials = google_credentials_from_constance_config()
         self.storage_client = storage.Client(credentials=self.credentials)
         if settings.GS_BUCKET_NAME is None:
@@ -71,10 +75,10 @@ class GoogleService(ABC):
     def handle_google_operation(
         self, xpath: str, source_lang: str, target_lang: str, content: Any=None
     ) -> str:
-        submission_id = self.submission.submission_uuid
-        cache_key = make_nlp_async_cache_key(
-            self.user.pk, submission_id, xpath, source_lang, target_lang
-        )
+
+        # If cache_key is still present, the job is not complete (or it crashed).
+        # Fetch the latest update from Google API, but do not resend the same operation.
+        cache_key = self._get_cache_key(xpath, source_lang, target_lang)
         if operation_name := cache.get(cache_key):
             google_service = discovery.build(
                 self.API_NAME, self.API_VERSION, credentials=self.credentials
@@ -91,7 +95,7 @@ class GoogleService(ABC):
             cache.delete(cache_key)
             return self.adapt_response(operation)
         else:
-            (response, amount) = self.begin_google_operation(
+            response, amount = self.begin_google_operation(
                 xpath, source_lang, target_lang, content
             )
             if isinstance(response, Operation):
@@ -108,8 +112,11 @@ class GoogleService(ABC):
 
                 cache.delete(cache_key)
                 return self.adapt_response(result)
+
             if isinstance(response, str):
                 return response
+
+        return
 
     @abstractmethod
     def process_data(self, xpath: str, options: dict) -> dict:
@@ -122,3 +129,15 @@ class GoogleService(ABC):
             self.asset.owner_id,
             self.asset.id,
         )
+
+    def _get_cache_key(self, xpath: str, source_lang: str, target_lang: str | None) -> str:
+        submission_root_uuid = self.submission[SUBMISSION_UUID_FIELD]
+        action = 'transcribe' if target_lang is None else 'translate'
+        args = [self.asset.owner_id, submission_root_uuid, xpath, source_lang]
+        if target_lang is None:
+            args.insert(0, 'transcribe')
+        else:
+            args.insert(0, 'translate')
+            args.append(target_lang)
+
+        return '::'.join(map(str, [SUBSEQUENCES_ASYNC_CACHE_KEY, *args]))

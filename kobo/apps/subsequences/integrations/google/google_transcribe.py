@@ -7,17 +7,24 @@ from typing import Any, Union
 
 import constance
 from django.conf import settings
+from django.core.cache import cache
 from google.api_core.exceptions import InvalidArgument
 from google.cloud import speech
 
 from kpi.utils.log import logging
-
-from ...constants import GOOGLETS
+from kpi.exceptions import (
+    InvalidXPathException,
+    SubmissionNotFoundException,
+    XPathNotFoundException,
+    AttachmentNotFoundException,
+    NotSupportedFormatException,
+)
+from ...constants import SUBMISSION_UUID_FIELD
 from ...exceptions import (
     AudioTooLongError,
     SubsequenceTimeoutError,
-    TranscriptionResultsNotFound,
 )
+from ..utils.cache import generate_cache_key
 from .base import GoogleService
 
 # https://cloud.google.com/speech-to-text/quotas#content
@@ -31,12 +38,12 @@ class GoogleTranscriptionService(GoogleService):
     API_VERSION = 'v1'
     API_RESOURCE = 'operations'
 
-    def __init__(self, *args):
+    def __init__(self, submission: dict, asset: 'kpi.models.Asset', *args, **kwargs):
         """
         This service takes a submission object as a GoogleService inheriting
         class. It uses google cloud transcript v1 API.
         """
-        super().__init__(*args)
+        super().__init__(submission=submission, asset=asset, *args, **kwargs)
         self.destination_path = None
 
     def adapt_response(self, response: Union[dict, list]) -> str:
@@ -68,9 +75,9 @@ class GoogleTranscriptionService(GoogleService):
         content: Any,
     ) -> tuple[str, int]:
         """
-        Set up transcription operation
+        Set up the transcription operation
         """
-        submission_uuid = self.submission.submission_uuid
+        submission_uuid = self.submission[SUBMISSION_UUID_FIELD]
         flac_content, duration = content
         total_seconds = int(duration.total_seconds())
 
@@ -104,7 +111,7 @@ class GoogleTranscriptionService(GoogleService):
         speech_results = speech_client.long_running_recognize(
             audio=audio, config=config
         )
-        return (speech_results, total_seconds)
+        return speech_results, total_seconds
 
     @property
     def counter_name(self):
@@ -116,29 +123,61 @@ class GoogleTranscriptionService(GoogleService):
         """
         Converts attachment audio or video file to flac
         """
+
         attachment = self.asset.deployment.get_attachment(
             submission_uuid, user, xpath=xpath
         )
         return attachment.get_transcoded_audio('flac', include_duration=True)
 
-    def process_data(self, xpath: str, vals: dict) -> dict:
-        autoparams = vals[GOOGLETS]
-        language_code = autoparams.get('languageCode')
-        region_code = autoparams.get('regionCode')
-        vals[GOOGLETS] = {
-            'status': 'in_progress',
-            'languageCode': language_code,
-            'regionCode': region_code,
-        }
-        region_or_language_code = region_code or language_code
+    def process_data(self, xpath: str, params: dict) -> dict:
+        # params.get('status') #language_code = autoparams.get('languageCode')
+        #region_code = autoparams.get('regionCode')
+        #vals[GOOGLETS] = {
+        #    'status': 'in_progress',
+        #    'language': language_code,
+        #    'regionCode': region_code,
+        #}
+        #region_or_language_code = region_code or language_code
+        language = params['language']
+
+        cache_key = self._get_cache_key(xpath, language, target_lang=None)
+        if cache.get(cache_key):
+            # Operation is still in progress, no need to process the audio file
+            converted_audio = None
+        else:
+            try:
+                converted_audio = self.get_converted_audio(
+                    xpath,
+                    self.submission[SUBMISSION_UUID_FIELD],
+                    self.asset.owner,
+                )
+            except SubmissionNotFoundException:
+                return {
+                    'status': 'failed',
+                    'error': {f'Submission not found'},
+                }
+            except AttachmentNotFoundException:
+                return {
+                    'status': 'failed',
+                    'error': {f'Attachment not found'},
+                }
+            except (InvalidXPathException,XPathNotFoundException):
+                return {
+                    'status': 'failed',
+                    'error': {f'Invalid question name XPath'},
+                }
+            except NotSupportedFormatException:
+                return {
+                    'status': 'failed',
+                    'error': 'Unsupported format'
+                }
+
         try:
-            flac_content, duration = self.get_converted_audio(
+            value = self.handle_google_operation(
                 xpath,
-                self.submission.submission_uuid,
-                self.user,
-            )
-            value = self.transcribe_file(
-                xpath, region_or_language_code, (flac_content, duration)
+                source_lang=language,
+                target_lang=None,
+                content=converted_audio,
             )
         except SubsequenceTimeoutError:
             logging.error(
@@ -146,35 +185,18 @@ class GoogleTranscriptionService(GoogleService):
             )
             return {
                 'status': 'in_progress',
-                'languageCode': language_code,
-                'regionCode': region_code,
             }
-        except (TranscriptionResultsNotFound, InvalidArgument) as e:
+        except InvalidArgument as e:
             logging.error(f'No transcriptions found for xpath={xpath}')
             return {
-                'status': 'error',
-                'value': None,
-                'responseJSON': {
-                    'error': f'Transcription failed with error {e}'
-                },
+                'status': 'failed',
+                'error': f'Transcription failed with error {str(e)}'
             }
 
         return {
             'status': 'complete',
             'value': value,
-            'languageCode': language_code,
-            'regionCode': region_code,
         }
-
-    def transcribe_file(
-        self, xpath: str, source_lang: str, content: tuple[object, int]
-    ) -> str:
-        """
-        Transcribe file with cache layer around Google operations
-        When speech api times out, rerun function with same params
-        to check if operation is finished and return results
-        """
-        return self.handle_google_operation(xpath, source_lang, None, content)
 
     def store_file(self, content):
         """

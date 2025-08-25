@@ -1,9 +1,11 @@
-from .base import BaseAction, ActionLookupConfig
+from typing import Any
+
+from .base import BaseAction, ActionClassConfig
 
 
 class ManualTranscriptionAction(BaseAction):
     ID = 'manual_transcription'
-    lookup_config = ActionLookupConfig({}, None)
+    action_class_config = ActionClassConfig({}, None, False)
 
     """
     For an audio question called `my_audio_question` that's transcribed
@@ -49,7 +51,7 @@ class ManualTranscriptionAction(BaseAction):
             } for params in self.params
         ]
 
-    def transform_data_for_output(self, action_data: dict) -> list[dict]:
+    def transform_data_for_output(self, action_data: dict) -> dict[str, dict[str, Any]]:
         # keep next to `get_output_fields()` for now
 
         # Sir, there's only one current transcript per response
@@ -134,7 +136,3 @@ class ManualTranscriptionAction(BaseAction):
         )
 
         return schema
-
-    @property
-    def _is_usage_limited(self):
-        return False

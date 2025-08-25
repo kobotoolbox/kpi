@@ -103,7 +103,6 @@ class AdvancedSubmissionView(AuditLoggedApiView):
     def post(self, request, asset_uid, format=None):
         posted_data = request.data
 
-        print('POSTED', posted_data, flush=True)
         schema = self.asset.get_advanced_submission_schema()
         try:
             validate(posted_data, schema)

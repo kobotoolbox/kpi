@@ -1,3 +1,9 @@
+class AudioTooLongError(Exception):
+    """
+    Audio file is too long for the specified speech service
+    """
+
+
 class InvalidAction(Exception):
     """
     The referenced action does not exist or was not configured for the given
@@ -21,4 +27,16 @@ class InvalidXPath(Exception):
     the asset level
     """
 
+    pass
+
+
+class SubsequenceTimeoutError(Exception):
+    pass
+
+
+class TranslationAsyncResultAvailable(Exception):
+    pass
+
+
+class TranslationResultsNotFound(Exception):
     pass

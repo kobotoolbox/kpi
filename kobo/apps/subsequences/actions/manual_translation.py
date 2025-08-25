@@ -1,9 +1,9 @@
-from .base import BaseAction, ActionLookupConfig
+from .base import BaseAction, ActionClassConfig
 
 
 class ManualTranslationAction(BaseAction):
     ID = 'manual_translation'
-    lookup_config = ActionLookupConfig([], 'language')
+    action_class_config = ActionClassConfig([], 'language', False)
 
     """
     For an audio question called `my_audio_question` that's translated

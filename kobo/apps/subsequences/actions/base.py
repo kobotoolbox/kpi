@@ -105,7 +105,7 @@ idea of example data in SubmissionExtras based on the above
 """
 
 @dataclass
-class ActionLookupConfig:
+class ActionClassConfig:
     """
     Defines how items in a result schema can be resolved.
         - key: the dictionary field used to identify or match an item (e.g., "language").
@@ -115,15 +115,17 @@ class ActionLookupConfig:
 
     default_type: dict | list
     key: str | None
+    automatic: bool
 
 
 class BaseAction:
 
     DATE_CREATED_FIELD = '_dateCreated'
     DATE_MODIFIED_FIELD = '_dateModified'
+    DATE_ACCEPTED_FIELD = '_dateAccepted'
     REVISIONS_FIELD = '_revisions'
 
-    lookup_config: ActionLookupConfig | None = None
+    action_class_config: ActionClassConfig | None = None
 
     def __init__(self, source_question_xpath, params):
         self.source_question_xpath = source_question_xpath
@@ -140,6 +142,14 @@ class BaseAction:
         balance = balances[self._limit_identifier]
         if balance and balance['exceeded']:
             raise UsageLimitExceededException()
+
+    @property
+    def automated_data_schema(self):
+        raise NotImplementedError
+
+    @property
+    def data_schema(self):
+        raise NotImplementedError
 
     def get_output_fields(self) -> list[dict]:
         """
@@ -160,12 +170,15 @@ class BaseAction:
         """
         raise NotImplementedError()
 
-    @classmethod
-    def validate_params(cls, params):
-        jsonschema.validate(params, cls.params_schema)
+    def validate_automated_data(self, data):
+        jsonschema.validate(data, self.automated_data_schema)
 
     def validate_data(self, data):
         jsonschema.validate(data, self.data_schema)
+
+    @classmethod
+    def validate_params(cls, params):
+        jsonschema.validate(params, cls.params_schema)
 
     def validate_result(self, result):
         jsonschema.validate(result, self.result_schema)
@@ -200,22 +213,31 @@ class BaseAction:
         `submission` argument for future use by subclasses
         this method might need to be made more friendly for overriding
         """
-        self.validate_data(edit)
+
+        # Validate differently when automatic process ran, to allow internal fields
+        # but block them from user input.
+        if self.action_class_config.automatic:
+            self.validate_automated_data(edit)
+            accepted = edit.pop('accepted', None)
+        else:
+            self.validate_data(edit)
+            accepted = True
+
         self.raise_for_any_leading_underscore_key(edit)
 
         now_str = utc_datetime_to_js_str(timezone.now())
         item_index = None
         submission_supplement_copy = deepcopy(submission_supplement)
-        if not isinstance(self.lookup_config.default_type, list):
+        if not isinstance(self.action_class_config.default_type, list):
             revision = submission_supplement_copy
         else:
-            needle = edit[self.lookup_config.key]
+            needle = edit[self.action_class_config.key]
             revision = {}
             if not isinstance(submission_supplement, list):
                 raise InvalidItem
 
             for idx, item in enumerate(submission_supplement):
-                if needle == item[self.lookup_config.key]:
+                if needle == item[self.action_class_config.key]:
                     revision = deepcopy(item)
                     item_index = idx
                     break
@@ -228,18 +250,39 @@ class BaseAction:
         revision[self.DATE_CREATED_FIELD] = revision_creation_date
         new_record[self.DATE_MODIFIED_FIELD] = now_str
 
-        if not isinstance(self.lookup_config.default_type, list):
+        # If the default type is not a list, we handle a single record case.
+        if not isinstance(self.action_class_config.default_type, list):
             if submission_supplement:
                 revisions.insert(0, revision)
                 new_record[self.REVISIONS_FIELD] = revisions
         else:
+            # When the default type is a list, we are handling an item within it.
             if item_index is not None:
                 revisions.insert(0, revision)
                 new_record[self.REVISIONS_FIELD] = revisions
 
         new_record[self.DATE_CREATED_FIELD] = record_creation_date
 
-        if isinstance(self.lookup_config.default_type, list):
+        # For manual actions, always mark as accepted.
+        # For automatic actions, revert the just-created revision (remove it and
+        # reapply its dates) to avoid adding extra branching earlier in the method.
+        if self.action_class_config.automatic:
+            if accepted is not None:
+                revision = new_record[self.REVISIONS_FIELD].pop(0)
+                if not len(new_record[self.REVISIONS_FIELD]):
+                    del new_record[self.REVISIONS_FIELD]
+                # reassign date
+                new_record[self.DATE_MODIFIED_FIELD] = revision[self.DATE_CREATED_FIELD]
+                if accepted:
+                    new_record[self.DATE_ACCEPTED_FIELD] = now_str
+        else:
+            new_record[self.DATE_ACCEPTED_FIELD] = now_str
+
+        if isinstance(self.action_class_config.default_type, list):
+            # Handle the case where the default type is a list:
+            # - If no index is provided, append the new record.
+            # - Otherwise, replace the record at the given index.
+            # Finally, update `new_record` to reference the full updated list.
             if item_index is None:
                 submission_supplement_copy.append(new_record)
             else:
@@ -270,12 +313,11 @@ class BaseAction:
             if match:
                 raise Exception('An unexpected key with a leading underscore was found')
 
-    @property
-    def _is_usage_limited(self):
+    def run_automatic_process(self, submission: dict, submission_supplement: dict, edit: dict, *args, **kwargs):
         """
-        Returns whether an action should check for usage limits.
+        Update edit with automatic process
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def _inject_data_schema(self, destination_schema: dict, skipped_keys: list):
         """
@@ -284,24 +326,34 @@ class BaseAction:
         Useful to produce result schema.
         """
 
-        for key, value in self.data_schema.items():
+        schema_to_inject = (
+            self.automated_data_schema
+            if self.action_class_config.automatic
+            else self.data_schema
+        )
+
+        for key, value in schema_to_inject.items():
             if key in skipped_keys:
                 continue
 
             if key in destination_schema:
                 if isinstance(destination_schema[key], dict):
-                    destination_schema[key].update(self.data_schema[key])
+                    destination_schema[key].update(schema_to_inject[key])
                 elif isinstance(destination_schema[key], list):
-                    destination_schema[key].extend(self.data_schema[key])
+                    destination_schema[key].extend(schema_to_inject[key])
                 else:
-                    destination_schema[key] = self.data_schema[key]
+                    destination_schema[key] = schema_to_inject[key]
             else:
-                destination_schema[key] = self.data_schema[key]
+                destination_schema[key] = schema_to_inject[key]
+
+    @property
+    def _is_usage_limited(self):
+        """
+        Returns whether an action should check for usage limits.
+        """
+        return self.action_class_config.automatic
 
     @property
     def _limit_identifier(self):
-        # Example for automatic transcription
-        #
-        # from kobo.apps.organizations.constants import UsageType
-        # return UsageType.ASR_SECONDS
+        # See AutomaticGoogleTranscriptionAction._limit_identifier() for example
         raise NotImplementedError()

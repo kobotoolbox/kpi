@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from django.db import models
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
@@ -81,10 +83,35 @@ class SubmissionSupplement(SubmissionExtras):
                 question_supplemental_data = supplemental_data.setdefault(
                     question_xpath, {}
                 )
-
                 action_supplemental_data = question_supplemental_data.setdefault(
-                    action_id, action.lookup_config.default_type
+                    action_id, action.action_class_config.default_type
                 )
+
+                # If the action is automatic, run the external process first.
+                # If status is still "in_progress", just return the current supplemental
+                # data with an updated version (job not finished).
+                # Otherwise, merge the service response into action_data.
+                #
+                # In all cases, call `revise_data` afterwards for final validation
+                # and to produce the updated supplemental data.
+                if action.action_class_config.automatic:
+                    service_response = action.run_automatic_process(
+                        submission,
+                        action_supplemental_data,
+                        action_data,
+                        asset=asset,
+                    )
+                    if (
+                        action_data.get('status')
+                        == action_supplemental_data.get('status')
+                        == 'in_progress'
+                    ):
+                        supplemental_data['_version'] = schema_version
+                        return supplemental_data
+                    else:
+                        action_data = deepcopy(action_data)
+                        action_data.update(service_response)
+
                 action_supplemental_data = action.revise_data(
                     submission, action_supplemental_data, action_data
                 )

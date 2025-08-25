@@ -172,7 +172,7 @@ class GoogleTranslationService(GoogleService):
         )
         return source_path, output_path
 
-    def process_data(self, xpath: str, vals: dict) -> dict:
+    def process_data(self, xpath: str, params: dict) -> dict:
         """
         Translates the value for a given xpath and its json values.
         """
