@@ -33,16 +33,6 @@ export default function InviteeActionsDropdown({
   const [opened, { open, close }] = useDisclosure()
 
   const orgInvitesPatchMutation = useOrganizationsInvitesPartialUpdate({
-    mutation: {
-      onSuccess: (_data, variables) => {
-        queryClient.invalidateQueries({ queryKey: getOrganizationsInvitesListQueryKey(variables.organizationId) })
-        queryClient.invalidateQueries({
-          queryKey: getOrganizationsInvitesRetrieveQueryKey(variables.organizationId, variables.guid),
-        })
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMembers] })
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMemberDetail] })
-      },
-    },
     request: {
       errorMessageDisplay: t('There was an error updating this invitation.'),
     },
