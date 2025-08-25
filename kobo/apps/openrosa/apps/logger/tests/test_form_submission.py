@@ -516,6 +516,35 @@ class TestFormSubmission(TestBase):
         edited_name = re.match(r'^.+?<name>(.+?)</name>', xml_str).groups()[0]
         self.assertEqual(record['name'], edited_name)
 
+    def test_instance_history_persists_after_delete(self):
+        xml_submission_file_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid.xml',
+        )
+        self._make_submission(xml_submission_file_path)
+        xml_submission_file_path_edited = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid_edited.xml',
+        )
+        self._make_submission(xml_submission_file_path_edited)
+        instance = Instance.objects.last()
+        history_object = InstanceHistory.objects.last()
+
+        assert history_object.xform_instance == instance
+
+        instance.delete()
+        history_object.refresh_from_db()
+
+        assert history_object.xform_instance is None
+
     def test_submission_w_mismatched_uuid(self):
         """
         test allowing submissions where xml's form uuid doesnt match
