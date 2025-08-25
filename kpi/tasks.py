@@ -137,6 +137,6 @@ def remove_old_versions():
             pk__lt=min_id + settings.VERSION_DELETION_BATCH_SIZE
         )
         deleted = queryset.delete()
-        # leave at debug level so we don't flood the logs
+        # log at debug level so we don't flood the logs
         logging.debug(f'Deleted {deleted[0]} version objects with pk < {min_id}')
         time.sleep(10)
