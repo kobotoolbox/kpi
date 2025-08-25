@@ -1,3 +1,5 @@
+from typing import Any
+
 from .base import ActionClassConfig, BaseLanguageAction
 
 
@@ -19,7 +21,9 @@ class ManualTranslationAction(BaseLanguageAction):
             } for params in self.params
         ]
 
-    def transform_data_for_output(self, action_data: list[dict]) -> list[dict]:
+    def transform_data_for_output(
+        self, action_data: list[dict]
+    ) -> dict[str, dict[str, Any]]:
         # keep next to `get_output_fields()` for now
         return {
             self._get_output_field_name(translation_data['language']): {
@@ -33,7 +37,6 @@ class ManualTranslationAction(BaseLanguageAction):
     @property
     def data_schema(self):  # for lack of a better name
         """
-        POST to "/api/v2/assets/<asset uid>/data/<submission uuid>/supplemental"
         {
             'manual_translation': {
                 'language': 'es',

@@ -149,6 +149,9 @@ class BaseAction:
 
     @property
     def data_schema(self):
+        """
+        Schema to validate payload POSTed to "/api/v2/assets/<asset uid>/data/<submission uuid>/supplemental"  # noqa
+        """
         raise NotImplementedError
 
     def get_output_fields(self) -> list[dict]:

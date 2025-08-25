@@ -37,11 +37,13 @@ class SubmissionSupplementTestCase(TestCase):
                 'value': 'فارغ',
                 '_dateCreated': '2024-04-08T15:27:00Z',
                 '_dateModified': '2024-04-08T15:31:00Z',
+                '_dateAccepted': '2024-04-08T15:31:00Z',
                 '_revisions': [
                     {
                         'language': 'ar',
                         'value': 'هائج',
                         '_dateCreated': '2024-04-08T15:27:00Z',
+                        '_dateAccepted': '2024-04-08T15:27:00Z',
                     }
                 ],
             },
@@ -51,17 +53,20 @@ class SubmissionSupplementTestCase(TestCase):
                     'value': 'berserk',
                     '_dateCreated': '2024-04-08T15:27:00Z',
                     '_dateModified': '2024-04-08T15:27:00Z',
+                    '_dateAccepted': '2024-04-08T15:27:00Z',
                 },
                 {
                     'language': 'es',
                     'value': 'enloquecido',
                     '_dateCreated': '2024-04-08T15:29:00Z',
                     '_dateModified': '2024-04-08T15:32:00Z',
+                    '_dateAccepted': '2024-04-08T15:32:00Z',
                     '_revisions': [
                         {
                             'language': 'es',
                             'value': 'loco',
                             '_dateCreated': '2024-04-08T15:29:00Z',
+                            '_dateAccepted': '2024-04-08T15:29:00Z',
                         }
                     ],
                 },
