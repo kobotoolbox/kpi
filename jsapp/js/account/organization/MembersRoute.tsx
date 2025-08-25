@@ -7,6 +7,7 @@ import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/
 import InviteModal from '#/account/organization/InviteModal'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 import subscriptionStore from '#/account/subscriptionStore'
+import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
 import Avatar from '#/components/common/avatar'
@@ -52,7 +53,10 @@ export default function MembersRoute() {
    * Returns both an invite and member, but one of these will be null depending on status
    */
   function getMemberOrInviteDetails(obj: OrganizationMemberListItem) {
-    const invite = obj.invite?.status === 'pending' || obj.invite?.status === 'resent' ? obj.invite : null
+    const invite =
+      obj.invite?.status === InviteStatusChoicesEnum.pending || obj.invite?.status === InviteStatusChoicesEnum.resent
+        ? obj.invite
+        : null
     const member = invite ? null : ({ ...obj } as OrganizationMember)
     return { invite, member }
   }
@@ -100,7 +104,7 @@ export default function MembersRoute() {
       size: 140,
       cellFormatter: (obj: OrganizationMemberListItem) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
-        return invite ? formatDate(invite.date_created) : formatDate(member!.date_joined)
+        return invite ? formatDate(invite.created) : formatDate(member!.date_joined)
       },
     },
     {
@@ -130,7 +134,7 @@ export default function MembersRoute() {
           return (
             <MemberRoleSelector
               username={invite.invitee}
-              role={invite.invitee_role}
+              role={invite.invitee_role as any}
               currentUserRole={orgQuery.data.request_user_role}
               inviteUrl={invite.url}
             />
