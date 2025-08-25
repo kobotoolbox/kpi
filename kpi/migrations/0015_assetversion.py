@@ -1,41 +1,9 @@
 # coding: utf-8
-from django.conf import settings
 from django.db import migrations, models
 from django.utils import timezone
 from jsonfield.fields import JSONField
 
 import kpi.fields
-from kpi.management.commands.populate_assetversions import populate_assetversions
-
-
-def copy_reversion_to_assetversion(apps, schema_editor):
-    if settings.SKIP_HEAVY_MIGRATIONS:
-        print("""
-            !!! ATTENTION !!!
-            If you have existing projects you need to run this management command:
-
-               > python manage.py populate_assetversions
-
-            Otherwise, projects will not display previous versions.
-            This command can take a long time, but it is idempotent
-            so you can run it even if you are not sure if it is
-            necessary.
-            """)
-    else:
-        print("""
-            This might take a while. If it is too slow, you may want to re-run the
-            migration with SKIP_HEAVY_MIGRATIONS=True and run the management command
-            (populate_assetversions) to prepare the versions.
-            """)
-        populate_assetversions(apps.get_model('kpi', 'Asset'),
-                               apps.get_model('kpi', 'AssetVersion'),
-                               apps.get_model('reversion', 'Version'),
-                               )
-
-
-# allow this command to be run backwards
-def noop(apps, schema_editor):
-    pass
 
 
 class Migration(migrations.Migration):
@@ -86,9 +54,5 @@ class Migration(migrations.Migration):
             name='asset_version',
             field=models.OneToOneField(null=True, on_delete=models.CASCADE,
                                        to='kpi.AssetVersion'),
-        ),
-        migrations.RunPython(
-            copy_reversion_to_assetversion,
-            noop,
         ),
     ]
