@@ -32,6 +32,10 @@ class SubmissionSupplement(SubmissionExtras):
 
     @staticmethod
     def revise_data(asset: 'kpi.Asset', submission: dict, incoming_data: dict) -> dict:
+
+        if not asset.advanced_features:
+            raise InvalidAction
+
         schema_version = incoming_data.get('_version')
         if schema_version != '20250820':
             # TODO: migrate from old per-submission schema
@@ -77,13 +81,9 @@ class SubmissionSupplement(SubmissionExtras):
                 question_supplemental_data = supplemental_data.setdefault(
                     question_xpath, {}
                 )
-                default_action_supplemental_data = (
-                    {}
-                    if action.item_reference_property is None
-                    else []
-                )
+
                 action_supplemental_data = question_supplemental_data.setdefault(
-                    action_id, default_action_supplemental_data
+                    action_id, action.lookup_config.default_type
                 )
                 action_supplemental_data = action.revise_data(
                     submission, action_supplemental_data, action_data

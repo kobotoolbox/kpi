@@ -1,5 +1,6 @@
 import datetime
 from copy import deepcopy
+from dataclasses import dataclass
 
 import jsonschema
 from django.conf import settings
@@ -115,14 +116,26 @@ def utc_datetime_to_js_str(dt: datetime.datetime) -> str:
     return dt.isoformat().replace('+00:00', 'Z')
 
 
+@dataclass
+class ActionLookupConfig:
+    """
+    Defines how items in a result schema can be resolved.
+        - key: the dictionary field used to identify or match an item (e.g., "language").
+        - default_type: the default container type to return when no items exist
+            (usually {} for objects or [] for arrays).
+    """
+
+    default_type: dict | list
+    key: str | None
+
+
 class BaseAction:
 
     DATE_CREATED_FIELD = '_dateCreated'
     DATE_MODIFIED_FIELD = '_dateModified'
     REVISIONS_FIELD = '_revisions'
 
-    # Change my name, my parents hate me when I was born
-    item_reference_property = None
+    lookup_config: ActionLookupConfig | None = None
 
     def check_limits(self, user: User):
 
@@ -135,12 +148,6 @@ class BaseAction:
         balance = balances[self._limit_identifier]
         if balance and balance['exceeded']:
             raise UsageLimitExceededException()
-
-    @property
-    def default_type(self):
-        if self.result_schema['type'] == 'array':
-            return []
-        return {}
 
     @classmethod
     def validate_params(cls, params):
@@ -188,16 +195,16 @@ class BaseAction:
         now_str = utc_datetime_to_js_str(timezone.now())
         item_index = None
         submission_supplement_copy = deepcopy(submission_supplement)
-        if not self.item_reference_property:
+        if not isinstance(self.lookup_config.default_type, list):
             revision = submission_supplement_copy
         else:
-            needle = edit[self.item_reference_property]
+            needle = edit[self.lookup_config.key]
             revision = {}
             if not isinstance(submission_supplement, list):
                 raise InvalidItem
 
             for idx, item in enumerate(submission_supplement):
-                if needle == item[self.item_reference_property]:
+                if needle == item[self.lookup_config.key]:
                     revision = deepcopy(item)
                     item_index = idx
                     break
@@ -210,7 +217,7 @@ class BaseAction:
         revision[self.DATE_CREATED_FIELD] = revision_creation_date
         new_record[self.DATE_MODIFIED_FIELD] = now_str
 
-        if not self.item_reference_property:
+        if not isinstance(self.lookup_config.default_type, list):
             if submission_supplement:
                 revisions.insert(0, revision)
                 new_record[self.REVISIONS_FIELD] = revisions
@@ -221,7 +228,7 @@ class BaseAction:
 
         new_record[self.DATE_CREATED_FIELD] = record_creation_date
 
-        if self.item_reference_property:
+        if isinstance(self.lookup_config.default_type, list):
             if item_index is None:
                 submission_supplement_copy.append(new_record)
             else:

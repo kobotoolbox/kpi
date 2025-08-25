@@ -1,8 +1,9 @@
-from .base import BaseAction
+from .base import BaseAction, ActionLookupConfig
 
 
 class ManualTranscriptionAction(BaseAction):
     ID = 'manual_transcription'
+    lookup_config = ActionLookupConfig({}, None)
 
     def __init__(self, source_question_xpath, params):
         self.source_question_xpath = source_question_xpath

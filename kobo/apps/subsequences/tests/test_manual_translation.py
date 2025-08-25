@@ -2,8 +2,8 @@ import dateutil
 import jsonschema
 import pytest
 
-from .constants import EMPTY_SUBMISSION
 from ..actions.manual_translation import ManualTranslationAction
+from .constants import EMPTY_SUBMISSION
 
 DEFAULT_SUPPLEMENT_DATA = []
 
@@ -49,6 +49,7 @@ def test_invalid_translation_data_fails_validation():
     with pytest.raises(jsonschema.exceptions.ValidationError):
         action.validate_data(data)
 
+
 def test_valid_result_passes_validation():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
@@ -59,7 +60,7 @@ def test_valid_result_passes_validation():
     third = {'language': 'fr', 'value': 'trois'}
     fourth = {'language': 'fr', 'value': None}
     fifth = {'language': 'en', 'value': 'fifth'}
-    mock_sup_det = action.default_type
+    mock_sup_det = action.lookup_config.default_type
     for data in first, second, third, fourth, fifth:
         mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
     action.validate_result(mock_sup_det)
@@ -75,7 +76,7 @@ def test_invalid_result_fails_validation():
     third = {'language': 'fr', 'value': 'trois'}
     fourth = {'language': 'fr', 'value': None}
     fifth = {'language': 'en', 'value': 'fifth'}
-    mock_sup_det = action.default_type
+    mock_sup_det = action.lookup_config.default_type
     for data in first, second, third, fourth, fifth:
         mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
@@ -95,8 +96,7 @@ def test_translation_revisions_are_retained_in_supplemental_details():
     first = {'language': 'en', 'value': 'No idea'}
     second = {'language': 'fr', 'value': 'Aucune idée'}
     third = {'language': 'en', 'value': 'No clue'}
-
-    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, action.default_type, first)
+    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, action.lookup_config.default_type, first)
 
     assert len(mock_sup_det) == 1
     assert mock_sup_det[0]['language'] == 'en'
@@ -130,9 +130,9 @@ def test_translation_revisions_are_retained_in_supplemental_details():
     assert mock_sup_det[0]['_dateCreated'] == first_time
 
     # the record itself should have an updated modification timestamp
-    assert dateutil.parser.parse(mock_sup_det[0]['_dateModified']) > dateutil.parser.parse(
-        mock_sup_det[0]['_dateCreated']
-    )
+    assert dateutil.parser.parse(
+        mock_sup_det[0]['_dateModified']
+    ) > dateutil.parser.parse(mock_sup_det[0]['_dateCreated'])
 
     # the record itself should encompass the second translation
     assert mock_sup_det[0].items() >= third.items()
@@ -145,8 +145,7 @@ def test_setting_translation_to_empty_string():
 
     first = {'language': 'fr', 'value': 'Aucune idée'}
     second = {'language': 'fr', 'value': ''}
-
-    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, action.default_type, first)
+    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, action.lookup_config.default_type, first)
     assert mock_sup_det[0]['value'] == 'Aucune idée'
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
@@ -162,7 +161,7 @@ def test_setting_translation_to_none():
     first = {'language': 'fr', 'value': 'Aucune idée'}
     second = {'language': 'fr', 'value': None}
 
-    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, action.default_type, first)
+    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, action.lookup_config.default_type, first)
     assert mock_sup_det[0]['value'] == 'Aucune idée'
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
@@ -179,7 +178,7 @@ def test_latest_revision_is_first():
     second = {'language': 'fr', 'value': 'deux'}
     third = {'language': 'fr', 'value': 'trois'}
 
-    mock_sup_det = action.default_type
+    mock_sup_det = action.lookup_config.default_type
     for data in first, second, third:
         mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 

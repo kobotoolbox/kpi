@@ -1,9 +1,10 @@
-from .base import BaseAction
+from .base import BaseAction, ActionLookupConfig
 
 
 class ManualTranslationAction(BaseAction):
     ID = 'manual_translation'
-    item_reference_property = 'language'
+
+    lookup_config = ActionLookupConfig([], 'language')
 
     def __init__(self, source_question_xpath, params):
         self.source_question_xpath = source_question_xpath

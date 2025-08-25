@@ -2,8 +2,8 @@ import dateutil
 import jsonschema
 import pytest
 
-from .constants import EMPTY_SUBMISSION
 from ..actions.manual_transcription import ManualTranscriptionAction
+from .constants import EMPTY_SUBMISSION
 
 
 def test_valid_params_pass_validation():
@@ -58,7 +58,7 @@ def test_valid_result_passes_validation():
     third = {'language': 'fr', 'value': 'trois'}
     fourth = {'language': 'fr', 'value': None}
     fifth = {'language': 'en', 'value': 'fifth'}
-    mock_sup_det = action.default_type
+    mock_sup_det = action.lookup_config.default_type
     for data in first, second, third, fourth, fifth:
         mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
     action.validate_result(mock_sup_det)
@@ -74,7 +74,7 @@ def test_invalid_result_fails_validation():
     third = {'language': 'fr', 'value': 'trois'}
     fourth = {'language': 'fr', 'value': None}
     fifth = {'language': 'en', 'value': 'fifth'}
-    mock_sup_det = action.default_type
+    mock_sup_det = action.lookup_config.default_type
     for data in first, second, third, fourth, fifth:
         mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
@@ -94,8 +94,9 @@ def test_transcript_revisions_are_retained_in_supplemental_details():
 
     first = {'language': 'en', 'value': 'No idea'}
     second = {'language': 'fr', 'value': 'Aucune idée'}
-
-    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, action.default_type, first)
+    mock_sup_det = action.revise_data(
+        EMPTY_SUBMISSION, action.lookup_config.default_type, first
+    )
 
     assert mock_sup_det['language'] == 'en'
     assert mock_sup_det['value'] == 'No idea'
@@ -137,7 +138,9 @@ def test_setting_transcript_to_empty_string():
     first = {'language': 'fr', 'value': 'Aucune idée'}
     second = {'language': 'fr', 'value': ''}
 
-    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, action.default_type, first)
+    mock_sup_det = action.revise_data(
+        EMPTY_SUBMISSION, action.lookup_config.default_type, first
+    )
     assert mock_sup_det['value'] == 'Aucune idée'
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
@@ -153,7 +156,9 @@ def test_setting_transcript_to_none():
     first = {'language': 'fr', 'value': 'Aucune idée'}
     second = {'language': 'fr', 'value': None}
 
-    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, action.default_type, first)
+    mock_sup_det = action.revise_data(
+        EMPTY_SUBMISSION, action.lookup_config.default_type, first
+    )
     assert mock_sup_det['value'] == 'Aucune idée'
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
@@ -170,7 +175,7 @@ def test_latest_revision_is_first():
     second = {'language': 'fr', 'value': 'deux'}
     third = {'language': 'fr', 'value': 'trois'}
 
-    mock_sup_det = action.default_type
+    mock_sup_det = action.lookup_config.default_type
     for data in first, second, third:
         mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 

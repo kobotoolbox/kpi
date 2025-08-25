@@ -1,8 +1,9 @@
 from typing import Generator
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
-from .constants import SUPPLEMENT_KEY, SUBMISSION_UUID_FIELD
+from .constants import SUBMISSION_UUID_FIELD, SUPPLEMENT_KEY
 from .models import SubmissionSupplement
+
 
 def stream_with_supplements(asset: 'kpi.models.Asset', submission_stream: Generator):
     if not asset.advanced_features:

@@ -8,10 +8,10 @@ from freezegun import freeze_time
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models import Asset
-from .constants import EMPTY_SUPPLEMENT
 from ..constants import SUBMISSION_UUID_FIELD
 from ..exceptions import InvalidAction, InvalidXPath
 from ..models import SubmissionSupplement
+from .constants import EMPTY_SUPPLEMENT
 
 
 class SubmissionSupplementTestCase(TestCase):
@@ -30,38 +30,38 @@ class SubmissionSupplementTestCase(TestCase):
     }
 
     EXPECTED_SUBMISSION_SUPPLEMENT = {
-        "_version": "20250820",
-        "group_name/question_name": {
-            "manual_transcription": {
-                "language": "ar",
-                "value": "فارغ",
-                "_dateCreated": "2024-04-08T15:27:00Z",
-                "_dateModified": "2024-04-08T15:31:00Z",
-                "_revisions": [
+        '_version': '20250820',
+        'group_name/question_name': {
+            'manual_transcription': {
+                'language': 'ar',
+                'value': 'فارغ',
+                '_dateCreated': '2024-04-08T15:27:00Z',
+                '_dateModified': '2024-04-08T15:31:00Z',
+                '_revisions': [
                     {
-                        "language": "ar",
-                        "value": "هائج",
-                        "_dateCreated": "2024-04-08T15:27:00Z",
+                        'language': 'ar',
+                        'value': 'هائج',
+                        '_dateCreated': '2024-04-08T15:27:00Z',
                     }
                 ],
             },
-            "manual_translation": [
+            'manual_translation': [
                 {
-                    "language": "en",
-                    "value": "berserk",
-                    "_dateCreated": "2024-04-08T15:27:00Z",
-                    "_dateModified": "2024-04-08T15:27:00Z",
+                    'language': 'en',
+                    'value': 'berserk',
+                    '_dateCreated': '2024-04-08T15:27:00Z',
+                    '_dateModified': '2024-04-08T15:27:00Z',
                 },
                 {
-                    "language": "es",
-                    "value": "enloquecido",
-                    "_dateCreated": "2024-04-08T15:29:00Z",
-                    "_dateModified": "2024-04-08T15:32:00Z",
-                    "_revisions": [
+                    'language': 'es',
+                    'value': 'enloquecido',
+                    '_dateCreated': '2024-04-08T15:29:00Z',
+                    '_dateModified': '2024-04-08T15:32:00Z',
+                    '_revisions': [
                         {
-                            "language": "es",
-                            "value": "loco",
-                            "_dateCreated": "2024-04-08T15:29:00Z",
+                            'language': 'es',
+                            'value': 'loco',
+                            '_dateCreated': '2024-04-08T15:29:00Z',
                         }
                     ],
                 },
@@ -93,9 +93,7 @@ class SubmissionSupplementTestCase(TestCase):
 
     def test_retrieve_empty_data(self):
         assert (
-            SubmissionSupplement.retrieve_data(
-                self.asset, self.submission_root_uuid
-            )
+            SubmissionSupplement.retrieve_data(self.asset, self.submission_root_uuid)
             == EMPTY_SUPPLEMENT
         )
 
@@ -121,37 +119,37 @@ class SubmissionSupplementTestCase(TestCase):
 
     def test_retrieve_data_from_migrated_data(self):
         submission_supplement = {
-            "group_name/question_name": {
-                "transcript": {
-                    "languageCode": "ar",
-                    "value": "فارغ",
-                    "dateCreated": "2024-04-08T15:27:00Z",
-                    "dateModified": "2024-04-08T15:31:00Z",
-                    "revisions": [
+            'group_name/question_name': {
+                'transcript': {
+                    'languageCode': 'ar',
+                    'value': 'فارغ',
+                    'dateCreated': '2024-04-08T15:27:00Z',
+                    'dateModified': '2024-04-08T15:31:00Z',
+                    'revisions': [
                         {
-                            "languageCode": "ar",
-                            "value": "هائج",
-                            "dateModified": "2024-04-08T15:27:00Z",
+                            'languageCode': 'ar',
+                            'value': 'هائج',
+                            'dateModified': '2024-04-08T15:27:00Z',
                         }
                     ],
                 },
-                "translation": [
+                'translation': [
                     {
-                        "languageCode": "en",
-                        "value": "berserk",
-                        "dateCreated": "2024-04-08T15:27:00Z",
-                        "dateModified": "2024-04-08T15:27:00Z",
+                        'languageCode': 'en',
+                        'value': 'berserk',
+                        'dateCreated': '2024-04-08T15:27:00Z',
+                        'dateModified': '2024-04-08T15:27:00Z',
                     },
                     {
-                        "languageCode": "es",
-                        "value": "enloquecido",
-                        "dateCreated": "2024-04-08T15:29:00Z",
-                        "dateModified": "2024-04-08T15:32:00Z",
-                        "revisions": [
+                        'languageCode': 'es',
+                        'value': 'enloquecido',
+                        'dateCreated': '2024-04-08T15:29:00Z',
+                        'dateModified': '2024-04-08T15:32:00Z',
+                        'revisions': [
                             {
-                                "languageCode": "es",
-                                "value": "loco",
-                                "dateModified": "2024-04-08T15:29:00Z",
+                                'languageCode': 'es',
+                                'value': 'loco',
+                                'dateModified': '2024-04-08T15:29:00Z',
                             }
                         ],
                     },
@@ -169,7 +167,6 @@ class SubmissionSupplementTestCase(TestCase):
         )
         assert submission_supplement == self.EXPECTED_SUBMISSION_SUPPLEMENT
 
-
     def test_retrieve_data_with_submission_root_uuid(self):
         self.test_revise_data()
         submission_supplement = SubmissionSupplement.retrieve_data(
@@ -182,9 +179,7 @@ class SubmissionSupplementTestCase(TestCase):
             submission_uuid=self.submission_root_uuid
         ).exists()
 
-        frozen_datetime_now = datetime(
-            2024, 4, 8, 15, 27, 0, tzinfo=ZoneInfo('UTC')
-        )
+        frozen_datetime_now = datetime(2024, 4, 8, 15, 27, 0, tzinfo=ZoneInfo('UTC'))
         with freeze_time(frozen_datetime_now):
 
             # 1) First call with transcription (ar) and translation (en)
@@ -192,15 +187,15 @@ class SubmissionSupplementTestCase(TestCase):
                 self.asset,
                 self.submission,
                 {
-                    "_version": "20250820",
-                    "group_name/question_name": {
-                        "manual_transcription": {
-                            "language": "ar",
-                            "value": "هائج",
+                    '_version': '20250820',
+                    'group_name/question_name': {
+                        'manual_transcription': {
+                            'language': 'ar',
+                            'value': 'هائج',
                         },
-                        "manual_translation": {
-                            "language": "en",
-                            "value": "berserk",
+                        'manual_translation': {
+                            'language': 'en',
+                            'value': 'berserk',
                         },
                     },
                 },
@@ -212,19 +207,17 @@ class SubmissionSupplementTestCase(TestCase):
         ).exists()
 
         # 2) Call with translation es = "loco"
-        frozen_datetime_now = datetime(
-            2024, 4, 8, 15, 29, 0, tzinfo=ZoneInfo('UTC')
-        )
+        frozen_datetime_now = datetime(2024, 4, 8, 15, 29, 0, tzinfo=ZoneInfo('UTC'))
         with freeze_time(frozen_datetime_now):
             SubmissionSupplement.revise_data(
                 self.asset,
                 self.submission,
                 {
-                    "_version": "20250820",
-                    "group_name/question_name": {
-                        "manual_translation": {
-                            "language": "es",
-                            "value": "loco",
+                    '_version': '20250820',
+                    'group_name/question_name': {
+                        'manual_translation': {
+                            'language': 'es',
+                            'value': 'loco',
                         },
                     },
                 },
@@ -238,38 +231,34 @@ class SubmissionSupplementTestCase(TestCase):
         )
 
         # 3) Call with transcription ar = 'فارغ'
-        frozen_datetime_now = datetime(
-            2024, 4, 8, 15, 31, 0, tzinfo=ZoneInfo('UTC')
-        )
+        frozen_datetime_now = datetime(2024, 4, 8, 15, 31, 0, tzinfo=ZoneInfo('UTC'))
         with freeze_time(frozen_datetime_now):
             submission_supplement = SubmissionSupplement.revise_data(
                 self.asset,
                 self.submission,
                 {
-                    "_version": "20250820",
-                    "group_name/question_name": {
-                        "manual_transcription": {
-                            "language": "ar",
-                            "value": 'فارغ',
+                    '_version': '20250820',
+                    'group_name/question_name': {
+                        'manual_transcription': {
+                            'language': 'ar',
+                            'value': 'فارغ',
                         },
                     },
                 },
             )
 
         # 4) Call with translation es = "enloquecido"
-        frozen_datetime_now = datetime(
-            2024, 4, 8, 15, 32, 0, tzinfo=ZoneInfo('UTC')
-        )
+        frozen_datetime_now = datetime(2024, 4, 8, 15, 32, 0, tzinfo=ZoneInfo('UTC'))
         with freeze_time(frozen_datetime_now):
             submission_supplement = SubmissionSupplement.revise_data(
                 self.asset,
                 self.submission,
                 {
-                    "_version": "20250820",
-                    "group_name/question_name": {
-                        "manual_translation": {
-                            "language": "es",
-                            "value": "enloquecido",
+                    '_version': '20250820',
+                    'group_name/question_name': {
+                        'manual_translation': {
+                            'language': 'es',
+                            'value': 'enloquecido',
                         },
                     },
                 },
@@ -284,10 +273,8 @@ class SubmissionSupplementTestCase(TestCase):
                 self.asset,
                 self.submission,
                 {
-                    "_version": "20250820",
-                    "group_name/question_name": {
-                        "my_other_action": {"param": "foo"}
-                    },
+                    '_version': '20250820',
+                    'group_name/question_name': {'my_other_action': {'param': 'foo'}},
                 },
             )
 
@@ -298,11 +285,11 @@ class SubmissionSupplementTestCase(TestCase):
                 self.asset,
                 self.submission,
                 {
-                    "_version": "20250820",
-                    "group_name/other_question_name": {
-                        "manual_translation": {
-                            "language": "en",
-                            "value": "crazy",
+                    '_version': '20250820',
+                    'group_name/other_question_name': {
+                        'manual_translation': {
+                            'language': 'en',
+                            'value': 'crazy',
                         }
                     },
                 },
