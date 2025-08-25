@@ -6,6 +6,8 @@ from django.conf import settings
 from django.core import mail
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import call_command
+from django.db.models import Min
+from reversion.models import Version
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.markdownx_uploader.tasks import remove_unused_markdown_files
@@ -14,6 +16,7 @@ from kpi.constants import LIMIT_HOURS_23
 from kpi.maintenance_tasks import remove_old_asset_snapshots, remove_old_import_tasks
 from kpi.models.asset import Asset
 from kpi.models.import_export_task import ImportTask, SubmissionExportTask
+from kpi.utils.log import logging
 
 
 @celery_app.task(
@@ -125,3 +128,15 @@ def perform_maintenance():
     remove_unused_markdown_files()
     remove_old_import_tasks()
     remove_old_asset_snapshots()
+
+
+@celery_app.task(time_limit=30, soft_time_limit=30)
+def remove_old_versions():
+    while min_id := Version.objects.aggregate(Min('pk'))['pk__min']:
+        queryset = Version.objects.filter(
+            pk__lt=min_id + settings.VERSION_DELETION_BATCH_SIZE
+        )
+        deleted = queryset.delete()
+        # log at debug level so we don't flood the logs
+        logging.debug(f'Deleted {deleted[0]} version objects with pk < {min_id}')
+        time.sleep(10)

@@ -1365,7 +1365,12 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'kobo.apps.mass_emails.tasks.generate_mass_email_user_lists',
         'schedule': crontab(minute=0),
         'options': {'queue': 'kpi_queue'},
-    }
+    },
+    'remove-reversion-versions': {
+        'task': 'kpi.tasks.remove_old_versions',
+        'schedule': crontab(minute=0),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
 }
 
 if STRIPE_ENABLED:
@@ -1985,6 +1990,7 @@ LOG_DELETION_BATCH_SIZE = 1000
 USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000
 SUBMISSION_DELETION_BATCH_SIZE = 1000
 LONG_RUNNING_MIGRATION_BATCH_SIZE = 2000
+VERSION_DELETION_BATCH_SIZE = 1000
 
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100
