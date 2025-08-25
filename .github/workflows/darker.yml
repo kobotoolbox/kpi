@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # In addition to checking out the 'merge commit', we also want to
           # fetch enough commits to find the most recent commit in the base
