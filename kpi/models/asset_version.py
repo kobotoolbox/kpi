@@ -23,7 +23,7 @@ class AssetVersion(AbstractTimeStampedModel):
 
     # preserving _reversion_version in case we don't save all that we
     # need to in the first migration from reversion to AssetVersion
-    _reversion_version = models.IntegerField(null=True)
+    _reversion_version_id = models.IntegerField(null=True, blank=True)
     version_content = models.JSONField()
     uid_aliases = models.JSONField(null=True)
     # Tee hee, `deployed_content` is never written to the database!
