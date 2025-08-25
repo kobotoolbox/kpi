@@ -41,18 +41,32 @@ def get_supplemental_output_fields(asset: 'kpi.models.Asset') -> list[dict]:
         # TODO: add a migration to update the schema version
         raise NotImplementedError()
 
-    output_fields = []
+    output_fields_by_name = {}
     # FIXME: `_actionConfigs` is 👎 and should be dropped in favor of top-level configs, eh?
     # data already exists at the top level alongisde leading-underscore metadata like _version
-    for source_question_xpath, per_question_actions in advanced_features['_actionConfigs'].items():
+    for source_question_xpath, per_question_actions in advanced_features[
+        '_actionConfigs'
+    ].items():
         for action_id, action_config in per_question_actions.items():
-            action = ACTION_IDS_TO_CLASSES[action_id](source_question_xpath, action_config)
-            output_fields.extend(action.get_output_fields())
+            action = ACTION_IDS_TO_CLASSES[action_id](
+                source_question_xpath, action_config
+            )
+            for field in action.get_output_fields():
+                try:
+                    existing = output_fields_by_name[field['name']]
+                except KeyError:
+                    output_fields_by_name[field['name']] = field
+                else:
+                    # It's normal for multiple actions to contribute the same
+                    # field, but they'd better be exactly the same!
+                    assert field == existing
 
     # since we want transcripts always to come before translations, à la
     #    <source field> <transcript fr> <translation en> <translation es>
     # and we're lucky with alphabetical order, we can just sort by name
-    return sorted(output_fields, key=lambda field: field['name'])
+    return sorted(
+        output_fields_by_name.values(), key=lambda field: field['name']
+    )
 
 
 def stream_with_supplements(
