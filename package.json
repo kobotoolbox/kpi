@@ -218,6 +218,7 @@
     "build:app": "webpack --config webpack/prod.config.js",
     "build:storybook": "storybook build",
     "build:storybook-with-playwright": "npm run build:storybook && playwright install",
+    "build:orval": "orval",
     "watch": "npm run hint watch && webpack-dev-server --config webpack/dev.server.js",
     "watch:storybook:": "storybook dev -p 6006 --no-open",
     "ci": "npm run lint && SKIP_TS_CHECK=true npm run build && npm run test",
