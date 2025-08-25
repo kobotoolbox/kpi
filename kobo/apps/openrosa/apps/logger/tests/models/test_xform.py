@@ -1,6 +1,4 @@
 import os
-import reversion
-import unittest
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase

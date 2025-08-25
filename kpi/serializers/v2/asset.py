@@ -40,7 +40,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.fields import WritableJSONField
-from kpi.models import Asset, AssetVersion, ObjectPermission, UserAssetSubscription
+from kpi.models import Asset, ObjectPermission, UserAssetSubscription
 from kpi.models.asset import AssetDeploymentStatus
 from kpi.utils.object_permission import (
     get_cached_code_names,
