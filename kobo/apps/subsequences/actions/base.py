@@ -104,6 +104,7 @@ idea of example data in SubmissionExtras based on the above
 }
 """
 
+
 @dataclass
 class ActionClassConfig:
     """
@@ -226,12 +227,14 @@ class BaseAction:
 
         if self.action_class_config.automatic:
             # If the action is automatic, run the external process first.
-            if not (service_response := self._run_automatic_process(
-                submission,
-                submission_supplement,
-                action_data,
-                asset=asset,
-            )):
+            if not (
+                service_response := self._run_automatic_process(
+                    submission,
+                    submission_supplement,
+                    action_data,
+                    asset=asset,
+                )
+            ):
                 # If the service response is None, the automatic task is still running.
                 # Stop here to avoid processing data and creating redundant revisions.
                 return None
@@ -407,6 +410,7 @@ class BaseLanguageAction(BaseAction):
     element is an object with a single string property for the transcript
     language.
     """
+
     params_schema = {
         'type': 'array',
         'items': {

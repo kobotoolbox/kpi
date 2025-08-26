@@ -14,11 +14,12 @@ from googleapiclient import discovery
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.utils.log import logging
 from ...constants import (
-    SUBMISSION_UUID_FIELD,
     GOOGLE_CACHE_TIMEOUT,
+    SUBMISSION_UUID_FIELD,
     SUBSEQUENCES_ASYNC_CACHE_KEY,
 )
 from ...exceptions import SubsequenceTimeoutError
+
 # from ...models import SubmissionSupplement
 # from ..utils.cache import generate_cache_key
 from ..utils.google import google_credentials_from_constance_config
@@ -130,7 +131,9 @@ class GoogleService(ABC):
             self.asset.id,
         )
 
-    def _get_cache_key(self, xpath: str, source_lang: str, target_lang: str | None) -> str:
+    def _get_cache_key(
+        self, xpath: str, source_lang: str, target_lang: str | None
+    ) -> str:
         submission_root_uuid = self.submission[SUBMISSION_UUID_FIELD]
         args = [self.asset.owner_id, submission_root_uuid, xpath, source_lang.lower()]
         if target_lang is None:

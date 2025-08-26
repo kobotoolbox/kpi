@@ -100,7 +100,7 @@ def test_invalid_user_data_fails_validation():
         # Cannot push a status
         {'language': 'fr', 'status': 'in_progress'},
         # Cannot pass value and accepted at the same time
-        {'language': 'fr', 'value': None, 'accepted': False}
+        {'language': 'fr', 'value': None, 'accepted': False},
     ]
 
     for data in invalid_data:
@@ -160,7 +160,7 @@ def test_valid_result_passes_validation():
     mock_service = MagicMock()
     with patch(
         'kobo.apps.subsequences.actions.automatic_google_transcription.GoogleTranscriptionService',  # noqa
-        return_value=mock_service
+        return_value=mock_service,
     ):
         for data in first, second, third, fourth, fifth, six:
             value = data.get('value', '')
@@ -171,7 +171,7 @@ def test_valid_result_passes_validation():
 
             mock_service.process_data.return_value = {
                 'value': value,
-                'status': 'complete'
+                'status': 'complete',
             }
             mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
@@ -194,7 +194,7 @@ def test_acceptance_does_not_produce_revisions():
     mock_service = MagicMock()
     with patch(
         'kobo.apps.subsequences.actions.automatic_google_transcription.GoogleTranscriptionService',  # noqa
-        return_value=mock_service
+        return_value=mock_service,
     ):
         for data in first, second, third:
             value = data.get('value', '')
@@ -205,7 +205,7 @@ def test_acceptance_does_not_produce_revisions():
 
             mock_service.process_data.return_value = {
                 'value': value,
-                'status': 'complete'
+                'status': 'complete',
             }
             mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
             assert '_revisions' not in mock_sup_det
@@ -233,7 +233,7 @@ def test_invalid_result_fails_validation():
     with patch(
         'kobo.apps.subsequences.actions.automatic_google_transcription.GoogleTranscriptionService',
         # noqa
-        return_value=mock_service
+        return_value=mock_service,
     ):
         for data in first, second, third, fourth, fifth, six:
             value = data.get('value', '')
@@ -244,7 +244,7 @@ def test_invalid_result_fails_validation():
 
             mock_service.process_data.return_value = {
                 'value': value,
-                'status': 'complete'
+                'status': 'complete',
             }
             mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
@@ -269,13 +269,10 @@ def test_transcription_revisions_are_retained_in_supplemental_details():
     with patch(
         'kobo.apps.subsequences.actions.automatic_google_transcription.GoogleTranscriptionService',
         # noqa
-        return_value=mock_service
+        return_value=mock_service,
     ):
         value = first.pop('value', None)
-        mock_service.process_data.return_value = {
-            'value': value,
-            'status': 'complete'
-        }
+        mock_service.process_data.return_value = {'value': value, 'status': 'complete'}
         mock_sup_det = action.revise_data(
             EMPTY_SUBMISSION, action.action_class_config.default_type, first
         )
@@ -288,13 +285,10 @@ def test_transcription_revisions_are_retained_in_supplemental_details():
 
     with patch(
         'kobo.apps.subsequences.actions.automatic_google_transcription.GoogleTranscriptionService',  # noqa
-        return_value=mock_service
+        return_value=mock_service,
     ):
         value = second.pop('value', None)
-        mock_service.process_data.return_value = {
-            'value': value,
-            'status': 'complete'
-        }
+        mock_service.process_data.return_value = {'value': value, 'status': 'complete'}
         mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
 
     assert len(mock_sup_det['_revisions']) == 1
@@ -336,13 +330,13 @@ def test_latest_revision_is_first():
     with patch(
         'kobo.apps.subsequences.actions.automatic_google_transcription.GoogleTranscriptionService',
         # noqa
-        return_value=mock_service
+        return_value=mock_service,
     ):
         for data in first, second, third:
             value = data.pop('value')
             mock_service.process_data.return_value = {
                 'value': value,
-                'status': 'complete'
+                'status': 'complete',
             }
             mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 

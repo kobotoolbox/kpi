@@ -11,20 +11,16 @@ from django.core.cache import cache
 from google.api_core.exceptions import InvalidArgument
 from google.cloud import speech
 
-from kpi.utils.log import logging
 from kpi.exceptions import (
+    AttachmentNotFoundException,
     InvalidXPathException,
+    NotSupportedFormatException,
     SubmissionNotFoundException,
     XPathNotFoundException,
-    AttachmentNotFoundException,
-    NotSupportedFormatException,
 )
+from kpi.utils.log import logging
 from ...constants import SUBMISSION_UUID_FIELD
-from ...exceptions import (
-    AudioTooLongError,
-    SubsequenceTimeoutError,
-)
-from ..utils.cache import generate_cache_key
+from ...exceptions import AudioTooLongError, SubsequenceTimeoutError
 from .base import GoogleService
 
 # https://cloud.google.com/speech-to-text/quotas#content
@@ -152,16 +148,13 @@ class GoogleTranscriptionService(GoogleService):
                     'status': 'failed',
                     'error': {f'Attachment not found'},
                 }
-            except (InvalidXPathException,XPathNotFoundException):
+            except (InvalidXPathException, XPathNotFoundException):
                 return {
                     'status': 'failed',
                     'error': {f'Invalid question name XPath'},
                 }
             except NotSupportedFormatException:
-                return {
-                    'status': 'failed',
-                    'error': 'Unsupported format'
-                }
+                return {'status': 'failed', 'error': 'Unsupported format'}
 
         try:
             value = self.handle_google_operation(
@@ -181,7 +174,7 @@ class GoogleTranscriptionService(GoogleService):
             logging.error(f'No transcriptions found for xpath={xpath}')
             return {
                 'status': 'failed',
-                'error': f'Transcription failed with error {str(e)}'
+                'error': f'Transcription failed with error {str(e)}',
             }
 
         return {

@@ -1,4 +1,4 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from rest_framework import status
 
@@ -78,16 +78,18 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
     def test_automatic_google_transcription_forbidden_payload(self):
         # First, set up the asset to allow automatic google transcription
-        self.set_asset_advanced_features({
-            '_version': '20250820',
-            '_actionConfigs': {
-                'q1': {
-                    'automatic_google_transcription': [
-                        {'language': 'es'},
-                    ]
-                }
-            },
-        })
+        self.set_asset_advanced_features(
+            {
+                '_version': '20250820',
+                '_actionConfigs': {
+                    'q1': {
+                        'automatic_google_transcription': [
+                            {'language': 'es'},
+                        ]
+                    }
+                },
+            }
+        )
 
         payload = {
             '_version': '20250820',
@@ -106,26 +108,28 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
     def test_cannot_accept_incomplete_automatic_translation(self):
         # Set up the asset to allow automatic google transcription
-        self.set_asset_advanced_features({
-            '_version': '20250820',
-            '_actionConfigs': {
-                'q1': {
-                    'automatic_google_transcription': [
-                        {'language': 'es'},
-                    ]
-                }
-            },
-        })
+        self.set_asset_advanced_features(
+            {
+                '_version': '20250820',
+                '_actionConfigs': {
+                    'q1': {
+                        'automatic_google_transcription': [
+                            {'language': 'es'},
+                        ]
+                    }
+                },
+            }
+        )
 
         # Simulate in progress translation
         mock_submission_supplement = {
-            "_version": "20250820",
-            "q1": {
-                "automatic_google_transcription": {
-                    "status": "in_progress",
-                    "language": "es",
-                    "_dateCreated": "2025-08-25T21:17:35.535710Z",
-                    "_dateModified": "2025-08-26T11:41:21.917338Z",
+            '_version': '20250820',
+            'q1': {
+                'automatic_google_transcription': {
+                    'status': 'in_progress',
+                    'language': 'es',
+                    '_dateCreated': '2025-08-25T21:17:35.535710Z',
+                    '_dateModified': '2025-08-26T11:41:21.917338Z',
                 }
             },
         }
@@ -152,7 +156,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
         with patch(
             'kobo.apps.subsequences.actions.automatic_google_transcription.GoogleTranscriptionService',  # noqa
-            return_value=mock_service
+            return_value=mock_service,
         ):
             response = self.client.patch(
                 self.supplement_details_url, data=payload, format='json'

@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 from django.db import models
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
@@ -87,9 +85,11 @@ class SubmissionSupplement(SubmissionExtras):
                     action_id, action.action_class_config.default_type
                 )
 
-                if not (action_supplemental_data := action.revise_data(
-                    submission, action_supplemental_data, action_data
-                )):
+                if not (
+                    action_supplemental_data := action.revise_data(
+                        submission, action_supplemental_data, action_data
+                    )
+                ):
                     supplemental_data['_version'] = schema_version
                     return supplemental_data
 
@@ -205,7 +205,9 @@ class SubmissionSupplement(SubmissionExtras):
                         if not new_acceptance_date:
                             # Never return unaccepted data
                             continue
-                        existing_acceptance_date = data_for_output.get(field_name, {}).get('_dateAccepted')
+                        existing_acceptance_date = data_for_output.get(
+                            field_name, {}
+                        ).get('_dateAccepted')
                         if (
                             not existing_acceptance_date
                             or existing_acceptance_date < new_acceptance_date

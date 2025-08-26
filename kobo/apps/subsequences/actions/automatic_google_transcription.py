@@ -1,6 +1,6 @@
 from kobo.apps.organizations.constants import UsageType
-from .base import ActionClassConfig, BaseLanguageAction
 from ..integrations.google.google_transcribe import GoogleTranscriptionService
+from .base import ActionClassConfig, BaseLanguageAction
 
 
 class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
@@ -55,7 +55,6 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
                 'value': {'type': ['string', 'null']},
                 'error': {'type': 'string'},
                 'accepted': {'type': 'boolean'},
-
                 # --- Value rules ---
                 # If status == "complete" → require "value" (string or null)
                 'rule_value_required_when_complete': {
@@ -69,9 +68,7 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
                 'rule_value_forbidden_when_in_progress_or_failed': {
                     'if': {
                         'required': ['status'],
-                        'properties': {
-                            'status': {'enum': ['in_progress', 'failed']}
-                        },
+                        'properties': {'status': {'enum': ['in_progress', 'failed']}},
                     },
                     'then': {'not': {'required': ['value']}},
                 },
@@ -91,7 +88,6 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
                         ]
                     },
                 },
-
                 # --- Other field rules ---
                 # If status == "failed" → require "error"; else forbid it
                 'rule_error_presence_when_failed': {
@@ -228,10 +224,7 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
         # return the completed transcription right away. `revise_data()` will handle
         # the merge and final validation of this acceptance.
         accepted = action_data.get('accepted', None)
-        if (
-            submission_supplement.get('status') == 'complete'
-            and accepted is not None
-        ):
+        if submission_supplement.get('status') == 'complete' and accepted is not None:
             return {
                 'value': submission_supplement['value'],
                 'status': 'complete',
@@ -246,9 +239,7 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
 
         # Otherwise, trigger the external Google transcription service.
         service = GoogleTranscriptionService(submission, asset=kwargs['asset'])
-        service_data = service.process_data(
-            self.source_question_xpath, action_data
-        )
+        service_data = service.process_data(self.source_question_xpath, action_data)
 
         # If the transcription request is still running, stop processing here.
         # Returning None ensures that `revise_data()` will not be called afterwards.

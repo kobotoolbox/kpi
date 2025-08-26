@@ -6,6 +6,7 @@
 
 import datetime
 
+
 def utc_datetime_to_js_str(dt: datetime.datetime) -> str:
     """
     Return a string to represent a `datetime` following the simplification of

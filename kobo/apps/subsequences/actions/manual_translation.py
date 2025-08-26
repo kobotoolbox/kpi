@@ -9,7 +9,7 @@ class ManualTranslationAction(BaseLanguageAction):
 
     def _get_output_field_name(self, language: str) -> str:
         language = language.split('-')[0]  # ignore region if any
-        return f"{self.source_question_xpath}/translation__{language}"
+        return f'{self.source_question_xpath}/translation__{language}'
 
     def get_output_fields(self):
         return [
@@ -18,7 +18,8 @@ class ManualTranslationAction(BaseLanguageAction):
                 'name': self._get_output_field_name(params['language']),
                 'source': self.source_question_xpath,
                 'type': 'translation',
-            } for params in self.params
+            }
+            for params in self.params
         ]
 
     def transform_data_for_output(

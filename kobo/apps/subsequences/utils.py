@@ -64,15 +64,11 @@ def get_supplemental_output_fields(asset: 'kpi.models.Asset') -> list[dict]:
     # since we want transcripts always to come before translations, à la
     #    <source field> <transcript fr> <translation en> <translation es>
     # and we're lucky with alphabetical order, we can just sort by name
-    return sorted(
-        output_fields_by_name.values(), key=lambda field: field['name']
-    )
+    return sorted(output_fields_by_name.values(), key=lambda field: field['name'])
 
 
 def stream_with_supplements(
-    asset: 'kpi.models.Asset',
-    submission_stream: Generator,
-    for_output: bool = False
+    asset: 'kpi.models.Asset', submission_stream: Generator, for_output: bool = False
 ) -> Generator:
     if not asset.advanced_features:
         yield from submission_stream
@@ -96,6 +92,8 @@ def stream_with_supplements(
     for submission in submission_stream:
         submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])
         submission[SUPPLEMENT_KEY] = SubmissionSupplement.retrieve_data(
-            asset, for_output=for_output, prefetched_supplement=extras.get(submission_uuid, {})
+            asset,
+            for_output=for_output,
+            prefetched_supplement=extras.get(submission_uuid, {}),
         )
         yield submission

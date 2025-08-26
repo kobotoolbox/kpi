@@ -9,7 +9,7 @@ class ManualTranscriptionAction(BaseLanguageAction):
 
     def _get_output_field_name(self, language: str) -> str:
         language = language.split('-')[0]  # ignore region if any
-        return f"{self.source_question_xpath}/transcription__{language}"
+        return f'{self.source_question_xpath}/transcription__{language}'
 
     def get_output_fields(self) -> list[dict]:
         return [
@@ -18,7 +18,8 @@ class ManualTranscriptionAction(BaseLanguageAction):
                 'name': self._get_output_field_name(params['language']),
                 'source': self.source_question_xpath,
                 'type': 'transcript',
-            } for params in self.params
+            }
+            for params in self.params
         ]
 
     def transform_data_for_output(self, action_data: dict) -> dict[str, dict[str, Any]]:
