@@ -30,7 +30,10 @@ def test_valid_transcript_data_passes_validation():
     data = {'language': 'fr', 'value': ''}
     action.validate_data(data)
 
-    # Delete transcript
+    # Transcription with locale
+    data = {'language': 'fr', 'locale': 'fr-CA', 'value': 'Ché tu moé?'}
+
+    # Tag transcript as deleted
     data = {'language': 'fr', 'value': None}
     action.validate_data(data)
 

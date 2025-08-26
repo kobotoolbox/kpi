@@ -5,8 +5,6 @@ import pytest
 from ..actions.manual_translation import ManualTranslationAction
 from .constants import EMPTY_SUBMISSION
 
-DEFAULT_SUPPLEMENT_DATA = []
-
 
 def test_valid_params_pass_validation():
     params = [{'language': 'fr'}, {'language': 'es'}]
@@ -27,11 +25,11 @@ def test_valid_translation_data_passes_validation():
     data = {'language': 'fr', 'value': 'Aucune idée'}
     action.validate_data(data)
 
-    # No transcript
+    # No translations
     data = {'language': 'fr', 'value': ''}
     action.validate_data(data)
 
-    # Delete transcript
+    # Tag translation as deleted
     data = {'language': 'fr', 'value': None}
     action.validate_data(data)
 

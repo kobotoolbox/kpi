@@ -237,6 +237,13 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
                 'status': 'complete',
             }
 
+        # TBC
+        if 'value' in action_data:
+            return {
+                'value': action_data['value'],
+                'status': 'deleted',
+            }
+
         # Otherwise, trigger the external Google transcription service.
         service = GoogleTranscriptionService(submission, asset=kwargs['asset'])
         service_data = service.process_data(
@@ -247,7 +254,7 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
         # Returning None ensures that `revise_data()` will not be called afterwards.
         if (
             accepted is None
-            and submission_supplement['status']
+            and submission_supplement.get('status')
             == service_data['status']
             == 'in_progress'
         ):
