@@ -22,11 +22,7 @@ interface OverLimitModalProps {
   interval: 'month' | 'year'
 }
 
-function getLimitReachedMessage(
-  isMmo: boolean,
-  isTeamLabelActive: boolean,
-  limits: string,
-) {
+function getLimitReachedMessage(isMmo: boolean, isTeamLabelActive: boolean, limits: string) {
   const planRoute = '/#' + ACCOUNT_ROUTES.PLAN
   const usageRoute = '/#' + ACCOUNT_ROUTES.USAGE
   let firstSentence: string
