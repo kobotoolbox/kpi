@@ -272,12 +272,9 @@ class MassEmailSender:
         logging.info(f'Processing MassEmailRecord({record})')
         org_user = record.user.organization.organization_users.get(user=record.user)
         plan_name = self.get_plan_name(org_user)
-        # prefer the user-entered name for full name, but use the one from admin
-        # as a backup
-        backup_full_name = record.user.first_name + ' ' + record.user.last_name
         data = {
             'username': record.user.username,
-            'full_name': record.user.extra_details.data.get('name', backup_full_name),
+            'full_name': record.user.extra_details.data.get('name', None),
             'plan_name': plan_name,
             'date_created': record.date_created.strftime('%Y-%m-%d %H:%M'),
         }
