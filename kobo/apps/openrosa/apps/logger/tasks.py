@@ -219,7 +219,7 @@ def delete_expired_instance_history_records(chunk_size=1e4, max_records=1e6):
     n_objs = len(history_ids)
     logging.warning(f'Found {n_objs} expired InstanceHistory objects. Cleaning up ...')
     for page_start in range(0, n_objs, chunk_size):
-        batch_ids = history_ids[page_start : page_start + chunk_size]
+        batch_ids = history_ids[page_start:page_start + chunk_size]
         logging.warning(
             f'Deleting batch of {len(batch_ids)} InstanceHistory objects...'
         )

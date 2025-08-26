@@ -1303,7 +1303,7 @@ CELERY_BEAT_SCHEDULE = {
         'options': {'queue': 'kobocat_queue'},
     },
     'delete-expired-instance-history-records': {
-        'task': 'kobo.apps.openrosa.apps.logger.tasks.delete_expired_instance_history_records',
+        'task': 'kobo.apps.openrosa.apps.logger.tasks.delete_expired_instance_history_records',  # noqa
         'schedule': crontab(day_of_week=1, hour=10, minute=0),
         'options': {'queue': 'kobocat_queue'}
     },
