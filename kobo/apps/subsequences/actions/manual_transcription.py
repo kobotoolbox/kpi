@@ -34,33 +34,6 @@ class ManualTranscriptionAction(BaseLanguageAction):
         }
 
     @property
-    def data_schema(self):  # for lack of a better name
-        """
-        POST to "/api/v2/assets/<asset uid>/data/<submission uuid>/supplemental"
-        {
-            'manual_transcription': {
-                'language': 'es',
-                'value': 'Almorzamos muy bien hoy',
-            }
-        }
-        """
-
-        return {
-            '$schema': 'https://json-schema.org/draft/2020-12/schema',
-            'type': 'object',
-            'additionalProperties': False,
-            'properties': {
-                'language': {'$ref': '#/$defs/lang'},
-                'value': {'$ref': '#/$defs/value'},
-            },
-            'required': ['language', 'value'],
-            '$defs': {
-                'lang': {'type': 'string', 'enum': self.languages},
-                'value': {'type': ['string', 'null']},
-            },
-        }
-
-    @property
     def result_schema(self):
 
         schema = {

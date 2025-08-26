@@ -26,6 +26,7 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
             'additionalProperties': False,
             'properties': {
                 'language': {'$ref': '#/$defs/lang'},
+                'locale': {'$ref': '#/$defs/locale'},
                 'status': {'$ref': '#/$defs/action_status'},
                 'value': {'$ref': '#/$defs/value'},
                 'error': {'$ref': '#/$defs/error'},
@@ -42,6 +43,7 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
             ],
             '$defs': {
                 'lang': {'type': 'string', 'enum': self.languages},
+                'locale': {'type': ['string', 'null']},
                 'action_status': {
                     'type': 'string',
                     'enum': ['in_progress', 'complete', 'failed'],
@@ -99,11 +101,13 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
             'additionalProperties': False,
             'properties': {
                 'language': {'$ref': '#/$defs/lang'},
+                'locale': {'$ref': '#/$defs/locale'},
                 'accepted': {'$ref': '#/$defs/accepted'},
             },
             'required': ['language'],
             '$defs': {
                 'lang': {'type': 'string', 'enum': self.languages},
+                'locale': {'type': ['string', 'null']},
                 'accepted': {'type': 'boolean'},
             },
         }

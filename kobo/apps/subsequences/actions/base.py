@@ -234,6 +234,9 @@ class BaseAction:
         if not isinstance(self.action_class_config.default_type, list):
             revision = submission_supplement_copy
         else:
+            # TODO: Multiple keys are not supported.
+            #   Not a big issue for now since translation actions don’t use locale
+            #   (yet?) and transcription actions only involve one occurrence at a time.
             needle = edit[self.action_class_config.key]
             revision = {}
             if not isinstance(submission_supplement, list):
@@ -393,6 +396,36 @@ class BaseLanguageAction(BaseAction):
             'type': 'object',
         },
     }
+
+    @property
+    def data_schema(self):
+        """
+        POST to "/api/v2/assets/<asset uid>/data/<submission uuid>/supplemental/"
+        {
+            'language_action_id': {
+                'language': 'es',
+                'locale': 'es-ES',
+                'value': 'Almorzamos muy bien hoy',
+            }
+        }
+        """
+
+        return {
+            '$schema': 'https://json-schema.org/draft/2020-12/schema',
+            'type': 'object',
+            'additionalProperties': False,
+            'properties': {
+                'language': {'$ref': '#/$defs/lang'},
+                'locale': {'$ref': '#/$defs/locale'},
+                'value': {'$ref': '#/$defs/value'},
+            },
+            'required': ['language', 'value'],
+            '$defs': {
+                'lang': {'type': 'string', 'enum': self.languages},
+                'value': {'type': ['string', 'null']},
+                'locale': {'type': ['string', 'null']},
+            },
+        }
 
     @property
     def languages(self) -> list[str]:

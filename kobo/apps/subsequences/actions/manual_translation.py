@@ -35,32 +35,6 @@ class ManualTranslationAction(BaseLanguageAction):
         }
 
     @property
-    def data_schema(self):  # for lack of a better name
-        """
-        {
-            'manual_translation': {
-                'language': 'es',
-                'value': 'Almorzamos muy bien hoy',
-            }
-        }
-        """
-
-        return {
-            '$schema': 'https://json-schema.org/draft/2020-12/schema',
-            'type': 'object',
-            'additionalProperties': False,
-            'properties': {
-                'language': {'$ref': '#/$defs/lang'},
-                'value': {'$ref': '#/$defs/value'},
-            },
-            'required': ['language', 'value'],
-            '$defs': {
-                'lang': {'type': 'string', 'enum': self.languages},
-                'value': {'type': ['string', 'null']},
-            },
-        }
-
-    @property
     def result_schema(self):
 
         localized_value_schema = {

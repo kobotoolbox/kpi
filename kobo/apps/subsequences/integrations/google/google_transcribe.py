@@ -130,17 +130,8 @@ class GoogleTranscriptionService(GoogleService):
         return attachment.get_transcoded_audio('flac', include_duration=True)
 
     def process_data(self, xpath: str, params: dict) -> dict:
-        # params.get('status') #language_code = autoparams.get('languageCode')
-        #region_code = autoparams.get('regionCode')
-        #vals[GOOGLETS] = {
-        #    'status': 'in_progress',
-        #    'language': language_code,
-        #    'regionCode': region_code,
-        #}
-        #region_or_language_code = region_code or language_code
-        language = params['language']
-
-        cache_key = self._get_cache_key(xpath, language, target_lang=None)
+        source_language = params.get('locale') or params['language']
+        cache_key = self._get_cache_key(xpath, source_language, target_lang=None)
         if cache.get(cache_key):
             # Operation is still in progress, no need to process the audio file
             converted_audio = None
@@ -175,7 +166,7 @@ class GoogleTranscriptionService(GoogleService):
         try:
             value = self.handle_google_operation(
                 xpath,
-                source_lang=language,
+                source_lang=source_language,
                 target_lang=None,
                 content=converted_audio,
             )
