@@ -2,7 +2,7 @@ import { type AnchorHTMLAttributes, useEffect, useState } from 'react'
 
 import Markdown from 'react-markdown'
 import { useNavigate } from 'react-router-dom'
-import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
+import { useOrganizationQuery } from '#/account/organization/organizationQuery'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { UsageLimitTypes } from '#/account/stripe.types'
 import Button from '#/components/common/button'
@@ -24,39 +24,34 @@ interface OverLimitModalProps {
 
 function getLimitReachedMessage(
   isMmo: boolean,
-  userRole: OrganizationUserRole,
   isTeamLabelActive: boolean,
   limits: string,
 ) {
-  let firstSection: string
-  let secondSection: string
   const planRoute = '/#' + ACCOUNT_ROUTES.PLAN
   const usageRoute = '/#' + ACCOUNT_ROUTES.USAGE
+  let firstSentence: string
   if (isMmo) {
-    firstSection = isTeamLabelActive
+    firstSentence = isTeamLabelActive
       ? t('Your team has reached the ##LIMITS_LIST## ##LIMIT_PLURALIZED## included with its current plan.')
       : t('Your organization has reached the ##LIMITS_LIST## ##LIMIT_PLURALIZED## included with its current plan.')
   } else {
-    firstSection = t('You have reached the ##LIMITS_LIST## ##LIMIT_PLURALIZED## included with your current plan.')
+    firstSentence = t('You have reached the ##LIMITS_LIST## ##LIMIT_PLURALIZED## included with your current plan.')
   }
-  firstSection = firstSection
+  firstSentence = firstSentence
     .replace('##LIMITS_LIST##', limits)
     .replace('##LIMIT_PLURALIZED##', pluralizeLimit(limits.length))
 
-  if (userRole === OrganizationUserRole.owner) {
-    secondSection = t(
-      'Please [upgrade your plan](##PLAN_LINK##) as soon as possible or [contact us](##CONTACT_LINK##) to speak with our team.',
-    )
-      .replace('##PLAN_LINK##', planRoute)
-      .replace('##CONTACT_LINK##', 'https://www.kobotoolbox.org/contact')
-  } else {
-    secondSection = isTeamLabelActive
-      ? t('Contact your team owner about upgrading your plan.')
-      : t('Contact your organization owner about upgrading your plan.')
-  }
-  secondSection +=
-    ' ' + t('You can [review your usage in account settings](##USAGE_LINK##).').replace('##USAGE_LINK##', usageRoute)
-  return firstSection + ' ' + secondSection
+  const secondSentence = t(
+    'Please [upgrade your plan](##PLAN_LINK##) as soon as possible or [contact us](##CONTACT_LINK##) to speak with our team.',
+  )
+    .replace('##PLAN_LINK##', planRoute)
+    .replace('##CONTACT_LINK##', 'https://www.kobotoolbox.org/contact')
+
+  const thirdSentence = t('You can [review your usage in account settings](##USAGE_LINK##).').replace(
+    '##USAGE_LINK##',
+    usageRoute,
+  )
+  return `${firstSentence} ${secondSentence} ${thirdSentence}`
 }
 
 // We need to use a custom component here to open kobotoolbox.org links using target="_blank"
@@ -96,11 +91,11 @@ function OverLimitModal(props: OverLimitModalProps) {
     return null
   }
 
-  const { is_mmo: isMmo, request_user_role: userRole } = orgQuery.data
+  const { is_mmo: isMmo } = orgQuery.data
   const shouldUseTeamLabel = !!envStore.data?.use_team_label
   const allLimitsText = getAllLimitsText(props.limits)
   const greetingMessage = t('Dear ##ACCOUNT_NAME##,').replace('##ACCOUNT_NAME##', accountName)
-  const limitReachedMessage = getLimitReachedMessage(isMmo, userRole, shouldUseTeamLabel, allLimitsText)
+  const limitReachedMessage = getLimitReachedMessage(isMmo, shouldUseTeamLabel, allLimitsText)
 
   return (
     <div>

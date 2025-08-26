@@ -69,7 +69,6 @@ const LimitNotifications = ({ pageCanShowModal = false, accountPage = false }: L
     <>
       <LimitBanner
         warning={!serviceUsageData.limitExceedList.length}
-        interval={billingPeriod}
         limits={
           serviceUsageData.limitExceedList.length ? serviceUsageData.limitExceedList : serviceUsageData.limitWarningList
         }

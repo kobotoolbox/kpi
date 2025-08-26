@@ -15,7 +15,6 @@ import styles from './overLimitBanner.module.scss'
 interface OverLimitBannerProps {
   warning?: boolean
   limits: UsageLimitTypes[]
-  interval: string
   accountPage: boolean
 }
 
@@ -94,11 +93,11 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
     return null
   }
 
-  const { limits, interval, warning } = props
+  const { limits, warning } = props
   const { is_mmo: isMmo, request_user_role: userRole } = orgQuery.data
   const subscription = subscriptionStore.activeSubscriptions[0]
 
-  // If the user is a member of an MMO, we don't show a warning:
+  // If the user is a member of an MMO, we don't show a warning for near-exceeded limits:
   if (isMmo && userRole === OrganizationUserRole.member && !!warning) {
     return null
   }
