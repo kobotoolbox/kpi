@@ -38,9 +38,8 @@ const AccountSettings = () => {
   const orgQuery = useOrganizationQuery()
 
   useEffect(() => {
-    if (!currentLoggedAccount || !orgQuery.data) {
-      return
-    }
+    if (!currentLoggedAccount) return
+    if(orgQuery.data?.status !== 200) return
 
     const fields = {
       name: currentLoggedAccount.extra_details.name,
@@ -63,7 +62,7 @@ const AccountSettings = () => {
 
     const fieldKeys = recordKeys(fields)
 
-    const organization = orgQuery.data
+    const organization = orgQuery.data.data
 
     // We will not display organization fields if user is a member of an MMO,
     // only displaying these fields in organization settings view
