@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { fetchGetUrl, fetchPatch } from '#/api'
-import type { FailResponse } from '#/dataInterface'
+import { useMutation } from '@tanstack/react-query'
+import { fetchPatch } from '#/api'
+import { getOrganizationsRetrieveQueryKey, useOrganizationsRetrieve } from '#/api/react-query/organizations'
 import { queryClient } from '#/query/queryClient'
 import { QueryKeys } from '#/query/queryKeys'
 import { useSession } from '#/stores/useSession'
@@ -75,7 +75,7 @@ interface OrganizationQueryParams {
  */
 export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
   const session = useSession()
-  const organizationUrl = session.isPending ? undefined : session.currentLoggedAccount?.organization?.url
+  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
 
   useEffect(() => {
     if (params?.shouldForceInvalidation) {
@@ -86,28 +86,23 @@ export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
     }
   }, [params?.shouldForceInvalidation])
 
-  // Setting the 'enabled' property so the query won't run until we have
-  // the session data loaded. Account data is needed to fetch the organization
-  // data.
-  const query = useQuery<Organization, FailResponse>({
-    staleTime: 1000 * 60 * 2,
-    // We're asserting the `organizationUrl` is not `undefined` here because
-    // the query is disabled without it.
-    queryFn: () => fetchGetUrl<Organization>(organizationUrl!),
-    queryKey: [QueryKeys.organization, organizationUrl],
-    enabled: !!organizationUrl,
+  const query = useOrganizationsRetrieve(organizationId!, {
+    query: {
+      enabled: !!organizationId,
+      queryKey: getOrganizationsRetrieveQueryKey(organizationId!),
+      staleTime: 1000 * 60 * 2,
+      throwOnError(error, query) {
+        // `organizationUrl` must exist, unless it's changed (e.g. user added/removed from organization).
+        // In such case, refetch `organizationUrl` to fetch the new `organizationUrl`.
+        // DEBT: don't throw toast within `fetchGetUrl`.
+        // DEBT: don't retry the failing url 3-4 times before switching to the new url.
+        if (query.state.data?.status === 404) {
+          session.refreshAccount()
+        }
+        return false
+      },
+    },
   })
-
-  // `organizationUrl` must exist, unless it's changed (e.g. user added/removed
-  // from organization).
-  // In such case, refetch `organizationUrl` to fetch the new `organizationUrl`.
-  // DEBT: don't throw toast within `fetchGetUrl`.
-  // DEBT: don't retry the failing url 3-4 times before switching to the new url.
-  useEffect(() => {
-    if (query.error?.status === 404) {
-      session.refreshAccount()
-    }
-  }, [query.error?.status])
 
   return query
 }
