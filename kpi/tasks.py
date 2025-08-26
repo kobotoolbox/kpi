@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core import mail
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import call_command
+from django.db import connection
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.markdownx_uploader.tasks import remove_unused_markdown_files
@@ -125,3 +126,9 @@ def perform_maintenance():
     remove_unused_markdown_files()
     remove_old_import_tasks()
     remove_old_asset_snapshots()
+
+
+# @celery_app.task
+def refresh_optimized_user_report_view():
+    with connection.cursor() as cursor:
+        cursor.execute('REFRESH MATERIALIZED VIEW user_report_mv;')

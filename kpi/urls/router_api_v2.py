@@ -34,6 +34,7 @@ from kpi.views.v2.tag import TagViewSet
 from kpi.views.v2.tos import TermsOfServiceViewSet
 from kpi.views.v2.user import UserViewSet
 from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
+from kpi.views.v2.user_report_viewset import UserReportViewSet
 
 
 class ExtendedDefaultRouterWithPathAliases(ExtendedDefaultRouter):
@@ -179,6 +180,9 @@ router_api_v2.register(r'project-views', ProjectViewViewSet)
 router_api_v2.register(r'service_usage',
                        ServiceUsageViewSet, basename='service-usage')
 router_api_v2.register(r'users', UserViewSet, basename='user-kpi')
+router_api_v2.register(
+    r'users-report', UserReportViewSet, basename='users-report-kpi'
+)
 
 router_api_v2.register(r'tags', TagViewSet, basename='tags')
 router_api_v2.register(
