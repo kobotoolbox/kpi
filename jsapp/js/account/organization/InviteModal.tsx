@@ -1,23 +1,47 @@
-import { useState } from 'react'
-
 import type { ModalProps } from '@mantine/core'
 import { Group, Loader, Modal, Stack, Text, TextInput } from '@mantine/core'
 import { useField } from '@mantine/form'
+import { useState } from 'react'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 import subscriptionStore from '#/account/subscriptionStore'
+import { InviteeRoleEnum } from '#/api/models/inviteeRoleEnum'
+import {
+  getOrganizationsInvitesListQueryKey,
+  getOrganizationsInvitesRetrieveQueryKey,
+  useOrganizationsInvitesCreate,
+} from '#/api/react-query/organization-invites'
 import ButtonNew from '#/components/common/ButtonNew'
 import Select from '#/components/common/Select'
+import type { FailResponse } from '#/dataInterface'
 import envStore from '#/envStore'
+import { queryClient } from '#/query/queryClient'
+import { QueryKeys } from '#/query/queryKeys'
 import userExistence from '#/users/userExistence.store'
 import { checkEmailPattern, notify } from '#/utils'
-import { useSendMemberInvite } from './membersInviteQuery'
-import { OrganizationUserRole } from './organizationQuery'
+import { inviteGuidFromUrl } from './common'
+import { useOrganizationQuery } from './organizationQuery'
 
 export default function InviteModal(props: ModalProps) {
-  const inviteQuery = useSendMemberInvite()
+  const inviteQuery = useOrganizationsInvitesCreate({
+    mutation: {
+      onSuccess: (data, variables) => {
+        if (data.status !== 201) return // typeguard, `onSuccess` will always be 201.
+        queryClient.invalidateQueries({ queryKey: getOrganizationsInvitesListQueryKey(variables.organizationId) })
+        for (const invite of data.data) {
+          queryClient.invalidateQueries({
+            queryKey: getOrganizationsInvitesRetrieveQueryKey(variables.organizationId, inviteGuidFromUrl(invite.url)),
+          })
+        }
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMembers] })
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMemberDetail] })
+      },
+    },
+  })
+  const orgQuery = useOrganizationQuery()
+  const organizationId = orgQuery.data?.id
   const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0])
 
-  const [role, setRole] = useState<string | null>(null)
+  const [role, setRole] = useState<InviteeRoleEnum | null>(null)
 
   async function handleUsernameOrEmailCheck(value: string) {
     if (value === '' || checkEmailPattern(value)) {
@@ -38,25 +62,28 @@ export default function InviteModal(props: ModalProps) {
     validateOnBlur: true,
   })
 
-  const handleSendInvite = () => {
-    if (role) {
-      inviteQuery
-        .mutateAsync({
+  const handleSendInvite = async () => {
+    if (!organizationId) return
+    if (!role) return
+    try {
+      await inviteQuery.mutateAsync({
+        organizationId,
+        data: {
           invitees: [userOrEmail.getValue()],
-          role: role as OrganizationUserRole,
-        })
-        .then(() => {
-          userOrEmail.reset()
-          setRole(null)
-          props.onClose()
-        })
-        .catch((error) => {
-          if (error.responseText && JSON.parse(error.responseText)?.invitees) {
-            notify(JSON.parse(error.responseText)?.invitees.join(), 'error')
-          } else {
-            notify(t('Failed to send invite'), 'error')
-          }
-        })
+          role: role,
+        },
+      })
+      userOrEmail.reset()
+      setRole(null)
+      props.onClose()
+    } catch (error) {
+      const responseText = (error as FailResponse).responseText
+      if (responseText && JSON.parse(responseText)?.invitees) {
+        notify(JSON.parse(responseText)?.invitees.join(), 'error')
+      } else {
+        console.error(error)
+        notify(t('Failed to send invite'), 'error')
+      }
     }
   }
 
@@ -89,11 +116,11 @@ export default function InviteModal(props: ModalProps) {
             placeholder='Role'
             data={[
               {
-                value: OrganizationUserRole.admin,
+                value: InviteeRoleEnum.admin,
                 label: t('Admin'),
               },
               {
-                value: OrganizationUserRole.member,
+                value: InviteeRoleEnum.member,
                 label: t('Member'),
               },
             ]}
