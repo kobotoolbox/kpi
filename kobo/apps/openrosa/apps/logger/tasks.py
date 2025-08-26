@@ -208,7 +208,7 @@ def sync_storage_counters(**kwargs):
 
 
 @celery_app.task
-def delete_expired_instance_history_records(chunk_size=1e4, max_records=1e6):
+def delete_expired_instance_history_records(chunk_size=10000, max_records=1000000):
     threshold_time = timezone.now() - timedelta(
         days=config.SUBMISSION_HISTORY_GRACE_PERIOD
     )
