@@ -4,6 +4,7 @@ import re
 from typing import Union
 
 import requests
+import jsonschema
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
 from django.utils.translation import gettext_lazy as t
@@ -25,6 +26,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     remove_uuid_prefix,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
+from kobo.apps.subsequences.models import SubmissionSupplement
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
@@ -49,6 +51,7 @@ from kpi.permissions import (
     SubmissionValidationStatusPermission,
     ViewSubmissionPermission,
 )
+from kobo.apps.subsequences.exceptions import InvalidAction, InvalidXPath
 from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
 from kpi.schema_extensions.v2.data.serializers import (
     DataBulkDelete,
@@ -508,15 +511,6 @@ class DataViewSet(
         # make it clear, a root uuid is expected here
         submission_root_uuid = submission_id_or_root_uuid
 
-        ### TO BE MOVED
-        from kobo.apps.subsequences.exceptions import InvalidAction, InvalidXPath
-        from kobo.apps.subsequences.router import (
-            handle_incoming_data,
-            retrieve_supplemental_data,
-        )
-
-        ### END TO BE MOVED
-
         deployment = self._get_deployment()
         try:
             submission = list(
@@ -532,17 +526,21 @@ class DataViewSet(
 
         if request.method == 'GET':
             return Response(
-                retrieve_supplemental_data(self.asset, submission_root_uuid)
+                SubmissionSupplement.retrieve_data(self.asset, submission_root_uuid)
             )
 
         post_data = request.data
 
         try:
-            supplemental_data = handle_incoming_data(self.asset, submission, post_data)
+            supplemental_data = SubmissionSupplement.revise_data(
+                self.asset, submission, post_data
+            )
         except InvalidAction:
             raise serializers.ValidationError({'detail': 'Invalid action'})
         except InvalidXPath:
             raise serializers.ValidationError({'detail': 'Invalid question name'})
+        except jsonschema.exceptions.ValidationError:
+            raise serializers.ValidationError({'detail': 'Invalid payload'})
 
         return Response(supplemental_data)
 

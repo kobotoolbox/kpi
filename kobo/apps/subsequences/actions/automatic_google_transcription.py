@@ -34,11 +34,15 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
             },
             'required': ['language', 'status'],
             'allOf': [
-                # value must be present iff status == "complete"
-                {'$ref': '#/$defs/rule_value_presence_when_complete'},
+                # value is required when status == "complete"
+                {'$ref': '#/$defs/rule_value_required_when_complete'},
+                # value must be absent when status in {"in_progress","failed"}
+                {'$ref': '#/$defs/rule_value_forbidden_when_in_progress_or_failed'},
+                # value is optional but must be null when status == "deleted"
+                {'$ref': '#/$defs/rule_value_null_only_when_deleted'},
                 # error must be present iff status == "failed"
                 {'$ref': '#/$defs/rule_error_presence_when_failed'},
-                # accepted must be present iff status == "complete"
+                # accepted allowed only when status == "complete" (optional)
                 {'$ref': '#/$defs/rule_accepted_only_when_complete'},
             ],
             '$defs': {
@@ -46,23 +50,50 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
                 'locale': {'type': ['string', 'null']},
                 'action_status': {
                     'type': 'string',
-                    'enum': ['in_progress', 'complete', 'failed'],
+                    'enum': ['in_progress', 'complete', 'failed', 'deleted'],
                 },
-                'value': {'type': 'string'},
+                'value': {'type': ['string', 'null']},
                 'error': {'type': 'string'},
                 'accepted': {'type': 'boolean'},
 
-                # If status == "complete" → require "value"; else "value" must be absent
-                'rule_value_presence_when_complete': {
+                # --- Value rules ---
+                # If status == "complete" → require "value" (string or null)
+                'rule_value_required_when_complete': {
                     'if': {
                         'required': ['status'],
                         'properties': {'status': {'const': 'complete'}},
                     },
                     'then': {'required': ['value']},
-                    'else': {'not': {'required': ['value']}},
+                },
+                # If status in {"in_progress","failed"} → forbid "value"
+                'rule_value_forbidden_when_in_progress_or_failed': {
+                    'if': {
+                        'required': ['status'],
+                        'properties': {
+                            'status': {'enum': ['in_progress', 'failed']}
+                        },
+                    },
+                    'then': {'not': {'required': ['value']}},
+                },
+                # If status == "deleted" → "value" optional, but if present it MUST be null
+                'rule_value_null_only_when_deleted': {
+                    'if': {
+                        'required': ['status'],
+                        'properties': {'status': {'const': 'deleted'}},
+                    },
+                    'then': {
+                        'anyOf': [
+                            {'not': {'required': ['value']}},  # value absent
+                            {  # value present and null
+                                'properties': {'value': {'type': 'null'}},
+                                'required': ['value'],
+                            },
+                        ]
+                    },
                 },
 
-                # If status == "failed" → require "error"; else "error" must be absent
+                # --- Other field rules ---
+                # If status == "failed" → require "error"; else forbid it
                 'rule_error_presence_when_failed': {
                     'if': {
                         'required': ['status'],
@@ -71,17 +102,15 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
                     'then': {'required': ['error']},
                     'else': {'not': {'required': ['error']}},
                 },
-
-                # If status == "complete" → accepted is allowed but optional
-                # Else → accepted must not be present
+                # If status == "complete" → accepted allowed but optional; else forbid it
                 'rule_accepted_only_when_complete': {
                     'if': {
                         'required': ['status'],
                         'properties': {'status': {'const': 'complete'}},
                     },
-                    'then': {},  # no requirement: accepted may be present or absent
+                    'then': {},  # optional
                     'else': {'not': {'required': ['accepted']}},
-                }
+                },
             },
         }
 
@@ -90,10 +119,13 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
         """
         Schema rules:
 
-        - The field `status` is always required and must be one of:
-          ["requested", "in_progress"].
-        - `value` should not be present
-        - No additional properties are allowed beyond `language`, `status`.
+        - `language` is required.
+        - `value` is optional but, if present, it MUST be `null` (no other type allowed).
+        - `accepted` is optional.
+        - Mutual exclusion: `accepted` and `value` cannot be present at the same time.
+          * If `value` is present (and thus equals null), `accepted` must be absent.
+          * If `accepted` is present, `value` must be absent.
+        - No additional properties are allowed beyond: `language`, `locale`, `value`, `accepted`.
         """
         return {
             '$schema': 'https://json-schema.org/draft/2020-12/schema',
@@ -102,13 +134,20 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
             'properties': {
                 'language': {'$ref': '#/$defs/lang'},
                 'locale': {'$ref': '#/$defs/locale'},
+                'value': {'$ref': '#/$defs/value_null_only'},
                 'accepted': {'$ref': '#/$defs/accepted'},
             },
             'required': ['language'],
+            'allOf': [
+                # Forbid having both `accepted` and `value` at the same time
+                {'not': {'required': ['accepted', 'value']}},
+            ],
             '$defs': {
                 'lang': {'type': 'string', 'enum': self.languages},
                 'locale': {'type': ['string', 'null']},
                 'accepted': {'type': 'boolean'},
+                # Only null is permitted for `value`
+                'value_null_only': {'type': 'null'},
             },
         }
 
@@ -171,7 +210,7 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
         submission_supplement: dict,
         action_data: dict,
         *args,
-        ** kwargs,
+        **kwargs,
     ) -> dict | None:
         """
         Run the automatic transcription process using the Google API.
@@ -190,8 +229,8 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
         # the merge and final validation of this acceptance.
         accepted = action_data.get('accepted', None)
         if (
-                submission_supplement.get('status') == 'complete'
-                and accepted is not None
+            submission_supplement.get('status') == 'complete'
+            and accepted is not None
         ):
             return {
                 'value': submission_supplement['value'],
@@ -207,10 +246,10 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
         # If the transcription request is still running, stop processing here.
         # Returning None ensures that `revise_data()` will not be called afterwards.
         if (
-                accepted is None
-                and submission_supplement['status']
-                == service_data['status']
-                == 'in_progress'
+            accepted is None
+            and submission_supplement['status']
+            == service_data['status']
+            == 'in_progress'
         ):
             return None
 

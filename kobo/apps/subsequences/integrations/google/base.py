@@ -132,12 +132,11 @@ class GoogleService(ABC):
 
     def _get_cache_key(self, xpath: str, source_lang: str, target_lang: str | None) -> str:
         submission_root_uuid = self.submission[SUBMISSION_UUID_FIELD]
-        action = 'transcribe' if target_lang is None else 'translate'
-        args = [self.asset.owner_id, submission_root_uuid, xpath, source_lang]
+        args = [self.asset.owner_id, submission_root_uuid, xpath, source_lang.lower()]
         if target_lang is None:
             args.insert(0, 'transcribe')
         else:
             args.insert(0, 'translate')
-            args.append(target_lang)
+            args.append(target_lang.lower())
 
         return '::'.join(map(str, [SUBSEQUENCES_ASYNC_CACHE_KEY, *args]))

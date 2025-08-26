@@ -226,7 +226,7 @@ class BaseAction:
 
         if self.action_class_config.automatic:
             # If the action is automatic, run the external process first.
-            if not (service_response := self.run_automatic_process(
+            if not (service_response := self._run_automatic_process(
                 submission,
                 submission_supplement,
                 action_data,
