@@ -8,6 +8,7 @@ from datetime import timedelta
 from io import StringIO
 
 from celery import shared_task
+from constance import config
 from dateutil import relativedelta
 from django.conf import settings
 from django.core.management import call_command
@@ -21,10 +22,11 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.utils.log import logging
-from .constants import SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY
-from .models.daily_xform_submission_counter import DailyXFormSubmissionCounter
-from .models import Instance, XForm
 from ..main.models import UserProfile
+from .constants import SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY
+from .models import Instance, XForm
+from .models.daily_xform_submission_counter import DailyXFormSubmissionCounter
+from .models.instance import InstanceHistory
 
 
 @celery_app.task()
@@ -203,3 +205,23 @@ def sync_storage_counters(**kwargs):
         sync=True,
         no_lock=no_lock,
     )
+
+
+@celery_app.task
+def delete_expired_instance_history_records(chunk_size=1e4, max_records=1e6):
+    threshold_time = timezone.now() - timedelta(
+        days=config.SUBMISSION_HISTORY_GRACE_PERIOD
+    )
+    history_ids = InstanceHistory.objects.filter(
+        date_created__lte=threshold_time,
+        xform_instance=None,
+    ).values_list('id', flat=True)[:max_records]
+    n_objs = len(history_ids)
+    logging.warning(f'Found {n_objs} expired InstanceHistory objects. Cleaning up ...')
+    for page_start in range(0, n_objs, chunk_size):
+        batch_ids = history_ids[page_start : page_start + chunk_size]
+        logging.warning(
+            f'Deleting batch of {len(batch_ids)} InstanceHistory objects...'
+        )
+        queryset = InstanceHistory.objects.filter(pk__in=batch_ids)
+        queryset._raw_delete(queryset.db)

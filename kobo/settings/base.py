@@ -426,6 +426,11 @@ CONSTANCE_CONFIG = {
         'Number of days to keep import tasks',
         'positive_int',
     ),
+    'SUBMISSION_HISTORY_GRACE_PERIOD': (
+        180,
+        'Number of days to keep submission history',
+        'positive_int',
+    ),
     'FREE_TIER_THRESHOLDS': (
         LazyJSONSerializable(FREE_TIER_NO_THRESHOLDS),
         'Free tier thresholds: storage in kilobytes, '
@@ -783,6 +788,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
     'Regular maintenance settings': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
         'IMPORT_TASK_DAYS_RETENTION',
+        'SUBMISSION_HISTORY_GRACE_PERIOD',
     ),
     'Tier settings': (
         'FREE_TIER_THRESHOLDS',
@@ -1294,6 +1300,11 @@ CELERY_BEAT_SCHEDULE = {
     'delete-daily-xform-submissions-counter': {
         'task': 'kobo.apps.openrosa.apps.logger.tasks.delete_daily_counters',
         'schedule': crontab(hour=0, minute=0),
+        'options': {'queue': 'kobocat_queue'},
+    },
+    'delete-expired-instance-history-records': {
+        'task': 'kobo.apps.openrosa.apps.logger.tasks.delete_expired_instance_history_records',
+        'schedule': crontab(day_of_week=1, hour=10, minute=0),
         'options': {'queue': 'kobocat_queue'}
     },
     # Schedule every 30 minutes
