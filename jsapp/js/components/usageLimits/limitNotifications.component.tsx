@@ -31,8 +31,8 @@ const LimitNotifications = ({ pageCanShowModal = false, accountPage = false }: L
   const useModal =
     pageCanShowModal &&
     (!orgQuery.data?.is_mmo || orgQuery.data?.request_user_role === OrganizationUserRole.owner) &&
-    (serviceUsageData?.limitExceedList.includes(UsageLimitTypes.STORAGE) ||
-      serviceUsageData?.limitExceedList.includes(UsageLimitTypes.SUBMISSION))
+      (serviceUsageData?.status === 200 && serviceUsageData?.data.limitExceedList.includes(UsageLimitTypes.STORAGE) ||
+        serviceUsageData?.data.limitExceedList.includes(UsageLimitTypes.SUBMISSION))
 
   useWhenStripeIsEnabled(() => {
     setStripeEnabled(true)
