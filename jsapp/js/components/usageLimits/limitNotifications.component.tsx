@@ -38,8 +38,8 @@ const LimitNotifications = ({ useModal = false, accountPage = false }: LimitNoti
     if (
       (!orgQuery.data?.is_mmo || orgQuery.data?.request_user_role === OrganizationUserRole.owner) &&
       limitsCookie === undefined &&
-      (serviceUsageData?.limitExceedList.includes(UsageLimitTypes.STORAGE) ||
-        serviceUsageData?.limitExceedList.includes(UsageLimitTypes.SUBMISSION))
+      (serviceUsageData?.status === 200 && serviceUsageData?.data.limitExceedList.includes(UsageLimitTypes.STORAGE) ||
+        serviceUsageData?.data.limitExceedList.includes(UsageLimitTypes.SUBMISSION))
     ) {
       setShowModal(true)
     }

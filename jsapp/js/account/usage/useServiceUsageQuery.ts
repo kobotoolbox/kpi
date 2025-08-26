@@ -1,13 +1,28 @@
-import { type UseQueryResult, useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { fetchGet } from '#/api'
 import { endpoints } from '#/api.endpoints'
+import {
+  getOrganizationsServiceUsageRetrieveQueryKey,
+  organizationsServiceUsageRetrieve,
+} from '#/api/react-query/organizations'
+import { useServiceUsageList } from '#/api/react-query/service-usage'
 import { USAGE_WARNING_RATIO } from '#/constants'
 import { queryClient } from '#/query/queryClient'
 import { QueryKeys } from '#/query/queryKeys'
 import { convertSecondsToMinutes, formatRelativeTime } from '#/utils'
 import { useOrganizationQuery } from '../organization/organizationQuery'
 import { UsageLimitTypes } from '../stripe.types'
+
+/**
+ * Type `Record<string, unknown>` raises problems down the road when using with interfaces without index signature.
+ * Type `object` handles both kinds of objects, with and without index signature. Useful for interface-d objects.
+ */
+type KeyValue<T extends object, K extends keyof T = keyof T> = [K, T[K]]
+export const recordEntries = <T extends object>(o: T) => Object.entries(o) as KeyValue<T>[]
+export const recordKeys = <T extends object>(o: T) => Object.keys(o) as (keyof T)[]
+export const recordValues = <T extends object>(o: T) => Object.values(o) as T[keyof T][]
+
+
 
 interface UsageBalance {
   effective_limit: number
@@ -56,10 +71,7 @@ export interface UsageState {
 }
 
 export async function getOrgServiceUsage(organization_id: string) {
-  return fetchGet<UsageResponse>(endpoints.ORG_SERVICE_USAGE_URL.replace(':organization_id', organization_id), {
-    includeHeaders: true,
-    errorMessageDisplay: t('There was an error fetching usage data.'),
-  })
+  return fetchGet<UsageResponse>(endpoints.ORG_SERVICE_USAGE_URL.replace(':organization_id', organization_id))
 }
 
 const usageBalanceKeyMapping = {
@@ -74,8 +86,12 @@ const loadUsage = async (organizationId: string | null): Promise<UsageState | un
     throw Error(t('No organization found'))
   }
 
-  const usage = await getOrgServiceUsage(organizationId)
-  if (!usage) {
+  const usage = await organizationsServiceUsageRetrieve(organizationId, {
+    includeHeaders: true,
+    errorMessageDisplay: t('There was an error fetching usage data.'),
+  } as any)
+
+  if (!usage || usage.status !== 200) {
     throw Error(t("Couldn't get usage data"))
   }
   let lastUpdated: UsageState['lastUpdated'] = null
@@ -89,28 +105,27 @@ const loadUsage = async (organizationId: string | null): Promise<UsageState | un
   const limitWarningList: string[] = []
   const limitExceedList: string[] = []
 
-  Object.keys(usage.balances).forEach((key) => {
-    const balance = usage.balances[key as keyof UsageResponse['balances']]
-
-    // Mapping the balance to our Stripe's UsageLimitTypes enum
-    const limitType = usageBalanceKeyMapping[key as keyof typeof usageBalanceKeyMapping]
-
+  for (const [key, balance] of recordEntries(usage.data.balances)) {
     if (balance?.exceeded) {
-      limitExceedList.push(limitType)
-    } else if (balance && balance.balance_percent / 100 >= USAGE_WARNING_RATIO) {
-      limitWarningList.push(limitType)
+      limitExceedList.push(usageBalanceKeyMapping[key])
+    } else if (balance?.balance_percent && balance.balance_percent / 100 >= USAGE_WARNING_RATIO) {
+      limitWarningList.push(usageBalanceKeyMapping[key])
     }
-  })
+  }
 
   return {
-    storage: usage.total_storage_bytes,
-    submissions: usage.total_submission_count.current_period,
-    transcriptionMinutes: convertSecondsToMinutes(usage.total_nlp_usage.asr_seconds_current_period),
-    translationChars: usage.total_nlp_usage.mt_characters_current_period,
-    currentPeriodStart: usage.current_period_start,
-    currentPeriodEnd: usage.current_period_end,
+    storage: usage.data.total_storage_bytes,
+    // @ts-expect-error schema: DEV-952
+    submissions: usage.data.total_submission_count.current_period,
+    // @ts-expect-error schema: DEV-953
+    transcriptionMinutes: convertSecondsToMinutes(usage.data.total_nlp_usage.asr_seconds_current_period),
+    // @ts-expect-error schema: DEV-953
+    translationChars: usage.data.total_nlp_usage.mt_characters_current_period,
+    currentPeriodStart: usage.data.current_period_start,
+    currentPeriodEnd: usage.data.current_period_end,
     lastUpdated,
-    balances: usage.balances,
+    // @ts-expect-error schema: DEV-954
+    balances: usage.data.balances,
     limitWarningList,
     limitExceedList,
   }
@@ -120,7 +135,7 @@ interface ServiceUsageQueryParams {
   shouldForceInvalidation?: boolean
 }
 
-export const useServiceUsageQuery = (params?: ServiceUsageQueryParams): UseQueryResult<UsageState | undefined> => {
+export const useServiceUsageQuery = (params?: ServiceUsageQueryParams) => {
   const { data: organizationData } = useOrganizationQuery()
 
   useEffect(() => {
@@ -132,12 +147,13 @@ export const useServiceUsageQuery = (params?: ServiceUsageQueryParams): UseQuery
     }
   }, [params?.shouldForceInvalidation])
 
-  return useQuery({
-    queryKey: [QueryKeys.serviceUsage, organizationData?.id],
-    queryFn: () => loadUsage(organizationData?.id || null),
-    // A low stale time is needed to avoid calling the API twice on some situations
-    // (e.g. usage component that contains limits banner which also uses this query).
-    staleTime: 1000 * 60, // 1 minute stale time
-    enabled: !!organizationData,
+  return useServiceUsageList({
+    query: {
+      enabled: !!organizationData,
+      queryKey: getOrganizationsServiceUsageRetrieveQueryKey(organizationData?.id!),
+      // A low stale time is needed to avoid calling the API twice on some situations
+      // (e.g. usage component that contains limits banner which also uses this query).
+      staleTime: 1000 * 60, // 1 minute stale time
+    },
   })
 }
