@@ -100,15 +100,26 @@ function AccountSidebar() {
 
   const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0])
 
-  if (!orgQuery.data) {
+  if (orgQuery.status === 'pending') {
     return <LoadingSpinner />
   }
 
-  if (orgQuery.data.is_mmo) {
-    return renderMmoSidebar(orgQuery.data?.request_user_role, isStripeEnabled, mmoLabel)
+  // TODO
+  if (orgQuery.status === 'error') {
+    return <LoadingSpinner />
   }
 
-  return renderSingleUserOrgSidebar(isStripeEnabled, orgQuery.data.is_owner)
+  if (orgQuery.data?.status === 200) {
+    if (orgQuery.data?.data) {
+      // @ts-expect-error schema: Organization.request_user_role should be enum instead of string
+      return renderMmoSidebar(orgQuery.data?.data.request_user_role, isStripeEnabled, mmoLabel)
+    } else {
+      return renderSingleUserOrgSidebar(isStripeEnabled, orgQuery.data?.data.is_owner)
+    }
+  }
+
+  // TODO
+  return <LoadingSpinner />
 }
 
 export default observer(AccountSidebar)
