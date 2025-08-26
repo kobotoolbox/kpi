@@ -161,54 +161,58 @@ class AutomaticGoogleTranscriptionAction(BaseLanguageAction):
         }
         return schema
 
-    def run_automatic_process(
+    @property
+    def _limit_identifier(self):
+        return UsageType.ASR_SECONDS
+
+    def _run_automatic_process(
         self,
         submission: dict,
         submission_supplement: dict,
         action_data: dict,
         *args,
-        **kwargs,
-    ) -> dict:
+        ** kwargs,
+    ) -> dict | None:
         """
         Run the automatic transcription process using the Google API.
 
-        This method validates and processes the incoming `action_data` before it is
-        passed to `revise_data()`. If the payload indicates that the user accepts the
-        last completed transcription, the method returns early with the accepted data.
-        Otherwise, it triggers the external Google transcription service and returns
-        the processed result.
-
-        Returns:
-            dict: Processed transcription data, ready to be merged and validated by
-            `revise_data()`.
+        This method is intended to be called by `revise_data()`, which will finalize
+        the validation and merging of `action_data`. If the user explicitly accepts
+        the last completed transcription, the method short-circuits and returns it
+        immediately. If the transcription request is still in progress, the method
+        returns None so that `revise_data()` can exit early and skip unnecessary
+        processing. Otherwise, it calls the Google API and returns the processed
+        result, ready to be passed back to `revise_data()`.
         """
 
-        # Validate `action_data` against schema rules before further processing.
-        # `revise_data()` will perform the final validation once merged with the
-        # supplement returned by this method.
-        self.validate_data(action_data)
-        self.raise_for_any_leading_underscore_key(action_data)
-
-        # If the client explicitly provided "accepted", it means they only want to
-        # accept the last completed transcription. In this case, return immediately.
-        # `revise_data()` will handle merging and final validation of the acceptance.
+        # If the client sent "accepted" while the supplement is already complete,
+        # return the completed transcription right away. `revise_data()` will handle
+        # the merge and final validation of this acceptance.
         accepted = action_data.get('accepted', None)
         if (
-            submission_supplement.get('status') == 'complete'
-            and accepted is not None
+                submission_supplement.get('status') == 'complete'
+                and accepted is not None
         ):
             return {
                 'value': submission_supplement['value'],
                 'status': 'complete',
             }
 
-        # Otherwise, call the Google transcription service to process the input data.
+        # Otherwise, trigger the external Google transcription service.
         service = GoogleTranscriptionService(submission, asset=kwargs['asset'])
         service_data = service.process_data(
             self.source_question_xpath, action_data
         )
 
-        return service_data
+        # If the transcription request is still running, stop processing here.
+        # Returning None ensures that `revise_data()` will not be called afterwards.
+        if (
+                accepted is None
+                and submission_supplement['status']
+                == service_data['status']
+                == 'in_progress'
+        ):
+            return None
 
-    def _limit_identifier(self):
-        return UsageType.ASR_SECONDS
+        # Normal case: return the processed transcription data.
+        return service_data

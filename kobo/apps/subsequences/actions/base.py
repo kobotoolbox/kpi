@@ -210,23 +210,40 @@ class BaseAction:
         return self.revise_data(*args, **kwargs)
 
     def revise_data(
-        self, submission: dict, submission_supplement: dict, edit: dict
-    ) -> dict:
+        self,
+        submission: dict,
+        submission_supplement: dict,
+        action_data: dict,
+        asset: 'kpi.models.Asset' = None,
+    ) -> dict | None:
         """
         `submission` argument for future use by subclasses
         this method might need to be made more friendly for overriding
         """
 
-        # Validate differently when automatic process ran, to allow internal fields
-        # but block them from user input.
-        if self.action_class_config.automatic:
-            self.validate_automated_data(edit)
-            accepted = edit.pop('accepted', None)
-        else:
-            self.validate_data(edit)
-            accepted = True
+        self.validate_data(action_data)
+        self.raise_for_any_leading_underscore_key(action_data)
 
-        self.raise_for_any_leading_underscore_key(edit)
+        if self.action_class_config.automatic:
+            # If the action is automatic, run the external process first.
+            if not (service_response := self.run_automatic_process(
+                submission,
+                submission_supplement,
+                action_data,
+                asset=asset,
+            )):
+                # If the service response is None, the automatic task is still running.
+                # Stop here to avoid processing data and creating redundant revisions.
+                return None
+
+            # Otherwise, merge the service response into action_data and keep going
+            # the validation process.
+            action_data = deepcopy(action_data)
+            action_data.update(service_response)
+            self.validate_automated_data(action_data)
+            accepted = action_data.pop('accepted', None)
+        else:
+            accepted = True
 
         now_str = utc_datetime_to_js_str(timezone.now())
         item_index = None
@@ -237,7 +254,7 @@ class BaseAction:
             # TODO: Multiple keys are not supported.
             #   Not a big issue for now since translation actions don’t use locale
             #   (yet?) and transcription actions only involve one occurrence at a time.
-            needle = edit[self.action_class_config.key]
+            needle = action_data[self.action_class_config.key]
             revision = {}
             if not isinstance(submission_supplement, list):
                 raise InvalidItem
@@ -248,7 +265,7 @@ class BaseAction:
                     item_index = idx
                     break
 
-        new_record = deepcopy(edit)
+        new_record = deepcopy(action_data)
         revisions = revision.pop(self.REVISIONS_FIELD, [])
 
         revision_creation_date = revision.pop(self.DATE_MODIFIED_FIELD, now_str)
@@ -319,12 +336,6 @@ class BaseAction:
             if match:
                 raise Exception('An unexpected key with a leading underscore was found')
 
-    def run_automatic_process(self, submission: dict, submission_supplement: dict, edit: dict, *args, **kwargs):
-        """
-        Update edit with automatic process
-        """
-        raise NotImplementedError
-
     def _inject_data_schema(self, destination_schema: dict, skipped_keys: list):
         """
         Utility function to inject data schema into another schema to
@@ -363,6 +374,19 @@ class BaseAction:
     def _limit_identifier(self):
         # See AutomaticGoogleTranscriptionAction._limit_identifier() for example
         raise NotImplementedError()
+
+    def _run_automatic_process(
+        self,
+        submission: dict,
+        submission_supplement: dict,
+        action_data: dict,
+        *args,
+        **kwargs,
+    ) -> dict | bool:
+        """
+        Update action_data with automatic process
+        """
+        raise NotImplementedError
 
 
 class BaseLanguageAction(BaseAction):
