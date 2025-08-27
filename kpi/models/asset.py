@@ -500,13 +500,14 @@ class Asset(
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # The two fields below are needed to keep a trace of the object state
+        # The fields below are needed to keep a trace of the object state
         # before any alteration. See `__self.__copy_hidden_fields()` for details
         # They must be set with an invalid value for their counterparts to
         # be the comparison is accurate.
         self.__parent_id_copy = -1
         self.__deployment_data_copy = None
         self.__copy_hidden_fields()
+        self._initial_data_collector_group = self.data_collector_group_id
 
     def __str__(self):
         return '{} ({})'.format(self.name, self.uid)
