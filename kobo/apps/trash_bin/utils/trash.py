@@ -13,7 +13,7 @@ from django.utils import timezone
 from django_celery_beat.models import ClockedSchedule, PeriodicTask
 
 from kobo.apps.audit_log.audit_actions import AuditAction
-from kobo.apps.audit_log.models import AuditLog, AuditType
+from kobo.apps.audit_log.models import AuditLog, AuditType, ProjectHistoryLog
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.trash_bin.constants import (
     DELETE_ATTACHMENT_STR_PREFIX,
@@ -110,7 +110,6 @@ def move_to_trash(
         ).delete()
 
     trash_objects = []
-    audit_logs = []
     empty_manually = grace_period == -1
 
     for obj_dict in objects_list:
@@ -121,20 +120,6 @@ def move_to_trash(
                 empty_manually=empty_manually,
                 retain_placeholder=retain_placeholder,
                 **{fk_field_name: obj_dict['pk']},
-            )
-        )
-
-        log_type = get_log_type(related_model)
-        audit_logs.append(
-            AuditLog(
-                app_label=related_model._meta.app_label,
-                model_name=related_model._meta.model_name,
-                object_id=obj_dict['pk'],
-                user=request_author,
-                user_uid=request_author.extra_details.uid,
-                action=AuditAction.IN_TRASH,
-                metadata=_remove_pk_from_dict(obj_dict),
-                log_type=log_type,
             )
         )
 
@@ -171,7 +156,7 @@ def move_to_trash(
 
     trash_model.objects.bulk_update(updated_trash_objects, fields=['periodic_task_id'])
 
-    AuditLog.objects.bulk_create(audit_logs)
+    _build_log_entries(objects_list, request_author, related_model, trash_type)
     return updated_items, update_count
 
 
@@ -309,6 +294,41 @@ def trash_bin_task_retry(model: TrashBinModel, **kwargs):
         obj_trash.metadata['failure_error'] = str(exception)
         obj_trash.status = TrashStatus.RETRY
         obj_trash.save(update_fields=['status', 'metadata', 'date_modified'])
+
+
+def _build_log_entries(obj_dicts, request_author, related_model, trash_type):
+    audit_logs = []
+    project_history_logs = []
+
+    for obj_dict in obj_dicts:
+        if trash_type == 'attachment':
+            project_history_logs.append(
+                ProjectHistoryLog(
+                    object_id=obj_dict['asset_id'],
+                    user=request_author,
+                    user_uid=request_author.extra_details.uid,
+                    action=AuditAction.IN_TRASH,
+                    metadata=_remove_pk_from_dict(obj_dict),
+                )
+            )
+        else:
+            audit_logs.append(
+                AuditLog(
+                    app_label=related_model._meta.app_label,
+                    model_name=related_model._meta.model_name,
+                    object_id=obj_dict['pk'],
+                    user=request_author,
+                    user_uid=request_author.extra_details.uid,
+                    action=AuditAction.IN_TRASH,
+                    metadata=_remove_pk_from_dict(obj_dict),
+                    log_type=get_log_type(related_model),
+                )
+            )
+
+    if audit_logs:
+        AuditLog.objects.bulk_create(audit_logs)
+    if project_history_logs:
+        ProjectHistoryLog.objects.bulk_create(project_history_logs)
 
 
 def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:

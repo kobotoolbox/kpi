@@ -238,6 +238,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             if not self.asset.has_perm(user, PERM_CHANGE_SUBMISSIONS):
                 raise exceptions.PermissionDenied()
 
+        print("\n\n -------------->>>>", self.asset.id)
         attachments = (
             Attachment.objects.filter(xform_id=self.xform_id, uid__in=attachment_uids)
             .annotate(
@@ -246,6 +247,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             )
             .values('pk', 'attachment_basename', 'attachment_uid')
         )
+
+        for att in attachments:
+            att['asset_id'] = self.asset.id
 
         count = len(attachment_uids)
         if count != len(attachments):
