@@ -1,9 +1,10 @@
 from typing import Any
 
-from .base import ActionClassConfig, BaseLanguageAction
+from .base import ActionClassConfig, BaseManualNLPAction
+from .mixins import TranscriptionResultSchemaMixin
 
+class ManualTranscriptionAction(TranscriptionResultSchemaMixin, BaseManualNLPAction):
 
-class ManualTranscriptionAction(BaseLanguageAction):
     ID = 'manual_transcription'
     action_class_config = ActionClassConfig({}, None, False)
 
@@ -33,45 +34,3 @@ class ManualTranscriptionAction(BaseLanguageAction):
                 self.DATE_ACCEPTED_FIELD: action_data[self.DATE_MODIFIED_FIELD],
             }
         }
-
-    @property
-    def result_schema(self):
-
-        schema = {
-            '$schema': 'https://json-schema.org/draft/2020-12/schema',
-            'type': 'object',
-            'additionalProperties': False,
-            'properties': {
-                self.REVISIONS_FIELD: {
-                    'type': 'array',
-                    'minItems': 1,
-                    'items': {'$ref': '#/$defs/revision'},
-                },
-                self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
-                self.DATE_MODIFIED_FIELD: {'$ref': '#/$defs/dateTime'},
-                self.DATE_ACCEPTED_FIELD: {'$ref': '#/$defs/dateTime'},
-            },
-            'required': [self.DATE_CREATED_FIELD, self.DATE_MODIFIED_FIELD],
-            '$defs': {
-                'dateTime': {'type': 'string', 'format': 'date-time'},
-                'revision': {
-                    'type': 'object',
-                    'additionalProperties': False,
-                    'properties': {
-                        self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
-                        self.DATE_ACCEPTED_FIELD: {'$ref': '#/$defs/dateTime'},
-                    },
-                    'required': [self.DATE_CREATED_FIELD],
-                },
-            },
-        }
-
-        # Inject data schema in result schema template
-        self._inject_data_schema(schema, ['$schema', 'title', 'type'])
-
-        # Also inject data schema in the revision definition
-        self._inject_data_schema(
-            schema['$defs']['revision'], ['$schema', 'title', '$defs']
-        )
-
-        return schema
