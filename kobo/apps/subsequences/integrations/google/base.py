@@ -11,6 +11,7 @@ from google.api_core.operation import Operation
 from google.cloud import storage
 from googleapiclient import discovery
 
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.utils.log import logging
 from ...constants import (
@@ -39,6 +40,9 @@ class GoogleService(ABC):
     def __init__(self, submission: dict, asset: 'kpi.models.Asset', *args, **kwargs):
         super().__init__()
         self.submission = submission
+        self.submission_root_uuid = remove_uuid_prefix(
+            self.submission[SUBMISSION_UUID_FIELD]
+        )
         self.asset = asset  # Need to retrieve the attachment content
         self.credentials = google_credentials_from_constance_config()
         self.storage_client = storage.Client(credentials=self.credentials)
@@ -134,8 +138,7 @@ class GoogleService(ABC):
     def _get_cache_key(
         self, xpath: str, source_lang: str, target_lang: str | None
     ) -> str:
-        submission_root_uuid = self.submission[SUBMISSION_UUID_FIELD]
-        args = [self.asset.owner_id, submission_root_uuid, xpath, source_lang.lower()]
+        args = [self.asset.owner_id, self.submission_root_uuid, xpath, source_lang.lower()]
         if target_lang is None:
             args.insert(0, 'transcribe')
         else:

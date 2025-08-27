@@ -135,7 +135,7 @@ class GoogleTranscriptionService(GoogleService):
             try:
                 converted_audio = self.get_converted_audio(
                     xpath,
-                    self.submission[SUBMISSION_UUID_FIELD],
+                    self.submission_root_uuid,
                     self.asset.owner,
                 )
             except SubmissionNotFoundException:

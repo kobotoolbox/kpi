@@ -12,6 +12,7 @@ from google.cloud import translate_v3 as translate
 
 from kobo.apps.languages.models.transcription import TranscriptionService
 from kobo.apps.languages.models.translation import TranslationService
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kpi.utils.log import logging
 
 from .base import GoogleService
@@ -38,7 +39,6 @@ class GoogleTranslationService(GoogleService):
         class. It uses Google Cloud translation v3 API.
         """
         super().__init__(submission, asset, *args, **kwargs)
-        self.submission_root_uuid = self.submission[SUBMISSION_UUID_FIELD]
 
         self.translate_client = translate.TranslationServiceClient(
             credentials=google_credentials_from_constance_config()
