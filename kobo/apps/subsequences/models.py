@@ -87,9 +87,14 @@ class SubmissionSupplement(SubmissionExtras):
 
                 if not (
                     action_supplemental_data := action.revise_data(
-                        submission, action_supplemental_data, action_data
+                        submission,
+                        question_supplemental_data,
+                        action_supplemental_data,
+                        action_data,
+                        asset=asset,
                     )
                 ):
+                    # TODO is line below really needed?
                     supplemental_data['_version'] = schema_version
                     return supplemental_data
 

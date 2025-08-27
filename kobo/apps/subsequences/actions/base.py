@@ -215,7 +215,8 @@ class BaseAction:
     def revise_data(
         self,
         submission: dict,
-        submission_supplement: dict,
+        question_supplemental_data: dict,
+        action_supplement_data: dict,
         action_data: dict,
         asset: 'kpi.models.Asset' = None,
     ) -> dict | None:
@@ -227,12 +228,33 @@ class BaseAction:
         self.validate_data(action_data)
         self.raise_for_any_leading_underscore_key(action_data)
 
+        now_str = utc_datetime_to_js_str(timezone.now())
+        item_index = None
+        action_supplement_data_copy = deepcopy(action_supplement_data)
+        if not isinstance(self.action_class_config.default_type, list):
+            revision = action_supplement_data_copy
+        else:
+            # TODO: Multiple keys are not supported.
+            #   Not a big issue for now since translation actions don’t use locale
+            #   (yet?) and transcription actions only involve one occurrence at a time.
+            needle = action_data[self.action_class_config.key]
+            revision = {}
+            if not isinstance(action_supplement_data, list):
+                raise InvalidItem
+
+            for idx, item in enumerate(action_supplement_data):
+                if needle == item[self.action_class_config.key]:
+                    revision = deepcopy(item)
+                    item_index = idx
+                    break
+
         if self.action_class_config.automatic:
             # If the action is automatic, run the external process first.
             if not (
                 service_response := self.run_automated_process(
                     submission,
-                    submission_supplement,
+                    question_supplemental_data,
+                    revision,
                     action_data,
                     asset=asset,
                 )
@@ -250,26 +272,6 @@ class BaseAction:
         else:
             accepted = True
 
-        now_str = utc_datetime_to_js_str(timezone.now())
-        item_index = None
-        submission_supplement_copy = deepcopy(submission_supplement)
-        if not isinstance(self.action_class_config.default_type, list):
-            revision = submission_supplement_copy
-        else:
-            # TODO: Multiple keys are not supported.
-            #   Not a big issue for now since translation actions don’t use locale
-            #   (yet?) and transcription actions only involve one occurrence at a time.
-            needle = action_data[self.action_class_config.key]
-            revision = {}
-            if not isinstance(submission_supplement, list):
-                raise InvalidItem
-
-            for idx, item in enumerate(submission_supplement):
-                if needle == item[self.action_class_config.key]:
-                    revision = deepcopy(item)
-                    item_index = idx
-                    break
-
         new_record = deepcopy(action_data)
         revisions = revision.pop(self.REVISIONS_FIELD, [])
 
@@ -280,7 +282,7 @@ class BaseAction:
 
         # If the default type is not a list, we handle a single record case.
         if not isinstance(self.action_class_config.default_type, list):
-            if submission_supplement:
+            if action_supplement_data:
                 revisions.insert(0, revision)
                 new_record[self.REVISIONS_FIELD] = revisions
         else:
@@ -312,11 +314,11 @@ class BaseAction:
             # - Otherwise, replace the record at the given index.
             # Finally, update `new_record` to reference the full updated list.
             if item_index is None:
-                submission_supplement_copy.append(new_record)
+                action_supplement_data_copy.append(new_record)
             else:
-                submission_supplement_copy[item_index] = new_record
+                action_supplement_data_copy[item_index] = new_record
 
-            new_record = submission_supplement_copy
+            new_record = action_supplement_data_copy
 
         self.validate_result(new_record)
 
@@ -340,6 +342,20 @@ class BaseAction:
                 continue
             if match:
                 raise Exception('An unexpected key with a leading underscore was found')
+
+    def run_automated_process(
+        self,
+        submission: dict,
+        question_supplemental_data: dict,
+        action_supplement_data: dict,
+        action_data: dict,
+        *args,
+        **kwargs,
+    ) -> dict | bool:
+        """
+        Update action_data with automatic process
+        """
+        raise NotImplementedError
 
     def _inject_data_schema(self, destination_schema: dict, skipped_keys: list):
         """
@@ -379,19 +395,6 @@ class BaseAction:
     def _limit_identifier(self):
         # See AutomaticGoogleTranscriptionAction._limit_identifier() for example
         raise NotImplementedError()
-
-    def _run_automated_process(
-        self,
-        submission: dict,
-        submission_supplement: dict,
-        action_data: dict,
-        *args,
-        **kwargs,
-    ) -> dict | bool:
-        """
-        Update action_data with automatic process
-        """
-        raise NotImplementedError
 
 
 class BaseManualNLPAction(BaseAction):
@@ -636,7 +639,8 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
     def run_automated_process(
         self,
         submission: dict,
-        submission_supplement: dict,
+        question_supplemental_data: dict,
+        action_supplement_data: dict,
         action_data: dict,
         *args,
         **kwargs,
@@ -666,9 +670,9 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         # return the completed translation/transcription right away. `revise_data()`
         # will handle the merge and final validation of this acceptance.
         accepted = action_data.get('accepted', None)
-        if submission_supplement.get('status') == 'complete' and accepted is not None:
+        if action_supplement_data.get('status') == 'complete' and accepted is not None:
             return {
-                'value': submission_supplement['value'],
+                'value': action_supplement_data['value'],
                 'status': 'complete',
             }
 
@@ -681,16 +685,27 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 'status': 'deleted',
             }
 
+        if hasattr(self, '_get_action_data_dependency'):
+            action_data = self._get_action_data_dependency(
+                question_supplemental_data, action_data
+            )
+
         # Otherwise, trigger the external service.
         NLPService = self.get_nlp_service_class()  # noqa
         service = NLPService(submission, asset=kwargs['asset'])
-        service_data = service.process_data(self.source_question_xpath, action_data)
+        service_data = service.process_data(
+            self.source_question_xpath, action_data
+        )
+
+        # Remove the 'dependency' flag from action_data since it is only used
+        # internally to resolve prerequisites and must not be kept in the final payload.
+        action_data.pop('dependency', None)
 
         # If the request is still running, stop processing here.
         # Returning None ensures that `revise_data()` will not be called afterwards.
         if (
             accepted is None
-            and submission_supplement.get('status')
+            and action_supplement_data.get('status')
             == service_data['status']
             == 'in_progress'
         ):

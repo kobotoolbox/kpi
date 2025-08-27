@@ -3,7 +3,7 @@ import jsonschema
 import pytest
 
 from ..actions.manual_transcription import ManualTranscriptionAction
-from .constants import EMPTY_SUBMISSION
+from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT
 
 
 def test_valid_params_pass_validation():
@@ -63,7 +63,7 @@ def test_valid_result_passes_validation():
     fifth = {'language': 'en', 'value': 'fifth'}
     mock_sup_det = action.action_class_config.default_type
     for data in first, second, third, fourth, fifth:
-        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
+        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT,mock_sup_det, data)
     action.validate_result(mock_sup_det)
 
 
@@ -79,7 +79,7 @@ def test_invalid_result_fails_validation():
     fifth = {'language': 'en', 'value': 'fifth'}
     mock_sup_det = action.action_class_config.default_type
     for data in first, second, third, fourth, fifth:
-        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
+        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT,mock_sup_det, data)
 
     # erroneously add '_dateModified' onto a revision
     mock_sup_det['_revisions'][0]['_dateModified'] = mock_sup_det['_revisions'][0][
@@ -98,7 +98,7 @@ def test_transcript_revisions_are_retained_in_supplemental_details():
     first = {'language': 'en', 'value': 'No idea'}
     second = {'language': 'fr', 'value': 'Aucune idée'}
     mock_sup_det = action.revise_data(
-        EMPTY_SUBMISSION, action.action_class_config.default_type, first
+        EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, action.action_class_config.default_type, first
     )
 
     assert mock_sup_det['language'] == 'en'
@@ -107,7 +107,7 @@ def test_transcript_revisions_are_retained_in_supplemental_details():
     assert '_revisions' not in mock_sup_det
     first_time = mock_sup_det['_dateCreated']
 
-    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
+    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT,mock_sup_det, second)
     assert len(mock_sup_det['_revisions']) == 1
 
     # the revision should encompass the first transcript
@@ -142,11 +142,11 @@ def test_setting_transcript_to_empty_string():
     second = {'language': 'fr', 'value': ''}
 
     mock_sup_det = action.revise_data(
-        EMPTY_SUBMISSION, action.action_class_config.default_type, first
+        EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, action.action_class_config.default_type, first
     )
     assert mock_sup_det['value'] == 'Aucune idée'
 
-    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
+    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT,mock_sup_det, second)
     assert mock_sup_det['value'] == ''
     assert mock_sup_det['_revisions'][0]['value'] == 'Aucune idée'
 
@@ -160,11 +160,11 @@ def test_setting_transcript_to_none():
     second = {'language': 'fr', 'value': None}
 
     mock_sup_det = action.revise_data(
-        EMPTY_SUBMISSION, action.action_class_config.default_type, first
+        EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, action.action_class_config.default_type, first
     )
     assert mock_sup_det['value'] == 'Aucune idée'
 
-    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
+    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT,mock_sup_det, second)
     assert mock_sup_det['value'] is None
     assert mock_sup_det['_revisions'][0]['value'] == 'Aucune idée'
 
@@ -180,7 +180,7 @@ def test_latest_revision_is_first():
 
     mock_sup_det = action.action_class_config.default_type
     for data in first, second, third:
-        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
+        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT,mock_sup_det, data)
 
     assert mock_sup_det['value'] == 'trois'
     assert mock_sup_det['_revisions'][0]['value'] == 'deux'

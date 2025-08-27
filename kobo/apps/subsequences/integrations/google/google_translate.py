@@ -10,6 +10,7 @@ from django.conf import settings
 from google.api_core.exceptions import InvalidArgument
 from google.cloud import translate_v3 as translate
 
+from kobo.apps.languages.models.transcription import TranscriptionService
 from kobo.apps.languages.models.translation import TranslationService
 from kpi.utils.log import logging
 
@@ -19,7 +20,6 @@ from ...constants import SUBMISSION_UUID_FIELD, GOOGLE_CODE
 from ...exceptions import (
     SubsequenceTimeoutError,
     TranslationAsyncResultAvailable,
-    TranslationResultsNotFound,
 )
 
 def _hashed_strings(self, *strings):
@@ -178,8 +178,8 @@ class GoogleTranslationService(GoogleService):
         """
 
         try:
-            content = params['transcript']['value']
-            source_lang = params['transcript']['languageCode']
+            content = params['dependency']['value']
+            source_lang = params['dependency']['language']
             target_lang = params['language']
         except KeyError:
             message = 'Error while setting up translation'
@@ -189,19 +189,21 @@ class GoogleTranslationService(GoogleService):
                 'error': message
             }
 
-        lang_service = TranslationService.objects.get(code=GOOGLE_CODE)
+        transcription_lang_service = TranscriptionService.objects.get(code=GOOGLE_CODE)
+        translation_lang_service = TranslationService.objects.get(code=GOOGLE_CODE)
+
         try:
             value = self.translate_content(
                 xpath,
-                lang_service.get_language_code(source_lang),
-                lang_service.get_language_code(target_lang),
+                transcription_lang_service.get_language_code(source_lang),
+                translation_lang_service.get_language_code(target_lang),
                 content,
             )
         except SubsequenceTimeoutError:
             return {
                 'status': 'in_progress',
             }
-        except (TranslationResultsNotFound, InvalidArgument) as e:
+        except InvalidArgument as e:
             logging.exception('Error when processing translation')
             return {
                 'status': 'failed', 'error': f'Translation failed with error {str(e)}'
@@ -209,7 +211,7 @@ class GoogleTranslationService(GoogleService):
         except TranslationAsyncResultAvailable:
             _, output_path = self.get_unique_paths(xpath, source_lang, target_lang)
             logging.info(
-                f'Fetching stored results for {self.submission.submission_uuid=} '
+                f'Fetching stored results for {self.submission_root_uuid=} '
                 f'{xpath=}, {output_path=}'
             )
             value = self.get_stored_result(target_lang, output_path)
@@ -232,7 +234,7 @@ class GoogleTranslationService(GoogleService):
         content_size = len(content)
         if content_size <= GoogleTranslationService.MAX_SYNC_CHARS:
             logging.info(
-                f'Starting sync translation for {self.submission.submission_uuid=} {xpath=}'
+                f'Starting sync translation for {self.submission_root_uuid=} {xpath=}'
             )
             response = self.translate_client.translate_text(
                 request={
@@ -241,7 +243,7 @@ class GoogleTranslationService(GoogleService):
                     'target_language_code': target_lang,
                     'parent': self.translate_parent,
                     'mime_type': 'text/plain',
-                    'labels': {'username': self.user.username},
+                    'labels': {'username': self.asset.owner.username},
                 }
             )
             self.update_counters(content_size)

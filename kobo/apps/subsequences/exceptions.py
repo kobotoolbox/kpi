@@ -34,9 +34,9 @@ class SubsequenceTimeoutError(Exception):
     pass
 
 
-class TranslationAsyncResultAvailable(Exception):
+class TranscriptionNotFound(Exception):
     pass
 
 
-class TranslationResultsNotFound(Exception):
+class TranslationAsyncResultAvailable(Exception):
     pass

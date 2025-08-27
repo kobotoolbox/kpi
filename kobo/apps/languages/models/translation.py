@@ -14,7 +14,6 @@ from ..exceptions import LanguageNotSupported
 class TranslationService(BaseLanguageService):
 
     def get_language_code(self, value: str) -> str:
-
         try:
             through_obj = TranslationServiceLanguageM2M.objects.get(
                 Q(region__code=value) |
