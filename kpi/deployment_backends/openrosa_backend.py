@@ -238,7 +238,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             if not self.asset.has_perm(user, PERM_CHANGE_SUBMISSIONS):
                 raise exceptions.PermissionDenied()
 
-        print("\n\n -------------->>>>", self.asset.id)
         attachments = (
             Attachment.objects.filter(xform_id=self.xform_id, uid__in=attachment_uids)
             .annotate(
