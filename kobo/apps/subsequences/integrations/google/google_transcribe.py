@@ -139,20 +139,11 @@ class GoogleTranscriptionService(GoogleService):
                     self.asset.owner,
                 )
             except SubmissionNotFoundException:
-                return {
-                    'status': 'failed',
-                    'error': {f'Submission not found'},
-                }
+                return {'status': 'failed', 'error': 'Submission not found'}
             except AttachmentNotFoundException:
-                return {
-                    'status': 'failed',
-                    'error': {f'Attachment not found'},
-                }
+                return {'status': 'failed', 'error': 'Attachment not found'}
             except (InvalidXPathException, XPathNotFoundException):
-                return {
-                    'status': 'failed',
-                    'error': {f'Invalid question name XPath'},
-                }
+                return {'status': 'failed', 'error': 'Invalid question name XPath'}
             except NotSupportedFormatException:
                 return {'status': 'failed', 'error': 'Unsupported format'}
 

@@ -19,7 +19,7 @@ from taggit.utils import require_instance_manager
 
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
 from kobo.apps.subsequences.schemas import ACTION_PARAMS_SCHEMA
-from kobo.apps.subsequences.utils import get_supplemental_output_fields
+from kobo.apps.subsequences.utils.supplement_data import get_supplemental_output_fields
 from kpi.constants import (
     ASSET_TYPE_BLOCK,
     ASSET_TYPE_COLLECTION,

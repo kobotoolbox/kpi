@@ -1,9 +1,5 @@
 # idk if DRF is doing this work for us automatically, but if not, find another
 # place where these utils already exist in the app
-
-# if they must stay here, probably need to move utils.py to utils/something.py
-# and put this in utils/time.py. can't go together due to circular imports
-
 import datetime
 
 

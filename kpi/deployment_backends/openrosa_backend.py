@@ -46,7 +46,7 @@ from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
 from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, publish_xls_form
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
-from kobo.apps.subsequences.utils import stream_with_supplements
+from kobo.apps.subsequences.utils.supplement_data import stream_with_supplements
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,

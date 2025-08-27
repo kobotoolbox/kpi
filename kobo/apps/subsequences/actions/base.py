@@ -9,7 +9,9 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..exceptions import InvalidItem
-from ..time_utils import utc_datetime_to_js_str
+from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
+from ..type_aliases import NLPExternalServiceClass
+
 
 """
 ### All actions must have the following components
@@ -228,7 +230,7 @@ class BaseAction:
         if self.action_class_config.automatic:
             # If the action is automatic, run the external process first.
             if not (
-                service_response := self._run_automatic_process(
+                service_response := self.run_automated_process(
                     submission,
                     submission_supplement,
                     action_data,
@@ -378,7 +380,7 @@ class BaseAction:
         # See AutomaticGoogleTranscriptionAction._limit_identifier() for example
         raise NotImplementedError()
 
-    def _run_automatic_process(
+    def _run_automated_process(
         self,
         submission: dict,
         submission_supplement: dict,
@@ -622,3 +624,77 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 'value_null_only': {'type': 'null'},
             },
         }
+
+    def get_nlp_service_class(self) -> NLPExternalServiceClass:
+        """
+
+        """
+
+        raise NotImplementedError
+
+
+    def run_automated_process(
+        self,
+        submission: dict,
+        submission_supplement: dict,
+        action_data: dict,
+        *args,
+        **kwargs,
+    ) -> dict | None:
+        """
+        Run the automated NLP process using the configured external service
+        (e.g., Google).
+        This method is intended to be called by `revise_data()`, which finalizes
+        the validation and merging of `action_data`.
+        The underlying service is expected to implement a `process_data()` method
+        returning a dictionary with one of the following shapes:
+
+            {'status': 'in_progress'}
+            {'status': 'failed', 'error': '<error message>'}
+            {'status': 'complete', 'value': '<result>'}
+
+        Behavior:
+        - If the user explicitly accepted the last completed result, the method
+          short-circuits and returns it immediately.
+        - If the service reports `in_progress`, the method returns `None` so that
+          `revise_data()` can exit early and avoid redundant processing.
+        - If the service returns `failed` or `complete`, the processed result is
+          returned and passed back to `revise_data()`.
+        """
+
+        # If the client sent "accepted" while the supplement is already complete,
+        # return the completed translation/transcription right away. `revise_data()`
+        # will handle the merge and final validation of this acceptance.
+        accepted = action_data.get('accepted', None)
+        if submission_supplement.get('status') == 'complete' and accepted is not None:
+            return {
+                'value': submission_supplement['value'],
+                'status': 'complete',
+            }
+
+        # If the client explicitly removed a previously stored result,
+        # preserve the deletion by returning a `deleted` status instead
+        # of reprocessing with the automated service.
+        if 'value' in action_data:
+            return {
+                'value': action_data['value'],
+                'status': 'deleted',
+            }
+
+        # Otherwise, trigger the external service.
+        NLPService = self.get_nlp_service_class()  # noqa
+        service = NLPService(submission, asset=kwargs['asset'])
+        service_data = service.process_data(self.source_question_xpath, action_data)
+
+        # If the request is still running, stop processing here.
+        # Returning None ensures that `revise_data()` will not be called afterwards.
+        if (
+            accepted is None
+            and submission_supplement.get('status')
+            == service_data['status']
+            == 'in_progress'
+        ):
+            return None
+
+        # Normal case: return the processed transcription data.
+        return service_data
