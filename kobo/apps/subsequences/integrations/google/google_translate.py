@@ -12,16 +12,12 @@ from google.cloud import translate_v3 as translate
 
 from kobo.apps.languages.models.transcription import TranscriptionService
 from kobo.apps.languages.models.translation import TranslationService
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kpi.utils.log import logging
-
-from .base import GoogleService
+from ...constants import GOOGLE_CODE
+from ...exceptions import SubsequenceTimeoutError, TranslationAsyncResultAvailable
 from ..utils.google import google_credentials_from_constance_config
-from ...constants import SUBMISSION_UUID_FIELD, GOOGLE_CODE
-from ...exceptions import (
-    SubsequenceTimeoutError,
-    TranslationAsyncResultAvailable,
-)
+from .base import GoogleService
+
 
 def _hashed_strings(self, *strings):
     return md5(''.join(strings).encode()).hexdigest()[0:10]
@@ -184,10 +180,7 @@ class GoogleTranslationService(GoogleService):
         except KeyError:
             message = 'Error while setting up translation'
             logging.exception(message)
-            return {
-                'status': 'failed',
-                'error': message
-            }
+            return {'status': 'failed', 'error': message}
 
         transcription_lang_service = TranscriptionService.objects.get(code=GOOGLE_CODE)
         translation_lang_service = TranslationService.objects.get(code=GOOGLE_CODE)
@@ -206,7 +199,8 @@ class GoogleTranslationService(GoogleService):
         except InvalidArgument as e:
             logging.exception('Error when processing translation')
             return {
-                'status': 'failed', 'error': f'Translation failed with error {str(e)}'
+                'status': 'failed',
+                'error': f'Translation failed with error {str(e)}',
             }
         except TranslationAsyncResultAvailable:
             _, output_path = self.get_unique_paths(xpath, source_lang, target_lang)

@@ -138,7 +138,12 @@ class GoogleService(ABC):
     def _get_cache_key(
         self, xpath: str, source_lang: str, target_lang: str | None
     ) -> str:
-        args = [self.asset.owner_id, self.submission_root_uuid, xpath, source_lang.lower()]
+        args = [
+            self.asset.owner_id,
+            self.submission_root_uuid,
+            xpath,
+            source_lang.lower(),
+        ]
         if target_lang is None:
             args.insert(0, 'transcribe')
         else:

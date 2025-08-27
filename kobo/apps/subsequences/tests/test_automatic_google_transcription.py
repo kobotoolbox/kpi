@@ -173,7 +173,9 @@ def test_valid_result_passes_validation():
                 'value': value,
                 'status': 'complete',
             }
-            mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT,mock_sup_det, data)
+            mock_sup_det = action.revise_data(
+                EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, data
+            )
 
         action.validate_result(mock_sup_det)
 
@@ -207,7 +209,9 @@ def test_acceptance_does_not_produce_revisions():
                 'value': value,
                 'status': 'complete',
             }
-            mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT,mock_sup_det, data)
+            mock_sup_det = action.revise_data(
+                EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, data
+            )
             assert '_revisions' not in mock_sup_det
             if data.get('value') is None:
                 is_date_accepted_present = mock_sup_det.get('_dateAccepted') is None
@@ -246,7 +250,9 @@ def test_invalid_result_fails_validation():
                 'value': value,
                 'status': 'complete',
             }
-            mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT,mock_sup_det, data)
+            mock_sup_det = action.revise_data(
+                EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, data
+            )
 
         action.validate_result(mock_sup_det)
 
@@ -274,7 +280,10 @@ def test_transcription_revisions_are_retained_in_supplemental_details():
         value = first.pop('value', None)
         mock_service.process_data.return_value = {'value': value, 'status': 'complete'}
         mock_sup_det = action.revise_data(
-            EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, action.action_class_config.default_type, first
+            EMPTY_SUBMISSION,
+            EMPTY_SUPPLEMENT,
+            action.action_class_config.default_type,
+            first,
         )
 
     assert mock_sup_det['language'] == 'en'
@@ -289,7 +298,9 @@ def test_transcription_revisions_are_retained_in_supplemental_details():
     ):
         value = second.pop('value', None)
         mock_service.process_data.return_value = {'value': value, 'status': 'complete'}
-        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT,mock_sup_det, second)
+        mock_sup_det = action.revise_data(
+            EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, second
+        )
 
     assert len(mock_sup_det['_revisions']) == 1
 
@@ -338,7 +349,9 @@ def test_latest_revision_is_first():
                 'value': value,
                 'status': 'complete',
             }
-            mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT,mock_sup_det, data)
+            mock_sup_det = action.revise_data(
+                EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, data
+            )
 
     assert mock_sup_det['value'] == 'trois'
     assert mock_sup_det['_revisions'][0]['value'] == 'deux'

@@ -4,9 +4,7 @@ from .base import ActionClassConfig, BaseManualNLPAction
 from .mixins import TranslationResultSchemaMixin
 
 
-class ManualTranslationAction(
-    TranslationResultSchemaMixin, BaseManualNLPAction
-):
+class ManualTranslationAction(TranslationResultSchemaMixin, BaseManualNLPAction):
 
     ID = 'manual_translation'
     action_class_config = ActionClassConfig([], 'language', False)

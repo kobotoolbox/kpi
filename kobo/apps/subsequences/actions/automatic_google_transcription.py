@@ -1,8 +1,8 @@
 from kobo.apps.organizations.constants import UsageType
 from ..integrations.google.google_transcribe import GoogleTranscriptionService
+from ..type_aliases import NLPExternalServiceClass
 from .base import ActionClassConfig, BaseAutomaticNLPAction
 from .mixins import TranscriptionResultSchemaMixin
-from ..type_aliases import NLPExternalServiceClass
 
 
 class AutomaticGoogleTranscriptionAction(

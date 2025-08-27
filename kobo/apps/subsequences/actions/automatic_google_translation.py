@@ -1,13 +1,12 @@
-from copy import deepcopy
-
 from dateutil import parser
 
 from kobo.apps.organizations.constants import UsageType
+from ..exceptions import TranscriptionNotFound
 from ..integrations.google.google_translate import GoogleTranslationService
+from ..type_aliases import NLPExternalServiceClass
 from .base import ActionClassConfig, BaseAutomaticNLPAction
 from .mixins import TranslationResultSchemaMixin
-from ..type_aliases import NLPExternalServiceClass
-from ..exceptions import TranscriptionNotFound
+
 
 class AutomaticGoogleTranslationAction(
     TranslationResultSchemaMixin, BaseAutomaticNLPAction
@@ -64,10 +63,7 @@ class AutomaticGoogleTranslationAction(
                 action_version[self.DATE_MODIFIED_FIELD]
             )
 
-            if (
-                not last_date_modified
-                or last_date_modified < dependency_date_modified
-            ):
+            if not last_date_modified or last_date_modified < dependency_date_modified:
                 last_date_modified = dependency_date_modified
                 transcript = action_version['value']
                 transcript_language = (
@@ -84,7 +80,6 @@ class AutomaticGoogleTranslationAction(
         }
 
         return action_data
-
 
     @property
     def _limit_identifier(self):

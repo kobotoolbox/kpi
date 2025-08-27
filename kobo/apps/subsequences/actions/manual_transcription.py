@@ -3,6 +3,7 @@ from typing import Any
 from .base import ActionClassConfig, BaseManualNLPAction
 from .mixins import TranscriptionResultSchemaMixin
 
+
 class ManualTranscriptionAction(TranscriptionResultSchemaMixin, BaseManualNLPAction):
 
     ID = 'manual_transcription'

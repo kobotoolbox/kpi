@@ -1,4 +1,3 @@
-
 class TranscriptionResultSchemaMixin:
     """
     Provides the `result_schema` property used by all transcription-related actions.

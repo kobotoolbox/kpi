@@ -6,12 +6,11 @@ from django.conf import settings
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..exceptions import InvalidItem
-from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from ..type_aliases import NLPExternalServiceClass
-
 
 """
 ### All actions must have the following components
@@ -629,12 +628,9 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         }
 
     def get_nlp_service_class(self) -> NLPExternalServiceClass:
-        """
-
-        """
+        """ """
 
         raise NotImplementedError
-
 
     def run_automated_process(
         self,
@@ -693,9 +689,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         # Otherwise, trigger the external service.
         NLPService = self.get_nlp_service_class()  # noqa
         service = NLPService(submission, asset=kwargs['asset'])
-        service_data = service.process_data(
-            self.source_question_xpath, action_data
-        )
+        service_data = service.process_data(self.source_question_xpath, action_data)
 
         # Remove the 'dependency' flag from action_data since it is only used
         # internally to resolve prerequisites and must not be kept in the final payload.
