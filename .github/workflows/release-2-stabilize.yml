@@ -3,7 +3,7 @@ name: 'CD: stabilize'
 
 on:
   push:
-    branches: [ 'release/**' ]
+    branches: [ 'release/**', 'kalvis/**' ]
 
 
 jobs:
@@ -82,7 +82,7 @@ jobs:
       run: |
         set -xe
         git checkout -B public-beta
-        git push -f --set-upstream origin public-beta
+        echo git push -f --set-upstream origin public-beta
 
 
   merge-forward:
@@ -123,7 +123,7 @@ jobs:
           git checkout "$next_branch"
           echo 'TODO: squash migrations, if any'
           git merge --no-ff "$current_branch"
-          git push
+          echo git push
 
 
   notify:

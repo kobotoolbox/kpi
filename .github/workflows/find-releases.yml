@@ -36,4 +36,4 @@ jobs:
     - uses: actions/checkout@v4
     - name: Find next release tag and branch
       id: version
-      run: ./scripts/find_releases.sh $(git rev-parse --abbrev-ref HEAD)
+      run: ./scripts/find_releases.sh 'release/2.025.34'

@@ -9,6 +9,8 @@ on:
     # - In an ok case, will QA, tag and deploy on the next Monday-Wednesday.
     # - In the worst case, the last chance is to deploy on after-next Monday.
     - cron: '17 5 * * 2'
+  push:
+    branches: [ 'kalvis/**' ]
 
 
 jobs:
@@ -58,7 +60,7 @@ jobs:
         git config user.name "GitHub Actions Bot"
         git config user.email "github-actions-bot@kobotoolbox.org"
         git checkout -b $NEW_BRANCH
-        git push origin $NEW_BRANCH
+        echo git push origin $NEW_BRANCH
 
 
   version:
@@ -84,7 +86,7 @@ jobs:
         prev_branch: ${{ needs.version.outputs.prev_branch }}
       run: |
         echo "tag $prev_minor doesn't exist, thus the previous release was NOT released and let's delete the branch.."
-        git push origin :$prev_branch
+        echo git push origin :$prev_branch
 
 
   changelog:
