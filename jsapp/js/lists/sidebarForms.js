@@ -12,6 +12,9 @@ import { COMMON_QUERIES, DEPLOYMENT_CATEGORIES } from '#/constants'
 import pageState from '#/pageState.store'
 import mixins from '../mixins'
 import { searches } from '../searches'
+import useGetSearches from '#/searchesQuery'
+import getSearches from '#/searchesQuery'
+import {useQuery} from '@tanstack/react-query'
 
 /**
  * A list of projects grouped by status (deployed, draft, archived). It's meant
@@ -94,6 +97,13 @@ class SidebarFormsList extends Reflux.Component {
       return <LoadingSpinner />
     }
 
+
+              console.log('uhhhhhhhhhhhhhhhh', getSearches())
+              useQuery({
+                queryKey: ['searches'],
+                queryFn: () => getSearches()
+              })
+
     return (
       <bem.FormSidebar>
         {(() => {
@@ -116,7 +126,6 @@ class SidebarFormsList extends Reflux.Component {
               if (categoryId === DEPLOYMENT_CATEGORIES.Archived.id) {
                 icon.push('k-icon-archived')
               }
-
               return [
                 <bem.FormSidebar__label
                   m={[categoryId, categoryVisible ? 'visible' : 'collapsed']}

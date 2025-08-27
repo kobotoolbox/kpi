@@ -30,4 +30,5 @@ export const endpoints = {
   LOGOUT_ALL: '/logout-all/',
   LANGUAGES_LIST_URL: '/api/v2/languages/',
   LANGUAGE_DETAIL_URL: '/api/v2/languages/:language_id/',
+  SEARCHES: '/api/v2/assets/?q=asset_type:survey&limit=200',
 } as const
