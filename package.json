@@ -175,7 +175,7 @@
     "react-docgen-typescript-plugin": "^1.0.8",
     "react-refresh": "^0.14.2",
     "replace-in-file": "^6.3.5",
-    "sass": "^1.77.6",
+    "sass": "^1.91.0",
     "sass-loader": "^10.5.2",
     "speed-measure-webpack-plugin": "^1.5.0",
     "storybook": "^9.0.0-beta.11",
