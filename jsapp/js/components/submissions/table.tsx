@@ -91,6 +91,7 @@ import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
 import { stores } from '#/stores'
 import { formatTimeDateShort } from '#/utils'
+import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
 import RepeatGroupCell from './RepeatGroupCell'
 import AudioCell from './audioCell'
@@ -530,24 +531,22 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             causing an unnecessary space under the last table row to happen.
             Let's try to fix this one day by introducing better tooltips.
             */}
-            <Button
-              type='text'
-              size='s'
-              startIcon='view'
-              tooltip={t('Open')}
-              tooltipPosition='left'
+            <ActionIcon
+              variant='transparent'
+              tooltip={t('Edit')}
+              iconName='view'
+              size='sm'
               onClick={() => {
                 this.launchSubmissionModal(row.original._id)
               }}
             />
 
             {userCanSeeEditIcon && userHasPermForSubmission('change_submissions', this.props.asset, row.original) && (
-              <Button
-                type='text'
-                size='s'
-                startIcon='edit'
+              <ActionIcon
+                variant='transparent'
                 tooltip={t('Edit')}
-                tooltipPosition='left'
+                iconName='edit'
+                size='sm'
                 onClick={() => {
                   this.launchEditSubmission(row.original._id)
                 }}
