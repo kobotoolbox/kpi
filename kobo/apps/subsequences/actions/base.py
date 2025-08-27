@@ -393,22 +393,29 @@ class BaseAction:
 
 
 class BaseManualNLPAction(BaseAction):
-
     """
-    For an audio question called `my_audio_question` that's transcribed
-    into 3 languages, the schema for `Asset.advanced_features` might look
-    like:
-        'my_audio_question': {
-            'language_action_id': [
-                {'language': 'ar'},
-                {'language': 'bn'},
-                {'language': 'es'},
-            ],
-        }
+    Base class for all manual NLP actions.
 
-    The `params_schema` attribute defines the shape of the array where each
-    element is an object with a single string property for the transcript
-    language.
+    It defines a common `params_schema` that describes the set of languages
+    configured in `Asset.advanced_features`. For example, if an audio
+    question `my_audio_question` is transcribed into three languages, the
+    schema may look like:
+
+     'my_audio_question': {
+         'language_action_id': [
+             {'language': 'ar'},
+             {'language': 'bn'},
+             {'language': 'es'},
+         ],
+     }
+
+    Each element in `params_schema` is an object with a single `language`
+    property, enforcing the expected shape of the configuration.
+
+    The `data_schema` property defines the JSON payload expected when
+    posting supplemental data for a submission. This includes the
+    transcription or translation result, identified by language and
+    optionally by locale.
     """
 
     params_schema = {
@@ -464,7 +471,17 @@ class BaseManualNLPAction(BaseAction):
 
 
 class BaseAutomaticNLPAction(BaseManualNLPAction):
+    """
+    Base class for all automated NLP actions.
 
+    Extends `BaseManualNLPAction`, reusing its `params_schema` for
+    consistency in language configuration, while adding automated-specific
+    schema definitions (`automated_data_schema` and `data_schema`).
+
+    This ensures that both manual and automated actions share the same
+    validation rules for parameters, while automated actions introduce
+    their own structure for system-generated results.
+    """
 
     @property
     def automated_data_schema(self) -> dict:

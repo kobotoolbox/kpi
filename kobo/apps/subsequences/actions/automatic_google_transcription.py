@@ -12,7 +12,6 @@ class AutomaticGoogleTranscriptionAction(
 
     @property
     def result_schema(self):
-
         schema = super().result_schema
 
         # FIXME _inject_data_schema does not merge nested children

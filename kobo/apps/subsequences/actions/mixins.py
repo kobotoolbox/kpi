@@ -1,5 +1,11 @@
 
 class TranscriptionResultSchemaMixin:
+    """
+    Provides the `result_schema` property used by all transcription-related actions.
+
+    This mixin centralizes the schema definition so that both manual and automated
+    transcription classes can reuse the same structure consistently.
+    """
 
     @property
     def result_schema(self):
@@ -44,6 +50,12 @@ class TranscriptionResultSchemaMixin:
 
 
 class TranslationResultSchemaMixin:
+    """
+    Provides the `result_schema` property used by all translation-related actions.
+
+    This mixin centralizes the schema definition so that both manual and automated
+    translation classes can reuse the same structure consistently.
+    """
 
     @property
     def result_schema(self):
