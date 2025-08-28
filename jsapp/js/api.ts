@@ -118,13 +118,13 @@ export interface FetchDataOptions {
   includeHeaders?: boolean
 }
 
-const fetchData = async <T>(
+export const fetchDataRaw = async <T>(
   /**
    * If you have full url to be called, remember to use `prependRootUrl` option.
    */
   path: string,
   method: FetchHttpMethod,
-  data?: Json,
+  data?: string,
   options?: FetchDataOptions,
 ) => {
   // Prepare options
@@ -158,7 +158,7 @@ const fetchData = async <T>(
   }
 
   if (data) {
-    fetchOptions['body'] = JSON.stringify(data)
+    fetchOptions['body'] = data
   }
 
   const response = await fetch(url, fetchOptions)
@@ -210,9 +210,22 @@ const fetchData = async <T>(
     } as { headers: Headers } & T
   }
 
-  return responseJson as T
+  return { data: responseJson, status: response.status, headers: response.headers } as T
 }
 
+const fetchData = async <T>(
+  /**
+   * If you have full url to be called, remember to use `prependRootUrl` option.
+   */
+  path: string,
+  method: FetchHttpMethod,
+  data?: Json,
+  options?: FetchDataOptions,
+) => {
+  const body = data ? JSON.stringify(data) : undefined
+  const response = await fetchDataRaw<{ data: T; status: number; headers: unknown }>(path, method, body, options)
+  return response.data
+}
 /** GET Kobo API at path */
 export const fetchGet = async <T>(path: string, options?: FetchDataOptions) =>
   fetchData<T>(path, 'GET', undefined, options)
