@@ -71,6 +71,7 @@ jobs:
   delete-prev-branch:
     needs:
       - version
+    if: ${{ needs.version.outputs.prev_released == 'false' }}
     runs-on: ubuntu-24.04
     steps:
 
