@@ -533,7 +533,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             */}
             <ActionIcon
               variant='transparent'
-              tooltip={t('Edit')}
+              tooltip={t('View')}
               iconName='view'
               size='sm'
               onClick={() => {
