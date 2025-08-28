@@ -76,35 +76,58 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'Invalid action' in str(response.data)
 
-    def test_automatic_google_transcription_forbidden_payload(self):
-        # First, set up the asset to allow automatic google transcription
-        self.set_asset_advanced_features(
-            {
-                '_version': '20250820',
-                '_actionConfigs': {
-                    'q1': {
-                        'automatic_google_transcription': [
-                            {'language': 'es'},
-                        ]
-                    }
-                },
-            }
-        )
-
-        payload = {
+    def test_cannot_set_value_with_automated_actions(self):
+        # First, set up the asset to allow automated actions
+        advanced_features = {
             '_version': '20250820',
-            'q1': {
-                'automatic_google_transcription': {
-                    'language': 'es',
-                    'value': 'some text',  # forbidden field
+            '_actionConfigs': {
+                'q1': {
+                    'automatic_google_transcription': [
+                        {'language': 'en'},
+                    ],
+                    'automatic_google_translation': [
+                        {'language': 'fr'},
+                    ]
                 }
             },
         }
-        response = self.client.patch(
-            self.supplement_details_url, data=payload, format='json'
+        self.set_asset_advanced_features(advanced_features)
+
+        # Simulate a completed transcription, first.
+        mock_submission_supplement = {
+            '_version': '20250820',
+            'q1': {
+                'automatic_google_transcription': {
+                    'status': 'complete',
+                    'value': 'My audio has been transcribed',
+                    'language': 'en',
+                    '_dateCreated': '2025-08-25T21:17:35.535710Z',
+                    '_dateModified': '2025-08-26T11:41:21.917338Z',
+                },
+            },
+        }
+        SubmissionSupplement.objects.create(
+            submission_uuid=self.submission_uuid,
+            content=mock_submission_supplement,
+            asset=self.asset,
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Invalid payload' in str(response.data)
+        automated_actions = advanced_features['_actionConfigs']['q1'].keys()
+        for automated_action in automated_actions:
+            payload = {
+                '_version': '20250820',
+                'q1': {
+                    automated_action: {
+                        'language': 'es',
+                        'value': 'some text',  # forbidden field
+                    }
+                },
+            }
+            response = self.client.patch(
+                self.supplement_details_url, data=payload, format='json'
+            )
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert 'Invalid payload' in str(response.data)
+
 
     def test_cannot_accept_incomplete_automatic_transcription(self):
         # Set up the asset to allow automatic google transcription
@@ -248,4 +271,4 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
                 self.supplement_details_url, data=payload, format='json'
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert 'Invalid payload' in str(response.data)
+            assert 'Cannot translate without transcription' in str(response.data)

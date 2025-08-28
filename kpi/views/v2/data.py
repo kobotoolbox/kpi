@@ -51,7 +51,11 @@ from kpi.permissions import (
     SubmissionValidationStatusPermission,
     ViewSubmissionPermission,
 )
-from kobo.apps.subsequences.exceptions import InvalidAction, InvalidXPath
+from kobo.apps.subsequences.exceptions import (
+    InvalidAction,
+    InvalidXPath,
+    TranscriptionNotFound,
+)
 from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
 from kpi.schema_extensions.v2.data.serializers import (
     DataBulkDelete,
@@ -541,6 +545,10 @@ class DataViewSet(
             raise serializers.ValidationError({'detail': 'Invalid question name'})
         except jsonschema.exceptions.ValidationError:
             raise serializers.ValidationError({'detail': 'Invalid payload'})
+        except TranscriptionNotFound:
+            raise serializers.ValidationError(
+                {'detail': 'Cannot translate without transcription'}
+            )
 
         return Response(supplemental_data)
 

@@ -402,3 +402,55 @@ def test_cannot_revise_data_without_transcription():
             mock_sup_det = action.revise_data(
                 EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, {'language': 'fr'}
             )
+
+def test_find_the_most_recent_transcription():
+    xpath = 'group_name/question_name'  # irrelevant for this test
+    params = [{'language': 'fr'}, {'language': 'en'}]
+    action = AutomaticGoogleTranslationAction(xpath, params)
+
+    question_supplement_data = {
+        'automatic_google_transcription': {
+            'value': 'My audio has been transcribed automatically',
+            'language': 'en',
+            'status': 'completed',
+            '_dateCreated': '2024-04-08T15:27:00Z',
+            '_dateModified': '2024-04-08T15:27:00Z',
+        },
+        'manual_transcription': {
+            'value': 'My audio has been transcribed manually',
+            'language': 'en',
+            'locale': 'en-CA',
+            'status': 'completed',
+            '_dateCreated': '2024-04-08T15:28:00Z',
+            '_dateModified': '2024-04-08T15:28:00Z',
+        },
+    }
+
+    # Manual transcription is the most recent
+    action_data = {}  # not really relevant for this test
+    expected = {
+        'dependency': {
+            'value': 'My audio has been transcribed manually',
+            'language': 'en-CA',
+        }
+    }
+    action_data = action._get_action_data_dependency(
+        question_supplement_data, action_data
+    )
+    assert action_data == expected
+
+    # Automated transcription is the most recent
+    action_data = {}
+    question_supplement_data['automatic_google_transcription'][
+        '_dateModified'
+    ] = '2025-07-28T14:18:00Z'
+    expected = {
+        'dependency': {
+            'value': 'My audio has been transcribed automatically',
+            'language': 'en',
+        }
+    }
+    action_data = action._get_action_data_dependency(
+        question_supplement_data, action_data
+    )
+    assert action_data == expected
