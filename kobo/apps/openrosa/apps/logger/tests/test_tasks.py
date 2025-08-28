@@ -36,31 +36,25 @@ class TestLoggerTasks(TestBase):
         chunk_size = 5
         max_records = 20
         days_threshold = config.SUBMISSION_HISTORY_GRACE_PERIOD
-        now_mock = patch(
+        with patch(
             'django.utils.timezone.now',
             return_value=d0 + timedelta(days=days_threshold - 1),
-        )
-        now_mock.start()
-        delete_expired_instance_history_records(chunk_size, max_records)
-        now_mock.stop()
+        ):
+            delete_expired_instance_history_records(chunk_size, max_records)
         assert InstanceHistory.objects.all().count() == 64
 
-        now_mock = patch(
+        with patch(
             'django.utils.timezone.now',
             return_value=d0 + timedelta(days=days_threshold + 5 * 40),
-        )
-        now_mock.start()
-        delete_expired_instance_history_records(chunk_size, max_records)
-        now_mock.stop()
+        ):
+            delete_expired_instance_history_records(chunk_size, max_records)
         assert InstanceHistory.objects.all().count() == 44
 
         max_records = 60
-        now_mock = patch(
+        with patch(
             'django.utils.timezone.now',
             return_value=d0 + timedelta(days=days_threshold + 5 * 61),
-        )
-        now_mock.start()
-        delete_expired_instance_history_records(chunk_size, max_records)
-        now_mock.stop()
+        ):
+            delete_expired_instance_history_records(chunk_size, max_records)
         assert InstanceHistory.objects.all().count() == 4
         assert InstanceHistory.objects.filter(xform_instance__isnull=False).count() == 4

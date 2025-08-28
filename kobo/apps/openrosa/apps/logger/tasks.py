@@ -217,11 +217,13 @@ def delete_expired_instance_history_records(chunk_size=10000, max_records=100000
         xform_instance=None,
     ).values_list('id', flat=True)[:max_records]
     n_objs = len(history_ids)
-    logging.warning(f'Found {n_objs} expired InstanceHistory objects. Cleaning up ...')
+    logging.info(f'Found {n_objs} expired InstanceHistory objects. Cleaning up ...')
     for page_start in range(0, n_objs, chunk_size):
         batch_ids = history_ids[page_start:page_start + chunk_size]
         logging.warning(
             f'Deleting batch of {len(batch_ids)} InstanceHistory objects...'
         )
         queryset = InstanceHistory.objects.filter(pk__in=batch_ids)
+        # We use _raw_delete to avoid going through the ORM delete process.
+        # This model is very simple and can be deleted directly without issues
         queryset._raw_delete(queryset.db)
