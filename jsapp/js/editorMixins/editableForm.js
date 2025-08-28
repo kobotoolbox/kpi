@@ -1,15 +1,18 @@
 import React from 'react'
 
+import { Group, Text, ThemeIcon, Tooltip } from '@mantine/core'
 import alertify from 'alertifyjs'
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
 import debounce from 'lodash.debounce'
 import DocumentTitle from 'react-document-title'
 import ReactDOM from 'react-dom'
+import Markdown from 'react-markdown'
 import { unstable_usePrompt as usePrompt } from 'react-router-dom'
 import Select from 'react-select'
 import assetUtils from '#/assetUtils'
 import bem, { makeBem } from '#/bem'
+import ActionIcon from '#/components/common/ActionIcon'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -693,32 +696,57 @@ export default Object.assign(
     },
 
     renderBackgroundAudioWarning() {
+      if (this.state.isBackgroundAudioBannerDismissed) return null
+      let bannerText = t(
+        'This form will automatically [record audio in the background](##SUPPORT_LINK##). Consider adding an acknowledgement note to inform respondents or data collectors that they will be recorded while completing this survey.',
+      )
+
+      let supportLink = ''
+      if (envStore.isReady && envStore.data.support_url) {
+        supportLink = envStore.data.support_url + RECORDING_SUPPORT_URL
+      }
+      bannerText = bannerText.replace('##SUPPORT_LINK##', supportLink)
+
       return (
-        <bem.FormBuilderMessageBox m='warning'>
-          <span data-tip={t('background recording')}>
-            <i className='k-icon k-icon-project-overview' />
-          </span>
+        <Group pos='relative' wrap='nowrap' p='xs' bd='1px solid blue.7' bg='blue.9'>
+          <Tooltip label={t('Background audio recording enabled')} withArrow>
+            <ThemeIcon variant='transparent' c='blue.6'>
+              <Icon name='project-overview' size='l' />
+            </ThemeIcon>
+          </Tooltip>
 
-          <p>
-            {t(
-              'This form will automatically record audio in the background. Consider adding an acknowledgement note to inform respondents or data collectors that they will be recorded while completing this survey. This feature is available in ',
-            )}
-            <a
-              title='Install KoBoCollect'
-              target='_blank'
-              href='https://play.google.com/store/apps/details?id=org.koboc.collect.android'
-            >
-              {t('Collect version 1.30 and above')}
-            </a>
-            {'.'}
-          </p>
+          <Markdown
+            components={{
+              // Custom link component to open link on target _blank
+              a: (props) => (
+                <a href={props.href} target='_blank'>
+                  {props.children}
+                </a>
+              ),
+              // Custom paragraph component to use mantine Text instead of <p>
+              p: (props) => (
+                <Text c='blue.4' mr='lg'>
+                  {props.children}
+                </Text>
+              ),
+            }}
+          >
+            {bannerText}
+          </Markdown>
 
-          {envStore.isReady && envStore.data.support_url && (
-            <a href={envStore.data.support_url + RECORDING_SUPPORT_URL} target='_blank' data-tip={t('help')}>
-              <Icon name='help' size='s' />
-            </a>
-          )}
-        </bem.FormBuilderMessageBox>
+          <ActionIcon
+            pos='absolute'
+            right={5}
+            top={5}
+            variant='transparent'
+            tooltip={t('Dismiss')}
+            iconName='close'
+            size='sm'
+            onClick={() => {
+              this.setState({ isBackgroundAudioBannerDismissed: true })
+            }}
+          />
+        </Group>
       )
     },
 
