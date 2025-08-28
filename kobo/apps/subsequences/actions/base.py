@@ -9,7 +9,6 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
-from ..exceptions import InvalidItem
 from ..type_aliases import NLPExternalServiceClass
 
 """
@@ -53,53 +52,77 @@ idea of example data in SubmissionExtras based on the above
     '_version': '20250820',
     'my_audio_question': {
         'manual_transcription': {
-            'transcript': 'هائج',
-            'language': 'ar',
             '_dateCreated': '2025-08-21T20:55:42.012053Z',
             '_dateModified': '2025-08-21T20:57:28.154567Z',
-            '_revisions': [
+            '_versions': [
+                {
+                    'transcript': 'هائج',
+                    'language': 'ar',
+                    '_dateCreated': '2025-08-21T20:57:28.154567Z',
+                    '_dateAccepted': '2025-08-21T20:57:28.154567Z',
+                },
                 {
                     'transcript': 'فارغ',
                     'language': 'ar',
                     '_dateCreated': '2025-08-21T20:55:42.012053Z',
+                    '_dateAccepted': '2025-08-21T20:55:42.012053Z',
                 }
             ],
         },
-        'manual_translation': [
-            {
-                'language': 'en',
-                'translation': 'berserk',
-                '_dateCreated': '2025-08-21T21:39:42.141306Z',
-                '_dateModified': '2025-08-21T21:39:42.141306Z',
-            },
-            {
-                'language': 'es',
-                'translation': 'enloquecido',
-                '_dateCreated': '2025-08-21T21:40:54.644308Z',
-                '_dateModified': '2025-08-21T22:00:10.862880Z',
-                '_revisions': [
-                    {
-                        'translation': 'loco',
-                        'language': 'es',
-                        '_dateCreated': '2025-08-21T21:40:54.644308Z',
-                    }
-                ],
+        'manual_translation': {
+                'es': {
+                    '_dateCreated': '2025-08-21T21:39:42.141306Z',
+                    '_dateModified': '2025-08-21T21:40:54.644308Z',
+                    '_versions': [
+                        {
+                            'value': 'enloquecido',
+                            'language': 'es',
+                            '_dateCreated': '2025-08-21T21:40:54.644308Z',
+                            '_dateAccepted': '2025-08-21T21:40:54.644308Z',
+                        },
+                        {
+                            'value': 'loco',
+                            'language': 'es',
+                            '_dateCreated': '2025-08-21T21:39:42.141306Z',
+                            '_dateAccepted': '2025-08-21T21:39:42.141306Z',
+                        }
+                    ],
+                },
+                'fr': {
+                    '_dateCreated': '2025-08-21T22:00:10.862880Z',
+                    '_dateModified': '2025-08-21T22:00:10.862880Z',
+                    '_versions': [
+                        {
+                            'translation': 'fou',
+                            'language': 'fr',
+                            '_dateCreated': '2025-08-21T22:00:10.862880Z',
+                            '_dateAccepted': '2025-08-21T22:00:10.862880Z',
+                        }
+                    ],
+                }
             },
         ],
     },
     'my_video_question': {
-        'manual_transcription': {
-            'transcript': 'sea horse sea hell',
-            'language': 'en',
-            '_dateCreated': '2025-08-21T21:06:20.059117Z',
-            '_dateModified': '2025-08-21T21:06:20.059117Z',
-        },
+        '_dateCreated': '2025-08-21T21:06:20.059117Z',
+        '_dateModified': '2025-08-21T21:06:20.059117Z',
+        '_versions': [
+            {
+                'value': 'sea horse sea hell',
+                'language': 'en',
+                '_dateCreated': '2025-08-21T21:06:20.059117Z',
+                '_dateAccepted': '2025-08-21T21:06:20.059117Z',
+            }
+        ],
     },
     'my_number_question': {
         'number_multiplier': {
-            'numberMultiplied': 99,
             '_dateCreated': '2025-08-21T21:09:34.504546Z',
             '_dateModified': '2025-08-21T21:09:34.504546Z',
+            '_versions': [
+                'value': 99,
+                '_dateCreated': '2025-08-21T21:09:34.504546Z',
+            ],
         },
     },
 }
@@ -109,15 +132,18 @@ idea of example data in SubmissionExtras based on the above
 @dataclass
 class ActionClassConfig:
     """
-    Defines how items in a result schema can be resolved.
-        - key: the dictionary field used to identify or match an item (e.g., "language").
-        - default_type: the default container type to return when no items exist
-            (usually {} for objects or [] for arrays).
+    Configuration for how items in a result schema are resolved.
+
+    - allow_multiple: Whether multiple items can share the same `action_data_key`.
+    - action_data_key: The field in `action_data` used to identify or match an item
+      when multiple entries are allowed (e.g., "language").
+    - automated: Indicates whether the action relies on an external service
+      to generate data.
     """
 
-    default_type: dict | list
-    key: str | None
+    allow_multiple: bool
     automated: bool
+    action_data_key: str | None = None
 
 
 class BaseAction:
@@ -125,7 +151,7 @@ class BaseAction:
     DATE_CREATED_FIELD = '_dateCreated'
     DATE_MODIFIED_FIELD = '_dateModified'
     DATE_ACCEPTED_FIELD = '_dateAccepted'
-    REVISIONS_FIELD = '_revisions'
+    VERSION_FIELD = '_versions'
 
     action_class_config: ActionClassConfig | None = None
 
@@ -215,7 +241,7 @@ class BaseAction:
         self,
         submission: dict,
         question_supplemental_data: dict,
-        action_supplement_data: dict,
+        action_supplemental_data: dict,
         action_data: dict,
         asset: 'kpi.models.Asset' = None,
     ) -> dict | None:
@@ -229,23 +255,21 @@ class BaseAction:
 
         now_str = utc_datetime_to_js_str(timezone.now())
         item_index = None
-        action_supplement_data_copy = deepcopy(action_supplement_data)
-        if not isinstance(self.action_class_config.default_type, list):
-            revision = action_supplement_data_copy
-        else:
+
+        localized_action_supplemental_data = deepcopy(action_supplemental_data)
+        if self.action_class_config.allow_multiple:
             # TODO: Multiple keys are not supported.
             #   Not a big issue for now since translation actions don’t use locale
             #   (yet?) and transcription actions only involve one occurrence at a time.
-            needle = action_data[self.action_class_config.key]
-            revision = {}
-            if not isinstance(action_supplement_data, list):
-                raise InvalidItem
+            needle = action_data[self.action_class_config.action_data_key]
+            localized_action_supplemental_data = action_supplemental_data.get(needle, {})
 
-            for idx, item in enumerate(action_supplement_data):
-                if needle == item[self.action_class_config.key]:
-                    revision = deepcopy(item)
-                    item_index = idx
-                    break
+        try:
+            current_version = localized_action_supplemental_data.get(
+                self.VERSION_FIELD, []
+            )[0]
+        except IndexError:
+            current_version = {}
 
         if self.action_class_config.automated:
             # If the action is automated, run the external process first.
@@ -253,7 +277,7 @@ class BaseAction:
                 service_response := self.run_automated_process(
                     submission,
                     question_supplemental_data,
-                    revision,
+                    current_version,
                     action_data,
                     asset=asset,
                 )
@@ -271,57 +295,51 @@ class BaseAction:
         else:
             accepted = True
 
-        new_record = deepcopy(action_data)
-        revisions = revision.pop(self.REVISIONS_FIELD, [])
+        new_version = deepcopy(action_data)
+        new_version[self.DATE_CREATED_FIELD] = now_str
+        if self.DATE_CREATED_FIELD not in localized_action_supplemental_data:
+            localized_action_supplemental_data[self.DATE_CREATED_FIELD] = now_str
+        localized_action_supplemental_data[self.DATE_MODIFIED_FIELD] = now_str
 
-        revision_creation_date = revision.pop(self.DATE_MODIFIED_FIELD, now_str)
-        record_creation_date = revision.pop(self.DATE_CREATED_FIELD, now_str)
-        revision[self.DATE_CREATED_FIELD] = revision_creation_date
-        new_record[self.DATE_MODIFIED_FIELD] = now_str
-
-        # If the default type is not a list, we handle a single record case.
-        if not isinstance(self.action_class_config.default_type, list):
-            if action_supplement_data:
-                revisions.insert(0, revision)
-                new_record[self.REVISIONS_FIELD] = revisions
-        else:
-            # When the default type is a list, we are handling an item within it.
-            if item_index is not None:
-                revisions.insert(0, revision)
-                new_record[self.REVISIONS_FIELD] = revisions
-
-        new_record[self.DATE_CREATED_FIELD] = record_creation_date
+        localized_action_supplemental_data.setdefault(
+            self.VERSION_FIELD, []
+        ).insert(0, new_version)
 
         # For manual actions, always mark as accepted.
         # For automated actions, revert the just-created revision (remove it and
         # reapply its dates) to avoid adding extra branching earlier in the method.
         if self.action_class_config.automated:
             if accepted is not None:
-                revision = new_record[self.REVISIONS_FIELD].pop(0)
-                if not len(new_record[self.REVISIONS_FIELD]):
-                    del new_record[self.REVISIONS_FIELD]
-                # reassign date
-                new_record[self.DATE_MODIFIED_FIELD] = revision[self.DATE_CREATED_FIELD]
+                # Remove stale version
+                localized_action_supplemental_data[self.VERSION_FIELD].pop(0)
                 if accepted:
-                    new_record[self.DATE_ACCEPTED_FIELD] = now_str
-        else:
-            new_record[self.DATE_ACCEPTED_FIELD] = now_str
+                    localized_action_supplemental_data[self.VERSION_FIELD][0][
+                        self.DATE_ACCEPTED_FIELD
+                    ] = now_str
+                else:
+                    localized_action_supplemental_data[self.VERSION_FIELD][
+                        0
+                    ].pop(self.DATE_ACCEPTED_FIELD, None)
 
-        if isinstance(self.action_class_config.default_type, list):
+        else:
+            new_version[self.DATE_ACCEPTED_FIELD] = now_str
+
+        if not self.action_class_config.allow_multiple:
+            new_action_supplement_data = localized_action_supplemental_data
+        else:
+            new_action_supplement_data = deepcopy(action_supplemental_data)
             # Handle the case where the default type is a list:
             # - If no index is provided, append the new record.
             # - Otherwise, replace the record at the given index.
             # Finally, update `new_record` to reference the full updated list.
-            if item_index is None:
-                action_supplement_data_copy.append(new_record)
-            else:
-                action_supplement_data_copy[item_index] = new_record
 
-            new_record = action_supplement_data_copy
+            new_action_supplement_data.update({
+                needle: localized_action_supplemental_data
+            })
 
-        self.validate_result(new_record)
+        self.validate_result(new_action_supplement_data)
 
-        return new_record
+        return new_action_supplement_data
 
     @staticmethod
     def raise_for_any_leading_underscore_key(d: dict):
@@ -687,8 +705,9 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
             )
 
         # Otherwise, trigger the external service.
+        asset = kwargs['asset']
         NLPService = self.get_nlp_service_class()  # noqa
-        service = NLPService(submission, asset=kwargs['asset'])
+        service = NLPService(submission, asset=asset)
         service_data = service.process_data(self.source_question_xpath, action_data)
 
         # Remove the 'dependency' flag from action_data since it is only used

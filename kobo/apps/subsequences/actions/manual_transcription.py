@@ -7,7 +7,7 @@ from .mixins import TranscriptionResultSchemaMixin
 class ManualTranscriptionAction(TranscriptionResultSchemaMixin, BaseManualNLPAction):
 
     ID = 'manual_transcription'
-    action_class_config = ActionClassConfig({}, None, False)
+    action_class_config = ActionClassConfig(allow_multiple=False, automated=False)
 
     def _get_output_field_name(self, language: str) -> str:
         language = language.split('-')[0]  # ignore region if any

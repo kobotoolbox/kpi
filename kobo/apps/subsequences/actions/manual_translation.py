@@ -7,7 +7,9 @@ from .mixins import TranslationResultSchemaMixin
 class ManualTranslationAction(TranslationResultSchemaMixin, BaseManualNLPAction):
 
     ID = 'manual_translation'
-    action_class_config = ActionClassConfig([], 'language', False)
+    action_class_config = ActionClassConfig(
+        allow_multiple=True, automated=False, action_data_key='language'
+    )
 
     def _get_output_field_name(self, language: str) -> str:
         language = language.split('-')[0]  # ignore region if any

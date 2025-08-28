@@ -165,9 +165,14 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
                     'manual_transcription': {
                         '_dateCreated': '2024-04-08T15:27:00Z',
                         '_dateModified': '2024-04-08T15:27:00Z',
-                        '_dateAccepted': '2024-04-08T15:27:00Z',
-                        'language': 'es',
-                        'value': 'buenas noches',
+                        '_versions': [
+                            {
+                                '_dateCreated': '2024-04-08T15:27:00Z',
+                                '_dateAccepted': '2024-04-08T15:27:00Z',
+                                'language': 'es',
+                                'value': 'buenas noches',
+                            }
+                        ],
                     },
                 },
             }

@@ -8,24 +8,30 @@ class TranscriptionResultSchemaMixin:
 
     @property
     def result_schema(self):
+
+        # Move localized_value_schema definitions to main schema
+        if self.action_class_config.automated:
+            data_schema_defs = self.automated_data_schema.get('$defs', {})
+        else:
+            data_schema_defs = self.data_schema.get('$defs', {})
+
         schema = {
             '$schema': 'https://json-schema.org/draft/2020-12/schema',
             'type': 'object',
             'additionalProperties': False,
             'properties': {
-                self.REVISIONS_FIELD: {
+                self.VERSION_FIELD: {
                     'type': 'array',
                     'minItems': 1,
-                    'items': {'$ref': '#/$defs/revision'},
+                    'items': {'$ref': '#/$defs/version'},
                 },
                 self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
                 self.DATE_MODIFIED_FIELD: {'$ref': '#/$defs/dateTime'},
-                self.DATE_ACCEPTED_FIELD: {'$ref': '#/$defs/dateTime'},
             },
             'required': [self.DATE_CREATED_FIELD, self.DATE_MODIFIED_FIELD],
             '$defs': {
                 'dateTime': {'type': 'string', 'format': 'date-time'},
-                'revision': {
+                'version': {
                     'type': 'object',
                     'additionalProperties': False,
                     'properties': {
@@ -34,15 +40,13 @@ class TranscriptionResultSchemaMixin:
                     },
                     'required': [self.DATE_CREATED_FIELD],
                 },
+                **data_schema_defs,  # Copy defs at the root level
             },
         }
 
-        # Inject data schema in result schema template
-        self._inject_data_schema(schema, ['$schema', 'title', 'type'])
-
-        # Also inject data schema in the revision definition
+        # Also inject data schema in the version definition
         self._inject_data_schema(
-            schema['$defs']['revision'], ['$schema', 'title', '$defs']
+            schema['$defs']['version'], ['$schema', 'title', '$defs']
         )
 
         return schema
@@ -62,32 +66,35 @@ class TranslationResultSchemaMixin:
             'type': 'object',
             'additionalProperties': False,
             'properties': {
-                self.REVISIONS_FIELD: {
+                self.VERSION_FIELD: {
                     'type': 'array',
                     'minItems': 1,
-                    'items': {'$ref': '#/$defs/revision'},
+                    'items': {'$ref': '#/$defs/version'},
                 },
                 self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
                 self.DATE_MODIFIED_FIELD: {'$ref': '#/$defs/dateTime'},
-                self.DATE_ACCEPTED_FIELD: {'$ref': '#/$defs/dateTime'},
             },
             'required': [self.DATE_CREATED_FIELD, self.DATE_MODIFIED_FIELD],
         }
 
-        # Inject data schema in result schema template
-        self._inject_data_schema(localized_value_schema, ['$schema', 'title', 'type'])
-
         # Move localized_value_schema definitions to main schema
-        localized_value_schema_defs = localized_value_schema.pop('$defs')
+        if self.action_class_config.automated:
+            data_schema_defs = self.automated_data_schema.get('$defs', {})
+        else:
+            data_schema_defs = self.data_schema.get('$defs', {})
 
         schema = {
             '$schema': 'https://json-schema.org/draft/2020-12/schema',
-            'type': 'array',
+            'type': 'object',
             'additionalProperties': False,
-            'items': {'$ref': '#/$defs/localized_value_schema'},
+            'properties': {
+                language: {'$ref': '#/$defs/dataActionKey'}
+                for language in self.languages
+            },
             '$defs': {
+                'dataActionKey': localized_value_schema,
                 'dateTime': {'type': 'string', 'format': 'date-time'},
-                'revision': {
+                'version': {
                     'type': 'object',
                     'additionalProperties': False,
                     'properties': {
@@ -96,14 +103,13 @@ class TranslationResultSchemaMixin:
                     },
                     'required': [self.DATE_CREATED_FIELD],
                 },
-                'localized_value_schema': localized_value_schema,
-                **localized_value_schema_defs,
+                **data_schema_defs,
             },
         }
 
-        # Also inject data schema in the revision definition
+        # Also inject data schema in the version definition
         self._inject_data_schema(
-            schema['$defs']['revision'], ['$schema', 'title', '$defs']
+            schema['$defs']['version'], ['$schema', 'title', '$defs']
         )
 
         return schema

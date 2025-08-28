@@ -13,7 +13,9 @@ class AutomatedGoogleTranslationAction(
 ):
 
     ID = 'automated_google_translation'
-    action_class_config = ActionClassConfig([], 'language', True)
+    action_class_config = ActionClassConfig(
+        allow_multiple=True, automated=True, action_data_key='language'
+    )
 
     def get_nlp_service_class(self) -> NLPExternalServiceClass:
         return GoogleTranslationService

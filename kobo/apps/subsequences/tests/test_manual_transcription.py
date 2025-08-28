@@ -61,7 +61,7 @@ def test_valid_result_passes_validation():
     third = {'language': 'fr', 'value': 'trois'}
     fourth = {'language': 'fr', 'value': None}
     fifth = {'language': 'en', 'value': 'fifth'}
-    mock_sup_det = action.action_class_config.default_type
+    mock_sup_det = {}
     for data in first, second, third, fourth, fifth:
         mock_sup_det = action.revise_data(
             EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, data
@@ -79,14 +79,14 @@ def test_invalid_result_fails_validation():
     third = {'language': 'fr', 'value': 'trois'}
     fourth = {'language': 'fr', 'value': None}
     fifth = {'language': 'en', 'value': 'fifth'}
-    mock_sup_det = action.action_class_config.default_type
+    mock_sup_det = {}
     for data in first, second, third, fourth, fifth:
         mock_sup_det = action.revise_data(
             EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, data
         )
 
     # erroneously add '_dateModified' onto a revision
-    mock_sup_det['_revisions'][0]['_dateModified'] = mock_sup_det['_revisions'][0][
+    mock_sup_det['_versions'][0]['_dateModified'] = mock_sup_det['_versions'][0][
         '_dateCreated'
     ]
 
@@ -94,7 +94,7 @@ def test_invalid_result_fails_validation():
         action.validate_result(mock_sup_det)
 
 
-def test_transcript_revisions_are_retained_in_supplemental_details():
+def test_transcript_versions_are_retained_in_supplemental_details():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
     action = ManualTranscriptionAction(xpath, params)
@@ -104,30 +104,27 @@ def test_transcript_revisions_are_retained_in_supplemental_details():
     mock_sup_det = action.revise_data(
         EMPTY_SUBMISSION,
         EMPTY_SUPPLEMENT,
-        action.action_class_config.default_type,
+        {},
         first,
     )
 
-    assert mock_sup_det['language'] == 'en'
-    assert mock_sup_det['value'] == 'No idea'
     assert mock_sup_det['_dateCreated'] == mock_sup_det['_dateModified']
-    assert '_revisions' not in mock_sup_det
+    assert len(mock_sup_det['_versions']) == 1
+    assert mock_sup_det['_versions'][0]['language'] == 'en'
+    assert mock_sup_det['_versions'][0]['value'] == 'No idea'
     first_time = mock_sup_det['_dateCreated']
 
     mock_sup_det = action.revise_data(
         EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, second
     )
-    assert len(mock_sup_det['_revisions']) == 1
+    assert len(mock_sup_det['_versions']) == 2
 
-    # the revision should encompass the first transcript
-    assert mock_sup_det['_revisions'][0].items() >= first.items()
-
-    # the revision should have a creation timestamp equal to that of the first
+    # the version should have a creation timestamp equal to that of the first
     # transcript
-    assert mock_sup_det['_revisions'][0]['_dateCreated'] == first_time
+    assert mock_sup_det['_versions'][-1]['_dateCreated'] == first_time
 
-    # revisions should not list a modification timestamp
-    assert '_dateModified' not in mock_sup_det['_revisions'][0]
+    # versions should not list a modification timestamp
+    assert '_dateModified' not in mock_sup_det['_versions'][0]
 
     # the record itself (not revision) should have an unchanged creation
     # timestamp
@@ -137,9 +134,6 @@ def test_transcript_revisions_are_retained_in_supplemental_details():
     assert dateutil.parser.parse(mock_sup_det['_dateModified']) > dateutil.parser.parse(
         mock_sup_det['_dateCreated']
     )
-
-    # the record itself should encompass the second transcript
-    assert mock_sup_det.items() >= second.items()
 
 
 def test_setting_transcript_to_empty_string():
@@ -153,16 +147,16 @@ def test_setting_transcript_to_empty_string():
     mock_sup_det = action.revise_data(
         EMPTY_SUBMISSION,
         EMPTY_SUPPLEMENT,
-        action.action_class_config.default_type,
+        {},
         first,
     )
-    assert mock_sup_det['value'] == 'Aucune idée'
+    assert mock_sup_det['_versions'][0]['value'] == 'Aucune idée'
 
     mock_sup_det = action.revise_data(
         EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, second
     )
-    assert mock_sup_det['value'] == ''
-    assert mock_sup_det['_revisions'][0]['value'] == 'Aucune idée'
+    assert mock_sup_det['_versions'][0]['value'] == ''
+    assert mock_sup_det['_versions'][1]['value'] == 'Aucune idée'
 
 
 def test_setting_transcript_to_none():
@@ -176,16 +170,16 @@ def test_setting_transcript_to_none():
     mock_sup_det = action.revise_data(
         EMPTY_SUBMISSION,
         EMPTY_SUPPLEMENT,
-        action.action_class_config.default_type,
+        {},
         first,
     )
-    assert mock_sup_det['value'] == 'Aucune idée'
+    assert mock_sup_det['_versions'][0]['value'] == 'Aucune idée'
 
     mock_sup_det = action.revise_data(
         EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, second
     )
-    assert mock_sup_det['value'] is None
-    assert mock_sup_det['_revisions'][0]['value'] == 'Aucune idée'
+    assert mock_sup_det['_versions'][0]['value'] is None
+    assert mock_sup_det['_versions'][1]['value'] == 'Aucune idée'
 
 
 def test_latest_revision_is_first():
@@ -197,12 +191,12 @@ def test_latest_revision_is_first():
     second = {'language': 'fr', 'value': 'deux'}
     third = {'language': 'fr', 'value': 'trois'}
 
-    mock_sup_det = action.action_class_config.default_type
+    mock_sup_det = {}
     for data in first, second, third:
         mock_sup_det = action.revise_data(
             EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, data
         )
 
-    assert mock_sup_det['value'] == 'trois'
-    assert mock_sup_det['_revisions'][0]['value'] == 'deux'
-    assert mock_sup_det['_revisions'][1]['value'] == 'un'
+    assert mock_sup_det['_versions'][0]['value'] == 'trois'
+    assert mock_sup_det['_versions'][1]['value'] == 'deux'
+    assert mock_sup_det['_versions'][2]['value'] == 'un'

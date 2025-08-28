@@ -33,12 +33,15 @@ class SubmissionSupplementTestCase(TestCase):
         '_version': '20250820',
         'group_name/question_name': {
             'manual_transcription': {
-                'language': 'ar',
-                'value': 'فارغ',
                 '_dateCreated': '2024-04-08T15:27:00Z',
                 '_dateModified': '2024-04-08T15:31:00Z',
-                '_dateAccepted': '2024-04-08T15:31:00Z',
-                '_revisions': [
+                '_versions': [
+                    {
+                        'language': 'ar',
+                        'value': 'فارغ',
+                        '_dateCreated': '2024-04-08T15:31:00Z',
+                        '_dateAccepted': '2024-04-08T15:31:00Z',
+                    },
                     {
                         'language': 'ar',
                         'value': 'هائج',
@@ -47,21 +50,27 @@ class SubmissionSupplementTestCase(TestCase):
                     }
                 ],
             },
-            'manual_translation': [
-                {
-                    'language': 'en',
-                    'value': 'berserk',
+            'manual_translation': {
+                'en': {
                     '_dateCreated': '2024-04-08T15:27:00Z',
                     '_dateModified': '2024-04-08T15:27:00Z',
-                    '_dateAccepted': '2024-04-08T15:27:00Z',
+                    '_versions': [{
+                        'language': 'en',
+                        'value': 'berserk',
+                        '_dateCreated': '2024-04-08T15:27:00Z',
+                        '_dateAccepted': '2024-04-08T15:27:00Z',
+                    }],
                 },
-                {
-                    'language': 'es',
-                    'value': 'enloquecido',
+                'es': {
                     '_dateCreated': '2024-04-08T15:29:00Z',
                     '_dateModified': '2024-04-08T15:32:00Z',
-                    '_dateAccepted': '2024-04-08T15:32:00Z',
-                    '_revisions': [
+                    '_versions': [
+                        {
+                            'language': 'es',
+                            'value': 'enloquecido',
+                            '_dateCreated': '2024-04-08T15:32:00Z',
+                            '_dateAccepted': '2024-04-08T15:32:00Z',
+                        },
                         {
                             'language': 'es',
                             'value': 'loco',
@@ -70,7 +79,7 @@ class SubmissionSupplementTestCase(TestCase):
                         }
                     ],
                 },
-            ],
+            },
         },
     }
 

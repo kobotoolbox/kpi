@@ -156,7 +156,7 @@ def test_valid_result_passes_validation():
     fourth = {'language': 'fr', 'accepted': True}
     fifth = {'language': 'fr', 'value': None}
     six = {'language': 'es', 'value': 'seis'}
-    mock_sup_det = action.action_class_config.default_type
+    mock_sup_det = {}
 
     mock_service = MagicMock()
     with patch(
@@ -180,11 +180,11 @@ def test_valid_result_passes_validation():
 
         action.validate_result(mock_sup_det)
 
-    assert '_dateAccepted' in mock_sup_det['_revisions'][1]
-    assert mock_sup_det['_revisions'][0]['status'] == 'deleted'
+    assert '_dateAccepted' in mock_sup_det['_versions'][2]
+    assert mock_sup_det['_versions'][1]['status'] == 'deleted'
 
 
-def test_acceptance_does_not_produce_revisions():
+def test_acceptance_does_not_produce_versions():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
     action = AutomatedGoogleTranscriptionAction(xpath, params)
@@ -192,7 +192,7 @@ def test_acceptance_does_not_produce_revisions():
     first = {'language': 'fr', 'value': 'un'}
     second = {'language': 'fr', 'accepted': True}
     third = {'language': 'fr', 'accepted': False}
-    mock_sup_det = action.action_class_config.default_type
+    mock_sup_det = {}
 
     mock_service = MagicMock()
     with patch(
@@ -213,9 +213,12 @@ def test_acceptance_does_not_produce_revisions():
             mock_sup_det = action.revise_data(
                 EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, data
             )
-            assert '_revisions' not in mock_sup_det
+            assert '_versions' in mock_sup_det
             if data.get('value') is None:
-                is_date_accepted_present = mock_sup_det.get('_dateAccepted') is None
+                is_date_accepted_present = (
+                    mock_sup_det['_versions'][0].get('_dateAccepted')
+                    is None
+                )
                 assert is_date_accepted_present is not bool(data.get('accepted'))
 
         action.validate_result(mock_sup_det)
@@ -232,12 +235,11 @@ def test_invalid_result_fails_validation():
     fourth = {'language': 'fr', 'accepted': True}
     fifth = {'language': 'fr', 'value': None}
     six = {'language': 'es', 'value': 'seis'}
-    mock_sup_det = action.action_class_config.default_type
+    mock_sup_det = {}
 
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automated_google_transcription.GoogleTranscriptionService',
-        # noqa
+        'kobo.apps.subsequences.actions.automated_google_transcription.GoogleTranscriptionService',  # noqa
         return_value=mock_service,
     ):
         for data in first, second, third, fourth, fifth, six:
@@ -257,15 +259,15 @@ def test_invalid_result_fails_validation():
 
         action.validate_result(mock_sup_det)
 
-    # erroneously add '_dateModified' onto a revision
-    first_revision = mock_sup_det['_revisions'][0]
-    first_revision['_dateModified'] = first_revision['_dateCreated']
+    # erroneously add '_dateModified' onto a version
+    first_version = mock_sup_det['_versions'][0]
+    first_version['_dateModified'] = first_version['_dateCreated']
 
     with pytest.raises(jsonschema.exceptions.ValidationError):
         action.validate_result(mock_sup_det)
 
 
-def test_transcription_revisions_are_retained_in_supplemental_details():
+def test_transcription_versions_are_retained_in_supplemental_details():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
     action = AutomatedGoogleTranscriptionAction(xpath, params)
@@ -274,8 +276,7 @@ def test_transcription_revisions_are_retained_in_supplemental_details():
     second = {'language': 'fr', 'value': 'Aucune idée'}
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automated_google_transcription.GoogleTranscriptionService',
-        # noqa
+        'kobo.apps.subsequences.actions.automated_google_transcription.GoogleTranscriptionService',  # noqa
         return_value=mock_service,
     ):
         value = first.pop('value', None)
@@ -283,14 +284,15 @@ def test_transcription_revisions_are_retained_in_supplemental_details():
         mock_sup_det = action.revise_data(
             EMPTY_SUBMISSION,
             EMPTY_SUPPLEMENT,
-            action.action_class_config.default_type,
+            {},
             first,
         )
 
-    assert mock_sup_det['language'] == 'es'
-    assert mock_sup_det['value'] == 'Ni idea'
+    assert mock_sup_det['_versions'][0]['language'] == 'es'
+    assert mock_sup_det['_versions'][0]['value'] == 'Ni idea'
     assert mock_sup_det['_dateCreated'] == mock_sup_det['_dateModified']
-    assert '_revisions' not in mock_sup_det
+    assert 'value' not in mock_sup_det
+    assert 'language' not in mock_sup_det
     first_time = mock_sup_det['_dateCreated']
 
     with patch(
@@ -303,19 +305,16 @@ def test_transcription_revisions_are_retained_in_supplemental_details():
             EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, second
         )
 
-    assert len(mock_sup_det['_revisions']) == 1
+    assert len(mock_sup_det['_versions']) == 2
 
-    # the revision should encompass the first transcript
-    assert mock_sup_det['_revisions'][0].items() >= first.items()
-
-    # the revision should have a creation timestamp equal to that of the first
+    # the first version should have a creation timestamp equal to that of the first
     # transcript
-    assert mock_sup_det['_revisions'][0]['_dateCreated'] == first_time
+    assert mock_sup_det['_versions'][1]['_dateCreated'] == first_time
 
-    # revisions should not list a modification timestamp
-    assert '_dateModified' not in mock_sup_det['_revisions'][0]
+    # versions should not list a modification timestamp
+    assert '_dateModified' not in mock_sup_det['_versions'][0]
 
-    # the record itself (not revision) should have an unchanged creation
+    # the record itself (not version) should have an unchanged creation
     # timestamp
     assert mock_sup_det['_dateCreated'] == first_time
 
@@ -324,11 +323,8 @@ def test_transcription_revisions_are_retained_in_supplemental_details():
         mock_sup_det['_dateCreated']
     )
 
-    # the record itself should encompass the second transcript
-    assert mock_sup_det.items() >= second.items()
 
-
-def test_latest_revision_is_first():
+def test_latest_version_is_first():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
     action = AutomatedGoogleTranscriptionAction(xpath, params)
@@ -337,11 +333,10 @@ def test_latest_revision_is_first():
     second = {'language': 'fr', 'value': 'deux'}
     third = {'language': 'fr', 'value': 'trois'}
 
-    mock_sup_det = action.action_class_config.default_type
+    mock_sup_det = {}
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automated_google_transcription.GoogleTranscriptionService',
-        # noqa
+        'kobo.apps.subsequences.actions.automated_google_transcription.GoogleTranscriptionService',  # noqa
         return_value=mock_service,
     ):
         for data in first, second, third:
@@ -354,6 +349,6 @@ def test_latest_revision_is_first():
                 EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, data
             )
 
-    assert mock_sup_det['value'] == 'trois'
-    assert mock_sup_det['_revisions'][0]['value'] == 'deux'
-    assert mock_sup_det['_revisions'][1]['value'] == 'un'
+    assert mock_sup_det['_versions'][0]['value'] == 'trois'
+    assert mock_sup_det['_versions'][1]['value'] == 'deux'
+    assert mock_sup_det['_versions'][2]['value'] == 'un'

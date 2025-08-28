@@ -82,7 +82,7 @@ class SubmissionSupplement(SubmissionExtras):
                     question_xpath, {}
                 )
                 action_supplemental_data = question_supplemental_data.setdefault(
-                    action_id, action.action_class_config.default_type
+                    action_id, {}
                 )
 
                 if not (

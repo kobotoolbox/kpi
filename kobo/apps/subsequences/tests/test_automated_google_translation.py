@@ -157,7 +157,7 @@ def test_valid_result_passes_validation():
     fourth = {'language': 'fr', 'accepted': True}
     fifth = {'language': 'fr', 'value': None}
     six = {'language': 'es', 'value': 'seis'}
-    mock_sup_det = action.action_class_config.default_type
+    mock_sup_det = {}
 
     mock_service = MagicMock()
     with patch(
@@ -181,13 +181,13 @@ def test_valid_result_passes_validation():
 
         action.validate_result(mock_sup_det)
 
-    assert '_dateAccepted' in mock_sup_det[0]['_revisions'][0]
-    assert mock_sup_det[0]['status'] == 'deleted'
-    assert mock_sup_det[0]['_revisions'][0]['status'] == 'complete'
-    assert mock_sup_det[1]['_revisions'][0]['status'] == 'complete'
+    assert '_dateAccepted' in mock_sup_det['fr']['_versions'][1]
+    assert mock_sup_det['fr']['_versions'][0]['status'] == 'deleted'
+    assert mock_sup_det['es']['_versions'][1]['status'] == 'complete'
+    assert mock_sup_det['fr']['_versions'][-1]['status'] == 'complete'
 
 
-def test_acceptance_does_not_produce_revisions():
+def test_acceptance_does_not_produce_versions():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
     action = AutomatedGoogleTranslationAction(xpath, params)
@@ -195,7 +195,7 @@ def test_acceptance_does_not_produce_revisions():
     first = {'language': 'fr', 'value': 'un'}
     second = {'language': 'fr', 'accepted': True}
     third = {'language': 'fr', 'accepted': False}
-    mock_sup_det = action.action_class_config.default_type
+    mock_sup_det = {}
 
     mock_service = MagicMock()
     with patch(
@@ -216,9 +216,8 @@ def test_acceptance_does_not_produce_revisions():
             mock_sup_det = action.revise_data(
                 EMPTY_SUBMISSION, QUESTION_SUPPLEMENT, mock_sup_det, data
             )
-            assert '_revisions' not in mock_sup_det[0]
             if data.get('value') is None:
-                is_date_accepted_present = mock_sup_det[0].get('_dateAccepted') is None
+                is_date_accepted_present = mock_sup_det['fr']['_versions'][0].get('_dateAccepted') is None
                 assert is_date_accepted_present is not bool(data.get('accepted'))
 
         action.validate_result(mock_sup_det)
@@ -235,7 +234,7 @@ def test_invalid_result_fails_validation():
     fourth = {'language': 'fr', 'accepted': True}
     fifth = {'language': 'fr', 'value': None}
     six = {'language': 'es', 'value': 'seis'}
-    mock_sup_det = action.action_class_config.default_type
+    mock_sup_det = {}
 
     mock_service = MagicMock()
     with patch(
@@ -260,15 +259,15 @@ def test_invalid_result_fails_validation():
 
         action.validate_result(mock_sup_det)
 
-    # erroneously add '_dateModified' onto a revision
-    first_revision = mock_sup_det[0]['_revisions'][0]
-    first_revision['_dateModified'] = first_revision['_dateCreated']
+    # erroneously add '_dateModified' onto a version
+    first_version = mock_sup_det['fr']['_versions'][0]
+    first_version['_dateModified'] = first_version['_dateCreated']
 
     with pytest.raises(jsonschema.exceptions.ValidationError):
         action.validate_result(mock_sup_det)
 
 
-def test_translation_revisions_are_retained_in_supplemental_details():
+def test_translation_versions_are_retained_in_supplemental_details():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
     action = AutomatedGoogleTranslationAction(xpath, params)
@@ -288,15 +287,14 @@ def test_translation_revisions_are_retained_in_supplemental_details():
         mock_sup_det = action.revise_data(
             EMPTY_SUBMISSION,
             QUESTION_SUPPLEMENT,
-            action.action_class_config.default_type,
+            {},
             first,
         )
 
-    assert mock_sup_det[0]['language'] == 'es'
-    assert mock_sup_det[0]['value'] == 'Ni idea'
-    assert mock_sup_det[0]['_dateCreated'] == mock_sup_det[0]['_dateModified']
-    assert '_revisions' not in mock_sup_det[0]
-    first_time = mock_sup_det[0]['_dateCreated']
+    assert mock_sup_det['es']['_versions'][0]['language'] == 'es'
+    assert mock_sup_det['es']['_versions'][0]['value'] == 'Ni idea'
+    assert mock_sup_det['es']['_dateCreated'] == mock_sup_det['es']['_dateModified']
+    first_time = mock_sup_det['es']['_versions'][0]['_dateCreated']
 
     with patch(
         'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',  # noqa
@@ -308,12 +306,11 @@ def test_translation_revisions_are_retained_in_supplemental_details():
             EMPTY_SUBMISSION, QUESTION_SUPPLEMENT, mock_sup_det, second
         )
 
-    assert len(mock_sup_det) == 2
-    assert '_revision' not in mock_sup_det[0]
-    assert mock_sup_det[1]['language'] == 'fr'
-    assert mock_sup_det[1]['value'] == 'Aucune idée'
-    assert mock_sup_det[1]['_dateCreated'] == mock_sup_det[1]['_dateModified']
-    assert '_revision' not in mock_sup_det[1]
+    assert len(mock_sup_det.keys()) == 2
+
+    assert mock_sup_det['fr']['_versions'][0]['language'] == 'fr'
+    assert mock_sup_det['fr']['_versions'][0]['value'] == 'Aucune idée'
+    assert mock_sup_det['fr']['_dateCreated'] == mock_sup_det['fr']['_dateModified']
 
     with patch(
         'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',  # noqa
@@ -325,32 +322,26 @@ def test_translation_revisions_are_retained_in_supplemental_details():
             EMPTY_SUBMISSION, QUESTION_SUPPLEMENT, mock_sup_det, third
         )
 
-    assert len(mock_sup_det) == 2
+    assert len(mock_sup_det.keys()) == 2
 
-    # the revision should encompass the first translation
-    assert mock_sup_det[0]['_revisions'][0].items() >= first.items()
-
-    # the revision should have a creation timestamp equal to that of the first
+    # the first version should have a creation timestamp equal to that of the first
     # translation
-    assert mock_sup_det[0]['_revisions'][0]['_dateCreated'] == first_time
+    assert mock_sup_det['es']['_versions'][-1]['_dateCreated'] == first_time
 
-    # revisions should not list a modification timestamp
-    assert '_dateModified' not in mock_sup_det[0]['_revisions'][0]
+    # versions should not list a modification timestamp
+    assert '_dateModified' not in mock_sup_det['es']['_versions'][0]
 
-    # the record itself (not revision) should have an unchanged creation
+    # the record itself (not version) should have an unchanged creation
     # timestamp
-    assert mock_sup_det[0]['_dateCreated'] == first_time
+    assert mock_sup_det['es']['_dateCreated'] == first_time
 
     # the record itself should have an updated modification timestamp
     assert dateutil.parser.parse(
-        mock_sup_det[0]['_dateModified']
-    ) > dateutil.parser.parse(mock_sup_det[0]['_dateCreated'])
-
-    # the record itself should encompass the second translation
-    assert mock_sup_det[0].items() >= third.items()
+        mock_sup_det['es']['_dateModified']
+    ) > dateutil.parser.parse(mock_sup_det['es']['_dateCreated'])
 
 
-def test_latest_revision_is_first():
+def test_latest_version_is_first():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
     action = AutomatedGoogleTranslationAction(xpath, params)
@@ -359,7 +350,7 @@ def test_latest_revision_is_first():
     second = {'language': 'fr', 'value': 'deux'}
     third = {'language': 'fr', 'value': 'trois'}
 
-    mock_sup_det = action.action_class_config.default_type
+    mock_sup_det = {}
     mock_service = MagicMock()
     with patch(
         'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',
@@ -376,9 +367,9 @@ def test_latest_revision_is_first():
                 EMPTY_SUBMISSION, QUESTION_SUPPLEMENT, mock_sup_det, data
             )
 
-    assert mock_sup_det[0]['value'] == 'trois'
-    assert mock_sup_det[0]['_revisions'][0]['value'] == 'deux'
-    assert mock_sup_det[0]['_revisions'][1]['value'] == 'un'
+    assert mock_sup_det['fr']['_versions'][0]['value'] == 'trois'
+    assert mock_sup_det['fr']['_versions'][1]['value'] == 'deux'
+    assert mock_sup_det['fr']['_versions'][2]['value'] == 'un'
 
 def test_cannot_revise_data_without_transcription():
     xpath = 'group_name/question_name'  # irrelevant for this test
@@ -386,7 +377,7 @@ def test_cannot_revise_data_without_transcription():
     action = AutomatedGoogleTranslationAction(xpath, params)
 
     first = {'language': 'fr', 'value': 'un'}
-    mock_sup_det = action.action_class_config.default_type
+    mock_sup_det = {}
     mock_service = MagicMock()
     with patch(
         'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',  # noqa

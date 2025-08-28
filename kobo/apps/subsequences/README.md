@@ -1,7 +1,7 @@
 # Subsequence Actions – Supplement Processing Flow
 
 This document explains the full flow when a client submits a **supplement** payload to the API.
-It covers how the payload is validated through the various schemas (`params_schema`, `data_schema`, `automated_data_schema`, `result_schema`), how external NLP services are invoked for automated actions, and how revisions are created and persisted.
+It covers how the payload is validated through the various schemas (`params_schema`, `data_schema`, `automated_data_schema`, `result_schema`), how external NLP services are invoked for automated actions, and how versions are created and persisted.
 
 ---
 
@@ -183,9 +183,9 @@ loop For each action in _actionConfigs
     Action->>Action: Validate with automated_data_schema
   end
 
-  Action->>Action: Build new revision
+  Action->>Action: Build new version
   Action->>Action: Validate with result_schema
-  Action->>DB: Save revision JSON
+  Action->>DB: Save version JSON
 end
 
 SS-->>API: Aggregated result / status
@@ -203,7 +203,7 @@ flowchart TB
   A[Incoming action payload]
   B{Validate with data schema}
   C{Is automated action?}
-  D[Build revision]
+  D[Build version]
   G[Validate with result schema]
   H[Save to DB]
   I[Done]
@@ -242,4 +242,4 @@ flowchart TB
   Validates the **augmented payload** returned by the external service.
 
 - **`result_schema`** (property, via mixin)
-  Validates the **revision JSON** that is persisted and returned.
+  Validates the **version JSON** that is persisted and returned.
