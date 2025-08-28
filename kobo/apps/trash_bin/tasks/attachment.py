@@ -133,6 +133,8 @@ def auto_delete_excess_attachments(user_id: int, **stripe_models):
     for att in queryset.iterator():
         attachments_to_trash.append({
             'pk': att.pk,
+            'asset_id': att.xform.asset.id,
+            'asset_uid': att.xform.asset.uid,
             'attachment_uid': att.uid,
             'attachment_basename': att.media_file_basename,
         })

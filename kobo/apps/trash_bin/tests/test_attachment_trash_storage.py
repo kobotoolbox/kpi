@@ -1,32 +1,33 @@
 from constance.test import override_config
 from django.test import TestCase
 from rest_framework import status
+from rest_framework.test import APIRequestFactory
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.project_ownership.utils import create_invite
 from kobo.apps.trash_bin.utils import move_to_trash, put_back
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 from kpi.tests.utils.transaction import immediate_on_commit
 
 
-class AttachmentTrashStorageCountersTestCase(TestBase):
+class AttachmentTrashStorageCountersTestCase(TestCase, AssetSubmissionTestMixin):
     """
     Test that moving an attachment to trash and restoring it updates the
     storage counters
     """
     def setUp(self):
-        super().setUp()
-        self._create_user_and_login()
-        self._publish_transportation_form()
-        self._submit_transport_instance_w_attachment()
-        self.user_profile = UserProfile.objects.get(user=self.xform.user)
+        self.factory = APIRequestFactory()
+        self.user = User.objects.create(username='owner')
+        self.user_profile, _ = UserProfile.objects.get_or_create(user=self.user)
         self.extra = {
             'HTTP_AUTHORIZATION': 'Token %s' % self.user.auth_token
         }
+        self.asset, self.xform, self.instance, self.user_profile, self.attachment = (
+            self._create_test_asset_and_submission(user=self.user)
+        )
 
     def test_toggle_statuses_updates_storage_counters(self):
         """
@@ -97,6 +98,8 @@ class AttachmentTrashStorageCountersTestCase(TestBase):
             request_author=self.user,
             objects_list=[{
                 'pk': self.attachment.pk,
+                'asset_id': self.asset.pk,
+                'asset_uid': self.asset.uid,
                 'attachment_uid': self.attachment.uid,
                 'attachment_basename': self.attachment.media_file_basename,
             }],
@@ -176,6 +179,8 @@ class TransferredProjectAttachmentTrashCounterTestCase(
             request_author=self.new_owner,
             objects_list=[{
                 'pk': self.attachment.pk,
+                'asset_id': self.asset.pk,
+                'asset_uid': self.asset.uid,
                 'attachment_uid': self.attachment.uid,
                 'attachment_basename': self.attachment.media_file_basename,
             }],

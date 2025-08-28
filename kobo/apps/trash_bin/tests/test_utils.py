@@ -10,7 +10,12 @@ from django.utils import timezone
 from django_celery_beat.models import PeriodicTask
 from freezegun import freeze_time
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
+from kobo.apps.audit_log.models import (
+    AuditAction,
+    AuditLog,
+    AuditType,
+    ProjectHistoryLog
+)
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
@@ -640,7 +645,7 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
             attachment_id=self.attachment.id
         ).exists()
 
-        self._move_attachment_to_trash(self.attachment, self.user)
+        self._move_attachment_to_trash(self.asset, self.attachment, self.user)
 
         assert self.xform.attachment_storage_bytes == 0
         assert self.user_profile.attachment_storage_bytes == 0
@@ -649,17 +654,19 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
             attachment_id=self.attachment.id
         ).exists()
 
-        assert AuditLog.objects.filter(
-            app_label='logger',
-            model_name='attachment',
-            object_id=self.attachment.pk,
+        assert ProjectHistoryLog.objects.filter(
+            app_label='kpi',
+            model_name='asset',
+            object_id=self.asset.pk,
             user=self.user,
             action=AuditAction.IN_TRASH,
-            log_type=AuditType.ATTACHMENT_MANAGEMENT,
+            log_type=AuditType.PROJECT_HISTORY,
         ).exists()
 
     def test_put_back(self):
-        trash_obj = self._move_attachment_to_trash(self.attachment, self.user)
+        trash_obj = self._move_attachment_to_trash(
+            self.asset, self.attachment, self.user
+        )
         self._put_back_attachment_from_trash(self.attachment, self.user)
 
         assert not self.attachment.delete_status
@@ -689,7 +696,9 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
         media_file = self.attachment.media_file
         assert self.attachment.media_file.storage.exists(str(media_file))
 
-        trash_obj = self._move_attachment_to_trash(self.attachment, self.user)
+        trash_obj = self._move_attachment_to_trash(
+            self.asset, self.attachment, self.user
+        )
         empty_attachment(trash_obj.pk)
 
         assert Attachment.all_objects.filter(pk=self.attachment.pk).exists()
@@ -744,7 +753,9 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
             frozen_time = str(timezone.now())
 
         with freeze_time(frozen_time):
-            self._move_attachment_to_trash(self.attachment, self.user)
+            self._move_attachment_to_trash(
+                self.asset, self.attachment, self.user
+            )
 
         if status != TrashStatus.PENDING:
             # Only tasks that are not pending can be considered as stuck
@@ -771,11 +782,13 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
 
                 assert patched_spawned_task.call_count == restart_count
 
-    def _move_attachment_to_trash(self, attachment, user):
+    def _move_attachment_to_trash(self, asset, attachment, user):
         move_to_trash(
             request_author=user,
             objects_list=[{
                 'pk': attachment.pk,
+                'asset_id': asset.pk,
+                'asset_uid': asset.uid,
                 'attachment_uid': attachment.uid,
                 'attachment_basename': attachment.media_file_basename,
             }],
