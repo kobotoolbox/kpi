@@ -106,7 +106,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'Invalid payload' in str(response.data)
 
-    def test_cannot_accept_incomplete_automatic_translation(self):
+    def test_cannot_accept_incomplete_automatic_transcription(self):
         # Set up the asset to allow automatic google transcription
         self.set_asset_advanced_features(
             {
@@ -121,16 +121,60 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
             }
         )
 
-        # Simulate in progress translation
+        # Try to set 'accepted' status when translation is not complete
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                'automatic_google_transcription': {
+                    'language': 'es',
+                    'accepted': True,
+                }
+            },
+        }
+
+        # Mock GoogleTranscriptionService and simulate in progress transcription
+        mock_service = MagicMock()
+        mock_service.process_data.return_value = {'status': 'in_progress'}
+
+        with patch(
+            'kobo.apps.subsequences.actions.automatic_google_transcription.GoogleTranscriptionService',  # noqa
+            return_value=mock_service,
+        ):
+            response = self.client.patch(
+                self.supplement_details_url, data=payload, format='json'
+            )
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert 'Invalid payload' in str(response.data)
+
+    def test_cannot_accept_incomplete_automatic_translation(self):
+        # Set up the asset to allow automatic google transcription
+        self.set_asset_advanced_features(
+            {
+                '_version': '20250820',
+                '_actionConfigs': {
+                    'q1': {
+                        'automatic_google_transcription': [
+                            {'language': 'en'},
+                        ],
+                        'automatic_google_translation': [
+                            {'language': 'fr'},
+                        ]
+                    }
+                },
+            }
+        )
+
+        # Simulate a completed transcription, first.
         mock_submission_supplement = {
             '_version': '20250820',
             'q1': {
                 'automatic_google_transcription': {
-                    'status': 'in_progress',
-                    'language': 'es',
+                    'status': 'complete',
+                    'value': 'My audio has been transcribed',
+                    'language': 'en',
                     '_dateCreated': '2025-08-25T21:17:35.535710Z',
                     '_dateModified': '2025-08-26T11:41:21.917338Z',
-                }
+                },
             },
         }
         SubmissionSupplement.objects.create(
@@ -143,19 +187,61 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         payload = {
             '_version': '20250820',
             'q1': {
-                'automatic_google_transcription': {
-                    'language': 'es',
+                'automatic_google_translation': {
+                    'language': 'fr',
                     'accepted': True,
                 }
             },
         }
 
-        # Mock GoogleTranscriptionService
+        # Mock GoogleTranscriptionService and simulate in progress translation
         mock_service = MagicMock()
         mock_service.process_data.return_value = {'status': 'in_progress'}
 
         with patch(
-            'kobo.apps.subsequences.actions.automatic_google_transcription.GoogleTranscriptionService',  # noqa
+            'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
+            return_value=mock_service,
+        ):
+            response = self.client.patch(
+                self.supplement_details_url, data=payload, format='json'
+            )
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert 'Invalid payload' in str(response.data)
+
+    def test_cannot_request_translation_without_transcription(self):
+        # Set up the asset to allow automatic google transcription
+        self.set_asset_advanced_features(
+            {
+                '_version': '20250820',
+                '_actionConfigs': {
+                    'q1': {
+                        'automatic_google_transcription': [
+                            {'language': 'en'},
+                        ],
+                        'automatic_google_translation': [
+                            {'language': 'fr'},
+                        ]
+                    }
+                },
+            }
+        )
+
+        # Try to ask for translation
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                'automatic_google_translation': {
+                    'language': 'fr',
+                }
+            },
+        }
+
+        # Mock GoogleTranscriptionService and simulate in progress translation
+        mock_service = MagicMock()
+        mock_service.process_data.return_value = {'status': 'in_progress'}
+
+        with patch(
+            'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
             return_value=mock_service,
         ):
             response = self.client.patch(
