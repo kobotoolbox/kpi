@@ -100,7 +100,7 @@
     "@swc/jest": "^0.2.39",
     "@tanstack/eslint-plugin-query": "^5.62.16",
     "@tanstack/react-query-devtools": "^5.84.1",
-    "@testing-library/jest-dom": "^6.6.4",
+    "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@types/chai": "^4.3.1",
     "@types/coffeescript": "^2.5.7",
