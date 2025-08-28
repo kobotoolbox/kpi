@@ -23,6 +23,7 @@ from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
 from pyxform.builder import create_survey_from_xls
 from rest_framework import exceptions, status
+from shortuuid import ShortUUID
 
 from kobo.apps.openrosa.apps.logger.models import (
     Attachment,
@@ -694,6 +695,37 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             'csv': '/'.join((reports_base_url, 'export.csv')),
         }
         return links
+
+    def remove_data_collectors(self):
+        redis_client = get_redis_connection('enketo_redis_main')
+        all_dc_urls = redis_client.keys()
+        pass
+
+    def get_enketo_survey_links_for_data_collectors(self):
+        if not self.get_data('backend_response'):
+            return {}
+        redis_client = get_redis_connection('enketo_redis_main')
+        for data_collector in self.asset.data_collector_group.data_collectors.all():
+            server_url = '{}/key/{}'.format(
+                    settings.KOBOCAT_URL.rstrip('/'), data_collector.token
+                )
+            data = {
+                'server_url': server_url,
+                'form_id': self.xform.id_string,
+            }
+            response = requests.post(
+                    f'{settings.ENKETO_URL}/{settings.ENKETO_SURVEY_ENDPOINT}',
+                    # bare tuple implies basic auth
+                    auth=(settings.ENKETO_API_KEY, ''),
+                    data=data,
+            )
+            enketo_id = response.json()['enketo_id']
+            new_id = ShortUUID().random(32)
+            redis_client.hset(f'or:{server_url}', self.xform.id_string, new_id)
+            current_stash = redis_client.hgetall(f'id:{enketo_id}')
+            for key, value in current_stash.items():
+                redis_client.hset(f'id:{new_id}', key, value)
+
 
     def get_enketo_survey_links(self):
         if not self.get_data('backend_response'):

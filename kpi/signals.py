@@ -75,3 +75,13 @@ def post_remove_asset_perm(
         instance.deployment.set_enketo_open_rosa_server(require_auth=True)
     except DeploymentNotFound:
         return
+
+@receiver(post_save, sender=Asset)
+def update_data_collector_group(
+    sender,
+    instance,
+    **kwargs,
+):
+    if instance.data_collector_group_id != instance._initial_data_collector_group_id:
+        pass
+    pass
