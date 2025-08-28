@@ -788,6 +788,7 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
             objects_list=[{
                 'pk': attachment.pk,
                 'asset_id': asset.pk,
+                'asset_uid': asset.uid,
                 'attachment_uid': attachment.uid,
                 'attachment_basename': attachment.media_file_basename,
             }],

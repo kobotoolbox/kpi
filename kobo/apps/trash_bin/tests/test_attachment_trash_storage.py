@@ -99,6 +99,7 @@ class AttachmentTrashStorageCountersTestCase(TestCase, AssetSubmissionTestMixin)
             objects_list=[{
                 'pk': self.attachment.pk,
                 'asset_id': self.asset.pk,
+                'asset_uid': self.asset.uid,
                 'attachment_uid': self.attachment.uid,
                 'attachment_basename': self.attachment.media_file_basename,
             }],
@@ -178,6 +179,8 @@ class TransferredProjectAttachmentTrashCounterTestCase(
             request_author=self.new_owner,
             objects_list=[{
                 'pk': self.attachment.pk,
+                'asset_id': self.asset.pk,
+                'asset_uid': self.asset.uid,
                 'attachment_uid': self.attachment.uid,
                 'attachment_basename': self.attachment.media_file_basename,
             }],
