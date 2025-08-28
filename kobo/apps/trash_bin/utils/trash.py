@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from copy import deepcopy
+from collections.abc import Iterable
 from datetime import timedelta
 from typing import Optional
 
@@ -116,7 +117,7 @@ def move_to_trash(
         trash_objects.append(
             trash_model(
                 request_author=request_author,
-                metadata=_remove_pk_from_dict(obj_dict),
+                metadata=_remove_keys_from_dict(obj_dict),
                 empty_manually=empty_manually,
                 retain_placeholder=retain_placeholder,
                 **{fk_field_name: obj_dict['pk']},
@@ -255,7 +256,7 @@ def put_back(
                 user=request_author,
                 user_uid=request_author.extra_details.uid,
                 action=AuditAction.PUT_BACK,
-                metadata=_remove_pk_from_dict(obj_dict),
+                metadata=_remove_keys_from_dict(obj_dict),
                 log_type=log_type,
             )
             for obj_dict in objects_list
@@ -308,7 +309,7 @@ def _build_log_entries(obj_dicts, request_author, related_model, trash_type):
                     user=request_author,
                     user_uid=request_author.extra_details.uid,
                     action=AuditAction.IN_TRASH,
-                    metadata=_remove_pk_from_dict(obj_dict),
+                    metadata=_remove_keys_from_dict(obj_dict, keys=('pk', 'asset_id')),
                 )
             )
         else:
@@ -320,7 +321,7 @@ def _build_log_entries(obj_dicts, request_author, related_model, trash_type):
                     user=request_author,
                     user_uid=request_author.extra_details.uid,
                     action=AuditAction.IN_TRASH,
-                    metadata=_remove_pk_from_dict(obj_dict),
+                    metadata=_remove_keys_from_dict(obj_dict),
                     log_type=get_log_type(related_model),
                 )
             )
@@ -369,10 +370,11 @@ def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:
     raise TrashNotImplementedError
 
 
-def _remove_pk_from_dict(trashed_object: dict) -> dict:
+def _remove_keys_from_dict(trashed_object: dict, keys: Iterable[str] = ('pk',)) -> dict:
     """
     Remove `pk` key from `trash_object`
     """
     dict_copy = deepcopy(trashed_object)
-    del dict_copy['pk']
+    for key in keys:
+        dict_copy.pop(key, None)
     return dict_copy
