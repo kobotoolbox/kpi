@@ -35,6 +35,7 @@ from kpi.views.v2.tag import TagViewSet
 from kpi.views.v2.tos import TermsOfServiceViewSet
 from kpi.views.v2.user import UserViewSet
 from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
+from kpi.views.v2.user_reports import UserReportsViewSet
 
 
 class OpenRosaCompatibleExtendedRouter(ExtendedDefaultRouter):
@@ -185,7 +186,7 @@ router_api_v2.register(r'project-views', ProjectViewViewSet)
 router_api_v2.register(r'service_usage',
                        ServiceUsageViewSet, basename='service-usage')
 router_api_v2.register(r'users', UserViewSet, basename='user-kpi')
-
+router_api_v2.register(r'user-reports', UserReportsViewSet, basename='user-reports')
 router_api_v2.register(r'tags', TagViewSet, basename='tags')
 router_api_v2.register(
     r'terms-of-service', TermsOfServiceViewSet, basename='terms-of-service'
