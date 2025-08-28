@@ -4,27 +4,27 @@ import dateutil
 import jsonschema
 import pytest
 
-from ..actions.automatic_google_translation import AutomaticGoogleTranslationAction
+from ..actions.automated_google_translation import AutomatedGoogleTranslationAction
 from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 from ..exceptions import TranscriptionNotFound
 
 
 def test_valid_params_pass_validation():
     params = [{'language': 'fr'}, {'language': 'es'}]
-    AutomaticGoogleTranslationAction.validate_params(params)
+    AutomatedGoogleTranslationAction.validate_params(params)
 
 
 def test_invalid_params_fail_validation():
     params = [{'language': 123}, {'language': 'es'}]
     with pytest.raises(jsonschema.exceptions.ValidationError):
-        AutomaticGoogleTranslationAction.validate_params(params)
+        AutomatedGoogleTranslationAction.validate_params(params)
 
 
 def test_valid_user_data_passes_validation():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
 
-    action = AutomaticGoogleTranslationAction(xpath, params)
+    action = AutomatedGoogleTranslationAction(xpath, params)
 
     allowed_data = [
         # Trivial case
@@ -49,7 +49,7 @@ def test_valid_automated_translation_data_passes_validation():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
 
-    action = AutomaticGoogleTranslationAction(xpath, params)
+    action = AutomatedGoogleTranslationAction(xpath, params)
 
     allowed_data = [
         # Trivial case
@@ -83,7 +83,7 @@ def test_valid_automated_translation_data_passes_validation():
 def test_invalid_user_data_fails_validation():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
-    action = AutomaticGoogleTranslationAction(xpath, params)
+    action = AutomatedGoogleTranslationAction(xpath, params)
 
     invalid_data = [
         # Wrong language
@@ -112,7 +112,7 @@ def test_invalid_user_data_fails_validation():
 def test_invalid_automated_data_fails_validation():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
-    action = AutomaticGoogleTranslationAction(xpath, params)
+    action = AutomatedGoogleTranslationAction(xpath, params)
 
     invalid_data = [
         # Wrong language
@@ -149,7 +149,7 @@ def test_invalid_automated_data_fails_validation():
 def test_valid_result_passes_validation():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
-    action = AutomaticGoogleTranslationAction(xpath, params)
+    action = AutomatedGoogleTranslationAction(xpath, params)
 
     first = {'language': 'fr', 'value': 'un'}
     second = {'language': 'es', 'value': 'dos'}
@@ -161,7 +161,7 @@ def test_valid_result_passes_validation():
 
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
+        'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
         for data in first, second, third, fourth, fifth, six:
@@ -190,7 +190,7 @@ def test_valid_result_passes_validation():
 def test_acceptance_does_not_produce_revisions():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
-    action = AutomaticGoogleTranslationAction(xpath, params)
+    action = AutomatedGoogleTranslationAction(xpath, params)
 
     first = {'language': 'fr', 'value': 'un'}
     second = {'language': 'fr', 'accepted': True}
@@ -199,7 +199,7 @@ def test_acceptance_does_not_produce_revisions():
 
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
+        'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
         for data in first, second, third:
@@ -227,7 +227,7 @@ def test_acceptance_does_not_produce_revisions():
 def test_invalid_result_fails_validation():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
-    action = AutomaticGoogleTranslationAction(xpath, params)
+    action = AutomatedGoogleTranslationAction(xpath, params)
 
     first = {'language': 'fr', 'value': 'un'}
     second = {'language': 'es', 'value': 'dos'}
@@ -239,7 +239,7 @@ def test_invalid_result_fails_validation():
 
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',
+        'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',
         # noqa
         return_value=mock_service,
     ):
@@ -271,7 +271,7 @@ def test_invalid_result_fails_validation():
 def test_translation_revisions_are_retained_in_supplemental_details():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
-    action = AutomaticGoogleTranslationAction(xpath, params)
+    action = AutomatedGoogleTranslationAction(xpath, params)
 
     first = {'language': 'es', 'value': 'Ni idea'}
     second = {'language': 'fr', 'value': 'Aucune idée'}
@@ -279,7 +279,7 @@ def test_translation_revisions_are_retained_in_supplemental_details():
 
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',
+        'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',
         # noqa
         return_value=mock_service,
     ):
@@ -299,7 +299,7 @@ def test_translation_revisions_are_retained_in_supplemental_details():
     first_time = mock_sup_det[0]['_dateCreated']
 
     with patch(
-        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
+        'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
         value = second.pop('value', None)
@@ -316,7 +316,7 @@ def test_translation_revisions_are_retained_in_supplemental_details():
     assert '_revision' not in mock_sup_det[1]
 
     with patch(
-        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
+        'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
         value = third.pop('value', None)
@@ -353,7 +353,7 @@ def test_translation_revisions_are_retained_in_supplemental_details():
 def test_latest_revision_is_first():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
-    action = AutomaticGoogleTranslationAction(xpath, params)
+    action = AutomatedGoogleTranslationAction(xpath, params)
 
     first = {'language': 'fr', 'value': 'un'}
     second = {'language': 'fr', 'value': 'deux'}
@@ -362,7 +362,7 @@ def test_latest_revision_is_first():
     mock_sup_det = action.action_class_config.default_type
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',
+        'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',
         # noqa
         return_value=mock_service,
     ):
@@ -383,13 +383,13 @@ def test_latest_revision_is_first():
 def test_cannot_revise_data_without_transcription():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
-    action = AutomaticGoogleTranslationAction(xpath, params)
+    action = AutomatedGoogleTranslationAction(xpath, params)
 
     first = {'language': 'fr', 'value': 'un'}
     mock_sup_det = action.action_class_config.default_type
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
+        'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
         mock_service.process_data.return_value = {
@@ -406,10 +406,10 @@ def test_cannot_revise_data_without_transcription():
 def test_find_the_most_recent_transcription():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
-    action = AutomaticGoogleTranslationAction(xpath, params)
+    action = AutomatedGoogleTranslationAction(xpath, params)
 
     question_supplement_data = {
-        'automatic_google_transcription': {
+        'automated_google_transcription': {
             'value': 'My audio has been transcribed automatically',
             'language': 'en',
             'status': 'completed',
@@ -441,7 +441,7 @@ def test_find_the_most_recent_transcription():
 
     # Automated transcription is the most recent
     action_data = {}
-    question_supplement_data['automatic_google_transcription'][
+    question_supplement_data['automated_google_transcription'][
         '_dateModified'
     ] = '2025-07-28T14:18:00Z'
     expected = {

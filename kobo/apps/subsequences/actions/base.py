@@ -117,7 +117,7 @@ class ActionClassConfig:
 
     default_type: dict | list
     key: str | None
-    automatic: bool
+    automated: bool
 
 
 class BaseAction:
@@ -247,8 +247,8 @@ class BaseAction:
                     item_index = idx
                     break
 
-        if self.action_class_config.automatic:
-            # If the action is automatic, run the external process first.
+        if self.action_class_config.automated:
+            # If the action is automated, run the external process first.
             if not (
                 service_response := self.run_automated_process(
                     submission,
@@ -258,7 +258,7 @@ class BaseAction:
                     asset=asset,
                 )
             ):
-                # If the service response is None, the automatic task is still running.
+                # If the service response is None, the automated task is still running.
                 # Stop here to avoid processing data and creating redundant revisions.
                 return None
 
@@ -293,9 +293,9 @@ class BaseAction:
         new_record[self.DATE_CREATED_FIELD] = record_creation_date
 
         # For manual actions, always mark as accepted.
-        # For automatic actions, revert the just-created revision (remove it and
+        # For automated actions, revert the just-created revision (remove it and
         # reapply its dates) to avoid adding extra branching earlier in the method.
-        if self.action_class_config.automatic:
+        if self.action_class_config.automated:
             if accepted is not None:
                 revision = new_record[self.REVISIONS_FIELD].pop(0)
                 if not len(new_record[self.REVISIONS_FIELD]):
@@ -352,7 +352,7 @@ class BaseAction:
         **kwargs,
     ) -> dict | bool:
         """
-        Update action_data with automatic process
+        Update action_data with automated process
         """
         raise NotImplementedError
 
@@ -365,7 +365,7 @@ class BaseAction:
 
         schema_to_inject = (
             self.automated_data_schema
-            if self.action_class_config.automatic
+            if self.action_class_config.automated
             else self.data_schema
         )
 
@@ -388,11 +388,11 @@ class BaseAction:
         """
         Returns whether an action should check for usage limits.
         """
-        return self.action_class_config.automatic
+        return self.action_class_config.automated
 
     @property
     def _limit_identifier(self):
-        # See AutomaticGoogleTranscriptionAction._limit_identifier() for example
+        # See AutomatedGoogleTranscriptionAction._limit_identifier() for example
         raise NotImplementedError()
 
 
@@ -474,7 +474,7 @@ class BaseManualNLPAction(BaseAction):
         return languages
 
 
-class BaseAutomaticNLPAction(BaseManualNLPAction):
+class BaseAutomatedNLPAction(BaseManualNLPAction):
     """
     Base class for all automated NLP actions.
 

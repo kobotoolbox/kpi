@@ -1,7 +1,7 @@
 EMPTY_SUBMISSION = {}
 EMPTY_SUPPLEMENT = {}
 QUESTION_SUPPLEMENT = {
-    'automatic_google_transcription': {
+    'automated_google_transcription': {
         'value': 'My audio has been transcribed',
         'language': 'en',
         'status': 'completed',

@@ -1,7 +1,7 @@
 # Subsequence Actions – Supplement Processing Flow
 
 This document explains the full flow when a client submits a **supplement** payload to the API.
-It covers how the payload is validated through the various schemas (`params_schema`, `data_schema`, `automated_data_schema`, `result_schema`), how external NLP services are invoked for automatic actions, and how revisions are created and persisted.
+It covers how the payload is validated through the various schemas (`params_schema`, `data_schema`, `automated_data_schema`, `result_schema`), how external NLP services are invoked for automated actions, and how revisions are created and persisted.
 
 ---
 
@@ -41,7 +41,7 @@ class BaseManualNLPAction {
   +data_schema [property]
 }
 
-class BaseAutomaticNLPAction {
+class BaseAutomatedNLPAction {
   +automated_data_schema [property]
   +data_schema [property]
   +run_automated_process()
@@ -51,8 +51,8 @@ class BaseAutomaticNLPAction {
 %% ==== Concrete ====
 class ManualTranscription
 class ManualTranslation
-class AutomaticGoogleTranscription
-class AutomaticGoogleTranslation
+class AutomatedGoogleTranscription
+class AutomatedGoogleTranslation
 
 %% ==== Mixins (provide result_schema) ====
 class TranscriptionResultSchemaMixin {
@@ -64,19 +64,19 @@ class TranslationResultSchemaMixin {
 
 %% ==== Inheritance (bases) ====
 BaseAction <|-- BaseManualNLPAction
-BaseManualNLPAction <|-- BaseAutomaticNLPAction
+BaseManualNLPAction <|-- BaseAutomatedNLPAction
 
 %% ==== Inheritance (concretes) ====
 BaseManualNLPAction <|-- ManualTranscription
 BaseManualNLPAction <|-- ManualTranslation
-BaseAutomaticNLPAction <|-- AutomaticGoogleTranscription
-BaseAutomaticNLPAction <|-- AutomaticGoogleTranslation
+BaseAutomatedNLPAction <|-- AutomatedGoogleTranscription
+BaseAutomatedNLPAction <|-- AutomatedGoogleTranslation
 
 %% ==== Mixins -> Concretes ====
 TranscriptionResultSchemaMixin <.. ManualTranscription : mixin
-TranscriptionResultSchemaMixin <.. AutomaticGoogleTranscription : mixin
+TranscriptionResultSchemaMixin <.. AutomatedGoogleTranscription : mixin
 TranslationResultSchemaMixin  <.. ManualTranslation : mixin
-TranslationResultSchemaMixin  <.. AutomaticGoogleTranslation : mixin
+TranslationResultSchemaMixin  <.. AutomatedGoogleTranslation : mixin
 ```
 
 ---
@@ -163,8 +163,8 @@ autonumber
 actor Client
 participant API as KPI API
 participant SS as SubmissionSupplement
-participant Action as Action (Manual/Automatic)
-participant Ext as NLP Service (if automatic)
+participant Action as Action (Manual/Automated)
+participant Ext as NLP Service (if automated)
 participant DB as Database
 
 Client->>API: POST /assets/<asset_uid>/data/<submission_root_uuid>/supplement
@@ -176,7 +176,7 @@ loop For each action in _actionConfigs
   SS->>Action: action.revise_data(one_action_payload)
   Note right of Action: Validate with data_schema
 
-  alt Action is automatic (BaseAutomaticNLPAction)
+  alt Action is automated (BaseAutomatedNLPAction)
     Action->>Action: run_automated_process()
     Action->>Ext: Call external NLP service
     Ext-->>Action: Response (augmented payload)
@@ -202,7 +202,7 @@ API-->>Client: 200 OK (or error)
 flowchart TB
   A[Incoming action payload]
   B{Validate with data schema}
-  C{Is automatic action?}
+  C{Is automated action?}
   D[Build revision]
   G[Validate with result schema]
   H[Save to DB]
@@ -238,7 +238,7 @@ flowchart TB
   Validates the **client payload** for a given action.
   > Example: `{ "language": "en", "value": "My transcript" }`
 
-- **`automated_data_schema`** (property, automatic actions only)
+- **`automated_data_schema`** (property, automated actions only)
   Validates the **augmented payload** returned by the external service.
 
 - **`result_schema`** (property, via mixin)
