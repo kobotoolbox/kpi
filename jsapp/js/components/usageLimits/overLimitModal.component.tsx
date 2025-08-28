@@ -38,7 +38,7 @@ function getLimitReachedMessage(isMmo: boolean, isTeamLabelActive: boolean, limi
     .replace('##LIMIT_PLURALIZED##', pluralizeLimit(limits.length))
 
   const secondSentence = t(
-    'Please [upgrade your plan](##PLAN_LINK##) as soon as possible or [contact us](##CONTACT_LINK##) to speak with our team.',
+    'Please [upgrade your plan](##PLAN_LINK##) or purchase an add-on as soon as possible or [contact us](##CONTACT_LINK##) to speak with our team.',
   )
     .replace('##PLAN_LINK##', planRoute)
     .replace('##CONTACT_LINK##', 'https://www.kobotoolbox.org/contact')
@@ -101,14 +101,6 @@ function OverLimitModal(props: OverLimitModalProps) {
           <div className={styles.messageGreeting}>{greetingMessage}</div>
           <div>
             <Markdown components={{ a: LinkRendererTargetBlank }}>{limitReachedMessage}</Markdown>
-          </div>
-          <div className={styles.warningBanner}>
-            <Icon name={'warning'} size='m' color='mid-red' />
-            <div>
-              {t(
-                'Users who have exceeded their submission or storage limits may be temporarily blocked from collecting data.',
-              )}
-            </div>
           </div>
         </div>
         <KoboModalFooter alignment='end'>

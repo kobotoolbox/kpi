@@ -47,13 +47,13 @@ function getMessage(
 
     if (userRole === OrganizationUserRole.owner) {
       secondSection = accountPage
-        ? t('Please review your usage and [upgrade your plan](##PLAN_LINK##) if needed.')
-        : t('Please [review your usage](##USAGE_LINK##) and [upgrade your plan](##PLAN_LINK##) if needed.')
+        ? t('Please review your usage and [upgrade your plan](##PLAN_LINK##) or purchase an add-on if needed.')
+        : t('Please [review your usage](##USAGE_LINK##) and [upgrade your plan](##PLAN_LINK##) or purchase an add-on if needed.')
       secondSection = secondSection.replace('##USAGE_LINK##', usageRoute).replace('##PLAN_LINK##', planRoute)
     } else {
       secondSection = isTeamLabelActive
-        ? t('Contact your team owner about upgrading your plan if needed.')
-        : t('Contact your organization owner about upgrading your plan if needed.')
+        ? t('Contact your team owner about upgrading your plan or purchasing an add-on.')
+        : t('Contact your organization owner about upgrading your plan or purchasing an add-on.')
     }
     return firstSection + ' ' + secondSection
   }
@@ -74,7 +74,7 @@ function getMessage(
     secondSection = t('Please upgrade your plan or purchase an add-on to increase your usage limits.')
 
     if (!accountPage) {
-      secondSection += ' ' + t('[Review your usage](##USAGE_LINK##)').replace('##USAGE_LINK##', usageRoute)
+      secondSection += ' ' + t('[Review your usage](##USAGE_LINK##).').replace('##USAGE_LINK##', usageRoute)
     }
   } else {
     secondSection = isTeamLabelActive
