@@ -696,14 +696,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         }
         return links
 
-    def remove_data_collectors(self):
-        redis_client = get_redis_connection('enketo_redis_main')
-        all_dc_urls = redis_client.keys()
-        pass
-
-    def get_enketo_survey_links_for_data_collectors(self):
+    def create_enketo_survey_links_for_data_collectors(self):
         if not self.get_data('backend_response'):
-            return {}
+            pass
         redis_client = get_redis_connection('enketo_redis_main')
         for data_collector in self.asset.data_collector_group.data_collectors.all():
             server_url = '{}/key/{}'.format(

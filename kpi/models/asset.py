@@ -507,7 +507,7 @@ class Asset(
         self.__parent_id_copy = -1
         self.__deployment_data_copy = None
         self.__copy_hidden_fields()
-        self._initial_data_collector_group = self.data_collector_group_id
+        self._initial_data_collector_group_id = self.data_collector_group_id
 
     def __str__(self):
         return '{} ({})'.format(self.name, self.uid)

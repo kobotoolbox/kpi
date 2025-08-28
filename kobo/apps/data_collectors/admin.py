@@ -59,7 +59,7 @@ class DataCollectorGroupAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         assets = form.cleaned_data['assets']
         super().save_model(request, obj, form, change)
-        obj.assets.set(assets)
+        obj.assets.set(assets, bulk=False)
 
     def get_form(self, request, obj=..., change=..., **kwargs):
         form = super().get_form(request, obj, change, **kwargs)

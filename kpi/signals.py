@@ -6,6 +6,7 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from taggit.models import Tag
 
+from kobo.apps.data_collectors.models import DataCollectorGroup
 from kpi.constants import PERM_ADD_SUBMISSIONS
 from kpi.exceptions import DeploymentNotFound
 from kpi.models import Asset, TagUid
@@ -82,6 +83,14 @@ def update_data_collector_group(
     instance,
     **kwargs,
 ):
+    print(f'Thinking about doing DC stuff')
+    if not instance.has_deployment:
+        return
+    print(f'Doing DC stuff')
     if instance.data_collector_group_id != instance._initial_data_collector_group_id:
-        pass
-    pass
+        if instance._initial_data_collector_group_id:
+            old_dcg = DataCollectorGroup.objects.get(pk=instance._initial_data_collector_group_id)
+            for data_collector in old_dcg.data_collectors.all():
+                data_collector.remove_existing_links([instance.xform.id_string])
+        if instance.data_collector_group_id:
+            instance.deployment.create_enketo_links_for_data_collectors()
