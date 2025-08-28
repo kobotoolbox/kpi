@@ -48,7 +48,9 @@ function getMessage(
     if (userRole === OrganizationUserRole.owner) {
       secondSection = accountPage
         ? t('Please review your usage and [upgrade your plan](##PLAN_LINK##) or purchase an add-on if needed.')
-        : t('Please [review your usage](##USAGE_LINK##) and [upgrade your plan](##PLAN_LINK##) or purchase an add-on if needed.')
+        : t(
+            'Please [review your usage](##USAGE_LINK##) and [upgrade your plan](##PLAN_LINK##) or purchase an add-on if needed.',
+          )
       secondSection = secondSection.replace('##USAGE_LINK##', usageRoute).replace('##PLAN_LINK##', planRoute)
     } else {
       secondSection = isTeamLabelActive
