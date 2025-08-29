@@ -18,6 +18,9 @@ jobs:
       packages: write
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4.3.1
         with:
@@ -46,11 +49,11 @@ jobs:
 
       - name: build image
         run: |
-          - CI_REGISTRY_IMAGE=ghcr.io/kobotoolbox/kpi
-          - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG || true
-          - docker build --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG --tag $CI_REGISTRY_IMAGE:$GITHUB_SHA --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG .
-          - docker push $CI_REGISTRY_IMAGE:$GITHUB_SHA
-          - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+          CI_REGISTRY_IMAGE=ghcr.io/kobotoolbox/kpi
+          docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG || true
+          docker build --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG --tag $CI_REGISTRY_IMAGE:$GITHUB_SHA --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG .
+          docker push $CI_REGISTRY_IMAGE:$GITHUB_SHA
+          docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
 
       - name: Test kubectl connection
         run: |
