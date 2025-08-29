@@ -713,6 +713,7 @@ export default Object.assign(
           iconName='information'
           p='sm'
           maw={1024}
+          mb='sm'
           m='auto'
           closeButtonLabel={t('Dismiss')}
           onClose={() => {
