@@ -19,7 +19,7 @@ class TestLoggerTasks(TestBase):
     def test_delete_expired_instance_history_records(self):
         d0 = datetime(2024, 1, 1, 0, 0, 0, 0, pytz.UTC)
         for i in range(0, 60):
-            # TODO: set creation time to values separated by 5 days, since 300 days ago
+            # set creation time to values separated by 5 days, since 300 days ago
             record_date = d0 + timedelta(days=i * 5)
             InstanceHistory.objects.create(
                 xform_instance=None,
