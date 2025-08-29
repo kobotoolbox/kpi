@@ -9,6 +9,8 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
+from ..exceptions import InvalidItem
+from ..tasks import poll_run_automated_process
 from ..type_aliases import NLPExternalServiceClass
 
 """
@@ -718,11 +720,20 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
         # Returning None ensures that `revise_data()` will not be called afterwards.
         if (
             accepted is None
-            and action_supplement_data.get('status')
-            == service_data['status']
-            == 'in_progress'
+            and service_data['status'] == 'in_progress'
         ):
-            return None
+            if action_supplement_data.get('status'):
+                return None
+            else:
+                # TODO Retry with Celery, make it work!
+                poll_run_automated_process.delay(
+                    submission,
+                    question_supplemental_data,
+                    action_supplement_data,
+                    action_data,
+                    action_id=self.ID,
+                    asset_id=asset.pk,
+                )
 
         # Normal case: return the processed transcription data.
         return service_data
