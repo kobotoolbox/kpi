@@ -50,10 +50,12 @@ jobs:
       - name: build image
         run: |
           CI_REGISTRY_IMAGE=ghcr.io/kobotoolbox/kpi
-          docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG || true
-          docker build --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG --tag $CI_REGISTRY_IMAGE:$GITHUB_SHA --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG .
+          CI_COMMIT_REF_NAME_SANITIZED=${GITHUB_REF_NAME/\#/-}
+          CI_COMMIT_REF_NAME_SANITIZED=${GITHUB_REF_NAME//\//-}
+          docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME_SANITIZED || true
+          docker build --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME_SANITIZED --tag $CI_REGISTRY_IMAGE:$GITHUB_SHA --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME_SANITIZED .
           docker push $CI_REGISTRY_IMAGE:$GITHUB_SHA
-          docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+          docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME_SANITIZED
 
       - name: Test kubectl connection
         run: |
