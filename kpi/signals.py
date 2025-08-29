@@ -7,6 +7,7 @@ from django.dispatch import receiver
 from taggit.models import Tag
 
 from kobo.apps.data_collectors.models import DataCollectorGroup
+from kobo.apps.data_collectors.utils import remove_data_collector_enketo_links
 from kpi.constants import PERM_ADD_SUBMISSIONS
 from kpi.exceptions import DeploymentNotFound
 from kpi.models import Asset, TagUid
@@ -77,20 +78,18 @@ def post_remove_asset_perm(
     except DeploymentNotFound:
         return
 
-@receiver(post_save, sender=Asset)
+#@receiver(post_save, sender=Asset)
 def update_data_collector_group(
     sender,
     instance,
     **kwargs,
 ):
-    print(f'Thinking about doing DC stuff')
     if not instance.has_deployment:
         return
-    print(f'Doing DC stuff')
     if instance.data_collector_group_id != instance._initial_data_collector_group_id:
         if instance._initial_data_collector_group_id:
-            old_dcg = DataCollectorGroup.objects.get(pk=instance._initial_data_collector_group_id)
-            for data_collector in old_dcg.data_collectors.all():
-                data_collector.remove_existing_links([instance.xform.id_string])
+             old_dcg = DataCollectorGroup.objects.get(pk=instance._initial_data_collector_group_id)
+             for data_collector in old_dcg.data_collectors.all():
+                 remove_data_collector_enketo_links(data_collector.token, [instance.uid])
         if instance.data_collector_group_id:
-            instance.deployment.create_enketo_links_for_data_collectors()
+            instance.deployment.create_enketo_survey_links_for_data_collectors()

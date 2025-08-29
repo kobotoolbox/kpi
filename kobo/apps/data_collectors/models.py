@@ -6,6 +6,7 @@ from django.db.models import fields
 from django_redis import get_redis_connection
 
 from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
+from kobo.apps.data_collectors.utils import remove_data_collector_enketo_links
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 
@@ -50,16 +51,3 @@ class DataCollector(AbstractTimeStampedModel):
     @classmethod
     def generate_key(cls):
         return secrets.token_hex(20)
-
-    def remove_existing_links(self, xform_ids=None):
-        redis_client = get_redis_connection('enketo_redis_main')
-        key_url = DC_ENKETO_URL_TEMPLATE.format(self.token)
-        ids_to_delete = []
-        if xform_ids is not None:
-                redis_hashes = redis_client.hgetdel(f'or:{key_url}', *xform_ids)
-                #ids_to_delete.append(f'id:{redis_hash}')
-        else:
-            all_xform_ids = redis_client.hgetall(f'or:{key_url}')
-            for xform_id, redis_hash in all_xform_ids.items():
-                ids_to_delete.append(f'id:{redis_hash}')
-            redis_client.delete(key_url)

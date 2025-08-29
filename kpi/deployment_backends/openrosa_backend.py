@@ -21,10 +21,9 @@ from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
-from pyxform.builder import create_survey_from_xls
 from rest_framework import exceptions, status
-from shortuuid import ShortUUID
 
+from kobo.apps.data_collectors.utils import set_data_collector_enketo_links, remove_data_collector_enketo_links
 from kobo.apps.openrosa.apps.logger.models import (
     Attachment,
     DailyXFormSubmissionCounter,
@@ -78,6 +77,7 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
+from pyxform.builder import create_survey_from_xls
 from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import assign_applicable_kc_permissions, kc_transaction_atomic
@@ -699,28 +699,16 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     def create_enketo_survey_links_for_data_collectors(self):
         if not self.get_data('backend_response'):
             pass
-        redis_client = get_redis_connection('enketo_redis_main')
-        for data_collector in self.asset.data_collector_group.data_collectors.all():
-            server_url = '{}/key/{}'.format(
-                    settings.KOBOCAT_URL.rstrip('/'), data_collector.token
-                )
-            data = {
-                'server_url': server_url,
-                'form_id': self.xform.id_string,
-            }
-            response = requests.post(
-                    f'{settings.ENKETO_URL}/{settings.ENKETO_SURVEY_ENDPOINT}',
-                    # bare tuple implies basic auth
-                    auth=(settings.ENKETO_API_KEY, ''),
-                    data=data,
-            )
-            enketo_id = response.json()['enketo_id']
-            new_id = ShortUUID().random(32)
-            redis_client.hset(f'or:{server_url}', self.xform.id_string, new_id)
-            current_stash = redis_client.hgetall(f'id:{enketo_id}')
-            for key, value in current_stash.items():
-                redis_client.hset(f'id:{new_id}', key, value)
+        set_data_collector_enketo_links(
+            list(self.asset.data_collector_group.data_collectors.values_list(
+                'token', flat=True
+            )),
+            [self.xform.id_string],
+        )
 
+    def remove_enketo_survey_links_for_tokens(self, tokens):
+        for token in tokens:
+            remove_data_collector_enketo_links(token, [self.xform_id.id_string])
 
     def get_enketo_survey_links(self):
         if not self.get_data('backend_response'):
