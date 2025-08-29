@@ -7,9 +7,6 @@ on:
       - 'feature/*'
       - 'public-beta'
       - 'main'
-  pull_request:
-    branches:
-      - 'scott/stag_deploy_gha'
   workflow_dispatch:
 
 jobs:
