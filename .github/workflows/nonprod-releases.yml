@@ -6,6 +6,7 @@ on:
     branches:
       - 'feature/*'
       - 'public-beta'
+      - 'main'
   pull_request:
     branches:
       - 'scott/stag_deploy_gha'
@@ -18,6 +19,8 @@ jobs:
       contents: read
       id-token: write
       packages: write
+    env:
+       CI_REGISTRY_IMAGE: ghcr.io/kobotoolbox/kpi
 
     steps:
       - name: Checkout code
@@ -51,7 +54,6 @@ jobs:
 
       - name: build image
         run: |
-          CI_REGISTRY_IMAGE=ghcr.io/kobotoolbox/kpi
           CI_COMMIT_REF_NAME_SANITIZED=${GITHUB_REF_NAME/\#/-}
           CI_COMMIT_REF_NAME_SANITIZED=${GITHUB_REF_NAME//\//-}
           docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME_SANITIZED || true
@@ -59,6 +61,24 @@ jobs:
           docker push $CI_REGISTRY_IMAGE:$GITHUB_SHA
           docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME_SANITIZED
 
-      - name: Test kubectl connection
+      - name: Deploy to beta
+        if: github.ref_name == 'public-beta'
         run: |
-          kubectl get namespaces
+          helm -n kobo-dev upgrade beta oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
+
+      - name: Deploy to feature branch
+        if: startsWith(github.ref_name, 'feature/') && github.ref_name != 'feature/api-documentation'
+        run: |
+          BRANCH_TITLE=${GITHUB_REF_NAME#feature/}
+          helm -n kobo-dev upgrade --install $BRANCH_TITLE oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
+
+      - name: Deploy api docs
+        if:  github.ref_name == 'feature/api-documentation'
+        run: |
+          helm -n kobo-dev upgrade --install docs oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
+
+      - name: Deploy main
+        if:  github.ref_name == 'main'
+        run: |
+          helm -n kobo-dev upgrade staging-main oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.image.tag=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
+          helm -n kobo-dev upgrade staging-nobill oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.image.tag=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
