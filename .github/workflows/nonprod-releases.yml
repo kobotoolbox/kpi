@@ -4,7 +4,7 @@ name: Non-prod release
 on:
   push:
     branches:
-      - 'feature/*'
+      - 'feature/**'
       - 'public-beta'
       - 'main'
   workflow_dispatch:
