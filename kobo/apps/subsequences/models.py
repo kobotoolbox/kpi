@@ -3,6 +3,7 @@ from django.db import models
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from .actions import ACTION_IDS_TO_CLASSES
+from .constants import SUBMISSION_UUID_FIELD
 from .exceptions import InvalidAction, InvalidXPath
 from .schemas import validate_submission_supplement
 
@@ -45,7 +46,7 @@ class SubmissionSupplement(SubmissionExtras):
             # TODO: migrate from old per-asset schema
             raise NotImplementedError
 
-        submission_uuid = remove_uuid_prefix(submission['meta/rootUuid'])  # constant?
+        submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])  # constant?
         supplemental_data = SubmissionExtras.objects.get_or_create(
             asset=asset, submission_uuid=submission_uuid
         )[
@@ -85,6 +86,12 @@ class SubmissionSupplement(SubmissionExtras):
                     action_id, action.action_class_config.default_type
                 )
 
+                # TODO: `action.revise_data()` may need `question_xpath` to retry when
+                #   the action is automated and returns "in_progress" (see
+                #   `tasks.py::poll_run_automated_progress()`).
+                #   Also, `action_supplemental_data` seems redundant now that
+                #   `question_supplemental_data` is passed; it could potentially be
+                #   rebuilt inside `action.revise_data()`.
                 if not (
                     action_supplemental_data := action.revise_data(
                         submission,

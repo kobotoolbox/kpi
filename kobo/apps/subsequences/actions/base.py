@@ -10,6 +10,7 @@ from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..exceptions import InvalidItem
+from ..tasks import poll_run_automated_process
 from ..type_aliases import NLPExternalServiceClass
 
 """
@@ -215,7 +216,7 @@ class BaseAction:
         self,
         submission: dict,
         question_supplemental_data: dict,
-        action_supplement_data: dict,
+        action_supplemental_data: dict,
         action_data: dict,
         asset: 'kpi.models.Asset' = None,
     ) -> dict | None:
@@ -229,19 +230,19 @@ class BaseAction:
 
         now_str = utc_datetime_to_js_str(timezone.now())
         item_index = None
-        action_supplement_data_copy = deepcopy(action_supplement_data)
+        action_supplemental_data_copy = deepcopy(action_supplemental_data)
         if not isinstance(self.action_class_config.default_type, list):
-            revision = action_supplement_data_copy
+            revision = action_supplemental_data_copy
         else:
             # TODO: Multiple keys are not supported.
             #   Not a big issue for now since translation actions don’t use locale
             #   (yet?) and transcription actions only involve one occurrence at a time.
             needle = action_data[self.action_class_config.key]
             revision = {}
-            if not isinstance(action_supplement_data, list):
+            if not isinstance(action_supplemental_data_copy, list):
                 raise InvalidItem
 
-            for idx, item in enumerate(action_supplement_data):
+            for idx, item in enumerate(action_supplemental_data_copy):
                 if needle == item[self.action_class_config.key]:
                     revision = deepcopy(item)
                     item_index = idx
@@ -281,7 +282,7 @@ class BaseAction:
 
         # If the default type is not a list, we handle a single record case.
         if not isinstance(self.action_class_config.default_type, list):
-            if action_supplement_data:
+            if action_supplemental_data:
                 revisions.insert(0, revision)
                 new_record[self.REVISIONS_FIELD] = revisions
         else:
@@ -313,11 +314,11 @@ class BaseAction:
             # - Otherwise, replace the record at the given index.
             # Finally, update `new_record` to reference the full updated list.
             if item_index is None:
-                action_supplement_data_copy.append(new_record)
+                action_supplemental_data_copy.append(new_record)
             else:
-                action_supplement_data_copy[item_index] = new_record
+                action_supplemental_data_copy[item_index] = new_record
 
-            new_record = action_supplement_data_copy
+            new_record = action_supplemental_data_copy
 
         self.validate_result(new_record)
 
@@ -687,8 +688,9 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
             )
 
         # Otherwise, trigger the external service.
+        asset = kwargs['asset']
         NLPService = self.get_nlp_service_class()  # noqa
-        service = NLPService(submission, asset=kwargs['asset'])
+        service = NLPService(submission, asset=asset)
         service_data = service.process_data(self.source_question_xpath, action_data)
 
         # Remove the 'dependency' flag from action_data since it is only used
@@ -699,11 +701,20 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
         # Returning None ensures that `revise_data()` will not be called afterwards.
         if (
             accepted is None
-            and action_supplement_data.get('status')
-            == service_data['status']
-            == 'in_progress'
+            and service_data['status'] == 'in_progress'
         ):
-            return None
+            if action_supplement_data.get('status'):
+                return None
+            else:
+                # TODO Retry with Celery, make it work!
+                poll_run_automated_process.delay(
+                    submission,
+                    question_supplemental_data,
+                    action_supplement_data,
+                    action_data,
+                    action_id=self.ID,
+                    asset_id=asset.pk,
+                )
 
         # Normal case: return the processed transcription data.
         return service_data
