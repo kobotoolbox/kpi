@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Group, Text, ThemeIcon, Tooltip } from '@mantine/core'
+import { Text } from '@mantine/core'
 import alertify from 'alertifyjs'
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
@@ -12,9 +12,8 @@ import { unstable_usePrompt as usePrompt } from 'react-router-dom'
 import Select from 'react-select'
 import assetUtils from '#/assetUtils'
 import bem, { makeBem } from '#/bem'
-import ActionIcon from '#/components/common/ActionIcon'
+import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
-import Icon from '#/components/common/icon'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
 import {
@@ -698,23 +697,29 @@ export default Object.assign(
     renderBackgroundAudioWarning() {
       if (this.state.isBackgroundAudioBannerDismissed) return null
       let bannerText = t(
-        'This form will automatically [record audio in the background](##SUPPORT_LINK##). Consider adding an acknowledgement note to inform respondents or data collectors that they will be recorded while completing this survey.',
+        'This form will automatically [record audio in the background](##SUPPORT_LINK##). Consider adding with a meaningful consent question to inform respondents or data collectors that they will be recorded while completing this survey.',
       )
 
-      let supportLink = ''
       if (envStore.isReady && envStore.data.support_url) {
-        supportLink = envStore.data.support_url + RECORDING_SUPPORT_URL
+        bannerText = bannerText.replace('##SUPPORT_LINK##', envStore.data.support_url + RECORDING_SUPPORT_URL)
+      } else {
+        // Replaces the link for the text only if link is not available
+        bannerText = bannerText.replace(/\[(.+)]\(##SUPPORT_LINK##\)/, '$1')
       }
-      bannerText = bannerText.replace('##SUPPORT_LINK##', supportLink)
 
       return (
-        <Group pos='relative' wrap='nowrap' p='xs' bd='1px solid blue.7' bg='blue.9'>
-          <Tooltip label={t('Background audio recording enabled')} withArrow>
-            <ThemeIcon variant='transparent' c='blue.6'>
-              <Icon name='project-overview' size='l' />
-            </ThemeIcon>
-          </Tooltip>
-
+        <Alert
+          type='info'
+          iconName='information'
+          p='sm'
+          maw={1024}
+          m='auto'
+          closeButtonLabel={t('Dismiss')}
+          onClose={() => {
+            this.setState({ isBackgroundAudioBannerDismissed: true })
+          }}
+          withCloseButton
+        >
           <Markdown
             components={{
               // Custom link component to open link on target _blank
@@ -733,20 +738,7 @@ export default Object.assign(
           >
             {bannerText}
           </Markdown>
-
-          <ActionIcon
-            pos='absolute'
-            right={5}
-            top={5}
-            variant='transparent'
-            tooltip={t('Dismiss')}
-            iconName='close'
-            size='sm'
-            onClick={() => {
-              this.setState({ isBackgroundAudioBannerDismissed: true })
-            }}
-          />
-        </Group>
+        </Alert>
       )
     },
 

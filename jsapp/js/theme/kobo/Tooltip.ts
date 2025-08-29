@@ -2,11 +2,10 @@ import { Tooltip } from '@mantine/core'
 
 export const TooltipThemeKobo = Tooltip.extend({
   defaultProps: {
-    offset: { mainAxis: 1 },
+    offset: { mainAxis: -4 },
     position: 'bottom',
     withArrow: true,
     arrowSize: 8,
-    zIndex: 2000,
     // arrowPosition: 'center',
   },
   vars: (theme) => {
