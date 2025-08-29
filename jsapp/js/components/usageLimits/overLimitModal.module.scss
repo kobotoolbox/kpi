@@ -1,22 +1,19 @@
-@use 'scss/colors';
+@use "scss/colors";
 
-.content a {
-  color: colors.$kobo-dark-blue;
-  text-decoration: underline;
+.content {
+  padding: 0 24px;
+
+  a {
+    color: colors.$kobo-dark-blue;
+    text-decoration: underline;
+  }
 }
 
 .messageGreeting {
   margin-bottom: 20px;
 }
 
-.consequences {
-  background-color: colors.$kobo-light-red;
-  box-sizing: border-box;
-  margin: 1em 0;
-  padding: 1em;
-  gap: 1em;
-}
-
-.warningIcon {
-  align-self: flex-start;
+.modalBody {
+  line-height: 24px;
+  padding: 0 24px;
 }

@@ -51,8 +51,8 @@ export interface UsageState {
     asr_seconds: UsageBalance | null
     mt_characters: UsageBalance | null
   }
-  limitWarningList: string[]
-  limitExceedList: string[]
+  limitWarningList: UsageLimitTypes[]
+  limitExceedList: UsageLimitTypes[]
 }
 
 export async function getOrgServiceUsage(organization_id: string) {
@@ -86,8 +86,8 @@ const loadUsage = async (organizationId: string | null): Promise<UsageState | un
     }
   }
 
-  const limitWarningList: string[] = []
-  const limitExceedList: string[] = []
+  const limitWarningList: UsageLimitTypes[] = []
+  const limitExceedList: UsageLimitTypes[] = []
 
   Object.keys(usage.balances).forEach((key) => {
     const balance = usage.balances[key as keyof UsageResponse['balances']]
