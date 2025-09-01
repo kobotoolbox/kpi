@@ -1,8 +1,10 @@
+import redis.exceptions
 from django_redis import get_redis_connection
 from shortuuid import ShortUUID
 
 from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
 from kpi.deployment_backends.openrosa_utils import create_enketo_links
+from kpi.utils.log import logging
 
 
 def set_data_collector_enketo_links(tokens: list[str], xform_ids: list[str]):
@@ -53,4 +55,14 @@ def rename_data_collector_enketo_links(old_token: str, new_token: str):
     redis_client = get_redis_connection('enketo_redis_main')
     old_key_url = DC_ENKETO_URL_TEMPLATE.format(old_token)
     new_key_url = DC_ENKETO_URL_TEMPLATE.format(new_token)
-    redis_client.rename(f'or:{old_key_url}', f'or:{new_key_url}')
+    try:
+        redis_client.rename(f'or:{old_key_url}', f'or:{new_key_url}')
+    except redis.exceptions.ResponseError:
+        logging.warn(f'Attempt to rename non-existent key or:{old_key_url}')
+        return
+    enketo_ids = redis_client.hgetall(f'or:{new_key_url}')
+    for enketo_id in enketo_ids.values():
+        enketo_id_str = enketo_id.decode('utf-8')
+        redis_client.hset(
+            f'id:{enketo_id_str}', key='openRosaServer', value=new_key_url
+        )
