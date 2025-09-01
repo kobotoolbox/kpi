@@ -23,7 +23,10 @@ from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
 from rest_framework import exceptions, status
 
-from kobo.apps.data_collectors.utils import set_data_collector_enketo_links, remove_data_collector_enketo_links
+from kobo.apps.data_collectors.utils import (
+    remove_data_collector_enketo_links,
+    set_data_collector_enketo_links,
+)
 from kobo.apps.openrosa.apps.logger.models import (
     Attachment,
     DailyXFormSubmissionCounter,
@@ -81,6 +84,7 @@ from pyxform.builder import create_survey_from_xls
 from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import assign_applicable_kc_permissions, kc_transaction_atomic
+from .openrosa_utils import create_enketo_links
 
 
 class OpenRosaDeploymentBackend(BaseDeploymentBackend):
@@ -722,12 +726,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         }
 
         try:
-            response = requests.post(
-                f'{settings.ENKETO_URL}/{settings.ENKETO_SURVEY_ENDPOINT}',
-                # bare tuple implies basic auth
-                auth=(settings.ENKETO_API_KEY, ''),
-                data=data,
-            )
+            response = create_enketo_links(data)
             response.raise_for_status()
         except requests.exceptions.RequestException:
             # Don't 500 the entire asset view if Enketo is unreachable

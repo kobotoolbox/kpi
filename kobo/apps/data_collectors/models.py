@@ -3,10 +3,7 @@ import secrets
 from django.conf import settings
 from django.db import models
 from django.db.models import fields
-from django_redis import get_redis_connection
 
-from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
-from kobo.apps.data_collectors.utils import remove_data_collector_enketo_links
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 
@@ -21,6 +18,12 @@ class DataCollectorGroup(AbstractTimeStampedModel):
     def __str__(self):
         return '{} ({})'.format(self.name, self.uid)
 
+
+class DataCollectorManager(models.Manager):
+    def create(self, **kwargs):
+        pass
+
+    pass
 
 class DataCollector(AbstractTimeStampedModel):
     uid = KpiUidField(uid_prefix='dc', primary_key=True)

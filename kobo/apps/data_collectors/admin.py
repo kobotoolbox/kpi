@@ -60,7 +60,7 @@ class DataCollectorGroupAdmin(admin.ModelAdmin):
         assets = form.cleaned_data['assets']
         super().save_model(request, obj, form, change)
         new_asset_uids = list(obj.assets.values('uid'))
-        # we have to do this manually instead of using set()
+        # we have to do this manually instead of using obj.assets.set()
         # so we can call save() with adjust_content=False
         for old_asset in obj.assets.all():
             if old_asset.uid not in new_asset_uids:

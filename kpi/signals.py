@@ -78,7 +78,7 @@ def post_remove_asset_perm(
     except DeploymentNotFound:
         return
 
-#@receiver(post_save, sender=Asset)
+@receiver(post_save, sender=Asset)
 def update_data_collector_group(
     sender,
     instance,
