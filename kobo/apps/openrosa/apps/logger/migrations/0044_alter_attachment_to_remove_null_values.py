@@ -8,6 +8,41 @@ import kpi.fields.kpi_uid
 import kpi.models.abstract_models
 
 
+def manually_create_indexes_instructions(apps, schema_editor):
+    print(
+        """
+        ⚠️ ATTENTION ⚠️
+        Run the SQL queries below in PostgreSQL directly:
+
+            ```sql
+            ALTER TABLE "logger_attachment" ALTER COLUMN "date_created" SET NOT NULL;
+            ALTER TABLE "logger_attachment" ALTER COLUMN "date_modified" SET NOT NULL;
+            ALTER TABLE "logger_attachment" ALTER COLUMN "uid" SET NOT NULL;
+            ALTER TABLE "logger_attachment" ALTER COLUMN "user_id" SET NOT NULL;
+            ALTER TABLE "logger_attachment" ALTER COLUMN "xform_id" SET NOT NULL;
+            ```
+        """
+    )
+
+
+def manually_drop_indexes_instructions(apps, schema_editor):
+    print(
+        """
+        ⚠️ ATTENTION ⚠️
+        Run the SQL queries below in PostgreSQL directly:
+
+            ```sql
+            ALTER TABLE "logger_attachment" ALTER COLUMN "xform_id" DROP NOT NULL;
+            ALTER TABLE "logger_attachment" ALTER COLUMN "user_id" DROP NOT NULL;
+            ALTER TABLE "logger_attachment" ALTER COLUMN "uid" DROP NOT NULL;
+            ALTER TABLE "logger_attachment" ALTER COLUMN "date_modified" DROP NOT NULL;
+            ALTER TABLE "logger_attachment" ALTER COLUMN "date_created" DROP NOT NULL;
+            ```
+
+        """
+    )
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -15,42 +50,50 @@ class Migration(migrations.Migration):
         ('logger', '0043_add_new_columns_to_attachment'),
     ]
 
-    operations = [
-        migrations.AlterField(
-            model_name='attachment',
-            name='date_created',
-            field=models.DateTimeField(
-                default=kpi.models.abstract_models._get_default_datetime
+    if settings.SKIP_HEAVY_MIGRATIONS:
+        operations = [
+            migrations.RunPython(
+                manually_create_indexes_instructions,
+                manually_drop_indexes_instructions,
+            )
+        ]
+    else:
+        operations = [
+            migrations.AlterField(
+                model_name='attachment',
+                name='date_created',
+                field=models.DateTimeField(
+                    default=kpi.models.abstract_models._get_default_datetime
+                ),
             ),
-        ),
-        migrations.AlterField(
-            model_name='attachment',
-            name='date_modified',
-            field=models.DateTimeField(
-                default=kpi.models.abstract_models._get_default_datetime
+            migrations.AlterField(
+                model_name='attachment',
+                name='date_modified',
+                field=models.DateTimeField(
+                    default=kpi.models.abstract_models._get_default_datetime
+                ),
             ),
-        ),
-        migrations.AlterField(
-            model_name='attachment',
-            name='uid',
-            field=kpi.fields.kpi_uid.KpiUidField(_null=False, uid_prefix='att'),
-        ),
-        migrations.AlterField(
-            model_name='attachment',
-            name='user',
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name='attachments',
-                to=settings.AUTH_USER_MODEL,
+            migrations.AlterField(
+                model_name='attachment',
+                name='uid',
+                field=kpi.fields.kpi_uid.KpiUidField(_null=False, uid_prefix='att'),
             ),
-        ),
-        migrations.AlterField(
-            model_name='attachment',
-            name='xform',
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name='attachments',
-                to='logger.xform',
+            migrations.AlterField(
+                model_name='attachment',
+                name='user',
+                field=models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='attachments',
+                    to=settings.AUTH_USER_MODEL,
+                ),
             ),
-        ),
-    ]
+            migrations.AlterField(
+                model_name='attachment',
+                name='xform',
+                field=models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='attachments',
+                    to='logger.xform',
+                ),
+            ),
+        ]

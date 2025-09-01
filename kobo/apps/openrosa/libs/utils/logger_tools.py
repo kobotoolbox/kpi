@@ -217,6 +217,12 @@ def create_instance(
         for usage_type in [UsageType.STORAGE_BYTES, UsageType.SUBMISSION]:
             balance = balances[usage_type]
             if balance and balance['exceeded']:
+                from kobo.apps.stripe.utils.limit_enforcement import (
+                    check_exceeded_limit,
+                )
+
+                check_exceeded_limit(xform.user, UsageType.SUBMISSION)
+                check_exceeded_limit(xform.user, UsageType.STORAGE_BYTES)
                 raise ExceededUsageLimitError()
 
     # get root uuid
@@ -946,7 +952,10 @@ def _get_instance(
         # edits
         check_edit_submission_permissions(request, xform)
         InstanceHistory.objects.create(
-            xml=instance.xml, xform_instance=instance, uuid=old_uuid
+            xml=instance.xml,
+            xform_instance=instance,
+            uuid=old_uuid,
+            root_uuid=instance.root_uuid,
         )
         instance.xml = xml
         instance.uuid = new_uuid

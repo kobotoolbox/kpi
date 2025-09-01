@@ -142,6 +142,10 @@ class TwoDatabaseConfigurationChecker:
         return True
 
     def do_checks(self, app_configs, **kwargs):
+
+        if settings.ENV == 'testing':
+            return []
+
         checks = [
             self.check_for_two_databases,
             self.check_for_distinct_databases,

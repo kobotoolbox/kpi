@@ -1,0 +1,126 @@
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: openapi
+
+on: workflow_call
+jobs:
+
+
+  drf-spectacular:
+    runs-on: ubuntu-24.04
+    env:
+      DATABASE_URL: postgis://kobo:kobo@localhost:5432/kpi_test
+      DJANGO_LANGUAGE_CODES: "ar cs de-DE en es fr hi ku pl pt tr zh-hans"
+      DJANGO_SECRET_KEY: notSecretJustForTestingYep
+      DJANGO_SETTINGS_MODULE: kobo.settings.testing
+      REDIS_SESSION_URL: redis://localhost:6379/2
+      CACHE_URL: redis://localhost:6379/3
+      ENKETO_REDIS_MAIN_URL: redis://localhost:6379/0
+      CELERY_BROKER_URL: redis://localhost:6379/1
+      KOBOCAT_MEDIA_ROOT: /tmp/test_media
+      KOBOCAT_URL: http://kobocat
+      KOBOCAT_INTERNAL_URL: http://kobocat
+      KOBOFORM_URL: http://kpi
+      SKIP_TESTS_WITH_CONCURRENCY: 'True'
+      KPI_SRC_DIR: '.'
+    strategy:
+      matrix:
+        python-version: ['3.10']
+    services:
+      postgres:
+        image: postgis/postgis:14-3.4
+        env:
+          POSTGRES_USER: kobo
+          POSTGRES_PASSWORD: kobo
+          POSTGRES_DB: kpi_test
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis_cache:
+        image: redis:6.2
+        ports:
+          - 6379:6379
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install pip-tools
+        run: python -m pip install pip-tools==7.\*
+
+      - name: Update Debian package lists
+        run: sudo DEBIAN_FRONTEND=noninteractive apt-get -y update
+
+      - name: Install Debian dependencies
+        # All about YAML line breaks: https://stackoverflow.com/a/21699210
+        run: >-
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -y install
+          gdal-bin gettext libproj-dev postgresql-client ffmpeg
+          gcc libc-dev build-essential
+
+      - name: Install Python dev dependencies
+        run: pip-sync dependencies/pip/dev_requirements.txt
+
+      - name: Generate OpenAPI with drf-spectacular
+        run: ./scripts/generate_api.sh --skip-orval
+
+      - name: Fail on uncommitted OpenAPI changes
+        run: |
+          git diff
+          git diff-index --exit-code HEAD
+
+
+  orval:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.18.1  # version that's pinned in Dockerfile for kpi release. FYI v22 doesn't work out of box.
+          check-latest: true # download newer semver match if available
+          cache: 'npm'
+
+      - name: Identify resolved node version
+        id: resolved-node-version
+        run: echo "NODE_VERSION=$(node --version)" >> "$GITHUB_OUTPUT"
+      - name: Add "Node ${{ steps.resolved-node-version.outputs.NODE_VERSION }}" to summary
+        run: echo "22 → **${{ steps.resolved-node-version.outputs.NODE_VERSION }}**" >> "$GITHUB_STEP_SUMMARY"
+
+      # Cache: Use cache for node_modules
+      #        Keyed on os, node version, package-lock, and patches
+      - uses: actions/cache@v4
+        name: Check for cached node_modules
+        id: cache-nodemodules
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-node-${{ steps.resolved-node-version.outputs.NODE_VERSION }}-${{ hashFiles('**/package-lock.json', 'patches/**/*.patch') }}
+
+      # Cache hit:  If the cache key matches,
+      #             /node_modules/ will have been copied from a previous run.
+      #   (Run the post-install step, `npm run copy-fonts`)
+      - name: Run copy-fonts (if using cached node_modules)
+        if: steps.cache-nodemodules.outputs.cache-hit == 'true'
+        run: npm run copy-fonts
+
+      # Cache miss: If node_modules has not been cached,
+      #             `npm install`
+      #   (This includes `npm run copy-fonts` as post-install step)
+      - name: Install JavaScript dependencies (npm install)
+        if: steps.cache-nodemodules.outputs.cache-hit != 'true'
+        run: npm install
+
+      # Check for TypeScript errors
+      - name: Generate react-query helpers with Orval
+        run: npm run build:orval
+
+      - name: Fail on uncommitted react-query helper changes
+        run: |
+          git diff
+          git diff-index --exit-code HEAD

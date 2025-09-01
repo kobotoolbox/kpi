@@ -2,21 +2,14 @@
 from django.utils.translation import gettext as t
 from rest_framework import serializers
 
-from kpi.constants import (
-    ASSET_TYPE_COLLECTION,
-    PERM_DISCOVER_ASSET,
-    PERM_VIEW_ASSET
-)
+from kpi.constants import ASSET_TYPE_COLLECTION, PERM_DISCOVER_ASSET, PERM_VIEW_ASSET
 from kpi.fields import RelativePrefixHyperlinkedRelatedField
-from kpi.models import Asset
-from kpi.models import UserAssetSubscription
-from kpi.utils.object_permission import (
-    get_anonymous_user,
-    get_objects_for_user,
-)
+from kpi.models import Asset, UserAssetSubscription
+from kpi.utils.object_permission import get_anonymous_user, get_objects_for_user
 
 
 class UserAssetSubscriptionSerializer(serializers.ModelSerializer):
+
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid',
         view_name='userassetsubscription-detail'

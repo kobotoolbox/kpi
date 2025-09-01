@@ -1569,7 +1569,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         edit_submission_xml(xml_parsed, 'Q1', 'new answer')
         edited_submission = xml_tostring(xml_parsed)
         url = reverse(
-            self._get_endpoint('api_v2:assetsnapshot-submission-alias'),
+            self._get_endpoint('api_v2:assetsnapshot-submission-openrosa'),
             args=(self.asset.snapshot().uid,),
         )
         data = {

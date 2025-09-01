@@ -159,9 +159,9 @@ class TestAssetSnapshotList(AssetSnapshotBase):
         with 204 status codes and the appropriate headers set
         """
         VIEW_NAMES_TO_TEST = [
-            'assetsnapshot-form-list',
-            'assetsnapshot-manifest',
-            'assetsnapshot-submission',
+            'assetsnapshot-form-list-openrosa',
+            'assetsnapshot-manifest-openrosa',
+            'assetsnapshot-submission-openrosa',
         ]
         creation_response = self._create_asset_snapshot_from_asset()
         snapshot_uid = creation_response.data['uid']
