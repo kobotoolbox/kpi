@@ -3,12 +3,14 @@ import string
 from unittest.mock import MagicMock, patch
 
 import fakeredis
+from django.conf import settings
 from django.test import TestCase
 
 from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
 from kobo.apps.data_collectors.models import DataCollectorGroup
 from kobo.apps.data_collectors.utils import (
     remove_data_collector_enketo_links,
+    rename_data_collector_enketo_links,
     set_data_collector_enketo_links,
 )
 
@@ -121,3 +123,37 @@ class TestDataCollectorUtils(TestCase):
                 assert self.redis_client.hgetall(f'or:{expected_url}') == {}
                 assert self.redis_client.hgetall(f'id:{new_hash_a}') == {}
                 assert self.redis_client.hgetall(f'id:{new_hash_b}') == {}
+
+    def test_rename_data_collector_links(self):
+        with patch(
+            'kobo.apps.data_collectors.utils.get_redis_connection',
+            return_value=self.redis_client,
+        ):
+            with patch(
+                'kobo.apps.data_collectors.utils.create_enketo_links',
+                side_effect=self.fake_enketo_redis_actions,
+            ):
+                set_data_collector_enketo_links(['1'], ['a12345', 'b12345'])
+                # make sure we set something in redis
+                expected_url = DC_ENKETO_URL_TEMPLATE.format('1')
+
+                new_hash_a = self.redis_client.hget(
+                    f'or:{expected_url}', 'a12345'
+                ).decode('utf-8')
+                assert new_hash_a is not None
+                enketo_info_a = self.redis_client.hgetall(f'id:{new_hash_a}')
+                assert len(enketo_info_a.keys()) > 0
+
+                rename_data_collector_enketo_links('1', '2')
+                new_expected_url = DC_ENKETO_URL_TEMPLATE.format('2')
+                new_hash = self.redis_client.hget(
+                    f'or:{new_expected_url}', 'a12345'
+                ).decode('utf-8')
+                assert new_hash is not None
+                open_rosa_server = self.redis_client.hget(
+                    f'id:{new_hash}', 'openRosaServer'
+                ).decode('utf-8')
+                assert open_rosa_server == f'{settings.KOBOCAT_URL}/key/2'
+
+                new_hash_a = self.redis_client.hget(f'or:{expected_url}', 'a12345')
+                assert new_hash_a is None
