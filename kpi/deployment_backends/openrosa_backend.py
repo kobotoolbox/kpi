@@ -703,12 +703,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     def create_enketo_survey_links_for_data_collectors(self):
         if not self.get_data('backend_response'):
             pass
-        set_data_collector_enketo_links(
-            list(self.asset.data_collector_group.data_collectors.values_list(
+        data_collector_tokens = list(
+            self.asset.data_collector_group.data_collectors.values_list(
                 'token', flat=True
-            )),
-            [self.xform.id_string],
+            )
         )
+        for token in data_collector_tokens:
+            set_data_collector_enketo_links(token, [self.xform.id_string])
 
     def remove_enketo_survey_links_for_tokens(self, tokens):
         for token in tokens:

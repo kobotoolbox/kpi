@@ -7,25 +7,26 @@ from kpi.deployment_backends.openrosa_utils import create_enketo_links
 from kpi.utils.log import logging
 
 
-def set_data_collector_enketo_links(tokens: list[str], xform_ids: list[str]):
+def set_data_collector_enketo_links(token: str, xform_ids: list[str]):
     redis_client = get_redis_connection('enketo_redis_main')
-    for token in tokens:
-        for xform_id in xform_ids:
-            # have enketo create hashes and store the token-based urls
-            server_url = DC_ENKETO_URL_TEMPLATE.format(token)
-            data = {
-                'server_url': server_url,
-                'form_id': xform_id,
-            }
-            response = create_enketo_links(data)
-            enketo_id = response.json()['enketo_id']
-            # replace the enketo hash with a longer one
-            new_id = ShortUUID().random(31)
-            redis_client.hset(f'or:{server_url}', key=xform_id, value=new_id)
-            # move the token-based url info under the new hash
-            enketo_url_info = redis_client.hgetall(f'id:{enketo_id}')
-            for key, value in enketo_url_info.items():
-                redis_client.hset(f'id:{new_id}', key=key, value=value)
+    for xform_id in xform_ids:
+        # have enketo create hashes and store the token-based urls
+        server_url = DC_ENKETO_URL_TEMPLATE.format(token)
+        data = {
+            'server_url': server_url,
+            'form_id': xform_id,
+        }
+        response = create_enketo_links(data)
+        print(f'{response=}')
+        breakpoint()
+        enketo_id = response.json()['enketo_id']
+        # replace the enketo hash with a longer one
+        new_id = ShortUUID().random(31)
+        redis_client.hset(f'or:{server_url}', key=xform_id, value=new_id)
+        # move the token-based url info under the new hash
+        enketo_url_info = redis_client.hgetall(f'id:{enketo_id}')
+        for key, value in enketo_url_info.items():
+            redis_client.hset(f'id:{new_id}', key=key, value=value)
 
 
 def remove_data_collector_enketo_links(token:str, xform_ids: list[str] = None):

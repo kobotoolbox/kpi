@@ -3,7 +3,6 @@ import string
 from unittest.mock import MagicMock, patch
 
 import fakeredis
-from django.conf import settings
 from django.test import TestCase
 
 from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
@@ -20,6 +19,18 @@ class TestDataCollectorUtils(TestCase):
         self.data_collector_group = DataCollectorGroup.objects.create(name='DCG')
         self.redis_server = fakeredis.FakeServer()
         self.redis_client = fakeredis.FakeStrictRedis(server=self.redis_server)
+        redis_client_patcher = patch(
+            'kobo.apps.data_collectors.utils.get_redis_connection',
+            return_value=self.redis_client,
+        )
+        enketo_patcher = patch(
+            'kobo.apps.data_collectors.utils.create_enketo_links',
+            side_effect=self.fake_enketo_redis_actions,
+        )
+        redis_client_patcher.start()
+        enketo_patcher.start()
+        self.addCleanup(redis_client_patcher.stop)
+        self.addCleanup(enketo_patcher.stop)
 
     def tearDown(self):
         # remove everything from "redis"
@@ -31,129 +42,68 @@ class TestDataCollectorUtils(TestCase):
         form_id = data['form_id']
         fake_enketo_id = ''.join(random.choices(string.ascii_letters, k=8))
         self.redis_client.hset(f'or:{server_url}', form_id, fake_enketo_id)
-        self.redis_client.hset(f'id:{fake_enketo_id}', 'orig_form_id', form_id)
+        self.redis_client.hset(f'id:{fake_enketo_id}', 'openRosaServer', server_url)
         mock_response = MagicMock()
         mock_response.json = lambda: {'enketo_id': fake_enketo_id}
         return mock_response
 
-    def test_set_new_links(self):
-        with patch(
-            'kobo.apps.data_collectors.utils.get_redis_connection',
-            return_value=self.redis_client,
-        ):
-            with patch(
-                'kobo.apps.data_collectors.utils.create_enketo_links',
-                side_effect=self.fake_enketo_redis_actions,
-            ):
-                set_data_collector_enketo_links(['1'], ['a12345', 'b12345'])
-                expected_url = DC_ENKETO_URL_TEMPLATE.format('1')
-                new_hash_a = self.redis_client.hget(
-                    f'or:{expected_url}', 'a12345'
-                ).decode('utf-8')
-                enketo_info_a = self.redis_client.hgetall(f'id:{new_hash_a}')
-                assert enketo_info_a == {b'orig_form_id': b'a12345'}
+    def _check_expected_redis_entries(self, token, form_id):
+        expected_url = DC_ENKETO_URL_TEMPLATE.format(token)
+        enketo_id = self.redis_client.hget(f'or:{expected_url}', form_id).decode(
+            'utf-8'
+        )
+        open_rosa_server = self.redis_client.hget(
+            f'id:{enketo_id}', 'openRosaServer'
+        ).decode('utf-8')
+        assert open_rosa_server == expected_url
 
-                new_hash_b = self.redis_client.hget(
-                    f'or:{expected_url}', 'b12345'
-                ).decode('utf-8')
-                enketo_info_b = self.redis_client.hgetall(f'id:{new_hash_b}')
-                assert enketo_info_b == {b'orig_form_id': b'b12345'}
+    def test_set_new_links(self):
+        set_data_collector_enketo_links(['1'], ['a12345', 'b12345'])
+        self._check_expected_redis_entries('1', 'a12345')
+        self._check_expected_redis_entries('1', 'b12345')
 
     def test_remove_data_collector_enketo_links(self):
-        with patch(
-            'kobo.apps.data_collectors.utils.get_redis_connection',
-            return_value=self.redis_client,
-        ):
-            with patch(
-                'kobo.apps.data_collectors.utils.create_enketo_links',
-                side_effect=self.fake_enketo_redis_actions,
-            ):
-                set_data_collector_enketo_links(['1'], ['a12345', 'b12345'])
-                # make sure we set something in redis
-                expected_url = DC_ENKETO_URL_TEMPLATE.format('1')
-                new_hash = self.redis_client.hget(
-                    f'or:{expected_url}', 'a12345'
-                ).decode('utf-8')
-                assert new_hash is not None
-                enketo_info = self.redis_client.hgetall(f'id:{new_hash}')
-                assert len(enketo_info.keys()) > 0
+        set_data_collector_enketo_links(['1'], ['a12345', 'b12345'])
+        # make sure we set something in redis
+        self._check_expected_redis_entries('1', 'a12345')
+        self._check_expected_redis_entries('1', 'b12345')
 
-                remove_data_collector_enketo_links('1', ['a12345'])
-                # make sure the data for a12345 has been removed
-                assert self.redis_client.hget(f'or:{expected_url}', 'a12345') is None
-                assert self.redis_client.hgetall(f'id:{new_hash}') == {}
+        expected_url = DC_ENKETO_URL_TEMPLATE.format('1')
+        enketo_id_to_remove = self.redis_client.hget(f'or:{expected_url}', 'a12345')
 
-                # make sure the data for b12345 is still there
-                new_hash = self.redis_client.hget(
-                    f'or:{expected_url}', 'b12345'
-                ).decode('utf-8')
-                assert new_hash is not None
-                enketo_info = self.redis_client.hgetall(f'id:{new_hash}')
-                assert len(enketo_info.keys()) > 0
+        remove_data_collector_enketo_links('1', ['a12345'])
+        # make sure the data for a12345 has been removed
+        expected_url = DC_ENKETO_URL_TEMPLATE.format('1')
+        assert self.redis_client.hget(f'or:{expected_url}', 'a12345') is None
+        assert self.redis_client.hgetall(f'id:{enketo_id_to_remove}') == {}
+
+        # make sure the data for b12345 is still there
+        self._check_expected_redis_entries('1', 'b12345')
 
     def test_remove_all_data_collector_enketo_links(self):
-        with patch(
-            'kobo.apps.data_collectors.utils.get_redis_connection',
-            return_value=self.redis_client,
-        ):
-            with patch(
-                'kobo.apps.data_collectors.utils.create_enketo_links',
-                side_effect=self.fake_enketo_redis_actions,
-            ):
-                set_data_collector_enketo_links(['1'], ['a12345', 'b12345'])
-                # make sure we set something in redis
-                expected_url = DC_ENKETO_URL_TEMPLATE.format('1')
+        set_data_collector_enketo_links(['1'], ['a12345', 'b12345'])
+        # make sure we set something in redis
+        self._check_expected_redis_entries('1', 'a12345')
+        self._check_expected_redis_entries('1', 'b12345')
 
-                new_hash_a = self.redis_client.hget(
-                    f'or:{expected_url}', 'a12345'
-                ).decode('utf-8')
-                assert new_hash_a is not None
-                enketo_info_a = self.redis_client.hgetall(f'id:{new_hash_a}')
-                assert len(enketo_info_a.keys()) > 0
+        expected_url = DC_ENKETO_URL_TEMPLATE.format('1')
+        enketo_id_to_remove_a = self.redis_client.hget(f'or:{expected_url}', 'a12345')
+        enketo_id_to_remove_b = self.redis_client.hget(f'or:{expected_url}', 'b12345')
 
-                new_hash_b = self.redis_client.hget(
-                    f'or:{expected_url}', 'b12345'
-                ).decode('utf-8')
-                assert new_hash_b is not None
-                enketo_info_b = self.redis_client.hgetall(f'id:{new_hash_b}')
-                assert len(enketo_info_b.keys()) > 0
-
-                remove_data_collector_enketo_links('1')
-                # make sure all data for this DC has been removed
-                assert self.redis_client.hgetall(f'or:{expected_url}') == {}
-                assert self.redis_client.hgetall(f'id:{new_hash_a}') == {}
-                assert self.redis_client.hgetall(f'id:{new_hash_b}') == {}
+        remove_data_collector_enketo_links('1')
+        # make sure all data for this DC has been removed
+        assert self.redis_client.hgetall(f'or:{expected_url}') == {}
+        assert self.redis_client.hgetall(f'id:{enketo_id_to_remove_a}') == {}
+        assert self.redis_client.hgetall(f'id:{enketo_id_to_remove_b}') == {}
 
     def test_rename_data_collector_links(self):
-        with patch(
-            'kobo.apps.data_collectors.utils.get_redis_connection',
-            return_value=self.redis_client,
-        ):
-            with patch(
-                'kobo.apps.data_collectors.utils.create_enketo_links',
-                side_effect=self.fake_enketo_redis_actions,
-            ):
-                set_data_collector_enketo_links(['1'], ['a12345', 'b12345'])
-                # make sure we set something in redis
-                expected_url = DC_ENKETO_URL_TEMPLATE.format('1')
+        set_data_collector_enketo_links(['1'], ['a12345', 'b12345'])
+        # make sure we set something in redis
+        expected_url = DC_ENKETO_URL_TEMPLATE.format('1')
+        self._check_expected_redis_entries('1', 'a12345')
+        self._check_expected_redis_entries('1', 'b12345')
 
-                new_hash_a = self.redis_client.hget(
-                    f'or:{expected_url}', 'a12345'
-                ).decode('utf-8')
-                assert new_hash_a is not None
-                enketo_info_a = self.redis_client.hgetall(f'id:{new_hash_a}')
-                assert len(enketo_info_a.keys()) > 0
-
-                rename_data_collector_enketo_links('1', '2')
-                new_expected_url = DC_ENKETO_URL_TEMPLATE.format('2')
-                new_hash = self.redis_client.hget(
-                    f'or:{new_expected_url}', 'a12345'
-                ).decode('utf-8')
-                assert new_hash is not None
-                open_rosa_server = self.redis_client.hget(
-                    f'id:{new_hash}', 'openRosaServer'
-                ).decode('utf-8')
-                assert open_rosa_server == f'{settings.KOBOCAT_URL}/key/2'
-
-                new_hash_a = self.redis_client.hget(f'or:{expected_url}', 'a12345')
-                assert new_hash_a is None
+        rename_data_collector_enketo_links('1', '2')
+        self._check_expected_redis_entries('2', 'a12345')
+        self._check_expected_redis_entries('2', 'b12345')
+        assert self.redis_client.hgetall(f'or:{expected_url}') == {}
