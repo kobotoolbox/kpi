@@ -19,12 +19,6 @@ class DataCollectorGroup(AbstractTimeStampedModel):
         return '{} ({})'.format(self.name, self.uid)
 
 
-class DataCollectorManager(models.Manager):
-    def create(self, **kwargs):
-        pass
-
-    pass
-
 class DataCollector(AbstractTimeStampedModel):
     uid = KpiUidField(uid_prefix='dc', primary_key=True)
     name = fields.CharField(null=True, blank=True, max_length=200)
