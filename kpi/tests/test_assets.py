@@ -4,27 +4,29 @@ import datetime
 import json
 from collections import OrderedDict
 from copy import deepcopy
+from unittest.mock import patch
 
 import openpyxl
 from django.contrib.auth.models import AnonymousUser
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from rest_framework import serializers, status
 
+from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import XFormInstanceParser
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.tasks import transfer_member_data_ownership_to_org
 from kobo.apps.organizations.tests.test_organizations_api import (
-    BaseOrganizationAssetApiTestCase
+    BaseOrganizationAssetApiTestCase,
 )
 from kobo.apps.project_ownership.models import InviteStatusChoices
 from kobo.apps.project_ownership.models.invite import Invite
 from kobo.apps.project_ownership.models.transfer import Transfer
 from kpi.constants import (
-    ASSET_TYPE_SURVEY,
     ASSET_TYPE_COLLECTION,
+    ASSET_TYPE_SURVEY,
     PERM_CHANGE_ASSET,
     PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
@@ -695,8 +697,8 @@ class ShareAssetsTest(AssetsTestCase):
                                        self.asset_in_coll),
                          False)
 
-    ''' Try the previous tests again, but this time assign permissions to the
-    asset before assigning permissions to the collection. '''
+    """ Try the previous tests again, but this time assign permissions to the
+    asset before assigning permissions to the collection. """
 
     def test_user_change_asset_view_collection(self):
         self.test_user_view_collection_change_asset(asset_first=True)
@@ -1056,3 +1058,71 @@ class TestAssetExcludedFromProjectsListFlag(BaseOrganizationAssetApiTestCase):
         self.assertFalse(
             any(obj['uid'] == asset.uid for obj in response.data['results'])
         )
+
+
+@override_settings(DEFAULT_DEPLOYMENT_BACKEND='mock')
+class TestAssetDataCollectors(TestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.someuser = User.objects.get(username='someuser')
+        self.data_collector_group = DataCollectorGroup.objects.create(
+            name='DCG_0', owner=self.someuser
+        )
+        self.dc0 = DataCollector.objects.create(
+            group=self.data_collector_group, name='dc0'
+        )
+        self.dc1 = DataCollector.objects.create(
+            group=self.data_collector_group, name='dc1'
+        )
+        self.asset = Asset.objects.filter(owner=self.someuser).first()
+        # create a version
+        self.asset.save()
+        self.asset.deploy(backend='mock')
+
+    def test_enketo_links_updated_when_first_group_set(self):
+        self.asset.data_collector_group = self.data_collector_group
+        with patch.object(
+            self.asset.deployment, 'set_data_collector_enketo_links'
+        ) as patched_set_links:
+            self.asset.save()
+        patched_set_links.assert_any_call(self.dc0.token)
+        patched_set_links.assert_any_call(self.dc1.token)
+        assert len(patched_set_links.call_args) == 2
+
+    def test_enketo_links_updated_when_group_changed(self):
+        self.asset.data_collector_group = self.data_collector_group
+        self.asset.save()
+        second_group = DataCollectorGroup.objects.create(
+            name='DCG_1', owner=self.someuser
+        )
+        dc10 = DataCollector.objects.create(group=second_group, name='dc10')
+        dc11 = DataCollector.objects.create(group=second_group, name='dc11')
+        with patch.object(
+            self.asset.deployment, 'set_data_collector_enketo_links'
+        ) as patched_set_links:
+            with patch.object(
+                self.asset.deployment, 'remove_data_collector_enketo_links'
+            ) as patched_remove_links:
+                self.asset.data_collector_group = second_group
+                self.asset.save()
+        patched_remove_links.assert_any_call(self.dc0.token)
+        patched_remove_links.assert_any_call(self.dc1.token)
+        assert len(patched_remove_links.call_args) == 2
+
+        patched_set_links.assert_any_call(dc10.token)
+        patched_set_links.assert_any_call(dc11.token)
+        assert len(patched_set_links.call_args) == 2
+
+    def test_enketo_links_updated_when_group_removed(self):
+        self.asset.data_collector_group = self.data_collector_group
+        self.asset.save()
+
+        with patch.object(
+            self.asset.deployment, 'remove_data_collector_enketo_links'
+        ) as patched_remove_links:
+            self.asset.data_collector_group = None
+            self.asset.save()
+        patched_remove_links.assert_any_call(self.dc0.token)
+        patched_remove_links.assert_any_call(self.dc1.token)
+        assert len(patched_remove_links.call_args) == 2
