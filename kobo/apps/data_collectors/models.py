@@ -31,6 +31,11 @@ class DataCollector(AbstractTimeStampedModel):
         blank=True,
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._initial_token = self.token
+        self._initial_group_id = self.group_id
+
     def save(self, *args, **kwargs):
         if not self.token:
             self.token = self.generate_key()
