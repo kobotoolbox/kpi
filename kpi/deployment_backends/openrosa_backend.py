@@ -175,6 +175,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 'version': self.asset.version_id,
             }
         )
+        super().connect(active)
 
     @property
     def form_uuid(self):

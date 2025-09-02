@@ -31,6 +31,7 @@ from kpi.constants import (
     PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
 )
+from kpi.deployment_backends.mock_backend import MockDeploymentBackend
 from kpi.models import Asset, ImportTask
 from kpi.utils.object_permission import get_all_objects_for_user
 
@@ -1096,8 +1097,8 @@ class TestAssetDataCollectors(TestCase):
         second_group = DataCollectorGroup.objects.create(
             name='DCG_1', owner=self.someuser
         )
-        dc10 = DataCollector.objects.create(group=second_group, name='dc10')
-        dc11 = DataCollector.objects.create(group=second_group, name='dc11')
+        dc1_0 = DataCollector.objects.create(group=second_group, name='dc1_0')
+        dc1_1 = DataCollector.objects.create(group=second_group, name='dc1_1')
         with patch.object(
             self.asset.deployment, 'set_data_collector_enketo_links'
         ) as patched_set_links:
@@ -1110,8 +1111,8 @@ class TestAssetDataCollectors(TestCase):
         patched_remove_links.assert_any_call(self.dc1.token)
         assert len(patched_remove_links.call_args) == 2
 
-        patched_set_links.assert_any_call(dc10.token)
-        patched_set_links.assert_any_call(dc11.token)
+        patched_set_links.assert_any_call(dc1_0.token)
+        patched_set_links.assert_any_call(dc1_1.token)
         assert len(patched_set_links.call_args) == 2
 
     def test_enketo_links_updated_when_group_removed(self):
@@ -1126,3 +1127,18 @@ class TestAssetDataCollectors(TestCase):
         patched_remove_links.assert_any_call(self.dc0.token)
         patched_remove_links.assert_any_call(self.dc1.token)
         assert len(patched_remove_links.call_args) == 2
+
+    def test_enketo_links_created_when_newly_deployed_with_group(self):
+        undeployed_asset = Asset.objects.filter(owner=self.someuser)[1]
+        undeployed_asset.data_collector_group = self.data_collector_group
+
+        with patch.object(
+            MockDeploymentBackend, 'set_data_collector_enketo_links'
+        ) as patched_set_links:
+            undeployed_asset.save()
+            patched_set_links.assert_not_called()
+            undeployed_asset.deploy(backend='mock')
+
+        patched_set_links.assert_any_call(self.dc0.token)
+        patched_set_links.assert_any_call(self.dc1.token)
+        assert len(patched_set_links.call_args) == 2
