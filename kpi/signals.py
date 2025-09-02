@@ -7,7 +7,6 @@ from django.dispatch import receiver
 from taggit.models import Tag
 
 from kobo.apps.data_collectors.models import DataCollectorGroup
-from kobo.apps.data_collectors.utils import remove_data_collector_enketo_links
 from kpi.constants import PERM_ADD_SUBMISSIONS
 from kpi.exceptions import DeploymentNotFound
 from kpi.models import Asset, TagUid
@@ -88,8 +87,14 @@ def update_data_collector_group(
         return
     if instance.data_collector_group_id != instance._initial_data_collector_group_id:
         if instance._initial_data_collector_group_id:
-             old_dcg = DataCollectorGroup.objects.get(pk=instance._initial_data_collector_group_id)
-             for data_collector in old_dcg.data_collectors.all():
-                 remove_data_collector_enketo_links(data_collector.token, [instance.uid])
+            old_dcg = DataCollectorGroup.objects.get(
+                pk=instance._initial_data_collector_group_id
+            )
+            for data_collector in old_dcg.data_collectors.all():
+                instance.deployment.remove_data_collector_enketo_links(
+                    data_collector.token
+                )
         if instance.data_collector_group_id:
             instance.deployment.create_enketo_survey_links_for_data_collectors()
+    # keep track of the most recent data collector group used to create links
+    instance._initial_data_collector_group_id = instance.data_collector_group_id
