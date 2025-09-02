@@ -97,7 +97,7 @@ class TestDataCollectorUtils(TestCase):
         assert self.redis_client.hgetall(f'id:{enketo_id_to_remove_b}') == {}
 
     def test_rename_data_collector_links(self):
-        set_data_collector_enketo_links(['1'], ['a12345', 'b12345'])
+        set_data_collector_enketo_links('1', ['a12345', 'b12345'])
         # make sure we set something in redis
         expected_url = DC_ENKETO_URL_TEMPLATE.format('1')
         self._check_expected_redis_entries('1', 'a12345')
