@@ -39,7 +39,7 @@ counter=0
 prev_minor_year=`echo "${current_minor}" | cut -d '.' -f 2`
 prev_minor_week=`echo "${current_minor}" | cut -d '.' -f 3`
 prev_branch="$current_branch-this-branch-surely-doesnt-exist"
-until git show-branch "$prev_branch" 1>> /dev/null 2>> /dev/null
+until git show-branch "origin/$prev_branch" 1>> /dev/null 2>> /dev/null
 do
     # If this is the latest release, merge back to main.
     counter=$[counter+1]
@@ -83,7 +83,7 @@ counter=0
 next_minor_year=`echo "${current_minor}" | cut -d '.' -f 2`
 next_minor_week=`echo "${current_minor}" | cut -d '.' -f 3`
 next_branch="$current_branch-this-branch-surely-doesnt-exist"
-until git show-branch "$next_branch" 1>> /dev/null 2>> /dev/null
+until git show-branch "origin/$next_branch" 1>> /dev/null 2>> /dev/null
 do
     # If this is the latest release, merge back to main.
     counter=$[counter+1]
