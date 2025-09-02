@@ -64,6 +64,7 @@ jobs:
   changelog:
     needs:
       - version
+    if: ${{ !cancelled() && !failure() }}
     runs-on: ubuntu-24.04
     steps:
     - name: post to Zulip Linear updated draft of changelog
@@ -75,6 +76,7 @@ jobs:
   deploy-to-beta:
     needs:
       - version
+    if: ${{ !cancelled() && !failure() }}
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
@@ -86,9 +88,10 @@ jobs:
 
 
   merge-forward:
+    name: Merge forward
     needs:
       - version
-    name: Merge forward
+    if: ${{ !cancelled() && !failure() }}
     runs-on: ubuntu-24.04
     steps:
       - name: Generate a token to trigger a workflow from a workflow
@@ -132,6 +135,7 @@ jobs:
       - changelog
       - deploy-to-beta
       - merge-forward
+    if: ${{ !cancelled() && !failure() }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
