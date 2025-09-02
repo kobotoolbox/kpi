@@ -38,6 +38,8 @@ jobs:
       next_minor: ${{ steps.version.outputs.next_minor }}
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: "0"
     - name: Find next release tag and branch
       id: version
       run: |
