@@ -23,7 +23,7 @@ def update_enketo_links(sender, instance, **kwargs):
         remove_data_collector_enketo_links(token)
     if add_new_links:
         asset_uids = list(instance.group.assets.values_list('uid', flat=True))
-        set_data_collector_enketo_links([instance.token], asset_uids)
+        set_data_collector_enketo_links(instance.token, asset_uids)
     if token_changed and not group_changed:
         rename_data_collector_enketo_links(instance._initial_token, instance.token)
     # now that we may have enketo links, keep track of the token we used to create

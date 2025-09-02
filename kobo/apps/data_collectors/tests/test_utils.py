@@ -58,12 +58,12 @@ class TestDataCollectorUtils(TestCase):
         assert open_rosa_server == expected_url
 
     def test_set_new_links(self):
-        set_data_collector_enketo_links(['1'], ['a12345', 'b12345'])
+        set_data_collector_enketo_links('1', ['a12345', 'b12345'])
         self._check_expected_redis_entries('1', 'a12345')
         self._check_expected_redis_entries('1', 'b12345')
 
     def test_remove_data_collector_enketo_links(self):
-        set_data_collector_enketo_links(['1'], ['a12345', 'b12345'])
+        set_data_collector_enketo_links('1', ['a12345', 'b12345'])
         # make sure we set something in redis
         self._check_expected_redis_entries('1', 'a12345')
         self._check_expected_redis_entries('1', 'b12345')
@@ -81,7 +81,7 @@ class TestDataCollectorUtils(TestCase):
         self._check_expected_redis_entries('1', 'b12345')
 
     def test_remove_all_data_collector_enketo_links(self):
-        set_data_collector_enketo_links(['1'], ['a12345', 'b12345'])
+        set_data_collector_enketo_links('1', ['a12345', 'b12345'])
         # make sure we set something in redis
         self._check_expected_redis_entries('1', 'a12345')
         self._check_expected_redis_entries('1', 'b12345')

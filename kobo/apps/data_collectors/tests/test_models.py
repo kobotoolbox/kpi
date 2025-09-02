@@ -74,7 +74,7 @@ class TestDataCollector(TestCase):
         data_collector_0.group = another_group
         data_collector_0.save()
         patched_remove.assert_called_once_with(data_collector_0.token)
-        patched_set.assert_called_once_with([data_collector_0.token], [asset.uid])
+        patched_set.assert_called_once_with(data_collector_0.token, [asset.uid])
 
     @patch('kobo.apps.data_collectors.signals.remove_data_collector_enketo_links')
     @patch('kobo.apps.data_collectors.signals.set_data_collector_enketo_links')
@@ -97,4 +97,4 @@ class TestDataCollector(TestCase):
         data_collector_0.token = 'new_token'
         data_collector_0.save()
         patched_remove.assert_called_once_with(old_token)
-        patched_set.assert_called_once_with(['new_token'], [asset.uid])
+        patched_set.assert_called_once_with('new_token', [asset.uid])

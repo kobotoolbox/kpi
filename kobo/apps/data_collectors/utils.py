@@ -30,22 +30,26 @@ def set_data_collector_enketo_links(token: str, xform_ids: list[str]):
 def remove_data_collector_enketo_links(token:str, xform_ids: list[str] = None):
     redis_client = get_redis_connection('enketo_redis_main')
     key_url = DC_ENKETO_URL_TEMPLATE.format(token)
+    if xform_ids == []:
+        return
     if xform_ids is not None:
         # get all enketo hashes for specified xforms
         all_ee_ids = redis_client.hmget(f'or:{key_url}',*xform_ids)
         all_ee_ids = [ee_id.decode('utf-8') for ee_id in all_ee_ids if ee_id is not None]
         # delete the url info under each hash
-        redis_client.delete(*[f'id:{ee_id}' for ee_id in all_ee_ids ])
-        # delete the xform ids from the data collector base url key
-        redis_client.hdel(f'or:{key_url}', *xform_ids)
+        if len(all_ee_ids) > 0:
+            redis_client.delete(*[f'id:{ee_id}' for ee_id in all_ee_ids ])
+            # delete the xform ids from the data collector base url key
+            redis_client.hdel(f'or:{key_url}', *xform_ids)
     else:
         # get all enketo hashes for all xforms the DC has access to
         all_entries = redis_client.hgetall(f'or:{key_url}')
         redis_hashes = [
             redis_hash.decode('utf-8') for redis_hash in all_entries.values()
         ]
-        # delete the url info under each hash
-        redis_client.delete(*[f'id:{redis_hash}' for redis_hash in redis_hashes])
+        if len(redis_hashes) > 0:
+            # delete the url info under each hash
+            redis_client.delete(*[f'id:{redis_hash}' for redis_hash in redis_hashes])
         # delete the entire entry for the data collector base url key
         redis_client.delete(f'or:{key_url}')
 
