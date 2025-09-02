@@ -215,9 +215,9 @@ class BaseDeploymentBackend(abc.ABC):
     def calculated_submission_count(self, user: settings.AUTH_USER_MODEL, **kwargs):
         pass
 
-    @abc.abstractmethod
     def connect(self, active=False):
-        pass
+        if self.asset.data_collector_group_id is not None:
+            self.create_enketo_survey_links_for_data_collectors()
 
     def copy_submission_extras(self, origin_uuid: str, dest_uuid: str):
         """
