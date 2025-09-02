@@ -1,10 +1,13 @@
 name: 'CD: stabilize'
 
+
 on:
   push:
     branches: [ 'release/**' ]
 
+
 jobs:
+
 
   changes:
     runs-on: ubuntu-24.04
@@ -19,80 +22,85 @@ jobs:
       all:      ${{ steps.filter.outputs.all      }}
       darker:   ${{ steps.filter.outputs.darker   }}
       biome:    ${{ steps.filter.outputs.biome    }}
+      openapi:  ${{ steps.filter.outputs.openapi  }}
       pytest:   ${{ steps.filter.outputs.pytest   }}
       npm-test: ${{ steps.filter.outputs.npm-test }}
+
 
   darker:
     needs: changes
     if: needs.changes.outputs.all == 'true' || needs.changes.outputs.darker == 'true'
     uses: ./.github/workflows/darker.yml
 
+
   biome:
     needs: changes
     if: needs.changes.outputs.all == 'true' || needs.changes.outputs.biome == 'true'
     uses: ./.github/workflows/biome.yml
+
+
+  openapi:
+    needs: changes
+    if: needs.changes.outputs.all == 'true' || needs.changes.outputs.openapi == 'true'
+    uses: ./.github/workflows/openapi.yml
+
 
   pytest:
     needs: changes
     if: needs.changes.outputs.all == 'true' || needs.changes.outputs.pytest == 'true'
     uses: ./.github/workflows/pytest.yml
 
+
   npm-test:
     needs: changes
     if: needs.changes.outputs.all == 'true' || needs.changes.outputs.npm-test == 'true'
     uses: ./.github/workflows/npm-test.yml
 
-  version:
-    runs-on: ubuntu-24.04
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-    steps:
-    - uses: actions/checkout@v4
-    - name: Formats the version number
-      id: version
-      run: |
-        set -xe
-        BRANCH=`git rev-parse --abbrev-ref HEAD`
-        VERSION=`echo $BRANCH | sed -e 's/release\///'`
-        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-  changelog:
-    runs-on: ubuntu-24.04
+  version:
     needs:
       - darker
+      - biome
+      - openapi
       - pytest
       - npm-test
     if: ${{ !cancelled() && !failure() }}
+    secrets: inherit
+    uses: './.github/workflows/find-releases.yml'
+
+
+  changelog:
+    needs:
+      - version
+    if: ${{ !cancelled() && !failure() }}
+    runs-on: ubuntu-24.04
     steps:
     - name: post to Zulip Linear updated draft of changelog
       run: |
         echo 'TODO, for now generate changelog manually'
         echo 'TODO, for now send to Zulip manually'
 
+
   deploy-to-beta:
-    runs-on: ubuntu-24.04
     needs:
-      - darker
-      - pytest
-      - npm-test
+      - version
     if: ${{ !cancelled() && !failure() }}
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: deploy to beta
       run: |
         set -xe
-        # TODO, lets test deploy to beta later with a real release branch
         git checkout -B public-beta
         git push -f --set-upstream origin public-beta
 
 
   merge-forward:
     name: Merge forward
-    runs-on: ubuntu-24.04
     needs:
-      - changelog
-      - deploy-to-beta
+      - version
     if: ${{ !cancelled() && !failure() }}
+    runs-on: ubuntu-24.04
     steps:
       - name: Generate a token to trigger a workflow from a workflow
         id: app-token
@@ -118,26 +126,20 @@ jobs:
           git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
           git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
 
-      - name: Find next release branch
-        id: branches
-        run: ./.github/find_next_release_branch.sh
-
       - name: Merge
+        env:
+          current_branch: ${{ needs.version.outputs.current_branch }}
+          next_branch: ${{ needs.version.outputs.next_branch }}
         run: |
-          current_branch="${{ steps.branches.outputs.current_branch }}"
-          next_branch="${{ steps.branches.outputs.next_branch }}"
-          git checkout "${next_branch}"
+          git checkout "$next_branch"
           echo 'TODO: squash migrations, if any'
-          git merge --no-ff "${current_branch}"
+          git merge --no-ff "$current_branch"
           git push
 
 
   notify:
     needs:
       - version
-      - darker
-      - pytest
-      - npm-test
       - changelog
       - deploy-to-beta
       - merge-forward
@@ -145,20 +147,24 @@ jobs:
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
-      topic: "${{ needs.version.outputs.version }} release"
+      topic: "${{ needs.version.outputs.current_minor }} release"
       content: ":working_on_it: Release branch updated, passed CI, deployed to beta, and merged forward. Please update release notes (TODO: automate)"
+
 
   on-failure:
     needs:
       - version
       - darker
+      - biome
+      - openapi
       - pytest
       - npm-test
+      - changelog
       - deploy-to-beta
       - merge-forward
     if: ${{ !cancelled() && failure() }}
     secrets: inherit
     uses: './.github/workflows/zulip.yml'
     with:
-      topic: "${{ needs.version.outputs.version }} release"
+      topic: "${{ needs.version.outputs.current_minor }} release"
       content: ":warning: @*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `${{ github.head_ref || github.ref_name }}` at [\"$COMMIT_TITLE\"](${{ github.event.compare }})"

@@ -44,6 +44,8 @@ deploy-staging:
       if [ "$CI_COMMIT_BRANCH" = "main" ]; then
         helm -n kobo-dev upgrade staging-main oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${CI_COMMIT_SHORT_SHA} --reuse-values
         helm -n kobo-dev upgrade staging-nobill oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${CI_COMMIT_SHORT_SHA} --reuse-values
+      elif [ "$CI_COMMIT_BRANCH" = "feature/api-documentation" ]; then
+        helm -n kobo-dev upgrade --install docs oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${CI_COMMIT_SHORT_SHA} --reuse-values
       else
         helm -n kobo-dev upgrade --install $BRANCH_TITLE oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${CI_COMMIT_SHORT_SHA} --reuse-values
       fi

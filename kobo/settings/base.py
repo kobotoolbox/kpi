@@ -122,7 +122,7 @@ INSTALLED_APPS = (
     'kobo.apps.service_health',
     'kobo.apps.subsequences',
     'constance',
-    'kobo.apps.hook',
+    'kobo.apps.hook.apps.HookAppConfig',
     'django_celery_beat',
     'corsheaders',
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
@@ -130,9 +130,10 @@ INSTALLED_APPS = (
     'kobo.apps.help',
     'trench',
     'kobo.apps.accounts.mfa.apps.MfaAppConfig',
-    'kobo.apps.languages.LanguageAppConfig',
-    'kobo.apps.project_views.ProjectViewAppConfig',
+    'kobo.apps.project_views.apps.ProjectViewAppConfig',
+    'kobo.apps.languages.apps.LanguageAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
+    'kobo.apps.data_collectors.DataCollectorsConfig',
     'kobo.apps.mass_emails.MassEmailsConfig',
     'kobo.apps.trackers.TrackersConfig',
     'kobo.apps.trash_bin.TrashBinAppConfig',
@@ -142,10 +143,12 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.apps.viewer.app.ViewerConfig',
     'kobo.apps.openrosa.apps.main.app.MainConfig',
     'kobo.apps.openrosa.apps.api',
+    'kobo.apps.openrosa.apps.apps.OpenRosaAppConfig',
     'guardian',
     'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
     'kobo.apps.long_running_migrations.app.LongRunningMigrationAppConfig',
+    'drf_spectacular',
 )
 
 MIDDLEWARE = [
@@ -421,6 +424,11 @@ CONSTANCE_CONFIG = {
     'IMPORT_TASK_DAYS_RETENTION': (
         90,
         'Number of days to keep import tasks',
+        'positive_int',
+    ),
+    'SUBMISSION_HISTORY_GRACE_PERIOD': (
+        180,
+        'Number of days to keep submission history',
         'positive_int',
     ),
     'FREE_TIER_THRESHOLDS': (
@@ -780,6 +788,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
     'Regular maintenance settings': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
         'IMPORT_TASK_DAYS_RETENTION',
+        'SUBMISSION_HISTORY_GRACE_PERIOD',
     ),
     'Tier settings': (
         'FREE_TIER_THRESHOLDS',
@@ -990,12 +999,32 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_RENDERER_CLASSES': [
        'rest_framework.renderers.JSONRenderer',
-       'rest_framework.renderers.BrowsableAPIRenderer',
-       'kpi.renderers.XMLRenderer',
     ],
     'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIAutoVersioning',
     # Cannot be placed in kpi.exceptions.py because of circular imports
     'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_CONTENT_NEGOTIATION_CLASS': 'kpi.negotiation.DefaultContentNegotiation',
+}
+
+# Settings for the API documentation using drf-spectacular
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'KoboToolbox API',
+    'DESCRIPTION': 'Powerful and intuitive data collection tools to make an impact',
+    'VERSION': '2.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_FAVICON_HREF': '/static/favicon.png',
+    'SWAGGER_UI_SETTINGS': {
+        'filter': True,
+    },
+    'AUTHENTICATION_WHITELIST': [
+        'kpi.authentication.BasicAuthentication',
+        'kpi.authentication.TokenAuthentication',
+    ],
+    'ENUM_NAME_OVERRIDES': {
+        'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
+        'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
+    },
 }
 
 OPENROSA_REST_FRAMEWORK = {
@@ -1271,6 +1300,11 @@ CELERY_BEAT_SCHEDULE = {
     'delete-daily-xform-submissions-counter': {
         'task': 'kobo.apps.openrosa.apps.logger.tasks.delete_daily_counters',
         'schedule': crontab(hour=0, minute=0),
+        'options': {'queue': 'kobocat_queue'},
+    },
+    'delete-expired-instance-history-records': {
+        'task': 'kobo.apps.openrosa.apps.logger.tasks.delete_expired_instance_history_records',  # noqa
+        'schedule': crontab(hour=1, minute=0),
         'options': {'queue': 'kobocat_queue'}
     },
     # Schedule every 30 minutes
@@ -1342,7 +1376,12 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'kobo.apps.mass_emails.tasks.generate_mass_email_user_lists',
         'schedule': crontab(minute=0),
         'options': {'queue': 'kpi_queue'},
-    }
+    },
+    'remove-reversion-versions': {
+        'task': 'kpi.tasks.remove_old_versions',
+        'schedule': crontab(minute=0),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
 }
 
 if STRIPE_ENABLED:
@@ -1962,6 +2001,7 @@ LOG_DELETION_BATCH_SIZE = 1000
 USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000
 SUBMISSION_DELETION_BATCH_SIZE = 1000
 LONG_RUNNING_MIGRATION_BATCH_SIZE = 2000
+VERSION_DELETION_BATCH_SIZE = 1000
 
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100

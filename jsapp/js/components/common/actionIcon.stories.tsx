@@ -41,6 +41,7 @@ const meta = {
     },
     disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
+    tooltip: { description: 'Tooltip text', control: 'text' },
   },
   parameters: { a11y: { test: 'todo' } },
 } satisfies Meta<StoryArgs>

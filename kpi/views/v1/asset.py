@@ -1,12 +1,12 @@
 # coding: utf-8
 from django.shortcuts import get_object_or_404
-from rest_framework import exceptions, renderers, status, viewsets
+from rest_framework import exceptions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from kpi.constants import CLONE_ARG_NAME, PERM_MANAGE_ASSET, PERM_VIEW_ASSET
 from kpi.models import Asset
-from kpi.serializers.v1.asset import AssetSerializer, AssetListSerializer
+from kpi.serializers.v1.asset import AssetListSerializer, AssetSerializer
 from kpi.views.v2.asset import AssetViewSet as AssetViewSetV2
 
 
@@ -167,8 +167,7 @@ class AssetViewSet(AssetViewSetV2):
 
     @action(
         detail=True,
-        methods=["PATCH"],
-        renderer_classes=[renderers.JSONRenderer],
+        methods=['PATCH'],
     )
     def permissions(self, request, uid):
         target_asset = self.get_object()
@@ -185,7 +184,7 @@ class AssetViewSet(AssetViewSetV2):
             if not target_asset.copy_permissions_from(source_asset):
                 http_status = status.HTTP_400_BAD_REQUEST
                 response = {
-                    "detail": "Source and destination objects don't seem to have the same type"
+                    'detail': "Source and destination objects don't seem to have the same type"  # noqa
                 }
         else:
             raise exceptions.PermissionDenied()

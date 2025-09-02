@@ -399,7 +399,7 @@ class ProjectHistoryLog(AuditLog):
             'submission-bulk': cls._create_from_submission_request,
             'submission-validation-statuses': cls._create_from_submission_request,
             'submission-validation-status': cls._create_from_submission_request,
-            'assetsnapshot-submission-alias': cls._create_from_submission_request,
+            'assetsnapshot-submission-openrosa': cls._create_from_submission_request,
             'submissions': cls._create_from_submission_request,
             'submissions-list': cls._create_from_submission_request,
             'submission-detail': cls._create_from_submission_request,
