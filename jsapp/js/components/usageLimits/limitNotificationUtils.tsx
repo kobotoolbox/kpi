@@ -11,7 +11,7 @@ export function getAllLimitsText(limits: UsageLimitTypes[]) {
   if (limits.length === 1) {
     return `${limits[0]}`
   }
-  return `${limits.slice(0, -1).join(', ')} and ${limits.slice(-1)[0]}`
+  return `${limits.slice(0, -1).join(', ')} ${t('and')} ${limits.slice(-1)[0]}`
 }
 
 // TODO: Find a better way to handle this common translation scenario
