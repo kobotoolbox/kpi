@@ -77,6 +77,7 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
+from .openrosa_utils import create_enketo_links
 from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import assign_applicable_kc_permissions, kc_transaction_atomic
@@ -707,12 +708,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         }
 
         try:
-            response = requests.post(
-                f'{settings.ENKETO_URL}/{settings.ENKETO_SURVEY_ENDPOINT}',
-                # bare tuple implies basic auth
-                auth=(settings.ENKETO_API_KEY, ''),
-                data=data,
-            )
+            response = create_enketo_links(data)
             response.raise_for_status()
         except requests.exceptions.RequestException:
             # Don't 500 the entire asset view if Enketo is unreachable
