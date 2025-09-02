@@ -17,8 +17,6 @@ def set_data_collector_enketo_links(token: str, xform_ids: list[str]):
             'form_id': xform_id,
         }
         response = create_enketo_links(data)
-        print(f'{response=}')
-        breakpoint()
         enketo_id = response.json()['enketo_id']
         # replace the enketo hash with a longer one
         new_id = ShortUUID().random(31)
