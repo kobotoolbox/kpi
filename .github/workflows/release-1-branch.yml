@@ -69,7 +69,7 @@ jobs:
     needs:
       - create-current-branch
     secrets: inherit
-    uses: './.github/workflows/find_releases.yml'
+    uses: './.github/workflows/find-releases.yml'
     with:
       current_branch: ${{ needs.create-current-branch.outputs.current_branch }}
 

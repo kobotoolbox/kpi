@@ -58,7 +58,7 @@ jobs:
       - npm-test
     if: ${{ !cancelled() && !failure() }}
     secrets: inherit
-    uses: './.github/workflows/find_releases.yml'
+    uses: './.github/workflows/find-releases.yml'
 
 
   changelog:
