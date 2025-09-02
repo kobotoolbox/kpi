@@ -3,6 +3,7 @@ import string
 from unittest.mock import MagicMock, patch
 
 import fakeredis
+from django.conf import settings
 from django.test import TestCase
 
 from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
@@ -12,6 +13,7 @@ from kobo.apps.data_collectors.utils import (
     rename_data_collector_enketo_links,
     set_data_collector_enketo_links,
 )
+from kpi.utils.log import logging
 
 
 class TestDataCollectorUtils(TestCase):
@@ -35,7 +37,8 @@ class TestDataCollectorUtils(TestCase):
     def tearDown(self):
         # remove everything from "redis"
         all_keys = self.redis_client.keys('*')
-        self.redis_client.delete(*all_keys)
+        if len(all_keys) > 0:
+            self.redis_client.delete(*all_keys)
 
     def fake_enketo_redis_actions(self, data):
         server_url = data['server_url']
@@ -96,6 +99,13 @@ class TestDataCollectorUtils(TestCase):
         assert self.redis_client.hgetall(f'id:{enketo_id_to_remove_a}') == {}
         assert self.redis_client.hgetall(f'id:{enketo_id_to_remove_b}') == {}
 
+    def test_remove_non_existent_links(self):
+        set_data_collector_enketo_links('1', ['a12345', 'b12345'])
+        # non-existent uid
+        remove_data_collector_enketo_links('1', 'c12345')
+        # non-existent token
+        remove_data_collector_enketo_links('2')
+
     def test_rename_data_collector_links(self):
         set_data_collector_enketo_links('1', ['a12345', 'b12345'])
         # make sure we set something in redis
@@ -107,3 +117,11 @@ class TestDataCollectorUtils(TestCase):
         self._check_expected_redis_entries('2', 'a12345')
         self._check_expected_redis_entries('2', 'b12345')
         assert self.redis_client.hgetall(f'or:{expected_url}') == {}
+
+    def test_rename_non_existent_links(self):
+        with self.assertLogs(logger=logging.name, level='WARNING') as log_context:
+            rename_data_collector_enketo_links('1', '2')
+            log_message = (
+                f'Attempt to rename non-existent key or:{settings.KOBOCAT_URL}/key/1'
+            )
+            assert log_message in log_context.output[0]

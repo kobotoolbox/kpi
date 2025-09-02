@@ -61,7 +61,7 @@ def rename_data_collector_enketo_links(old_token: str, new_token: str):
     try:
         redis_client.rename(f'or:{old_key_url}', f'or:{new_key_url}')
     except redis.exceptions.ResponseError:
-        logging.warn(f'Attempt to rename non-existent key or:{old_key_url}')
+        logging.warning(f'Attempt to rename non-existent key or:{old_key_url}')
         return
     enketo_ids = redis_client.hgetall(f'or:{new_key_url}')
     for enketo_id in enketo_ids.values():
