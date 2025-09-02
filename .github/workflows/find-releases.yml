@@ -37,7 +37,7 @@ jobs:
       next_branch: ${{ steps.version.outputs.next_branch }}
       next_minor: ${{ steps.version.outputs.next_minor }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         fetch-depth: "0"
     - name: Find next release tag and branch
