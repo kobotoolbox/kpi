@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # Usage examples:
-#    ./scripts/find_releases.sh 'release/2.025.29'
-#    ./scripts/find_releases.sh $(git rev-parse --abbrev-ref HEAD)
+#    ./scripts/find_releases.sh "release/2.025.29"
+#    ./scripts/find_releases.sh # defaults to current branch (git rev-parse --abbrev-ref HEAD)
 
 
 set -eu
@@ -14,7 +14,8 @@ fi
 
 ## Find current version. Note: current_patch is the version that's not yet but about to be released.
 
-current_branch=$1
+current_branch="${1-}"
+if [[ -z "${current_branch}" ]]; then current_branch=$(git rev-parse --abbrev-ref HEAD); fi;
 echo "current_branch=${current_branch}" >> $GITHUB_OUTPUT
 
 current_minor=`echo "${current_branch}" | cut -d '/' -f 2`

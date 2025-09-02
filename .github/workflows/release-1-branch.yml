@@ -36,6 +36,8 @@ jobs:
       - is-release-week
     if: ${{ needs.is-release-week.outputs.is_release_week == 'true' }}
     runs-on: ubuntu-24.04
+    outputs:
+      current_branch: ${{ steps.branch.outputs.current_branch }}
     steps:
 
     - name: Generate a token to trigger a workflow from a workflow
@@ -51,6 +53,7 @@ jobs:
         fetch-depth: "0"
 
     - name: create next RC branch
+      id: branch
       run: |
         set -xe
         NEW_VERSION="2.$(date +"%Y" | tail -c4).$(date +"%V")"
@@ -59,6 +62,7 @@ jobs:
         git config user.email "github-actions-bot@kobotoolbox.org"
         git checkout -b $NEW_BRANCH
         git push origin $NEW_BRANCH
+        echo "current_branch=${NEW_BRANCH}" >> $GITHUB_OUTPUT
 
 
   version:
@@ -66,6 +70,8 @@ jobs:
       - create-current-branch
     secrets: inherit
     uses: './.github/workflows/find_releases.yml'
+    with:
+      current_branch: ${{ needs.create-current-branch.outputs.current_branch }}
 
 
   delete-prev-branch:

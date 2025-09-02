@@ -2,6 +2,10 @@ name: Find previous and next release branches
 
 on:
   workflow_call:
+    inputs:
+      current_branch:
+        type: string
+        required: false
     outputs:
       current_branch:
         value: ${{ jobs.version.outputs.current_branch }}
@@ -36,4 +40,5 @@ jobs:
     - uses: actions/checkout@v4
     - name: Find next release tag and branch
       id: version
-      run: ./scripts/find_releases.sh $(git rev-parse --abbrev-ref HEAD)
+      run: |
+        ./scripts/find_releases.sh "${{ inputs.current_branch }}"
