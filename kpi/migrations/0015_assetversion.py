@@ -9,7 +9,6 @@ import kpi.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('reversion', '0001_squashed_0004_auto_20160611_1202'),
         ('kpi', '0014_discoverable_subscribable_collections'),
     ]
 
@@ -25,8 +24,7 @@ class Migration(migrations.Migration):
                 ('deployed_content', models.JSONField(null=True)),
                 ('_deployment_data', models.JSONField(default=False)),
                 ('deployed', models.BooleanField(default=False)),
-                ('_reversion_version', models.OneToOneField(null=True, on_delete=models.SET_NULL,
-                                                            to='reversion.Version')),
+                ('_reversion_version', models.IntegerField(null=True)),
                 ('asset', models.ForeignKey(related_name='asset_versions',
                                             to='kpi.Asset', on_delete=models.CASCADE)),
             ],
