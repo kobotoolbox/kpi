@@ -9,17 +9,40 @@ import kpi.models.abstract_models
 
 
 def manually_create_indexes_instructions(apps, schema_editor):
+    # Credit for non-blocking `NOT NULL` goes to Sergei Kornilov (melkij),
+    # via https://dba.stackexchange.com/a/268128
     print(
         """
         ⚠️ ATTENTION ⚠️
         Run the SQL queries below in PostgreSQL directly:
 
             ```sql
+            -- take a momentary exclusive lock
+            ALTER TABLE "logger_attachment"
+                ADD CONSTRAINT "logger_attachment_temporary_not_null"
+                    CHECK (
+                        "date_created" IS NOT NULL
+                        AND "date_modified" IS NOT NULL
+                        AND "uid" IS NOT NULL
+                        AND "user_id" IS NOT NULL
+                        AND "xform_id" IS NOT NULL
+                    )
+                NOT VALID;
+
+            -- do a slow seqential scan, but without any exclusive lock
+            -- concurrent sessions can still read/write
+            ALTER TABLE "logger_attachment" VALIDATE CONSTRAINT "logger_attachment_temporary_not_null";
+
+            -- constraint now proves there are no NULLs in these columns
+            -- schema changes take an exclusive lock, but only for a moment
             ALTER TABLE "logger_attachment" ALTER COLUMN "date_created" SET NOT NULL;
             ALTER TABLE "logger_attachment" ALTER COLUMN "date_modified" SET NOT NULL;
             ALTER TABLE "logger_attachment" ALTER COLUMN "uid" SET NOT NULL;
             ALTER TABLE "logger_attachment" ALTER COLUMN "user_id" SET NOT NULL;
             ALTER TABLE "logger_attachment" ALTER COLUMN "xform_id" SET NOT NULL;
+
+            -- not needed anymore
+            ALTER TABLE logger_attachment DROP CONSTRAINT logger_attachment_temporary_not_null;
             ```
         """
     )
