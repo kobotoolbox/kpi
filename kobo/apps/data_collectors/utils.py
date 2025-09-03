@@ -22,9 +22,11 @@ def set_data_collector_enketo_links(token: str, xform_ids: list[str]):
         new_id = ShortUUID().random(31)
         redis_client.hset(f'or:{server_url}', key=xform_id, value=new_id)
         # move the token-based url info under the new hash
-        enketo_url_info = redis_client.hgetall(f'id:{enketo_id}')
-        for key, value in enketo_url_info.items():
-            redis_client.hset(f'id:{new_id}', key=key, value=value)
+        try:
+            redis_client.rename(f'id:{enketo_id}', f'id:{new_id}')
+        except redis.exceptions.ResponseError:
+            logging.warning(f'Attempt to rename non-existent key id:{enketo_id}')
+            return
 
 
 def remove_data_collector_enketo_links(token:str, xform_ids: list[str] = None):
