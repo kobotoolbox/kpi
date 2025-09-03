@@ -26,6 +26,7 @@ from kpi.views.v2.attachment import AttachmentViewSet
 from kpi.views.v2.attachment_delete import AttachmentDeleteViewSet
 from kpi.views.v2.authorized_application_user import AuthorizedApplicationUserViewSet
 from kpi.views.v2.data import DataViewSet
+from kpi.views.v2.user_report_optimized_viewset import OptimizedUserReportsViewSet
 from kpi.views.v2.export_task import ExportTaskViewSet
 from kpi.views.v2.import_task import ImportTaskViewSet
 from kpi.views.v2.paired_data import PairedDataViewset
@@ -187,6 +188,11 @@ router_api_v2.register(r'service_usage',
                        ServiceUsageViewSet, basename='service-usage')
 router_api_v2.register(r'users', UserViewSet, basename='user-kpi')
 router_api_v2.register(r'user-reports', UserReportsViewSet, basename='user-reports')
+router_api_v2.register(
+    r'user-reports-enhanced',
+    OptimizedUserReportsViewSet,
+    basename='user-reports-enhanced'
+)
 router_api_v2.register(r'tags', TagViewSet, basename='tags')
 router_api_v2.register(
     r'terms-of-service', TermsOfServiceViewSet, basename='terms-of-service'

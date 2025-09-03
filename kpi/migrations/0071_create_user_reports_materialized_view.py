@@ -3,6 +3,38 @@ from django.db import migrations
 
 CREATE_MV_SQL = """
     CREATE MATERIALIZED VIEW user_reports_mv AS
+    WITH user_storage AS (
+        SELECT
+            xf.user_id,
+            COALESCE(SUM(xf.attachment_storage_bytes), 0) AS total_storage_bytes
+        FROM logger_xform xf
+        WHERE xf.pending_delete = false
+        GROUP BY xf.user_id
+    ),
+    user_submissions AS (
+        SELECT
+            dxsc.user_id,
+            COALESCE(SUM(dxsc.counter), 0) AS total_submissions_all_time
+        FROM logger_dailyxformsubmissioncounter dxsc
+        GROUP BY dxsc.user_id
+    ),
+    user_nlp_usage AS (
+        SELECT
+            nuc.user_id,
+            COALESCE(SUM(nuc.total_asr_seconds), 0) AS total_asr_seconds,
+            COALESCE(SUM(nuc.total_mt_characters), 0) AS total_mt_characters
+        FROM trackers_nlpusagecounter nuc
+        GROUP BY nuc.user_id
+    ),
+    user_assets AS (
+        SELECT
+            a.owner_id as user_id,
+            COUNT(*) as total_assets,
+            COUNT(*) FILTER (WHERE a._deployment_status = 'deployed') as deployed_assets
+        FROM kpi_asset a
+        WHERE a.pending_delete = false
+        GROUP BY a.owner_id
+    )
     SELECT
         row_number() OVER () AS id,
         ued.uid AS extra_details_uid,
@@ -61,6 +93,12 @@ CREATE_MV_SQL = """
             ELSE NULL
         END AS organizations,
         ued.data::text AS metadata,
+        COALESCE(us.total_storage_bytes, 0) AS storage_bytes_total,
+        COALESCE(usub.total_submissions_all_time, 0) AS submission_counts_all_time,
+        COALESCE(unl.total_asr_seconds, 0) AS nlp_usage_asr_seconds_total,
+        COALESCE(unl.total_mt_characters, 0) AS nlp_usage_mt_characters_total,
+        COALESCE(ua.total_assets, 0) AS asset_count,
+        COALESCE(ua.deployed_assets, 0) AS deployed_asset_count,
         COALESCE(
             jsonb_agg(
                 json_build_object(
@@ -182,6 +220,10 @@ CREATE_MV_SQL = """
     LEFT JOIN djstripe_customer cust ON sub.customer_id = cust.id
     LEFT JOIN hub_extrauserdetail ued ON au.id = ued.user_id
     LEFT JOIN socialaccount_socialaccount sa ON au.id = sa.user_id
+    LEFT JOIN user_storage us ON au.id = us.user_id
+    LEFT JOIN user_submissions usub ON au.id = usub.user_id
+    LEFT JOIN user_nlp_usage unl ON au.id = unl.user_id
+    LEFT JOIN user_assets ua ON au.id = ua.user_id
     GROUP BY
         au.id,
         au.username,
@@ -197,7 +239,13 @@ CREATE_MV_SQL = """
         org.id,
         org.name,
         au.date_joined,
-        au.last_login;
+        au.last_login,
+        us.total_storage_bytes,
+        usub.total_submissions_all_time,
+        unl.total_asr_seconds,
+        unl.total_mt_characters,
+        ua.total_assets,
+        ua.deployed_assets;
     """
 
 DROP_MV_SQL = """

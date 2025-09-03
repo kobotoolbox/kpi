@@ -22,6 +22,13 @@ class UserReports(models.Model):
     metadata = models.JSONField(null=True, blank=True)
     subscriptions = models.JSONField(default=list)
 
+    storage_bytes_total = models.BigIntegerField(default=0)
+    submission_counts_all_time = models.BigIntegerField(default=0)
+    nlp_usage_asr_seconds_total = models.BigIntegerField(default=0)
+    nlp_usage_mt_characters_total = models.BigIntegerField(default=0)
+    asset_count = models.IntegerField(default=0)
+    deployed_asset_count = models.IntegerField(default=0)
+
     class Meta:
         managed = False
         db_table = 'user_reports_mv'
