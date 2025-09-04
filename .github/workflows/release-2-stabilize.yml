@@ -74,27 +74,44 @@ jobs:
       CURRENT_BRANCH: ${{ needs.version.outputs.current_branch }}
       CURRENT_PATCH: ${{ needs.version.outputs.current_patch }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: "0"
+
+      # TODO: extract as separate workflow_call.
       - name: Generate a token to trigger a workflow from a workflow
         id: app-token
         uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ secrets.KOBO_BOT_APP_ID }}
           private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+      - name: Get GitHub App user id
+        id: get-user-id
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+      - name: Set git name and email for the bot
+        run: |
+          git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
+          git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: "0"
+
       - name: draft a changelog
         run: |
           set -xe
           npx git-cliff -u $(git log --format=format:%H origin/$PREV_BRANCH..origin/$CURRENT_BRANCH | tail -1)..origin/$CURRENT_BRANCH --tag $CURRENT_PATCH
+
       - name: commit the changelog to a dedicated branch
         run: |
           set -xe
+          git config user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
+          git config user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
           git checkout -B changelog/$CURRENT_PATCH
           git add -f CHANGELOG.md
           git commit -m "chore(releases): generate CHANGELOG.md for $CURRENT_PATCH"
           git push -f
-
 
 
   deploy-to-beta:
@@ -118,19 +135,14 @@ jobs:
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     steps:
+
+      # TODO: extract as separate workflow_call.
       - name: Generate a token to trigger a workflow from a workflow
         id: app-token
         uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ secrets.KOBO_BOT_APP_ID }}
           private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
-
-      - uses: actions/checkout@v4
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          fetch-depth: "0"
-
-      # https://github.com/actions/create-github-app-token?tab=readme-ov-file#configure-git-cli-for-an-apps-bot-user
       - name: Get GitHub App user id
         id: get-user-id
         env:
@@ -141,6 +153,11 @@ jobs:
         run: |
           git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
           git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: "0"
 
       - name: Merge
         env:
