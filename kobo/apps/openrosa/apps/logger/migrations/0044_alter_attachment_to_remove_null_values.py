@@ -10,7 +10,8 @@ import kpi.models.abstract_models
 
 def manually_create_indexes_instructions(apps, schema_editor):
     # Credit for non-blocking `NOT NULL` goes to Sergei Kornilov (melkij),
-    # via https://dba.stackexchange.com/a/268128
+    # via https://dba.stackexchange.com/a/268128. This technique works
+    # with PostgreSQL 12.0 and above
     print(
         """
         ⚠️ ATTENTION ⚠️
@@ -29,7 +30,7 @@ def manually_create_indexes_instructions(apps, schema_editor):
                     )
                 NOT VALID;
 
-            -- do a slow seqential scan, but without any exclusive lock
+            -- do a slow sequential scan, but without any exclusive lock
             -- concurrent sessions can still read/write
             ALTER TABLE "logger_attachment" VALIDATE CONSTRAINT "logger_attachment_temporary_not_null";
 
