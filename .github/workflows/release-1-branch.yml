@@ -23,7 +23,7 @@ jobs:
       id: week
       run: |
         set -xe
-        if (( $(date +%V) % 4 == 2 )); then
+        if (( $(date +%V) % 4 == 1 )); then
           echo "is_release_week=true" >> $GITHUB_OUTPUT
           echo $GITHUB_OUTPUT
         else
