@@ -154,7 +154,6 @@ INSTALLED_APPS = (
 MIDDLEWARE = [
     'kobo.apps.service_health.middleware.HealthCheckMiddleware',
     'kobo.apps.openrosa.koboform.redirect_middleware.ConditionalRedirects',
-    'kobo.apps.openrosa.apps.main.middleware.RevisionMiddleware',
     'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
