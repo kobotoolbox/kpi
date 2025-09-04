@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import contextlib
 import hashlib
-import logging
 import os
 import re
 import sys
@@ -901,6 +900,7 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
         Q(media_file_basename__endswith='.enc')
         | Q(media_file_basename='audit.csv')
         | Q(media_file_basename__regex=r'^\d{10,}\.(m4a|amr)$')
+        | Q(media_file_basename__regex=r'^background-audio-\d{8}_\d{6}\.webm$')
     ).order_by('-id')
 
     latest_attachments, remaining_attachments_ids = [], []
