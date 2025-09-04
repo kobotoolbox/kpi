@@ -2,6 +2,7 @@ name: 'CD: stabilize'
 
 
 on:
+  create:
   push:
     branches: [ 'release/**' ]
 
@@ -10,6 +11,7 @@ jobs:
 
 
   changes:
+    if: ${{ startsWith(github.ref, 'refs/heads/release/') }}
     runs-on: ubuntu-24.04
     permissions: { pull-requests: read }
     steps:
@@ -59,12 +61,13 @@ jobs:
 
   version:
     needs:
+      - changes
       - darker
       - biome
       - openapi
       - pytest
       - npm-test
-    if: ${{ !cancelled() && !failure() }}
+    if: ${{ !cancelled() && !failure() && needs.changes.result == 'success' }}
     secrets: inherit
     uses: './.github/workflows/find-releases.yml'
 
@@ -72,7 +75,7 @@ jobs:
   changelog:
     needs:
       - version
-    if: ${{ !cancelled() && !failure() }}
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     steps:
     - name: post to Zulip Linear updated draft of changelog
@@ -84,7 +87,7 @@ jobs:
   deploy-to-beta:
     needs:
       - version
-    if: ${{ !cancelled() && !failure() }}
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
@@ -99,7 +102,7 @@ jobs:
     name: Merge forward
     needs:
       - version
-    if: ${{ !cancelled() && !failure() }}
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     steps:
       - name: Generate a token to trigger a workflow from a workflow
@@ -143,7 +146,7 @@ jobs:
       - changelog
       - deploy-to-beta
       - merge-forward
-    if: ${{ !cancelled() && !failure() }}
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
