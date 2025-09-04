@@ -1,8 +1,9 @@
 import { LoadingOverlay } from '@mantine/core'
 import Select from '#/components/common/Select'
-import { usePatchMemberInvite } from './membersInviteQuery'
+import { inviteGuidFromUrl } from './common'
 import { usePatchOrganizationMember } from './membersQuery'
-import { OrganizationUserRole } from './organizationQuery'
+import { OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
+import useOrganizationsInvitesPartialUpdate from './useOrganizationsInvitesPartialUpdate'
 
 interface MemberRoleSelectorProps {
   username: string
@@ -15,23 +16,36 @@ interface MemberRoleSelectorProps {
 }
 
 export default function MemberRoleSelector({ username, role, inviteUrl }: MemberRoleSelectorProps) {
+  const orgQuery = useOrganizationQuery()
+  const organizationId = orgQuery.data?.id
+
   const patchMember = usePatchOrganizationMember(username)
-  const patchInvite = usePatchMemberInvite(inviteUrl)
+
+  const orgInvitesPatchMutation = useOrganizationsInvitesPartialUpdate({
+    request: {
+      errorMessageDisplay: t('There was an error updating this invitation.'),
+    },
+  })
 
   const handleRoleChange = (newRole: string | null) => {
-    if (newRole) {
-      const role = newRole as OrganizationUserRole
-      if (inviteUrl) {
-        patchInvite.mutateAsync({ role })
-      } else {
-        patchMember.mutateAsync({ role })
-      }
+    if (!organizationId) return
+    if (!newRole) return
+    const role = newRole as OrganizationUserRole
+
+    if (inviteUrl) {
+      orgInvitesPatchMutation.mutateAsync({
+        guid: inviteGuidFromUrl(inviteUrl),
+        organizationId,
+        data: { role },
+      })
+    } else {
+      patchMember.mutateAsync({ role })
     }
   }
 
   return (
     <>
-      <LoadingOverlay visible={patchMember.isPending || patchInvite.isPending} />
+      <LoadingOverlay visible={patchMember.isPending || orgInvitesPatchMutation.isPending} />
       <Select
         size='sm'
         data={[
