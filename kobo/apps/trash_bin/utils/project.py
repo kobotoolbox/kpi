@@ -64,6 +64,11 @@ def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.As
     try:
         asset.deployment.xform
     except (MissingXFormException, InvalidXFormException):
+        # Submissions are lingering in MongoDB but XForm has been
+        # already deleted
+        xform_id_string = asset.deployment.backend_response['id_string']
+        xform_uuid = asset.deployment.backend_response['uuid']
+
         # FIXME: Yes, we want to remove these stranded submissions, but:
         # 1. `XForm.id_string` is not unique (it's unique only with `XForm.user`)
         # 2. We haven't ensured that indexes exist for this query, and so huge
@@ -71,15 +76,15 @@ def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.As
         #     the database servers
         # Just fail for now as a hotfix until we figure out what to do.
         # Discussion: https://chat.kobotoolbox.org/#narrow/stream/4-Kobo-Dev/topic/Project.20deletion.20hammering.20MongoDB/near/688972
-        logging.error(f'TrashBin: not attempting to delete MongoDB orphans')
+        logging.error(
+            'TrashBin: not attempting to delete MongoDB orphans for asset'
+            f' {asset.uid}, xform_id_string {xform_id_string}, formhub/uuid'
+            f' {xform_uuid}'
+        )
         raise
 
         # Below code is dead for now!
 
-        # Submissions are lingering in MongoDB but XForm has been
-        # already deleted
-        xform_id_string = asset.deployment.backend_response['id_string']
-        xform_uuid = asset.deployment.backend_response['uuid']
         mongo_query = {
             '$or': [
                 {'_xform_id_string': xform_id_string},
