@@ -77,11 +77,32 @@ jobs:
       - version
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
+    env:
+      PREV_BRANCH: ${{ needs.version.outputs.prev_branch }}
+      CURRENT_BRANCH: ${{ needs.version.outputs.current_branch }}
+      CURRENT_PATCH: ${{ needs.version.outputs.current_patch }}
     steps:
-    - name: post to Zulip Linear updated draft of changelog
-      run: |
-        echo 'TODO, for now generate changelog manually'
-        echo 'TODO, for now send to Zulip manually'
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: "0"
+      - name: Generate a token to trigger a workflow from a workflow
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+          private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+      - name: draft a changelog
+        run: |
+          set -xe
+          npx git-cliff -u $(git log --format=format:%H origin/$PREV_BRANCH..origin/$CURRENT_BRANCH | tail -1)..origin/$CURRENT_BRANCH --tag $CURRENT_PATCH
+      - name: commit the changelog to a dedicated branch
+        run: |
+          set -xe
+          git checkout -B changelog/$CURRENT_PATCH
+          git add -f CHANGELOG.md
+          git commit -m "chore(releases): generate CHANGELOG.md for $CURRENT_PATCH"
+          git push -f
+
 
 
   deploy-to-beta:
