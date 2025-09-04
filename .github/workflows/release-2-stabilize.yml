@@ -88,7 +88,7 @@ jobs:
         run: |
           set -xe
           git checkout -B changelog/$CURRENT_PATCH
-          git add CHANGELOG.md
+          git add -f CHANGELOG.md
           git commit -m "chore(releases): generate CHANGELOG.md for $CURRENT_PATCH"
           git push -f
 

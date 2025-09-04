@@ -221,6 +221,7 @@
     "watch": "npm run hint watch && webpack-dev-server --config webpack/dev.server.js",
     "watch:storybook:": "storybook dev -p 6006 --no-open",
     "ci": "npm run lint && SKIP_TS_CHECK=true npm run build && npm run test",
+    "changelog": "TMPFILE=$(mktemp) && GITHUB_OUTPUT=$TMPFILE ./scripts/find_releases.sh && . $TMPFILE && npx git-cliff -u $(git log --format=format:%H origin/$prev_branch..origin/$current_branch | tail -1)..origin/$CURRENT_BRANCH --tag $current_patch",
     "test": "npm run test:unit && npm run test:storybook",
     "test:storybook": "npm run build:storybook-with-playwright && npx concurrently -k -s first -c \"magenta,blue\" npm:storybook:launch npm:test:storybook:launch",
     "test:storybook:launch": "npx wait-on tcp:6006 && test-storybook --testTimeout=30000 --maxWorkers=2 --browsers chromium firefox webkit",

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 # Usage examples:
-#    ./scripts/find_releases.sh "release/2.025.29"
-#    ./scripts/find_releases.sh # defaults to current branch (git rev-parse --abbrev-ref HEAD)
+#    ./scripts/find_releases.sh                     # defaults to current branch (git rev-parse --abbrev-ref HEAD)
+#    ./scripts/find_releases.sh "release/2.025.29"  # explicit parameter
+#    npm run changelog                              # see how this script is used to generate a changelog.
 
-
-set -eu
+set -euo pipefail
 
 # For debugging, be able to run locally outside of GHA context.
 if [ -z "${GITHUB_OUTPUT+x}" ]; then
@@ -32,6 +32,12 @@ fi
 echo "current_patch=${current_patch}" >> $GITHUB_OUTPUT
 echo "Current release branch: '${current_branch}'"
 echo "Current patch version: '${current_patch}'"
+
+if [[ $current_branch != "release/"* ]]; then
+    echo "ERROR: Please checkout a release branch instead."
+    exit 1
+fi
+
 
 # Find previous version. Note: prev_patch is the patch of minor that's already released, empty if minor is not released.
 
