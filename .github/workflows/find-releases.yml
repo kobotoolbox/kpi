@@ -11,6 +11,8 @@ on:
         value: ${{ jobs.version.outputs.current_branch }}
       current_minor:
         value: ${{ jobs.version.outputs.current_minor }}
+      current_patch:
+        value: ${{ jobs.version.outputs.current_patch }}
       prev_branch:
         value: ${{ jobs.version.outputs.prev_branch }}
       prev_minor:
@@ -30,6 +32,7 @@ jobs:
     outputs:
       current_branch: ${{ steps.version.outputs.current_branch }}
       current_minor: ${{ steps.version.outputs.current_minor }}
+      current_patch: ${{ steps.version.outputs.current_patch }}
       prev_branch: ${{ steps.version.outputs.prev_branch }}
       prev_minor: ${{ steps.version.outputs.prev_minor }}
       prev_patch: ${{ steps.version.outputs.prev_patch }}
