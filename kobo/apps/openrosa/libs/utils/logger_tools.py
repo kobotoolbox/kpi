@@ -900,8 +900,8 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     queryset = Attachment.objects.filter(instance=instance).exclude(
         Q(media_file_basename__endswith='.enc')
         | Q(media_file_basename='audit.csv')
-        | Q(media_file_basename__regex=r'^\d{10,}\.(m4a|amr)$')
-        | Q(media_file_basename__regex=r'^background-audio-\d{8}_\d{6}\.webm$')
+        | Q(media_file_basename__regex=r'^\d{10,}\.(m4a|amr)$') # background audio file by Collect
+        | Q(media_file_basename__regex=r'^background-audio-\d{8}_\d{6}\.webm$') # background audio file by Enketo
     ).order_by('-id')
 
     latest_attachments, remaining_attachments_ids = [], []
