@@ -119,7 +119,7 @@ jobs:
           git checkout -B changelog/$CURRENT_PATCH
           git add -f CHANGELOG.md
           git commit -m "chore(releases): generate CHANGELOG.md for $CURRENT_PATCH"
-          git push -f
+          git push -f --set-upstream origin changelog/$CURRENT_PATCH
 
 
   deploy-to-beta:
