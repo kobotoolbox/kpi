@@ -1382,7 +1382,6 @@ CELERY_BEAT_SCHEDULE = {
         'options': {'queue': 'kpi_low_priority_queue'},
     },
 }
-}
 
 if STRIPE_ENABLED:
     # Schedule to run once per celery timeout
