@@ -25,7 +25,7 @@ current_patch="$(git tag -l $current_minor* | tail -1)"
 if [[ $current_patch == "" ]]; then
     current_patch=$current_minor
 elif [[ $current_patch == $current_minor ]]; then
-    current_patch=$current_minor
+    current_patch="${current_minor}a"
 else
     current_patch="$(echo ${current_patch%?})$(echo -n "$current_patch" | tail -c1 | tr "0-9a-z" "1-9a-z_")"
 fi
