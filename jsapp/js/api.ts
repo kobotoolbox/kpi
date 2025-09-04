@@ -204,7 +204,7 @@ export const fetchDataRaw = async <T>(
   }
 
   if (options?.includeHeaders) {
-    return {
+    responseJson = {
       headers: response.headers,
       ...responseJson,
     } as { headers: Headers } & T
