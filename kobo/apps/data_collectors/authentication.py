@@ -13,8 +13,9 @@ class DataCollectorUser(AnonymousUser):
         # the user has been authenticated in permissions
         return True
 
-    assets = []
-    name = None
+    def __init__(self, name=None, assets=None):
+        self.name = name
+        self.assets = assets
 
     def has_perm(self, perm, obj=...):
         if perm != PERM_ADD_SUBMISSIONS:
