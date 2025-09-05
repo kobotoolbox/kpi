@@ -35,7 +35,7 @@ jobs:
           role-duration-seconds: 2200
           role-session-name: ghithub_actions_${{ github.run_id }}
 
-      - uses: alexellis/arkade-get@master
+      - uses: alexellis/arkade-get@master # https://github.com/alexellis/arkade-get?tab=readme-ov-file#why-do-we-use-use-master
         with:
           kubectl: latest
           helm: latest
