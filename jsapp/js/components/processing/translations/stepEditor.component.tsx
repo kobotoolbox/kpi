@@ -65,7 +65,9 @@ export default function StepEditor(props: StepEditorProps) {
             label={t('Save')}
             onClick={saveDraft}
             isPending={singleProcessingStore.data.isFetchingData}
-            isDisabled={!singleProcessingStore.hasUnsavedTranslationDraftValue() || !hasChangeSubPermissionToCurrentAsset()}
+            isDisabled={
+              !singleProcessingStore.hasUnsavedTranslationDraftValue() || !hasChangeSubPermissionToCurrentAsset()
+            }
           />
         </div>
       </header>
