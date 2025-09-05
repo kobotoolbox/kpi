@@ -21,6 +21,7 @@ export enum AuditActions {
   'disconnect-project' = 'disconnect-project',
   'enable-sharing' = 'enable-sharing',
   export = 'export',
+  'in-trash' = 'in-trash',
   'modify-imported-fields' = 'modify-imported-fields',
   'modify-service' = 'modify-service',
   'modify-sharing' = 'modify-sharing',
@@ -119,6 +120,11 @@ const _AUDIT_ACTION_TYPES: Array<Omit<AuditActionDefinition, 'order'>> = [
     name: AuditActions['delete-media'],
     label: t('remove media attachment'),
     message: t('##username## removed a media attachment'),
+  },
+  {
+    name: AuditActions['in-trash'],
+    label: t('remove attachment'),
+    message: t('##username## removed an attachment'),
   },
   {
     name: AuditActions['modify-user-permissions'],

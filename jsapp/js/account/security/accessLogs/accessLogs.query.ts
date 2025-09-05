@@ -39,7 +39,7 @@ export async function getAccessLogs(limit: number, offset: number) {
  * @returns {Promise<void>} A promise that starts the export.
  */
 export const startAccessLogsExport = () =>
-  fetchPost(endpoints.ACCESS_LOGS_EXPORT_URL, { notifyAboutError: false }).catch((error) => {
+  fetchPost(endpoints.ACCESS_LOGS_EXPORT_URL, {}, { notifyAboutError: false }).catch((error) => {
     const failResponse: FailResponse = {
       status: 500,
       statusText: error.message || t('An error occurred while exporting the logs'),

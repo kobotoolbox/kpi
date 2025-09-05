@@ -1,0 +1,49 @@
+name: Find previous and next release branches
+
+on:
+  workflow_call:
+    inputs:
+      current_branch:
+        type: string
+        required: false
+    outputs:
+      current_branch:
+        value: ${{ jobs.version.outputs.current_branch }}
+      current_minor:
+        value: ${{ jobs.version.outputs.current_minor }}
+      current_patch:
+        value: ${{ jobs.version.outputs.current_patch }}
+      prev_branch:
+        value: ${{ jobs.version.outputs.prev_branch }}
+      prev_minor:
+        value: ${{ jobs.version.outputs.prev_minor }}
+      prev_patch:
+        value: ${{ jobs.version.outputs.prev_patch }}
+      prev_released:
+        value: ${{ jobs.version.outputs.prev_released }}
+      next_branch:
+        value: ${{ jobs.version.outputs.next_branch }}
+      next_minor:
+        value: ${{ jobs.version.outputs.next_minor }}
+
+jobs:
+  version:
+    runs-on: ubuntu-24.04
+    outputs:
+      current_branch: ${{ steps.version.outputs.current_branch }}
+      current_minor: ${{ steps.version.outputs.current_minor }}
+      current_patch: ${{ steps.version.outputs.current_patch }}
+      prev_branch: ${{ steps.version.outputs.prev_branch }}
+      prev_minor: ${{ steps.version.outputs.prev_minor }}
+      prev_patch: ${{ steps.version.outputs.prev_patch }}
+      prev_released: ${{ steps.version.outputs.prev_released }}
+      next_branch: ${{ steps.version.outputs.next_branch }}
+      next_minor: ${{ steps.version.outputs.next_minor }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: "0"
+    - name: Find next release tag and branch
+      id: version
+      run: |
+        ./scripts/find_releases.sh "${{ inputs.current_branch }}"

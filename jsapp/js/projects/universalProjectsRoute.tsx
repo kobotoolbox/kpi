@@ -123,7 +123,7 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
           <OrgInviteAcceptedBanner username={session.currentLoggedAccount.username} organization={orgQuery.data} />
         )}
 
-        <LimitNotifications useModal />
+        <LimitNotifications pageCanShowModal />
 
         <header className={styles.header}>
           <ViewSwitcher selectedViewUid={props.viewUid} />

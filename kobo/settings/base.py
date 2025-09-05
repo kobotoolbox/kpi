@@ -154,7 +154,6 @@ INSTALLED_APPS = (
 MIDDLEWARE = [
     'kobo.apps.service_health.middleware.HealthCheckMiddleware',
     'kobo.apps.openrosa.koboform.redirect_middleware.ConditionalRedirects',
-    'kobo.apps.openrosa.apps.main.middleware.RevisionMiddleware',
     'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -424,6 +423,11 @@ CONSTANCE_CONFIG = {
     'IMPORT_TASK_DAYS_RETENTION': (
         90,
         'Number of days to keep import tasks',
+        'positive_int',
+    ),
+    'SUBMISSION_HISTORY_GRACE_PERIOD': (
+        180,
+        'Number of days to keep submission history',
         'positive_int',
     ),
     'FREE_TIER_THRESHOLDS': (
@@ -783,6 +787,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
     'Regular maintenance settings': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
         'IMPORT_TASK_DAYS_RETENTION',
+        'SUBMISSION_HISTORY_GRACE_PERIOD',
     ),
     'Tier settings': (
         'FREE_TIER_THRESHOLDS',
@@ -1294,6 +1299,11 @@ CELERY_BEAT_SCHEDULE = {
     'delete-daily-xform-submissions-counter': {
         'task': 'kobo.apps.openrosa.apps.logger.tasks.delete_daily_counters',
         'schedule': crontab(hour=0, minute=0),
+        'options': {'queue': 'kobocat_queue'},
+    },
+    'delete-expired-instance-history-records': {
+        'task': 'kobo.apps.openrosa.apps.logger.tasks.delete_expired_instance_history_records',  # noqa
+        'schedule': crontab(hour=1, minute=0),
         'options': {'queue': 'kobocat_queue'}
     },
     # Schedule every 30 minutes
