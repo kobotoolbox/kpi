@@ -253,6 +253,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             .values('pk', 'attachment_basename', 'attachment_uid')
         )
 
+        # Add asset info for project history logging
+        for att in attachments:
+            att['asset_id'] = self.asset.id
+            att['asset_uid'] = self.asset.uid
+
         count = len(attachment_uids)
         if count != len(attachments):
             raise AttachmentUidMismatchException

@@ -2,6 +2,7 @@ name: 'CD: stabilize'
 
 
 on:
+  create:
   push:
     branches: [ 'release/**' ]
 
@@ -10,6 +11,7 @@ jobs:
 
 
   changes:
+    if: ${{ startsWith(github.ref, 'refs/heads/release/') }}
     runs-on: ubuntu-24.04
     permissions: { pull-requests: read }
     steps:
@@ -59,12 +61,13 @@ jobs:
 
   version:
     needs:
+      - changes
       - darker
       - biome
       - openapi
       - pytest
       - npm-test
-    if: ${{ !cancelled() && !failure() }}
+    if: ${{ !cancelled() && !failure() && needs.changes.result == 'success' }}
     secrets: inherit
     uses: './.github/workflows/find-releases.yml'
 
@@ -72,19 +75,57 @@ jobs:
   changelog:
     needs:
       - version
-    if: ${{ !cancelled() && !failure() }}
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
+    env:
+      PREV_BRANCH: ${{ needs.version.outputs.prev_branch }}
+      CURRENT_BRANCH: ${{ needs.version.outputs.current_branch }}
+      CURRENT_PATCH: ${{ needs.version.outputs.current_patch }}
     steps:
-    - name: post to Zulip Linear updated draft of changelog
-      run: |
-        echo 'TODO, for now generate changelog manually'
-        echo 'TODO, for now send to Zulip manually'
+
+      # TODO: extract as separate workflow_call.
+      - name: Generate a token to trigger a workflow from a workflow
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+          private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+      - name: Get GitHub App user id
+        id: get-user-id
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+      - name: Set git name and email for the bot
+        run: |
+          git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
+          git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: "0"
+
+      - name: draft a changelog
+        run: |
+          set -xe
+          npx git-cliff -u $(git log --format=format:%H origin/$PREV_BRANCH..origin/$CURRENT_BRANCH | tail -1)..origin/$CURRENT_BRANCH --tag $CURRENT_PATCH
+
+      - name: commit the changelog to a dedicated branch
+        run: |
+          set -xe
+          git config user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
+          git config user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
+          git checkout -B changelog/$CURRENT_PATCH
+          git add -f CHANGELOG.md
+          git commit -m "chore(releases): generate CHANGELOG.md for $CURRENT_PATCH"
+          git push -f --set-upstream origin changelog/$CURRENT_PATCH
 
 
   deploy-to-beta:
     needs:
       - version
-    if: ${{ !cancelled() && !failure() }}
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
@@ -99,22 +140,17 @@ jobs:
     name: Merge forward
     needs:
       - version
-    if: ${{ !cancelled() && !failure() }}
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     steps:
+
+      # TODO: extract as separate workflow_call.
       - name: Generate a token to trigger a workflow from a workflow
         id: app-token
         uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ secrets.KOBO_BOT_APP_ID }}
           private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
-
-      - uses: actions/checkout@v4
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          fetch-depth: "0"
-
-      # https://github.com/actions/create-github-app-token?tab=readme-ov-file#configure-git-cli-for-an-apps-bot-user
       - name: Get GitHub App user id
         id: get-user-id
         env:
@@ -125,6 +161,11 @@ jobs:
         run: |
           git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
           git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: "0"
 
       - name: Merge
         env:
@@ -143,7 +184,7 @@ jobs:
       - changelog
       - deploy-to-beta
       - merge-forward
-    if: ${{ !cancelled() && !failure() }}
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
