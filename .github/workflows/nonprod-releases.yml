@@ -1,0 +1,99 @@
+
+name: Non-prod release
+
+on:
+  #TODO: Trigger from testing action after tests pass
+  push:
+    branches:
+      - 'feature/du'
+      - 'feature/tri'
+      - 'feature/unu'
+      - 'public-beta'
+      - 'main'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    env:
+       CI_REGISTRY_IMAGE: ghcr.io/kobotoolbox/kpi
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.3.1
+        with:
+          aws-access-key-id: ${{ secrets.GHA_ALL_REPOS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.GHA_ALL_REPOS_SECRET_KEY }}
+          aws-region: us-east-1
+          role-to-assume: "arn:aws:iam::917503078660:role/gha_all_repos"
+          role-duration-seconds: 2200
+          role-session-name: ghithub_actions_${{ github.run_id }}
+
+      - uses: alexellis/arkade-get@master # https://github.com/alexellis/arkade-get?tab=readme-ov-file#why-do-we-use-use-master
+        with:
+          kubectl: latest
+          helm: latest
+
+      - name: Update kubeconfig
+        run: |
+         aws eks --region us-east-1 update-kubeconfig --name kobo
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: build image
+        run: |
+          CI_COMMIT_REF_NAME_SANITIZED=${GITHUB_REF_NAME/\#/-}
+          CI_COMMIT_REF_NAME_SANITIZED=${GITHUB_REF_NAME//\//-}
+          docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME_SANITIZED || true
+          docker build --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME_SANITIZED --tag $CI_REGISTRY_IMAGE:$GITHUB_SHA --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME_SANITIZED .
+          docker push $CI_REGISTRY_IMAGE:$GITHUB_SHA
+          docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME_SANITIZED
+
+      - name: Deploy to beta
+        if: github.ref_name == 'public-beta'
+        run: |
+          helm -n kobo-dev upgrade beta oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
+
+      - name: Deploy to feature branch
+        if: startsWith(github.ref_name, 'feature/')
+        run: |
+          BRANCH_TITLE=${GITHUB_REF_NAME#feature/}
+          helm -n kobo-dev upgrade --install $BRANCH_TITLE oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
+
+      - name: Deploy main
+        if:  github.ref_name == 'main'
+        run: |
+          helm -n kobo-dev upgrade staging-main oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.image.tag=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
+          helm -n kobo-dev upgrade staging-nobill oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.image.tag=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
+
+  notify-success:
+    needs:
+      - deploy
+    if: ${{ !cancelled() && !failure() }}
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "deployments to ${{ github.ref_name }}"
+      content: ":check: Successfully deployed! Latest commit: [\"$COMMIT_TITLE\"](${{ github.event.compare }})"
+
+  notify-failure:
+    needs:
+      - deploy
+    if: ${{ !cancelled() && failure() }}
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "deployments to ${{ github.ref_name }}"
+      content: ":warning: @*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `${{ github.ref_name }}` at [\"$COMMIT_TITLE\"](${{ github.event.compare }})"
