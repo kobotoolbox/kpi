@@ -11,17 +11,25 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    container:
+      image: node:20
     permissions:
       contents: read
       id-token: write
       pages: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
 
       - name: Build Storybook
         run: |
           apt-get update && apt-get install python-is-python3
           npm i --force
           npx storybook build --output-dir public
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 # or specific "vX.X.X" version tag for this action
