@@ -1,57 +1,9 @@
 stages:
-  - build
   - test
   - deploy
 
 include:
   - template: SAST.gitlab-ci.yml
-
-build:
-  image: docker
-  services:
-    - docker:dind
-  before_script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
-  script:
-    - CI_COMMIT_REF_NAME_SANITIZED=${CI_COMMIT_REF_NAME/\#/-}
-    - CI_COMMIT_REF_NAME_SANITIZED=${CI_COMMIT_REF_NAME_SANITIZED//\//-}
-    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME_SANITIZED || true
-    - docker build --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME_SANITIZED --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME_SANITIZED .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME_SANITIZED
-deploy-beta:
-  stage: deploy
-  image:
-    name: alpine/helm
-    entrypoint: [""]
-  script:
-    - helm -n kobo-dev upgrade beta oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${CI_COMMIT_SHORT_SHA} --reuse-values
-  environment:
-    name: beta
-    url: https://kf.beta.kobotoolbox.org
-  rules:
-    - if: $CI_COMMIT_BRANCH == "public-beta"
-
-
-deploy-staging:
-  stage: deploy
-  image:
-    name: alpine/helm
-    entrypoint: [""]
-  script:
-    - BRANCH_TITLE=${CI_COMMIT_BRANCH#feature/}
-    - |
-      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
-        helm -n kobo-dev upgrade staging-main oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${CI_COMMIT_SHORT_SHA} --reuse-values
-        helm -n kobo-dev upgrade staging-nobill oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${CI_COMMIT_SHORT_SHA} --reuse-values
-      elif [ "$CI_COMMIT_BRANCH" = "feature/api-documentation" ]; then
-        helm -n kobo-dev upgrade --install docs oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${CI_COMMIT_SHORT_SHA} --reuse-values
-      else
-        helm -n kobo-dev upgrade --install $BRANCH_TITLE oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${CI_COMMIT_SHORT_SHA} --reuse-values
-      fi
-  rules:
-    - if: $CI_COMMIT_BRANCH =~ /^(feature\/)/ && $CI_COMMIT_REF_PROTECTED
-    - if: $CI_COMMIT_BRANCH == "main"
 
 pages:
   stage: deploy
