@@ -1,0 +1,27 @@
+
+name: Deploy storybook
+
+on:
+  push:
+    branches:
+      - 'storybook'
+      - 'main'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      pages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+
+      - name: Build Storybook
+        run: |
+          apt-get update && apt-get install python-is-python3
+          npm i --force
+          npx storybook build --output-dir public
