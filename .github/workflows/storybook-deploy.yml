@@ -6,11 +6,6 @@ on:
     branches:
       - 'storybook'
       - 'main'
-  pull_request:
-    branches:
-      - 'storybook'
-      - 'main'
-      - 'scott/gha_storybook'
   workflow_dispatch:
 
 jobs:
