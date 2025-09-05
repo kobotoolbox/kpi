@@ -126,7 +126,7 @@ urlpatterns = [
         name='form-list',
     ),
     re_path(
-        r'^(?P<username>\w+)/formList$',
+        r'^((?P<username>\w+)|key/(?P<token>\w+))/formList$',
         XFormListApi.as_view({'get': 'form_list_anonymous'}),
         name='form-list',
     ),
@@ -136,17 +136,17 @@ urlpatterns = [
         name='manifest-url',
     ),
     re_path(
-        r'^(?P<username>\w+)/xformsManifest/(?P<pk>[\d+^/]+)$',
+        r'^((?P<username>\w+)|key/(?P<token>\w+))/xformsManifest/(?P<pk>[\d+^/]+)$',
         XFormListApi.as_view({'get': 'manifest_anonymous'}),
         name='manifest-url',
     ),
     re_path(
-        r'^(?P<username>\w+)/xformsMedia/(?P<pk>[\d+^/]+)' r'/(?P<metadata>[\d+^/.]+)$',
+        r'^((?P<username>\w+)|key/(?P<token>\w+))/xformsMedia/(?P<pk>[\d+^/]+)' r'/(?P<metadata>[\d+^/.]+)$',
         XFormListApi.as_view({'get': 'media'}),
         name='xform-media',
     ),
     re_path(
-        r'^(?P<username>\w+)/xformsMedia/(?P<pk>[\d+^/]+)'
+        r'^((?P<username>\w+)|key/(?P<token>\w+))/xformsMedia/(?P<pk>[\d+^/]+)'
         r'/(?P<metadata>[\d+^/.]+)\.(?P<format>[a-z0-9]+)$',
         XFormListApi.as_view({'get': 'media'}),
         name='xform-media',
