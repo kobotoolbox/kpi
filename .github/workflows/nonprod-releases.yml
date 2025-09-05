@@ -66,15 +66,10 @@ jobs:
           helm -n kobo-dev upgrade beta oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
 
       - name: Deploy to feature branch
-        if: startsWith(github.ref_name, 'feature/') && github.ref_name != 'feature/api-documentation'
+        if: startsWith(github.ref_name, 'feature/')
         run: |
           BRANCH_TITLE=${GITHUB_REF_NAME#feature/}
           helm -n kobo-dev upgrade --install $BRANCH_TITLE oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
-
-      - name: Deploy api docs
-        if:  github.ref_name == 'feature/api-documentation'
-        run: |
-          helm -n kobo-dev upgrade --install docs oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
 
       - name: Deploy main
         if:  github.ref_name == 'main'
