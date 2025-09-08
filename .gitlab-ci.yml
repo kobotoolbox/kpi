@@ -1,19 +1,5 @@
 stages:
   - test
-  - deploy
 
 include:
   - template: SAST.gitlab-ci.yml
-
-pages:
-  stage: deploy
-  image: node:20
-  script:
-    - apt-get update && apt-get install python-is-python3
-    - npm i --force
-    - npx storybook build --output-dir public
-  artifacts:
-    paths:
-      - public
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "storybook"
