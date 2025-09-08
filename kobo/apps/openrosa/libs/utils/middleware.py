@@ -16,6 +16,7 @@ from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import gettext as t
 from django.utils.translation.trans_real import parse_accept_lang_header
 
+from kobo.apps.data_collectors.authentication import DataCollectorUser
 from kobo.apps.openrosa.libs.http import JsonResponseForbidden, XMLResponseForbidden
 
 # Define views (and viewsets) below.
@@ -80,7 +81,7 @@ class RestrictedAccessMiddleware(MiddlewareMixin):
         self._skipped_view = False
 
     def process_response(self, request, response):
-        if not request.user.is_authenticated:
+        if not request.user.is_authenticated or isinstance(request.user, DataCollectorUser):
             return response
 
         if self._skipped_view:
