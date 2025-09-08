@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, authentication_classes
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -54,8 +54,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         # Respect DEFAULT_AUTHENTICATION_CLASSES, but also ensure that the
         # previously hard-coded authentication classes are included first
         authentication_classes = [
-            DigestAuthentication,
-            DataCollectorTokenAuthentication
+            DigestAuthentication
         ]
         self.authentication_classes = authentication_classes + [
             auth_class
@@ -159,7 +158,8 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         tags=['OpenRosa Form List'],
         operation_id='form_list_anonymous',
     )
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], authentication_classes=[DataCollectorTokenAuthentication
+])
     def form_list_anonymous(self, request, *args, **kwargs):
         """
         Publish the OpenRosa formList via a custom action instead of relying on the
@@ -262,7 +262,8 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         tags=['OpenRosa Form Manifest'],
         operation_id='manifest_anonymous',
     )
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=['GET'], authentication_classes=[DataCollectorTokenAuthentication
+])
     def manifest_anonymous(self, request, *args, **kwargs):
         return self.manifest(request, *args, **kwargs)
 
