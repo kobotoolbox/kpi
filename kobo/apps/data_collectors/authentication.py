@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AnonymousUser
 from rest_framework.authentication import BaseAuthentication
+from rest_framework.exceptions import AuthenticationFailed
 
 from kobo.apps.data_collectors.models import DataCollector
 from kobo.apps.openrosa.apps.logger.models import XForm
@@ -12,6 +13,10 @@ class DataCollectorUser(AnonymousUser):
         # Always return True. This is a way to tell if
         # the user has been authenticated in permissions
         return True
+
+    @property
+    def is_anonymous(self):
+        return False
 
     def __init__(self, name=None, assets=None):
         self.name = name
@@ -44,4 +49,4 @@ class DataCollectorTokenAuthentication(BaseAuthentication):
                 server_user.name = collector.name
             return server_user, key
         except DataCollector.DoesNotExist:
-            raise DataCollector.AuthenticationFailed('Invalid token.')
+            raise AuthenticationFailed('Invalid token.')

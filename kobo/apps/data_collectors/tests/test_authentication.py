@@ -1,4 +1,5 @@
 from django.test import RequestFactory, TestCase, override_settings
+from rest_framework.exceptions import AuthenticationFailed
 
 from kobo.apps.data_collectors.authentication import (
     DataCollectorTokenAuthentication,
@@ -50,3 +51,16 @@ class TestDataCollectorAuthentication(TestCase):
         assert not user.has_perm(PERM_MANAGE_ASSET, xform)
         # no permission for an asset not in the asset list
         assert not user.has_perm(PERM_ADD_SUBMISSIONS, second_asset.deployment.xform)
+
+    def test_bad_data_collector_token(self):
+        request = RequestFactory().get('/')
+        setattr(request, 'parser_context', {'kwargs': {'token': 'this_is_a_bad_token'}})
+        data_collector_group = DataCollectorGroup.objects.create(
+            name='DCG', owner=self.someuser
+        )
+        data_collector_group.assets.add(self.asset)
+        DataCollector.objects.create(
+            name='DC_a', token='token_a', group=data_collector_group
+        )
+        with self.assertRaises(AuthenticationFailed):
+            self.authenticator.authenticate(request)
