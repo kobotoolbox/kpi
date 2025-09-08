@@ -869,6 +869,34 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         response = self.client.get(reports_url)
         assert response.status_code == status.HTTP_200_OK
 
+    def test_shared_user_can_modify_advanced_features(self):
+        creation_response = self.create_asset()
+        asset_detail_url = creation_response.data['url']
+        asset = Asset.objects.get(uid=creation_response.data['uid'])
+        asset.assign_perm(self.anotheruser, PERM_VIEW_ASSET)
+        self.client.force_login(self.anotheruser)
+        data = {
+            'advanced_features': {
+                'transcript': {
+                    'languages': ['en']
+                },
+                'translation': {
+                    'languages': []
+                },
+            },
+        }
+
+        response = self.client.patch(asset_detail_url, data, format='json')
+        assert response.status_code == 403
+
+        asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
+        response = self.client.patch(asset_detail_url, data, format='json')
+        assert response.status_code == 200
+
+        data['name'] = 'new name'
+        response = self.client.patch(asset_detail_url, data, format='json')
+        assert response.status_code == 403
+
     def _sorted_dict(self, dict_):
         """
         Ensure that nested lists inside a dictionary are always sorted

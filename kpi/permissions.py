@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated as DRFIsAuthenticated
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_METADATA_ASSET,
+    PERM_CHANGE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
@@ -121,6 +122,12 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
         # `has_permission()`, always return True.
         return True
 
+def user_can_modify_advanced_features(asset, user, request):
+    if list(request.data.keys()) != ['advanced_features']:
+        return False
+    if asset.has_perm(user, PERM_CHANGE_SUBMISSIONS):
+        return True
+
 
 class AssetPermission(
     ValidationPasswordPermissionMixin, permissions.DjangoObjectPermissions
@@ -154,6 +161,9 @@ class AssetPermission(
         ) or (
             method == 'GET'
             and user_has_project_view_asset_perm(obj, user, PERM_VIEW_ASSET)
+        ) or (
+            method == 'PATCH'
+            and user_can_modify_advanced_features(obj, user, request)
         ):
             return True
 
