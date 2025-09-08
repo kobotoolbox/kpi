@@ -63,14 +63,12 @@ class DataCollectorGroupAdmin(admin.ModelAdmin):
         # we have to do this manually instead of using obj.assets.set()
         # so we can call save() with adjust_content=False
         for old_asset in obj.assets.all():
-            print(f'{old_asset.uid} in {new_asset_uids}?')
             if old_asset.uid not in new_asset_uids:
                 old_asset.data_collector_group = None
                 old_asset.save(
                     update_fields=['data_collector_group'], adjust_content=False
                 )
         for new_asset in assets:
-            print(f'{new_asset.data_collector_group_id} = {obj.pk}?')
             if new_asset.data_collector_group_id != obj.pk:
                 new_asset.data_collector_group = obj
                 new_asset.save(
