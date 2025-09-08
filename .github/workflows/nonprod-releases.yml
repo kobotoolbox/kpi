@@ -75,8 +75,8 @@ jobs:
       - name: Deploy main
         if:  github.ref_name == 'main'
         run: |
-          helm -n kobo-dev upgrade staging-main oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.image.tag=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
-          helm -n kobo-dev upgrade staging-nobill oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.image.tag=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
+          helm -n kobo-dev upgrade staging-main oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
+          helm -n kobo-dev upgrade staging-nobill oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
 
   notify-success:
     needs:
