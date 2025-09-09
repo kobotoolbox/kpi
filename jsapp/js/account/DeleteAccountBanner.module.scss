@@ -1,0 +1,17 @@
+@use 'scss/colors';
+
+.wrapper {
+  padding: 16px;
+  border: 1px solid colors.$kobo-gray-300;
+  border-radius: 6px;
+}
+
+.title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.message {
+  margin: 0;
+}
