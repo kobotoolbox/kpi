@@ -40,8 +40,8 @@ module.exports = do ->
       throw new Error("Template not available: '#{id}'")
     unless 'function' is typeof template
       throw new Error("Template not a function: '#{id}'")
-    template(params...)
+    return template(params...)
 
   templates.$$render = $$render
 
-  templates
+  return templates

@@ -14,9 +14,8 @@ from django.utils.translation import gettext_lazy as t
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
-from taggit.managers import TaggableManager, _TaggableManager
-from taggit.utils import require_instance_manager
 
+from kobo.apps.data_collectors.models import DataCollectorGroup
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
 from kobo.apps.subsequences.advanced_features_params_schema import (
     ADVANCED_FEATURES_PARAMS_SCHEMA,
@@ -224,6 +223,13 @@ class Asset(
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
     settings = models.JSONField(default=dict)
+    data_collector_group = models.ForeignKey(
+        DataCollectorGroup,
+        related_name='assets',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
 
     # `_deployment_data` must **NOT** be touched directly by anything except
     # the `deployment` property provided by `DeployableMixin`.
@@ -477,12 +483,13 @@ class Asset(
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # The two fields below are needed to keep a trace of the object state
+        # The fields below are needed to keep a trace of the object state
         # before any alteration. See `__self.__copy_hidden_fields()` for details
         # They must be set with an invalid value for their counterparts to
         # be the comparison is accurate.
         self.__parent_id_copy = -1
         self.__deployment_data_copy = None
+        self._initial_data_collector_group_id = -1
         self.__copy_hidden_fields()
 
     def __str__(self):
@@ -1540,6 +1547,13 @@ class Asset(
         ):
             self.__deployment_data_copy = copy.deepcopy(
                 self._deployment_data)
+        if (
+            fields is None
+            and 'data_collector_group_id' not in self.get_deferred_fields()
+            or fields
+            and 'data_collector_group_id' in fields
+        ):
+            self._initial_data_collector_group_id = self.data_collector_group_id
 
 
 class UserAssetSubscription(models.Model):

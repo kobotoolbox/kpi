@@ -8,6 +8,65 @@ import kpi.fields.kpi_uid
 import kpi.models.abstract_models
 
 
+def manually_create_indexes_instructions(apps, schema_editor):
+    # Credit for non-blocking `NOT NULL` goes to Sergei Kornilov (melkij),
+    # via https://dba.stackexchange.com/a/268128. This technique works
+    # with PostgreSQL 12.0 and above
+    print(
+        """
+        ⚠️ ATTENTION ⚠️
+        Run the SQL queries below in PostgreSQL directly:
+
+            ```sql
+            -- take a momentary exclusive lock
+            ALTER TABLE "logger_attachment"
+                ADD CONSTRAINT "logger_attachment_temporary_not_null"
+                    CHECK (
+                        "date_created" IS NOT NULL
+                        AND "date_modified" IS NOT NULL
+                        AND "uid" IS NOT NULL
+                        AND "user_id" IS NOT NULL
+                        AND "xform_id" IS NOT NULL
+                    )
+                NOT VALID;
+
+            -- do a slow sequential scan, but without any exclusive lock
+            -- concurrent sessions can still read/write
+            ALTER TABLE "logger_attachment" VALIDATE CONSTRAINT "logger_attachment_temporary_not_null";
+
+            -- constraint now proves there are no NULLs in these columns
+            -- schema changes take an exclusive lock, but only for a moment
+            ALTER TABLE "logger_attachment" ALTER COLUMN "date_created" SET NOT NULL;
+            ALTER TABLE "logger_attachment" ALTER COLUMN "date_modified" SET NOT NULL;
+            ALTER TABLE "logger_attachment" ALTER COLUMN "uid" SET NOT NULL;
+            ALTER TABLE "logger_attachment" ALTER COLUMN "user_id" SET NOT NULL;
+            ALTER TABLE "logger_attachment" ALTER COLUMN "xform_id" SET NOT NULL;
+
+            -- not needed anymore
+            ALTER TABLE logger_attachment DROP CONSTRAINT logger_attachment_temporary_not_null;
+            ```
+        """
+    )
+
+
+def manually_drop_indexes_instructions(apps, schema_editor):
+    print(
+        """
+        ⚠️ ATTENTION ⚠️
+        Run the SQL queries below in PostgreSQL directly:
+
+            ```sql
+            ALTER TABLE "logger_attachment" ALTER COLUMN "xform_id" DROP NOT NULL;
+            ALTER TABLE "logger_attachment" ALTER COLUMN "user_id" DROP NOT NULL;
+            ALTER TABLE "logger_attachment" ALTER COLUMN "uid" DROP NOT NULL;
+            ALTER TABLE "logger_attachment" ALTER COLUMN "date_modified" DROP NOT NULL;
+            ALTER TABLE "logger_attachment" ALTER COLUMN "date_created" DROP NOT NULL;
+            ```
+
+        """
+    )
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -15,42 +74,50 @@ class Migration(migrations.Migration):
         ('logger', '0043_add_new_columns_to_attachment'),
     ]
 
-    operations = [
-        migrations.AlterField(
-            model_name='attachment',
-            name='date_created',
-            field=models.DateTimeField(
-                default=kpi.models.abstract_models._get_default_datetime
+    if settings.SKIP_HEAVY_MIGRATIONS:
+        operations = [
+            migrations.RunPython(
+                manually_create_indexes_instructions,
+                manually_drop_indexes_instructions,
+            )
+        ]
+    else:
+        operations = [
+            migrations.AlterField(
+                model_name='attachment',
+                name='date_created',
+                field=models.DateTimeField(
+                    default=kpi.models.abstract_models._get_default_datetime
+                ),
             ),
-        ),
-        migrations.AlterField(
-            model_name='attachment',
-            name='date_modified',
-            field=models.DateTimeField(
-                default=kpi.models.abstract_models._get_default_datetime
+            migrations.AlterField(
+                model_name='attachment',
+                name='date_modified',
+                field=models.DateTimeField(
+                    default=kpi.models.abstract_models._get_default_datetime
+                ),
             ),
-        ),
-        migrations.AlterField(
-            model_name='attachment',
-            name='uid',
-            field=kpi.fields.kpi_uid.KpiUidField(_null=False, uid_prefix='att'),
-        ),
-        migrations.AlterField(
-            model_name='attachment',
-            name='user',
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name='attachments',
-                to=settings.AUTH_USER_MODEL,
+            migrations.AlterField(
+                model_name='attachment',
+                name='uid',
+                field=kpi.fields.kpi_uid.KpiUidField(_null=False, uid_prefix='att'),
             ),
-        ),
-        migrations.AlterField(
-            model_name='attachment',
-            name='xform',
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name='attachments',
-                to='logger.xform',
+            migrations.AlterField(
+                model_name='attachment',
+                name='user',
+                field=models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='attachments',
+                    to=settings.AUTH_USER_MODEL,
+                ),
             ),
-        ),
-    ]
+            migrations.AlterField(
+                model_name='attachment',
+                name='xform',
+                field=models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='attachments',
+                    to='logger.xform',
+                ),
+            ),
+        ]

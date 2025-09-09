@@ -14,6 +14,7 @@ $skipLogicHelpers = require './mv.skipLogicHelpers'
 readParameters = require('#/components/formBuilder/formBuilderUtils').readParameters
 writeParameters = require('#/components/formBuilder/formBuilderUtils').writeParameters
 txtid = require('#/utils').txtid
+notify = require('#/utils').notify
 
 module.exports = do ->
   row = {}
@@ -28,32 +29,35 @@ module.exports = do ->
     ensureKuid: ->
       if '$kuid' not of @attributes
         @set '$kuid', txtid()
+      return
 
     initialize: ->
       @ensureKuid()
       @convertAttributesToRowDetails()
+      return
 
     isError: -> false
     convertAttributesToRowDetails: ->
       for key, val of @attributes
         unless val instanceof $rowDetail.RowDetail
           @set key, new $rowDetail.RowDetail({key: key, value: val}, {_parent: @}), {silent: true}
+      return
     attributesArray: ()->
       arr = ([k, v] for k, v of @attributes)
       arr.sort (a,b)-> if a[1]._order < b[1]._order then -1 else 1
-      arr
+      return arr
 
     isGroup: ->
-      @constructor.kls is "Group"
+      return @constructor.kls is "Group"
 
     isInGroup: ->
-      @_parent?._parent?.constructor.kls is "Group"
+      return @_parent?._parent?.constructor.kls is "Group"
 
     detach: (opts)->
       if @_parent
         @_parent.remove @, opts
         @_parent = null
-      ` `
+      return
 
     selectableRows: () ->
       questions = []
@@ -68,11 +72,13 @@ module.exports = do ->
         limit = limit || question is @
         if !limit && question.getValue('type') not in non_selectable
           questions.push question
+          return
       , includeGroups:true
-      questions
+      return questions
 
     export_relevant_values: (survey_arr, additionalSheets)->
       survey_arr.push @toJSON2()
+      return
 
     toJSON2: ->
       outObj = {}
@@ -88,7 +94,7 @@ module.exports = do ->
             outObj[key] = $configs.boolOutputs[if result then "true" else "false"]
           else if '' isnt result
             outObj[key] = result
-      outObj
+      return outObj
 
     toJSON: ->
       outObj = {}
@@ -99,35 +105,39 @@ module.exports = do ->
             outObj[key] = $configs.boolOutputs[if result then "true" else "false"]
           else
             outObj[key] = result
-      outObj
+      return outObj
 
   class SimpleRow extends Backbone.Model
     finalize: -> ``
     simpleEnsureKuid: ->
       if '$kuid' not of @attributes
         @set('$kuid', txtid())
+      return
     getTypeId: -> @get('type')
     linkUp: ->
     _isSelectQuestion: ()-> false
     get_type: ->
-      $skipLogicHelpers.question_types[@getTypeId()] || $skipLogicHelpers.question_types['default']
+      return $skipLogicHelpers.question_types[@getTypeId()] || $skipLogicHelpers.question_types['default']
     getValue: (which)-> @get(which)
 
   class RankRow extends SimpleRow
     initialize: ->
       @simpleEnsureKuid()
       @set('type', 'rank__level')
+      return
     export_relevant_values: (surv, sheets)->
       surv.push @attributes
+      return
 
   class ScoreRankMixin
     _extendAll: (rr)->
       extend_to_row = (val, key)=>
         if _.isFunction(val)
           rr[key] = (args...)->
-            val.apply(rr, args)
+            return val.apply(rr, args)
         else
           rr[key] = val
+        return
       _.each @, extend_to_row
       extend_to_row(@forEachRow, 'forEachRow')
       _begin_kuid = rr.getValue('$kuid', false)
@@ -137,10 +147,12 @@ module.exports = do ->
         obj =
           export_relevant_values: (surv, addl)->
             surv.push _.extend({}, _end_json)
+            return
           toJSON: ->
-            _.extend({}, _end_json)
+            return _.extend({}, _end_json)
 
-        cb(obj)  if ctxt.includeGroupEnds
+        if ctxt.includeGroupEnds
+          return cb(obj)
 
       _toJSON = rr.toJSON
 
@@ -177,10 +189,10 @@ module.exports = do ->
           r2.set('kobo--score-choices', r2._scoreChoices.get('name'))
           @convertAttributesToRowDetails()
           r2.get('type').set('list', r2._scoreChoices)
-        r2
+        return r2
 
       rr.toJSON = ()->
-        _.extend _toJSON.call(rr), {
+        return _.extend _toJSON.call(rr), {
           'type': "begin_#{rr._beginEndKey()}"
         }, @_additionalJson?()
 
@@ -189,17 +201,19 @@ module.exports = do ->
         for subrow in rr.attributes.__rows
           @[@_rowAttributeName].add(subrow)
         delete rr.attributes.__rows
+      return
 
     getValue: (which)->
-      @get(which)
+      return @get(which)
 
     end_json: (mrg={})->
-      _.extend({type: "end_#{@_beginEndKey()}"}, mrg)
+      return _.extend({type: "end_#{@_beginEndKey()}"}, mrg)
 
     forEachRow: (cb, ctx)->
       cb(@)
       @[@_rowAttributeName].each (subrow)-> cb(subrow)
-      @_afterIterator(cb, ctx)  if '_afterIterator' of @
+      if '_afterIterator' of @
+        return @_afterIterator(cb, ctx)
 
 
   class RankRows extends Backbone.Collection
@@ -215,7 +229,7 @@ module.exports = do ->
         rr.set(rankConstraintMessageKey, t("Items cannot be selected more than once"))
 
     _beginEndKey: ->
-      'rank'
+      return 'rank'
 
     linkUp: (ctx)->
       rank_list_id = @get('kobo--rank-items')?.get('value')
@@ -224,8 +238,9 @@ module.exports = do ->
       else
         @_rankLevels = @getSurvey().choices.create()
       @_additionalJson = =>
-        'kobo--rank-items': @getList().get('name')
+        return 'kobo--rank-items': @getList().get('name')
       @getList = => @_rankLevels
+      return
 
     export_relevant_values: (survey_arr, additionalSheets)->
       if @_rankLevels
@@ -234,7 +249,7 @@ module.exports = do ->
       begin_xlsformrow.type = "begin_rank"
       begin_xlsformrow['kobo--rank-items'] = @getList().get('name')
       survey_arr.push(begin_xlsformrow)
-      ``
+      return
 
   class ScoreChoiceList extends Array
 
@@ -242,8 +257,10 @@ module.exports = do ->
     initialize: ->
       @set('type', 'score__row')
       @simpleEnsureKuid()
+      return
     export_relevant_values: (surv, sheets)->
       surv.push(@attributes)
+      return
 
   class ScoreRows extends Backbone.Collection
     model: ScoreRow
@@ -255,12 +272,12 @@ module.exports = do ->
       @_extendAll(rr)
 
     _beginEndKey: ->
-      'score'
+      return 'score'
 
     linkUp: (ctx)->
       @getList = ()=> @_scoreChoices
       @_additionalJson = ()=>
-        'kobo--score-choices': @getList().get('name')
+        return 'kobo--score-choices': @getList().get('name')
       score_list_id_item = @get('kobo--score-choices')
       if score_list_id_item
         score_list_id = score_list_id_item.get('value')
@@ -272,7 +289,7 @@ module.exports = do ->
       else
         ctx.warnings.push "Score choices list not set"
         @_scoreChoices = @getSurvey().choices.add(name: txtid())
-      ``
+      return
 
     export_relevant_values: (survey_arr, additionalSheets)->
       score_list = @_scoreChoices
@@ -282,7 +299,7 @@ module.exports = do ->
       output.type = "begin_score"
       output['kobo--score-choices'] = @getList().get('name')
       survey_arr.push(output)
-      ``
+      return
 
   class row.Row extends row.BaseRow
     @kls = "Row"
@@ -360,6 +377,7 @@ module.exports = do ->
           typeDetail.set("rowType", rtp, silent: true)
         else
           throw new Error "type `#{tpid}` not found"
+        return
       processType(typeDetail, tpVal, {})
       typeDetail.on "change:value", processType
       typeDetail.on "change:listName", (rd, listName, ctx)->
@@ -370,6 +388,7 @@ module.exports = do ->
         if rtp.orOtherOption and typeDetail.get("orOther")
           typeStr += " or_other"
         typeDetail.set({value: typeStr}, silent: true)
+        return
       typeDetail.on "change:list", (rd, cl, ctx)->
         if typeDetail.get("rowType").specifyChoice
           clname = cl.get("name")
@@ -377,8 +396,10 @@ module.exports = do ->
             clname = txtid()
             cl.set("name", clname, silent: true)
           @set("value", "#{@get('typeId')} #{clname}")
+        return
+      return
     getTypeId: ->
-      @get('type').get('typeId')
+      return @get('type').get('typeId')
     clone: ->
       attributes = {}
       options =
@@ -409,15 +430,16 @@ module.exports = do ->
         @getSurvey().forEachRow (r)->
           name = r.getValue("name")
           names.push(name)  if name
+          return
         label = @getValue("label")
         @get("name").set("value", $utils.sluggifyLabel(label, names))
-      @
+      return @
 
     get_type: ->
-      $skipLogicHelpers.question_types[@getTypeId()] || $skipLogicHelpers.question_types['default']
+      return $skipLogicHelpers.question_types[@getTypeId()] || $skipLogicHelpers.question_types['default']
 
     _isSelectQuestion: ->
-      @get('type').get('typeId') in ['select_one', 'select_multiple']
+      return @get('type').get('typeId') in ['select_one', 'select_multiple']
 
     getAcceptedFiles: -> return @attributes['body::accept']?.attributes?.value
 
@@ -437,7 +459,7 @@ module.exports = do ->
       if (not _list) and @_isSelectQuestion()
         _list = new $choices.ChoiceList(name: txtid())
         @setList(_list)
-      _list
+      return _list
 
     setList: (list)->
       listToSet = @getSurvey().choices.get(list)
@@ -446,11 +468,14 @@ module.exports = do ->
         listToSet = @getSurvey().choices.get(list)
       throw new Error("List not found: #{list}")  unless listToSet
       @get("type").set("list", listToSet)
+      return
     parse: ->
       val.parse()  for key, val of @attributes
+      return
 
     linkUp: (ctx)->
       val.linkUp(ctx)  for key, val of @attributes
+      return
 
   class row.RowError extends row.BaseRow
     constructor: (obj, options)->
@@ -462,8 +487,8 @@ module.exports = do ->
     isError: -> true
     getValue: (what)->
       if what of @attributes
-        @attributes[what].get('value')
+        return @attributes[what].get('value')
       else
-        "[error]"
+        return "[error]"
 
-  row
+  return row

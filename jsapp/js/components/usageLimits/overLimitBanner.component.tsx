@@ -1,108 +1,89 @@
 import cx from 'classnames'
 import Markdown from 'react-markdown'
 import { useNavigate } from 'react-router-dom'
-import { getSimpleMMOLabel, shouldUseTeamLabel } from '#/account/organization/organization.utils'
+import { shouldUseTeamLabel } from '#/account/organization/organization.utils'
 import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
+import type { UsageLimitTypes } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import envStore from '#/envStore'
+import { getAllLimitsText as getLimitsListText, pluralizeLimit } from './limitNotificationUtils'
 import styles from './overLimitBanner.module.scss'
 
 interface OverLimitBannerProps {
   warning?: boolean
-  limits: string[]
-  interval: string
+  limits: UsageLimitTypes[]
   accountPage: boolean
 }
 
-/*
- * Translated texts to be used for each limit
- */
-const limitsText: {
-  [key: string]: {
-    month: string
-    year: string
-  }
-} = {
-  submission: {
-    month: t('monthly submissions'),
-    year: t('yearly submissions'),
-  },
-  'machine translation': {
-    month: t('monthly machine translation'),
-    year: t('yearly machine translation'),
-  },
-  'automated transcription': {
-    month: t('monthly automated transcription'),
-    year: t('yearly automated transcription'),
-  },
-}
+function getMessage(
+  accountPage: boolean,
+  isWarning: boolean,
+  isMmo: boolean,
+  userRole: OrganizationUserRole,
+  isTeamLabelActive: boolean,
+  limits: UsageLimitTypes[],
+) {
+  const limitsListText = getLimitsListText(limits)
+  let firstSection: string
+  let secondSection: string
+  const planRoute = '/#' + ACCOUNT_ROUTES.PLAN
+  const usageRoute = '/#' + ACCOUNT_ROUTES.USAGE
 
-/*
- * Returns the text for the limit based on the interval
- */
-const getLimitText = (limit: string, interval: string) => {
-  if (limit === 'storage') {
-    return t('storage')
-  }
-  if (!limitsText[limit]) {
-    return limit
-  }
-
-  return limitsText[limit][interval as 'month' | 'year']
-}
-
-/*
- * Returns a formatted string with all the limits
- */
-const getAllLimits = (limits: string[], interval: string) => {
-  if (limits.length === 0) {
-    return ''
-  }
-
-  const items = limits.map((limit) => `**${getLimitText(limit, interval)}**`)
-
-  if (items.length === 1) {
-    return `${items[0]}`
-  }
-
-  return `${items.slice(0, -1).join(', ')} and ${items.slice(-1)[0]}`
-}
-
-/*
- * Returns the base message to be displayed in the banner
- */
-const getMessage = ({
-  isWarning,
-  isMmo,
-  isTeamLabelActive,
-  limits,
-}: {
-  isWarning: boolean
-  isMmo: boolean
-  isTeamLabelActive: boolean
-  limits: string
-}) => {
-  let message = ''
+  // Message for warning banner
   if (isWarning) {
-    if (isMmo && isTeamLabelActive) {
-      message = t('Your team is approaching the ##LIMITS## limit.')
-    } else if (isMmo) {
-      message = t('Your organization is approaching the ##LIMITS## limit.')
+    if (isMmo) {
+      firstSection = isTeamLabelActive
+        ? t('Your team is approaching its ##LIMITS_LIST## ##LIMIT_PLURALIZED##.')
+        : t('Your organization is approaching its ##LIMITS_LIST## ##LIMIT_PLURALIZED##.')
     } else {
-      message = t('You are approaching the ##LIMITS## limit.')
+      firstSection = t('You are approaching your ##LIMITS_LIST## ##LIMIT_PLURALIZED##.')
     }
-  } else if (isMmo && isTeamLabelActive) {
-    message = t('Your team has reached the ##LIMITS## limit.')
-  } else if (isMmo) {
-    message = t('Your organization has reached the ##LIMITS## limit.')
-  } else {
-    message = t('You have reached the ##LIMITS## limit.')
+    firstSection = firstSection
+      .replace('##LIMITS_LIST##', limitsListText)
+      .replace('##LIMIT_PLURALIZED##', pluralizeLimit(limits.length))
+
+    if (userRole === OrganizationUserRole.owner) {
+      secondSection = accountPage
+        ? t('Please review your usage and [upgrade your plan](##PLAN_LINK##) or purchase an add-on if needed.')
+        : t(
+            'Please [review your usage](##USAGE_LINK##) and [upgrade your plan](##PLAN_LINK##) or purchase an add-on if needed.',
+          )
+      secondSection = secondSection.replace('##USAGE_LINK##', usageRoute).replace('##PLAN_LINK##', planRoute)
+    } else {
+      secondSection = isTeamLabelActive
+        ? t('Contact your team owner about upgrading your plan or purchasing an add-on.')
+        : t('Contact your organization owner about upgrading your plan or purchasing an add-on.')
+    }
+    return firstSection + ' ' + secondSection
   }
 
-  return message.replace('##LIMITS##', limits)
+  // Message for exceeded limit banner
+  if (isMmo) {
+    firstSection = isTeamLabelActive
+      ? t('Your team has reached its ##LIMITS## ##LIMIT_PLURALIZED##.')
+      : t('Your organization has reached its ##LIMITS## ##LIMIT_PLURALIZED##.')
+  } else {
+    firstSection = t('You have reached your ##LIMITS## ##LIMIT_PLURALIZED##.')
+  }
+  firstSection = firstSection
+    .replace('##LIMITS##', limitsListText)
+    .replace('##LIMIT_PLURALIZED##', pluralizeLimit(limits.length))
+
+  if (userRole === OrganizationUserRole.owner) {
+    secondSection = t('Please upgrade your plan or purchase an add-on to increase your usage limits.')
+
+    if (!accountPage) {
+      secondSection += ' ' + t('[Review your usage](##USAGE_LINK##).').replace('##USAGE_LINK##', usageRoute)
+    }
+  } else {
+    secondSection = isTeamLabelActive
+      ? t('Contact your team owner about upgrading your plan if needed.')
+      : t('Contact organization team owner about upgrading your plan if needed.')
+  }
+  return firstSection + ' ' + secondSection
 }
 
 const OverLimitBanner = (props: OverLimitBannerProps) => {
@@ -114,57 +95,26 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
     return null
   }
 
-  const { limits, interval, warning } = props
+  const { limits, warning } = props
   const { is_mmo: isMmo, request_user_role: userRole } = orgQuery.data
   const subscription = subscriptionStore.activeSubscriptions[0]
 
-  // Get all the limits in a formatted string
-  const allLimits = getAllLimits(limits, interval)
-
-  // If the user is a member of an MMO, we don't show a warning:
+  // If the user is a member of an MMO, we don't show a warning for near-exceeded limits:
   if (isMmo && userRole === OrganizationUserRole.member && !!warning) {
     return null
   }
 
-  // Get the first part of the message
-  const message1 = getMessage({
-    isWarning: !!warning,
+  const message = getMessage(
+    props.accountPage,
+    !!warning,
     isMmo,
-    isTeamLabelActive: shouldUseTeamLabel(envStore.data, subscription),
-    limits: allLimits,
-  })
-
-  // We have different second part of the message for admins and owners of MMOs
-  let message2 = ''
-  if (isMmo) {
-    const teamOrOrganization = getSimpleMMOLabel(envStore.data, subscription, false, false)
-
-    if (userRole === OrganizationUserRole.owner) {
-      if (warning) {
-        message2 = t('Purchase additional submissions add-ons to continue collecting and submitting data.')
-      } else {
-        message2 = t('Please purchase an add-on to increase your submission limits.')
-      }
-    } else if (warning) {
-      message2 = t(
-        "Once the limit has been reached, you won't be able to collect or submit any new data until the ##TEAM_OR_ORGANIZATION## owner has purchased additional submissions.",
-      ).replace('##TEAM_OR_ORGANIZATION##', teamOrOrganization)
-    } else {
-      message2 = t(
-        "You won't be able to collect or submit any new data until the ##TEAM_OR_ORGANIZATION## owner has purchased additional submissions.",
-      ).replace('##TEAM_OR_ORGANIZATION##', teamOrOrganization)
-    }
-  } else if (warning) {
-    message2 = t(
-      "Once the limit has been reached, you won't be able to collect or submit any new data until you upgrade your plan or purchase an add-on.",
-    )
-  } else {
-    message2 = t('Please upgrade your plan or purchase an add-on to increase your usage limits.')
-  }
+    userRole,
+    shouldUseTeamLabel(envStore.data, subscription),
+    limits,
+  )
 
   // Only owners can see the call to action links
   const shouldDisplayCTA = !isMmo || userRole === OrganizationUserRole.owner
-  const ctaText = shouldDisplayCTA ? `[${t('Learn more')}](https://www.kobotoolbox.org/pricing/)` : ''
 
   return (
     <div
@@ -175,7 +125,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
     >
       <Icon name={'alert'} size='m' color={props.warning ? 'amber' : 'mid-red'} />
       <div className={styles.bannerContent}>
-        <Markdown>{`${message1} ${message2} ${ctaText}`}</Markdown>
+        <Markdown>{message}</Markdown>
       </div>
       {shouldDisplayCTA && props.warning && !props.accountPage && (
         <Button

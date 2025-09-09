@@ -71,12 +71,14 @@ kombu
 lxml
 more-itertools
 oauthlib
+objgraph
 openpyxl
 #py-gfm # Incompatible with markdown 3.x
 psycopg
 pymongo
 python-dateutil
 pyxform==3.0.0
+psutil
 requests
 regex
 responses
@@ -112,3 +114,6 @@ modilabs-python-utils
 djangorestframework-csv
 djangorestframework-jsonp
 pandas
+
+# Api Documentation
+drf-spectacular

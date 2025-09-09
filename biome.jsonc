@@ -5,11 +5,16 @@
       "node_modules/**",
       "jsapp/compiled/**",
       "*.css",
+      // Ignore generated OpenAPI schema.
+      "static/openapi/*",
+      // Ignore minified committed JS files.
       "*.min.js",
       "*-min.js",
       "bootstrap*.js",
       "jquery*.js",
       "kobo/apps/openrosa/apps/logger/fixtures/*",
+      "kpi/static/js/swagger/swagger-ui-bundle.js",
+      "kpi/static/js/swagger/swagger-ui-standalone-preset.js",
       "msw-mocks/*"
     ]
   },

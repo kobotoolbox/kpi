@@ -2,6 +2,8 @@ from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django_request_cache import cache_for_request
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 
@@ -9,12 +11,17 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_COLLECTION, PERM_DISCOVER_ASSET
 from kpi.models.asset import Asset, UserAssetSubscription
 from kpi.models.object_permission import ObjectPermission
+from kpi.schema_extensions.v2.users.fields import MetadataField
+
+
+@extend_schema_field(OpenApiTypes.URI)
+class UrlSchemaExtension(HyperlinkedIdentityField):
+    pass
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
 
-    url = HyperlinkedIdentityField(
-        lookup_field='username', view_name='user-kpi-detail')
+    url = UrlSchemaExtension(lookup_field='username', view_name='user-kpi-detail')
     date_joined = serializers.SerializerMethodField()
     public_collection_subscribers_count = serializers.SerializerMethodField()
     public_collections_count = serializers.SerializerMethodField()
@@ -28,15 +35,18 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
                   'public_collections_count',
                   )
 
+    @extend_schema_field(OpenApiTypes.DATETIME)
     def get_date_joined(self, obj):
         return obj.date_joined.astimezone(ZoneInfo('UTC')).strftime(
             '%Y-%m-%dT%H:%M:%SZ')
 
+    @extend_schema_field(OpenApiTypes.INT)
     def get_public_collection_subscribers_count(self, user):
         public_collection_ids = self.__get_public_collection_ids(user.pk)
         return UserAssetSubscription.objects.filter(
             asset_id__in=public_collection_ids).exclude(user_id=user.pk).count()
 
+    @extend_schema_field(OpenApiTypes.INT)
     def get_public_collections_count(self, user):
         public_collection_ids = self.__get_public_collection_ids(user.pk)
         return len(public_collection_ids)
@@ -74,9 +84,11 @@ class UserListSerializer(UserSerializer):
             'metadata',
         )
 
+    @extend_schema_field(OpenApiTypes.INT)
     def get_asset_count(self, user):
         return user.assets.count()
 
+    @extend_schema_field(MetadataField)
     def get_metadata(self, user):
         if not hasattr(user, 'extra_details'):
             return {}

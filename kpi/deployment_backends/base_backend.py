@@ -211,9 +211,9 @@ class BaseDeploymentBackend(abc.ABC):
     def calculated_submission_count(self, user: settings.AUTH_USER_MODEL, **kwargs):
         pass
 
-    @abc.abstractmethod
     def connect(self, active=False):
-        pass
+        if self.asset.data_collector_group_id is not None:
+            self.create_enketo_survey_links_for_data_collectors()
 
     def copy_submission_extras(self, origin_uuid: str, dest_uuid: str):
         """
@@ -228,6 +228,15 @@ class BaseDeploymentBackend(abc.ABC):
             duplicated_extras = copy.deepcopy(original_extras.content)
             duplicated_extras['submission'] = dest_uuid
             self.asset.update_submission_extra(duplicated_extras)
+
+    def create_enketo_survey_links_for_data_collectors(self):
+        data_collector_tokens = list(
+            self.asset.data_collector_group.data_collectors.values_list(
+                'token', flat=True
+            )
+        )
+        for token in data_collector_tokens:
+            self.set_data_collector_enketo_links(token)
 
     def delete(self):
         self.asset._deployment_data.clear()  # noqa
@@ -432,6 +441,14 @@ class BaseDeploymentBackend(abc.ABC):
     def redeploy(self, active: bool = None):
         pass
 
+    def remove_enketo_survey_links_for_data_collectors(self, tokens):
+        for token in tokens:
+            self.remove_data_collector_enketo_links(token)
+
+    @abc.abstractmethod
+    def remove_data_collector_enketo_links(self, token):
+        pass
+
     @abc.abstractmethod
     def rename_enketo_id_key(
         self, previous_owner_username: str, project_identifier: str = None
@@ -470,6 +487,10 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def set_asset_uid(self, **kwargs) -> bool:
+        pass
+
+    @abc.abstractmethod
+    def set_data_collector_enketo_links(self, token):
         pass
 
     @abc.abstractmethod

@@ -98,6 +98,7 @@ class AssetOrderingFilter(filters.OrderingFilter, DeploymentFilter):
         'owner__extra_details__data__organization',
         'owner__email',
         '_deployment_status',
+        'last_modified_by',
     ]
 
     def filter_queryset(self, request, queryset, view):
@@ -165,7 +166,7 @@ class ExcludeOrgAssetFilter(filters.BaseFilterBackend):
         return queryset
 
 
-class KpiObjectPermissionsFilter:
+class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
 
     STATUS_PARAMETER = 'status'
     PARENT_UID_PARAMETER = 'parent__uid'
@@ -478,12 +479,14 @@ class SearchFilter(filters.BaseFilterBackend):
             # specified field is less than a set length of characters -
             # currently 3 (see `settings.MINIMUM_DEFAULT_SEARCH_CHARACTERS`)
             raise e
-
         try:
-            # If no search field is specified, the search term is compared
-            # to several default fields and therefore may return a copies
-            # of the same match, therefore the `distinct()` method is required
-            return queryset.filter(q_obj).distinct()
+            # If we are searching on an n-to-many field, we may get multiple results
+            # from the same model, so we need to de-duplicate with distinct(). Rely
+            # on the view to tell us if this is not necessary
+            if getattr(view, 'skip_distinct', False):
+                return queryset.filter(q_obj)
+            else:
+                return queryset.filter(q_obj).distinct()
         except (FieldError, ValueError):
             return queryset.model.objects.none()
 

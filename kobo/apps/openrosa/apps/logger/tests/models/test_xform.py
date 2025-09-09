@@ -1,5 +1,4 @@
 import os
-import unittest
 
 import reversion
 
@@ -30,10 +29,6 @@ class TestXForm(TestBase):
         # set title in xform xml
         self.xform._set_title()
         self.assertIn(self.xform.title, self.xform.xml)
-
-    @unittest.skip('Fails under Django 1.6')
-    def test_reversion(self):
-        self.assertTrue(reversion.is_registered(XForm))
 
     def test_get_related_asset(self):
         """

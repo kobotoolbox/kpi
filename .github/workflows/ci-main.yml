@@ -8,6 +8,12 @@ jobs:
   darker:
     uses: ./.github/workflows/darker.yml
 
+  biome:
+    uses: ./.github/workflows/biome.yml
+
+  openapi:
+    uses: ./.github/workflows/openapi.yml
+
   pytest:
     uses: ./.github/workflows/pytest.yml
 
@@ -19,10 +25,12 @@ jobs:
       failure() &&
       (needs.darker.result == 'failure' || needs.darker.result == 'timed_out' ||
       needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' ||
+      needs.biome.result == 'failure' || needs.biome.result == 'timed_out' ||
       needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out')
     needs:
       - darker
       - pytest
+      - biome
       - npm-test
     uses: './.github/workflows/zulip.yml'
     secrets: inherit

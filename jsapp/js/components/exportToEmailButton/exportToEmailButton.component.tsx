@@ -2,26 +2,8 @@ import { useState } from 'react'
 
 import { handleApiFail } from '#/api'
 import type { FailResponse } from '#/dataInterface'
+import { notify } from '#/utils'
 import Button from '../common/button'
-import KoboPrompt from '../modals/koboPrompt'
-
-const MessageModal = ({ onClose }: { onClose: () => void }) => (
-  <KoboPrompt
-    isOpen
-    onRequestClose={onClose}
-    title={t('Exporting data')}
-    buttons={[
-      {
-        label: 'Ok',
-        onClick: onClose,
-      },
-    ]}
-  >
-    {t(
-      "Your export request is currently being processed. Once the export is complete, you'll receive an email with all the details.",
-    )}
-  </KoboPrompt>
-)
 
 /**
  * Button to be used in views that export data to email.
@@ -35,14 +17,13 @@ export default function ExportToEmailButton({
   exportFunction: () => Promise<unknown>
   label: string
 }) {
-  const [isMessageOpen, setIsMessageOpen] = useState(false)
   const [isPending, setIsPending] = useState(false)
 
   const handleClick = () => {
     setIsPending(true)
     exportFunction()
       .then(() => {
-        setIsMessageOpen(true)
+        notify(t("Export is being generated, you will recieve an email once it's done"))
       })
       .catch((error) => handleApiFail(error as FailResponse))
       .finally(() => {
@@ -53,7 +34,6 @@ export default function ExportToEmailButton({
   return (
     <>
       <Button size='m' type='primary' label={label} startIcon='download' onClick={handleClick} isPending={isPending} />
-      {isMessageOpen && <MessageModal onClose={() => setIsMessageOpen(false)} />}
     </>
   )
 }

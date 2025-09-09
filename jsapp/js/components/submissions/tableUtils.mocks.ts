@@ -6,6 +6,7 @@ export const assetWithBgAudioAndNLP: AssetResponse = {
   owner: 'http://kf.kobo.local/api/v2/users/kobo.json',
   owner__username: 'kobo',
   owner_label: 'kobo',
+  last_modified_by: null,
   parent: null,
   settings: {
     sector: {},
@@ -834,6 +835,7 @@ export const assetWithNestedGroupsAndNLP: AssetResponse = {
   owner: 'http://kf.kobo.local/api/v2/users/kobo.json',
   owner__username: 'kobo',
   owner_label: 'kobo',
+  last_modified_by: null,
   parent: null,
   settings: {
     sector: {},

@@ -21,9 +21,12 @@ from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
-from pyxform.builder import create_survey_from_xls
 from rest_framework import exceptions, status
 
+from kobo.apps.data_collectors.utils import (
+    remove_data_collector_enketo_links,
+    set_data_collector_enketo_links,
+)
 from kobo.apps.openrosa.apps.logger.models import (
     Attachment,
     DailyXFormSubmissionCounter,
@@ -75,9 +78,11 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
+from pyxform.builder import create_survey_from_xls
 from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import kc_transaction_atomic
+from .openrosa_utils import create_enketo_links
 
 
 class OpenRosaDeploymentBackend(BaseDeploymentBackend):
@@ -147,6 +152,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 'version': self.asset.version_id,
             }
         )
+        super().connect(active)
 
     @property
     def form_uuid(self):
@@ -223,6 +229,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             )
             .values('pk', 'attachment_basename', 'attachment_uid')
         )
+
+        # Add asset info for project history logging
+        for att in attachments:
+            att['asset_id'] = self.asset.id
+            att['asset_uid'] = self.asset.uid
 
         count = len(attachment_uids)
         if count != len(attachments):
@@ -672,6 +683,12 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         }
         return links
 
+    def set_data_collector_enketo_links(self, token):
+        set_data_collector_enketo_links(token, [self.xform.id_string])
+
+    def remove_data_collector_enketo_links(self, token):
+        remove_data_collector_enketo_links(token, [self.xform.id_string])
+
     def get_enketo_survey_links(self):
         if not self.get_data('backend_response'):
             return {}
@@ -684,12 +701,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         }
 
         try:
-            response = requests.post(
-                f'{settings.ENKETO_URL}/{settings.ENKETO_SURVEY_ENDPOINT}',
-                # bare tuple implies basic auth
-                auth=(settings.ENKETO_API_KEY, ''),
-                data=data,
-            )
+            response = create_enketo_links(data)
             response.raise_for_status()
         except requests.exceptions.RequestException:
             # Don't 500 the entire asset view if Enketo is unreachable

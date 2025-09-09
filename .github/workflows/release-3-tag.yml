@@ -12,6 +12,12 @@ jobs:
   darker:
     uses: ./.github/workflows/darker.yml
 
+  biome:
+    uses: ./.github/workflows/biome.yml
+
+  openapi:
+    uses: ./.github/workflows/openapi.yml
+
   pytest:
     uses: ./.github/workflows/pytest.yml
 

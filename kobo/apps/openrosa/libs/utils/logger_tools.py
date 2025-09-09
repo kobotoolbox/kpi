@@ -217,6 +217,12 @@ def create_instance(
         for usage_type in [UsageType.STORAGE_BYTES, UsageType.SUBMISSION]:
             balance = balances[usage_type]
             if balance and balance['exceeded']:
+                from kobo.apps.stripe.utils.limit_enforcement import (
+                    check_exceeded_limit,
+                )
+
+                check_exceeded_limit(xform.user, UsageType.SUBMISSION)
+                check_exceeded_limit(xform.user, UsageType.STORAGE_BYTES)
                 raise ExceededUsageLimitError()
 
     # get root uuid
@@ -894,7 +900,8 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     queryset = Attachment.objects.filter(instance=instance).exclude(
         Q(media_file_basename__endswith='.enc')
         | Q(media_file_basename='audit.csv')
-        | Q(media_file_basename__regex=r'^\d{10,}\.(m4a|amr)$')
+        | Q(media_file_basename__regex=r'^\d{10,}\.(m4a|amr)$') # background audio file by Collect
+        | Q(media_file_basename__regex=r'^background-audio-\d{8}_\d{6}\.webm$') # background audio file by Enketo
     ).order_by('-id')
 
     latest_attachments, remaining_attachments_ids = [], []
@@ -946,7 +953,10 @@ def _get_instance(
         # edits
         check_edit_submission_permissions(request, xform)
         InstanceHistory.objects.create(
-            xml=instance.xml, xform_instance=instance, uuid=old_uuid
+            xml=instance.xml,
+            xform_instance=instance,
+            uuid=old_uuid,
+            root_uuid=instance.root_uuid,
         )
         instance.xml = xml
         instance.uuid = new_uuid
