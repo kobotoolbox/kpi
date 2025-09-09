@@ -1,24 +1,64 @@
 from django.conf import settings
 from django.db import migrations
 
+CREATE_ORGANIZATION_USAGE_SNAPSHOT_TABLE_SQL = """
+    CREATE TABLE IF NOT EXISTS organization_usage_snapshot (
+        id SERIAL PRIMARY KEY,
+        organization_id VARCHAR NOT NULL REFERENCES organizations_organization(id) ON DELETE CASCADE,
+        effective_user_id INTEGER NOT NULL,
+        storage_bytes_total BIGINT NOT NULL DEFAULT 0,
+        submission_counts_all_time BIGINT NOT NULL DEFAULT 0,
+        current_period_submissions BIGINT NOT NULL DEFAULT 0,
+        billing_period_start TIMESTAMPTZ,
+        billing_period_end TIMESTAMPTZ,
+        snapshot_created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        is_active BOOLEAN NOT NULL DEFAULT TRUE
+    );
+
+    -- Indexes for performance
+    CREATE INDEX IF NOT EXISTS idx_org_usage_org_active
+        ON organization_usage_snapshot(organization_id, is_active)
+        WHERE is_active = TRUE;
+
+    CREATE INDEX IF NOT EXISTS idx_org_usage_user
+        ON organization_usage_snapshot(effective_user_id);
+
+    CREATE INDEX IF NOT EXISTS idx_org_usage_created_at
+        ON organization_usage_snapshot(snapshot_created_at);
+
+    -- Unique constraint to ensure only one active usage snapshot per organization
+    ALTER TABLE organization_usage_snapshot
+        ADD CONSTRAINT unique_active_org_usage
+        UNIQUE (organization_id)
+        DEFERRABLE INITIALLY DEFERRED;
+    """
+
+CREATE_BILLING_SNAPSHOT_TABLE_SQL = """
+    CREATE TABLE IF NOT EXISTS billing_periods_snapshot (
+        id SERIAL PRIMARY KEY,
+        organization_id VARCHAR NOT NULL REFERENCES organizations_organization(id) ON DELETE CASCADE,
+        current_period_start TIMESTAMPTZ NOT NULL,
+        current_period_end TIMESTAMPTZ NOT NULL,
+        snapshot_created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        is_active BOOLEAN NOT NULL DEFAULT TRUE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_billing_org_active
+        ON billing_periods_snapshot(organization_id, is_active)
+        WHERE is_active = TRUE;
+
+    CREATE INDEX IF NOT EXISTS idx_billing_created_at
+        ON billing_periods_snapshot(snapshot_created_at);
+
+    ALTER TABLE billing_periods_snapshot
+        ADD CONSTRAINT unique_active_org_billing
+        UNIQUE (organization_id)
+        DEFERRABLE INITIALLY DEFERRED;
+    """
+
 CREATE_MV_SQL = """
     CREATE MATERIALIZED VIEW user_reports_mv AS
-    WITH user_storage AS (
-        SELECT
-            xf.user_id,
-            COALESCE(SUM(xf.attachment_storage_bytes), 0) AS total_storage_bytes
-        FROM logger_xform xf
-        WHERE xf.pending_delete = false
-        GROUP BY xf.user_id
-    ),
-    user_submissions AS (
-        SELECT
-            dxsc.user_id,
-            COALESCE(SUM(dxsc.counter), 0) AS total_submissions_all_time
-        FROM logger_dailyxformsubmissioncounter dxsc
-        GROUP BY dxsc.user_id
-    ),
-    user_nlp_usage AS (
+    WITH user_nlp_usage AS (
         SELECT
             nuc.user_id,
             COALESCE(SUM(nuc.total_asr_seconds), 0) AS total_asr_seconds,
@@ -34,6 +74,71 @@ CREATE_MV_SQL = """
         FROM kpi_asset a
         WHERE a.pending_delete = false
         GROUP BY a.owner_id
+    ),
+    user_role_map AS (
+        SELECT
+            au.id AS user_id,
+            CASE
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM organizations_organizationowner o
+                    JOIN organizations_organizationuser ou_owner ON ou_owner.id = o.organization_user_id
+                    WHERE ou_owner.user_id = au.id
+                ) THEN 'owner'
+                WHEN EXISTS (
+                    SELECT 1 FROM organizations_organizationuser ou WHERE ou.user_id = au.id AND ou.is_admin IS TRUE
+                ) THEN 'admin'
+                WHEN EXISTS (
+                    SELECT 1 FROM organizations_organizationuser ou WHERE ou.user_id = au.id
+                ) THEN 'member'
+                ELSE 'external'
+            END AS user_role
+        FROM auth_user au
+    ),
+    user_billing_periods AS (
+        SELECT DISTINCT
+            au.id as user_id,
+            bps.current_period_start,
+            bps.current_period_end,
+            bps.organization_id,
+            -- Cross-database usage data from snapshots
+            COALESCE(ous.storage_bytes_total, 0) as storage_bytes_total,
+            COALESCE(ous.submission_counts_all_time, 0) as submission_counts_all_time,
+            COALESCE(ous.current_period_submissions, 0) as current_period_submissions
+        FROM auth_user au
+        LEFT JOIN organizations_organizationuser ou ON au.id = ou.user_id
+        LEFT JOIN billing_periods_snapshot bps ON ou.organization_id = bps.organization_id
+        LEFT JOIN organization_usage_snapshot ous ON ou.organization_id = ous.organization_id
+        AND ous.is_active = TRUE
+        WHERE bps.is_active = TRUE OR bps.id IS NULL
+    ),
+    -- Aggregate NLP usage for the billing period per-user (period-limited sums)
+    nlp_period_agg AS (
+        SELECT
+            nuc.user_id,
+            SUM(
+                CASE WHEN nuc.date >= ubp.current_period_start AND nuc.date <= ubp.current_period_end
+                     THEN nuc.total_asr_seconds ELSE 0 END
+            ) AS current_period_asr,
+            SUM(
+                CASE WHEN nuc.date >= ubp.current_period_start AND nuc.date <= ubp.current_period_end
+                     THEN nuc.total_mt_characters ELSE 0 END
+            ) AS current_period_mt
+        FROM trackers_nlpusagecounter nuc
+        JOIN user_billing_periods ubp ON nuc.user_id = ubp.user_id
+        GROUP BY nuc.user_id
+    ),
+    -- Combine per-user aggregates with billing window data (one row per user)
+    user_current_period_usage AS (
+        SELECT
+            ubp.user_id,
+            ubp.current_period_start,
+            ubp.current_period_end,
+            ubp.organization_id,
+            COALESCE(na.current_period_asr, 0) AS current_period_asr,
+            COALESCE(na.current_period_mt, 0) AS current_period_mt
+        FROM user_billing_periods ubp
+        LEFT JOIN nlp_period_agg na ON ubp.user_id = na.user_id
     )
     SELECT
         row_number() OVER () AS id,
@@ -88,17 +193,24 @@ CREATE_MV_SQL = """
         CASE
             WHEN org.id IS NOT NULL THEN json_build_object(
                 'organization_name', org.name,
-                'organization_uid', org.id::text
+                'organization_uid', org.id::text,
+                'role', ur.user_role
             )::text
             ELSE NULL
         END AS organizations,
         ued.data::text AS metadata,
-        COALESCE(us.total_storage_bytes, 0) AS storage_bytes_total,
-        COALESCE(usub.total_submissions_all_time, 0) AS submission_counts_all_time,
         COALESCE(unl.total_asr_seconds, 0) AS nlp_usage_asr_seconds_total,
         COALESCE(unl.total_mt_characters, 0) AS nlp_usage_mt_characters_total,
         COALESCE(ua.total_assets, 0) AS asset_count,
         COALESCE(ua.deployed_assets, 0) AS deployed_asset_count,
+        COALESCE(ucpu.current_period_asr, 0) AS current_period_asr,
+        COALESCE(ucpu.current_period_mt, 0) AS current_period_mt,
+        ucpu.current_period_start,
+        ucpu.current_period_end,
+        ucpu.organization_id,
+        ubau.storage_bytes_total,
+        ubau.submission_counts_all_time,
+        ubau.current_period_submissions,
         COALESCE(
             jsonb_agg(
                 json_build_object(
@@ -220,10 +332,11 @@ CREATE_MV_SQL = """
     LEFT JOIN djstripe_customer cust ON sub.customer_id = cust.id
     LEFT JOIN hub_extrauserdetail ued ON au.id = ued.user_id
     LEFT JOIN socialaccount_socialaccount sa ON au.id = sa.user_id
-    LEFT JOIN user_storage us ON au.id = us.user_id
-    LEFT JOIN user_submissions usub ON au.id = usub.user_id
     LEFT JOIN user_nlp_usage unl ON au.id = unl.user_id
     LEFT JOIN user_assets ua ON au.id = ua.user_id
+    LEFT JOIN user_role_map ur ON ur.user_id = au.id
+    LEFT JOIN user_current_period_usage ucpu ON au.id = ucpu.user_id
+    LEFT JOIN user_billing_periods ubau ON au.id = ubau.user_id
     GROUP BY
         au.id,
         au.username,
@@ -240,16 +353,29 @@ CREATE_MV_SQL = """
         org.name,
         au.date_joined,
         au.last_login,
-        us.total_storage_bytes,
-        usub.total_submissions_all_time,
         unl.total_asr_seconds,
         unl.total_mt_characters,
         ua.total_assets,
-        ua.deployed_assets;
+        ua.deployed_assets,
+        ur.user_role,
+        ucpu.current_period_start,
+        ucpu.current_period_end,
+        ucpu.current_period_asr,
+        ucpu.current_period_mt,
+        ucpu.organization_id,
+        ubau.storage_bytes_total,
+        ubau.submission_counts_all_time,
+        ubau.current_period_submissions;
     """
 
 DROP_MV_SQL = """
     DROP MATERIALIZED VIEW IF EXISTS user_reports_mv;
+    """
+DROP_BILLING_SNAPSHOT_TABLE_SQL = """
+    DROP TABLE IF EXISTS billing_periods_snapshot CASCADE;
+    """
+DROP_ORGANIZATION_USAGE_SNAPSHOT_TABLE_SQL = """
+    DROP TABLE IF EXISTS organization_usage_snapshot CASCADE;
     """
 
 
@@ -294,6 +420,14 @@ class Migration(migrations.Migration):
         ]
     else:
         operations = [
+            migrations.RunSQL(
+                sql=CREATE_BILLING_SNAPSHOT_TABLE_SQL,
+                reverse_sql=DROP_BILLING_SNAPSHOT_TABLE_SQL,
+            ),
+            migrations.RunSQL(
+                sql=CREATE_ORGANIZATION_USAGE_SNAPSHOT_TABLE_SQL,
+                reverse_sql=DROP_ORGANIZATION_USAGE_SNAPSHOT_TABLE_SQL,
+            ),
             migrations.RunSQL(
                 sql=CREATE_MV_SQL,
                 reverse_sql=DROP_MV_SQL,

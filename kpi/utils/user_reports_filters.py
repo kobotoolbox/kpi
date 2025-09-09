@@ -25,8 +25,8 @@ class UserReportsFilter(filters.FilterSet):
         field_name='storage_bytes_total',
         help_text="Filter by storage bytes range. Format: min,max"
     )
-    submission_counts_current_month = filters.RangeFilter(
-        field_name='submission_counts_current_month',
+    current_period_submissions = filters.RangeFilter(
+        field_name='current_period_submissions',
         help_text="Filter by current month submissions range. Format: min,max"
     )
     submission_counts_all_time = filters.RangeFilter(
@@ -77,16 +77,21 @@ class UserReportsFilter(filters.FilterSet):
         method='filter_subscription_status',
         help_text="Filter by subscription status (active, canceled, etc.)"
     )
+    subscription_id = filters.CharFilter(
+        method='filter_subscription_id',
+        help_text="Filter by exact subscription id"
+    )
 
     class Meta:
         model = UserReports
         fields = [
             'email', 'username', 'date_joined', 'last_login',
-            'storage_bytes_total', 'submission_counts_current_month',
+            'storage_bytes_total', 'current_period_submissions',
             'submission_counts_all_time', 'nlp_usage_asr_seconds_total',
             'nlp_usage_mt_characters_total', 'asset_count', 'deployed_asset_count',
             'is_active', 'is_staff', 'is_superuser', 'validated_email',
-            'validated_password', 'mfa_is_active', 'sso_is_active', 'accepted_tos'
+            'validated_password', 'mfa_is_active', 'sso_is_active', 'accepted_tos',
+            'subscription_id'
         ]
 
     def filter_metadata_organization_type(self, queryset, name, value):
@@ -132,6 +137,16 @@ class UserReportsFilter(filters.FilterSet):
         return queryset.extra(
             where=[
                 "EXISTS (SELECT 1 FROM jsonb_array_elements(subscriptions::jsonb) AS sub WHERE sub ->> 'status' = %s)"  # noqa
+            ],
+            params=[value]
+        )
+
+    def filter_subscription_id(self, queryset, name, value):
+        if not value:
+            return queryset
+        return queryset.extra(
+            where=[
+                "EXISTS (SELECT 1 FROM jsonb_array_elements(subscriptions::jsonb) AS sub WHERE sub ->> 'id' = %s)"
             ],
             params=[value]
         )
