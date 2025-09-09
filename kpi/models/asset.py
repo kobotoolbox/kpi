@@ -14,6 +14,8 @@ from django.utils.translation import gettext_lazy as t
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
+from taggit.managers import TaggableManager, _TaggableManager
+from taggit.utils import require_instance_manager
 
 from kobo.apps.data_collectors.models import DataCollectorGroup
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
