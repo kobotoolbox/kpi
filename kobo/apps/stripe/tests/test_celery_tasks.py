@@ -23,25 +23,16 @@ class StripeSignalsTestCase(BaseTestCase):
 
     def test_clear_usage_cache_and_counters_on_save(self):
         """
-        Ensure that task runs updates for counters more than one day old
-        and not modified in past day
+        Ensure that task runs updates for counters not modified in past day
         """
         test_counter = baker.make(
             ExceededLimitCounter,
             user=self.someuser,
-            days=1,
             date_modified=timezone.now().date() - timedelta(days=2),
         )
         baker.make(
             ExceededLimitCounter,
             user=self.someuser,
-            days=0,
-            date_modified=timezone.now().date() - timedelta(days=2),
-        )
-        baker.make(
-            ExceededLimitCounter,
-            user=self.someuser,
-            days=1,
             date_modified=timezone.now().date() - timedelta(hours=4),
         )
 
