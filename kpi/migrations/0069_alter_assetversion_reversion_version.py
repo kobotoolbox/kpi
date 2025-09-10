@@ -13,6 +13,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='assetversion',
             name='_reversion_version',
-            field=models.IntegerField(blank=True, null=True),
+            field=models.IntegerField(
+                blank=True, db_column='_reversion_version_id', null=True
+            ),
         ),
     ]
