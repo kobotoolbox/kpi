@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { withRouter } from 'storybook-addon-remix-react-router'
-import assetsMock, { assetsMockEmpty } from '#/endpoints/assets.mocks'
+import assetsMock from '#/endpoints/assets.mocks'
 import DeleteAccountBanner from './DeleteAccountBanner'
 
 const meta: Meta<typeof DeleteAccountBanner> = {
@@ -8,6 +8,9 @@ const meta: Meta<typeof DeleteAccountBanner> = {
   component: DeleteAccountBanner,
   argTypes: {},
   parameters: {
+    msw: {
+      handlers: [assetsMock],
+    },
     a11y: { test: 'todo' },
   },
   decorators: [withRouter],
@@ -16,18 +19,10 @@ const meta: Meta<typeof DeleteAccountBanner> = {
 export default meta
 type Story = StoryObj<typeof DeleteAccountBanner>
 
-export const Default: Story = {
-  parameters: {
-    msw: {
-      handlers: [assetsMock],
-    },
-  },
-}
+export const Default: Story = {}
 
-export const NoAssets: Story = {
-  parameters: {
-    msw: {
-      handlers: [assetsMockEmpty],
-    },
+export const UserHasNoAssets: Story = {
+  args: {
+    storybookTestId: 'UserHasNoAssets',
   },
 }

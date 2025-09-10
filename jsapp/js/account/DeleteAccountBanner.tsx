@@ -9,15 +9,23 @@ import { PROJECTS_ROUTES } from '#/router/routerConstants'
 import { useSession } from '#/stores/useSession'
 import styles from './DeleteAccountBanner.module.scss'
 
-export default function DeleteAccountBanner() {
+interface DeleteAccountBannerProps {
+  /** Internal property used in stories file. */
+  storybookTestId?: string
+}
+
+export default function DeleteAccountBanner(props: DeleteAccountBannerProps) {
   const navigate = useNavigate()
   const session = useSession()
-  const [isAccountWithoutAssets, setIsAccountWithoutAssets] = useState(false)
+  const [isAccountWithoutAssets, setIsAccountWithoutAssets] = useState<boolean | undefined>(undefined)
 
   useEffect(() => {
+    const username = session.currentLoggedAccount.username
     // We are fetching all user assets, but we are only interested in wheter user has at least one asset
-    const singleAssetEndpoint =
-      endpoints.ASSETS_URL + `?q=(owner__username=${session.currentLoggedAccount.username})&limit=1`
+    let singleAssetEndpoint = endpoints.ASSETS_URL + `?q=(owner__username=${username})&limit=1`
+    if (props.storybookTestId) {
+      singleAssetEndpoint += `&storybookTestId=${props.storybookTestId}`
+    }
     fetchGet<PaginatedResponse<AssetResponse>>(singleAssetEndpoint).then((data: PaginatedResponse<AssetResponse>) => {
       console.log('data', data)
       setIsAccountWithoutAssets(data.count === 0)
@@ -38,11 +46,11 @@ export default function DeleteAccountBanner() {
         <Stack flex='1' gap='xs'>
           <h3 className={styles.title}>{t('Delete account')}</h3>
 
-          {isAccountWithoutAssets && (
+          {isAccountWithoutAssets === true && (
             <p className={styles.message}>{t('Delete your account and all your account data.')}</p>
           )}
 
-          {!isAccountWithoutAssets && (
+          {isAccountWithoutAssets === false && (
             <Group gap='0'>
               <p className={styles.message}>
                 {t('You need to delete all projects owned by your user before you can delete your account.')}
@@ -53,9 +61,11 @@ export default function DeleteAccountBanner() {
               </Button>
             </Group>
           )}
+
+          {isAccountWithoutAssets === undefined && <p className={styles.message}>…</p>}
         </Stack>
 
-        <Button size='md' onClick={openModal} disabled={!isAccountWithoutAssets}>
+        <Button size='md' onClick={openModal} disabled={isAccountWithoutAssets !== true}>
           {t('Delete account')}
         </Button>
       </Group>
