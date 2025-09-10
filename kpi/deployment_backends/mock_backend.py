@@ -71,7 +71,6 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
            overriding the normal logic that populates this field with the current
            timestamp at the moment of submission.
         """
-
         class FakeRequest:
             pass
 
