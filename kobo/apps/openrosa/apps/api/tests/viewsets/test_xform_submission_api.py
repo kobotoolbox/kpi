@@ -26,14 +26,14 @@ from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmi
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.apps.main import tests as main_tests
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from kobo.apps.openrosa.libs.constants import CAN_ADD_SUBMISSIONS
+from kobo.apps.openrosa.libs.permissions import assign_perm
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils import logger_tools
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 from kobo.apps.openrosa.libs.utils.logger_tools import (
     OpenRosaResponseNotAllowed,
     OpenRosaTemporarilyUnavailable,
 )
+from kpi.constants import PERM_ADD_SUBMISSIONS
 from kobo.apps.organizations.constants import UsageType
 from kpi.utils.fuzzy_int import FuzzyInt
 
@@ -75,7 +75,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             # USAGE_LIMIT_ENFORCEMENT variable. But we use caching
             # so should find a way to keep that out of this count
             if settings.STRIPE_ENABLED:
-                expected_queries = FuzzyInt(79, 86)
+                expected_queries = FuzzyInt(80, 87)
             with self.assertNumQueries(expected_queries):
                 self.view(request)
 
@@ -546,7 +546,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
         }
         alice_profile = self._create_user_profile(alice_data)
 
-        assign_perm(CAN_ADD_SUBMISSIONS, alice_profile.user, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice_profile.user, self.xform.asset)
 
         count = Attachment.objects.count()
         s = self.surveys[0]

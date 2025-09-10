@@ -8,7 +8,6 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from kobo.apps.openrosa.apps.logger.models import XForm
-from kobo.apps.openrosa.libs.permissions import get_object_users_with_permissions
 from kobo.apps.openrosa.libs.serializers.fields.boolean_field import BooleanField
 from kobo.apps.openrosa.libs.serializers.metadata_serializer import MetaDataSerializer
 from kobo.apps.openrosa.libs.serializers.tag_list_serializer import TagListSerializer
@@ -28,7 +27,6 @@ class XFormSerializer(serializers.HyperlinkedModelSerializer):
     title = serializers.CharField(max_length=255)
     url = serializers.HyperlinkedIdentityField(view_name='xform-detail',
                                                lookup_field='pk')
-    users = serializers.SerializerMethodField('get_xform_permissions')
     hash = serializers.SerializerMethodField()
 
     class Meta:
@@ -85,9 +83,6 @@ class XFormSerializer(serializers.HyperlinkedModelSerializer):
         if not data.get('attachment_storage_bytes'):
             data['attachment_storage_bytes'] = 0
         return data
-
-    def get_xform_permissions(self, obj):
-        return get_object_users_with_permissions(obj, serializable=True)
 
     def get_xform_metadata(self, obj):
         if obj:

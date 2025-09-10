@@ -86,10 +86,6 @@ class BaseDeploymentBackend(abc.ABC):
     def backend_response(self):
         return self.get_data('backend_response', {})
 
-    @abc.abstractmethod
-    def bulk_assign_mapped_perms(self):
-        pass
-
     def bulk_update_submissions(
         self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs
     ) -> dict:
@@ -448,15 +444,6 @@ class BaseDeploymentBackend(abc.ABC):
     def remove_enketo_survey_links_for_data_collectors(self, tokens):
         for token in tokens:
             self.remove_data_collector_enketo_links(token)
-
-    def remove_from_kc_only_flag(self, *args, **kwargs):
-        # TODO: This exists only to support KoBoCAT (see #1161) and should be
-        # removed, along with all places where it is called, once we remove
-        # KoBoCAT's ability to assign permissions (kobotoolbox/kobocat#642)
-
-        # Do nothing, without complaint, so that callers don't have to worry
-        # about whether the back end is KoBoCAT or something else
-        pass
 
     @abc.abstractmethod
     def remove_data_collector_enketo_links(self, token):
