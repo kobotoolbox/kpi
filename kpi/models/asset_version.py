@@ -22,7 +22,7 @@ class AssetVersion(AbstractTimeStampedModel):
     # preserve old reversion_version_ids so we can map old submissions to the
     # correct AssetVersion
     _reversion_version = models.IntegerField(
-        null=True, blank=True, db_column='_reversion_version_id'
+        blank=True, db_column='_reversion_version_id', null=True, unique=True
     )
     version_content = models.JSONField()
     uid_aliases = models.JSONField(null=True)
