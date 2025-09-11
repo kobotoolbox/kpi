@@ -12,7 +12,8 @@ from kpi.schema_extensions.v2.generic.schema import (
 )
 from .fields import BalanceDataField
 
-BALANCE_COMPONENT = ResolvedComponent(
+
+BalanceDataComponent = ResolvedComponent(
     name='ServiceUsageBalanceData',
     type=ResolvedComponent.SCHEMA,
     object=BalanceDataField,  # must be truthy
@@ -22,10 +23,10 @@ BALANCE_COMPONENT = ResolvedComponent(
 
 def get_balance_data_ref(auto_schema):
     """Ensure component is registered and return its $ref."""
-    registered = auto_schema.registry.register(BALANCE_COMPONENT)
+    registered = auto_schema.registry.register(BalanceDataComponent)
     if registered:
         return registered.ref
-    return {'$ref': f'#/components/schemas/{BALANCE_COMPONENT.name}'}
+    return {'$ref': f'#/components/schemas/{BalanceDataComponent.name}'}
 
 
 class BalancesFieldExtension(OpenApiSerializerFieldExtension):
