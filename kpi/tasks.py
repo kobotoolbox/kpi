@@ -197,4 +197,4 @@ def refresh_user_report_snapshots(batch_size: int = 500, bulk_chunk: int = 200):
 
     # Refresh materialized view
     with connection.cursor() as cursor:
-        cursor.execute('REFRESH MATERIALIZED VIEW user_reports_mv')
+        cursor.execute('REFRESH MATERIALIZED VIEW CONCURRENTLY user_reports_mv;')

@@ -13,10 +13,25 @@ CREATE_BILLING_AND_USAGE_SNAPSHOT_TABLE_SQL = """
         billing_period_end TIMESTAMPTZ,
         snapshot_created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+    """
 
-    CREATE INDEX IF NOT EXISTS idx_bau_org ON billing_and_usage_snapshot(organization_id);
-    CREATE INDEX IF NOT EXISTS idx_bau_user ON billing_and_usage_snapshot(effective_user_id);
-    CREATE INDEX IF NOT EXISTS idx_bau_created ON billing_and_usage_snapshot(snapshot_created_at);
+DROP_BILLING_AND_USAGE_SNAPSHOT_TABLE_SQL = """
+    DROP TABLE IF EXISTS billing_and_usage_snapshot CASCADE;
+    """
+
+CREATE_BILLING_AND_USAGE_SNAPSHOT_INDEXES_SQL = """
+    CREATE INDEX IF NOT EXISTS idx_bau_org
+        ON billing_and_usage_snapshot(organization_id);
+    CREATE INDEX IF NOT EXISTS idx_bau_user
+        ON billing_and_usage_snapshot(effective_user_id);
+    CREATE INDEX IF NOT EXISTS idx_bau_created
+        ON billing_and_usage_snapshot(snapshot_created_at);
+    """
+
+DROP_BILLING_AND_USAGE_SNAPSHOT_INDEXES_SQL = """
+    DROP INDEX IF EXISTS idx_bau_org;
+    DROP INDEX IF EXISTS idx_bau_user;
+    DROP INDEX IF EXISTS idx_bau_created;
     """
 
 CREATE_MV_SQL = """
@@ -98,7 +113,7 @@ CREATE_MV_SQL = """
         LEFT JOIN nlp_period_agg na ON ubp.user_id = na.user_id
     )
     SELECT
-        row_number() OVER () AS id,
+        au.id AS id,
         ued.uid AS extra_details_uid,
         au.username,
         au.first_name,
@@ -328,8 +343,12 @@ CREATE_MV_SQL = """
 DROP_MV_SQL = """
     DROP MATERIALIZED VIEW IF EXISTS user_reports_mv;
     """
-DROP_BILLING_AND_USAGE_SNAPSHOT_TABLE_SQL = """
-    DROP TABLE IF EXISTS billing_and_usage_snapshot CASCADE;
+
+CREATE_INDEX_SQL = """
+    CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_mv_id ON user_reports_mv (id);
+    """
+DROP_INDEX_SQL = """
+    DROP INDEX IF EXISTS idx_user_reports_mv_id;
     """
 
 
@@ -360,6 +379,7 @@ def manually_drop_mv_instructions(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
+    atomic = False
 
     dependencies = [
         ('kpi', '0070_alter_assetversion_reversion_version'),
@@ -379,7 +399,15 @@ class Migration(migrations.Migration):
                 reverse_sql=DROP_BILLING_AND_USAGE_SNAPSHOT_TABLE_SQL,
             ),
             migrations.RunSQL(
+                sql=CREATE_BILLING_AND_USAGE_SNAPSHOT_INDEXES_SQL,
+                reverse_sql=DROP_BILLING_AND_USAGE_SNAPSHOT_INDEXES_SQL,
+            ),
+            migrations.RunSQL(
                 sql=CREATE_MV_SQL,
                 reverse_sql=DROP_MV_SQL,
-            )
+            ),
+            migrations.RunSQL(
+                sql=CREATE_INDEX_SQL,
+                reverse_sql=DROP_INDEX_SQL,
+            ),
         ]
