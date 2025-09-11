@@ -3,6 +3,7 @@
 @use 'scss/z-indexes';
 @use 'scss/colors';
 @use 'scss/libs/_mdl';
+@use 'sass:color';
 
 // header and navigation styling
 
@@ -321,7 +322,7 @@
     .git-rev__item {
       color: colors.$kobo-white;
       opacity: 0.85;
-      background: darken(colors.$kobo-teal, 10%);
+      background: color.adjust(colors.$kobo-teal, $lightness: -10%);
       margin-top: 5px;
       padding: 6px 12px;
       display: block;

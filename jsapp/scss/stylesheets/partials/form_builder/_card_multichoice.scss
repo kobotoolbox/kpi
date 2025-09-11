@@ -1,6 +1,7 @@
 @use 'scss/colors';
 @use 'scss/_variables';
 @use 'scss/libs/_mdl';
+@use 'sass:color';
 
 // ==========================================================================
 // Multiple choice cards
@@ -72,8 +73,8 @@
     }
 
     &:focus {
-      border-color: lighten(colors.$kobo-blue, 10%);
-      color: lighten(colors.$kobo-blue, 10%);
+      border-color: color.adjust(colors.$kobo-blue, $lightness: 10%);
+      color: color.adjust(colors.$kobo-blue, $lightness: 10%);
     }
 
     span {

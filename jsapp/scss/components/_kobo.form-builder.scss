@@ -3,6 +3,7 @@
 @use 'scss/colors';
 @use 'scss/mixins';
 @use 'scss/libs/_mdl';
+@use 'sass:color';
 
 $s-form-builder-header: 125px;
 $s-form-builder-aside: 400px;
@@ -119,11 +120,11 @@ $s-form-builder-content-width: 1024px;
       transition: 0.2s;
 
       &:hover {
-        background-color: darken(colors.$kobo-teal, 10%);
+        background-color: color.adjust(colors.$kobo-teal, $lightness: -10%);
       }
 
       &:focus {
-        background-color: darken(colors.$kobo-teal, 10%);
+        background-color: color.adjust(colors.$kobo-teal, $lightness: -10%);
 
         .k-icon {
           font-size: 40px;
