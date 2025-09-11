@@ -6,7 +6,7 @@
 // ==========================================================================
 
 .card__settings {
-  @extend %card-expansion;
+  @extend %card-expansion !optional;
 }
 
 .card--selectquestion__expansion {
@@ -30,7 +30,7 @@
 //== ul.card__settings__tabs li.card__settings__tabs__tab
 // proposed: .card__settings__tabs__tab
 .card__settings__tabs li {
-  @extend %card__settings__tabs__tab;
+  @extend %card__settings__tabs__tab !optional;
 
   &.card__settings__tabs__tab--active {
     background: colors.$kobo-gray-300;
@@ -41,7 +41,7 @@
 //== ul.card__settings__tabs li.card__settings__tabs__heading
 // proposed: .card__settings__tabs__heading
 .card__settings__tabs .heading {
-  @extend %card__settings__tabs__tab;
+  @extend %card__settings__tabs__tab !optional;
 
   border-bottom: variables.$thinBorderStyle;
   font-size: 13px;

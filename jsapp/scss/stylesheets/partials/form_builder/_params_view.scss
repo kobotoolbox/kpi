@@ -1,7 +1,8 @@
 @use 'scss/_variables';
+@use 'scss/stylesheets/partials/form_builder/_common';
 
 .params-view__simple-wrapper {
-  @extend %card-content;
+  @extend %card-content !optional;
 
   .params-view {
     padding: 10px;

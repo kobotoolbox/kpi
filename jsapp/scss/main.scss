@@ -25,7 +25,7 @@
 @include meta.load-css('stylesheets/partials/helpers');
 
 @include meta.load-css('./components/kobo.bem.ui');
-@include meta.load-css('jsapp/js/popoverMenu.scss');
+@include meta.load-css('../js/popoverMenu.scss');
 @include meta.load-css('./components/kobo.button');
 @include meta.load-css('./components/kobo.tooltips-big');
 @include meta.load-css('./components/kobo.navigation');
@@ -43,7 +43,7 @@
 @include meta.load-css('./components/kobo.background-audio-player');
 @include meta.load-css('./components/kobo.dropzone');
 @include meta.load-css('./components/kobo.table-meta');
-@include meta.load-css('jsapp/js/components/common/tooltip.scss');
+@include meta.load-css('../js/components/common/tooltip.scss');
 
 @include meta.load-css('./formbuild/kobomatrix');
 

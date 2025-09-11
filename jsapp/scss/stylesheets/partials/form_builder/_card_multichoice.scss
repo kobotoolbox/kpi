@@ -8,7 +8,7 @@
 // ==========================================================================
 
 .card--selectquestion__expansion {
-  @extend %card-expansion;
+  @extend %card-expansion !optional;
 }
 
 .survey__row--selected {
