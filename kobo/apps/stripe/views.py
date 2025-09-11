@@ -15,6 +15,7 @@ from djstripe.models import (
     SubscriptionSchedule,
 )
 from djstripe.settings import djstripe_settings
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from organizations.utils import create_organization
 from rest_framework import mixins, status, viewsets
 from rest_framework.response import Response
@@ -36,6 +37,7 @@ from kobo.apps.stripe.utils.view_utils import (
     get_total_price_for_quantity,
 )
 from kpi.permissions import IsAuthenticated
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 
 
 class OneTimeAddOnViewSet(viewsets.ReadOnlyModelViewSet):
@@ -483,6 +485,17 @@ class CustomerPortalView(APIView):
         return response
 
 
+@extend_schema(tags=['Stripe'])
+@extend_schema_view(
+    list=extend_schema(
+        responses=open_api_200_ok_response(
+            SubscriptionSerializer,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+)
 class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
