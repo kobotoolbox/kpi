@@ -1,8 +1,8 @@
 from django.conf import settings
 from django.db import migrations
 
-CREATE_ORGANIZATION_USAGE_SNAPSHOT_TABLE_SQL = """
-    CREATE TABLE IF NOT EXISTS organization_usage_snapshot (
+CREATE_BILLING_AND_USAGE_SNAPSHOT_TABLE_SQL = """
+    CREATE TABLE IF NOT EXISTS billing_and_usage_snapshot (
         id SERIAL PRIMARY KEY,
         organization_id VARCHAR NOT NULL REFERENCES organizations_organization(id) ON DELETE CASCADE,
         effective_user_id INTEGER NOT NULL,
@@ -11,49 +11,12 @@ CREATE_ORGANIZATION_USAGE_SNAPSHOT_TABLE_SQL = """
         current_period_submissions BIGINT NOT NULL DEFAULT 0,
         billing_period_start TIMESTAMPTZ,
         billing_period_end TIMESTAMPTZ,
-        snapshot_created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        is_active BOOLEAN NOT NULL DEFAULT TRUE
+        snapshot_created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
-    -- Indexes for performance
-    CREATE INDEX IF NOT EXISTS idx_org_usage_org_active
-        ON organization_usage_snapshot(organization_id, is_active)
-        WHERE is_active = TRUE;
-
-    CREATE INDEX IF NOT EXISTS idx_org_usage_user
-        ON organization_usage_snapshot(effective_user_id);
-
-    CREATE INDEX IF NOT EXISTS idx_org_usage_created_at
-        ON organization_usage_snapshot(snapshot_created_at);
-
-    -- Unique constraint to ensure only one active usage snapshot per organization
-    ALTER TABLE organization_usage_snapshot
-        ADD CONSTRAINT unique_active_org_usage
-        UNIQUE (organization_id)
-        DEFERRABLE INITIALLY DEFERRED;
-    """
-
-CREATE_BILLING_SNAPSHOT_TABLE_SQL = """
-    CREATE TABLE IF NOT EXISTS billing_periods_snapshot (
-        id SERIAL PRIMARY KEY,
-        organization_id VARCHAR NOT NULL REFERENCES organizations_organization(id) ON DELETE CASCADE,
-        current_period_start TIMESTAMPTZ NOT NULL,
-        current_period_end TIMESTAMPTZ NOT NULL,
-        snapshot_created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        is_active BOOLEAN NOT NULL DEFAULT TRUE
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_billing_org_active
-        ON billing_periods_snapshot(organization_id, is_active)
-        WHERE is_active = TRUE;
-
-    CREATE INDEX IF NOT EXISTS idx_billing_created_at
-        ON billing_periods_snapshot(snapshot_created_at);
-
-    ALTER TABLE billing_periods_snapshot
-        ADD CONSTRAINT unique_active_org_billing
-        UNIQUE (organization_id)
-        DEFERRABLE INITIALLY DEFERRED;
+    CREATE INDEX IF NOT EXISTS idx_bau_org ON billing_and_usage_snapshot(organization_id);
+    CREATE INDEX IF NOT EXISTS idx_bau_user ON billing_and_usage_snapshot(effective_user_id);
+    CREATE INDEX IF NOT EXISTS idx_bau_created ON billing_and_usage_snapshot(snapshot_created_at);
     """
 
 CREATE_MV_SQL = """
@@ -98,21 +61,16 @@ CREATE_MV_SQL = """
     user_billing_periods AS (
         SELECT DISTINCT
             au.id as user_id,
-            bps.current_period_start,
-            bps.current_period_end,
-            bps.organization_id,
-            -- Cross-database usage data from snapshots
-            COALESCE(ous.storage_bytes_total, 0) as storage_bytes_total,
-            COALESCE(ous.submission_counts_all_time, 0) as submission_counts_all_time,
-            COALESCE(ous.current_period_submissions, 0) as current_period_submissions
+            bus.billing_period_start AS current_period_start,
+            bus.billing_period_end   AS current_period_end,
+            bus.organization_id,
+            COALESCE(bus.storage_bytes_total, 0) as storage_bytes_total,
+            COALESCE(bus.submission_counts_all_time, 0) as submission_counts_all_time,
+            COALESCE(bus.current_period_submissions, 0) as current_period_submissions
         FROM auth_user au
         LEFT JOIN organizations_organizationuser ou ON au.id = ou.user_id
-        LEFT JOIN billing_periods_snapshot bps ON ou.organization_id = bps.organization_id
-        LEFT JOIN organization_usage_snapshot ous ON ou.organization_id = ous.organization_id
-        AND ous.is_active = TRUE
-        WHERE bps.is_active = TRUE OR bps.id IS NULL
+        LEFT JOIN billing_and_usage_snapshot bus ON ou.organization_id = bus.organization_id
     ),
-    -- Aggregate NLP usage for the billing period per-user (period-limited sums)
     nlp_period_agg AS (
         SELECT
             nuc.user_id,
@@ -128,7 +86,6 @@ CREATE_MV_SQL = """
         JOIN user_billing_periods ubp ON nuc.user_id = ubp.user_id
         GROUP BY nuc.user_id
     ),
-    -- Combine per-user aggregates with billing window data (one row per user)
     user_current_period_usage AS (
         SELECT
             ubp.user_id,
@@ -371,11 +328,8 @@ CREATE_MV_SQL = """
 DROP_MV_SQL = """
     DROP MATERIALIZED VIEW IF EXISTS user_reports_mv;
     """
-DROP_BILLING_SNAPSHOT_TABLE_SQL = """
-    DROP TABLE IF EXISTS billing_periods_snapshot CASCADE;
-    """
-DROP_ORGANIZATION_USAGE_SNAPSHOT_TABLE_SQL = """
-    DROP TABLE IF EXISTS organization_usage_snapshot CASCADE;
+DROP_BILLING_AND_USAGE_SNAPSHOT_TABLE_SQL = """
+    DROP TABLE IF EXISTS billing_and_usage_snapshot CASCADE;
     """
 
 
@@ -421,12 +375,8 @@ class Migration(migrations.Migration):
     else:
         operations = [
             migrations.RunSQL(
-                sql=CREATE_BILLING_SNAPSHOT_TABLE_SQL,
-                reverse_sql=DROP_BILLING_SNAPSHOT_TABLE_SQL,
-            ),
-            migrations.RunSQL(
-                sql=CREATE_ORGANIZATION_USAGE_SNAPSHOT_TABLE_SQL,
-                reverse_sql=DROP_ORGANIZATION_USAGE_SNAPSHOT_TABLE_SQL,
+                sql=CREATE_BILLING_AND_USAGE_SNAPSHOT_TABLE_SQL,
+                reverse_sql=DROP_BILLING_AND_USAGE_SNAPSHOT_TABLE_SQL,
             ),
             migrations.RunSQL(
                 sql=CREATE_MV_SQL,

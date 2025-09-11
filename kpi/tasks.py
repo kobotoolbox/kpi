@@ -1,4 +1,5 @@
 import time
+from typing import Iterable, List
 
 import requests
 from django.apps import apps
@@ -6,17 +7,23 @@ from django.conf import settings
 from django.core import mail
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import call_command
-from django.db.models import Min
+from django.db import connection, connections, transaction
+from django.db.models import Min, Q, Sum
+from django.utils import timezone
 from reversion.models import Version
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.markdownx_uploader.tasks import remove_unused_markdown_files
+from kobo.apps.organizations.models import Organization
+from kobo.apps.stripe.utils.billing_dates import get_current_billing_period_dates_by_org
 from kobo.celery import celery_app
 from kpi.constants import LIMIT_HOURS_23
 from kpi.maintenance_tasks import remove_old_asset_snapshots, remove_old_import_tasks
 from kpi.models.asset import Asset
 from kpi.models.import_export_task import ImportTask, SubmissionExportTask
+from kpi.models.user_reports import BillingAndUsageSnapshot
 from kpi.utils.log import logging
+from kpi.utils.usage_calculator import BillingAndUsageCalculator
 
 
 @celery_app.task(
@@ -140,3 +147,54 @@ def remove_old_versions():
         # log at debug level so we don't flood the logs
         logging.debug(f'Deleted {deleted[0]} version objects with pk < {min_id}')
         time.sleep(10)
+
+
+def chunk_queryset(qs, size: int) -> Iterable[List]:
+    qs = qs.order_by('id')
+    total = qs.count()
+    for start in range(0, total, size):
+        yield list(qs[start:start + size])
+
+
+@celery_app.task
+def refresh_user_report_snapshots(batch_size: int = 500, bulk_chunk: int = 200):
+    org_qs = Organization.objects.select_related('owner__organization_user__user').all()
+    calculator = BillingAndUsageCalculator()
+
+    for chunk in chunk_queryset(org_qs, batch_size):
+        if not chunk:
+            continue
+
+        billing_dates = get_current_billing_period_dates_by_org(chunk)
+        usage_map = calculator.calculate_usage_batch(chunk, billing_dates)
+
+        snapshot_objs = []
+        org_ids = list(usage_map.keys())
+        for org_id, data in usage_map.items():
+            snapshot_objs.append(
+                BillingAndUsageSnapshot(
+                    organization_id=org_id,
+                    effective_user_id=data.get('effective_user_id'),
+                    storage_bytes_total=data.get('storage_bytes_total'),
+                    submission_counts_all_time=data.get('submission_counts_all_time'),
+                    current_period_submissions=data.get('current_period_submissions'),
+                    billing_period_start=data.get('billing_period_start'),
+                    billing_period_end=data.get('billing_period_end'),
+                    snapshot_created_at=timezone.now(),
+                )
+            )
+
+        if snapshot_objs:
+            with transaction.atomic():
+                BillingAndUsageSnapshot.objects.filter(
+                    organization_id__in=org_ids
+                ).delete()
+
+                # Bulk create in smaller chunks to avoid overly-large SQL statements
+                for start in range(0, len(snapshot_objs), bulk_chunk):
+                    part = snapshot_objs[start:start + bulk_chunk]
+                    BillingAndUsageSnapshot.objects.bulk_create(part)
+
+    # Refresh materialized view
+    with connection.cursor() as cursor:
+        cursor.execute('REFRESH MATERIALIZED VIEW user_reports_mv')

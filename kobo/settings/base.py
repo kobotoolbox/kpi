@@ -1326,6 +1326,12 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    # Schedule every 30 minutes
+    'refresh-user-report-snapshot': {
+        'task': 'kpi.tasks.refresh_user_report_snapshots',
+        'schedule': crontab(minute='*/15'),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
     # Schedule every day at midnight UTC
     'project-ownership-garbage-collector': {
         'task': 'kobo.apps.project_ownership.tasks.garbage_collector',
