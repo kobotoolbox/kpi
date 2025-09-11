@@ -19,9 +19,7 @@ BALANCE_FIELDS_SCHEMA = build_object_type(
         'balance_value': build_basic_type(OpenApiTypes.INT),
         'balance_percent': build_basic_type(OpenApiTypes.INT),
         'exceeded': build_basic_type(OpenApiTypes.INT),
-    },
-    description="Service usage balances values",
-    ref_name="ServiceUsageBalancesValues",
+    }
 )
 
 LABEL_VALUE_OBJECT_SCHEMA = build_object_type(
