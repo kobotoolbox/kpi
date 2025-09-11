@@ -1,11 +1,27 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
-from drf_spectacular.plumbing import build_basic_type, build_object_type
+from drf_spectacular.plumbing import build_basic_type, build_object_type, ResolvedComponent
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.schema_extensions.v2.generic.schema import (
     BALANCE_FIELDS_SCHEMA,
     GENERIC_NLP_ALL_TIME_OBJECT_SCHEMA,
 )
+from .fields import BalanceDataField
+
+
+BALANCE_COMPONENT = ResolvedComponent(
+    name="ServiceUsageBalanceData",
+    type=ResolvedComponent.SCHEMA,
+    object=BalanceDataField,  # must be truthy
+    schema=BALANCE_FIELDS_SCHEMA,
+)
+
+def get_balance_data_ref(auto_schema):
+    """Ensure component is registered and return its $ref."""
+    registered = auto_schema.registry.register(BALANCE_COMPONENT)
+    if registered:
+        return registered.ref
+    return {"$ref": f"#/components/schemas/{BALANCE_COMPONENT.name}"}
 
 
 class BalancesFieldExtension(OpenApiSerializerFieldExtension):
@@ -14,10 +30,10 @@ class BalancesFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'submission': BALANCE_FIELDS_SCHEMA,
-                'storage_bytes': BALANCE_FIELDS_SCHEMA,
-                'asr_seconds': BALANCE_FIELDS_SCHEMA,
-                'mt_characters': BALANCE_FIELDS_SCHEMA,
+                'submission': get_balance_data_ref(auto_schema),
+                'storage_bytes': get_balance_data_ref(auto_schema),
+                'asr_seconds': get_balance_data_ref(auto_schema),
+                'mt_characters': get_balance_data_ref(auto_schema),
             }
         )
 
