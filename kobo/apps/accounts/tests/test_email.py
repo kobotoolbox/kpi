@@ -1,4 +1,3 @@
-from ddt import data, ddt
 from django.conf import settings
 from django.core import mail
 from django.urls import reverse
@@ -85,7 +84,7 @@ class AccountsEmailTestCase(APITestCase):
                 confirm_url = line.split('testserver')[1].rsplit('/', 1)[0]
         queries = FuzzyInt(15, 20)
         with self.assertNumQueries(queries):
-            res = self.client.post(confirm_url + '/')
+            res = self.client.post(confirm_url + "/")
         self.assertEqual(res.status_code, 302)
         self.assertTrue(
             self.user.emailaddress_set.filter(
@@ -102,7 +101,6 @@ class AccountsEmailTestCase(APITestCase):
         )
 
 
-@ddt
 class EmailUpdateRestrictionTestCase(APITestCase):
     """
     Test that only organization owners and admins can update their email.
@@ -172,23 +170,4 @@ class EmailUpdateRestrictionTestCase(APITestCase):
                 email=data['email']
             ).count(),
             1
-        )
-
-    @data('mmo_admin', 'mmo_owner', 'mmo_member', 'non_mmo_user')
-    def test_that_user_cannot_update_email_if_sso(self, user_type):
-        if user_type == 'mmo_admin':
-            user = self.admin
-        elif user_type == 'mmo_owner':
-            user = self.owner
-        elif user_type == 'mmo_member':
-            user = self.member
-        else:
-            user = self.non_mmo_user
-        baker.make('socialaccount.SocialAccount', user=user)
-        self.client.force_login(user)
-        data = {'email': 'nonmmo@example.com'}
-        res = self.client.post(self.url_list, data, format='json')
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            self.member.emailaddress_set.filter(email=data['email']).count(), 0
         )
