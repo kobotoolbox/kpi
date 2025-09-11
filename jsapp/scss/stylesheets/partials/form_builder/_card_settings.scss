@@ -1,11 +1,12 @@
 @use 'scss/colors';
+@use 'scss/_variables';
 
 // ==========================================================================
 // Card settings tabs
 // ==========================================================================
 
 .card__settings {
-  @extend %card-expansion;
+  @extend %card-expansion !optional;
 }
 
 .card--selectquestion__expansion {
@@ -29,7 +30,7 @@
 //== ul.card__settings__tabs li.card__settings__tabs__tab
 // proposed: .card__settings__tabs__tab
 .card__settings__tabs li {
-  @extend %card__settings__tabs__tab;
+  @extend %card__settings__tabs__tab !optional;
 
   &.card__settings__tabs__tab--active {
     background: colors.$kobo-gray-300;
@@ -40,9 +41,9 @@
 //== ul.card__settings__tabs li.card__settings__tabs__heading
 // proposed: .card__settings__tabs__heading
 .card__settings__tabs .heading {
-  @extend %card__settings__tabs__tab;
+  @extend %card__settings__tabs__tab !optional;
 
-  border-bottom: $thinBorderStyle;
+  border-bottom: variables.$thinBorderStyle;
   font-size: 13px;
   padding: 8px 10px;
   font-weight: 600;
@@ -60,7 +61,7 @@
 .card__settings__content {
   padding: 20px 30px;
   margin-left: 20%;
-  border-left: $thinBorderStyle;
+  border-left: variables.$thinBorderStyle;
   min-height: 152px;
 }
 
@@ -140,7 +141,7 @@
   cursor: pointer;
 
   &:hover {
-    background: $linkColor;
+    background: variables.$linkColor;
   }
 
   &:active {

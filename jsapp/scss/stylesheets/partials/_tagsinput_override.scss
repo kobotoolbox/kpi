@@ -1,11 +1,12 @@
 @use 'scss/colors';
+@use 'scss/libs/_mdl';
 
 /*
 Overrides to jquery tags input CSS
 */
 
 .question__tags {
-  @extend %card-expansion;
+  @extend %card-expansion !optional;
   margin-top: -10px !important;
   padding-top: 6px;
 }
@@ -19,7 +20,7 @@ div.tagsinput span.tag {
   background: colors.$kobo-mid-blue;
   border: none;
   color: colors.$kobo-white;
-  font-family: $font;
+  font-family: mdl.$font;
   font-size: 12px;
   margin: 0 4px;
   padding: 0 6px;
@@ -33,7 +34,7 @@ div.tagsinput span.tag {
 div.tagsinput input {
   border: none;
   color: colors.$kobo-gray-800;
-  font-family: $font;
+  font-family: mdl.$font;
   font-size: 12px;
   margin: 0 5px;
   padding: 5px;

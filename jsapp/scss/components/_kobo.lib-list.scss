@@ -50,7 +50,7 @@
   line-height: 14px;
   font-size: 11px;
   padding-left: 5px;
-  @extend .clearfix;
+  @extend .clearfix !optional;
 }
 
 .lib-list__tag {
