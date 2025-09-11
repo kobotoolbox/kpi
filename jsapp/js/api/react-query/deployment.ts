@@ -39,7 +39,7 @@ export type assetsDeploymentRetrieveResponse200 = {
 }
 
 export type assetsDeploymentRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -71,7 +71,7 @@ export const getAssetsDeploymentRetrieveQueryKey = (uid: string) => {
 
 export const getAssetsDeploymentRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsDeploymentRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uid: string,
   options?: {
@@ -94,11 +94,11 @@ export const getAssetsDeploymentRetrieveQueryOptions = <
 }
 
 export type AssetsDeploymentRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDeploymentRetrieve>>>
-export type AssetsDeploymentRetrieveQueryError = ErrorObject
+export type AssetsDeploymentRetrieveQueryError = ErrorDetail
 
 export function useAssetsDeploymentRetrieve<
   TData = Awaited<ReturnType<typeof assetsDeploymentRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uid: string,
   options?: {

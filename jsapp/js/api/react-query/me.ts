@@ -583,15 +583,9 @@ export type meSocialAccountsRetrieveResponse401 = {
   status: 401
 }
 
-export type meSocialAccountsRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type meSocialAccountsRetrieveResponseComposite =
   | meSocialAccountsRetrieveResponse200
   | meSocialAccountsRetrieveResponse401
-  | meSocialAccountsRetrieveResponse404
 
 export type meSocialAccountsRetrieveResponse = meSocialAccountsRetrieveResponseComposite & {
   headers: Headers
@@ -618,7 +612,7 @@ export const getMeSocialAccountsRetrieveQueryKey = (provider: string, uid: strin
 
 export const getMeSocialAccountsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   provider: string,
   uid: string,
@@ -642,11 +636,11 @@ export const getMeSocialAccountsRetrieveQueryOptions = <
 }
 
 export type MeSocialAccountsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>>
-export type MeSocialAccountsRetrieveQueryError = ErrorDetail | ErrorObject
+export type MeSocialAccountsRetrieveQueryError = ErrorDetail
 
 export function useMeSocialAccountsRetrieve<
   TData = Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   provider: string,
   uid: string,
@@ -678,15 +672,9 @@ export type meSocialAccountsDestroyResponse401 = {
   status: 401
 }
 
-export type meSocialAccountsDestroyResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type meSocialAccountsDestroyResponseComposite =
   | meSocialAccountsDestroyResponse204
   | meSocialAccountsDestroyResponse401
-  | meSocialAccountsDestroyResponse404
 
 export type meSocialAccountsDestroyResponse = meSocialAccountsDestroyResponseComposite & {
   headers: Headers
@@ -707,10 +695,7 @@ export const meSocialAccountsDestroy = async (
   })
 }
 
-export const getMeSocialAccountsDestroyMutationOptions = <
-  TError = ErrorDetail | ErrorObject,
-  TContext = unknown,
->(options?: {
+export const getMeSocialAccountsDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
     TError,
@@ -745,9 +730,9 @@ export const getMeSocialAccountsDestroyMutationOptions = <
 
 export type MeSocialAccountsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof meSocialAccountsDestroy>>>
 
-export type MeSocialAccountsDestroyMutationError = ErrorDetail | ErrorObject
+export type MeSocialAccountsDestroyMutationError = ErrorDetail
 
-export const useMeSocialAccountsDestroy = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
+export const useMeSocialAccountsDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
     TError,
