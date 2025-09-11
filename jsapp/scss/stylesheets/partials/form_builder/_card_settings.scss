@@ -1,12 +1,13 @@
 @use 'scss/colors';
 @use 'scss/_variables';
+@use 'scss/stylesheets/partials/form_builder/_common';
 
 // ==========================================================================
 // Card settings tabs
 // ==========================================================================
 
 .card__settings {
-  @extend %card-expansion !optional;
+  @extend %card-expansion;
 }
 
 .card--selectquestion__expansion {
@@ -30,7 +31,7 @@
 //== ul.card__settings__tabs li.card__settings__tabs__tab
 // proposed: .card__settings__tabs__tab
 .card__settings__tabs li {
-  @extend %card__settings__tabs__tab !optional;
+  @extend %card__settings__tabs__tab;
 
   &.card__settings__tabs__tab--active {
     background: colors.$kobo-gray-300;
@@ -41,7 +42,7 @@
 //== ul.card__settings__tabs li.card__settings__tabs__heading
 // proposed: .card__settings__tabs__heading
 .card__settings__tabs .heading {
-  @extend %card__settings__tabs__tab !optional;
+  @extend %card__settings__tabs__tab;
 
   border-bottom: variables.$thinBorderStyle;
   font-size: 13px;

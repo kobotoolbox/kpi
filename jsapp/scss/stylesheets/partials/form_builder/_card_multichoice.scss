@@ -2,13 +2,14 @@
 @use 'scss/_variables';
 @use 'scss/libs/_mdl';
 @use 'sass:color';
+@use 'scss/stylesheets/partials/form_builder/_common';
 
 // ==========================================================================
 // Multiple choice cards
 // ==========================================================================
 
 .card--selectquestion__expansion {
-  @extend %card-expansion !optional;
+  @extend %card-expansion;
 }
 
 .survey__row--selected {

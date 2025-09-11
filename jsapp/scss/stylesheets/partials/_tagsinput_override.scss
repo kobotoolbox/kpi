@@ -1,12 +1,13 @@
 @use 'scss/colors';
 @use 'scss/libs/_mdl';
+@use 'scss/stylesheets/partials/form_builder/_common';
 
 /*
 Overrides to jquery tags input CSS
 */
 
 .question__tags {
-  @extend %card-expansion !optional;
+  @extend %card-expansion;
   margin-top: -10px !important;
   padding-top: 6px;
 }

@@ -2,7 +2,7 @@
 @use 'scss/stylesheets/partials/form_builder/_common';
 
 .params-view__simple-wrapper {
-  @extend %card-content !optional;
+  @extend %card-content;
 
   .params-view {
     padding: 10px;
