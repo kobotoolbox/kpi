@@ -1,5 +1,9 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
-from drf_spectacular.plumbing import build_basic_type, build_object_type, ResolvedComponent
+from drf_spectacular.plumbing import (
+    ResolvedComponent,
+    build_basic_type,
+    build_object_type,
+)
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.schema_extensions.v2.generic.schema import (
@@ -8,20 +12,20 @@ from kpi.schema_extensions.v2.generic.schema import (
 )
 from .fields import BalanceDataField
 
-
 BALANCE_COMPONENT = ResolvedComponent(
-    name="ServiceUsageBalanceData",
+    name='ServiceUsageBalanceData',
     type=ResolvedComponent.SCHEMA,
     object=BalanceDataField,  # must be truthy
     schema=BALANCE_FIELDS_SCHEMA,
 )
+
 
 def get_balance_data_ref(auto_schema):
     """Ensure component is registered and return its $ref."""
     registered = auto_schema.registry.register(BALANCE_COMPONENT)
     if registered:
         return registered.ref
-    return {"$ref": f"#/components/schemas/{BALANCE_COMPONENT.name}"}
+    return {'$ref': f'#/components/schemas/{BALANCE_COMPONENT.name}'}
 
 
 class BalancesFieldExtension(OpenApiSerializerFieldExtension):
