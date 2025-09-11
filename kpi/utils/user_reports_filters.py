@@ -4,11 +4,6 @@ from kpi.models.user_reports import UserReports
 
 
 class UserReportsFilter(filters.FilterSet):
-    """
-    Advanced filtering for user reports with optimized queries
-    """
-
-    # Basic filters
     email = filters.CharFilter(lookup_expr='icontains')
     username = filters.CharFilter(lookup_expr='icontains')
     date_joined = filters.DateTimeFromToRangeFilter(
@@ -20,7 +15,6 @@ class UserReportsFilter(filters.FilterSet):
         help_text="Filter by last login range. Format: YYYY-MM-DDTHH:MM:SSZ"
     )
 
-    # Usage filters with range support
     storage_bytes_total = filters.RangeFilter(
         field_name='storage_bytes_total',
         help_text="Filter by storage bytes range. Format: min,max"
@@ -52,7 +46,6 @@ class UserReportsFilter(filters.FilterSet):
         help_text="Filter by deployed asset count range. Format: min,max"
     )
 
-    # Boolean filters
     is_active = filters.BooleanFilter()
     is_staff = filters.BooleanFilter()
     is_superuser = filters.BooleanFilter()
@@ -62,7 +55,6 @@ class UserReportsFilter(filters.FilterSet):
     sso_is_active = filters.BooleanFilter()
     accepted_tos = filters.BooleanFilter()
 
-    # JSON field filters
     metadata__organization_type = filters.CharFilter(
         method='filter_metadata_organization_type',
         help_text="Filter by organization type in metadata"
@@ -95,10 +87,6 @@ class UserReportsFilter(filters.FilterSet):
         ]
 
     def filter_metadata_organization_type(self, queryset, name, value):
-        """
-        Filter by organization_type in metadata JSON field
-        Uses PostgreSQL JSON operators for efficient querying
-        """
         if not value:
             return queryset
 
