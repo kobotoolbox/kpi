@@ -1,3 +1,5 @@
+@use 'scss/_variables';
+
 .params-view__simple-wrapper {
   @extend %card-content;
 
@@ -18,9 +20,9 @@
 
 .survey__row--selected {
   .params-view__simple-wrapper {
-    border-left-color: $linkColor;
-    border-right-color: $linkColor;
-    border-bottom-color: $linkColor;
+    border-left-color: variables.$linkColor;
+    border-right-color: variables.$linkColor;
+    border-bottom-color: variables.$linkColor;
   }
 }
 

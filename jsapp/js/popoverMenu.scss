@@ -1,6 +1,7 @@
 @use 'scss/z-indexes';
 @use 'scss/breakpoints';
 @use 'scss/colors';
+@use 'scss/libs/_mdl';
 @use 'sass:color';
 
 // Popover menu
@@ -26,7 +27,7 @@
 }
 
 .popover-menu__content {
-  @include box-shadow-mid;
+  @include mdl.box-shadow-mid;
 
   overflow: hidden;
   position: absolute;
