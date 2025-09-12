@@ -190,5 +190,5 @@ class EmailUpdateRestrictionTestCase(APITestCase):
         res = self.client.post(self.url_list, data, format='json')
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            self.member.emailaddress_set.filter(email=data['email']).count(), 0
+            user.emailaddress_set.filter(email=data['email']).count(), 0
         )
