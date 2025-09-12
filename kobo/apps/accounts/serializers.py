@@ -30,7 +30,7 @@ class EmailAddressSerializer(serializers.ModelSerializer):
         """
         user = self.context['request'].user
         organization = user.organization
-        if user.socialaccount_set.first():
+        if user.socialaccount_set.exists():
             raise serializers.ValidationError(
                 {'email': t('This action is not allowed.')}
             )
