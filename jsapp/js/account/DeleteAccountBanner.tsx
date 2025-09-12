@@ -1,4 +1,5 @@
 import { Group, Stack } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchGet } from '#/api'
@@ -8,6 +9,7 @@ import type { AssetResponse, PaginatedResponse } from '#/dataInterface'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
 import { useSession } from '#/stores/useSession'
 import styles from './DeleteAccountBanner.module.scss'
+import DeleteAccountModal from './DeleteAccountModal'
 
 interface DeleteAccountBannerProps {
   /** Internal property used in stories file. */
@@ -15,6 +17,7 @@ interface DeleteAccountBannerProps {
 }
 
 export default function DeleteAccountBanner(props: DeleteAccountBannerProps) {
+  const [isModalOpened, { open, close }] = useDisclosure(false)
   const navigate = useNavigate()
   const session = useSession()
   const [isAccountWithoutAssets, setIsAccountWithoutAssets] = useState<boolean | undefined>(undefined)
@@ -32,10 +35,6 @@ export default function DeleteAccountBanner(props: DeleteAccountBannerProps) {
     })
   }, [])
 
-  function openModal() {
-    console.log('open modal')
-  }
-
   function goToProjectsList() {
     navigate(PROJECTS_ROUTES.MY_PROJECTS)
   }
@@ -47,10 +46,12 @@ export default function DeleteAccountBanner(props: DeleteAccountBannerProps) {
           <h3 className={styles.title}>{t('Delete account')}</h3>
 
           {isAccountWithoutAssets === true && (
+            // TODO <Text>?
             <p className={styles.message}>{t('Delete your account and all your account data.')}</p>
           )}
 
           {isAccountWithoutAssets === false && (
+            // TODO <Text>?
             <Group gap='0'>
               <p className={styles.message}>
                 {t('You need to delete all projects owned by your user before you can delete your account.')}
@@ -65,9 +66,11 @@ export default function DeleteAccountBanner(props: DeleteAccountBannerProps) {
           {isAccountWithoutAssets === undefined && <p className={styles.message}>…</p>}
         </Stack>
 
-        <Button size='md' onClick={openModal} disabled={isAccountWithoutAssets !== true}>
+        <Button size='md' onClick={open} disabled={isAccountWithoutAssets !== true}>
           {t('Delete account')}
         </Button>
+
+        <DeleteAccountModal opened={isModalOpened} onClose={close} />
       </Group>
     </div>
   )

@@ -6,6 +6,10 @@
   border-radius: 6px;
 }
 
+.wrapper:not(:only-child, :first-child) {
+  margin-top: 32px;
+}
+
 .title {
   margin: 0;
   font-weight: 600;
