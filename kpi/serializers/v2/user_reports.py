@@ -6,7 +6,7 @@ from rest_framework import serializers
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.utils.subscription_limits import (
-    get_organizations_effective_limits
+    get_organizations_effective_limits,
 )
 from kpi.models.user_reports import UserReports
 from kpi.utils.usage_calculator import (
@@ -19,6 +19,7 @@ class UserReportsSerializer(serializers.ModelSerializer):
         source='extra_details_uid', read_only=True
     )
     current_service_usage = serializers.SerializerMethodField()
+    account_restricted = serializers.SerializerMethodField()
 
     class Meta:
         model = UserReports
@@ -43,21 +44,27 @@ class UserReportsSerializer(serializers.ModelSerializer):
             'metadata',
             'subscriptions',
             'current_service_usage',
+            'account_restricted',
             'asset_count',
-            'deployed_asset_count'
+            'deployed_asset_count',
         ]
+
+    def get_account_restricted(self, obj) -> bool:
+        service_usage = self.get_current_service_usage(obj)
+        balances = service_usage.get('balances', {})
+        return any(balance and balance.get('exceeded') for balance in balances.values())
 
     def get_current_service_usage(self, obj) -> Dict[str, Any]:
         total_nlp_usage = {
             'asr_seconds_current_period': obj.current_period_asr,
             'mt_characters_current_period': obj.current_period_mt,
             'asr_seconds_all_time': obj.nlp_usage_asr_seconds_total,
-            'mt_characters_all_time': obj.nlp_usage_mt_characters_total
+            'mt_characters_all_time': obj.nlp_usage_mt_characters_total,
         }
 
         total_submission_count = {
             'current_period': obj.current_period_submissions,
-            'all_time': obj.submission_counts_all_time
+            'all_time': obj.submission_counts_all_time,
         }
 
         # Calculate usage balances (this is the only runtime calculation needed)
@@ -78,7 +85,7 @@ class UserReportsSerializer(serializers.ModelSerializer):
             'balances': balances,
             'current_period_start': current_period_start,
             'current_period_end': current_period_end,
-            'last_updated': timezone.now().isoformat()
+            'last_updated': timezone.now().isoformat(),
         }
 
     def _calculate_usage_balances(self, obj) -> Dict[str, Any]:
@@ -89,7 +96,7 @@ class UserReportsSerializer(serializers.ModelSerializer):
         efficient since all usage data is pre-computed.
         """
         if not obj.organization_id:
-            return None
+            return {}
 
         organization = Organization.objects.get(id=obj.organization_id)
         limits = get_organizations_effective_limits([organization], True, True)
@@ -98,18 +105,18 @@ class UserReportsSerializer(serializers.ModelSerializer):
         return {
             'submission': calculate_usage_balance(
                 limit=org_limits.get(f'{UsageType.SUBMISSION}_limit', float('inf')),
-                usage=obj.current_period_submissions
+                usage=obj.current_period_submissions,
             ),
             'storage_bytes': calculate_usage_balance(
                 limit=org_limits.get(f'{UsageType.STORAGE_BYTES}_limit', float('inf')),
-                usage=obj.storage_bytes_total
+                usage=obj.storage_bytes_total,
             ),
             'asr_seconds': calculate_usage_balance(
                 limit=org_limits.get(f'{UsageType.ASR_SECONDS}_limit', float('inf')),
-                usage=obj.current_period_asr
+                usage=obj.current_period_asr,
             ),
             'mt_characters': calculate_usage_balance(
                 limit=org_limits.get(f'{UsageType.MT_CHARACTERS}_limit', float('inf')),
-                usage=obj.current_period_mt
+                usage=obj.current_period_mt,
             ),
         }
