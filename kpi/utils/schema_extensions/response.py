@@ -198,7 +198,7 @@ def open_api_error_responses(
             )
         else:
             response[(status.HTTP_404_NOT_FOUND, error_media_type)] = OpenApiResponse(
-                response=ErrorObjectSerializer(),
+                response=ErrorDetailSerializer(),
                 examples=[
                     OpenApiExample(
                         name='Not Found',

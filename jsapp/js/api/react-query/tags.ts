@@ -10,8 +10,6 @@ import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@
 
 import type { ErrorDetail } from '../models/errorDetail'
 
-import type { ErrorObject } from '../models/errorObject'
-
 import type { PaginatedTagListResponseList } from '../models/paginatedTagListResponseList'
 
 import type { TagRetrieveResponse } from '../models/tagRetrieveResponse'
@@ -121,12 +119,7 @@ export type tagsRetrieveResponse401 = {
   status: 401
 }
 
-export type tagsRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
-export type tagsRetrieveResponseComposite = tagsRetrieveResponse200 | tagsRetrieveResponse401 | tagsRetrieveResponse404
+export type tagsRetrieveResponseComposite = tagsRetrieveResponse200 | tagsRetrieveResponse401
 
 export type tagsRetrieveResponse = tagsRetrieveResponseComposite & {
   headers: Headers
@@ -147,10 +140,7 @@ export const getTagsRetrieveQueryKey = (taguidUid: string) => {
   return ['api', 'v2', 'tags', taguidUid] as const
 }
 
-export const getTagsRetrieveQueryOptions = <
-  TData = Awaited<ReturnType<typeof tagsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
+export const getTagsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof tagsRetrieve>>, TError = ErrorDetail>(
   taguidUid: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof tagsRetrieve>>, TError, TData>
@@ -172,9 +162,9 @@ export const getTagsRetrieveQueryOptions = <
 }
 
 export type TagsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof tagsRetrieve>>>
-export type TagsRetrieveQueryError = ErrorDetail | ErrorObject
+export type TagsRetrieveQueryError = ErrorDetail
 
-export function useTagsRetrieve<TData = Awaited<ReturnType<typeof tagsRetrieve>>, TError = ErrorDetail | ErrorObject>(
+export function useTagsRetrieve<TData = Awaited<ReturnType<typeof tagsRetrieve>>, TError = ErrorDetail>(
   taguidUid: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof tagsRetrieve>>, TError, TData>

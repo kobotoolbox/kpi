@@ -10,8 +10,6 @@ import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@
 
 import type { ErrorDetail } from '../models/errorDetail'
 
-import type { ErrorObject } from '../models/errorObject'
-
 import type { Language } from '../models/language'
 
 import type { LanguagesListParams } from '../models/languagesListParams'
@@ -142,15 +140,7 @@ export type languagesRetrieveResponse401 = {
   status: 401
 }
 
-export type languagesRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
-export type languagesRetrieveResponseComposite =
-  | languagesRetrieveResponse200
-  | languagesRetrieveResponse401
-  | languagesRetrieveResponse404
+export type languagesRetrieveResponseComposite = languagesRetrieveResponse200 | languagesRetrieveResponse401
 
 export type languagesRetrieveResponse = languagesRetrieveResponseComposite & {
   headers: Headers
@@ -173,7 +163,7 @@ export const getLanguagesRetrieveQueryKey = (code: string) => {
 
 export const getLanguagesRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof languagesRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   code: string,
   options?: {
@@ -196,12 +186,9 @@ export const getLanguagesRetrieveQueryOptions = <
 }
 
 export type LanguagesRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof languagesRetrieve>>>
-export type LanguagesRetrieveQueryError = ErrorDetail | ErrorObject
+export type LanguagesRetrieveQueryError = ErrorDetail
 
-export function useLanguagesRetrieve<
-  TData = Awaited<ReturnType<typeof languagesRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
+export function useLanguagesRetrieve<TData = Awaited<ReturnType<typeof languagesRetrieve>>, TError = ErrorDetail>(
   code: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof languagesRetrieve>>, TError, TData>
