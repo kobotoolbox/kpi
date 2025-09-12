@@ -3,15 +3,16 @@ from django.db import migrations
 
 CREATE_BILLING_AND_USAGE_SNAPSHOT_TABLE_SQL = """
     CREATE TABLE IF NOT EXISTS billing_and_usage_snapshot (
-        id SERIAL PRIMARY KEY,
-        organization_id VARCHAR NOT NULL REFERENCES organizations_organization(id) ON DELETE CASCADE,
-        effective_user_id INTEGER NOT NULL,
+        id BIGSERIAL PRIMARY KEY,
+        organization_id VARCHAR NOT NULL,
+        effective_user_id INTEGER NULL,
         storage_bytes_total BIGINT NOT NULL DEFAULT 0,
         submission_counts_all_time BIGINT NOT NULL DEFAULT 0,
         current_period_submissions BIGINT NOT NULL DEFAULT 0,
         billing_period_start TIMESTAMPTZ,
         billing_period_end TIMESTAMPTZ,
-        snapshot_created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        snapshot_created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        last_snapshot_run_id UUID NULL
     );
     """
 
@@ -20,18 +21,21 @@ DROP_BILLING_AND_USAGE_SNAPSHOT_TABLE_SQL = """
     """
 
 CREATE_BILLING_AND_USAGE_SNAPSHOT_INDEXES_SQL = """
-    CREATE INDEX IF NOT EXISTS idx_bau_org
-        ON billing_and_usage_snapshot(organization_id);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_bau_org_unique
+        ON billing_and_usage_snapshot (organization_id);
     CREATE INDEX IF NOT EXISTS idx_bau_user
-        ON billing_and_usage_snapshot(effective_user_id);
+        ON billing_and_usage_snapshot (effective_user_id);
     CREATE INDEX IF NOT EXISTS idx_bau_created
-        ON billing_and_usage_snapshot(snapshot_created_at);
+        ON billing_and_usage_snapshot (snapshot_created_at);
+    CREATE INDEX IF NOT EXISTS idx_bau_last_run
+        ON billing_and_usage_snapshot (last_snapshot_run_id);
     """
 
 DROP_BILLING_AND_USAGE_SNAPSHOT_INDEXES_SQL = """
-    DROP INDEX IF EXISTS idx_bau_org;
+    DROP INDEX IF EXISTS idx_bau_org_unique;
     DROP INDEX IF EXISTS idx_bau_user;
     DROP INDEX IF EXISTS idx_bau_created;
+    DROP INDEX IF EXISTS idx_bau_last_run;
     """
 
 CREATE_MV_SQL = """
