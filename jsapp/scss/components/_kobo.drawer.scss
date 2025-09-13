@@ -1,6 +1,8 @@
 @use 'scss/breakpoints';
 @use 'scss/z-indexes';
 @use 'scss/colors';
+@use 'scss/_variables';
+@use 'scss/libs/_mdl';
 
 // drawer (sidebar)
 
@@ -9,17 +11,17 @@
 }
 
 .k-drawer {
-  @include box-shadow-mid;
+  @include mdl.box-shadow-mid;
 
   position: fixed;
   z-index: z-indexes.$z-kobo-drawer;
   // We need some pxs more as there is shadow on the drawer.
-  left: -1 * $s-drawer-width - 10px;
+  left: -1 * variables.$s-drawer-width - 10px;
   transition: left 0.5s;
   background-color: colors.$kobo-white;
-  height: calc(100% - #{$layout-desktop-header-height});
-  top: $layout-desktop-header-height;
-  width: $s-drawer-width;
+  height: calc(100% - #{mdl.$layout-desktop-header-height});
+  top: mdl.$layout-desktop-header-height;
+  width: variables.$s-drawer-width;
   display: flex;
   flex-direction: row;
   border-right: 2px solid colors.$kobo-gray-300;
@@ -28,9 +30,9 @@
 .k-drawer__primary-icons {
   display: flex;
   flex-direction: column;
-  width: $drawer-icons-width;
+  width: variables.$drawer-icons-width;
   height: 100%;
-  background-color: $drawer-background;
+  background-color: variables.$drawer-background;
 }
 
 .k-drawer__link {
@@ -59,7 +61,7 @@
   left: 0;
   bottom: 0;
   position: absolute;
-  width: $drawer-icons-width;
+  width: variables.$drawer-icons-width;
 
   .k-drawer__link {
     padding: 0;
@@ -83,7 +85,7 @@
 }
 
 .k-drawer__sidebar {
-  width: calc(100% - #{$drawer-icons-width});
+  width: calc(100% - #{variables.$drawer-icons-width});
   height: 100%;
   padding: 0;
   display: flex;
@@ -103,6 +105,6 @@
 
   // only add the margin for drawer if drawer exists (e.g. no drawer when logged out)
   .k-drawer + .mdl-layout__content {
-    margin-left: $s-drawer-width; // for drawer
+    margin-left: variables.$s-drawer-width; // for drawer
   }
 }

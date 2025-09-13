@@ -1,5 +1,6 @@
 @use 'scss/z-indexes';
 @use 'scss/colors';
+@use 'scss/_variables';
 
 // ==========================================================================
 // Survey Row
@@ -10,11 +11,11 @@
   &.survey__row--selected {
     > .survey__row__item {
       > .card__header {
-        border: $cardInSortBorderStyle;
+        border: variables.$cardInSortBorderStyle;
       }
 
       &.group {
-        border: $cardInSortBorderStyle;
+        border: variables.$cardInSortBorderStyle;
       }
     }
   }
@@ -312,7 +313,7 @@ tr .scorecell__radio:hover {
   color: colors.$kobo-gray-600;
   position: absolute;
   top: 0;
-  right: 5px + $s-fb-row-locking-icons-width + $s-fb-row-buttons-width;
+  right: 5px + variables.$s-fb-row-locking-icons-width + variables.$s-fb-row-buttons-width;
   text-align: right;
   margin: 0;
   padding: 2px;
