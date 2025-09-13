@@ -7,8 +7,8 @@
  */
 
 export type ServiceUsageResponseBalancesStorageBytes = {
-  effective_limit?: number
-  balance_value?: number
-  balance_percent?: number
-  exceeded?: number
+  effective_limit: number
+  balance_value: number
+  balance_percent: number
+  exceeded: number
 }
