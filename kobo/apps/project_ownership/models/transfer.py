@@ -13,11 +13,7 @@ from kobo.apps.help.models import InAppMessage, InAppMessageUsers
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.organizations.utils import get_real_owner
 from kpi.constants import PERM_MANAGE_ASSET
-from kpi.deployment_backends.kc_access.utils import (
-    assign_applicable_kc_permissions,
-    kc_transaction_atomic,
-    reset_kc_permissions,
-)
+from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.exceptions import (
     InvalidXFormException,
     MissingXFormException,
@@ -223,15 +219,6 @@ class Transfer(AbstractTimeStampedModel):
                 xform.xls.move(target_folder)
 
             xform.save(update_fields=['user_id', 'xls'])
-            # Kobocat adds 3 more permissions that KPI ignores:
-            # - add_xform
-            # - transfer_xform
-            # - move_xform
-            # There are not transferred since they are not used anymore by KoboCAT,
-            # and it does not break anything.
-            assign_applicable_kc_permissions(self.asset, new_owner, owner_perms)
-            reset_kc_permissions(self.asset, old_owner)
-
             backend_response = self.asset.deployment.backend_response
             backend_response['owner'] = new_owner.username
             self.asset.deployment.store_data(

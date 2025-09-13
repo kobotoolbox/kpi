@@ -50,7 +50,6 @@ from kpi.constants import (
     PERM_DELETE_ASSET,
     PERM_DELETE_SUBMISSIONS,
     PERM_DISCOVER_ASSET,
-    PERM_FROM_KC_ONLY,
     PERM_MANAGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
@@ -327,10 +326,6 @@ class Asset(
             (PERM_CHANGE_SUBMISSIONS, t('Can modify submitted data for asset')),
             (PERM_DELETE_SUBMISSIONS, t('Can delete submitted data for asset')),
             (PERM_VALIDATE_SUBMISSIONS, t('Can validate submitted data asset')),
-            # TEMPORARY Issue #1161: A flag to indicate that permissions came
-            # solely from `sync_kobocat_xforms` and not from any user
-            # interaction with KPI
-            (PERM_FROM_KC_ONLY, 'INTERNAL USE ONLY; DO NOT ASSIGN')
         )
 
         # Since Django 2.1, 4 permissions are added for each registered model:
@@ -470,16 +465,6 @@ class Asset(
         PERM_VALIDATE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
     }
 
-    # Some permissions must be copied to KC
-    KC_PERMISSIONS_MAP = {  # keys are KPI's codenames, values are KC's
-        PERM_CHANGE_SUBMISSIONS: 'change_xform',  # "Can change XForm" in KC shell
-        PERM_VIEW_SUBMISSIONS: 'view_xform',  # "Can view XForm" in KC shell
-        PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can make submissions to the form" in KC shell  # noqa
-        PERM_DELETE_SUBMISSIONS: 'delete_data_xform',  # "Can delete submissions" in KC shell  # noqa
-        PERM_VALIDATE_SUBMISSIONS: 'validate_xform',  # "Can validate submissions" in KC shell  # noqa
-        PERM_DELETE_ASSET: 'delete_xform',  # "Can delete XForm" in KC shell
-    }
-    KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
     # KC records anonymous access as flags on the `XForm`
     KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS = {
         PERM_ADD_SUBMISSIONS: {'require_auth': False},
@@ -500,12 +485,13 @@ class Asset(
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # The two fields below are needed to keep a trace of the object state
+        # The fields below are needed to keep a trace of the object state
         # before any alteration. See `__self.__copy_hidden_fields()` for details
         # They must be set with an invalid value for their counterparts to
         # be the comparison is accurate.
         self.__parent_id_copy = -1
         self.__deployment_data_copy = None
+        self._initial_data_collector_group_id = -1
         self.__copy_hidden_fields()
 
     def __str__(self):
@@ -1563,6 +1549,13 @@ class Asset(
         ):
             self.__deployment_data_copy = copy.deepcopy(
                 self._deployment_data)
+        if (
+            fields is None
+            and 'data_collector_group_id' not in self.get_deferred_fields()
+            or fields
+            and 'data_collector_group_id' in fields
+        ):
+            self._initial_data_collector_group_id = self.data_collector_group_id
 
 
 class UserAssetSubscription(models.Model):

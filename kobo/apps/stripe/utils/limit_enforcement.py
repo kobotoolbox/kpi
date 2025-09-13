@@ -37,7 +37,6 @@ def check_exceeded_limit(user, usage_type: UsageType, **kwargs):
         counter, created = ExceededLimitCounter.objects.get_or_create(
             user=user,
             limit_type=usage_type,
-            defaults={'days': 1},
         )
 
         if not created and counter.date_modified.date() < timezone.now().date():

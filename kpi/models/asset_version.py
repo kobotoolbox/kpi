@@ -21,7 +21,9 @@ class AssetVersion(AbstractTimeStampedModel):
 
     # preserve old reversion_version_ids so we can map old submissions to the
     # correct AssetVersion
-    _reversion_version_id = models.IntegerField(null=True, blank=True)
+    _reversion_version = models.IntegerField(
+        blank=True, db_column='_reversion_version_id', null=True, unique=True
+    )
     version_content = models.JSONField()
     uid_aliases = models.JSONField(null=True)
     # Tee hee, `deployed_content` is never written to the database!
@@ -36,7 +38,7 @@ class AssetVersion(AbstractTimeStampedModel):
     def _deployed_content(self):
         if self.deployed_content is not None:
             return self.deployed_content
-        legacy_names = self._reversion_version_id is not None
+        legacy_names = self._reversion_version is not None
         if legacy_names:
             return to_xlsform_structure(self.version_content,
                                         deprecated_autoname=True)

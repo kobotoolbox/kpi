@@ -143,7 +143,7 @@ def remove_old_versions():
     while min_id := Version.objects.aggregate(Min('pk'))['pk__min']:
         queryset = Version.objects.filter(
             pk__lt=min_id + settings.VERSION_DELETION_BATCH_SIZE
-        )
+        ).only('pk')
         deleted = queryset.delete()
         # log at debug level so we don't flood the logs
         logging.debug(f'Deleted {deleted[0]} version objects with pk < {min_id}')

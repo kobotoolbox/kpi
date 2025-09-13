@@ -144,7 +144,6 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.apps.main.app.MainConfig',
     'kobo.apps.openrosa.apps.api',
     'kobo.apps.openrosa.apps.apps.OpenRosaAppConfig',
-    'guardian',
     'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
     'kobo.apps.long_running_migrations.app.LongRunningMigrationAppConfig',
@@ -154,7 +153,6 @@ INSTALLED_APPS = (
 MIDDLEWARE = [
     'kobo.apps.service_health.middleware.HealthCheckMiddleware',
     'kobo.apps.openrosa.koboform.redirect_middleware.ConditionalRedirects',
-    'kobo.apps.openrosa.apps.main.middleware.RevisionMiddleware',
     'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -424,6 +422,11 @@ CONSTANCE_CONFIG = {
     'IMPORT_TASK_DAYS_RETENTION': (
         90,
         'Number of days to keep import tasks',
+        'positive_int',
+    ),
+    'SUBMISSION_HISTORY_GRACE_PERIOD': (
+        180,
+        'Number of days to keep submission history',
         'positive_int',
     ),
     'FREE_TIER_THRESHOLDS': (
@@ -783,6 +786,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
     'Regular maintenance settings': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
         'IMPORT_TASK_DAYS_RETENTION',
+        'SUBMISSION_HISTORY_GRACE_PERIOD',
     ),
     'Tier settings': (
         'FREE_TIER_THRESHOLDS',
@@ -804,17 +808,13 @@ class DoNotUseRunner:
 
 TEST_RUNNER = __name__ + '.DoNotUseRunner'
 
-# The backend that handles user authentication must match KoBoCAT's when
-# sharing sessions. ModelBackend does not interfere with object-level
-# permissions: it always denies object-specific requests (see
-# https://github.com/django/django/blob/1.7/django/contrib/auth/backends.py#L44).
-# KoBoCAT also lists ModelBackend before
-# guardian.backends.ObjectPermissionBackend.
+# ModelBackend does not interfere with object-level permissions: it always denies
+# object-specific requests (see
+# https://github.com/django/django/blob/1.7/django/contrib/auth/backends.py#L44 ).
 AUTHENTICATION_BACKENDS = (
     'kpi.backends.ModelBackend',
     'kpi.backends.ObjectPermissionBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
-    'kobo.apps.openrosa.libs.backends.ObjectPermissionBackend',
 )
 
 ROOT_URLCONF = 'kobo.urls'
@@ -1294,6 +1294,11 @@ CELERY_BEAT_SCHEDULE = {
     'delete-daily-xform-submissions-counter': {
         'task': 'kobo.apps.openrosa.apps.logger.tasks.delete_daily_counters',
         'schedule': crontab(hour=0, minute=0),
+        'options': {'queue': 'kobocat_queue'},
+    },
+    'delete-expired-instance-history-records': {
+        'task': 'kobo.apps.openrosa.apps.logger.tasks.delete_expired_instance_history_records',  # noqa
+        'schedule': crontab(hour=1, minute=0),
         'options': {'queue': 'kobocat_queue'}
     },
     # Schedule every 30 minutes
@@ -1382,9 +1387,11 @@ CELERY_BEAT_SCHEDULE = {
 if STRIPE_ENABLED:
     # Schedule to run once per celery timeout
     # with a five minute buffer
+    minute_interval = (CELERY_TASK_TIME_LIMIT + (60 * 5)) // 60
+
     CELERY_BEAT_SCHEDULE['update-exceeded-limit-counters'] = {
         'task': 'kobo.apps.stripe.tasks.update_exceeded_limit_counters',
-        'schedule': timedelta(seconds=CELERY_TASK_TIME_LIMIT + (60 * 5)),
+        'schedule': crontab(minute='*/' + str(minute_interval)),
         'options': {'queue': 'kpi_low_priority_queue'},
     }
 
@@ -1398,10 +1405,6 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
 }
 
 CELERY_TASK_DEFAULT_QUEUE = 'kpi_queue'
-
-if 'KOBOCAT_URL' in os.environ:
-    SYNC_KOBOCAT_PERMISSIONS = (
-        os.environ.get('SYNC_KOBOCAT_PERMISSIONS', 'True') == 'True')
 
 CELERY_BROKER_URL = os.environ.get(
     'CELERY_BROKER_URL',
@@ -1692,9 +1695,8 @@ if GIT_REV['branch'] == 'HEAD':
 Since this project handles user creation, we must handle the model-level
 permission assignment that would've been done by KoBoCAT's user post_save
 signal handler. Here we record the content types of the models listed in KC's
-set_api_permissions_for_user(). Verify that this list still matches that
-function if you experience permission-related problems. See
-https://github.com/kobotoolbox/kobocat/blob/main/onadata/libs/utils/user_auth.py.
+deprecated function set_api_permissions_for_user.
+TODO: This is being refactored and is pending to clean up
 """
 KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES = [
     # Each tuple must be (app_label, model_name)
@@ -1895,9 +1897,6 @@ USE_THOUSAND_SEPARATOR = True
 
 DIGEST_NONCE_BACKEND = 'kobo.apps.openrosa.apps.django_digest_backends.cache.RedisCacheNonceStorage'  # noqa
 
-# Needed to get ANONYMOUS_USER = -1
-GUARDIAN_GET_INIT_ANONYMOUS_USER = 'kobo.apps.openrosa.apps.main.models.user_profile.get_anonymous_user_instance'  # noqa
-
 KPI_HOOK_ENDPOINT_PATTERN = '/api/v2/assets/{asset_uid}/hook-signal/'
 
 # TODO Validate if `'PKCE_REQUIRED': False` is required in KPI
@@ -1964,10 +1963,6 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'application/x-zip-compressed',
     'application/geo+json',
 ]
-
-# Silence Django Guardian warning. Authentication backend is hooked, but
-# Django Guardian does not recognize it because it is extended
-SILENCED_SYSTEM_CHECKS = ['guardian.W001']
 
 DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
 
