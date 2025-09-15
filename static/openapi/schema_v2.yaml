@@ -10776,15 +10776,16 @@ components:
     InviteCreatePayload:
       type: object
       properties:
+        role:
+          allOf:
+          - $ref: '#/components/schemas/InviteeRoleEnum'
+          default: member
         invitees:
           type: array
           items:
             type: string
-        role:
-          $ref: '#/components/schemas/InviteeRoleEnum'
       required:
       - invitees
-      - role
     InviteCreateResponse:
       type: array
       items:
@@ -10830,6 +10831,14 @@ components:
     InviteResponse:
       type: object
       properties:
+        invitee_role:
+          allOf:
+          - $ref: '#/components/schemas/InviteeRoleEnum'
+          default: member
+        status:
+          allOf:
+          - $ref: '#/components/schemas/InviteStatusChoicesEnum'
+          default: pending
         url:
           type: string
           format: uri
@@ -10838,10 +10847,6 @@ components:
           type: string
           format: uri
           example: https://kf.kobotoolbox.org/api/v2/users/bob/
-        status:
-          $ref: '#/components/schemas/InviteStatusChoicesEnum'
-        invitee_role:
-          $ref: '#/components/schemas/InviteeRoleEnum'
         organization_name:
           type: string
         created:
@@ -10856,10 +10861,8 @@ components:
       - created
       - invited_by
       - invitee
-      - invitee_role
       - modified
       - organization_name
-      - status
       - url
     InviteStatusChoicesEnum:
       enum:
