@@ -391,7 +391,7 @@ class Migration(migrations.Migration):
         ('kpi', '0069_alter_assetversion_reversion_version'),
     ]
 
-    if settings.SKIP_HEAVY_MIGRATIONS:
+    if settings.SKIP_HEAVY_MIGRATIONS or not settings.STRIPE_ENABLED:
         operations = [
             migrations.RunPython(
                 manually_create_mv_instructions,
