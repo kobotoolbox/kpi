@@ -99,8 +99,9 @@ OPEN_ROSA_VERSION = '1.0'
 DEFAULT_CONTENT_TYPE = 'text/xml; charset=utf-8'
 DEFAULT_CONTENT_LENGTH = settings.OPENROSA_DEFAULT_CONTENT_LENGTH
 
-uuid_regex = re.compile(r'<formhub>\s*<uuid>\s*([^<]+)\s*</uuid>\s*</formhub>',
-                        re.DOTALL)
+uuid_regex = re.compile(
+    r'<formhub>\s*<uuid>\s*([^<]+)\s*</uuid>\s*</formhub>', re.DOTALL
+)
 
 mongo_instances = settings.MONGO_DB.instances
 
@@ -140,10 +141,12 @@ def check_edit_submission_permissions(
     if request.user.is_anonymous:
         raise UnauthenticatedEditAttempt
     if not _has_edit_xform_permission(request, xform):
-        raise PermissionDenied(t(
-            'Forbidden attempt to edit a submission. To make a new submission, '
-            'Remove `deprecatedID` from the submission XML and try again.'
-        ))
+        raise PermissionDenied(
+            t(
+                'Forbidden attempt to edit a submission. To make a new submission, '
+                'Remove `deprecatedID` from the submission XML and try again.'
+            )
+        )
 
 
 def create_instance(
@@ -435,9 +438,7 @@ def get_xform_from_submission(xml, username, uuid=None):
 
     id_string = get_id_string_from_xml_str(xml)
 
-    return get_object_or_404(
-        XForm, id_string__exact=id_string, user__username=username
-    )
+    return get_object_or_404(XForm, id_string__exact=id_string, user__username=username)
 
 
 @contextmanager
@@ -482,9 +483,6 @@ def http_open_rosa_error_handler(func, request):
             result.error = t(
                 'The owner of this survey has exceeded their storage limit.'
             )
-        else:
-            # Should never happen
-            result.error = t('The owner of this survey has exceeded their usage limit.')
 
         result.http_error_response = OpenRosaResponsePaymentRequired(result.error)
     except AccountInactiveError:
@@ -599,7 +597,7 @@ def mongo_sync_status(remongo=False, update_all=False, user=None, xform=None):
         userform_id = get_mongo_userform_id(xform)
         mongo_count = mongo_instances.count_documents(
             {common_tags.USERFORM_ID: userform_id},
-            maxTimeMS=MongoHelper.get_max_time_ms()
+            maxTimeMS=MongoHelper.get_max_time_ms(),
         )
 
         if instance_count != mongo_count or update_all:
@@ -611,7 +609,7 @@ def mongo_sync_status(remongo=False, update_all=False, user=None, xform=None):
             )
             report_string += line
             found += 1
-            total_to_remongo += (instance_count - mongo_count)
+            total_to_remongo += instance_count - mongo_count
 
             # should we remongo
             if remongo or (remongo and update_all):
@@ -643,10 +641,7 @@ def publish_form(callback):
     try:
         return callback()
     except (PyXFormError, XLSFormError) as e:
-        return {
-            'type': 'alert-error',
-            'text': str(e)
-        }
+        return {'type': 'alert-error', 'text': str(e)}
     except IntegrityError as e:
         return {
             'type': 'alert-error',
@@ -660,10 +655,7 @@ def publish_form(callback):
         }
     except AttributeError as e:
         # form.publish returned None, not sure why...
-        return {
-            'type': 'alert-error',
-            'text': str(e)
-        }
+        return {'type': 'alert-error', 'text': str(e)}
     except ProcessTimedOut as e:
         # catch timeout errors
         return {
@@ -681,10 +673,7 @@ def publish_form(callback):
             raise
 
         # error in the XLS file; show an error to the user
-        return {
-            'type': 'alert-error',
-            'text': str(e)
-        }
+        return {'type': 'alert-error', 'text': str(e)}
 
 
 def publish_xls_form(xls_file, user, id_string=None):
@@ -743,8 +732,14 @@ def report_exception(subject, info, exc_info=None):
 
 
 def response_with_mimetype_and_name(
-        mimetype, name, extension=None, show_date=True, file_path=None,
-        use_local_filesystem=False, full_mime=False):
+    mimetype,
+    name,
+    extension=None,
+    show_date=True,
+    file_path=None,
+    use_local_filesystem=False,
+    full_mime=False,
+):
     if extension is None:
         extension = mimetype
     if not full_mime:
@@ -764,7 +759,8 @@ def response_with_mimetype_and_name(
     else:
         response = HttpResponse(content_type=mimetype)
     response['Content-Disposition'] = disposition_ext_and_date(
-        name, extension, show_date)
+        name, extension, show_date
+    )
     return response
 
 
@@ -883,9 +879,7 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
         try:
             assert root_name == xml_parsed.tag
         except AssertionError:
-            logging.warning(
-                'Instance XML root tag name does not match with its form'
-            )
+            logging.warning('Instance XML root tag name does not match with its form')
 
         # With repeat groups, several nodes can have the same XPath. We
         # need to retrieve all of them
@@ -908,12 +902,20 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
 
     # FIXME Temporary hack to leave background-audio files and audit files alone
     #  Bug comes from `get_xform_media_question_xpaths()`
-    queryset = Attachment.objects.filter(instance=instance).exclude(
-        Q(media_file_basename__endswith='.enc')
-        | Q(media_file_basename='audit.csv')
-        | Q(media_file_basename__regex=r'^\d{10,}\.(m4a|amr)$') # background audio file by Collect
-        | Q(media_file_basename__regex=r'^background-audio-\d{8}_\d{6}\.webm$') # background audio file by Enketo
-    ).order_by('-id')
+    queryset = (
+        Attachment.objects.filter(instance=instance)
+        .exclude(
+            Q(media_file_basename__endswith='.enc')
+            | Q(media_file_basename='audit.csv')
+            | Q(
+                media_file_basename__regex=r'^\d{10,}\.(m4a|amr)$'
+            )  # background audio file by Collect
+            | Q(
+                media_file_basename__regex=r'^background-audio-\d{8}_\d{6}\.webm$'
+            )  # background audio file by Enketo
+        )
+        .order_by('-id')
+    )
 
     latest_attachments, remaining_attachments_ids = [], []
     basename_set = set(basenames)
@@ -1030,19 +1032,22 @@ def _has_edit_xform_permission(
 def _update_mongo_for_xform(xform, only_update_missing=True):
     xform.refresh_from_db(fields=xform.get_deferred_fields())
 
-    instance_ids = set(
-        [i.id for i in Instance.objects.only('id').filter(xform=xform)])
+    instance_ids = set([i.id for i in Instance.objects.only('id').filter(xform=xform)])
     sys.stdout.write('Total no of instances: %d\n' % len(instance_ids))
     userform_id = get_mongo_userform_id(xform)
 
     if only_update_missing:
         sys.stdout.write('Only updating missing mongo instances\n')
         mongo_ids = set(
-            [rec[common_tags.ID] for rec in mongo_instances.find(
-                {common_tags.USERFORM_ID: userform_id},
-                {common_tags.ID: 1},
-                max_time_ms=MongoHelper.get_max_time_ms()
-        )])
+            [
+                rec[common_tags.ID]
+                for rec in mongo_instances.find(
+                    {common_tags.USERFORM_ID: userform_id},
+                    {common_tags.ID: 1},
+                    max_time_ms=MongoHelper.get_max_time_ms(),
+                )
+            ]
+        )
         sys.stdout.write('Total no of mongo instances: %d\n' % len(mongo_ids))
         # get the difference
         instance_ids = instance_ids.difference(mongo_ids)
@@ -1120,12 +1125,13 @@ class OpenRosaResponse(BaseOpenRosaResponse):
         super().__init__(*args, **kwargs)
         # wrap content around xml
         self.content = (
-            b"<?xml version='1.0' encoding='UTF-8' ?>\n"
-            b'<OpenRosaResponse xmlns="http://openrosa.org/http/response">\n'
-            b'        <message nature="">'
-        ) + self.content + (
-            b'</message>\n'
-            b'</OpenRosaResponse>'
+            (
+                b"<?xml version='1.0' encoding='UTF-8' ?>\n"
+                b'<OpenRosaResponse xmlns="http://openrosa.org/http/response">\n'
+                b'        <message nature="">'
+            )
+            + self.content
+            + (b'</message>\n' b'</OpenRosaResponse>')
         )
 
 
@@ -1163,6 +1169,7 @@ class UnauthenticatedEditAttempt(Exception):
     which passes through unmolested to `XFormSubmissionApi.create()`, which
     then returns the appropriate 401 response.
     """
+
     pass
 
 
