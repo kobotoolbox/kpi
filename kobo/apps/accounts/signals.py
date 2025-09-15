@@ -18,7 +18,8 @@ def update_email(*args, **kwargs):
     # put the social email addresses first so they get marked as primary
     all_email_addresses = [*social_email_addresses, *existing_email_addresses]
     emails, primary = cleanup_email_addresses(request, all_email_addresses)
-    primary.set_as_primary()
+    # update existing emails to reflect that they are no longer primary
+    # and add any new emails from the SocialLogin
     EmailAddress.objects.bulk_create(
         emails,
         update_conflicts=True,

@@ -1,6 +1,6 @@
-from allauth.socialaccount.models import SocialLogin, SocialAccount
-from django.test import TestCase, RequestFactory
 from allauth.account.models import EmailAddress
+from allauth.socialaccount.models import SocialLogin
+from django.test import RequestFactory, TestCase
 
 from kobo.apps.accounts.signals import update_email
 from kobo.apps.kobo_auth.shortcuts import User
@@ -20,14 +20,11 @@ class TestAccountSignals(TestCase):
     def test_social_login_connect_updates_primary_email(self):
         request = RequestFactory().get('/')
         new_email = EmailAddress(
-            user=self.user,
             email='someuser_sso@example.com',
             verified=True,
             primary=True
         )
-        social_login = SocialLogin(
-            email_addresses=[new_email]
-        )
+        social_login = SocialLogin(email_addresses=[new_email], user=self.user)
         update_email(request=request, sociallogin=social_login)
         # we should have gotten rid of any old EmailAddresses
         assert EmailAddress.objects.count() == 1
