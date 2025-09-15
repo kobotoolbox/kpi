@@ -26,6 +26,7 @@ from kobo.apps.openrosa.libs.utils.user_auth import (
     check_and_set_form_by_id,
     check_and_set_form_by_id_string,
 )
+from kpi.constants import PERM_CHANGE_ASSET
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
@@ -75,7 +76,7 @@ def publish_xlsform(request, user, existing_xform=None):
     if (
         existing_xform
         and not request.user.is_superuser
-        and not request.user.has_perm('change_xform', existing_xform)
+        and not request.user.has_perm(PERM_CHANGE_ASSET, existing_xform.asset)
     ):
         raise exceptions.PermissionDenied(
             detail=t(

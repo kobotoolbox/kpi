@@ -377,6 +377,9 @@ class TestBriefcaseAPI(TestAbstractViewSet):
             self.assertEqual(XForm.objects.count(), count + 1)
             self.assertContains(response, 'successfully published.', status_code=201)
         self.xform = XForm.objects.order_by('pk').reverse()[0]
+        self.xform.asset.save()
+        self.xform.kpi_asset_uid = self.xform.asset.uid
+        self.xform.save()
 
     def test_form_upload(self):
         view = BriefcaseApi.as_view({'post': 'create'})
