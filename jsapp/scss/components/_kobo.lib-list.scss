@@ -50,6 +50,9 @@
   line-height: 14px;
   font-size: 11px;
   padding-left: 5px;
+
+  // FIXME: styles seem fine without this extension, and .clearfix is only defined in kobo/static/.../main.scss, we
+  // should check the dependency on these static styles in the future, and mirgrate them or remove them
   @extend .clearfix !optional;
 }
 

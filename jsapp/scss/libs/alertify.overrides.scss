@@ -1,4 +1,5 @@
 @use 'scss/colors';
+@use 'scss/components/_kobo.button' as *;
 
 // alertify overrides
 
@@ -78,7 +79,7 @@
   }
 
   button {
-    @extend .kobo-button !optional;
+    @extend .kobo-button;
 
     // HACK FIX: due to alertify buttons click bindings not bubbling, clicking
     // on this (custom button content) `span` causes the callback not to be fired
@@ -87,11 +88,11 @@
     }
 
     &.ajs-ok {
-      @extend .kobo-button--blue !optional;
+      @extend .kobo-button--blue;
     }
 
     &.ajs-cancel {
-      @extend .kobo-button--red !optional;
+      @extend .kobo-button--red;
     }
 
     &.ajs-button-disabled {
@@ -152,7 +153,8 @@
     margin-top: -10px;
     opacity: 0.5;
 
-    @extend .k-icon, .k-icon-close  !optional;
+    // FIXME: .k-icon-close is only defined in languageSelector.scss, and it seems to do nothing here
+    @extend .k-icon, .k-icon-close !optional;
 
     color: colors.$kobo-white;
   }
@@ -184,16 +186,16 @@
   .ajs-buttons {
     .ajs-button.ajs-ok,
     .ajs-button.ajs-cancel {
-      @extend .kobo-button !optional;
+      @extend .kobo-button;
       margin: 4px !important;
     }
 
     .ajs-button.ajs-ok {
-      @extend .kobo-button--red !optional;
+      @extend .kobo-button--red;
     }
 
     .ajs-button.ajs-cancel {
-      @extend .kobo-button--whitegray !optional;
+      @extend .kobo-button--whitegray;
     }
   }
 }

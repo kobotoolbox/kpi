@@ -1,6 +1,7 @@
 @use 'scss/colors';
 @use 'scss/libs/_mdl';
 @use 'scss/variables';
+@use 'scss/stylesheets/partials/_content' as *;
 
 // form_builder miscellaneous rules
 
@@ -58,7 +59,7 @@ code input[type='text'] {
 // ==========================================================================
 
 .survey-warnings {
-  @extend .container !optional;
+  @extend .container;
   background-color: colors.$kobo-light-amber;
   color: colors.$kobo-dark-amber;
   padding: 15px;
