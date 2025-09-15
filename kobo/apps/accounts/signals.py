@@ -1,8 +1,7 @@
 from allauth.account.models import EmailAddress
+from allauth.account.signals import email_confirmed
 from allauth.account.utils import cleanup_email_addresses
-from allauth.socialaccount.models import SocialLogin, SocialAccount
-from allauth.socialaccount.signals import social_account_added, social_account_updated, pre_social_login
-from django.db.models.signals import post_save
+from allauth.socialaccount.signals import social_account_added
 from django.dispatch import receiver
 
 
@@ -26,4 +25,10 @@ def update_email(*args, **kwargs):
         unique_fields=['email','user_id'],
         update_fields=['primary']
     )
-
+    # for some reason allauth doesn't emit the email confirmed signal even though
+    # SocialLogin emails come in already confirmed
+    email_confirmed.send(
+        sender=EmailAddress,
+        request=request,
+        email_address=primary,
+    )
