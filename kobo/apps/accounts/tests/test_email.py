@@ -1,3 +1,4 @@
+from allauth.account.models import EmailAddress
 from ddt import data, ddt
 from django.conf import settings
 from django.core import mail
@@ -185,10 +186,13 @@ class EmailUpdateRestrictionTestCase(APITestCase):
         else:
             user = self.non_mmo_user
         baker.make('socialaccount.SocialAccount', user=user)
+        # in real life connecting the social account would have made an EmailAddress
+        email_address = baker.make('account.emailaddress', user=user)
         self.client.force_login(user)
-        data = {'email': 'nonmmo@example.com'}
+        data = {'email': 'new@example.com'}
         res = self.client.post(self.url_list, data, format='json')
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            user.emailaddress_set.filter(email=data['email']).count(), 0
-        )
+        self.assertEqual(user.emailaddress_set.count(), 1)
+        user_email = EmailAddress.objects.get(user=user)
+        self.assertEqual(user_email.email, email_address.email)
+        self.assertEqual(user.emailaddress_set.count(), 1)
