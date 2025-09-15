@@ -10,6 +10,9 @@ def update_email(*args, **kwargs):
     sociallogin = kwargs.get('sociallogin')
     request = kwargs.get('request')
     social_email_addresses = sociallogin.email_addresses
+    # if the provider doesn't use email, don't bother updating addresses
+    if not social_email_addresses:
+        return
     social_user = sociallogin.user
     for social_email in social_email_addresses:
         # the auto-created EmailAddresses don't have the user already attached (?!)
@@ -26,8 +29,9 @@ def update_email(*args, **kwargs):
         unique_fields=['email','user_id'],
         update_fields=['primary']
     )
-    # for some reason allauth doesn't emit the email confirmed signal even though
-    # SocialLogin emails come in already confirmed
+    # for some reason allauth doesn't emit the email confirmed signal even
+    # though if we're calling the social_account_added signal, the email has been
+    # verified
     email_confirmed.send(
         sender=EmailAddress,
         request=request,
