@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 
+import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
 import Button from '#/components/common/button'
 import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
 import BulkDeletePrompt from './bulkActions/bulkDeletePrompt'
 import actionsStyles from './projectActions.module.scss'
-import {OrganizationUserRole, useOrganizationQuery} from '#/account/organization/organizationQuery'
 
 interface ProjectBulkActionsProps {
   /** A list of selected assets for bulk operations. */
@@ -23,7 +23,8 @@ function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>) {
 export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
   const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false)
   const orgQuery = useOrganizationQuery()
-  const canBulkDelete = userCanDeleteAssets(props.assets) || orgQuery.data?.request_user_role === OrganizationUserRole.admin
+  const canBulkDelete =
+    userCanDeleteAssets(props.assets) || orgQuery.data?.request_user_role === OrganizationUserRole.admin
 
   let tooltipForDelete = t('Delete projects')
   if (canBulkDelete) {
