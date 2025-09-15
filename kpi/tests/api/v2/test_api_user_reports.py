@@ -21,7 +21,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.client.login(username='adminuser', password='pass')
         self.url = reverse(self._get_endpoint('api_v2:user-reports-list'))
 
-        # Creat and add a subscription to someuser
+        # Create and add a subscription to someuser
         self.someuser = User.objects.get(username='someuser')
         organization = self.someuser.organization
         self.customer = baker.make(Customer, subscriber=organization)
