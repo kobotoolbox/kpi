@@ -9,8 +9,8 @@ import type { InviteStatusChoicesEnum } from './inviteStatusChoicesEnum'
 import type { InviteeRoleEnum } from './inviteeRoleEnum'
 
 export interface InviteResponse {
-  invitee_role?: InviteeRoleEnum
-  status?: InviteStatusChoicesEnum
+  invitee_role: InviteeRoleEnum
+  status: InviteStatusChoicesEnum
   url: string
   invited_by: string
   organization_name: string

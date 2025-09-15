@@ -14981,12 +14981,7 @@
                 "type": "object",
                 "properties": {
                     "role": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/InviteeRoleEnum"
-                            }
-                        ],
-                        "default": "member"
+                        "$ref": "#/components/schemas/InviteeRoleEnum"
                     },
                     "invitees": {
                         "type": "array",
@@ -14996,7 +14991,8 @@
                     }
                 },
                 "required": [
-                    "invitees"
+                    "invitees",
+                    "role"
                 ]
             },
             "InviteCreateResponse": {
@@ -15056,20 +15052,10 @@
                 "type": "object",
                 "properties": {
                     "invitee_role": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/InviteeRoleEnum"
-                            }
-                        ],
-                        "default": "member"
+                        "$ref": "#/components/schemas/InviteeRoleEnum"
                     },
                     "status": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/InviteStatusChoicesEnum"
-                            }
-                        ],
-                        "default": "pending"
+                        "$ref": "#/components/schemas/InviteStatusChoicesEnum"
                     },
                     "url": {
                         "type": "string",
@@ -15100,8 +15086,10 @@
                     "created",
                     "invited_by",
                     "invitee",
+                    "invitee_role",
                     "modified",
                     "organization_name",
+                    "status",
                     "url"
                 ]
             },
@@ -17487,7 +17475,7 @@
                         "type": "object",
                         "properties": {
                             "status": {
-                                "type": "string"
+                                "$ref": "#/components/schemas/InviteStatusChoicesEnum"
                             }
                         },
                         "required": [
@@ -17498,7 +17486,7 @@
                         "type": "object",
                         "properties": {
                             "role": {
-                                "type": "string"
+                                "$ref": "#/components/schemas/InviteeRoleEnum"
                             }
                         },
                         "required": [

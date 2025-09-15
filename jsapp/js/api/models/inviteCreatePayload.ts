@@ -8,6 +8,6 @@
 import type { InviteeRoleEnum } from './inviteeRoleEnum'
 
 export interface InviteCreatePayload {
-  role?: InviteeRoleEnum
+  role: InviteeRoleEnum
   invitees: string[]
 }

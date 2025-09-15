@@ -10777,15 +10777,14 @@ components:
       type: object
       properties:
         role:
-          allOf:
-          - $ref: '#/components/schemas/InviteeRoleEnum'
-          default: member
+          $ref: '#/components/schemas/InviteeRoleEnum'
         invitees:
           type: array
           items:
             type: string
       required:
       - invitees
+      - role
     InviteCreateResponse:
       type: array
       items:
@@ -10832,13 +10831,9 @@ components:
       type: object
       properties:
         invitee_role:
-          allOf:
-          - $ref: '#/components/schemas/InviteeRoleEnum'
-          default: member
+          $ref: '#/components/schemas/InviteeRoleEnum'
         status:
-          allOf:
-          - $ref: '#/components/schemas/InviteStatusChoicesEnum'
-          default: pending
+          $ref: '#/components/schemas/InviteStatusChoicesEnum'
         url:
           type: string
           format: uri
@@ -10861,8 +10856,10 @@ components:
       - created
       - invited_by
       - invitee
+      - invitee_role
       - modified
       - organization_name
+      - status
       - url
     InviteStatusChoicesEnum:
       enum:
@@ -12608,13 +12605,13 @@ components:
       - type: object
         properties:
           status:
-            type: string
+            $ref: '#/components/schemas/InviteStatusChoicesEnum'
         required:
         - status
       - type: object
         properties:
           role:
-            type: string
+            $ref: '#/components/schemas/InviteeRoleEnum'
         required:
         - role
     PatchedInviteUpdatePayload:

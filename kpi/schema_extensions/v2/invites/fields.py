@@ -1,8 +1,7 @@
 from rest_framework import serializers
 
-from kobo.apps.organizations.constants import ORG_ADMIN_ROLE, ORG_MEMBER_ROLE
 from kobo.apps.organizations.models import OrganizationInviteStatusChoices
-
+from ..members.schema import ROLE_CHOICES_PAYLOAD_ENUM
 
 class InviteesRoleEnumField(serializers.CharField):
     pass
@@ -21,12 +20,10 @@ class InvitedByUrlField(serializers.URLField):
 
 
 InviteRoleField = serializers.ChoiceField(
-    choices=[ORG_ADMIN_ROLE, ORG_MEMBER_ROLE],
-    default=ORG_MEMBER_ROLE,
+    choices=ROLE_CHOICES_PAYLOAD_ENUM, allow_null=False, allow_blank=False
 )
 
 
 InviteStatusField = serializers.ChoiceField(
-    choices=OrganizationInviteStatusChoices.choices,
-    default=OrganizationInviteStatusChoices.PENDING,
+    choices=OrganizationInviteStatusChoices.choices, allow_null=False, allow_blank=False
 )
