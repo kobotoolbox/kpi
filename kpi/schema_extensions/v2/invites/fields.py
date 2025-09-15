@@ -1,9 +1,7 @@
 from rest_framework import serializers
+
+from kobo.apps.organizations.constants import ORG_ADMIN_ROLE, ORG_MEMBER_ROLE
 from kobo.apps.organizations.models import OrganizationInviteStatusChoices
-from kobo.apps.organizations.constants import (
-    ORG_ADMIN_ROLE,
-    ORG_MEMBER_ROLE,
-)
 
 
 class InviteesRoleEnumField(serializers.CharField):
