@@ -2,6 +2,7 @@ import datetime
 from zoneinfo import ZoneInfo
 
 import constance
+from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.password_validation import validate_password
@@ -38,6 +39,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     accepted_tos = serializers.SerializerMethodField()
     organization = serializers.SerializerMethodField()
     extra_details__uid = serializers.SerializerMethodField()
+    email = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -136,6 +138,12 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
     def get_extra_details__uid(self, obj):
         return obj.extra_details.uid
+
+    def get_email(self, obj):
+        try:
+            return EmailAddress.objects.get(user=obj, primary=True).email
+        except EmailAddress.DoesNotExist:
+            return self.email
 
     def to_representation(self, obj):
         if obj.is_anonymous:

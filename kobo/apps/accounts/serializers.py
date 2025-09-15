@@ -13,6 +13,7 @@ class EmailAddressSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # First delete any non-primary, unconfirmed emails
         request = self.context['request']
+        breakpoint()
         request.user.emailaddress_set.exclude(
             email=validated_data['email']
         ).filter(primary=False, verified=False).delete()
