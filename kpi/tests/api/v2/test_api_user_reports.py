@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+import pytest
 from django.conf import settings
 from django.db import connection
 from django.urls import reverse
@@ -14,6 +15,7 @@ from kpi.models.user_reports import BillingAndUsageSnapshot
 from kpi.tests.base_test_case import BaseTestCase
 
 
+@pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Requires stripe functionality')
 class UserReportsViewSetAPITestCase(BaseTestCase):
     fixtures = ['test_data']
 
