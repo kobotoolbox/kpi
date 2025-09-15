@@ -30,6 +30,7 @@ from kpi.schema_extensions.v2.organizations.fields import (
     MembersField,
     ServiceUsageField,
     UrlField,
+    UserRoleField,
 )
 from kpi.utils.cache import void_cache_for_request
 from kpi.utils.object_permission import get_database_user
@@ -250,7 +251,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
         return False
 
-    @extend_schema_field(OpenApiTypes.STR)
+    @extend_schema_field(UserRoleField)
     def get_request_user_role(self, organization):
 
         if request := self.context.get('request'):
