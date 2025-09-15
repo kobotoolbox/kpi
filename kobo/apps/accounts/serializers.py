@@ -28,10 +28,14 @@ class EmailAddressSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         """
         Validates that only owners or admins of the organization can update
-        their email
+        their email and only if they don't have SSO
         """
         user = self.context['request'].user
         organization = user.organization
+        if user.socialaccount_set.exists():
+            raise serializers.ValidationError(
+                {'email': t('This action is not allowed.')}
+            )
         if organization.is_owner(user) or organization.is_admin(user):
             return attrs
         raise serializers.ValidationError(
