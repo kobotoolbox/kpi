@@ -223,7 +223,8 @@ def create_instance(
 
                 check_exceeded_limit(xform.user, UsageType.SUBMISSION)
                 check_exceeded_limit(xform.user, UsageType.STORAGE_BYTES)
-                raise ExceededUsageLimitError()
+
+                raise ExceededUsageLimitError({'type': usage_type})
 
     # get root uuid
     root_uuid, fallback_on_uuid = get_root_uuid_from_xml(xml)
@@ -471,10 +472,20 @@ def http_open_rosa_error_handler(func, request):
     except TemporarilyUnavailableError:
         result.error = t('Temporarily unavailable')
         result.http_error_response = OpenRosaTemporarilyUnavailable(result.error)
-    except ExceededUsageLimitError:
-        result.error = t(
-            'The owner of this survey has exceeded their submission limit.'
-        )
+    except ExceededUsageLimitError as e:
+        type = e.args[0].get('type', '')
+        if type == UsageType.SUBMISSION:
+            result.error = t(
+                'The owner of this survey has exceeded their submission limit.'
+            )
+        elif type == UsageType.STORAGE_BYTES:
+            result.error = t(
+                'The owner of this survey has exceeded their storage limit.'
+            )
+        else:
+            # Should never happen
+            result.error = t('The owner of this survey has exceeded their usage limit.')
+
         result.http_error_response = OpenRosaResponsePaymentRequired(result.error)
     except AccountInactiveError:
         result.error = t('Account is not active')
