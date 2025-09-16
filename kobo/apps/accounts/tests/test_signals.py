@@ -19,16 +19,17 @@ class TestAccountSignals(TestCase):
 
     def test_social_login_connect_updates_primary_email(self):
         request = RequestFactory().get('/')
-        new_email = EmailAddress(
+        new_address = EmailAddress(
             email='someuser_sso@example.com',
             verified=True,
             primary=True
         )
-        social_login = SocialLogin(email_addresses=[new_email], user=self.user)
+        social_login = SocialLogin(email_addresses=[new_address], user=self.user)
         update_email(request=request, sociallogin=social_login)
         # we should have gotten rid of any old EmailAddresses
         assert EmailAddress.objects.count() == 1
-        address = EmailAddress.objects.first()
-        assert address.email == 'someuser_sso@example.com'
-        assert address.verified
-        assert address.primary
+        found_address = EmailAddress.objects.first()
+        assert found_address.email == new_address.email
+        assert found_address.verified
+        assert found_address.primary
+        assert self.user.email == new_address.email
