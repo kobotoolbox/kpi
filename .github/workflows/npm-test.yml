@@ -101,6 +101,23 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps webkit
 
-      # Skipped until flaky storybook tests are fixed not to fail main with false-positive failures.
-      # - name: Build and serve Storybook, test stories.
-      #   run: npm run test:storybook
+      # Eliminate Storybook's cache, if present.
+      - name: >
+          Delete Storybook cache (before Storybook run)
+        run: rm -rf --verbose ./node_modules/.cache/storybook
+
+      # Storybook
+      - name: Build and serve Storybook, test stories.
+        run: npm run test:storybook
+
+      # Prevent Storybook from adding .cache/storybook to our node_modules cache.
+      # Keep me.
+      #  - Ideally, we're always instructing Storybook not to use a cache in CI,
+      #    but that can be challenging to maintain as it may change across
+      #    updates.
+      #  - If you're working on a Storybook PR, you may want to check if this
+      #    step is logging anything currently.
+      - name: >
+          Delete Storybook cache (after Storybook run)
+          Delete (and log) any contents of node_modules/.cache/storybook
+        run: rm -rf --verbose ./node_modules/.cache/storybook
