@@ -85,18 +85,24 @@ class ExceededLimitCountersTestCase(BaseTestCase):
 
     def test_counter_updated_after_28h(self):
         """
-        A counter modified 28h ago should also be updated
+        A counter modified 28h ago should increment days by 1 (not 2),
+        since only full 24h periods are counted
         """
         old = baker.make(
             ExceededLimitCounter,
             user=self.user,
+            days=0,
             date_modified=timezone.now() - timedelta(hours=28),
         )
+
         with patch(
-            'kobo.apps.stripe.tasks.update_or_remove_limit_counter'
-        ) as patched_update:
+            'kobo.apps.stripe.utils.limit_enforcement.ServiceUsageCalculator.get_usage_balances',  # noqa
+            return_value={old.limit_type: {'exceeded': True}},
+        ):
             update_exceeded_limit_counters()
-            patched_update.assert_called_once_with(old)
+
+        old.refresh_from_db()
+        assert old.days == 1
 
     def test_counter_deleted_if_not_exceeded(self):
         """
