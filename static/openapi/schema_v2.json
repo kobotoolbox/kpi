@@ -11266,6 +11266,280 @@
                 }
             }
         },
+        "/api/v2/user-reports/": {
+            "get": {
+                "operationId": "api_v2_user_reports_list",
+                "description": "## List user reports\n",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "current_period_submissions_max",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 9223372036854775807,
+                            "minimum": -9223372036854775808,
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "current_period_submissions_min",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 9223372036854775807,
+                            "minimum": -9223372036854775808,
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "date_joined_after",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "date_joined_before",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "email",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "has_subscriptions",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "last_login_after",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "last_login_before",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "required": false,
+                        "in": "query",
+                        "description": "Number of results to return per page.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "nlp_usage_asr_seconds_total_max",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 9223372036854775807,
+                            "minimum": -9223372036854775808,
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "nlp_usage_asr_seconds_total_min",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 9223372036854775807,
+                            "minimum": -9223372036854775808,
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "nlp_usage_mt_characters_total_max",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 9223372036854775807,
+                            "minimum": -9223372036854775808,
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "nlp_usage_mt_characters_total_min",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 9223372036854775807,
+                            "minimum": -9223372036854775808,
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Which field to use when ordering the results.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "A search term.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "storage_bytes_total_max",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 9223372036854775807,
+                            "minimum": -9223372036854775808,
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "storage_bytes_total_min",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 9223372036854775807,
+                            "minimum": -9223372036854775808,
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "submission_counts_all_time_max",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 9223372036854775807,
+                            "minimum": -9223372036854775808,
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "submission_counts_all_time_min",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 9223372036854775807,
+                            "minimum": -9223372036854775808,
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "subscription_id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "subscription_status",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "username",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "User Reports"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedUserReportsListResponseList"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "AccessDenied": {
+                                        "value": {
+                                            "detail": "You do not have permission to perform this action."
+                                        },
+                                        "summary": "Access Denied"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorObject"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "detail": {
+                                                "field_name": [
+                                                    "Error message"
+                                                ]
+                                            }
+                                        },
+                                        "summary": "Bad request"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v2/users/": {
             "get": {
                 "operationId": "api_v2_users_list",
@@ -16947,6 +17221,37 @@
                     }
                 }
             },
+            "PaginatedUserReportsListResponseList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/UserReportsListResponse"
+                        }
+                    }
+                }
+            },
             "PaginatedVersionListResponseList": {
                 "type": "object",
                 "required": [
@@ -18895,6 +19200,549 @@
                     "last_login",
                     "metadata",
                     "username"
+                ]
+            },
+            "UserReportsListResponse": {
+                "type": "object",
+                "properties": {
+                    "extra_details_uid": {
+                        "type": "string"
+                    },
+                    "username": {
+                        "type": "string"
+                    },
+                    "first_name": {
+                        "type": "string"
+                    },
+                    "last_name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "is_superuser": {
+                        "type": "boolean"
+                    },
+                    "is_staff": {
+                        "type": "boolean"
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    },
+                    "date_joined": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "last_login": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "validated_email": {
+                        "type": "boolean"
+                    },
+                    "validated_password": {
+                        "type": "boolean"
+                    },
+                    "mfa_is_active": {
+                        "type": "boolean"
+                    },
+                    "sso_is_active": {
+                        "type": "boolean"
+                    },
+                    "accepted_tos": {
+                        "type": "boolean"
+                    },
+                    "social_accounts": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "provider": {
+                                    "type": "string"
+                                },
+                                "uid": {
+                                    "type": "string"
+                                },
+                                "last_joined": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "date_joined": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "email": {
+                                    "type": "string",
+                                    "format": "email"
+                                },
+                                "username": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "organizations": {
+                        "type": "object",
+                        "properties": {
+                            "organization_name": {
+                                "type": "string"
+                            },
+                            "organization_uid": {
+                                "type": "string"
+                            },
+                            "role": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "sector": {
+                                "type": "string"
+                            },
+                            "country": {
+                                "type": "string"
+                            },
+                            "organization": {
+                                "type": "string"
+                            },
+                            "last_ui_language": {
+                                "type": "string"
+                            },
+                            "organization_type": {
+                                "type": "string"
+                            },
+                            "organization_website": {
+                                "type": "string"
+                            },
+                            "project_views_settings": {
+                                "type": "object",
+                                "properties": {
+                                    "kobo_my_project": {
+                                        "type": "object",
+                                        "properties": {
+                                            "order": {
+                                                "type": "object"
+                                            },
+                                            "fields": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "filters": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "subscriptions": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "items": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "string"
+                                            },
+                                            "price": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string"
+                                                        },
+                                                        "nickname": {
+                                                            "type": "string"
+                                                        },
+                                                        "currency": {
+                                                            "type": "string"
+                                                        },
+                                                        "type": {
+                                                            "type": "string"
+                                                        },
+                                                        "recurring": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "meter": {
+                                                                    "type": "string"
+                                                                },
+                                                                "interval": {
+                                                                    "type": "string"
+                                                                },
+                                                                "usage_type": {
+                                                                    "type": "string"
+                                                                },
+                                                                "interval_count": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "aggregate_usage": {
+                                                                    "type": "string"
+                                                                },
+                                                                "trial_period_days": {
+                                                                    "type": "integer"
+                                                                }
+                                                            }
+                                                        },
+                                                        "unit_amount": {
+                                                            "type": "integer"
+                                                        },
+                                                        "human_readable_price": {
+                                                            "type": "string"
+                                                        },
+                                                        "metadata": {
+                                                            "type": "object",
+                                                            "additionalProperties": true
+                                                        },
+                                                        "active": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "product": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "string"
+                                                                },
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "description": {
+                                                                    "type": "string"
+                                                                },
+                                                                "type": {
+                                                                    "type": "string"
+                                                                },
+                                                                "metadata": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "product_type": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "storage_bytes_limit": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    },
+                                                                    "additionalProperties": true
+                                                                }
+                                                            }
+                                                        },
+                                                        "transform_quantity": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "divide_by": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "round": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "nullable": true
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "quantity": {
+                                                "type": "integer"
+                                            }
+                                        }
+                                    }
+                                },
+                                "schedule": {
+                                    "type": "object",
+                                    "properties": {
+                                        "phases": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "items": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "plan": {
+                                                                    "type": "string"
+                                                                },
+                                                                "price": {
+                                                                    "type": "string"
+                                                                },
+                                                                "metadata": {
+                                                                    "type": "object",
+                                                                    "additionalProperties": true
+                                                                },
+                                                                "quantity": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "tax_rates": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                        "type": "integer"
+                                                                    }
+                                                                },
+                                                                "billing_thresholds": {
+                                                                    "type": "object",
+                                                                    "additionalProperties": true
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    "coupon": {
+                                                        "type": "string"
+                                                    },
+                                                    "currency": {
+                                                        "type": "string"
+                                                    },
+                                                    "end_date": {
+                                                        "type": "integer"
+                                                    },
+                                                    "metadata": {
+                                                        "type": "object"
+                                                    },
+                                                    "trial_end": {
+                                                        "type": "integer"
+                                                    },
+                                                    "start_date": {
+                                                        "type": "integer"
+                                                    },
+                                                    "description": {
+                                                        "type": "string"
+                                                    },
+                                                    "on_behalf_of": {
+                                                        "type": "string"
+                                                    },
+                                                    "automatic_tax": {
+                                                        "type": "object",
+                                                        "schema": {
+                                                            "enabled": {
+                                                                "type": "boolean"
+                                                            }
+                                                        }
+                                                    },
+                                                    "transfer_data": {
+                                                        "type": "string"
+                                                    },
+                                                    "invoice_settings": {
+                                                        "type": "string"
+                                                    },
+                                                    "add_invoice_items": {
+                                                        "type": "object"
+                                                    },
+                                                    "collection_method": {
+                                                        "type": "string"
+                                                    },
+                                                    "default_tax_rates": {
+                                                        "type": "object"
+                                                    },
+                                                    "billing_thresholds": {
+                                                        "type": "string"
+                                                    },
+                                                    "proration_behavior": {
+                                                        "type": "string"
+                                                    },
+                                                    "billing_cycle_anchor": {
+                                                        "type": "integer"
+                                                    },
+                                                    "default_payment_method": {
+                                                        "type": "string"
+                                                    },
+                                                    "application_fee_percent": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "nullable": true
+                                            }
+                                        },
+                                        "status": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "nullable": true
+                                },
+                                "djstripe_created": {
+                                    "type": "string"
+                                },
+                                "djstripe_updated": {
+                                    "type": "string"
+                                },
+                                "id": {
+                                    "type": "string"
+                                },
+                                "livemode": {
+                                    "type": "boolean"
+                                },
+                                "created": {
+                                    "type": "string"
+                                },
+                                "metadata": {
+                                    "type": "object",
+                                    "properties": {
+                                        "request_url": {
+                                            "type": "string"
+                                        },
+                                        "organization_id": {
+                                            "type": "string"
+                                        },
+                                        "kpi_owner_user_id": {
+                                            "type": "string"
+                                        },
+                                        "kpi_owner_username": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "description": {
+                                    "type": "string"
+                                },
+                                "application_fee_percent": {
+                                    "type": "number",
+                                    "format": "float"
+                                },
+                                "billing_cycle_anchor": {
+                                    "type": "string"
+                                },
+                                "billing_thresholds": {
+                                    "type": "string"
+                                },
+                                "cancel_at": {
+                                    "type": "string"
+                                },
+                                "cancel_at_period_end": {
+                                    "type": "boolean"
+                                },
+                                "canceled_at": {
+                                    "type": "string"
+                                },
+                                "collection_method": {
+                                    "type": "string"
+                                },
+                                "current_period_end": {
+                                    "type": "string"
+                                },
+                                "current_period_start": {
+                                    "type": "string"
+                                },
+                                "days_until_due": {
+                                    "type": "string"
+                                },
+                                "discount": {
+                                    "type": "string"
+                                },
+                                "ended_at": {
+                                    "type": "string"
+                                },
+                                "next_pending_invoice_item_invoice": {
+                                    "type": "string"
+                                },
+                                "pause_collection": {
+                                    "type": "string"
+                                },
+                                "pending_invoice_item_interval": {
+                                    "type": "string"
+                                },
+                                "pending_update": {
+                                    "type": "string"
+                                },
+                                "proration_behavior": {
+                                    "type": "string"
+                                },
+                                "proration_date": {
+                                    "type": "string"
+                                },
+                                "quantity": {
+                                    "type": "integer"
+                                },
+                                "start_date": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "string"
+                                },
+                                "trial_end": {
+                                    "type": "string"
+                                },
+                                "trial_start": {
+                                    "type": "string"
+                                },
+                                "djstripe_owner_account": {
+                                    "type": "string"
+                                },
+                                "customer": {
+                                    "type": "string"
+                                },
+                                "default_payment_method": {
+                                    "type": "string"
+                                },
+                                "default_source": {
+                                    "type": "string"
+                                },
+                                "latest_invoice": {
+                                    "type": "string"
+                                },
+                                "pending_setup_intent": {
+                                    "type": "string"
+                                },
+                                "plan": {
+                                    "type": "integer"
+                                },
+                                "default_tax_rates": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "current_service_usage": {
+                        "$ref": "#/components/schemas/ServiceUsageResponse"
+                    },
+                    "account_restricted": {
+                        "type": "boolean"
+                    },
+                    "asset_count": {
+                        "type": "integer"
+                    },
+                    "deployed_asset_count": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "accepted_tos",
+                    "account_restricted",
+                    "asset_count",
+                    "current_service_usage",
+                    "date_joined",
+                    "deployed_asset_count",
+                    "email",
+                    "extra_details_uid",
+                    "first_name",
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "last_login",
+                    "last_name",
+                    "metadata",
+                    "mfa_is_active",
+                    "organizations",
+                    "social_accounts",
+                    "sso_is_active",
+                    "subscriptions",
+                    "username",
+                    "validated_email",
+                    "validated_password"
                 ]
             },
             "UserRetrieveResponse": {

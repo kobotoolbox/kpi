@@ -4,8 +4,6 @@ import pytest
 from django.conf import settings
 from django.db import connection
 from django.urls import reverse
-from djstripe.enums import BillingScheme
-from djstripe.models import Customer
 from model_bakery import baker
 from rest_framework import status
 
@@ -24,6 +22,8 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.url = reverse(self._get_endpoint('api_v2:user-reports-list'))
 
         # Create and add a subscription to someuser
+        from djstripe.enums import BillingScheme
+        from djstripe.models import Customer
         self.someuser = User.objects.get(username='someuser')
         organization = self.someuser.organization
         self.customer = baker.make(Customer, subscriber=organization)
