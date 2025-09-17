@@ -1,10 +1,15 @@
 import type { ModalProps } from '@mantine/core'
 import { Group, Loader, Modal, Stack, Text, TextInput } from '@mantine/core'
 import { useField } from '@mantine/form'
+import { useState } from 'react'
+import { fetchDelete } from '#/api'
+import { endpoints } from '#/api.endpoints'
 import ButtonNew from '#/components/common/ButtonNew'
 import { useSession } from '#/stores/useSession'
+import { notify } from '#/utils'
 
 export default function DeleteAccountModal(props: ModalProps) {
+  const [isDeleting, setIsDeleting] = useState(false)
   const session = useSession()
 
   function isUsernameOk(username: string) {
@@ -18,7 +23,19 @@ export default function DeleteAccountModal(props: ModalProps) {
   })
 
   const handleConfirmDeleteAccount = () => {
-    console.log('handleConfirmDeleteAccount')
+    setIsDeleting(true)
+    fetchDelete(endpoints.ME, { confirm: session.currentLoggedAccount.extra_details__uid })
+      .then(() => {
+        setIsDeleting(false)
+        // We can't use `session.logOut` because it needs authentication to work, and after successful API call, account
+        // is no longer authenticated. We force reload to leave the UI:
+        window.location.replace('')
+      })
+      .catch((errorResponse: any) => {
+        console.error(errorResponse)
+        setIsDeleting(false)
+        notify.error(t('Cannot delete account'))
+      })
   }
 
   const handleClose = () => {
@@ -49,7 +66,13 @@ export default function DeleteAccountModal(props: ModalProps) {
             {t('Cancel')}
           </ButtonNew>
 
-          <ButtonNew size='md' disabled={isConfirmDisabled} onClick={handleConfirmDeleteAccount} variant='danger'>
+          <ButtonNew
+            size='md'
+            disabled={isConfirmDisabled}
+            onClick={handleConfirmDeleteAccount}
+            variant='danger'
+            loading={isDeleting}
+          >
             {t('Delete account')}
           </ButtonNew>
         </Group>
