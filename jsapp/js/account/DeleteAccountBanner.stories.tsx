@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { withRouter } from 'storybook-addon-remix-react-router'
 import assetsMock from '#/endpoints/assets.mocks'
+import { queryClientDecorator } from '#/query/queryClient.mocks'
 import DeleteAccountBanner from './DeleteAccountBanner'
 
 const meta: Meta<typeof DeleteAccountBanner> = {
@@ -13,7 +14,7 @@ const meta: Meta<typeof DeleteAccountBanner> = {
     },
     a11y: { test: 'todo' },
   },
-  decorators: [withRouter],
+  decorators: [withRouter, queryClientDecorator],
 }
 
 export default meta
