@@ -1,4 +1,6 @@
 @use 'scss/colors';
+@use 'scss/_variables';
+@use 'scss/libs/_mdl';
 
 // ==========================================================================
 // Add new question
@@ -62,7 +64,7 @@
   color: colors.$kobo-gray-700;
   background: transparent;
   border: 0 none;
-  font-family: $font;
+  font-family: mdl.$font;
   font-weight: 600;
   padding: 4px;
   line-height: 1em;
@@ -127,7 +129,7 @@ input.row__questiontypes__new-question-name {
   margin-bottom: 1px;
   padding: 10px 5px;
   font-size: 11px;
-  font-family: $font;
+  font-family: mdl.$font;
   font-weight: 600;
   cursor: pointer;
   color: colors.$kobo-gray-800;
@@ -139,14 +141,14 @@ input.row__questiontypes__new-question-name {
   }
 
   &:hover {
-    border-color: $cardInSortBorderColor;
-    color: $cardInSortBorderColor;
+    border-color: variables.$cardInSortBorderColor;
+    color: variables.$cardInSortBorderColor;
   }
 }
 
 // Force hover through jQuery for arrow key navigation
 .questiontypelist__item-force-hover {
-  @include form-builder-focus;
+  @include mdl.form-builder-focus;
 
-  color: $cardInSortBorderColor;
+  color: variables.$cardInSortBorderColor;
 }
