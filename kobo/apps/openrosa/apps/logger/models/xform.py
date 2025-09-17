@@ -7,7 +7,6 @@ from xml.sax.saxutils import escape as xml_escape
 
 from django.apps import apps
 from django.conf import settings
-from django.contrib.auth.management import DEFAULT_DB_ALIAS
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.urls import reverse
@@ -18,20 +17,12 @@ from taggit.managers import TaggableManager
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import XLSFormError
 from kobo.apps.openrosa.koboform.pyxform_utils import convert_csv_to_xls
-from kobo.apps.openrosa.libs.constants import (
-    CAN_ADD_SUBMISSIONS,
-    CAN_DELETE_DATA_XFORM,
-    CAN_TRANSFER_OWNERSHIP,
-    CAN_VALIDATE_XFORM,
-)
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.fields.file import ExtendedFileField
 from kpi.models.abstract_models import AbstractTimeStampedModel
-from kpi.utils.database import use_db
 from kpi.utils.hash import calculate_hash
-from kpi.utils.object_permission import perm_parse
 from kpi.utils.xml import XMLFormWithDisclaimer
 
 XFORM_TITLE_LENGTH = 255
@@ -113,12 +104,6 @@ class XForm(AbstractTimeStampedModel):
         verbose_name = t('XForm')
         verbose_name_plural = t('XForms')
         ordering = ('id_string',)
-        permissions = (
-            (CAN_ADD_SUBMISSIONS, t('Can make submissions to the form')),
-            (CAN_TRANSFER_OWNERSHIP, t('Can transfer form ownership.')),
-            (CAN_VALIDATE_XFORM, t('Can validate submissions')),
-            (CAN_DELETE_DATA_XFORM, t('Can delete submissions')),
-        )
 
     objects = XFormWithoutPendingDeletedManager()
     all_objects = XFormAllManager()
@@ -135,7 +120,7 @@ class XForm(AbstractTimeStampedModel):
         See kpi.utils.xml.XMLFormWithDisclaimer for more details.
         """
         Asset = apps.get_model('kpi', 'Asset')  # noqa
-        if not getattr(self, '_cache_asset', None):
+        if not getattr(self, '_cached_asset', None):
             # We only need to load some fields when fetching the related Asset object
             # with XMLFormWithDisclaimer
             try:
@@ -145,8 +130,10 @@ class XForm(AbstractTimeStampedModel):
             except Asset.DoesNotExist:
                 # An `Asset` object needs to be returned to avoid 500 while
                 # Enketo is fetching for project XML (e.g: /formList, /manifest)
+                # The uid is set to null to auto-generate it when the asset is saved.
+                # This is useful specially in unit tests for xforms without assets
                 asset = Asset(
-                    uid=self.id_string,
+                    uid=None,
                     name=self.title,
                     owner_id=self.user.id,
                 )
@@ -183,31 +170,6 @@ class XForm(AbstractTimeStampedModel):
     @property
     def has_instances_with_geopoints(self):
         return self.instances_with_geopoints
-
-    def has_mapped_perm(self, user_obj: User, perm: str) -> bool:
-        """
-        Checks if a role-based user (e.g., an organization admin) has access to an
-        object  by validating against equivalent permissions defined in KPI.
-
-        In the context of OpenRosa, roles such as organization admins do not have
-        permissions explicitly recorded in the database. Since django-guardian cannot
-        determine access for such roles directly, this method maps the role to
-        its equivalent permissions in KPI, allowing for accurate permission validation.
-        """
-        _, codename = perm_parse(perm)
-
-        with use_db(DEFAULT_DB_ALIAS):
-            kc_permission_map = self.asset.KC_PERMISSIONS_MAP
-            try:
-                kpi_perm = list(kc_permission_map.keys())[
-                    list(kc_permission_map.values()).index(codename)
-                ]
-            except ValueError:
-                return False
-
-            has_perm = self.asset.has_perm(user_obj, kpi_perm)
-
-        return has_perm
 
     @property
     def md5_hash(self):

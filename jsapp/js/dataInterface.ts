@@ -18,6 +18,8 @@ import type { SortValues } from '#/components/submissions/tableConstants'
 import type { ValidationStatusName } from '#/components/submissions/validationStatus.constants'
 import type { AnyRowTypeName, AssetFileType, AssetTypeName } from '#/constants'
 import type { UserResponse } from '#/users/userExistence.store'
+import type { AccountFieldsValues } from './account/account.constants'
+import { endpoints } from './api.endpoints'
 import type { HookAuthLevelName, HookExportTypeName } from './components/RESTServices/RESTServicesForm'
 import type { Json } from './components/common/common.interfaces'
 import type {
@@ -838,10 +840,10 @@ export interface AccountResponse {
    * Link to a legacy view containing list of projects. No longer used on FE.
    */
   projects_url: string
-  is_superuser: boolean
+  is_superuser?: boolean
   gravatar: string
-  is_staff: boolean
-  last_login: string
+  is_staff?: boolean
+  last_login: string | null
   /**
    * When this is `false`, user will be blocked from accessing anything
    * sensitive. The default value is `true`.
@@ -852,34 +854,21 @@ export interface AccountResponse {
    * or `false`, it means that the latest TOS was not accepted.
    */
   accepted_tos?: boolean
-  extra_details: {
-    name: string
-    gender: string
-    sector: string
-    country: string
-    organization_type: string
-    organization: string
-    organization_website: string
-    bio: string
-    city: string
-    require_auth: boolean
-    twitter: string
-    linkedin: string
-    instagram: string
-    newsletter_subscription: boolean
-    project_views_settings: ProjectViewsSettings
+  extra_details: AccountFieldsValues & {
     /** We store this for usage statistics only. */
     last_ui_language?: string
+    project_views_settings: ProjectViewsSettings
     // JSON values are the backend reality, but we make assumptions
     [key: string]: Json | ProjectViewsSettings | undefined
   }
-  git_rev: {
-    // All are either a string or `false`
-    short: string | boolean
-    long: string | boolean
-    branch: string | boolean
-    tag: string | boolean
-  }
+  git_rev:
+    | {
+        short: string | false
+        long: string | false
+        branch: string | false
+        tag: string | false
+      }
+    | false
   social_accounts: SocialAccount[]
   // Organization details
   organization?: {
@@ -887,6 +876,7 @@ export interface AccountResponse {
     name: string
     uid: string
   }
+  extra_details__uid: string
 }
 
 export interface AccountRequest {
@@ -1111,8 +1101,9 @@ export interface AssetMapStyles {
 const $ajax = (o: {}) => $.ajax(Object.assign({}, { dataType: 'json', method: 'GET' }, o))
 
 export const dataInterface: DataInterface = {
-  getProfile: () => fetch(`${ROOT_URL}/me/`).then((response) => response.json()), // TODO replace selfProfile
-  selfProfile: (): JQuery.jqXHR<AccountResponse | UserNotLoggedInResponse> => $ajax({ url: `${ROOT_URL}/me/` }),
+  getProfile: () => fetch(`${ROOT_URL}${endpoints.ME}`).then((response) => response.json()), // TODO replace selfProfile
+  selfProfile: (): JQuery.jqXHR<AccountResponse | UserNotLoggedInResponse> =>
+    $ajax({ url: `${ROOT_URL}${endpoints.ME}` }),
 
   apiToken: (): JQuery.jqXHR<{ token: string }> =>
     $ajax({
@@ -1130,7 +1121,7 @@ export const dataInterface: DataInterface = {
       .done(d.resolve)
       .fail((/*resp, etype, emessage*/) => {
         // logout request wasn't successful, but may have logged the user out
-        // querying '/me/' can confirm if we have logged out.
+        // querying '${endpoints.ME}' can confirm if we have logged out.
         dataInterface
           .selfProfile()
           .done((data: { message?: string }) => {
@@ -1147,7 +1138,7 @@ export const dataInterface: DataInterface = {
 
   patchProfile(data: AccountRequest): JQuery.jqXHR<AccountResponse> {
     return $ajax({
-      url: `${ROOT_URL}/me/`,
+      url: `${ROOT_URL}${endpoints.ME}`,
       method: 'PATCH',
       dataType: 'json',
       contentType: 'application/json',

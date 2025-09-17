@@ -59,7 +59,21 @@ class DataCollectorGroupAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         assets = form.cleaned_data['assets']
         super().save_model(request, obj, form, change)
-        obj.assets.set(assets)
+        new_asset_uids = list(assets.values_list('uid', flat=True))
+        # we have to do this manually instead of using obj.assets.set()
+        # so we can call save() with adjust_content=False
+        for old_asset in obj.assets.all():
+            if old_asset.uid not in new_asset_uids:
+                old_asset.data_collector_group = None
+                old_asset.save(
+                    update_fields=['data_collector_group'], adjust_content=False
+                )
+        for new_asset in assets:
+            if new_asset.data_collector_group_id != obj.pk:
+                new_asset.data_collector_group = obj
+                new_asset.save(
+                    update_fields=['data_collector_group'], adjust_content=False
+                )
 
     def get_form(self, request, obj=..., change=..., **kwargs):
         form = super().get_form(request, obj, change, **kwargs)

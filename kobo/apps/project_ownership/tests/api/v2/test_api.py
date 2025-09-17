@@ -13,10 +13,10 @@ from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
 from kobo.apps.openrosa.libs.utils.image_tools import image_url
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kobo.apps.trackers.utils import update_nlp_counter
-from kpi.deployment_backends.kc_access.storage import (
-    default_kobocat_storage as default_storage
-)
 from kpi.constants import PERM_VIEW_ASSET
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
+)
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
@@ -374,10 +374,6 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         self.submissions = submissions
 
     @patch(
-        'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
-        MagicMock()
-    )
-    @patch(
         'kobo.apps.project_ownership.tasks.move_attachments',
         MagicMock()
     )
@@ -463,10 +459,6 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         assert response.data['total_storage_bytes'] == expected_data['total_storage_bytes']
         assert response.data['total_submission_count'] == expected_data['total_submission_count']
 
-    @patch(
-        'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
-        MagicMock()
-    )
     @patch(
         'kobo.apps.project_ownership.tasks.move_attachments',
         MagicMock()
@@ -577,10 +569,6 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             self.assertFalse(default_storage.exists(thumbnail))
 
     @patch(
-        'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
-        MagicMock()
-    )
-    @patch(
         'kobo.apps.project_ownership.tasks.move_attachments',
         MagicMock()
     )
@@ -634,10 +622,6 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             ) == 0
         )
 
-    @patch(
-        'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
-        MagicMock()
-    )
     @patch(
         'kobo.apps.project_ownership.tasks.move_attachments',
         MagicMock()
