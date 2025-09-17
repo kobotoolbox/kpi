@@ -26,14 +26,14 @@ from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmi
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.apps.main import tests as main_tests
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from kobo.apps.openrosa.libs.constants import CAN_ADD_SUBMISSIONS
+from kobo.apps.openrosa.libs.permissions import assign_perm
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils import logger_tools
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 from kobo.apps.openrosa.libs.utils.logger_tools import (
     OpenRosaResponseNotAllowed,
     OpenRosaTemporarilyUnavailable,
 )
+from kpi.constants import PERM_ADD_SUBMISSIONS
 from kobo.apps.organizations.constants import UsageType
 from kpi.utils.fuzzy_int import FuzzyInt
 
@@ -75,7 +75,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             # USAGE_LIMIT_ENFORCEMENT variable. But we use caching
             # so should find a way to keep that out of this count
             if settings.STRIPE_ENABLED:
-                expected_queries = FuzzyInt(79, 86)
+                expected_queries = FuzzyInt(80, 87)
             with self.assertNumQueries(expected_queries):
                 self.view(request)
 
@@ -131,10 +131,14 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
-    def test_over_limit_submission_rejection_authenticated(self):
+    @patch(
+        'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances'  # noqa: E501
+    )
+    def test_over_limit_submission_rejection_authenticated(self, mock_usage):
         """
         Ensure submissions by an authenticated user are rejected if asset owner
-        is over their storage or submission limit
+        is over their storage or submission limit and that check_exceeded_limit
+        is run.
         """
         path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
@@ -154,14 +158,17 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                     'exceeded': True,
                 },
             }
+            mock_usage.return_value = mock_balances
             with patch(
-                'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
-                return_value=mock_balances,
-            ):
+                'kobo.apps.stripe.utils.limit_enforcement.check_exceeded_limit',
+                return_value=None,
+            ) as patched:
                 request = self.factory.post('/submission', data, format='json')
                 auth = DigestAuth('bob', 'bobbob')
                 request.META.update(auth(request.META, response))
                 response = self.view(request, username=self.user.username)
+                patched.assert_any_call(self.user, UsageType.SUBMISSION)
+                patched.assert_any_call(self.user, UsageType.STORAGE_BYTES)
                 self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
 
             mock_balances = {
@@ -170,10 +177,11 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 },
                 UsageType.SUBMISSION: None,
             }
+            mock_usage.return_value = mock_balances
             with patch(
-                'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
-                return_value=mock_balances,
-            ):
+                'kobo.apps.stripe.utils.limit_enforcement.check_exceeded_limit',
+                return_value=None,
+            ) as patched:
                 request = self.factory.post('/submission', data, format='json')
                 response = self.view(request)
                 self.assertEqual(response.status_code, 401)
@@ -181,6 +189,8 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 auth = DigestAuth('bob', 'bobbob')
                 request.META.update(auth(request.META, response))
                 response = self.view(request, username=self.user.username)
+                patched.assert_any_call(self.user, UsageType.SUBMISSION)
+                patched.assert_any_call(self.user, UsageType.STORAGE_BYTES)
                 self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
 
     @pytest.mark.skipif(
@@ -536,7 +546,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
         }
         alice_profile = self._create_user_profile(alice_data)
 
-        assign_perm(CAN_ADD_SUBMISSIONS, alice_profile.user, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice_profile.user, self.xform.asset)
 
         count = Attachment.objects.count()
         s = self.surveys[0]

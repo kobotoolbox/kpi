@@ -103,32 +103,46 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
     # Moving files is pretty slow, thus it should run in a celery task.
     errors = False
     for attachment in attachments.iterator():
-        update_fields = ['user_id']
-        media_file_path = attachment.media_file.name
-        if (
-            target_folder := get_target_folder(
-                transfer.invite.sender.username,
-                transfer.invite.recipient.username,
-                media_file_path,
-            )
-        ):
-            # There is no way to ensure atomicity when moving the file and saving the
-            # object to the database. Fingers crossed that the process doesn't get
-            # interrupted between these two operations.
-            if attachment.media_file.move(target_folder):
-                update_fields.append('media_file')
-                _delete_thumbnails(media_file_path)
-            else:
-                errors = True
-                logging.error(
-                    f'File {attachment.media_file_basename} (#{attachment.pk}) '
-                    f'could not be moved to {target_folder}'
+        try:
+            update_fields = ['user_id']
+            media_file_path = attachment.media_file.name
+            logging.info(f'Attempting to migrate {media_file_path}')
+            if (
+                target_folder := get_target_folder(
+                    transfer.invite.sender.username,
+                    transfer.invite.recipient.username,
+                    media_file_path,
                 )
+            ):
+                # There is no way to ensure atomicity when moving the file and saving
+                # the object to the database. Fingers crossed that the process doesn't
+                # get interrupted between these two operations.
+                if attachment.media_file.move(target_folder):
+                    update_fields.append('media_file')
+                    _delete_thumbnails(media_file_path)
+                    # attachment.save(update_fields=['media_file'])
+                    logging.info(
+                        f'Successfully migrated {media_file_path} to {target_folder}'
+                    )
+                else:
+                    errors = True
+                    logging.error(
+                        f'File {attachment.media_file_basename} (#{attachment.pk}) '
+                        f'could not be moved to {target_folder}'
+                    )
 
-        attachment.user_id = transfer.invite.recipient.pk
-        attachment.save(update_fields=update_fields)
+            attachment.user_id = transfer.invite.recipient.pk
+            attachment.save(update_fields=update_fields)
 
-        heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
+        except Exception as e:
+            # TODO: remove this general exception when we have a better idea of
+            # the errors
+            errors = True
+            logging.error(
+                f'Error moving {attachment.media_file_basename}', e, exc_info=True
+            )
+        finally:
+            heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
 
     if errors:
         raise AsyncTaskException('Some attachments could not be moved')

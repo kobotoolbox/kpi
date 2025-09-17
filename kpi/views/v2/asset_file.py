@@ -1,5 +1,11 @@
 # coding: utf-8
 from django.http import HttpResponseRedirect
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiParameter,
+    extend_schema,
+    extend_schema_view,
+)
 from private_storage.views import PrivateStorageDetailView
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -10,119 +16,142 @@ from kpi.constants import PERM_VIEW_ASSET
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.models import AssetFile
 from kpi.permissions import AssetEditorPermission
+from kpi.schema_extensions.v2.files.schema import (
+    BASE64_METADATA_SCHEMA,
+    URL_METADATA_SCHEMA,
+)
+from kpi.schema_extensions.v2.files.serializers import CreateFilePayload, FilesResponse
+from kpi.schema_extensions.v2.generic.schema import ASSET_URL_SCHEMA, USER_URL_SCHEMA
 from kpi.serializers.v2.asset_file import AssetFileSerializer
+from kpi.utils.schema_extensions.examples import generate_example_from_schema
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_201_created_response,
+    open_api_204_empty_response,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
+@extend_schema(
+    tags=['Files'],
+    parameters=[
+        OpenApiParameter(
+            name='parent_lookup_asset',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the parent asset',
+        ),
+    ],
+)
+@extend_schema_view(
+    create=extend_schema(
+        description=read_md('kpi', 'files/create.md'),
+        request={'application/json': CreateFilePayload},
+        responses=open_api_201_created_response(
+            FilesResponse,
+            require_auth=False,
+            raise_access_forbidden=False,
+        ),
+        examples=[
+            OpenApiExample(
+                name='Creating a file with binary content',
+                value={
+                    'user': generate_example_from_schema(USER_URL_SCHEMA),
+                    'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
+                    'description': 'Description of the file',
+                    'file_type': 'image/png',
+                    'content': '<binary>',
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                name='Creating a file with Base64 content',
+                value={
+                    'user': generate_example_from_schema(USER_URL_SCHEMA),
+                    'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
+                    'description': 'Description of the file',
+                    'file_type': 'image/png',
+                    'base64Encoded': 'SGVsbG8sIFdvcmxkIQ',
+                    'metadata': generate_example_from_schema(BASE64_METADATA_SCHEMA),
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                name='Creating a file with a remote url',
+                value={
+                    'user': generate_example_from_schema(USER_URL_SCHEMA),
+                    'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
+                    'description': 'Description of the file',
+                    'file_type': 'image/png',
+                    'metadata': generate_example_from_schema(URL_METADATA_SCHEMA),
+                },
+                request_only=True,
+            ),
+        ],
+    ),
+    content=extend_schema(
+        description=read_md('kpi', 'files/content.md'),
+        responses=open_api_200_ok_response(
+            description='Will return a content type with the type of the attachment as well as the attachment itself.',  # noqa
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    destroy=extend_schema(
+        description=read_md('kpi', 'files/delete.md'),
+        responses=open_api_204_empty_response(
+            validate_payload=False,
+            require_auth=False,
+            raise_access_forbidden=False,
+        ),
+    ),
+    list=extend_schema(
+        description=read_md('kpi', 'files/list.md'),
+        responses=open_api_200_ok_response(
+            FilesResponse,
+            validate_payload=False,
+            require_auth=False,
+            raise_access_forbidden=False,
+        ),
+    ),
+    partial_update=extend_schema(
+        exclude=True,
+    ),
+    retrieve=extend_schema(
+        description=read_md('kpi', 'files/retrieve.md'),
+        responses=open_api_200_ok_response(
+            FilesResponse,
+            validate_payload=False,
+            require_auth=False,
+            raise_access_forbidden=False,
+        ),
+    ),
+    update=extend_schema(
+        exclude=True,
+    ),
+)
 class AssetFileViewSet(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedNoUpdateModelViewSet
 ):
     """
-    This endpoint shows uploaded files related to an asset.
+    ViewSet for managing the current user's assets
 
-    `uid` - is the unique identifier of a specific asset
+    Available actions:
+    - list           → GET /api/v2/assets/{parent_lookup_asset}/files/
+    - create         → POST /api/v2/assets/{parent_lookup_asset}/files/
+    - retrieve       → GET /api/v2/assets/{parent_lookup_asset}/files/{uid}/
+    - delete         → DELETE /api/v2/assets/{parent_lookup_asset}/files/{uid}/
+    - content        → GET /api/v2/assets/{parent_lookup_asset}/files/{uid}/content/
 
-    **Retrieve files**
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/files/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/files/
-
-    Results can be narrowed down with a filter by type
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/assets/aSAvYreNzVEkrWg5Gdcvg/files/?file_type=map_layer
-
-
-    **Retrieve a file**
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/files/{file_uid}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/files/afQoJxA4kmKEXVpkH6SYbhb/"
-
-
-    **Create a new file**
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/assets/<code>{uid}</code>/files/
-    </pre>
-
-    > Example
-    >
-    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/files/ \\
-    >            -H 'Content-Type: application/json' \\
-    >            -d '<payload>'  # Payload is sent as a string
-
-    Fields:
-
-    - `asset` (required)
-    - `user` (required)
-    - `description` (required)
-    - `file_type` (required)
-    - `content` (as binary) (optional)
-    - `metadata` JSON (optional)
-
-    _Notes:_
-
-    1. Files can have different types:
-        - `map_layer`
-        - `form_media`
-    2. Files can be created with three different ways
-        - `POST` a file with `content` parameter
-        - `POST` a base64 encoded string with `base64Encoded` parameter<sup>1</sup>
-        - `POST` an URL with `metadata` parameter<sup>2</sup>
-
-    <sup>1)</sup> `metadata` becomes mandatory and must contain `filename` property<br>
-    <sup>2)</sup> `metadata` becomes mandatory and must contain `redirect_url` property
-
-    **Files with `form_media` type must have unique `filename` per asset**
-
-    > _Payload to create a file with binary content_
-    >
-    >        {
-    >           "user": "https://[kpi]/api/v2/users/{username}/",
-    >           "asset": "https://[kpi]/api/v2/asset/{asset_uid}/",
-    >           "description": "Description of the file",
-    >           "content": <binary>
-    >        }
-
-    > _Payload to create a file with base64 encoded content_
-    >
-    >        {
-    >           "user": "https://[kpi]/api/v2/users/{username}/",
-    >           "asset": "https://[kpi]/api/v2/asset/{asset_uid}/",
-    >           "description": "Description of the file",
-    >           "base64Encoded": "<base64-encoded-string>"
-    >           "metadata": {"filename": "filename.ext"}
-    >        }
-
-    > _Payload to create a file with a remote URL_
-    >
-    >        {
-    >           "user": "https://[kpi]/api/v2/users/{username}/",
-    >           "asset": "https://[kpi]/api/v2/asset/{asset_uid}/",
-    >           "description": "Description of the file",
-    >           "metadata": {"redirect_url": "https://domain.tld/image.jpg"}
-    >        }
-
-
-    **Delete a file**
-
-    <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/files/{file_uid}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/files/pG6AeSjCwNtpWazQAX76Ap/
-
-    ### CURRENT ENDPOINT
+    Documentation:
+    - docs/api/v2/files/list.md
+    - docs/api/v2/files/create.md
+    - docs/api/v2/files/retrieve.md
+    - docs/api/v2/files/delete.md
+    - docs/api/v2/files/content.md
     """
 
     model = AssetFile

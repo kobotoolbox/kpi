@@ -1,7 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 import { Box, Divider, Group, Stack, Text, Title } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import InviteModal from '#/account/organization/InviteModal'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 import subscriptionStore from '#/account/subscriptionStore'
@@ -11,21 +13,39 @@ import Avatar from '#/components/common/avatar'
 import Badge from '#/components/common/badge'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore from '#/envStore'
-import PaginatedQueryUniversalTable from '#/universalTable/paginatedQueryUniversalTable.component'
-import type { UniversalTableColumn } from '#/universalTable/universalTable.component'
+import { QueryKeys } from '#/query/queryKeys'
 import { formatDate } from '#/utils'
 import InviteeActionsDropdown from './InviteeActionsDropdown'
 import MemberActionsDropdown from './MemberActionsDropdown'
 import MemberRoleSelector from './MemberRoleSelector'
-import useOrganizationMembersQuery from './membersQuery'
-import type { OrganizationMember, OrganizationMemberListItem } from './membersQuery'
+import { type OrganizationMember, type OrganizationMemberListItem, getOrganizationMembers } from './membersQuery'
 import styles from './membersRoute.module.scss'
 import { OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 
 export default function MembersRoute() {
   const orgQuery = useOrganizationQuery()
+  const orgId = orgQuery.data?.id
+
   const [opened, { open, close }] = useDisclosure(false)
   const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0])
+
+  const [pagination, setPagination] = useState({
+    limit: DEFAULT_PAGE_SIZE,
+    offset: 0,
+  })
+
+  const queryResult = useQuery({
+    queryKey: [QueryKeys.organizationMembers, pagination.limit, pagination.offset, orgId],
+    // `orgId!` because it's ensured to be there in `enabled` property :ok:
+    queryFn: () => getOrganizationMembers(pagination.limit, pagination.offset, orgId!),
+    placeholderData: keepPreviousData,
+    enabled: !!orgId,
+    // We might want to improve this in future, for now let's not retry
+    retry: false,
+    // The `refetchOnWindowFocus` option is `true` by default, I'm setting it
+    // here so we don't forget about it.
+    refetchOnWindowFocus: true,
+  })
 
   /**
    * Checks whether object should be treated as organization member or invitee.
@@ -211,9 +231,11 @@ export default function MembersRoute() {
         </Box>
       )}
 
-      <PaginatedQueryUniversalTable<OrganizationMemberListItem>
-        queryHook={useOrganizationMembersQuery}
+      <UniversalTable<OrganizationMemberListItem>
         columns={columns}
+        queryResult={queryResult}
+        pagination={pagination}
+        setPagination={setPagination}
       />
     </div>
   )

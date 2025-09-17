@@ -75,7 +75,6 @@ SHARED_APP_LABELS = [
     'auth',
     'contenttypes',
     'kobo_auth',
-    'reversion',
     'sessions',
     'taggit',
 ]

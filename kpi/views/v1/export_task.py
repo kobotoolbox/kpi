@@ -9,6 +9,7 @@ from rest_framework.reverse import reverse
 from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
 from kobo.apps.audit_log.models import AuditType
 from kpi.models import Asset, SubmissionExportTask
+from kpi.models.import_export_task import ImportExportStatusChoices
 from kpi.serializers import ExportTaskSerializer
 from kpi.tasks import export_in_background
 from kpi.utils.models import remove_string_prefix, resolve_url_to_asset
@@ -221,11 +222,15 @@ class ExportTaskViewSet(AuditLoggedNoUpdateModelViewSet):
             lambda: export_in_background.delay(export_task_uid=export_task.uid)
         )
 
-        return Response({
-            'uid': export_task.uid,
-            'url': reverse(
-                'submissionexporttask-detail',
-                kwargs={'uid': export_task.uid},
-                request=request),
-            'status': SubmissionExportTask.PROCESSING
-        }, status.HTTP_201_CREATED)
+        return Response(
+            {
+                'uid': export_task.uid,
+                'url': reverse(
+                    'submissionexporttask-detail',
+                    kwargs={'uid': export_task.uid},
+                    request=request,
+                ),
+                'status': ImportExportStatusChoices.PROCESSING,
+            },
+            status.HTTP_201_CREATED,
+        )

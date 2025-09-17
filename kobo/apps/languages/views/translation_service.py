@@ -1,59 +1,55 @@
 # coding: utf-8
-from .base import BaseViewSet
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from ..models.translation import TranslationService
 from ..serializers import TranslationServiceSerializer
+from .base import BaseViewSet
 
 
+@extend_schema(
+    tags=['Translation Services'],
+)
+@extend_schema_view(
+    list=extend_schema(
+        description=read_md('languages', 'translation/list.md'),
+        parameters=[
+            OpenApiParameter(
+                name='q',
+                required=False,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+            ),
+        ],
+        responses=open_api_200_ok_response(
+            TranslationServiceSerializer,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+        ),
+    ),
+    retrieve=extend_schema(
+        description=read_md('languages', 'translation/retrieve.md'),
+        responses=open_api_200_ok_response(
+            TranslationServiceSerializer,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+)
 class TranslationServiceViewSet(BaseViewSet):
     """
-        Lists the translation services accessible to requesting (authenticated) user.
+    Viewset for translation services
 
-        <pre class="prettyprint">
-        <b>GET</b> /api/v2/translation-services/
-        </pre>
+    Available actions:
+    - list           → GET       /api/v2/translation-services/
+    - retrieve       → GET       /api/v2/translation-services/{code}/
 
-        > Example
-        >
-        >       curl -X GET https://[kpi]/api/v2/translation-services/
-
-        Search can be made with `q` parameter to search for the term in names and codes.
-
-        > Example
-        >
-        >       curl -X GET https://[kpi]/api/v2/translation-services/?q=goo
-        >       {
-        >           "count": 1
-        >           "next": ...
-        >           "previous": ...
-        >           "results": [
-        >               {
-        >                   "name": "Google",
-        >                   "code": "goog",
-        >               }
-        >           ]
-        >       }
-
-        Results are order by name.
-
-
-        ## Get one translation service
-
-        * `code` - is the unique identifier of a specific language
-
-        <pre class="prettyprint">
-        <b>GET</b> /api/v2/translation-services/<code>{code}</code>/
-        </pre>
-
-        > Example
-        >
-        >       curl -X GET https://[kpi]/api/v2/translation-services/goog/
-        >       {
-        >           "name": "Google",
-        >           "code": "goog",
-        >       }
-
-        ### CURRENT ENDPOINT
-        """
+    Documentation:
+    - docs/api/v2/translation/list.md
+    - docs/api/v2/translation/retrieve.md
+    """
 
     serializer_class = TranslationServiceSerializer
     queryset = TranslationService.objects.all()

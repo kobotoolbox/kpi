@@ -6,5 +6,4 @@ class MainConfig(AppConfig):
     name = 'kobo.apps.openrosa.apps.main'
 
     def ready(self):
-        from . import signals
         super().ready()

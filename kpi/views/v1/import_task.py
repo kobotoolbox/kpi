@@ -10,6 +10,7 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import (
     get_human_readable_client_user_agent,
 )
 from kpi.models import ImportTask
+from kpi.models.import_export_task import ImportExportStatusChoices
 from kpi.serializers import ImportTaskListSerializer, ImportTaskSerializer
 from kpi.tasks import import_in_background
 from kpi.utils.strings import to_str
@@ -59,12 +60,15 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
                                                 data=itask_data)
         # Have Celery run the import in the background
         import_in_background.delay(import_task_uid=import_task.uid)
-        return Response({
-            'uid': import_task.uid,
-            'url': reverse(
-                'importtask-detail',
-                kwargs={'uid': import_task.uid},
-                request=request),
-            'status': ImportTask.PROCESSING
-        }, status.HTTP_201_CREATED)
-
+        return Response(
+            {
+                'uid': import_task.uid,
+                'url': reverse(
+                    'importtask-detail',
+                    kwargs={'uid': import_task.uid},
+                    request=request,
+                ),
+                'status': ImportExportStatusChoices.PROCESSING,
+            },
+            status.HTTP_201_CREATED,
+        )

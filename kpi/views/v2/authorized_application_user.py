@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import exceptions, mixins, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
@@ -10,8 +11,12 @@ from kpi.models import AuthorizedApplication
 from kpi.models.authorized_application import ApplicationTokenAuthentication
 from kpi.serializers import AuthorizedApplicationUserSerializer
 from kpi.serializers.v2.create_user import CreateUserSerializer
+from kpi.versioning import APIV2Versioning
 
 
+@extend_schema(
+    exclude=True,
+)
 class AuthorizedApplicationUserViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
@@ -19,6 +24,7 @@ class AuthorizedApplicationUserViewSet(
     queryset = User.objects.all()
     serializer_class = CreateUserSerializer
     lookup_field = 'username'
+    versioning_class = APIV2Versioning
 
     @action(detail=False, methods=['POST'])
     def authenticate_user(self, request):

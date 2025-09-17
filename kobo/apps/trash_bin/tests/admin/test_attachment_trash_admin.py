@@ -45,6 +45,8 @@ class AttachmentTrashAdminTestCase(BaseTestCase, AssetSubmissionTestMixin):
             request_author=user,
             objects_list=[{
                 'pk': attachment.pk,
+                'asset_id': self.asset.pk,
+                'asset_uid': self.asset.uid,
                 'attachment_uid': attachment.uid,
                 'attachment_basename': attachment.media_file_basename,
             }],

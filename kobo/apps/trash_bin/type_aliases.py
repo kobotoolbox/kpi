@@ -24,6 +24,8 @@ DeletionCallback: TypeAlias = Callable[[TrashBinModel], None]
 
 class AttachmentTrashDict(TypedDict):
     pk: int
+    asset_id: int
+    asset_uid: str
     attachment_uid: str
     attachment_basename: str
 

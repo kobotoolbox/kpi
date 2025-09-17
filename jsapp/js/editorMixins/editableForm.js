@@ -1,17 +1,19 @@
 import React from 'react'
 
+import { Text } from '@mantine/core'
 import alertify from 'alertifyjs'
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
 import debounce from 'lodash.debounce'
 import DocumentTitle from 'react-document-title'
 import ReactDOM from 'react-dom'
+import Markdown from 'react-markdown'
 import { unstable_usePrompt as usePrompt } from 'react-router-dom'
 import Select from 'react-select'
 import assetUtils from '#/assetUtils'
 import bem, { makeBem } from '#/bem'
+import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
-import Icon from '#/components/common/icon'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
 import {
@@ -693,32 +695,51 @@ export default Object.assign(
     },
 
     renderBackgroundAudioWarning() {
+      if (this.state.isBackgroundAudioBannerDismissed) return null
+      let bannerText = t(
+        'This form will automatically [record audio in the background](##SUPPORT_LINK##). Consider adding with a meaningful consent question to inform respondents or data collectors that they will be recorded while completing this survey.',
+      )
+
+      if (envStore.isReady && envStore.data.support_url) {
+        bannerText = bannerText.replace('##SUPPORT_LINK##', envStore.data.support_url + RECORDING_SUPPORT_URL)
+      } else {
+        // Replaces the link for the text only if link is not available
+        bannerText = bannerText.replace(/\[(.+)]\(##SUPPORT_LINK##\)/, '$1')
+      }
+
       return (
-        <bem.FormBuilderMessageBox m='warning'>
-          <span data-tip={t('background recording')}>
-            <i className='k-icon k-icon-project-overview' />
-          </span>
-
-          <p>
-            {t(
-              'This form will automatically record audio in the background. Consider adding an acknowledgement note to inform respondents or data collectors that they will be recorded while completing this survey. This feature is available in ',
-            )}
-            <a
-              title='Install KoBoCollect'
-              target='_blank'
-              href='https://play.google.com/store/apps/details?id=org.koboc.collect.android'
-            >
-              {t('Collect version 1.30 and above')}
-            </a>
-            {'.'}
-          </p>
-
-          {envStore.isReady && envStore.data.support_url && (
-            <a href={envStore.data.support_url + RECORDING_SUPPORT_URL} target='_blank' data-tip={t('help')}>
-              <Icon name='help' size='s' />
-            </a>
-          )}
-        </bem.FormBuilderMessageBox>
+        <Alert
+          type='info'
+          iconName='information'
+          p='sm'
+          maw={1024}
+          mb='sm'
+          m='auto'
+          closeButtonLabel={t('Dismiss')}
+          onClose={() => {
+            this.setState({ isBackgroundAudioBannerDismissed: true })
+          }}
+          withCloseButton
+        >
+          <Markdown
+            components={{
+              // Custom link component to open link on target _blank
+              a: (props) => (
+                <a href={props.href} target='_blank'>
+                  {props.children}
+                </a>
+              ),
+              // Custom paragraph component to use mantine Text instead of <p>
+              p: (props) => (
+                <Text c='blue.4' mr='lg'>
+                  {props.children}
+                </Text>
+              ),
+            }}
+          >
+            {bannerText}
+          </Markdown>
+        </Alert>
       )
     },
 

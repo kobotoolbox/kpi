@@ -4,6 +4,7 @@
  */
 
 import React from 'react'
+import { isRtlLang } from 'rtl-detect'
 
 import assetStore from '#/assetStore'
 import permConfig from '#/components/permissions/permConfig'
@@ -37,6 +38,7 @@ import envStore from '#/envStore'
 import type { IconName } from '#/k-icons'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME_URL } from '#/users/utils'
+import { currentLang } from '#/utils'
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -143,8 +145,13 @@ export function getCountryDisplayString(asset: AssetResponse | ProjectViewAsset)
       return '-'
     }
 
-    // TODO: improve for RTL?
-    // See: https://github.com/kobotoolbox/kpi/issues/3903
+    // RTL handling
+    const isRtl = isRtlLang(currentLang())
+
+    if (isRtl) {
+      countries.reverse()
+      return countries.join('، ')
+    }
     return countries.join(', ')
   } else {
     return '-'

@@ -1,4 +1,5 @@
 @use 'scss/colors';
+@use 'scss/components/_kobo.button' as *;
 
 // alertify overrides
 
@@ -152,7 +153,8 @@
     margin-top: -10px;
     opacity: 0.5;
 
-    @extend .k-icon, .k-icon-close;
+    // FIXME: .k-icon-close is only defined in languageSelector.scss, and it seems to do nothing here
+    @extend .k-icon, .k-icon-close !optional;
 
     color: colors.$kobo-white;
   }

@@ -3,20 +3,20 @@
  * to add new fields, please updated this interface first :)
  */
 export interface AccountFieldsValues {
+  bio?: string
+  city?: string
+  country?: string
+  gender?: string
+  instagram?: string
+  linkedin?: string
   name: string
+  newsletter_subscription?: boolean
+  organization_type?: string
+  organization_website?: string
   organization: string
-  organization_website: string
-  organization_type: string
-  sector: string
-  gender: string
-  bio: string
-  city: string
-  country: string
   require_auth: boolean
-  twitter: string
-  linkedin: string
-  instagram: string
-  newsletter_subscription: boolean
+  sector?: string
+  twitter?: string
 }
 
 export type AccountFieldsErrors = { [name in UserFieldName]?: string }
@@ -24,18 +24,18 @@ export type AccountFieldsErrors = { [name in UserFieldName]?: string }
 export type UserFieldName = keyof AccountFieldsValues
 
 export const USER_FIELD_NAMES: Record<UserFieldName, UserFieldName> = {
-  name: 'name',
-  organization: 'organization',
-  organization_website: 'organization_website',
-  organization_type: 'organization_type',
-  sector: 'sector',
-  gender: 'gender',
   bio: 'bio',
   city: 'city',
   country: 'country',
-  require_auth: 'require_auth',
-  twitter: 'twitter',
-  linkedin: 'linkedin',
+  gender: 'gender',
   instagram: 'instagram',
+  linkedin: 'linkedin',
+  name: 'name',
   newsletter_subscription: 'newsletter_subscription',
+  organization_type: 'organization_type',
+  organization_website: 'organization_website',
+  organization: 'organization',
+  require_auth: 'require_auth',
+  sector: 'sector',
+  twitter: 'twitter',
 }

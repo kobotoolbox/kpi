@@ -1,6 +1,7 @@
 @use 'scss/z-indexes';
 @use 'scss/breakpoints';
 @use 'scss/colors';
+@use 'scss/libs/_mdl';
 
 // This is an alternative tooltip component for displaying more complex content;
 // if possible use the other one (`data-tip` from `_kobo.tooltips.scss`)
@@ -32,7 +33,7 @@
       white-space: nowrap;
       text-align: center;
 
-      @include box-shadow;
+      @include mdl.box-shadow;
 
       strong {
         margin-bottom: 5px;

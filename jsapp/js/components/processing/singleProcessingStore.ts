@@ -666,6 +666,7 @@ class SingleProcessingStore extends Reflux.Store {
     }
 
     this.setNotPristine()
+    this.data.isPollingForTranslation = false
     this.trigger(this.data)
   }
 

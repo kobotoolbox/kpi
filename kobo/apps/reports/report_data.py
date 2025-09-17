@@ -60,8 +60,8 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
 
     # Find the AssetVersion UID for each deprecated reversion ID
     _reversion_ids = dict([
-        (str(v._reversion_version_id), v.uid)
-        for v in _versions if v._reversion_version_id
+        (str(v._reversion_version), v.uid)
+        for v in _versions if v._reversion_version
     ])
 
     # A submission often contains many version keys, e.g. `__version__`,

@@ -2,6 +2,7 @@
 @use 'scss/z-indexes';
 @use 'scss/breakpoints';
 @use 'scss/colors';
+@use 'scss/libs/_mdl';
 
 #kpiapp,
 .mdl-wrapper,
@@ -10,13 +11,13 @@
 }
 
 .mdl-layout {
-  max-width: $mdl-layout-width;
+  max-width: variables.$mdl-layout-width;
   margin: 0 auto;
   overflow: hidden;
 }
 
 .mdl-layout__content {
-  height: calc(100% - #{$layout-desktop-header-height});
+  height: calc(100% - #{mdl.$layout-desktop-header-height});
   position: relative;
   flex-grow: 0;
   overflow-x: hidden;

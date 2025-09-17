@@ -31,6 +31,7 @@ import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { formatTime, notify } from '#/utils'
+import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
 
 const DVCOUNT_LIMIT_MINIMUM = 20
@@ -243,16 +244,11 @@ class FormLanding extends React.Component {
                     <bem.FormView__label m='date'>{formatTime(item.date_deployed)}</bem.FormView__label>
                     {isLoggedIn && (
                       <bem.FormView__label>
-                        <Button
-                          type='text'
-                          size='m'
-                          onClick={() => {
-                            this.saveCloneAs(item.uid)
-                          }}
-                          startIcon='duplicate'
+                        <ActionIcon
+                          variant='transparent'
                           tooltip={t('Clone this version as a new project')}
-                          tooltipPosition='right'
-                          className='history-clone'
+                          iconName='duplicate'
+                          size='md'
                         />
                       </bem.FormView__label>
                     )}

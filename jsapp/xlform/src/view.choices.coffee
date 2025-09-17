@@ -31,7 +31,6 @@ module.exports = do ->
         @$el.removeClass("hidden")
       else
         @$el.addClass("hidden")
-      return
 
       # sortable is usually enabled, but sometimes (e.g. locking restriction
       # enabled) it is not

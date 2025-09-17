@@ -3,9 +3,7 @@ import datetime
 import json
 
 from django.db import models
-from django.utils import timezone
 from formpack.utils.expand_content import expand_content
-from reversion.models import Version
 
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
@@ -21,12 +19,11 @@ class AssetVersion(AbstractTimeStampedModel):
                               on_delete=models.CASCADE)
     name = models.CharField(null=True, max_length=255)
 
-    # preserving _reversion_version in case we don't save all that we
-    # need to in the first migration from reversion to AssetVersion
-    _reversion_version = models.OneToOneField(Version,
-                                              null=True,
-                                              on_delete=models.SET_NULL,
-                                              )
+    # preserve old reversion_version_ids so we can map old submissions to the
+    # correct AssetVersion
+    _reversion_version = models.IntegerField(
+        blank=True, db_column='_reversion_version_id', null=True, unique=True
+    )
     version_content = models.JSONField()
     uid_aliases = models.JSONField(null=True)
     # Tee hee, `deployed_content` is never written to the database!

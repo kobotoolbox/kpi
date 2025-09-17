@@ -223,17 +223,6 @@ export default class MetadataEditor extends React.Component {
           <bem.FormBuilderAside__header>{this.renderBackgroundAudioLabel()}</bem.FormBuilderAside__header>
 
           <bem.FormModal__item>
-            <label className='long'>
-              {t('This functionality is available in ')}
-              <a
-                title='Install KoBoCollect'
-                target='_blank'
-                href='https://play.google.com/store/apps/details?id=org.koboc.collect.android'
-              >
-                {t('Collect version 1.30 and above')}
-              </a>
-            </label>
-
             <ToggleSwitch
               checked={backgroundAudioProp.value}
               onChange={this.onCheckboxChange.bind(this, backgroundAudioProp.name)}

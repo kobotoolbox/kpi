@@ -1,5 +1,6 @@
 @use 'scss/_variables';
 @use 'scss/colors';
+@use 'scss/libs/_mdl';
 
 /* ==========================================================================
  * Base
@@ -16,7 +17,7 @@ html {
 
 body {
   height: 100%;
-  background: $root-background;
+  background: mdl.$root-background;
   padding: 0;
   margin: 0;
 }
@@ -27,7 +28,7 @@ html,
  textarea,
  select,
  button {
-  font-family: $font;
+  font-family: mdl.$font;
   font-size: variables.$base-font-size;
   font-weight: 400;
   line-height: 20px;

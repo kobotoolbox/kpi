@@ -1,3 +1,4 @@
+@use "sass:meta";
 @use 'scss/colors';
 // Theming variables, mixins and includes
 
@@ -39,4 +40,4 @@ $layout-desktop-header-height: 64px;
   outline-width: 5px;
 }
 
-@import 'mdl.layout';
+@include meta.load-css('mdl.layout');

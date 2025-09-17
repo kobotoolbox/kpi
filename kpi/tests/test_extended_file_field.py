@@ -11,7 +11,7 @@ class ExtendedFileFieldTestCase(TestCase):
     fixtures = ['test_data']
 
     def test_move_file(self):
-        # Use AssetFile but could not any model which uses `ExtendedFileField`
+        # Use AssetFile but could be any model which uses `ExtendedFileField`
         asset = Asset.objects.get(pk=1)
         asset_file = AssetFile(
             asset=asset, user=asset.owner, file_type=AssetFile.FORM_MEDIA

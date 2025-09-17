@@ -153,7 +153,7 @@ interface FormMapState {
   previousViewby?: string
 }
 
-export class FormMap extends React.Component<FormMapProps, FormMapState> {
+class FormMap extends React.Component<FormMapProps, FormMapState> {
   controls: CustomLayerControl = L.control.layers(BASE_LAYERS) as CustomLayerControl
 
   private unlisteners: Function[] = []

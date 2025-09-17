@@ -71,7 +71,6 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
            overriding the normal logic that populates this field with the current
            timestamp at the moment of submission.
         """
-
         class FakeRequest:
             pass
 
@@ -144,6 +143,12 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
 
             if assign_perm:
                 self.asset.remove_perm(request.user, PERM_ADD_SUBMISSIONS)
+
+    def remove_data_collector_enketo_links(self, token):
+        pass
+
+    def set_data_collector_enketo_links(self, token):
+        pass
 
     def set_namespace(self, namespace):
         self.store_data(

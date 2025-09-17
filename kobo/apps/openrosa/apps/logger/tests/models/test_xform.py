@@ -1,10 +1,8 @@
 import os
-import reversion
-import unittest
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.logger.models import XForm
+from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kpi.models.asset import Asset
 
 
@@ -12,7 +10,10 @@ class TestXForm(TestBase):
     def test_set_title_in_xml_unicode_error(self):
         xls_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "../..",  "fixtures", "tutorial", "tutorial_arabic_labels.xls"
+            '../..',
+            'fixtures',
+            'tutorial',
+            'tutorial_arabic_labels.xls',
         )
         self._publish_xls_file_and_set_xform(xls_file_path)
 
@@ -26,10 +27,6 @@ class TestXForm(TestBase):
         # set title in xform xml
         self.xform._set_title()
         self.assertIn(self.xform.title, self.xform.xml)
-
-    @unittest.skip('Fails under Django 1.6')
-    def test_reversion(self):
-        self.assertTrue(reversion.is_registered(XForm))
 
     def test_get_related_asset(self):
         """
@@ -54,7 +51,7 @@ class TestXForm(TestBase):
 
         # 2) No asset found, `xform.asset` should still be an asset
         Asset.objects.filter(uid=asset.uid).update(_deployment_data={})
-        setattr(xform, '_cache_asset', None)
+        setattr(xform, '_cached_asset', None)
         assert xform.kpi_asset_uid is None
         assert xform.asset.pk is None
-        assert xform.asset.uid == asset.uid
+        assert xform.asset.uid is None  # It'll be auto-generated if asset is saved

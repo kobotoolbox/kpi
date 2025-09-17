@@ -19,9 +19,7 @@ from kpi.exceptions import DeploymentNotFound
 from kpi.mixins.validation_password_permission import ValidationPasswordPermissionMixin
 from kpi.models.asset import Asset, AssetSnapshot
 from kpi.utils.object_permission import get_database_user
-from kpi.utils.project_views import (
-    user_has_project_view_asset_perm,
-)
+from kpi.utils.project_views import user_has_project_view_asset_perm
 
 
 # FIXME: Move to `object_permissions` module.
@@ -232,6 +230,7 @@ class AssetEditorPermission(AssetNestedObjectPermission):
         - Reads need 'view_asset' permission
         - Writes need 'change_asset' permission
     """
+
     perms_map = deepcopy(AssetNestedObjectPermission.perms_map)
     perms_map['POST'] = ['%(app_label)s.change_asset']
     perms_map['PUT'] = perms_map['POST']
@@ -327,6 +326,7 @@ class PostMappedToChangePermission(IsOwnerOrReadOnly):
     Maps POST requests to the change_model permission instead of DRF's default
     of add_model
     """
+
     perms_map = deepcopy(IsOwnerOrReadOnly.perms_map)
     perms_map['POST'] = ['%(app_label)s.change_%(model_name)s']
 
@@ -387,6 +387,25 @@ class SubmissionPermission(AssetNestedObjectPermission):
                 ))
 
         return user_permissions
+
+
+class AdvancedSubmissionPermission(SubmissionPermission):
+    """
+    Regular `SubmissionPermission` maps POST to `add_submissions`, but
+    `change_submissions` should be required here
+    """
+
+    perms_map = deepcopy(SubmissionPermission.perms_map)
+    perms_map['POST'] = ['%(app_label)s.change_%(model_name)s']
+
+    def _get_user_permissions(
+        self, asset: Asset, user: 'settings.AUTH_USER_MODEL'
+    ) -> list:
+        """
+        Overrides parent method to exclude partial permissions
+        """
+
+        return super(SubmissionPermission, self)._get_user_permissions(asset, user)
 
 
 class AttachmentDeletionPermission(SubmissionPermission):

@@ -2,21 +2,54 @@
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import HttpResponse, HttpRequest
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import include, path, re_path
 from django.views.generic.base import RedirectView
+from drf_spectacular.views import SpectacularAPIView
 from rest_framework import status
 from rest_framework.exceptions import server_error
 
+from kpi.utils.spectacular_processing import (
+    OpenRosaAPISchemaGenerator,
+    V2APISchemaGenerator,
+)
 from kpi.utils.urls import is_request_for_html
+from kpi.views.v2.swagger_ui import ExtendedSwaggerUIView
 
 admin.autodiscover()
-admin.site.login = staff_member_required(
-    admin.site.login, login_url=settings.LOGIN_URL
-)
+admin.site.login = staff_member_required(admin.site.login, login_url=settings.LOGIN_URL)
 
 urlpatterns = [
+    path(
+        'api/v2/schema/',
+        SpectacularAPIView.as_view(
+            api_version='api_v2', generator_class=V2APISchemaGenerator
+        ),
+        name='schema',
+    ),
+    path(
+        'api/v2/docs/',
+        ExtendedSwaggerUIView.as_view(url_name='schema'),
+        name='swagger-ui',
+    ),
+    path(
+        'api/openrosa/schema/',
+        SpectacularAPIView.as_view(
+            # Acts as a pseudo-namespace to tag and identify the generated schema.
+            # While not an actual Python namespace, it helps distinguish this schema
+            # during generation. Can be combined with the OpenRosaVersioning class
+            # to ensure these endpoints are explicitly included in this schema.
+            api_version='openrosa',
+            generator_class=OpenRosaAPISchemaGenerator,
+        ),
+        name='schema-openrosa',
+    ),
+    path(
+        'api/openrosa/docs/',
+        ExtendedSwaggerUIView.as_view(url_name='schema-openrosa'),
+        name='swagger-ui-openrosa',
+    ),
     # https://github.com/stochastic-technologies/django-loginas
     re_path(r'^admin/', include('loginas.urls')),
     # Disable admin login form

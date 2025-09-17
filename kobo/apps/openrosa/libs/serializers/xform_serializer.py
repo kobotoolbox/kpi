@@ -2,15 +2,17 @@
 import json
 import os
 
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from kobo.apps.openrosa.apps.logger.models import XForm
-from kobo.apps.openrosa.libs.permissions import get_object_users_with_permissions
 from kobo.apps.openrosa.libs.serializers.fields.boolean_field import BooleanField
 from kobo.apps.openrosa.libs.serializers.metadata_serializer import MetaDataSerializer
 from kobo.apps.openrosa.libs.serializers.tag_list_serializer import TagListSerializer
 from kobo.apps.openrosa.libs.utils.decorators import check_obj
+from kpi.utils.schema_extensions.fields import ReadOnlyFieldWithSchemaField
 
 
 class XFormSerializer(serializers.HyperlinkedModelSerializer):
@@ -25,7 +27,6 @@ class XFormSerializer(serializers.HyperlinkedModelSerializer):
     title = serializers.CharField(max_length=255)
     url = serializers.HyperlinkedIdentityField(view_name='xform-detail',
                                                lookup_field='pk')
-    users = serializers.SerializerMethodField('get_xform_permissions')
     hash = serializers.SerializerMethodField()
 
     class Meta:
@@ -83,9 +84,6 @@ class XFormSerializer(serializers.HyperlinkedModelSerializer):
             data['attachment_storage_bytes'] = 0
         return data
 
-    def get_xform_permissions(self, obj):
-        return get_object_users_with_permissions(obj, serializable=True)
-
     def get_xform_metadata(self, obj):
         if obj:
             return MetaDataSerializer(obj.metadata_set.all(),
@@ -96,12 +94,16 @@ class XFormSerializer(serializers.HyperlinkedModelSerializer):
 
 class XFormListSerializer(serializers.Serializer):
 
-    formID = serializers.ReadOnlyField(source='id_string')
-    name = serializers.ReadOnlyField(source='title')
+    formID = ReadOnlyFieldWithSchemaField(
+        schema_field=OpenApiTypes.STR, source='id_string'
+    )
+    name = ReadOnlyFieldWithSchemaField(schema_field=OpenApiTypes.STR, source='title')
     majorMinorVersion = serializers.SerializerMethodField('get_version')
     version = serializers.SerializerMethodField()
     hash = serializers.SerializerMethodField()
-    descriptionText = serializers.ReadOnlyField(source='description')
+    descriptionText = ReadOnlyFieldWithSchemaField(
+        schema_field=OpenApiTypes.STR, source='description'
+    )
     downloadUrl = serializers.SerializerMethodField('get_url')
     manifestUrl = serializers.SerializerMethodField('get_manifest_url')
 
@@ -123,6 +125,7 @@ class XFormListSerializer(serializers.Serializer):
             'manifestUrl',
         )
 
+    @extend_schema_field(OpenApiTypes.OBJECT)
     def get_version(self, obj):
         # Returns version data
         # The data returned may vary depending on the contents of the
@@ -131,10 +134,12 @@ class XFormListSerializer(serializers.Serializer):
         obj_json = json.loads(obj.json)
         return obj_json.get('version')
 
+    @extend_schema_field(OpenApiTypes.STR)
     @check_obj
     def get_hash(self, obj):
         return f'md5:{obj.md5_hash_with_disclaimer}'
 
+    @extend_schema_field(OpenApiTypes.URI)
     @check_obj
     def get_url(self, obj):
         kwargs = {'pk': obj.pk}
@@ -145,6 +150,7 @@ class XFormListSerializer(serializers.Serializer):
 
         return reverse('download_xform', kwargs=kwargs, request=request)
 
+    @extend_schema_field(OpenApiTypes.URI)
     @check_obj
     def get_manifest_url(self, obj):
         kwargs = {'pk': obj.pk}

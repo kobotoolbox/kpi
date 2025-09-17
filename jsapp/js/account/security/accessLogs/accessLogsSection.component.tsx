@@ -1,14 +1,31 @@
-import React from 'react'
+import React, { useState } from 'react'
 
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import UniversalTable, { DEFAULT_PAGE_SIZE } from '#/UniversalTable'
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import Button from '#/components/common/button'
 import ExportToEmailButton from '#/components/exportToEmailButton/exportToEmailButton.component'
+import { QueryKeys } from '#/query/queryKeys'
 import sessionStore from '#/stores/session'
-import PaginatedQueryUniversalTable from '#/universalTable/paginatedQueryUniversalTable.component'
 import { formatTime } from '#/utils'
-import useAccessLogsQuery, { startAccessLogsExport, type AccessLog } from './accessLogs.query'
+import { type AccessLog, getAccessLogs, startAccessLogsExport } from './accessLogs.query'
 
 export default function AccessLogsSection() {
+  const [pagination, setPagination] = useState({
+    limit: DEFAULT_PAGE_SIZE,
+    offset: 0,
+  })
+  const queryResult = useQuery({
+    queryKey: [QueryKeys.accessLogs, pagination.limit, pagination.offset],
+    queryFn: () => getAccessLogs(pagination.limit, pagination.offset),
+    placeholderData: keepPreviousData,
+    // We might want to improve this in future, for now let's not retry
+    retry: false,
+    // The `refetchOnWindowFocus` option is `true` by default, I'm setting it
+    // here so we don't forget about it.
+    refetchOnWindowFocus: true,
+  })
+
   function logOutAllSessions() {
     sessionStore.logOutAll()
   }
@@ -30,8 +47,10 @@ export default function AccessLogsSection() {
         </div>
       </header>
 
-      <PaginatedQueryUniversalTable<AccessLog>
-        queryHook={useAccessLogsQuery}
+      <UniversalTable<AccessLog>
+        pagination={pagination}
+        setPagination={setPagination}
+        queryResult={queryResult}
         columns={[
           // The `key`s of these columns are matching the `AccessLog` interface
           // properties (from `accessLogs.query.ts` file) using dot notation.

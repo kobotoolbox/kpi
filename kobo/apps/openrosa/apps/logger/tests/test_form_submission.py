@@ -13,8 +13,9 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import clean_and_parse
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
+from kobo.apps.openrosa.libs.permissions import assign_perm
 from kobo.apps.openrosa.libs.utils.common_tags import GEOLOCATION
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm
+from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_CHANGE_SUBMISSIONS
 
 
 class TestFormSubmission(TestBase):
@@ -149,7 +150,7 @@ class TestFormSubmission(TestBase):
         alice = self._create_user(username, username)
 
         # assign report perms to user
-        assign_perm('report_xform', alice, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice, self.xform.asset)
         auth = DigestAuth(username, username)
 
         xml_submission_file_path = os.path.join(
@@ -206,7 +207,7 @@ class TestFormSubmission(TestBase):
         alice = self._create_user('alice', 'alice')
 
         # assign report perms to user
-        assign_perm('report_xform', alice, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice, self.xform.asset)
         client = DigestClient()
         client.set_authorization('alice', 'alice', 'Digest')
 
@@ -516,6 +517,35 @@ class TestFormSubmission(TestBase):
         edited_name = re.match(r'^.+?<name>(.+?)</name>', xml_str).groups()[0]
         self.assertEqual(record['name'], edited_name)
 
+    def test_instance_history_persists_after_delete(self):
+        xml_submission_file_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid.xml',
+        )
+        self._make_submission(xml_submission_file_path)
+        xml_submission_file_path_edited = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid_edited.xml',
+        )
+        self._make_submission(xml_submission_file_path_edited)
+        instance = Instance.objects.last()
+        history_object = InstanceHistory.objects.last()
+
+        assert history_object.xform_instance == instance
+
+        instance.delete()
+        history_object.refresh_from_db()
+
+        assert history_object.xform_instance is None
+
     def test_submission_w_mismatched_uuid(self):
         """
         test allowing submissions where xml's form uuid doesnt match
@@ -614,7 +644,7 @@ class TestFormSubmission(TestBase):
         alice = self._create_user('alice', 'alice')
 
         # assign report perms to user
-        assign_perm('report_xform', alice, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice, self.xform.asset)
 
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
@@ -631,7 +661,7 @@ class TestFormSubmission(TestBase):
         UserProfile.objects.create(user=alice)
 
         # assign report perms to user
-        assign_perm('report_xform', alice, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice, self.xform.asset)
 
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
@@ -726,8 +756,8 @@ class TestFormSubmission(TestBase):
         # create a new user with permission to edit submissions
         alice = self._create_user('alice', 'alice')
         UserProfile.objects.create(user=alice)
-        assign_perm('report_xform', alice, self.xform)
-        assign_perm('logger.change_xform', alice, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice, self.xform.asset)
+        assign_perm(PERM_CHANGE_SUBMISSIONS, alice, self.xform.asset)
         auth = DigestAuth('alice', 'alice')
         # attempt an edit
         xml_submission_file_path = os.path.join(
@@ -769,8 +799,8 @@ class TestFormSubmission(TestBase):
         # create a new user with permission to edit submissions
         alice = self._create_user('alice', 'alice')
         UserProfile.objects.create(user=alice)
-        assign_perm('report_xform', alice, self.xform)
-        assign_perm('logger.change_xform', alice, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice, self.xform.asset)
+        assign_perm(PERM_CHANGE_SUBMISSIONS, alice, self.xform.asset)
         auth = DigestAuth('alice', 'alice')
         # attempt an edit
         xml_submission_file_path = os.path.join(
@@ -812,7 +842,7 @@ class TestFormSubmission(TestBase):
         # permission to edit submissions
         alice = self._create_user('alice', 'alice')
         UserProfile.objects.create(user=alice)
-        assign_perm('report_xform', alice, self.xform)
+        assign_perm(PERM_ADD_SUBMISSIONS, alice, self.xform.asset)
         auth = DigestAuth('alice', 'alice')
         # attempt an edit
         xml_submission_file_path = os.path.join(
@@ -845,3 +875,36 @@ class TestFormSubmission(TestBase):
             Instance.objects.order_by('pk').last().xml_hash,
             created_instance.xml_hash,
         )
+
+    def test_instance_history_contains_necessary_fields(self):
+        xml_submission_file_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid.xml',
+        )
+
+        # make first submission
+        self._make_submission(xml_submission_file_path)
+        initial_instance = Instance.objects.order_by('-pk')[0]
+        initial_uuid = initial_instance.uuid
+        root_uuid = initial_instance.root_uuid
+        # edited submission
+        xml_submission_file_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'tutorial',
+            'instances',
+            'tutorial_2012-06-27_11-27-53_w_uuid_edited.xml',
+        )
+        self._make_submission(xml_submission_file_path)
+        history_obj = (
+            InstanceHistory.objects.filter(xform_instance=initial_instance)
+            .order_by('-date_created')
+            .first()
+        )
+        self.assertEqual(history_obj.root_uuid, root_uuid)
+        self.assertEqual(history_obj.uuid, initial_uuid)

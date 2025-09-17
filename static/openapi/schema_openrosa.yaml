@@ -1,0 +1,393 @@
+openapi: 3.0.3
+info:
+  title: KoboToolbox API
+  version: 2.0.0
+  description: Powerful and intuitive data collection tools to make an impact
+paths:
+  /{username}/formList:
+    get:
+      operationId: form_list_anonymous
+      description: |
+        ## Implement part of the OpenRosa Form List API
+
+        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+
+        This endpoint is used for adding submissions as anonymous user.
+      parameters:
+      - in: path
+        name: username
+        schema:
+          type: string
+          pattern: ^\w+$
+        required: true
+      tags:
+      - OpenRosa Form List
+      security:
+      - TokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/XFormList'
+          description: null
+  /{username}/submission:
+    post:
+      operationId: submission_anonymous
+      description: |+
+        ## Implement the OpenRosa Form Submission API
+
+        ⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+
+        This endpoint is used for adding submissions as an anonymous user.
+
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - xml
+      - in: path
+        name: username
+        schema:
+          type: string
+          pattern: ^\w+$
+        required: true
+      tags:
+      - OpenRosa Form Submission
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OpenRosaPayload'
+        required: true
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaResponse'
+          description: null
+        '401':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '404':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
+  /{username}/xformsManifest/{id}:
+    get:
+      operationId: manifest_anonymous
+      description: |
+        ## Implement part of the OpenRosa Manifest API
+
+        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+
+        This endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.
+        This endpoints will also open the form in **creation** mode and is used as an anonymous user.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[\d+^/]+$
+        required: true
+      - in: path
+        name: username
+        schema:
+          type: string
+          pattern: ^\w+$
+        required: true
+      tags:
+      - OpenRosa Form Manifest
+      security:
+      - TokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaFormManifestResponse'
+          description: null
+        '404':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /formList:
+    get:
+      operationId: form_list_authenticated
+      description: |
+        ## Implement part of the OpenRosa Form List API
+
+        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+
+        This endpoint is used for adding submissions as authenticated user.
+      tags:
+      - OpenRosa Form List
+      security:
+      - TokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/XFormList'
+          description: null
+  /submission:
+    post:
+      operationId: submission_authenticated
+      description: |+
+        ## Implement the OpenRosa Form Submission API
+
+        ⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+
+        This endpoint is used for adding submissions as an authenticated user.
+
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - xml
+      tags:
+      - OpenRosa Form Submission
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OpenRosaPayload'
+        required: true
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaResponse'
+          description: null
+        '401':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '404':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
+  /xformsManifest/{id}:
+    get:
+      operationId: manifest_authenticated
+      description: |
+        ## Implement part of the OpenRosa Manifest API
+
+        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+
+        This endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.
+        This endpoints will also open the form in **creation** mode and is used as an authenticated user.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[\d+^/]+$
+        required: true
+      tags:
+      - OpenRosa Form Manifest
+      security:
+      - TokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaFormManifestResponse'
+          description: null
+        '404':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+components:
+  schemas:
+    ErrorDetail:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
+    ErrorObject:
+      type: object
+      properties:
+        detail: {}
+      required:
+      - detail
+    OpenRosaFormManifestResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          filename:
+            type: string
+          hash:
+            type: string
+          downloadUrl:
+            type: string
+            format: uri
+            example: https://kf.kobotoolbox.org/xformsMedia/123/456.jpg
+        xml:
+          name: xform
+      xml:
+        name: xforms
+        wrapped: true
+    OpenRosaPayload:
+      type: object
+      properties:
+        xml_submission_file:
+          type: string
+      required:
+      - xml_submission_file
+    OpenRosaResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        submissionMetadata:
+          type: object
+          properties:
+            id:
+              type: string
+            instanceID:
+              type: string
+            submissionDate:
+              type: string
+              format: date-time
+            markedAsCompleteDate:
+              type: string
+              format: date-time
+            isComplete:
+              type: boolean
+      required:
+      - message
+      - submissionMetadata
+    XFormList:
+      type: array
+      items:
+        type: object
+        properties:
+          formID:
+            type: string
+          name:
+            type: string
+          majorMinorVersion:
+            type: string
+          version:
+            type: string
+          hash:
+            type: string
+          description:
+            type: string
+          downloadUrl:
+            type: string
+            format: uri
+            example: https://kf.kobotoolbox.org/forms/6/form.xml
+          manifestUrl:
+            type: string
+            format: uri
+            example: https://kf.kobotoolbox.org/xformsManifest/6
+        xml:
+          name: xform
+      xml:
+        name: xforms
+        wrapped: true
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Token-based authentication. Use the format: `Token <your-token>`'

@@ -1,13 +1,73 @@
 # coding: utf-8
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
 
 from kpi.models import UserAssetSubscription
-from kpi.serializers.v2.user_asset_subscription import (
-    UserAssetSubscriptionSerializer,
+from kpi.schema_extensions.v2.asset_subscriptions.serializers import (
+    AssetSubscriptionRequest,
+    AssetSubscriptionResponse,
 )
+from kpi.serializers.v2.user_asset_subscription import UserAssetSubscriptionSerializer
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_201_created_response,
+    open_api_204_empty_response,
+)
 
 
+@extend_schema(
+    tags=['Asset Subscriptions'],
+)
+@extend_schema_view(
+    create=extend_schema(
+        description=read_md('kpi', 'asset_subscriptions/create.md'),
+        request={'application/json': AssetSubscriptionRequest},
+        responses=open_api_201_created_response(
+            AssetSubscriptionResponse,
+            media_type='application/json',
+            require_auth=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+        ),
+    ),
+    destroy=extend_schema(
+        description=read_md('kpi', 'asset_subscriptions/delete.md'),
+        responses=open_api_204_empty_response(
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+        ),
+    ),
+    list=extend_schema(
+        description=read_md('kpi', 'asset_subscriptions/list.md'),
+        responses=open_api_200_ok_response(
+            AssetSubscriptionResponse,
+            media_type='application/json',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+        ),
+    ),
+    retrieve=extend_schema(
+        description=read_md('kpi', 'asset_subscriptions/retrieve.md'),
+        responses=open_api_200_ok_response(
+            AssetSubscriptionResponse,
+            media_type='application/json',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+        ),
+    ),
+    update=extend_schema(
+        exclude=True,
+    ),
+    partial_update=extend_schema(
+        exclude=True,
+    ),
+)
 class UserAssetSubscriptionViewSet(viewsets.ModelViewSet):
     queryset = UserAssetSubscription.objects.none()
     serializer_class = UserAssetSubscriptionSerializer

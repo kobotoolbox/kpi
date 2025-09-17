@@ -1,4 +1,4 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchDelete, fetchGet, fetchPatch } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import type { Json } from '#/components/common/common.interfaces'
@@ -6,7 +6,6 @@ import type { Nullable } from '#/constants'
 import type { PaginatedResponse } from '#/dataInterface'
 import { QueryKeys } from '#/query/queryKeys'
 import { useSession } from '#/stores/useSession'
-import type { PaginatedQueryHookParams } from '#/universalTable/paginatedQueryUniversalTable.component'
 import type { MemberInvite } from './membersInviteQuery'
 import { type OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 
@@ -121,7 +120,7 @@ export function useRemoveOrganizationMember() {
  * This is mainly needed for `useOrganizationMembersQuery`, so you most probably
  * would use it through that hook rather than directly.
  */
-async function getOrganizationMembers(limit: number, offset: number, orgId: string) {
+export async function getOrganizationMembers(limit: number, offset: number, orgId: string) {
   const params = new URLSearchParams({
     limit: limit.toString(),
     offset: offset.toString(),
@@ -129,31 +128,13 @@ async function getOrganizationMembers(limit: number, offset: number, orgId: stri
 
   const apiUrl = endpoints.ORGANIZATION_MEMBERS_URL.replace(':organization_id', orgId)
 
-  return fetchGet<PaginatedResponse<OrganizationMemberListItem>>(apiUrl + '?' + params, {
-    errorMessageDisplay: t('There was an error getting the list.'),
-  })
-}
-
-/**
- * A hook that gives you paginated list of organization members. Uses
- * `useOrganizationQuery` to get the id.
- */
-export default function useOrganizationMembersQuery({ limit, offset }: PaginatedQueryHookParams) {
-  const orgQuery = useOrganizationQuery()
-  const orgId = orgQuery.data?.id
-
-  return useQuery({
-    queryKey: [QueryKeys.organizationMembers, limit, offset, orgId],
-    // `orgId!` because it's ensured to be there in `enabled` property :ok:
-    queryFn: () => getOrganizationMembers(limit, offset, orgId!),
-    placeholderData: keepPreviousData,
-    enabled: !!orgId,
-    // We might want to improve this in future, for now let's not retry
-    retry: false,
-    // The `refetchOnWindowFocus` option is `true` by default, I'm setting it
-    // here so we don't forget about it.
-    refetchOnWindowFocus: true,
-  })
+  // Note: little crust ahead of time to make a simpler transition to generated react-query helpers.
+  return {
+    status: 200 as const,
+    data: await fetchGet<PaginatedResponse<OrganizationMemberListItem>>(apiUrl + '?' + params, {
+      errorMessageDisplay: t('There was an error getting the list.'),
+    }),
+  }
 }
 
 export function useOrganizationMemberDetailQuery(username: string, notifyAboutError = true) {

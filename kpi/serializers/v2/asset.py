@@ -11,16 +11,16 @@ from django.db.models import F
 from django.utils.translation import gettext as t
 from django.utils.translation import ngettext as nt
 from django_request_cache import cache_for_request
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import exceptions, serializers
 from rest_framework.fields import empty
-from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 
 from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.organizations.utils import get_real_owner
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
-from kobo.apps.subsequences.utils.deprecation import WritableAdvancedFeaturesField
 from kobo.apps.trash_bin.exceptions import TrashIntegrityError, TrashTaskInProgressError
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kobo.apps.trash_bin.utils import move_to_trash, put_back
@@ -39,17 +39,8 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.fields import (
-    PaginatedApiField,
-    RelativePrefixHyperlinkedRelatedField,
-    WritableJSONField,
-)
-from kpi.models import (
-    Asset,
-    AssetVersion,
-    ObjectPermission,
-    UserAssetSubscription,
-)
+from kpi.fields import WritableJSONField
+from kpi.models import Asset, ObjectPermission, UserAssetSubscription
 from kpi.models.asset import AssetDeploymentStatus
 from kpi.utils.object_permission import (
     get_cached_code_names,
@@ -62,7 +53,46 @@ from kpi.utils.project_views import (
     user_has_project_view_asset_perm,
     view_has_perm,
 )
-
+from kpi.utils.schema_extensions.fields import (
+    HyperlinkedIdentityFieldWithSchemaField,
+    PaginatedApiFieldWithSchemaField,
+    ReadOnlyFieldWithSchemaField,
+    RelativePrefixHyperlinkedRelatedFieldWithSchemaField,
+    WriteableJsonWithSchemaField,
+)
+from ...schema_extensions.v2.assets.fields import (
+    AccessTypeField,
+    AdvancedFeatureField,
+    AdvancedSubmissionSchemaField,
+    AnalysisFormJsonField,
+    AssetHyperlinkedURLField,
+    AssignablePermissionField,
+    ChildrenField,
+    ContentField,
+    DataSharingField,
+    DataURLField,
+    DeployedVersionsField,
+    DeploymentDataDownloadLinksField,
+    DeploymentLinkField,
+    DownloadsField,
+    EffectivePermissionField,
+    ExportsURLField,
+    FileListField,
+    HasDeploymentField,
+    HooksUrlField,
+    MapCustomField,
+    MapStylesField,
+    PairedDataURLField,
+    ParentURLField,
+    PermissionsField,
+    ReportCustomField,
+    ReportStyleField,
+    SettingsField,
+    SummaryField,
+    UserURLRelativeHyperlinkedRelatedField,
+    XFormLinkField,
+    XLSLinkField,
+)
 from .asset_export_settings import AssetExportSettingsSerializer
 from .asset_file import AssetFileSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
@@ -286,35 +316,52 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
-    owner = RelativePrefixHyperlinkedRelatedField(
+    owner = RelativePrefixHyperlinkedRelatedFieldWithSchemaField(
+        schema_field=UserURLRelativeHyperlinkedRelatedField,
         view_name='user-kpi-detail', lookup_field='username', read_only=True)
     owner__username = serializers.ReadOnlyField(source='owner.username')
     owner_label = serializers.SerializerMethodField()
-    url = HyperlinkedIdentityField(
-        lookup_field='uid', view_name='asset-detail')
+    url = HyperlinkedIdentityFieldWithSchemaField(
+        schema_field=AssetHyperlinkedURLField,
+        lookup_field='uid',
+        view_name='asset-detail',
+    )
     asset_type = serializers.ChoiceField(choices=ASSET_TYPES)
-    settings = WritableJSONField(required=False, allow_blank=True)
-    content = WritableJSONField(required=False)
-    report_styles = WritableJSONField(required=False)
-    report_custom = WritableJSONField(required=False)
-    map_styles = WritableJSONField(required=False)
-    map_custom = WritableJSONField(required=False)
-    advanced_features = WritableAdvancedFeaturesField(required=False)
+    settings = WriteableJsonWithSchemaField(
+        schema_field=SettingsField, required=False, allow_blank=True
+    )
+    content = WriteableJsonWithSchemaField(schema_field=ContentField, required=False)
+    report_styles = WriteableJsonWithSchemaField(
+        schema_field=ReportStyleField, required=False
+    )
+    report_custom = WriteableJsonWithSchemaField(
+        schema_field=ReportCustomField, required=False
+    )
+    map_styles = WriteableJsonWithSchemaField(
+        schema_field=MapStylesField, required=False
+    )
+    map_custom = WriteableJsonWithSchemaField(
+        schema_field=MapCustomField, required=False
+    )
+    advanced_features = WriteableJsonWithSchemaField(
+        schema_field=AdvancedFeatureField, required=False
+    )
     advanced_submission_schema = serializers.SerializerMethodField()
     files = serializers.SerializerMethodField()
     analysis_form_json = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
-    summary = serializers.ReadOnlyField()
+    summary = ReadOnlyFieldWithSchemaField(schema_field=SummaryField)
     xform_link = serializers.SerializerMethodField()
     version_count = serializers.SerializerMethodField()
     downloads = serializers.SerializerMethodField()
     embeds = serializers.SerializerMethodField()
-    parent = RelativePrefixHyperlinkedRelatedField(
+    parent = RelativePrefixHyperlinkedRelatedFieldWithSchemaField(
+        schema_field=ParentURLField,
         lookup_field='uid',
         queryset=Asset.objects.filter(asset_type=ASSET_TYPE_COLLECTION),
         view_name='asset-detail',
         required=False,
-        allow_null=True
+        allow_null=True,
     )
     assignable_permissions = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
@@ -326,9 +373,12 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.CharField(read_only=True)
     version__content_hash = serializers.CharField(read_only=True)
-    has_deployment = serializers.ReadOnlyField()
+    has_deployment = ReadOnlyFieldWithSchemaField(
+        schema_field=HasDeploymentField, read_only=True
+    )
     deployed_version_id = serializers.SerializerMethodField()
-    deployed_versions = PaginatedApiField(
+    deployed_versions = PaginatedApiFieldWithSchemaField(
+        schema_field=DeployedVersionsField,
         serializer_class=AssetVersionListSerializer,
         # Higher-than-normal limit since the client doesn't yet know how to
         # request more than the first page
@@ -345,14 +395,16 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     data = serializers.SerializerMethodField()
     # Only add link instead of hooks list to avoid multiple access to DB.
     hooks_link = serializers.SerializerMethodField()
-
     children = serializers.SerializerMethodField()
     subscribers_count = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     access_types = serializers.SerializerMethodField()
-    data_sharing = WritableJSONField(required=False)
+    data_sharing = WriteableJsonWithSchemaField(
+        schema_field=DataSharingField, required=False
+    )
     paired_data = serializers.SerializerMethodField()
     project_ownership = serializers.SerializerMethodField()
+    kind = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -504,6 +556,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 fields.pop(exclude)
         return fields
 
+    @extend_schema_field(FileListField)
     def get_files(self, obj):
         return AssetFileSerializer(
             obj.asset_files.all(),
@@ -512,11 +565,13 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             context=self.context,
         ).data
 
+    @extend_schema_field(AdvancedSubmissionSchemaField)
     def get_advanced_submission_schema(self, obj):
         req = self.context.get('request')
         url = req.build_absolute_uri(f'/advanced_submission_post/{obj.uid}')
         return obj.get_advanced_submission_schema(url=url)
 
+    @extend_schema_field(AnalysisFormJsonField)
     def get_analysis_form_json(self, obj):
         return obj.analysis_form_json()
 
@@ -525,6 +580,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             return deployment_status
         return '-'
 
+    @extend_schema_field(EffectivePermissionField)
     def get_effective_permissions(self, obj: Asset) -> list[dict[str, str]]:
         """
         Return a list of combined asset and project view permissions that the
@@ -539,27 +595,36 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             {'codename': perm} for perm in set(project_view_perms + asset_perms)
         ]
 
+    @extend_schema_field(OpenApiTypes.INT)
     def get_version_count(self, obj):
         try:
             return len(obj.prefetched_latest_versions)
         except AttributeError:
             return obj.asset_versions.count()
 
+    @extend_schema_field(XLSLinkField)
     def get_xls_link(self, obj):
         return reverse('asset-xls',
                        args=(obj.uid,),
                        request=self.context.get('request', None))
 
+    @extend_schema_field(XFormLinkField)
     def get_xform_link(self, obj):
         return reverse('asset-xform',
                        args=(obj.uid,),
                        request=self.context.get('request', None))
 
+    @extend_schema_field(HooksUrlField)
     def get_hooks_link(self, obj):
         return reverse('hook-list',
                        args=(obj.uid,),
                        request=self.context.get('request', None))
 
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_kind(self, obj):
+        return obj.kind
+
+    @extend_schema_field(DownloadsField)
     def get_embeds(self, obj):
         request = self.context.get('request', None)
 
@@ -575,6 +640,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             _reverse_lookup_format('xform'),
         ]
 
+    @extend_schema_field(DownloadsField)
     def get_downloads(self, obj):
         def _reverse_lookup_format(fmt):
             request = self.context.get('request', None)
@@ -592,6 +658,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             _reverse_lookup_format('xml'),
         ]
 
+    @extend_schema_field(DataURLField)
     def get_data(self, obj):
         kwargs = {'parent_lookup_asset': obj.uid}
         format = self.context.get('format')
@@ -602,56 +669,46 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                        kwargs=kwargs,
                        request=self.context.get('request', None))
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_deployed_version_id(self, obj):
         if not obj.has_deployment:
-            return
-        if isinstance(obj.deployment.version_id, int):
-            asset_versions_uids_only = obj.asset_versions.only('uid')
-            # this can be removed once the 'replace_deployment_ids'
-            # migration has been run
-            v_id = obj.deployment.version_id
-            try:
-                return asset_versions_uids_only.get(
-                    _reversion_version_id=v_id
-                ).uid
-            except AssetVersion.DoesNotExist:
-                deployed_version = asset_versions_uids_only.filter(
-                    deployed=True
-                ).first()
-                if deployed_version:
-                    return deployed_version.uid
-                else:
-                    return None
+            return None
         else:
             return obj.deployment.version_id
 
+    @extend_schema_field(OpenApiTypes.BOOL)
     def get_deployment__active(self, obj):
         return obj.has_deployment and obj.deployment.active
 
+    @extend_schema_field(DeploymentLinkField)
     def get_deployment__links(self, obj):
         if obj.has_deployment and obj.deployment.active:
             return obj.deployment.get_enketo_survey_links()
         else:
             return {}
 
+    @extend_schema_field(OpenApiTypes.BOOL)
     def get_deployment__encrypted(self, obj):
         if obj.has_deployment:
             return obj.deployment.is_encrypted
         else:
             return False
 
+    @extend_schema_field(DeploymentDataDownloadLinksField)
     def get_deployment__data_download_links(self, obj):
         if obj.has_deployment:
             return obj.deployment.get_data_download_links()
         else:
             return {}
 
+    @extend_schema_field(OpenApiTypes.DATETIME)
     def get_deployment__last_submission_time(self, obj):
         if obj.has_deployment:
             return obj.deployment.last_submission_time
         else:
             return None
 
+    @extend_schema_field(OpenApiTypes.INT)
     def get_deployment__submission_count(self, obj):
         if not obj.has_deployment:
             return 0
@@ -675,9 +732,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return None
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_deployment__uuid(self, obj):
         return obj.deployment.form_uuid if obj.has_deployment else None
 
+    @extend_schema_field(AssignablePermissionField)
     def get_assignable_permissions(self, asset):
         return [
             {
@@ -688,6 +747,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             }
             for codename in asset.ASSIGNABLE_PERMISSIONS_BY_TYPE[asset.asset_type]]
 
+    @extend_schema_field(ChildrenField)
     def get_children(self, asset):
         """
         Handles the detail endpoint but also takes advantage of the
@@ -706,12 +766,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return {'count': children_count}
 
+    @extend_schema_field(OpenApiTypes.INT)
     def get_subscribers_count(self, asset):
         if asset.asset_type != ASSET_TYPE_COLLECTION:
             return 0
         # ToDo Optimize this. What about caching it inside `summary`
         return UserAssetSubscription.objects.filter(asset_id=asset.pk).count()
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_status(self, asset):
 
         # `order_by` lets us check `AnonymousUser`'s permissions first.
@@ -726,10 +788,12 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return self._get_status(perm_assignments)
 
+    @extend_schema_field(PairedDataURLField)
     def get_paired_data(self, asset):
         request = self.context.get('request')
         return reverse('paired-data-list', args=(asset.uid,), request=request)
 
+    @extend_schema_field(PermissionsField)
     def get_permissions(self, obj):
         context = self.context
         request = self.context.get('request')
@@ -772,6 +836,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             'status': transfer.invite.status
         }
 
+    @extend_schema_field(ExportsURLField)
     def get_exports(self, obj: Asset) -> str:
         return reverse(
             'asset-export-list',
@@ -779,6 +844,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             request=self.context.get('request', None),
         )
 
+    @extend_schema_field(AccessTypeField)
     def get_access_types(self, asset):
         """
         Handles the detail endpoint but also takes advantage of the
@@ -872,6 +938,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return access_types
 
+    @extend_schema_field(OpenApiTypes.STR)
     def get_owner_label(self, asset):
         try:
             organization = self.context['organizations_per_asset'].get(asset.id)
@@ -1101,6 +1168,7 @@ class AssetListSerializer(AssetSerializer):
             user_assignments, many=True, read_only=True, context=context
         ).data
 
+    @extend_schema_field(OpenApiTypes.INT)
     def get_subscribers_count(self, asset):
         if asset.asset_type != ASSET_TYPE_COLLECTION:
             return 0
