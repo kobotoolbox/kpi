@@ -129,10 +129,11 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
                     )
                 else:
                     errors = True
-                    TransferStatus._add_error(transfer_status, 'File {attachment.media_file_basename} (#{attachment.pk}) '
-                        f'could not be moved to {target_folder}')
-
-
+                    TransferStatus._add_error(
+                        transfer_status,
+                        'File {attachment.media_file_basename} (#{attachment.pk}) '
+                        f'could not be moved to {target_folder}',
+                    )
 
             attachment.user_id = transfer.invite.recipient.pk
             attachment.save(update_fields=update_fields)
@@ -141,7 +142,9 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
             # TODO: remove this general exception when we have a better idea of
             # the errors
             errors = True
-            TransferStatus._add_error(transfer_status, f'Error moving {attachment.media_file_basename}: {e}')
+            TransferStatus._add_error(
+                transfer_status, f'Error moving {attachment.media_file_basename}: {e}'
+            )
             # also log to console so we get the stack trace
             logging.error(
                 f'Error moving {attachment.media_file_basename}', e, exc_info=True

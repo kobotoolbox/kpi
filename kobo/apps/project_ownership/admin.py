@@ -107,9 +107,7 @@ class InviteAdmin(admin.ModelAdmin):
                 errors = transfer.errors.values_list('error', flat=True)
                 error_str = '\n'.join(transfer.errors.values_list('error', flat=True))
                 error = (
-                    f'<br><span class="error">{error_str}</span></i>'
-                    if errors
-                    else ''
+                    f'<br><span class="error">{error_str}</span></i>' if errors else ''
                 )
                 html += f'<li>{status.status_type}: <i>{status.status}</i>{error}</li>'
             html += '</ol>'
