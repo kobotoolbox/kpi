@@ -1,6 +1,7 @@
 @use 'scss/z-indexes';
 @use 'scss/breakpoints';
 @use 'scss/colors';
+@use 'scss/libs/_mdl';
 @use 'sass:color';
 
 // Popover menu
@@ -26,7 +27,7 @@
 }
 
 .popover-menu__content {
-  @include box-shadow-mid;
+  @include mdl.box-shadow-mid;
 
   overflow: hidden;
   position: absolute;
@@ -160,7 +161,7 @@
     color: colors.$kobo-blue;
 
     &:hover {
-      color: lighten(colors.$kobo-blue, 10%);
+      color: color.adjust(colors.$kobo-blue, $lightness: 10%);
     }
   }
 
