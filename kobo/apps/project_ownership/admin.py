@@ -104,9 +104,11 @@ class InviteAdmin(admin.ModelAdmin):
             for status in transfer.statuses.exclude(
                 status_type=TransferStatusTypeChoices.GLOBAL
             ):
+                errors = transfer.errors.values_list('error', flat=True)
+                error_str = '\n'.join(transfer.errors.values_list('error', flat=True))
                 error = (
-                    f'<br><span class="error">{status.error}</span></i>'
-                    if status.error
+                    f'<br><span class="error">{error_str}</span></i>'
+                    if errors
                     else ''
                 )
                 html += f'<li>{status.status_type}: <i>{status.status}</i>{error}</li>'
