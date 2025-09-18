@@ -15832,6 +15832,9 @@
                             },
                             "mt_characters": {
                                 "$ref": "#/components/schemas/ServiceUsageBalanceData"
+                            },
+                            "llm_requests": {
+                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
                             }
                         }
                     },
@@ -18500,6 +18503,9 @@
                                 "$ref": "#/components/schemas/ServiceUsageBalanceData"
                             },
                             "mt_characters": {
+                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
+                            },
+                            "llm_requests": {
                                 "$ref": "#/components/schemas/ServiceUsageBalanceData"
                             }
                         }

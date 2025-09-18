@@ -11414,6 +11414,8 @@ components:
               $ref: '#/components/schemas/ServiceUsageBalanceData'
             mt_characters:
               $ref: '#/components/schemas/ServiceUsageBalanceData'
+            llm_requests:
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
         current_period_start:
           type: string
           format: date-time
@@ -13313,31 +13315,9 @@ components:
             asr_seconds:
               $ref: '#/components/schemas/ServiceUsageBalanceData'
             mt_characters:
-<<<<<<< HEAD
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
-            llm_requests:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
-=======
               $ref: '#/components/schemas/ServiceUsageBalanceData'
->>>>>>> main
+            llm_requests:
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
         current_period_start:
           type: string
           format: date-time
