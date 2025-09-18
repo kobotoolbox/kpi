@@ -8,10 +8,10 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
-from rest_framework.settings import api_settings
 
 from kobo.apps.openrosa.apps.api.permissions import XFormDataPermissions
 from kobo.apps.openrosa.apps.api.tools import add_tags_to_instance
+from kobo.apps.openrosa.apps.api.utils.rest_framework import openrosa_drf_settings
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import custom_response_handler
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
@@ -277,7 +277,7 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
     >
     >        HTTP 200 OK
     """
-    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [
+    renderer_classes = openrosa_drf_settings.DEFAULT_RENDERER_CLASSES + [
         renderers.XLSRenderer,
         renderers.XLSXRenderer,
         renderers.CSVRenderer,
