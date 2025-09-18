@@ -116,6 +116,7 @@ class InviteAdmin(admin.ModelAdmin):
                 if len(errors) > 100:
                     # don't overwhelm the display
                     errors = errors[0:100]
+                    errors.append('...')
 
                 error = '<br/>'.join(errors)
                 error = f'<br><span class="error">{error}</span></i>' if error else ''
