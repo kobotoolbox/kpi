@@ -14,7 +14,7 @@ from freezegun import freeze_time
 from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.constants import UsageType
+from kobo.apps.organizations.constants import SupportedUsageType, UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.utils import get_billing_dates
 from kobo.apps.stripe.models import ExceededLimitCounter
@@ -151,7 +151,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             self.organization, metadata=product_metadata, price_metadata=price_metadata
         )
         limits = get_paid_subscription_limits([self.organization.id]).first()
-        for usage_type, _ in UsageType.choices:
+        for usage_type, _ in SupportedUsageType.choices:
             assert limits[f'{usage_type}_limit'] == '2'
 
     def test_get_subscription_limits_takes_most_recent_active_subscriptions(self):
@@ -627,7 +627,7 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
         ):
             self.add_submissions(count=2, asset=self.asset, username='someuser')
         self.add_nlp_trackers()
-        for usage_type, _ in UsageType.choices:
+        for usage_type, _ in SupportedUsageType.choices:
             check_exceeded_limit(self.someuser, usage_type)
             assert (
                 ExceededLimitCounter.objects.filter(
@@ -638,7 +638,7 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
 
     def test_check_exceeded_limit_updates_counters(self):
         today = timezone.now()
-        for usage_type, _ in UsageType.choices:
+        for usage_type, _ in SupportedUsageType.choices:
             baker.make(
                 ExceededLimitCounter,
                 user=self.anotheruser,
@@ -655,7 +655,7 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
         ):
             self.add_submissions(count=2, asset=self.asset, username='someuser')
         self.add_nlp_trackers()
-        for usage_type, _ in UsageType.choices:
+        for usage_type, _ in SupportedUsageType.choices:
             check_exceeded_limit(self.someuser, usage_type)
             counter = ExceededLimitCounter.objects.get(
                 user_id=self.anotheruser.id, limit_type=usage_type

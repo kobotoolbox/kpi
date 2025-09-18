@@ -341,6 +341,12 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             user_id=self.someuser.pk,
             asset_id=self.asset.pk,
         )
+        update_nlp_counter(
+            service='mock_nlp_service_llm_requests',
+            amount=20,
+            user_id=self.someuser.pk,
+            asset_id=self.asset.pk,
+        )
 
     def __add_submissions(self):
         submissions = []
@@ -390,8 +396,10 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             'total_nlp_usage': {
                 'asr_seconds_current_period': 120,
                 'mt_characters_current_period': 1000,
+                'llm_requests_current_period': 20,
                 'asr_seconds_all_time': 120,
                 'mt_characters_all_time': 1000,
+                'llm_requests_all_time': 20,
             },
             'total_storage_bytes': 191642,
             'total_submission_count': {
@@ -404,8 +412,10 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             'total_nlp_usage': {
                 'asr_seconds_current_period': 0,
                 'mt_characters_current_period': 0,
+                'llm_requests_current_period': 0,
                 'asr_seconds_all_time': 0,
                 'mt_characters_all_time': 0,
+                'llm_requests_all_time': 0,
             },
             'total_storage_bytes': 0,
             'total_submission_count': {

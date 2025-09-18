@@ -84,10 +84,11 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
         )
         self._deployment = self.asset.deployment
 
-    def add_nlp_tracker(self, asset, date, userid, seconds, characters):
+    def add_nlp_tracker(self, asset, date, userid, seconds, characters, requests):
         counter = {
             'google_asr_seconds': seconds,
             'google_mt_characters': characters,
+            'some_service_llm_requests': requests,
         }
         return NLPUsageCounter.objects.create(
             user_id=userid,
@@ -96,14 +97,17 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
             counters=counter,
             total_asr_seconds=seconds,
             total_mt_characters=characters,
+            total_llm_requests=requests,
         )
 
     def add_nlp_trackers(
         self,
         seconds_current_month=4586,
         characters_current_month=5473,
+        requests_current_month=20,
         seconds_last_month=142,
         characters_last_month=1253,
+        requests_last_month=50,
     ):
         """
         Add nlp data common across several tests
@@ -116,6 +120,7 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
             date=today,
             seconds=seconds_current_month,
             characters=characters_current_month,
+            requests=requests_current_month,
         )
 
         # last month
@@ -126,6 +131,7 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
             date=last_month,
             seconds=seconds_last_month,
             characters=characters_last_month,
+            requests=requests_last_month,
         )
 
     def add_submissions(
@@ -204,6 +210,10 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
             2 * nlp_usage_A['mt_characters_current_period']
             == nlp_usage_B['mt_characters_current_period']
         )
+        assert (
+            2 * nlp_usage_A['llm_requests_current_period']
+            == nlp_usage_B['llm_requests_current_period']
+        )
 
     def test_nlp_usage_counters(self):
         self.add_nlp_trackers()
@@ -213,6 +223,8 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert nlp_usage['asr_seconds_all_time'] == 4728
         assert nlp_usage['mt_characters_current_period'] == 5473
         assert nlp_usage['mt_characters_all_time'] == 6726
+        assert nlp_usage['llm_requests_current_period'] == 20
+        assert nlp_usage['llm_requests_all_time'] == 70
 
     def test_no_data(self):
         self.add_nlp_trackers()
@@ -224,6 +236,8 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert nlp_usage['asr_seconds_all_time'] == 0
         assert nlp_usage['mt_characters_current_period'] == 0
         assert nlp_usage['mt_characters_all_time'] == 0
+        assert nlp_usage['llm_requests_current_period'] == 0
+        assert nlp_usage['llm_requests_all_time'] == 0
         assert calculator.get_storage_usage() == 0
         assert submission_counters['current_period'] == 0
         assert submission_counters['all_time'] == 0
@@ -369,6 +383,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
             date=three_months_ago,
             seconds=10,
             characters=20,
+            requests=10,
         )
         self.add_nlp_tracker(
             asset=asset_2,
@@ -376,6 +391,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
             date=yesterday,
             seconds=10,
             characters=20,
+            requests=10,
         )
 
         # mock nlp data for someuser from a year ago (out of range)
@@ -386,6 +402,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
             date=one_year_ago,
             seconds=10,
             characters=20,
+            requests=10,
         )
 
         # mock nlp data for another user in range
@@ -395,6 +412,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
             date=yesterday,
             seconds=10,
             characters=20,
+            requests=10,
         )
         # mock nlp data for another user from 3 months ago (out of range)
         self.add_nlp_tracker(
@@ -403,6 +421,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
             date=three_months_ago,
             seconds=10,
             characters=20,
+            requests=10,
         )
         with patch(
             'kpi.utils.usage_calculator.get_current_billing_period_dates_by_org',
@@ -413,6 +432,8 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert nlp_usage_by_user[self.anotheruser.id]['asr_seconds'] == 10
         assert nlp_usage_by_user[self.someuser.id]['mt_characters'] == 40
         assert nlp_usage_by_user[self.anotheruser.id]['mt_characters'] == 20
+        assert nlp_usage_by_user[self.someuser.id]['llm_requests'] == 20
+        assert nlp_usage_by_user[self.anotheruser.id]['llm_requests'] == 10
 
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
@@ -461,7 +482,6 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         generate_plan_subscription(organization, product_metadata)
 
         calculator = ServiceUsageCalculator(self.someuser)
-
         usage_balances = calculator.get_usage_balances()
 
         assert usage_balances[UsageType.ASR_SECONDS]['effective_limit'] == limit

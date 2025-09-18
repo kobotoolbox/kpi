@@ -40,6 +40,7 @@ class BalanceFieldExtension(OpenApiSerializerFieldExtension):
                 'storage_bytes': get_balance_data_ref(auto_schema),
                 'asr_seconds': get_balance_data_ref(auto_schema),
                 'mt_characters': get_balance_data_ref(auto_schema),
+                'llm_requests': get_balance_data_ref(auto_schema),
             }
         )
 

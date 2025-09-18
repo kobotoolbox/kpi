@@ -9,4 +9,5 @@
 export type AssetUsageResponseNlpUsageAllTime = {
   total_nlp_asr_seconds?: number
   total_nlp_mt_characters?: number
+  total_nlp_llm_requests?: number
 }

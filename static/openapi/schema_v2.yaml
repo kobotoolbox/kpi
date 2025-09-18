@@ -9404,12 +9404,16 @@ components:
               type: integer
             total_nlp_mt_characters:
               type: integer
+            total_nlp_llm_requests:
+              type: integer
         nlp_usage_all_time:
           type: object
           properties:
             total_nlp_asr_seconds:
               type: integer
             total_nlp_mt_characters:
+              type: integer
+            total_nlp_llm_requests:
               type: integer
         storage_bytes:
           type: integer
@@ -11346,12 +11350,16 @@ components:
               type: integer
             total_nlp_mt_characters:
               type: integer
+            total_nlp_llm_requests:
+              type: integer
         nlp_usage_all_time:
           type: object
           properties:
             total_nlp_asr_seconds:
               type: integer
             total_nlp_mt_characters:
+              type: integer
+            total_nlp_llm_requests:
               type: integer
         storage_bytes:
           type: integer
@@ -11380,9 +11388,13 @@ components:
               type: integer
             mt_characters_current_period:
               type: integer
+            llm_requests_current_period:
+              type: integer
             asr_seconds_all_time:
               type: integer
             mt_characters_all_time:
+              type: integer
+            llm_requests_all_time:
               type: integer
         total_storage_bytes:
           type: integer
@@ -11403,6 +11415,8 @@ components:
             asr_seconds:
               $ref: '#/components/schemas/ServiceUsageBalanceData'
             mt_characters:
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
+            llm_requests:
               $ref: '#/components/schemas/ServiceUsageBalanceData'
         current_period_start:
           type: string
@@ -13278,9 +13292,13 @@ components:
               type: integer
             mt_characters_current_period:
               type: integer
+            llm_requests_current_period:
+              type: integer
             asr_seconds_all_time:
               type: integer
             mt_characters_all_time:
+              type: integer
+            llm_requests_all_time:
               type: integer
         total_storage_bytes:
           type: integer
@@ -13301,6 +13319,8 @@ components:
             asr_seconds:
               $ref: '#/components/schemas/ServiceUsageBalanceData'
             mt_characters:
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
+            llm_requests:
               $ref: '#/components/schemas/ServiceUsageBalanceData'
         current_period_start:
           type: string

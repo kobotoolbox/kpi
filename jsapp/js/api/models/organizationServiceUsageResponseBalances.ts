@@ -12,4 +12,5 @@ export type OrganizationServiceUsageResponseBalances = {
   storage_bytes?: ServiceUsageBalanceData
   asr_seconds?: ServiceUsageBalanceData
   mt_characters?: ServiceUsageBalanceData
+  llm_requests?: ServiceUsageBalanceData
 }
