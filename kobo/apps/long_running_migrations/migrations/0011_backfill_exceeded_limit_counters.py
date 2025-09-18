@@ -5,7 +5,7 @@ def add_long_running_migration(apps, schema_editor):
     LongRunningMigration = apps.get_model(
         'long_running_migrations', 'LongRunningMigration'
     )  # noqa
-    LongRunningMigration.objects.create(name='0011_check_storage_exceeded_limits')
+    LongRunningMigration.objects.create(name='0011_backfill_exceeded_limit_counters')
 
 
 def noop(*args, **kwargs):
