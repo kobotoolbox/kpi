@@ -10,7 +10,7 @@ from kpi.utils.log import logging
 
 class ExtendedFieldFile(FieldFile):
 
-    def move(self, target_folder: str, reraise_errors=False) -> bool:
+    def move(self, target_folder: str, reraise_errors: bool = False) -> bool:
 
         old_path = self.name
         filename = os.path.basename(old_path)
