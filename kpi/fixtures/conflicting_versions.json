@@ -9,7 +9,7 @@
         "schema": "1"
       },
       "date_modified": "2017-12-18T22:42:59.367Z",
-      "_reversion_version_id": null,
+      "_reversion_version": null,
       "name": "conflicting versions",
       "_deployment_data": {},
       "asset": 713928,
@@ -51,7 +51,7 @@
         "schema": "1"
       },
       "date_modified": "2017-12-18T22:44:58.629Z",
-      "_reversion_version_id": null,
+      "_reversion_version": null,
       "name": "conflicting versions",
       "_deployment_data": {},
       "asset": 713928,
@@ -111,7 +111,7 @@
         "schema": "1"
       },
       "date_modified": "2017-12-18T22:46:10.730Z",
-      "_reversion_version_id": null,
+      "_reversion_version": null,
       "name": "conflicting versions",
       "_deployment_data": {
         "active": true,
@@ -191,7 +191,7 @@
         "schema": "1"
       },
       "date_modified": "2017-12-18T22:47:50.127Z",
-      "_reversion_version_id": null,
+      "_reversion_version": null,
       "name": "conflicting versions",
       "_deployment_data": {
         "active": true,
@@ -287,7 +287,7 @@
         "schema": "1"
       },
       "date_modified": "2017-12-18T22:49:00.301Z",
-      "_reversion_version_id": null,
+      "_reversion_version": null,
       "name": "conflicting versions",
       "_deployment_data": {
         "active": true,

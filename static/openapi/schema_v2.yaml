@@ -9404,6 +9404,9 @@ components:
               type: integer
             total_nlp_mt_characters:
               type: integer
+          required:
+          - total_nlp_asr_seconds
+          - total_nlp_mt_characters
         nlp_usage_all_time:
           type: object
           properties:
@@ -9411,6 +9414,9 @@ components:
               type: integer
             total_nlp_mt_characters:
               type: integer
+          required:
+          - total_nlp_asr_seconds
+          - total_nlp_mt_characters
         storage_bytes:
           type: integer
         submission_count_current_period:
@@ -11346,6 +11352,9 @@ components:
               type: integer
             total_nlp_mt_characters:
               type: integer
+          required:
+          - total_nlp_asr_seconds
+          - total_nlp_mt_characters
         nlp_usage_all_time:
           type: object
           properties:
@@ -11353,6 +11362,9 @@ components:
               type: integer
             total_nlp_mt_characters:
               type: integer
+          required:
+          - total_nlp_asr_seconds
+          - total_nlp_mt_characters
         storage_bytes:
           type: integer
         submission_count_current_period:
@@ -11384,6 +11396,11 @@ components:
               type: integer
             mt_characters_all_time:
               type: integer
+          required:
+          - asr_seconds_all_time
+          - asr_seconds_current_period
+          - mt_characters_all_time
+          - mt_characters_current_period
         total_storage_bytes:
           type: integer
         total_submission_count:
@@ -11397,49 +11414,13 @@ components:
           type: object
           properties:
             submission:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
             storage_bytes:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
             asr_seconds:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
             mt_characters:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
         current_period_start:
           type: string
           format: date-time
@@ -13293,6 +13274,22 @@ components:
       - count
       - list
       - url
+    ServiceUsageBalanceData:
+      type: object
+      properties:
+        effective_limit:
+          type: integer
+        balance_value:
+          type: integer
+        balance_percent:
+          type: integer
+        exceeded:
+          type: integer
+      required:
+      - balance_percent
+      - balance_value
+      - effective_limit
+      - exceeded
     ServiceUsageResponse:
       type: object
       properties:
@@ -13307,6 +13304,11 @@ components:
               type: integer
             mt_characters_all_time:
               type: integer
+          required:
+          - asr_seconds_all_time
+          - asr_seconds_current_period
+          - mt_characters_all_time
+          - mt_characters_current_period
         total_storage_bytes:
           type: integer
         total_submission_count:
@@ -13320,49 +13322,13 @@ components:
           type: object
           properties:
             submission:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
             storage_bytes:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
             asr_seconds:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
             mt_characters:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
         current_period_start:
           type: string
           format: date-time

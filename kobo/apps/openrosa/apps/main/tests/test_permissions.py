@@ -1,8 +1,8 @@
 # coding: utf-8
 import os
 
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm, remove_perm
-
+from kobo.apps.openrosa.libs.permissions import assign_perm, remove_perm
+from kpi.constants import PERM_CHANGE_ASSET, PERM_VIEW_ASSET
 from .test_base import TestBase
 
 
@@ -23,21 +23,21 @@ class TestPermissions(TestBase):
         # `self.xform` belongs to bob
         self._create_user_and_login('alice', 'alice')
         # Alice is `self.user` now.
-        self.assertEqual(self.user.has_perm('view_xform', self.xform), False)
-        self.assertEqual(self.user.has_perm('change_xform', self.xform), False)
-        assign_perm('view_xform', self.user, self.xform)
-        self.assertEqual(self.user.has_perm('view_xform', self.xform), True)
-        assign_perm('change_xform', self.user, self.xform)
-        self.assertEqual(self.user.has_perm('change_xform', self.xform), True)
+        self.assertEqual(self.user.has_perm(PERM_VIEW_ASSET, self.xform.asset), False)
+        self.assertEqual(self.user.has_perm(PERM_CHANGE_ASSET, self.xform.asset), False)
+        assign_perm(PERM_VIEW_ASSET, self.user, self.xform.asset)
+        self.assertEqual(self.user.has_perm(PERM_VIEW_ASSET, self.xform.asset), True)
+        assign_perm(PERM_CHANGE_ASSET, self.user, self.xform.asset)
+        self.assertEqual(self.user.has_perm(PERM_CHANGE_ASSET, self.xform.asset), True)
         xform = self.xform
 
-        remove_perm('view_xform', self.user, xform)
-        self.assertEqual(self.user.has_perm('view_xform', xform), False)
-        remove_perm('change_xform', self.user, xform)
-        self.assertEqual(self.user.has_perm('change_xform', xform), False)
+        remove_perm(PERM_VIEW_ASSET, self.user, xform.asset)
+        self.assertEqual(self.user.has_perm(PERM_VIEW_ASSET, xform.asset), False)
+        remove_perm(PERM_CHANGE_ASSET, self.user, xform.asset)
+        self.assertEqual(self.user.has_perm(PERM_CHANGE_ASSET, xform.asset), False)
 
         self._publish_transportation_form()
         self.assertNotEqual(xform, self.xform)
         # Alice is the owner of `self.xform`
-        self.assertEqual(self.user.has_perm('view_xform', self.xform), True)
-        self.assertEqual(self.user.has_perm('change_xform', self.xform), True)
+        self.assertEqual(self.user.has_perm(PERM_VIEW_ASSET, self.xform.asset), True)
+        self.assertEqual(self.user.has_perm(PERM_CHANGE_ASSET, self.xform.asset), True)

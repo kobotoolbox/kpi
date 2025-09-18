@@ -119,6 +119,11 @@
   &:focus {
     outline: none;
   }
+
+  &::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    display: none;
+  }
 }
 
 .language-selector__clear-selected-language,
