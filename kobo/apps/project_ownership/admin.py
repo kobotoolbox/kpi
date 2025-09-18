@@ -104,11 +104,10 @@ class InviteAdmin(admin.ModelAdmin):
             for status in transfer.statuses.exclude(
                 status_type=TransferStatusTypeChoices.GLOBAL
             ):
-                errors = list(
-                    status.errors.filter(error__isnull=False).values_list(
-                        'error', flat=True
-                    )
-                )
+                errors = [
+                    f'{error.date_created} - {error.error}'
+                    for error in status.errors.filter(error__isnull=False)
+                ]
                 if status.error:
                     # if we have the old deprecated 'error' field on the TransferStatus,
                     # include that too
