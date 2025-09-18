@@ -120,7 +120,7 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
                 # There is no way to ensure atomicity when moving the file and saving
                 # the object to the database. Fingers crossed that the process doesn't
                 # get interrupted between these two operations.
-                if attachment.media_file.move(target_folder):
+                if attachment.media_file.move(target_folder, reraise_errors=True):
                     update_fields.append('media_file')
                     _delete_thumbnails(media_file_path)
                     # attachment.save(update_fields=['media_file'])
@@ -129,11 +129,11 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
                     )
                 else:
                     errors = True
-                    TransferStatus._add_error(
-                        transfer_status,
-                        'File {attachment.media_file_basename} (#{attachment.pk}) '
-                        f'could not be moved to {target_folder}',
+                    error = (
+                        f'File {attachment.media_file_basename} (#{attachment.pk})'
+                        f' could not be moved to {target_folder}'
                     )
+                    TransferStatus._add_error(transfer_status, error)
 
             attachment.user_id = transfer.invite.recipient.pk
             attachment.save(update_fields=update_fields)
@@ -147,7 +147,9 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
             )
             # also log to console so we get the stack trace
             logging.error(
-                f'Error moving {attachment.media_file_basename}', e, exc_info=True
+                f'Error moving {attachment.media_file_basename}',
+                exc_info=True,
+                stack_info=True,
             )
         finally:
             heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)

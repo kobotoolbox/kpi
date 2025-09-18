@@ -436,11 +436,13 @@ class TransferStatus(AbstractTimeStampedModel):
                 and status != TransferStatusChoices.SUCCESS
             ):
                 cls._add_error(
-                    transfer_status, 'Updating status of previously succeeded transfer'
+                    transfer_status,
+                    f'Updating status of previously successful transfer to {status}',
                 )
             transfer_status.status = status
             transfer_status.date_modified = timezone.now()
-            cls._add_error(transfer_status, error)
+            if error:
+                cls._add_error(transfer_status, error)
             transfer_status.save(update_fields=['status', 'date_modified'])
 
             # No need to update parent if `status` is still 'in_progress'
@@ -471,4 +473,4 @@ class TransferStatusError(AbstractTimeStampedModel):
     transfer_status = models.ForeignKey(
         TransferStatus, related_name='errors', on_delete=models.CASCADE
     )
-    error = models.CharField()
+    error = models.CharField(null=True, blank=True)
