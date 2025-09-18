@@ -112,7 +112,10 @@ class InviteAdmin(admin.ModelAdmin):
                 if status.error:
                     # if we have the old deprecated 'error' field on the TransferStatus,
                     # include that too
-                    errors.append(status.error)
+                    errors = [status.error] + errors
+                if len(errors) > 100:
+                    # don't overwhelm the display
+                    errors = errors[0:100]
 
                 error = '<br/>'.join(errors)
                 error = f'<br><span class="error">{error}</span></i>' if error else ''
