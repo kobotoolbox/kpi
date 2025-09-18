@@ -887,15 +887,15 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         }
 
         response = self.client.patch(asset_detail_url, data, format='json')
-        assert response.status_code == 403
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
         asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
         response = self.client.patch(asset_detail_url, data, format='json')
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
 
         data['name'] = 'new name'
         response = self.client.patch(asset_detail_url, data, format='json')
-        assert response.status_code == 403
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def _sorted_dict(self, dict_):
         """
