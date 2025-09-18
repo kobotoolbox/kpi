@@ -122,6 +122,7 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
         # `has_permission()`, always return True.
         return True
 
+
 def user_can_modify_advanced_features(asset, user, request):
     if list(request.data.keys()) != ['advanced_features']:
         return False
