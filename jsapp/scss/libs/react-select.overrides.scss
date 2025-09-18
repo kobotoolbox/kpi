@@ -1,6 +1,7 @@
 @use 'js/components/common/button';
 @use 'scss/colors';
 @use 'scss/_variables';
+@use 'scss/libs/_mdl';
 
 // Styles for WrappedSelect.
 .kobo-select__wrapper {
@@ -123,7 +124,7 @@
   }
 
   .kobo-select__menu {
-    @include box-shadow;
+    @include mdl.box-shadow;
     border-radius: 4px;
     // getting select menus to appear over checkboxes
     z-index: 2;
