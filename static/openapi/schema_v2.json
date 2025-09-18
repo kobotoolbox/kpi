@@ -15801,6 +15801,9 @@
                             },
                             "mt_characters_all_time": {
                                 "type": "integer"
+                            },
+                            "llm_requests_all_time": {
+                                "type": "integer"
                             }
                         }
                     },
@@ -18472,6 +18475,9 @@
                                 "type": "integer"
                             },
                             "mt_characters_all_time": {
+                                "type": "integer"
+                            },
+                            "llm_requests_all_time": {
                                 "type": "integer"
                             }
                         }

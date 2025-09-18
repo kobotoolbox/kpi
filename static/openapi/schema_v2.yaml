@@ -11394,6 +11394,8 @@ components:
               type: integer
             mt_characters_all_time:
               type: integer
+            llm_requests_all_time:
+              type: integer
         total_storage_bytes:
           type: integer
         total_submission_count:
@@ -13295,6 +13297,8 @@ components:
             asr_seconds_all_time:
               type: integer
             mt_characters_all_time:
+              type: integer
+            llm_requests_all_time:
               type: integer
         total_storage_bytes:
           type: integer
