@@ -5,6 +5,7 @@ import Button from '#/components/common/button'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import bodyStyles from '#/components/processing/processingBody.module.scss'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import { hasChangeSubPermissionToCurrentAsset } from '../analysis/utils'
 import HeaderLanguageAndDate from './headerLanguageAndDate.component'
 
 interface StepEditorProps {
@@ -55,7 +56,7 @@ export default function StepEditor(props: StepEditorProps) {
             size='s'
             label={discardLabel}
             onClick={discardDraft}
-            isDisabled={singleProcessingStore.data.isFetchingData}
+            isDisabled={singleProcessingStore.data.isFetchingData || !hasChangeSubPermissionToCurrentAsset()}
           />
 
           <Button
@@ -64,7 +65,9 @@ export default function StepEditor(props: StepEditorProps) {
             label={t('Save')}
             onClick={saveDraft}
             isPending={singleProcessingStore.data.isFetchingData}
-            isDisabled={!singleProcessingStore.hasUnsavedTranslationDraftValue()}
+            isDisabled={
+              !singleProcessingStore.hasUnsavedTranslationDraftValue() || !hasChangeSubPermissionToCurrentAsset()
+            }
           />
         </div>
       </header>
