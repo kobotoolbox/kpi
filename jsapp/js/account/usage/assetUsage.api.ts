@@ -1,5 +1,5 @@
 import { fetchGet } from '#/api'
-import {PaginatedResponse} from '#/dataInterface'
+import type { PaginatedResponse } from '#/dataInterface'
 import { PROJECT_FIELDS } from '#/projects/projectViews/constants'
 import type { ProjectFieldName } from '#/projects/projectViews/constants'
 import type { ProjectsTableOrder } from '#/projects/projectsTable/projectsTable'
@@ -46,8 +46,8 @@ export async function getOrgAssetUsage(
   return {
     status: 200 as const,
     data: await fetchGet<PaginatedResponse<AssetWithUsage>>(`${apiUrl}?${params}`, {
-        includeHeaders: true,
-        errorMessageDisplay: t('There was an error fetching asset usage data.'),
-      })
-    }
+      includeHeaders: true,
+      errorMessageDisplay: t('There was an error fetching asset usage data.'),
+    }),
+  }
 }
