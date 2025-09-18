@@ -72,7 +72,7 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
 
 
     async_task_type = TransferStatusTypeChoices.ATTACHMENTS
-    transfer_status = transfer.statuses.filter(status_type=async_task_type).first()
+    transfer_status = transfer.statuses.get(status_type=async_task_type)
 
     # Attachments cannot be moved until `_userform_id` is updated successfully
     if not (
