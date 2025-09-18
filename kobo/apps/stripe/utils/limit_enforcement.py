@@ -18,6 +18,9 @@ def check_exceeded_limit(user, usage_type: UsageType, **kwargs):
     the ENDPOINT_CACHE_DURATION
     """
     org = user.organization
+    if org is None:
+        return
+
     if org.is_mmo:
         user = org.owner_user_object
 
@@ -45,6 +48,8 @@ def check_exceeded_limit(user, usage_type: UsageType, **kwargs):
             delta = timezone.now().date() - counter.date_modified.date()
             counter.days += delta.days
             counter.save()
+
+        return counter
 
     cache.set(cache_key, True, settings.ENDPOINT_CACHE_DURATION)
 
