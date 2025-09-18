@@ -13003,6 +13003,9 @@
                             },
                             "total_nlp_mt_characters": {
                                 "type": "integer"
+                            },
+                            "total_nlp_llm_requests": {
+                                "type": "integer"
                             }
                         }
                     },
@@ -13013,6 +13016,9 @@
                                 "type": "integer"
                             },
                             "total_nlp_mt_characters": {
+                                "type": "integer"
+                            },
+                            "total_nlp_llm_requests": {
                                 "type": "integer"
                             }
                         }
@@ -15731,6 +15737,9 @@
                             },
                             "total_nlp_mt_characters": {
                                 "type": "integer"
+                            },
+                            "total_nlp_llm_requests": {
+                                "type": "integer"
                             }
                         }
                     },
@@ -15741,6 +15750,9 @@
                                 "type": "integer"
                             },
                             "total_nlp_mt_characters": {
+                                "type": "integer"
+                            },
+                            "total_nlp_llm_requests": {
                                 "type": "integer"
                             }
                         }
@@ -15779,6 +15791,9 @@
                                 "type": "integer"
                             },
                             "mt_characters_current_period": {
+                                "type": "integer"
+                            },
+                            "llm_requests_current_period": {
                                 "type": "integer"
                             },
                             "asr_seconds_all_time": {
@@ -15858,6 +15873,23 @@
                                 }
                             },
                             "mt_characters": {
+                                "type": "object",
+                                "properties": {
+                                    "effective_limit": {
+                                        "type": "integer"
+                                    },
+                                    "balance_value": {
+                                        "type": "integer"
+                                    },
+                                    "balance_percent": {
+                                        "type": "integer"
+                                    },
+                                    "exceeded": {
+                                        "type": "integer"
+                                    }
+                                }
+                            },
+                            "llm_requests": {
                                 "type": "object",
                                 "properties": {
                                     "effective_limit": {
@@ -18486,6 +18518,9 @@
                             "mt_characters_current_period": {
                                 "type": "integer"
                             },
+                            "llm_requests_current_period": {
+                                "type": "integer"
+                            },
                             "asr_seconds_all_time": {
                                 "type": "integer"
                             },
@@ -18563,6 +18598,23 @@
                                 }
                             },
                             "mt_characters": {
+                                "type": "object",
+                                "properties": {
+                                    "effective_limit": {
+                                        "type": "integer"
+                                    },
+                                    "balance_value": {
+                                        "type": "integer"
+                                    },
+                                    "balance_percent": {
+                                        "type": "integer"
+                                    },
+                                    "exceeded": {
+                                        "type": "integer"
+                                    }
+                                }
+                            },
+                            "llm_requests": {
                                 "type": "object",
                                 "properties": {
                                     "effective_limit": {

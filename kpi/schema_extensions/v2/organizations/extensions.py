@@ -40,6 +40,7 @@ class BalanceFieldExtension(OpenApiSerializerFieldExtension):
                 'storage_bytes': BALANCE_FIELDS_SCHEMA,
                 'asr_seconds': BALANCE_FIELDS_SCHEMA,
                 'mt_characters': BALANCE_FIELDS_SCHEMA,
+                'llm_requests': BALANCE_FIELDS_SCHEMA,
             }
         )
 

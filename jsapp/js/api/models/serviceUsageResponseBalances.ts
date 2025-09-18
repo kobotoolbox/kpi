@@ -1,4 +1,5 @@
 import type { ServiceUsageResponseBalancesAsrSeconds } from './serviceUsageResponseBalancesAsrSeconds'
+import type { ServiceUsageResponseBalancesLlmRequests } from './serviceUsageResponseBalancesLlmRequests'
 import type { ServiceUsageResponseBalancesMtCharacters } from './serviceUsageResponseBalancesMtCharacters'
 import type { ServiceUsageResponseBalancesStorageBytes } from './serviceUsageResponseBalancesStorageBytes'
 /**
@@ -15,4 +16,5 @@ export type ServiceUsageResponseBalances = {
   storage_bytes?: ServiceUsageResponseBalancesStorageBytes
   asr_seconds?: ServiceUsageResponseBalancesAsrSeconds
   mt_characters?: ServiceUsageResponseBalancesMtCharacters
+  llm_requests?: ServiceUsageResponseBalancesLlmRequests
 }

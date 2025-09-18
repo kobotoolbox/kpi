@@ -35,6 +35,7 @@ GENERIC_NLP_OBJECT_SCHEMA = build_object_type(
     properties={
         'total_nlp_asr_seconds': build_basic_type(OpenApiTypes.INT),
         'total_nlp_mt_characters': build_basic_type(OpenApiTypes.INT),
+        'total_nlp_llm_requests': build_basic_type(OpenApiTypes.INT),
     }
 )
 
@@ -42,8 +43,10 @@ GENERIC_NLP_ALL_TIME_OBJECT_SCHEMA = build_object_type(
     properties={
         'asr_seconds_current_period': build_basic_type(OpenApiTypes.INT),
         'mt_characters_current_period': build_basic_type(OpenApiTypes.INT),
+        'llm_requests_current_period': build_basic_type(OpenApiTypes.INT),
         'asr_seconds_all_time': build_basic_type(OpenApiTypes.INT),
         'mt_characters_all_time': build_basic_type(OpenApiTypes.INT),
+        'llm_requests_current_period': build_basic_type(OpenApiTypes.INT),
     }
 )
 

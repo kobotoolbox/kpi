@@ -1,4 +1,5 @@
 import type { OrganizationServiceUsageResponseBalancesAsrSeconds } from './organizationServiceUsageResponseBalancesAsrSeconds'
+import type { OrganizationServiceUsageResponseBalancesLlmRequests } from './organizationServiceUsageResponseBalancesLlmRequests'
 import type { OrganizationServiceUsageResponseBalancesMtCharacters } from './organizationServiceUsageResponseBalancesMtCharacters'
 import type { OrganizationServiceUsageResponseBalancesStorageBytes } from './organizationServiceUsageResponseBalancesStorageBytes'
 /**
@@ -15,4 +16,5 @@ export type OrganizationServiceUsageResponseBalances = {
   storage_bytes?: OrganizationServiceUsageResponseBalancesStorageBytes
   asr_seconds?: OrganizationServiceUsageResponseBalancesAsrSeconds
   mt_characters?: OrganizationServiceUsageResponseBalancesMtCharacters
+  llm_requests?: OrganizationServiceUsageResponseBalancesLlmRequests
 }

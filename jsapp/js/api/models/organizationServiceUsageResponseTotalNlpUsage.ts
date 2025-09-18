@@ -9,6 +9,7 @@
 export type OrganizationServiceUsageResponseTotalNlpUsage = {
   asr_seconds_current_period?: number
   mt_characters_current_period?: number
+  llm_requests_current_period?: number
   asr_seconds_all_time?: number
   mt_characters_all_time?: number
 }

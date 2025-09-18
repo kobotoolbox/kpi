@@ -6,8 +6,9 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type AssetUsageResponseNlpUsageCurrentPeriod = {
-  total_nlp_asr_seconds?: number
-  total_nlp_mt_characters?: number
-  total_nlp_llm_requests?: number
+export type OrganizationServiceUsageResponseBalancesLlmRequests = {
+  effective_limit?: number
+  balance_value?: number
+  balance_percent?: number
+  exceeded?: number
 }
