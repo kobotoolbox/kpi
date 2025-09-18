@@ -21,8 +21,6 @@ import type { AccessLogsMeListParams } from '../models/accessLogsMeListParams'
 
 import type { ErrorDetail } from '../models/errorDetail'
 
-import type { ErrorObject } from '../models/errorObject'
-
 import type { ExportCreateResponse } from '../models/exportCreateResponse'
 
 import type { ExportListResponse } from '../models/exportListResponse'
@@ -115,15 +113,7 @@ export type accessLogsListResponse403 = {
   status: 403
 }
 
-export type accessLogsListResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
-export type accessLogsListResponseComposite =
-  | accessLogsListResponse200
-  | accessLogsListResponse403
-  | accessLogsListResponse404
+export type accessLogsListResponseComposite = accessLogsListResponse200 | accessLogsListResponse403
 
 export type accessLogsListResponse = accessLogsListResponseComposite & {
   headers: Headers
@@ -157,10 +147,7 @@ export const getAccessLogsListQueryKey = (params?: AccessLogsListParams) => {
   return ['api', 'v2', 'access-logs', ...(params ? [params] : [])] as const
 }
 
-export const getAccessLogsListQueryOptions = <
-  TData = Awaited<ReturnType<typeof accessLogsList>>,
-  TError = ErrorDetail | ErrorObject,
->(
+export const getAccessLogsListQueryOptions = <TData = Awaited<ReturnType<typeof accessLogsList>>, TError = ErrorDetail>(
   params?: AccessLogsListParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof accessLogsList>>, TError, TData>
@@ -182,12 +169,9 @@ export const getAccessLogsListQueryOptions = <
 }
 
 export type AccessLogsListQueryResult = NonNullable<Awaited<ReturnType<typeof accessLogsList>>>
-export type AccessLogsListQueryError = ErrorDetail | ErrorObject
+export type AccessLogsListQueryError = ErrorDetail
 
-export function useAccessLogsList<
-  TData = Awaited<ReturnType<typeof accessLogsList>>,
-  TError = ErrorDetail | ErrorObject,
->(
+export function useAccessLogsList<TData = Awaited<ReturnType<typeof accessLogsList>>, TError = ErrorDetail>(
   params?: AccessLogsListParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof accessLogsList>>, TError, TData>
@@ -427,15 +411,7 @@ export type accessLogsMeListResponse403 = {
   status: 403
 }
 
-export type accessLogsMeListResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
-export type accessLogsMeListResponseComposite =
-  | accessLogsMeListResponse200
-  | accessLogsMeListResponse403
-  | accessLogsMeListResponse404
+export type accessLogsMeListResponseComposite = accessLogsMeListResponse200 | accessLogsMeListResponse403
 
 export type accessLogsMeListResponse = accessLogsMeListResponseComposite & {
   headers: Headers
@@ -471,7 +447,7 @@ export const getAccessLogsMeListQueryKey = (params?: AccessLogsMeListParams) => 
 
 export const getAccessLogsMeListQueryOptions = <
   TData = Awaited<ReturnType<typeof accessLogsMeList>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   params?: AccessLogsMeListParams,
   options?: {
@@ -494,12 +470,9 @@ export const getAccessLogsMeListQueryOptions = <
 }
 
 export type AccessLogsMeListQueryResult = NonNullable<Awaited<ReturnType<typeof accessLogsMeList>>>
-export type AccessLogsMeListQueryError = ErrorDetail | ErrorObject
+export type AccessLogsMeListQueryError = ErrorDetail
 
-export function useAccessLogsMeList<
-  TData = Awaited<ReturnType<typeof accessLogsMeList>>,
-  TError = ErrorDetail | ErrorObject,
->(
+export function useAccessLogsMeList<TData = Awaited<ReturnType<typeof accessLogsMeList>>, TError = ErrorDetail>(
   params?: AccessLogsMeListParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof accessLogsMeList>>, TError, TData>
