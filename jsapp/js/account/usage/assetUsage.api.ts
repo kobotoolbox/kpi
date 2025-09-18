@@ -1,4 +1,5 @@
 import { fetchGet } from '#/api'
+import {PaginatedResponse} from '#/dataInterface'
 import { PROJECT_FIELDS } from '#/projects/projectViews/constants'
 import type { ProjectFieldName } from '#/projects/projectViews/constants'
 import type { ProjectsTableOrder } from '#/projects/projectsTable/projectsTable'
@@ -51,4 +52,32 @@ export async function getOrgAssetUsage(
     includeHeaders: true,
     errorMessageDisplay: t('There was an error fetching asset usage data.'),
   })
+}
+
+export async function getOrgAssetUsage2(
+  limit: number,
+  offset: number,
+  organizationId: string,
+  order?: ProjectsTableOrder,
+) {
+  const apiUrl = ORG_ASSET_USAGE_URL.replace(':organization_id', organizationId)
+
+  const params = new URLSearchParams({
+    limit: limit.toString(),
+    offset: offset.toString(),
+  })
+
+  if (order?.fieldName && order.direction && (order.direction === 'ascending' || order.direction === 'descending')) {
+    const orderingPrefix = order.direction === 'ascending' ? '' : '-'
+    const fieldDefinition = PROJECT_FIELDS[order.fieldName as ProjectFieldName]
+    params.set('ordering', orderingPrefix + fieldDefinition.apiOrderingName)
+  }
+
+  return {
+    status: 200 as const,
+    data: await fetchGet<PaginatedResponse<AssetWithUsage>>(`${apiUrl}?${params}`, {
+        includeHeaders: true,
+        errorMessageDisplay: t('There was an error fetching asset usage data.'),
+      })
+    }
 }

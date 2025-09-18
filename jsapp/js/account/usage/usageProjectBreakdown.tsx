@@ -4,7 +4,7 @@ import prettyBytes from 'pretty-bytes'
 import { Link } from 'react-router-dom'
 import { useOrganizationQuery } from '#/account/organization/organizationQuery'
 import type { AssetUsage, AssetWithUsage } from '#/account/usage/assetUsage.api'
-import { getOrgAssetUsage } from '#/account/usage/assetUsage.api'
+import { getOrgAssetUsage, getOrgAssetUsage2 } from '#/account/usage/assetUsage.api'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
@@ -17,6 +17,10 @@ import { ROUTES } from '#/router/routerConstants'
 import { convertSecondsToMinutes } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
+import UniversalTable, { DEFAULT_PAGE_SIZE, UniversalTableColumn } from '#/UniversalTable'
+import {keepPreviousData, useQuery} from '@tanstack/react-query'
+import {QueryKeys} from '#/query/queryKeys'
+import {A} from 'msw/lib/core/HttpResponse-CKZrrwKE'
 
 type ButtonType = 'back' | 'forward'
 
@@ -33,6 +37,16 @@ const ProjectBreakdown = () => {
   const [loading, setLoading] = useState(true)
   const orgQuery = useOrganizationQuery()
   const { billingPeriod } = useBillingPeriod()
+  const [pagination, setPagination] = useState({
+    limit: DEFAULT_PAGE_SIZE,
+    offset: 0,
+  })
+
+  const queryResult = useQuery({
+    queryKey: [QueryKeys.assetUsage, pagination.limit, pagination.offset, orgQuery.data, orgQuery.data?.id],
+    queryFn: () => getOrgAssetUsage2(pagination.limit, pagination.offset, orgQuery.data ? orgQuery.data.id : ''),
+    placeholderData: keepPreviousData,
+  })
 
   useEffect(() => {
     async function fetchData(orgId: string) {
@@ -142,73 +156,76 @@ const ProjectBreakdown = () => {
     )
   }
 
+  const columns: Array<UniversalTableColumn<AssetWithUsage>> = [
+    {
+      key: 'asset_name',
+      label: t('Project name'),
+      size: 100,
+      cellFormatter: (data: AssetWithUsage) => (
+        data.asset__name
+      )
+    },
+    {
+      key: 'submissions_all',
+      label: t('Submissions (Total)'),
+      size: 100,
+      cellFormatter: (data: AssetWithUsage) => (
+        data.submission_count_all_time
+      )
+    },
+    {
+      key: 'submissions_current',
+      label: t('Submissions'),
+      size: 100,
+      cellFormatter: (data: AssetWithUsage) => (
+        data.submission_count_current_period
+      )
+    },
+    {
+      key: 'storage',
+      label: t('Storage'),
+      size: 100,
+      cellFormatter: (data: AssetWithUsage) => (
+        prettyBytes(data.storage_bytes)
+      )
+    },
+    {
+      key: 'transcript_minutes',
+      label: t('Transcript minutes'),
+      size: 100,
+      cellFormatter: (data: AssetWithUsage) => (
+        convertSecondsToMinutes(
+          data.nlp_usage_current_period.total_nlp_asr_seconds,
+        ).toLocaleString()
+      )
+    },
+    {
+      key: 'transcript_minutes',
+      label: t('Transcript minutes'),
+      size: 100,
+      cellFormatter: (data: AssetWithUsage) => (
+        convertSecondsToMinutes(
+          data.nlp_usage_current_period.total_nlp_mt_characters,
+        ).toLocaleString()
+      )
+    },
+    {
+      key: 'transcript_minutes',
+      label: t('Transcript minutes'),
+      size: 100,
+      cellFormatter: (data: AssetWithUsage) => (
+        <AssetStatusBadge deploymentStatus={data.deployment_status} />
+      )
+    },
+  ]
+
   return (
-    <div className={styles.root}>
-      {showIntervalBanner && (
-        <div className={styles.intervalBanner}>
-          <div className={styles.intervalBannerContent}>
-            <Icon name={'information'} size='m' color='blue' />
-            <div className={styles.intervalBannerText}>
-              {t(
-                'Submissions, transcription minutes, and translation characters reflect usage for the current ##INTERVAL## based on your plan settings.',
-              ).replace('##INTERVAL##', billingPeriod === 'year' ? t('year') : t('month'))}
-            </div>
-          </div>
-          <Button size='s' type='text' startIcon='close' onClick={dismissIntervalBanner} />
-        </div>
-      )}
-      <table>
-        <thead className={styles.headerFont}>
-          <tr>
-            <th className={styles.projects}>
-              <SortableProjectColumnHeader
-                styling={false}
-                field={usageName}
-                orderableFields={['name', 'status']}
-                order={order}
-                onChangeOrderRequested={updateOrder}
-              />
-            </th>
-            <th>{t('Submissions (Total)')}</th>
-            <th>{t('Submissions')}</th>
-            <th>{t('Data storage')}</th>
-            <th>{t('Transcript minutes')}</th>
-            <th>{t('Translation characters')}</th>
-            <th>
-              <SortableProjectColumnHeader
-                styling={false}
-                field={usageStatus}
-                orderableFields={['name', 'status']}
-                order={order}
-                onChangeOrderRequested={updateOrder}
-              />
-            </th>
-          </tr>
-        </thead>
-        {Number.parseInt(projectData.count) === 0 ? (
-          <tbody>
-            <tr>
-              <td colSpan={7} style={{ border: 'none' }}>
-                <div className={styles.emptyMessage}>{t('There are no projects to display.')}</div>
-              </td>
-            </tr>
-          </tbody>
-        ) : (
-          <tbody>{projectData.results.map((project) => renderProjectRow(project))}</tbody>
-        )}
-      </table>
-      <nav>
-        <div className={styles.pagination}>
-          <button className={`${isActiveBack ? styles.active : ''}`} onClick={(e) => handleClick(e, 'back')}>
-            <i className='k-icon k-icon-arrow-left' />
-          </button>
-          <span className={styles.range}>{calculateRange()}</span>
-          <button className={`${isActiveForward ? styles.active : ''}`} onClick={(e) => handleClick(e, 'forward')}>
-            <i className='k-icon k-icon-arrow-right' />
-          </button>
-        </div>
-      </nav>
-    </div>
+    <UniversalTable<AssetWithUsage>
+      pagination={pagination}
+      setPagination={setPagination}
+      queryResult={queryResult}
+      columns={columns}
+    />
   )
 }
 
