@@ -192,7 +192,7 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
             # There is no way to ensure atomicity when moving the file and saving the
             # object to the database. Fingers crossed that the process doesn't get
             # interrupted between these two operations.
-            media_file.content.move(target_folder, reraise_errors=True)
+            media_file.content.move(target_folder)
             old_md5 = media_file.metadata.pop('hash', None)
             media_file.set_md5_hash()
             media_file.save(update_fields=['content', 'metadata'])
@@ -204,7 +204,7 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
                     transfer.invite.recipient.username,
                     kc_obj.data_file.name,
                 ):
-                    kc_obj.data_file.move(kc_target_folder, reraise_errors=True)
+                    kc_obj.data_file.move(kc_target_folder)
                     kc_obj.file_hash = media_file.md5_hash
                     kc_obj.save(update_fields=['file_hash', 'data_file'])
 
