@@ -11414,69 +11414,13 @@ components:
           type: object
           properties:
             submission:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
-              required:
-              - balance_percent
-              - balance_value
-              - effective_limit
-              - exceeded
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
             storage_bytes:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
-              required:
-              - balance_percent
-              - balance_value
-              - effective_limit
-              - exceeded
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
             asr_seconds:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
-              required:
-              - balance_percent
-              - balance_value
-              - effective_limit
-              - exceeded
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
             mt_characters:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
-              required:
-              - balance_percent
-              - balance_value
-              - effective_limit
-              - exceeded
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
         current_period_start:
           type: string
           format: date-time
@@ -13330,6 +13274,22 @@ components:
       - count
       - list
       - url
+    ServiceUsageBalanceData:
+      type: object
+      properties:
+        effective_limit:
+          type: integer
+        balance_value:
+          type: integer
+        balance_percent:
+          type: integer
+        exceeded:
+          type: integer
+      required:
+      - balance_percent
+      - balance_value
+      - effective_limit
+      - exceeded
     ServiceUsageResponse:
       type: object
       properties:
@@ -13362,69 +13322,13 @@ components:
           type: object
           properties:
             submission:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
-              required:
-              - balance_percent
-              - balance_value
-              - effective_limit
-              - exceeded
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
             storage_bytes:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
-              required:
-              - balance_percent
-              - balance_value
-              - effective_limit
-              - exceeded
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
             asr_seconds:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
-              required:
-              - balance_percent
-              - balance_value
-              - effective_limit
-              - exceeded
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
             mt_characters:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
-              required:
-              - balance_percent
-              - balance_value
-              - effective_limit
-              - exceeded
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
         current_period_start:
           type: string
           format: date-time

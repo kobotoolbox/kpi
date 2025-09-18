@@ -2,6 +2,7 @@
 @use 'scss/breakpoints';
 @use 'sass:color';
 @use 'scss/colors';
+@use 'scss/libs/_mdl';
 
 // ==========================================================================
 // Registration Forms
@@ -186,7 +187,7 @@
   input[type='email'],
   input[type='url'],
   select {
-    color: $layout-text-color;
+    color: mdl.$layout-text-color;
   }
 
   p.help {

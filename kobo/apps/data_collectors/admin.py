@@ -59,7 +59,7 @@ class DataCollectorGroupAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         assets = form.cleaned_data['assets']
         super().save_model(request, obj, form, change)
-        new_asset_uids = list(obj.assets.values('uid'))
+        new_asset_uids = list(assets.values_list('uid', flat=True))
         # we have to do this manually instead of using obj.assets.set()
         # so we can call save() with adjust_content=False
         for old_asset in obj.assets.all():
