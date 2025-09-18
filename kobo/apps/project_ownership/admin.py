@@ -97,6 +97,7 @@ class InviteAdmin(admin.ModelAdmin):
         )
 
     def get_transfers(self, obj):
+        date_format = '%Y-%m-%d %H:%M:%S'
         html = '<ul>'
         for transfer in obj.transfers.all():
             html += f'<li>{transfer.asset.name} #{transfer.asset.uid}</li>'
@@ -105,7 +106,7 @@ class InviteAdmin(admin.ModelAdmin):
                 status_type=TransferStatusTypeChoices.GLOBAL
             ):
                 errors = [
-                    f'{error.date_created} - {error.error}'
+                    f'[{error.date_created.strftime(date_format)}] - {error.error}'
                     for error in status.errors.filter(error__isnull=False)
                 ]
                 if status.error:
