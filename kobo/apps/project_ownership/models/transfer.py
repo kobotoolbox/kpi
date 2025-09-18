@@ -466,7 +466,8 @@ class TransferStatus(AbstractTimeStampedModel):
 
     @classmethod
     def _add_error(cls, transfer_status, error):
-        TransferStatusError.objects.create(transfer_status=transfer_status, error=error)
+        if error:
+            TransferStatusError.objects.create(transfer_status=transfer_status, error=error)
 
 
 class TransferStatusError(AbstractTimeStampedModel):
