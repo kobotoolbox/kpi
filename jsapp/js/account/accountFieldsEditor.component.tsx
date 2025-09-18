@@ -105,7 +105,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
 
   function onWebsiteKeydown(event: string) {
     if (event === 'Enter') {
-      updateWebsiteAddress(props.values.organization_website)
+      updateWebsiteAddress(props.values.organization_website || '')
     }
   }
 
@@ -262,7 +262,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               <TextBox
                 label={getLabel('city')}
                 required={isRequired('city')}
-                value={props.values.city}
+                value={props.values.city || ''}
                 onChange={onAnyFieldChange.bind(onAnyFieldChange, 'city')}
                 errors={props.errors?.city}
               />
@@ -337,7 +337,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             <TextBox
               label={getLabel('organization_website')}
               type='url'
-              value={props.values.organization_website}
+              value={props.values.organization_website || ''}
               required={isRequired('organization_website')}
               onChange={onAnyFieldChange.bind(onAnyFieldChange, 'organization_website')}
               onBlur={updateWebsiteAddress}
@@ -356,7 +356,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               type='text-multiline'
               label={getLabel('bio')}
               required={isRequired('bio')}
-              value={props.values.bio}
+              value={props.values.bio || ''}
               onChange={onAnyFieldChange.bind(onAnyFieldChange, 'bio')}
               errors={props.errors?.bio}
             />
@@ -376,7 +376,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 <TextBox
                   startIcon='logo-twitter'
                   placeholder={getLabelWithRequired('twitter')}
-                  value={props.values.twitter}
+                  value={props.values.twitter || ''}
                   onChange={onAnyFieldChange.bind(onAnyFieldChange, 'twitter')}
                   errors={props.errors?.twitter}
                 />
@@ -389,7 +389,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 <TextBox
                   startIcon='logo-linkedin'
                   placeholder={getLabelWithRequired('linkedin')}
-                  value={props.values.linkedin}
+                  value={props.values.linkedin || ''}
                   onChange={onAnyFieldChange.bind(onAnyFieldChange, 'linkedin')}
                   errors={props.errors?.linkedin}
                 />
@@ -402,7 +402,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 <TextBox
                   startIcon='logo-instagram'
                   placeholder={getLabelWithRequired('instagram')}
-                  value={props.values.instagram}
+                  value={props.values.instagram || ''}
                   onChange={onAnyFieldChange.bind(onAnyFieldChange, 'instagram')}
                   errors={props.errors?.instagram}
                 />
@@ -419,7 +419,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             <div className={styles.field}>
               <label className={styles.checkboxLabel}>{t('Newsletter')}</label>
               <Checkbox
-                checked={props.values.newsletter_subscription}
+                checked={props.values.newsletter_subscription || false}
                 onChange={(isChecked: boolean) => onAnyFieldChange('newsletter_subscription', isChecked)}
                 label={getLabel('newsletter_subscription')}
               />
