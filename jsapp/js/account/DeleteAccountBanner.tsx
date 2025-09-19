@@ -23,12 +23,12 @@ export default function DeleteAccountBanner(props: DeleteAccountBannerProps) {
   const session = useSession()
   const orgQuery = useOrganizationQuery()
   const [isAccountWithoutAssets, setIsAccountWithoutAssets] = useState<boolean | undefined>(undefined)
-  const isAccountOrganizationOwner = orgQuery.data?.is_owner
+  const isAccountOrganizationOwner = orgQuery.data?.is_mmo && orgQuery.data?.is_owner
 
   useEffect(() => {
     const username = session.currentLoggedAccount.username
     // We are fetching all user assets, but we are only interested in wheter user has at least one asset
-    let singleAssetEndpoint = endpoints.ASSETS_URL + `?q=(owner__username=${username})&limit=1`
+    let singleAssetEndpoint = endpoints.ASSETS_URL + `?q=(owner__username:${username})&limit=1`
     if (props.storybookTestId) {
       singleAssetEndpoint += `&storybookTestId=${props.storybookTestId}`
     }
