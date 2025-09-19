@@ -1,10 +1,8 @@
 name: "CodeQL Advanced"
 
 on:
-  push:
-    branches: [ "scott/codeql" ]
   schedule:
-    - cron: '41 2 * * 6' #Only runnning it on a schedule for now
+    - cron: '41 2 * * 6' #Only running it on a schedule for now, at a specific time on Saturdays
 
 jobs:
   analyze:
