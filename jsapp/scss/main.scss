@@ -6,7 +6,6 @@
 
 @include meta.load-css('./libs/mdl');
 
-@include meta.load-css('./fonts/roboto');
 @include meta.load-css('../fonts/k-icons');
 
 @include meta.load-css('/node_modules/alertifyjs/build/css/alertify.css');

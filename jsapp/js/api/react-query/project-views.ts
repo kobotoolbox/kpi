@@ -146,15 +146,7 @@ export type projectViewsRetrieveResponse403 = {
   status: 403
 }
 
-export type projectViewsRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
-export type projectViewsRetrieveResponseComposite =
-  | projectViewsRetrieveResponse200
-  | projectViewsRetrieveResponse403
-  | projectViewsRetrieveResponse404
+export type projectViewsRetrieveResponseComposite = projectViewsRetrieveResponse200 | projectViewsRetrieveResponse403
 
 export type projectViewsRetrieveResponse = projectViewsRetrieveResponseComposite & {
   headers: Headers
@@ -180,7 +172,7 @@ export const getProjectViewsRetrieveQueryKey = (uid: string) => {
 
 export const getProjectViewsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectViewsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   uid: string,
   options?: {
@@ -203,12 +195,9 @@ export const getProjectViewsRetrieveQueryOptions = <
 }
 
 export type ProjectViewsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsRetrieve>>>
-export type ProjectViewsRetrieveQueryError = ErrorDetail | ErrorObject
+export type ProjectViewsRetrieveQueryError = ErrorDetail
 
-export function useProjectViewsRetrieve<
-  TData = Awaited<ReturnType<typeof projectViewsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
+export function useProjectViewsRetrieve<TData = Awaited<ReturnType<typeof projectViewsRetrieve>>, TError = ErrorDetail>(
   uid: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsRetrieve>>, TError, TData>
@@ -541,15 +530,9 @@ export type projectViewsUsersRetrieveResponse403 = {
   status: 403
 }
 
-export type projectViewsUsersRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type projectViewsUsersRetrieveResponseComposite =
   | projectViewsUsersRetrieveResponse200
   | projectViewsUsersRetrieveResponse403
-  | projectViewsUsersRetrieveResponse404
 
 export type projectViewsUsersRetrieveResponse = projectViewsUsersRetrieveResponseComposite & {
   headers: Headers
@@ -588,7 +571,7 @@ export const getProjectViewsUsersRetrieveQueryKey = (uid: string, params?: Proje
 
 export const getProjectViewsUsersRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   uid: string,
   params?: ProjectViewsUsersRetrieveParams,
@@ -612,11 +595,11 @@ export const getProjectViewsUsersRetrieveQueryOptions = <
 }
 
 export type ProjectViewsUsersRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>>
-export type ProjectViewsUsersRetrieveQueryError = ErrorDetail | ErrorObject
+export type ProjectViewsUsersRetrieveQueryError = ErrorDetail
 
 export function useProjectViewsUsersRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   uid: string,
   params?: ProjectViewsUsersRetrieveParams,
