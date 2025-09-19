@@ -1,4 +1,4 @@
-import { Group, Stack } from '@mantine/core'
+import { Group, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -44,28 +44,26 @@ export default function DeleteAccountBanner(props: DeleteAccountBannerProps) {
   function renderMessage() {
     if (isAccountOrganizationOwner) {
       return (
-        <p className={styles.message}>
+        <Text>
           {t(
             'You need to transfer ownership of your organization before you can delete your account. Please contact the server administrator.',
           )}
-        </p>
+        </Text>
       )
     } else if (isAccountWithoutAssets === true) {
-      return <p className={styles.message}>{t('Delete your account and all your account data.')}</p>
+      return <Text>{t('Delete your account and all your account data.')}</Text>
     } else if (isAccountWithoutAssets === false) {
       return (
-        <Group gap='0'>
-          <p className={styles.message}>
-            {t('You need to delete all projects owned by your user before you can delete your account.')}
-          </p>
-          &nbsp;
+        <Group gap='4px'>
+          <Text>{t('You need to delete all projects owned by your user before you can delete your account.')}</Text>
+
           <Button p='0' size='sm' onClick={goToProjectsList} rightIcon='arrow-right' variant='transparent'>
             {t('Go to project list')}
           </Button>
         </Group>
       )
     } else {
-      return <p className={styles.message}>…</p>
+      return <Text>…</Text>
     }
   }
 
