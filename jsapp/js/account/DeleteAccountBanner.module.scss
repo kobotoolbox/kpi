@@ -5,13 +5,3 @@
   border: 1px solid colors.$kobo-gray-300;
   border-radius: 6px;
 }
-
-.wrapper:not(:only-child, :first-child) {
-  margin-top: 32px;
-}
-
-.title {
-  margin: 0;
-  font-weight: 600;
-  font-size: 16px;
-}

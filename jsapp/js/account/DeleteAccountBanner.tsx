@@ -1,4 +1,4 @@
-import { Group, Stack, Text, Title } from '@mantine/core'
+import { Box, Group, Stack, Text, Title } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -70,7 +70,7 @@ export default function DeleteAccountBanner(props: DeleteAccountBannerProps) {
   const isAllowedToDelete = isAccountWithoutAssets && !isAccountOrganizationOwner
 
   return (
-    <div className={styles.wrapper}>
+    <Box className={styles.wrapper}>
       <Group>
         <Stack flex='1' gap='xs'>
           <Title order={3} fz='lg' fw='600'>
@@ -86,6 +86,6 @@ export default function DeleteAccountBanner(props: DeleteAccountBannerProps) {
 
         <DeleteAccountModal opened={isModalOpened} onClose={close} />
       </Group>
-    </div>
+    </Box>
   )
 }
