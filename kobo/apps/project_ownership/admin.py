@@ -97,6 +97,7 @@ class InviteAdmin(admin.ModelAdmin):
         )
 
     def get_transfers(self, obj):
+        date_format = '%Y-%m-%d %H:%M:%S'
         html = '<ul>'
         for transfer in obj.transfers.all():
             html += f'<li>{transfer.asset.name} #{transfer.asset.uid}</li>'
@@ -104,11 +105,21 @@ class InviteAdmin(admin.ModelAdmin):
             for status in transfer.statuses.exclude(
                 status_type=TransferStatusTypeChoices.GLOBAL
             ):
-                error = (
-                    f'<br><span class="error">{status.error}</span></i>'
-                    if status.error
-                    else ''
-                )
+                errors = [
+                    f'[{error.date_created.strftime(date_format)}] - {error.error}'
+                    for error in status.errors.filter(error__isnull=False)
+                ]
+                if status.error:
+                    # if we have the old deprecated 'error' field on the TransferStatus,
+                    # include that too
+                    errors = [status.error] + errors
+                if len(errors) > 100:
+                    # don't overwhelm the display
+                    errors = errors[0:100]
+                    errors.append('...')
+
+                error = '<br/>'.join(errors)
+                error = f'<br><span class="error">{error}</span></i>' if error else ''
                 html += f'<li>{status.status_type}: <i>{status.status}</i>{error}</li>'
             html += '</ol>'
         html += '</ul>'

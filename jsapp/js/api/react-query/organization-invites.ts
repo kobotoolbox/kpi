@@ -45,7 +45,7 @@ export type organizationsInvitesListResponse200 = {
 }
 
 export type organizationsInvitesListResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -93,7 +93,7 @@ export const getOrganizationsInvitesListQueryKey = (
 
 export const getOrganizationsInvitesListQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsInvitesList>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   organizationId: string,
   params?: OrganizationsInvitesListParams,
@@ -117,11 +117,11 @@ export const getOrganizationsInvitesListQueryOptions = <
 }
 
 export type OrganizationsInvitesListQueryResult = NonNullable<Awaited<ReturnType<typeof organizationsInvitesList>>>
-export type OrganizationsInvitesListQueryError = ErrorObject
+export type OrganizationsInvitesListQueryError = ErrorDetail
 
 export function useOrganizationsInvitesList<
   TData = Awaited<ReturnType<typeof organizationsInvitesList>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   organizationId: string,
   params?: OrganizationsInvitesListParams,
@@ -157,9 +157,15 @@ export type organizationsInvitesCreateResponse400 = {
   status: 400
 }
 
+export type organizationsInvitesCreateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
 export type organizationsInvitesCreateResponseComposite =
   | organizationsInvitesCreateResponse201
   | organizationsInvitesCreateResponse400
+  | organizationsInvitesCreateResponse404
 
 export type organizationsInvitesCreateResponse = organizationsInvitesCreateResponseComposite & {
   headers: Headers
@@ -182,7 +188,10 @@ export const organizationsInvitesCreate = async (
   })
 }
 
-export const getOrganizationsInvitesCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getOrganizationsInvitesCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsInvitesCreate>>,
     TError,
@@ -219,9 +228,9 @@ export type OrganizationsInvitesCreateMutationResult = NonNullable<
   Awaited<ReturnType<typeof organizationsInvitesCreate>>
 >
 export type OrganizationsInvitesCreateMutationBody = InviteCreatePayload
-export type OrganizationsInvitesCreateMutationError = ErrorObject
+export type OrganizationsInvitesCreateMutationError = ErrorObject | ErrorDetail
 
-export const useOrganizationsInvitesCreate = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useOrganizationsInvitesCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsInvitesCreate>>,
     TError,
@@ -244,7 +253,7 @@ export type organizationsInvitesRetrieveResponse200 = {
 }
 
 export type organizationsInvitesRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -277,7 +286,7 @@ export const getOrganizationsInvitesRetrieveQueryKey = (organizationId: string, 
 
 export const getOrganizationsInvitesRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsInvitesRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   organizationId: string,
   guid: string,
@@ -303,11 +312,11 @@ export const getOrganizationsInvitesRetrieveQueryOptions = <
 export type OrganizationsInvitesRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof organizationsInvitesRetrieve>>
 >
-export type OrganizationsInvitesRetrieveQueryError = ErrorObject
+export type OrganizationsInvitesRetrieveQueryError = ErrorDetail
 
 export function useOrganizationsInvitesRetrieve<
   TData = Awaited<ReturnType<typeof organizationsInvitesRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   organizationId: string,
   guid: string,
@@ -449,15 +458,9 @@ export type organizationsInvitesDestroyResponse403 = {
   status: 403
 }
 
-export type organizationsInvitesDestroyResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type organizationsInvitesDestroyResponseComposite =
   | organizationsInvitesDestroyResponse204
   | organizationsInvitesDestroyResponse403
-  | organizationsInvitesDestroyResponse404
 
 export type organizationsInvitesDestroyResponse = organizationsInvitesDestroyResponseComposite & {
   headers: Headers
@@ -478,10 +481,7 @@ export const organizationsInvitesDestroy = async (
   })
 }
 
-export const getOrganizationsInvitesDestroyMutationOptions = <
-  TError = ErrorDetail | ErrorObject,
-  TContext = unknown,
->(options?: {
+export const getOrganizationsInvitesDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsInvitesDestroy>>,
     TError,
@@ -518,9 +518,9 @@ export type OrganizationsInvitesDestroyMutationResult = NonNullable<
   Awaited<ReturnType<typeof organizationsInvitesDestroy>>
 >
 
-export type OrganizationsInvitesDestroyMutationError = ErrorDetail | ErrorObject
+export type OrganizationsInvitesDestroyMutationError = ErrorDetail
 
-export const useOrganizationsInvitesDestroy = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
+export const useOrganizationsInvitesDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsInvitesDestroy>>,
     TError,

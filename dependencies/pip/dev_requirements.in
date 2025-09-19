@@ -24,4 +24,4 @@ simplejson
 ruff
 flake8
 flake8-quotes
-darker[isort]
+darker[isort]==2.1.1

@@ -10,8 +10,6 @@ import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@
 
 import type { ErrorDetail } from '../models/errorDetail'
 
-import type { ErrorObject } from '../models/errorObject'
-
 import type { TransferListResponse } from '../models/transferListResponse'
 
 import { fetchWithAuth } from '../orval.mutator'
@@ -32,15 +30,9 @@ export type projectOwnershipInvitesTransfersRetrieveResponse401 = {
   status: 401
 }
 
-export type projectOwnershipInvitesTransfersRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type projectOwnershipInvitesTransfersRetrieveResponseComposite =
   | projectOwnershipInvitesTransfersRetrieveResponse200
   | projectOwnershipInvitesTransfersRetrieveResponse401
-  | projectOwnershipInvitesTransfersRetrieveResponse404
 
 export type projectOwnershipInvitesTransfersRetrieveResponse =
   projectOwnershipInvitesTransfersRetrieveResponseComposite & {
@@ -71,7 +63,7 @@ export const getProjectOwnershipInvitesTransfersRetrieveQueryKey = (parentLookup
 
 export const getProjectOwnershipInvitesTransfersRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupInviteUid: string,
   uid: string,
@@ -98,11 +90,11 @@ export const getProjectOwnershipInvitesTransfersRetrieveQueryOptions = <
 export type ProjectOwnershipInvitesTransfersRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>
 >
-export type ProjectOwnershipInvitesTransfersRetrieveQueryError = ErrorDetail | ErrorObject
+export type ProjectOwnershipInvitesTransfersRetrieveQueryError = ErrorDetail
 
 export function useProjectOwnershipInvitesTransfersRetrieve<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupInviteUid: string,
   uid: string,

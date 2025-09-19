@@ -19,6 +19,8 @@ import type { AssetsExportSettingsDataRetrieveParams } from '../models/assetsExp
 
 import type { AssetsExportSettingsListParams } from '../models/assetsExportSettingsListParams'
 
+import type { ErrorDetail } from '../models/errorDetail'
+
 import type { ErrorObject } from '../models/errorObject'
 
 import type { ExportSettingCreatePayload } from '../models/exportSettingCreatePayload'
@@ -45,7 +47,7 @@ export type assetsExportSettingsListResponse200 = {
 }
 
 export type assetsExportSettingsListResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -93,7 +95,7 @@ export const getAssetsExportSettingsListQueryKey = (
 
 export const getAssetsExportSettingsListQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsExportSettingsList>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   params?: AssetsExportSettingsListParams,
@@ -117,11 +119,11 @@ export const getAssetsExportSettingsListQueryOptions = <
 }
 
 export type AssetsExportSettingsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsExportSettingsList>>>
-export type AssetsExportSettingsListQueryError = ErrorObject
+export type AssetsExportSettingsListQueryError = ErrorDetail
 
 export function useAssetsExportSettingsList<
   TData = Awaited<ReturnType<typeof assetsExportSettingsList>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   params?: AssetsExportSettingsListParams,
@@ -192,9 +194,15 @@ export type assetsExportSettingsCreateResponse400 = {
   status: 400
 }
 
+export type assetsExportSettingsCreateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
 export type assetsExportSettingsCreateResponseComposite =
   | assetsExportSettingsCreateResponse201
   | assetsExportSettingsCreateResponse400
+  | assetsExportSettingsCreateResponse404
 
 export type assetsExportSettingsCreateResponse = assetsExportSettingsCreateResponseComposite & {
   headers: Headers
@@ -217,7 +225,10 @@ export const assetsExportSettingsCreate = async (
   })
 }
 
-export const getAssetsExportSettingsCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsExportSettingsCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsExportSettingsCreate>>,
     TError,
@@ -254,9 +265,9 @@ export type AssetsExportSettingsCreateMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsExportSettingsCreate>>
 >
 export type AssetsExportSettingsCreateMutationBody = ExportSettingCreatePayload
-export type AssetsExportSettingsCreateMutationError = ErrorObject
+export type AssetsExportSettingsCreateMutationError = ErrorObject | ErrorDetail
 
-export const useAssetsExportSettingsCreate = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsExportSettingsCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsExportSettingsCreate>>,
     TError,
@@ -281,7 +292,7 @@ export type assetsExportSettingsRetrieveResponse200 = {
 }
 
 export type assetsExportSettingsRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -317,7 +328,7 @@ export const getAssetsExportSettingsRetrieveQueryKey = (parentLookupAsset: strin
 
 export const getAssetsExportSettingsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsExportSettingsRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   uid: string,
@@ -343,11 +354,11 @@ export const getAssetsExportSettingsRetrieveQueryOptions = <
 export type AssetsExportSettingsRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof assetsExportSettingsRetrieve>>
 >
-export type AssetsExportSettingsRetrieveQueryError = ErrorObject
+export type AssetsExportSettingsRetrieveQueryError = ErrorDetail
 
 export function useAssetsExportSettingsRetrieve<
   TData = Awaited<ReturnType<typeof assetsExportSettingsRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   uid: string,
@@ -381,9 +392,15 @@ export type assetsExportSettingsPartialUpdateResponse400 = {
   status: 400
 }
 
+export type assetsExportSettingsPartialUpdateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
 export type assetsExportSettingsPartialUpdateResponseComposite =
   | assetsExportSettingsPartialUpdateResponse200
   | assetsExportSettingsPartialUpdateResponse400
+  | assetsExportSettingsPartialUpdateResponse404
 
 export type assetsExportSettingsPartialUpdateResponse = assetsExportSettingsPartialUpdateResponseComposite & {
   headers: Headers
@@ -411,7 +428,7 @@ export const assetsExportSettingsPartialUpdate = async (
 }
 
 export const getAssetsExportSettingsPartialUpdateMutationOptions = <
-  TError = ErrorObject,
+  TError = ErrorObject | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -450,9 +467,9 @@ export type AssetsExportSettingsPartialUpdateMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsExportSettingsPartialUpdate>>
 >
 export type AssetsExportSettingsPartialUpdateMutationBody = PatchedExportSettingUpdatePayload
-export type AssetsExportSettingsPartialUpdateMutationError = ErrorObject
+export type AssetsExportSettingsPartialUpdateMutationError = ErrorObject | ErrorDetail
 
-export const useAssetsExportSettingsPartialUpdate = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsExportSettingsPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsExportSettingsPartialUpdate>>,
     TError,
@@ -478,7 +495,7 @@ export type assetsExportSettingsDestroyResponse204 = {
 }
 
 export type assetsExportSettingsDestroyResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -505,7 +522,7 @@ export const assetsExportSettingsDestroy = async (
   })
 }
 
-export const getAssetsExportSettingsDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsExportSettingsDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsExportSettingsDestroy>>,
     TError,
@@ -542,9 +559,9 @@ export type AssetsExportSettingsDestroyMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsExportSettingsDestroy>>
 >
 
-export type AssetsExportSettingsDestroyMutationError = ErrorObject
+export type AssetsExportSettingsDestroyMutationError = ErrorDetail
 
-export const useAssetsExportSettingsDestroy = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsExportSettingsDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsExportSettingsDestroy>>,
     TError,
@@ -577,9 +594,15 @@ export type assetsExportSettingsDataRetrieveResponse400 = {
   status: 400
 }
 
+export type assetsExportSettingsDataRetrieveResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
 export type assetsExportSettingsDataRetrieveResponseComposite =
   | assetsExportSettingsDataRetrieveResponse200
   | assetsExportSettingsDataRetrieveResponse400
+  | assetsExportSettingsDataRetrieveResponse404
 
 export type assetsExportSettingsDataRetrieveResponse = assetsExportSettingsDataRetrieveResponseComposite & {
   headers: Headers
@@ -639,7 +662,7 @@ export const getAssetsExportSettingsDataRetrieveQueryKey = (
 
 export const getAssetsExportSettingsDataRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorObject | ErrorDetail,
 >(
   parentLookupAsset: string,
   uid: string,
@@ -666,11 +689,11 @@ export const getAssetsExportSettingsDataRetrieveQueryOptions = <
 export type AssetsExportSettingsDataRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>
 >
-export type AssetsExportSettingsDataRetrieveQueryError = ErrorObject
+export type AssetsExportSettingsDataRetrieveQueryError = ErrorObject | ErrorDetail
 
 export function useAssetsExportSettingsDataRetrieve<
   TData = Awaited<ReturnType<typeof assetsExportSettingsDataRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorObject | ErrorDetail,
 >(
   parentLookupAsset: string,
   uid: string,

@@ -229,15 +229,7 @@ export type importsRetrieveResponse401 = {
   status: 401
 }
 
-export type importsRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
-export type importsRetrieveResponseComposite =
-  | importsRetrieveResponse200
-  | importsRetrieveResponse401
-  | importsRetrieveResponse404
+export type importsRetrieveResponseComposite = importsRetrieveResponse200 | importsRetrieveResponse401
 
 export type importsRetrieveResponse = importsRetrieveResponseComposite & {
   headers: Headers
@@ -260,7 +252,7 @@ export const getImportsRetrieveQueryKey = (uid: string) => {
 
 export const getImportsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof importsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   uid: string,
   options?: {
@@ -283,12 +275,9 @@ export const getImportsRetrieveQueryOptions = <
 }
 
 export type ImportsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof importsRetrieve>>>
-export type ImportsRetrieveQueryError = ErrorDetail | ErrorObject
+export type ImportsRetrieveQueryError = ErrorDetail
 
-export function useImportsRetrieve<
-  TData = Awaited<ReturnType<typeof importsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
+export function useImportsRetrieve<TData = Awaited<ReturnType<typeof importsRetrieve>>, TError = ErrorDetail>(
   uid: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof importsRetrieve>>, TError, TData>

@@ -142,7 +142,7 @@ dj-static==0.0.6
     # via -r dependencies/pip/requirements.in
 dj-stripe==2.8.3
     # via -r dependencies/pip/requirements.in
-django==4.2.15
+django==4.2.24
     # via
     #   -r dependencies/pip/requirements.in
     #   dj-stripe

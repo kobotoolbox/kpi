@@ -17,8 +17,6 @@ import type {
 
 import type { ErrorDetail } from '../models/errorDetail'
 
-import type { ErrorObject } from '../models/errorObject'
-
 import type { ExportHistoryResponse } from '../models/exportHistoryResponse'
 
 import type { PaginatedProjectHistoryLogResponseList } from '../models/paginatedProjectHistoryLogResponseList'
@@ -241,15 +239,9 @@ export type projectHistoryLogsListResponse403 = {
   status: 403
 }
 
-export type projectHistoryLogsListResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type projectHistoryLogsListResponseComposite =
   | projectHistoryLogsListResponse200
   | projectHistoryLogsListResponse403
-  | projectHistoryLogsListResponse404
 
 export type projectHistoryLogsListResponse = projectHistoryLogsListResponseComposite & {
   headers: Headers
@@ -287,7 +279,7 @@ export const getProjectHistoryLogsListQueryKey = (params?: ProjectHistoryLogsLis
 
 export const getProjectHistoryLogsListQueryOptions = <
   TData = Awaited<ReturnType<typeof projectHistoryLogsList>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   params?: ProjectHistoryLogsListParams,
   options?: {
@@ -310,11 +302,11 @@ export const getProjectHistoryLogsListQueryOptions = <
 }
 
 export type ProjectHistoryLogsListQueryResult = NonNullable<Awaited<ReturnType<typeof projectHistoryLogsList>>>
-export type ProjectHistoryLogsListQueryError = ErrorDetail | ErrorObject
+export type ProjectHistoryLogsListQueryError = ErrorDetail
 
 export function useProjectHistoryLogsList<
   TData = Awaited<ReturnType<typeof projectHistoryLogsList>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   params?: ProjectHistoryLogsListParams,
   options?: {
@@ -347,15 +339,9 @@ export type projectHistoryLogsExportRetrieveResponse403 = {
   status: 403
 }
 
-export type projectHistoryLogsExportRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type projectHistoryLogsExportRetrieveResponseComposite =
   | projectHistoryLogsExportRetrieveResponse202
   | projectHistoryLogsExportRetrieveResponse403
-  | projectHistoryLogsExportRetrieveResponse404
 
 export type projectHistoryLogsExportRetrieveResponse = projectHistoryLogsExportRetrieveResponseComposite & {
   headers: Headers
@@ -380,7 +366,7 @@ export const getProjectHistoryLogsExportRetrieveQueryKey = () => {
 
 export const getProjectHistoryLogsExportRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>, TError, TData>
   request?: SecondParameter<typeof fetchWithAuth>
@@ -402,11 +388,11 @@ export const getProjectHistoryLogsExportRetrieveQueryOptions = <
 export type ProjectHistoryLogsExportRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>
 >
-export type ProjectHistoryLogsExportRetrieveQueryError = ErrorDetail | ErrorObject
+export type ProjectHistoryLogsExportRetrieveQueryError = ErrorDetail
 
 export function useProjectHistoryLogsExportRetrieve<
   TData = Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(options?: {
   query?: UseQueryOptions<Awaited<ReturnType<typeof projectHistoryLogsExportRetrieve>>, TError, TData>
   request?: SecondParameter<typeof fetchWithAuth>
@@ -434,15 +420,9 @@ export type projectHistoryLogsExportCreateResponse403 = {
   status: 403
 }
 
-export type projectHistoryLogsExportCreateResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type projectHistoryLogsExportCreateResponseComposite =
   | projectHistoryLogsExportCreateResponse202
   | projectHistoryLogsExportCreateResponse403
-  | projectHistoryLogsExportCreateResponse404
 
 export type projectHistoryLogsExportCreateResponse = projectHistoryLogsExportCreateResponseComposite & {
   headers: Headers
@@ -461,10 +441,7 @@ export const projectHistoryLogsExportCreate = async (
   })
 }
 
-export const getProjectHistoryLogsExportCreateMutationOptions = <
-  TError = ErrorDetail | ErrorObject,
-  TContext = unknown,
->(options?: {
+export const getProjectHistoryLogsExportCreateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof projectHistoryLogsExportCreate>>, TError, void, TContext>
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<Awaited<ReturnType<typeof projectHistoryLogsExportCreate>>, TError, void, TContext> => {
@@ -486,9 +463,9 @@ export type ProjectHistoryLogsExportCreateMutationResult = NonNullable<
   Awaited<ReturnType<typeof projectHistoryLogsExportCreate>>
 >
 
-export type ProjectHistoryLogsExportCreateMutationError = ErrorDetail | ErrorObject
+export type ProjectHistoryLogsExportCreateMutationError = ErrorDetail
 
-export const useProjectHistoryLogsExportCreate = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
+export const useProjectHistoryLogsExportCreate = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof projectHistoryLogsExportCreate>>, TError, void, TContext>
   request?: SecondParameter<typeof fetchWithAuth>
 }) => {
