@@ -1,3 +1,5 @@
+# flake8: noqa: E501
+
 from django.conf import settings
 from django.db import migrations
 

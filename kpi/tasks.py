@@ -7,8 +7,8 @@ from django.conf import settings
 from django.core import mail
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import call_command
-from django.db import connection, connections, transaction
-from django.db.models import Min, Q, Sum
+from django.db import connection, transaction
+from django.db.models import Min, Q
 from django.utils import timezone
 from reversion.models import Version
 
@@ -231,8 +231,12 @@ def refresh_user_report_snapshots(batch_size: int = 500):
                     organization_id=oid,
                     effective_user_id=data.get('effective_user_id'),
                     storage_bytes_total=data.get('storage_bytes_total', 0),
-                    submission_counts_all_time=data.get('submission_counts_all_time', 0),
-                    current_period_submissions=data.get('current_period_submissions', 0),
+                    submission_counts_all_time=data.get(
+                        'submission_counts_all_time', 0
+                    ),
+                    current_period_submissions=data.get(
+                        'current_period_submissions', 0
+                    ),
                     billing_period_start=data.get('billing_period_start'),
                     billing_period_end=data.get('billing_period_end'),
                     snapshot_created_at=now,
