@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from django.utils import timezone
 from rest_framework import serializers
@@ -54,7 +54,7 @@ class UserReportsSerializer(serializers.ModelSerializer):
         balances = service_usage.get('balances', {})
         return any(balance and balance.get('exceeded') for balance in balances.values())
 
-    def get_current_service_usage(self, obj) -> Dict[str, Any]:
+    def get_current_service_usage(self, obj) -> dict[str, Any]:
         total_nlp_usage = {
             'asr_seconds_current_period': obj.current_period_asr,
             'mt_characters_current_period': obj.current_period_mt,
@@ -88,7 +88,7 @@ class UserReportsSerializer(serializers.ModelSerializer):
             'last_updated': timezone.now().isoformat(),
         }
 
-    def _calculate_usage_balances(self, obj) -> Dict[str, Any]:
+    def _calculate_usage_balances(self, obj) -> dict[str, Any]:
         """
         Calculate usage balances against organization limits.
 

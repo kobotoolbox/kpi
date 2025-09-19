@@ -151,14 +151,6 @@ class FastPagination(Paginated):
         return super().get_count(queryset)
 
 
-class LimitStartPagination(LimitOffsetPagination):
-    """
-    A pagination class that supports '?limit=<count>&start=<offset>' query parameters.
-    """
-
-    offset_query_param = 'start'
-
-
 class TinyPaginated(PageNumberPagination):
     """
     Same as Paginated with a small page size

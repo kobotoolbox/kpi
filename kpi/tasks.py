@@ -1,6 +1,5 @@
 import time
 import uuid
-from typing import List
 
 import requests
 from django.apps import apps
@@ -210,8 +209,8 @@ def refresh_user_report_snapshots(batch_size: int = 500):
         )
         existing_map = {s.organization_id: s for s in existing_qs}
 
-        to_update: List[BillingAndUsageSnapshot] = []
-        to_create: List[BillingAndUsageSnapshot] = []
+        to_update: list[BillingAndUsageSnapshot] = []
+        to_create: list[BillingAndUsageSnapshot] = []
         for org in orgs:
             oid = str(org.id)
             data = usage_map.get(oid, {})
