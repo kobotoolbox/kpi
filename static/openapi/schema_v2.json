@@ -14988,14 +14988,14 @@
             "InviteCreatePayload": {
                 "type": "object",
                 "properties": {
+                    "role": {
+                        "$ref": "#/components/schemas/InviteeRoleEnum"
+                    },
                     "invitees": {
                         "type": "array",
                         "items": {
                             "type": "string"
                         }
-                    },
-                    "role": {
-                        "$ref": "#/components/schemas/InviteeRoleEnum"
                     }
                 },
                 "required": [
@@ -15059,6 +15059,12 @@
             "InviteResponse": {
                 "type": "object",
                 "properties": {
+                    "invitee_role": {
+                        "$ref": "#/components/schemas/InviteeRoleEnum"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/InviteStatusChoicesEnum"
+                    },
                     "url": {
                         "type": "string",
                         "format": "uri",
@@ -15068,12 +15074,6 @@
                         "type": "string",
                         "format": "uri",
                         "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
-                    },
-                    "status": {
-                        "$ref": "#/components/schemas/InviteStatusChoicesEnum"
-                    },
-                    "invitee_role": {
-                        "$ref": "#/components/schemas/InviteeRoleEnum"
                     },
                     "organization_name": {
                         "type": "string"
@@ -17441,7 +17441,7 @@
                         "type": "object",
                         "properties": {
                             "status": {
-                                "type": "string"
+                                "$ref": "#/components/schemas/InviteStatusChoicesEnum"
                             }
                         },
                         "required": [
@@ -17452,7 +17452,7 @@
                         "type": "object",
                         "properties": {
                             "role": {
-                                "type": "string"
+                                "$ref": "#/components/schemas/InviteeRoleEnum"
                             }
                         },
                         "required": [

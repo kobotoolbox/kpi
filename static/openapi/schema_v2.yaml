@@ -10782,12 +10782,12 @@ components:
     InviteCreatePayload:
       type: object
       properties:
+        role:
+          $ref: '#/components/schemas/InviteeRoleEnum'
         invitees:
           type: array
           items:
             type: string
-        role:
-          $ref: '#/components/schemas/InviteeRoleEnum'
       required:
       - invitees
       - role
@@ -10836,6 +10836,10 @@ components:
     InviteResponse:
       type: object
       properties:
+        invitee_role:
+          $ref: '#/components/schemas/InviteeRoleEnum'
+        status:
+          $ref: '#/components/schemas/InviteStatusChoicesEnum'
         url:
           type: string
           format: uri
@@ -10844,10 +10848,6 @@ components:
           type: string
           format: uri
           example: https://kf.kobotoolbox.org/api/v2/users/bob/
-        status:
-          $ref: '#/components/schemas/InviteStatusChoicesEnum'
-        invitee_role:
-          $ref: '#/components/schemas/InviteeRoleEnum'
         organization_name:
           type: string
         created:
@@ -12586,13 +12586,13 @@ components:
       - type: object
         properties:
           status:
-            type: string
+            $ref: '#/components/schemas/InviteStatusChoicesEnum'
         required:
         - status
       - type: object
         properties:
           role:
-            type: string
+            $ref: '#/components/schemas/InviteeRoleEnum'
         required:
         - role
     PatchedInviteUpdatePayload:
