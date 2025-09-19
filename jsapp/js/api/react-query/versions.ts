@@ -10,7 +10,7 @@ import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@
 
 import type { AssetsVersionsListParams } from '../models/assetsVersionsListParams'
 
-import type { ErrorObject } from '../models/errorObject'
+import type { ErrorDetail } from '../models/errorDetail'
 
 import type { PaginatedVersionListResponseList } from '../models/paginatedVersionListResponseList'
 
@@ -30,7 +30,7 @@ export type assetsVersionsListResponse200 = {
 }
 
 export type assetsVersionsListResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -73,7 +73,7 @@ export const getAssetsVersionsListQueryKey = (parentLookupAsset: string, params?
 
 export const getAssetsVersionsListQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsVersionsList>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   params?: AssetsVersionsListParams,
@@ -97,9 +97,9 @@ export const getAssetsVersionsListQueryOptions = <
 }
 
 export type AssetsVersionsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsVersionsList>>>
-export type AssetsVersionsListQueryError = ErrorObject
+export type AssetsVersionsListQueryError = ErrorDetail
 
-export function useAssetsVersionsList<TData = Awaited<ReturnType<typeof assetsVersionsList>>, TError = ErrorObject>(
+export function useAssetsVersionsList<TData = Awaited<ReturnType<typeof assetsVersionsList>>, TError = ErrorDetail>(
   parentLookupAsset: string,
   params?: AssetsVersionsListParams,
   options?: {
@@ -128,7 +128,7 @@ export type assetsVersionsRetrieveResponse200 = {
 }
 
 export type assetsVersionsRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -161,7 +161,7 @@ export const getAssetsVersionsRetrieveQueryKey = (parentLookupAsset: string, uid
 
 export const getAssetsVersionsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsVersionsRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   uid: string,
@@ -185,11 +185,11 @@ export const getAssetsVersionsRetrieveQueryOptions = <
 }
 
 export type AssetsVersionsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsVersionsRetrieve>>>
-export type AssetsVersionsRetrieveQueryError = ErrorObject
+export type AssetsVersionsRetrieveQueryError = ErrorDetail
 
 export function useAssetsVersionsRetrieve<
   TData = Awaited<ReturnType<typeof assetsVersionsRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   uid: string,

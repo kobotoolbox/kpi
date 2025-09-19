@@ -72,7 +72,7 @@ export type assetsHooksListResponse200 = {
 }
 
 export type assetsHooksListResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -115,7 +115,7 @@ export const getAssetsHooksListQueryKey = (parentLookupAsset: string, params?: A
 
 export const getAssetsHooksListQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsHooksList>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   params?: AssetsHooksListParams,
@@ -139,9 +139,9 @@ export const getAssetsHooksListQueryOptions = <
 }
 
 export type AssetsHooksListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHooksList>>>
-export type AssetsHooksListQueryError = ErrorObject
+export type AssetsHooksListQueryError = ErrorDetail
 
-export function useAssetsHooksList<TData = Awaited<ReturnType<typeof assetsHooksList>>, TError = ErrorObject>(
+export function useAssetsHooksList<TData = Awaited<ReturnType<typeof assetsHooksList>>, TError = ErrorDetail>(
   parentLookupAsset: string,
   params?: AssetsHooksListParams,
   options?: {
@@ -202,7 +202,15 @@ export type assetsHooksCreateResponse400 = {
   status: 400
 }
 
-export type assetsHooksCreateResponseComposite = assetsHooksCreateResponse201 | assetsHooksCreateResponse400
+export type assetsHooksCreateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type assetsHooksCreateResponseComposite =
+  | assetsHooksCreateResponse201
+  | assetsHooksCreateResponse400
+  | assetsHooksCreateResponse404
 
 export type assetsHooksCreateResponse = assetsHooksCreateResponseComposite & {
   headers: Headers
@@ -225,7 +233,7 @@ export const assetsHooksCreate = async (
   })
 }
 
-export const getAssetsHooksCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsHooksCreateMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksCreate>>,
     TError,
@@ -260,9 +268,9 @@ export const getAssetsHooksCreateMutationOptions = <TError = ErrorObject, TConte
 
 export type AssetsHooksCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHooksCreate>>>
 export type AssetsHooksCreateMutationBody = NonReadonly<Hook>
-export type AssetsHooksCreateMutationError = ErrorObject
+export type AssetsHooksCreateMutationError = ErrorObject | ErrorDetail
 
-export const useAssetsHooksCreate = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsHooksCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksCreate>>,
     TError,
@@ -303,15 +311,7 @@ export type assetsHooksLogsListResponse403 = {
   status: 403
 }
 
-export type assetsHooksLogsListResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
-export type assetsHooksLogsListResponseComposite =
-  | assetsHooksLogsListResponse200
-  | assetsHooksLogsListResponse403
-  | assetsHooksLogsListResponse404
+export type assetsHooksLogsListResponseComposite = assetsHooksLogsListResponse200 | assetsHooksLogsListResponse403
 
 export type assetsHooksLogsListResponse = assetsHooksLogsListResponseComposite & {
   headers: Headers
@@ -371,7 +371,7 @@ export const getAssetsHooksLogsListQueryKey = (
 
 export const getAssetsHooksLogsListQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsHooksLogsList>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   parentLookupHook: string,
@@ -396,12 +396,9 @@ export const getAssetsHooksLogsListQueryOptions = <
 }
 
 export type AssetsHooksLogsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHooksLogsList>>>
-export type AssetsHooksLogsListQueryError = ErrorDetail | ErrorObject
+export type AssetsHooksLogsListQueryError = ErrorDetail
 
-export function useAssetsHooksLogsList<
-  TData = Awaited<ReturnType<typeof assetsHooksLogsList>>,
-  TError = ErrorDetail | ErrorObject,
->(
+export function useAssetsHooksLogsList<TData = Awaited<ReturnType<typeof assetsHooksLogsList>>, TError = ErrorDetail>(
   parentLookupAsset: string,
   parentLookupHook: string,
   params?: AssetsHooksLogsListParams,
@@ -433,15 +430,9 @@ export type assetsHooksLogsRetrieveResponse403 = {
   status: 403
 }
 
-export type assetsHooksLogsRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type assetsHooksLogsRetrieveResponseComposite =
   | assetsHooksLogsRetrieveResponse200
   | assetsHooksLogsRetrieveResponse403
-  | assetsHooksLogsRetrieveResponse404
 
 export type assetsHooksLogsRetrieveResponse = assetsHooksLogsRetrieveResponseComposite & {
   headers: Headers
@@ -476,7 +467,7 @@ export const getAssetsHooksLogsRetrieveQueryKey = (
 
 export const getAssetsHooksLogsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   parentLookupHook: string,
@@ -503,11 +494,11 @@ export const getAssetsHooksLogsRetrieveQueryOptions = <
 }
 
 export type AssetsHooksLogsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>>
-export type AssetsHooksLogsRetrieveQueryError = ErrorDetail | ErrorObject
+export type AssetsHooksLogsRetrieveQueryError = ErrorDetail
 
 export function useAssetsHooksLogsRetrieve<
   TData = Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   parentLookupHook: string,
@@ -540,15 +531,9 @@ export type assetsHooksLogsRetryPartialUpdateResponse403 = {
   status: 403
 }
 
-export type assetsHooksLogsRetryPartialUpdateResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type assetsHooksLogsRetryPartialUpdateResponseComposite =
   | assetsHooksLogsRetryPartialUpdateResponse200
   | assetsHooksLogsRetryPartialUpdateResponse403
-  | assetsHooksLogsRetryPartialUpdateResponse404
 
 export type assetsHooksLogsRetryPartialUpdateResponse = assetsHooksLogsRetryPartialUpdateResponseComposite & {
   headers: Headers
@@ -581,7 +566,7 @@ export const assetsHooksLogsRetryPartialUpdate = async (
 }
 
 export const getAssetsHooksLogsRetryPartialUpdateMutationOptions = <
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -620,9 +605,9 @@ export type AssetsHooksLogsRetryPartialUpdateMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsHooksLogsRetryPartialUpdate>>
 >
 export type AssetsHooksLogsRetryPartialUpdateMutationBody = NonReadonly<PatchedHookLog>
-export type AssetsHooksLogsRetryPartialUpdateMutationError = ErrorDetail | ErrorObject
+export type AssetsHooksLogsRetryPartialUpdateMutationError = ErrorDetail
 
-export const useAssetsHooksLogsRetryPartialUpdate = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
+export const useAssetsHooksLogsRetryPartialUpdate = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksLogsRetryPartialUpdate>>,
     TError,
@@ -645,7 +630,7 @@ export type assetsHooksRetrieveResponse200 = {
 }
 
 export type assetsHooksRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -676,7 +661,7 @@ export const getAssetsHooksRetrieveQueryKey = (parentLookupAsset: string, uid: s
 
 export const getAssetsHooksRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsHooksRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   uid: string,
@@ -700,9 +685,9 @@ export const getAssetsHooksRetrieveQueryOptions = <
 }
 
 export type AssetsHooksRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHooksRetrieve>>>
-export type AssetsHooksRetrieveQueryError = ErrorObject
+export type AssetsHooksRetrieveQueryError = ErrorDetail
 
-export function useAssetsHooksRetrieve<TData = Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError = ErrorObject>(
+export function useAssetsHooksRetrieve<TData = Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError = ErrorDetail>(
   parentLookupAsset: string,
   uid: string,
   options?: {
@@ -733,9 +718,15 @@ export type assetsHooksPartialUpdateResponse400 = {
   status: 400
 }
 
+export type assetsHooksPartialUpdateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
 export type assetsHooksPartialUpdateResponseComposite =
   | assetsHooksPartialUpdateResponse200
   | assetsHooksPartialUpdateResponse400
+  | assetsHooksPartialUpdateResponse404
 
 export type assetsHooksPartialUpdateResponse = assetsHooksPartialUpdateResponseComposite & {
   headers: Headers
@@ -759,7 +750,10 @@ export const assetsHooksPartialUpdate = async (
   })
 }
 
-export const getAssetsHooksPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsHooksPartialUpdateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksPartialUpdate>>,
     TError,
@@ -794,9 +788,9 @@ export const getAssetsHooksPartialUpdateMutationOptions = <TError = ErrorObject,
 
 export type AssetsHooksPartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHooksPartialUpdate>>>
 export type AssetsHooksPartialUpdateMutationBody = NonReadonly<PatchedHook>
-export type AssetsHooksPartialUpdateMutationError = ErrorObject
+export type AssetsHooksPartialUpdateMutationError = ErrorObject | ErrorDetail
 
-export const useAssetsHooksPartialUpdate = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsHooksPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksPartialUpdate>>,
     TError,
@@ -819,7 +813,7 @@ export type assetsHooksDestroyResponse204 = {
 }
 
 export type assetsHooksDestroyResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -844,7 +838,7 @@ export const assetsHooksDestroy = async (
   })
 }
 
-export const getAssetsHooksDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsHooksDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksDestroy>>,
     TError,
@@ -879,9 +873,9 @@ export const getAssetsHooksDestroyMutationOptions = <TError = ErrorObject, TCont
 
 export type AssetsHooksDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHooksDestroy>>>
 
-export type AssetsHooksDestroyMutationError = ErrorObject
+export type AssetsHooksDestroyMutationError = ErrorDetail
 
-export const useAssetsHooksDestroy = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsHooksDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksDestroy>>,
     TError,
@@ -908,7 +902,7 @@ export type assetsHooksRetryPartialUpdateResponse200 = {
 }
 
 export type assetsHooksRetryPartialUpdateResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -938,7 +932,7 @@ export const assetsHooksRetryPartialUpdate = async (
   )
 }
 
-export const getAssetsHooksRetryPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsHooksRetryPartialUpdateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksRetryPartialUpdate>>,
     TError,
@@ -975,9 +969,9 @@ export type AssetsHooksRetryPartialUpdateMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsHooksRetryPartialUpdate>>
 >
 
-export type AssetsHooksRetryPartialUpdateMutationError = ErrorObject
+export type AssetsHooksRetryPartialUpdateMutationError = ErrorDetail
 
-export const useAssetsHooksRetryPartialUpdate = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsHooksRetryPartialUpdate = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksRetryPartialUpdate>>,
     TError,

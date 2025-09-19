@@ -1,6 +1,8 @@
 @use 'sass:color';
 @use 'scss/z-indexes';
 @use 'scss/colors';
+@use 'scss/_variables';
+@use 'scss/libs/_mdl';
 
 // ==========================================================================
 // Card (incl. Header and Expanded)
@@ -8,7 +10,7 @@
 
 .card {
     border-radius: 0;
-    font-family: $font;
+    font-family: mdl.$font;
     font-weight: 600;
     font-size: 13px;
     line-height: 18px;
@@ -21,9 +23,9 @@
     }
 
     .card__header {
-        border: $cardBorderStyle;
+        border: variables.$cardBorderStyle;
         // right padding needs to make space for absolute positioned icons
-        padding: 20px #{15px + $s-fb-row-locking-icons-width + $s-fb-row-buttons-width} 20px 75px;
+        padding: 20px #{15px + variables.$s-fb-row-locking-icons-width + variables.$s-fb-row-buttons-width} 20px 75px;
         min-height: 82px; // to fit all icons in
         display: block;
         background: colors.$kobo-white;
@@ -79,7 +81,7 @@
     .card__header-title,
     .card__header-hint {
       &:focus {
-        @include form-builder-focus;
+        @include mdl.form-builder-focus;
       }
     }
 
@@ -150,10 +152,10 @@
 
 .sortable-active {
     .card__header {
-        border: $cardInSortBorderStyle;
+        border: variables.$cardInSortBorderStyle;
 
         .card__header-title {
-            color: $cardInSortBorderColor;
+            color: variables.$cardInSortBorderColor;
         }
     }
 }
@@ -176,12 +178,12 @@ $cardIndicatorIconWidth: 21px;
     top: 0;
     width: $cardIndicatorWidth;
     height: 100%;
-    border-right: $cardBorderStyle;
+    border-right: variables.$cardBorderStyle;
 }
 
 .card--insort {
     .card__indicator {
-        border-right: $cardInSortThinBorderStyle;
+        border-right: variables.$cardInSortThinBorderStyle;
     }
 }
 
@@ -203,12 +205,12 @@ $cardIndicatorIconWidth: 21px;
 // ==========================================================================
 
 .card__buttons {
-    border: $cardBorderStyle;
+    border: variables.$cardBorderStyle;
     border-width: 0 0 0 1px;
     position: absolute;
     top: 0;
     right: 1px; // needed for settings icon to not cover the right border when active
-    width: $s-fb-row-buttons-width;
+    width: variables.$s-fb-row-buttons-width;
     height: 100%;
     z-index: z-indexes.$z-form-builder-card-buttons;
     display: flex;
@@ -270,14 +272,14 @@ $cardIndicatorIconWidth: 21px;
 
 .card--insort {
     .card__buttons {
-        border-left: $cardInSortThinBorderStyle;
+        border-left: variables.$cardInSortThinBorderStyle;
     }
 }
 
 .card__buttons__button {
     height: 20px;
     line-height: 20px;
-    width: $s-fb-row-buttons-width;
+    width: variables.$s-fb-row-buttons-width;
     text-align: center;
     position: relative;
     cursor: pointer;

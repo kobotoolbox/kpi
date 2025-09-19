@@ -1377,11 +1377,6 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0),
         'options': {'queue': 'kpi_queue'},
     },
-    'remove-reversion-versions': {
-        'task': 'kpi.tasks.remove_old_versions',
-        'schedule': crontab(minute=0),
-        'options': {'queue': 'kpi_low_priority_queue'},
-    },
 }
 
 if STRIPE_ENABLED:
