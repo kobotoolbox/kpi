@@ -73,7 +73,7 @@ export default function DeleteAccountBanner(props: DeleteAccountBannerProps) {
     <div className={styles.wrapper}>
       <Group>
         <Stack flex='1' gap='xs'>
-          <h3 className={styles.title}>{t('Delete account')}</h3>
+          <Title order={3} m="0" fz="16px" fw="600">{t('Delete account')}</Title>
 
           {renderMessage()}
         </Stack>
