@@ -68,12 +68,10 @@ module.exports = do ->
     precedingRow: ->
       ii = @_parent.models.indexOf(@)
       if ii isnt 0
-        @_parent.at(ii-1)
-      return
+        return @_parent.at(ii-1)
     nextRow: ->
       ii = @_parent.models.indexOf(@)
-      @_parent.at(ii+1)
-      return
+      return @_parent.at(ii+1)
     getSurvey: ->
       parent = @_parent
       if parent is null or parent is undefined
