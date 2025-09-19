@@ -1,4 +1,4 @@
-import { Group, Stack, Text } from '@mantine/core'
+import { Group, Stack, Text, Title } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -73,7 +73,9 @@ export default function DeleteAccountBanner(props: DeleteAccountBannerProps) {
     <div className={styles.wrapper}>
       <Group>
         <Stack flex='1' gap='xs'>
-          <Title order={3} m="0" fz="16px" fw="600">{t('Delete account')}</Title>
+          <Title order={3} fz='lg' fw='600'>
+            {t('Delete account')}
+          </Title>
 
           {renderMessage()}
         </Stack>
