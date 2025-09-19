@@ -33,7 +33,6 @@ export default function DeleteAccountBanner(props: DeleteAccountBannerProps) {
       singleAssetEndpoint += `&storybookTestId=${props.storybookTestId}`
     }
     fetchGet<PaginatedResponse<AssetResponse>>(singleAssetEndpoint).then((data: PaginatedResponse<AssetResponse>) => {
-      console.log('data', data)
       setIsAccountWithoutAssets(data.count === 0)
     })
   }, [])
