@@ -2,7 +2,11 @@ from constance.test import override_config
 from django.test import TestCase
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kpi.constants import PERM_MANAGE_ASSET
+from kpi.constants import (
+    PERM_MANAGE_ASSET,
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
+)
 from kpi.models import Asset
 from kpi.tests.utils.transaction import immediate_on_commit
 from ..utils import create_invite
@@ -72,3 +76,33 @@ class ProjectOwnershipPermissionTestCase(TestCase):
         assert self.asset.has_perm(self.someuser, PERM_MANAGE_ASSET)
         # The invite recipient should have received "manage_asset" permission too
         assert self.asset.has_perm(self.thirduser, PERM_MANAGE_ASSET)
+
+    def test_recipient_as_partial_perm_user_is_owner(self):
+        partial_perms = {PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'someuser'}]}
+        self.asset.assign_perm(
+            self.anotheruser, PERM_PARTIAL_SUBMISSIONS, partial_perms=partial_perms
+        )
+
+        assert self.asset.owner == self.someuser
+        with immediate_on_commit():
+            create_invite(
+                sender=self.someuser,
+                recipient=self.anotheruser,
+                assets=[self.asset],
+                invite_class_name='Invite',
+            )
+
+        self.asset.refresh_from_db()
+        # New owner should anotheruser
+        assert self.asset.owner == self.anotheruser
+        # New owner should not have partial permissions
+        assert self.asset.get_partial_perms(self.anotheruser.pk) is None
+        assert (
+            self.asset.get_filters_for_partial_perm(
+                self.anotheruser.pk, perm=PERM_VIEW_SUBMISSIONS
+            )
+            is None
+        )
+
+        # The previous owner should have received "manage_asset" permission
+        assert self.asset.has_perm(self.someuser, PERM_MANAGE_ASSET)
