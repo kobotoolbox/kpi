@@ -5,7 +5,8 @@
  * Powerful and intuitive data collection tools to make an impact
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
+import type { InviteeRoleEnum } from './inviteeRoleEnum'
 
 export type PatchedInvitePatchPayloadOneOfTwo = {
-  role: string
+  role: InviteeRoleEnum
 }

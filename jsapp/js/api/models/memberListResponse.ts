@@ -6,7 +6,7 @@ import type { MemberListResponseInvite } from './memberListResponseInvite'
  * Powerful and intuitive data collection tools to make an impact
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { MemberListResponseRoleEnum } from './memberListResponseRoleEnum'
+import type { MemberRoleEnum } from './memberRoleEnum'
 
 export interface MemberListResponse {
   url: string
@@ -14,7 +14,7 @@ export interface MemberListResponse {
   user__username: string
   user__email: string
   user__extra_details__name: string
-  role: MemberListResponseRoleEnum
+  role: MemberRoleEnum
   user__has_mfa_enabled: boolean
   date_joined: string
   user__is_active: boolean

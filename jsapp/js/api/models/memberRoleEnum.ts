@@ -11,10 +11,10 @@
  * `member` - member
  * `owner` - owner
  */
-export type MemberListResponseRoleEnum = (typeof MemberListResponseRoleEnum)[keyof typeof MemberListResponseRoleEnum]
+export type MemberRoleEnum = (typeof MemberRoleEnum)[keyof typeof MemberRoleEnum]
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const MemberListResponseRoleEnum = {
+export const MemberRoleEnum = {
   admin: 'admin',
   member: 'member',
   owner: 'owner',

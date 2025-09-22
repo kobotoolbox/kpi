@@ -5,7 +5,8 @@
  * Powerful and intuitive data collection tools to make an impact
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
+import type { InviteStatusChoicesEnum } from './inviteStatusChoicesEnum'
 
 export type PatchedInvitePatchPayloadOneOf = {
-  status: string
+  status: InviteStatusChoicesEnum
 }
