@@ -10,18 +10,18 @@ paths:
       description: |
         ## List all access logs for all users
 
-        <sup>Note</sup> _Only available to superusers_
+        ⚠️ _Only available to superusers_
 
         Submissions will be grouped together by user by hour
 
         **Filterable fields:**
 
-        1. date_created
-        2. user_uid
-        3. user__username
-        4. metadata__source
-        5. metadata__auth_type
-        6. metadata__ip_address
+        - date_created
+        - user_uid
+        - user__username
+        - metadata__source
+        - metadata__auth_type
+        - metadata__ip_address
 
         **Some examples:**
 
@@ -79,7 +79,7 @@ paths:
       description: |
         ## List all access logs export tasks for all users
 
-        <sup>Note</sup> _Only available to superusers_
+        ⚠️ _Only available to superusers_
       tags:
       - Access Logs
       security:
@@ -110,7 +110,7 @@ paths:
       description: |
         ## Create an export task for all users
 
-        <sup>Note</sup> _Only available to superusers_
+        ⚠️ _Only available to superusers_
       tags:
       - Access Logs
       security:
@@ -157,17 +157,16 @@ paths:
 
         **Filterable fields:**
 
-        1. date_created
-        2. metadata__source
-        3. metadata__auth_type
-        4. metadata__ip_address
+        * date_created
+        * metadata__source
+        * metadata__auth_type
+        * metadata__ip_address
 
         **Some examples:**
 
-        1. All logs from a specific IP address
+        * All logs from a specific IP address
             `api/v2/access-logs/?q=metadata__ip_address:"127.0.0.1"`
-
-        2. All logs created after Jan, 1 2025
+        * All logs created after Jan, 1 2025
             `api/v2/access-logs/?q=date_created__date__gte:"2025-01-01"`
 
         *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces
@@ -3164,7 +3163,7 @@ paths:
 
         Lists all project history logs for a single project.
 
-        <sup>*</sup> _Required permissions: `manage_asset` (Manage project)_
+        ⚠️ _Required permissions: `manage_asset` (Manage project)_
 
         Results from this endpoint can be filtered by a Boolean query specified in the `q` parameter.
 
@@ -5503,16 +5502,16 @@ paths:
       description: |
         ## List actions performed by users.
 
-        <sup>Note</sup> _Only available to superusers_
+        ⚠️ _Only available to superusers_
 
         Results from this endpoint can be filtered by a Boolean query specified in the `q` parameter.
 
         **Filterable fields:**
 
-        1. app_label
-        2. model_name
-        3. action
-          a. Available actions:
+        * app_label
+        * model_name
+        * action
+          Available actions:
            * create
            * delete
            * in-trash
@@ -5520,43 +5519,37 @@ paths:
            * remove
            * update
            * auth
-
-        4. log_type
-        a. Available log types:
+        * log_type
+          Available log types:
             * access
             * project-history
             * data-editing
             * submission-management
             * user-management
             * asset-management
-        5. date_created
-        6. user_uid
-        7. user__username
-        8. user__email
-        9. user__is_superuser
-        10. metadata__asset_uid
-        11. metadata__auth_type
+        * date_created
+        * user_uid
+        * user__username
+        * user__email
+        * user__is_superuser
+        * metadata__asset_uid
+        * metadata__auth_type
 
         *Notes: Some logs may have additional filterable fields in the metadata*
 
         **Some examples:**
 
-        1. All deleted submissions
+        * All deleted submissions
             `api/v2/audit-logs/?q=action:delete`
-
-        2. All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`
+        * All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`
             `api/v2/audit-logs/?q=action:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`
-
-        3. All submissions deleted by a specific user `my_username`
+        * All submissions deleted by a specific user `my_username`
             `api/v2/audit-logs/?q=action:delete AND user__username:my_username`
-
-        4. All deleted submissions submitted after a specific date
+        * All deleted submissions submitted after a specific date
             `/api/v2/audit-logs/?q=action:delete AND date_created__gte:2022-11-15`
-
-        5. All deleted submissions submitted after a specific date **and time**
+        * All deleted submissions submitted after a specific date **and time**
             `/api/v2/audit-logs/?q=action:delete AND date_created__gte:"2022-11-15 20:34"`
-
-        6. All authentications from superusers
+        * All authentications from superusers
             `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`
 
         *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces
@@ -6676,34 +6669,24 @@ paths:
       description: |
         ## List all project history logs for all projects.
 
-        <sup>Note</sup> _Only available to superusers_
+        ⚠️_Only available to superusers_
 
         Results from this endpoint can be filtered by a Boolean query
         specified in the `q` parameter.
 
         **Filterable fields for all project history logs:**
 
-        1. date_created
-
-        2. user_uid
-
-        3. user__username
-
-        4. user__email
-
-        5. user__is_superuser
-
-        6. metadata__source
-
-        7. metadata__ip_address
-
-        8. metadata__asset_uid
-
-        9. metadata__log_subtype
-
+        * date_created
+        * user_uid
+        * user__username
+        * user__email
+        * user__is_superuser
+        * metadata__source
+        * metadata__ip_address
+        * metadata__asset_uid
+        * metadata__log_subtype
             * available subtypes: "project", "permission"
-
-        10. action
+        * action
 
         available actions:
 
@@ -6926,7 +6909,7 @@ paths:
       description: |
         ## List of Project History Exports
 
-        <sup>Note</sup> _Only available to superusers_
+        ⚠️ _Only available to superusers_
       tags:
       - Project History Logs
       security:
@@ -6966,7 +6949,7 @@ paths:
       description: |
         ## Create an export of projects history logs
 
-        <sup>Note</sup> _Only available to superusers_
+        ⚠️ _Only available to superusers_
 
         Export project history logs and send it by email to the requesting user.
       tags:
