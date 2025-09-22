@@ -4,24 +4,17 @@ Lists all project history logs for a single project.
 
 <sup>*</sup> _Required permissions: `manage_asset` (Manage project)_
 
-Results from this endpoint can be filtered by a Boolean query specified in the q parameter.
+Results from this endpoint can be filtered by a Boolean query specified in the `q` parameter.
 
 ### Filterable fields for all project history logs:
 
-  date_created
-
-  user_uid
-
-  user__*
+  - date_created
+  - user_uid
   - user__username
   - user__email
   - user__is_superuser
-
-  metadata__*
-
   - metadata__source
   - metadata__ip_address
-  - metadata__asset_uid
   - metadata__log_subtype
     - available subtypes: "project", "permission"
 
@@ -149,4 +142,3 @@ available actions:
   - metadata__settings__description__new
 
 This endpoint can be paginated with 'offset' and 'limit' parameters.
-
