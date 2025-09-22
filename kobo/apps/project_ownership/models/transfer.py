@@ -23,7 +23,7 @@ from kpi.exceptions import (
     MissingXFormException,
 )
 from kpi.fields import KpiUidField
-from kpi.models import Asset, ObjectPermission
+from kpi.models import Asset, AssetUserPartialPermission, ObjectPermission
 from kpi.models.abstract_models import AbstractTimeStampedModel
 
 from ..exceptions import TransferAlreadyProcessedException
@@ -202,6 +202,10 @@ class Transfer(AbstractTimeStampedModel):
 
         # Delete existing new owner's permissions on the project if any
         self.asset.permissions.filter(user=new_owner).delete()
+        # Delete every partial permission related to new owner just in case
+        AssetUserPartialPermission.objects.filter(
+            user=new_owner, asset=self.asset
+        ).delete()
         old_owner = self.asset.owner
         self.asset.owner = new_owner
 
