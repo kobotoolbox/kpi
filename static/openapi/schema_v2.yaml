@@ -11320,7 +11320,7 @@ components:
         user__extra_details__name:
           type: string
         role:
-          $ref: '#/components/schemas/MemberListResponseRoleEnum'
+          $ref: '#/components/schemas/MemberRoleEnum'
         user__has_mfa_enabled:
           type: boolean
         date_joined:
@@ -11394,7 +11394,7 @@ components:
       - user__has_mfa_enabled
       - user__is_active
       - user__username
-    MemberListResponseRoleEnum:
+    MemberRoleEnum:
       enum:
       - admin
       - member
@@ -11477,7 +11477,8 @@ components:
           type: boolean
           readOnly: true
         request_user_role:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/MemberRoleEnum'
           readOnly: true
         members:
           type: string
