@@ -18,14 +18,10 @@ from kpi.deployment_backends.kc_access.utils import (
     kc_transaction_atomic,
     reset_kc_permissions,
 )
-from kpi.exceptions import (
-    InvalidXFormException,
-    MissingXFormException,
-)
+from kpi.exceptions import InvalidXFormException, MissingXFormException
 from kpi.fields import KpiUidField
 from kpi.models import Asset, AssetUserPartialPermission, ObjectPermission
 from kpi.models.abstract_models import AbstractTimeStampedModel
-
 from ..exceptions import TransferAlreadyProcessedException
 from ..tasks import async_task, send_email_to_admins
 from ..utils import get_target_folder

@@ -727,9 +727,6 @@ class Asset(
         `perm` can only one of the submission permissions.
         """
 
-        if user_id == self.owner_id:
-            return None
-
         if (
             not perm.endswith(SUFFIX_SUBMISSIONS_PERMS)
             or perm == PERM_PARTIAL_SUBMISSIONS
@@ -831,6 +828,9 @@ class Asset(
 
         If user doesn't have any partial permissions, it returns `None`.
         """
+
+        if user_id == self.owner_id:
+            return None
 
         perms = (
             self.asset_partial_permissions.filter(user_id=user_id)
