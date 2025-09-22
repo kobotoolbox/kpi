@@ -2,7 +2,7 @@
 
 Lists all project history logs for a single project.
 
-<sup>*</sup> _Required permissions: `manage_asset` (Manage project)_
+⚠️ _Required permissions: `manage_asset` (Manage project)_
 
 Results from this endpoint can be filtered by a Boolean query specified in the `q` parameter.
 

@@ -1,3 +1,3 @@
 ## Create an export task for all users
 
-<sup>Note</sup> _Only available to superusers_
+⚠️ _Only available to superusers_

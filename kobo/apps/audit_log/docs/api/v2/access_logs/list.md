@@ -1,17 +1,17 @@
 ## List all access logs for all users
 
-<sup>Note</sup> _Only available to superusers_
+⚠️ _Only available to superusers_
 
 Submissions will be grouped together by user by hour
 
 **Filterable fields:**
 
-1. date_created
-2. user_uid
-3. user__username
-4. metadata__source
-5. metadata__auth_type
-6. metadata__ip_address
+- date_created
+- user_uid
+- user__username
+- metadata__source
+- metadata__auth_type
+- metadata__ip_address
 
 **Some examples:**
 
