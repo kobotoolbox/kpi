@@ -726,12 +726,14 @@ class Asset(
 
         `perm` can only one of the submission permissions.
         """
+
         if (
             not perm.endswith(SUFFIX_SUBMISSIONS_PERMS)
             or perm == PERM_PARTIAL_SUBMISSIONS
         ):
-            raise BadPermissionsException(t('Only partial permissions for '
-                                            'submissions are supported'))
+            raise BadPermissionsException(
+                t('Only partial permissions for submissions are supported')
+            )
 
         perms = self.get_partial_perms(user_id, with_filters=True)
         if perms:
@@ -826,6 +828,9 @@ class Asset(
 
         If user doesn't have any partial permissions, it returns `None`.
         """
+
+        if user_id == self.owner_id:
+            return None
 
         perms = (
             self.asset_partial_permissions.filter(user_id=user_id)

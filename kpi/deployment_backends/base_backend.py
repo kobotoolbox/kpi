@@ -643,7 +643,8 @@ class BaseDeploymentBackend(abc.ABC):
         # We want to return a 500.
         try:
             permission_filters = self.asset.get_filters_for_partial_perm(
-                user.pk, perm=partial_perm)
+                user.pk, perm=partial_perm
+            )
         except ValueError:
             raise ValueError('Invalid `user_id` param')
 
