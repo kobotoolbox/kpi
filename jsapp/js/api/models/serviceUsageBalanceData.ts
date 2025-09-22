@@ -6,9 +6,9 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type ServiceUsageResponseBalancesMtCharacters = {
-  effective_limit?: number
-  balance_value?: number
-  balance_percent?: number
-  exceeded?: number
+export interface ServiceUsageBalanceData {
+  effective_limit: number
+  balance_value: number
+  balance_percent: number
+  exceeded: number
 }
