@@ -10,7 +10,7 @@ from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limit
 if settings.STRIPE_ENABLED:
     from kobo.apps.stripe.models import ExceededLimitCounter
 
-CHUNK_SIZE = 2000
+CHUNK_SIZE = 1000
 
 
 def process_user(user_id, username):
@@ -26,10 +26,15 @@ def process_user(user_id, username):
 
 
 def get_queryset(from_user_pk: int) -> QuerySet:
-    users = User.objects.filter(
-        pk__gt=from_user_pk,
-        # TODO: filter org owners, and other filters
-    ).only('id', 'username')[:CHUNK_SIZE]
+    users = (
+        User.objects.order_by('pk')
+        .filter(
+            pk__gt=from_user_pk,
+            # Filter organization admins
+            organizations_organizationuser__is_admin=True,
+        )
+        .values('id', 'username')[:CHUNK_SIZE]
+    )
 
     return users
 
@@ -43,18 +48,17 @@ def run():
         return
 
     created_counters = 0
-    stop = False
     last_pk = 0
-    while not stop:
+    while True:
         users = get_queryset(last_pk)
         if not users:
-            stop = True
-            continue
+            break
+
         users_count = len(users)
-        last_pk = users[users_count - 1].id
+        last_pk = users[users_count - 1]['id']
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = [
-                executor.submit(process_user, user.id, user.username)
+                executor.submit(process_user, user['id'], user['username'])
                 for user in users
             ]
 
