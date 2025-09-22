@@ -19,7 +19,7 @@ def process_user(user_id, username):
         limit_type=UsageType.STORAGE_BYTES,
     ).first()
     if counter is None:
-        print(f'Checking exceeded limits for {username}.')
+        print(f'Checking exceeded limits for {username}...')
         user = User.objects.get(pk=user_id)
         counter = check_exceeded_limit(user, UsageType.STORAGE_BYTES)
         return 1 if counter else 0
@@ -44,7 +44,7 @@ def run():
     Checks exceeded storage limits on all users
     """
     if not settings.STRIPE_ENABLED:
-        print(f'Nothing to do because Stripe is disabled.')
+        print('Nothing to do because Stripe is disabled.')
         return
 
     created_counters = 0
@@ -56,13 +56,13 @@ def run():
 
         users_count = len(users)
         last_pk = users[users_count - 1]['id']
+        # Let concurrent library automatically decide the number of workers
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = [
                 executor.submit(process_user, user['id'], user['username'])
                 for user in users
             ]
 
-        total_instances = 0
         for future in futures:
             result = future.result()
             if type(result) is int:
