@@ -8310,6 +8310,12 @@ paths:
           maximum: 9223372036854775807
           minimum: -9223372036854775808
           format: int64
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
       - name: ordering
         required: false
         in: query
@@ -8322,12 +8328,6 @@ paths:
         description: A search term.
         schema:
           type: string
-      - name: start
-        required: false
-        in: query
-        description: The initial index from which to return the results.
-        schema:
-          type: integer
       - in: query
         name: storage_bytes_total_max
         schema:
@@ -12403,12 +12403,12 @@ components:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?start=400&limit=100
+          example: http://api.example.org/accounts/?offset=400&limit=100
         previous:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?start=200&limit=100
+          example: http://api.example.org/accounts/?offset=200&limit=100
         results:
           type: array
           items:

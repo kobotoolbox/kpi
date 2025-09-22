@@ -8,7 +8,7 @@ from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.utils.subscription_limits import (
     get_organizations_effective_limits,
 )
-from kpi.models.user_reports import UserReports
+from kobo.apps.user_reports.models import UserReports
 from kpi.utils.usage_calculator import (
     calculate_usage_balance,
 )

@@ -9,7 +9,7 @@ from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.constants import UsageType
-from kpi.models.user_reports import BillingAndUsageSnapshot
+from kobo.apps.user_reports.models import BillingAndUsageSnapshot
 from kpi.tests.base_test_case import BaseTestCase
 
 
@@ -24,6 +24,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         # Create and add a subscription to someuser
         from djstripe.enums import BillingScheme
         from djstripe.models import Customer
+
         self.someuser = User.objects.get(username='someuser')
         organization = self.someuser.organization
         self.customer = baker.make(Customer, subscriber=organization)
@@ -36,7 +37,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             metadata={'organization_id': str(organization.id)},
         )
 
-        baker.make('kpi.BillingAndUsageSnapshot', organization_id=organization.id)
+        baker.make(BillingAndUsageSnapshot, organization_id=organization.id)
 
         # Manually refresh the materialized view
         with connection.cursor() as cursor:
@@ -56,8 +57,8 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
     def test_list_view_succeeds_for_superuser(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Make sure that all 3 users from the 'test_data' are included
-        self.assertEqual(len(response.data['results']), 3)
+        # Make sure that all 4 users from the 'test_data' are included
+        self.assertEqual(len(response.data['results']), 4)
 
     def test_endpoint_returns_error_when_stripe_is_disabled(self):
         try:
@@ -113,7 +114,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             self.subscription.metadata['organization_id'],
         )
 
-    @patch('kpi.serializers.v2.user_reports.get_organizations_effective_limits')
+    @patch('kobo.apps.user_reports.seralizers.get_organizations_effective_limits')
     def test_current_service_usage_data_is_correctly_returned(self, mock_get_limits):
         # Update a BillingAndUsageSnapshot with specific usage data
         billing_and_usage_snapshot = BillingAndUsageSnapshot.objects.get(
@@ -228,7 +229,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             self.someuser.organization.id: {f'{UsageType.SUBMISSION}_limit': 1}
         }
         with patch(
-            'kpi.serializers.v2.user_reports.get_organizations_effective_limits',
+            'kobo.apps.user_reports.seralizers.get_organizations_effective_limits',
             return_value=mock_limits,
         ):
             with connection.cursor() as cursor:

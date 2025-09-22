@@ -147,6 +147,7 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
     'kobo.apps.long_running_migrations.app.LongRunningMigrationAppConfig',
+    'kobo.apps.user_reports.apps.UserReportsConfig',
     'drf_spectacular',
 )
 

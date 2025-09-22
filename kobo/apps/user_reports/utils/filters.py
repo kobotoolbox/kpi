@@ -1,6 +1,6 @@
 from django_filters import rest_framework as filters
 
-from kpi.models.user_reports import UserReports
+from kobo.apps.user_reports.models import UserReports
 
 
 class UserReportsFilter(filters.FilterSet):
@@ -28,10 +28,16 @@ class UserReportsFilter(filters.FilterSet):
     class Meta:
         model = UserReports
         fields = [
-            'email', 'username', 'date_joined', 'last_login',
-            'storage_bytes_total', 'current_period_submissions',
-            'submission_counts_all_time', 'nlp_usage_asr_seconds_total',
-            'nlp_usage_mt_characters_total', 'subscription_id'
+            'email',
+            'username',
+            'date_joined',
+            'last_login',
+            'storage_bytes_total',
+            'current_period_submissions',
+            'submission_counts_all_time',
+            'nlp_usage_asr_seconds_total',
+            'nlp_usage_mt_characters_total',
+            'subscription_id',
         ]
 
     def filter_has_subscriptions(self, queryset, name, value):

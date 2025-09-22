@@ -390,7 +390,6 @@ class Migration(migrations.Migration):
     dependencies = [
         ('trackers', '0005_remove_year_and_month'),
         ('mfa', '0004_alter_mfamethod_date_created_and_more'),
-        ('kpi', '0069_alter_assetversion_reversion_version'),
     ]
 
     if settings.SKIP_HEAVY_MIGRATIONS or not settings.STRIPE_ENABLED:

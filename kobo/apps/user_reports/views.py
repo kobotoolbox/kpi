@@ -7,14 +7,14 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
 from kobo.apps.audit_log.permissions import SuperUserPermission
-from kpi.models.user_reports import UserReports
+from kobo.apps.user_reports.models import UserReports
+from kobo.apps.user_reports.seralizers import UserReportsSerializer
+from kobo.apps.user_reports.utils.filters import UserReportsFilter
 from kpi.paginators import LimitOffsetPagination
 from kpi.permissions import IsAuthenticated
 from kpi.schema_extensions.v2.user_reports.serializers import UserReportsListResponse
-from kpi.serializers.v2.user_reports import UserReportsSerializer
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
-from kpi.utils.user_reports_filters import UserReportsFilter
 
 
 @extend_schema(
@@ -73,7 +73,7 @@ class UserReportsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         try:
             return super().list(request, *args, **kwargs)
         except ProgrammingError as e:
-            if 'relation "user_reports_mv" does not exist' in str(e): # noqa
+            if 'relation "user_reports_mv" does not exist' in str(e):  # noqa
                 return Response(
                     {
                         'details': 'The data source for user reports is missing. '

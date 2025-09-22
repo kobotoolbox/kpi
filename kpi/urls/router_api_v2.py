@@ -14,6 +14,7 @@ from kobo.apps.organizations.views import (
 )
 from kobo.apps.project_ownership.urls import router as project_ownership_router
 from kobo.apps.project_views.views import ProjectViewViewSet
+from kobo.apps.user_reports.views import UserReportsViewSet
 from kpi.views.v2.asset import AssetViewSet
 from kpi.views.v2.asset_counts import AssetCountsViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
@@ -35,7 +36,6 @@ from kpi.views.v2.tag import TagViewSet
 from kpi.views.v2.tos import TermsOfServiceViewSet
 from kpi.views.v2.user import UserViewSet
 from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
-from kpi.views.v2.user_reports import UserReportsViewSet
 
 
 class OpenRosaCompatibleExtendedRouter(ExtendedDefaultRouter):
