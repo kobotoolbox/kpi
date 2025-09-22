@@ -23,19 +23,15 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 /**
  * ## List actions performed by users.
 
-<sup>*</sup> _Only available to superusers_
+<sup>Note</sup> _Only available to superusers_
 
-Results from this endpoint can be filtered by a Boolean query specified in the
-
-`q` parameter.
+Results from this endpoint can be filtered by a Boolean query specified in the `q` parameter.
 
 **Filterable fields:**
 
 1. app_label
-
 2. model_name
-
-3. action</br>
+3. action
   a. Available actions:
    * create
    * delete
@@ -45,7 +41,7 @@ Results from this endpoint can be filtered by a Boolean query specified in the
    * update
    * auth
 
-4. log_type</br>
+4. log_type
 a. Available log types:
     * access
     * project-history
@@ -53,20 +49,15 @@ a. Available log types:
     * submission-management
     * user-management
     * asset-management
-
 5. date_created
-
 6. user_uid
+7. user__username
+8. user__email
+9. user__is_superuser
+10. metadata__asset_uid
+11. metadata__auth_type
 
-7. user__*</br>
-a. user__username</br>
-b. user__email</br>
-c. user__is_superuser
-
-8. metadata__*</br>
- a. metadata__asset_uid</br>
- b. metadata__auth_type</br>
- c. some logs may have additional filterable fields in the metadata
+*Notes: Some logs may have additional filterable fields in the metadata*
 
 **Some examples:**
 

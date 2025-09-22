@@ -32,7 +32,7 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 /**
  * ## List all project history logs for all projects.
 
-<sup>*</sup> _Only available to superusers_
+<sup>Note</sup> _Only available to superusers_
 
 Results from this endpoint can be filtered by a Boolean query
 specified in the `q` parameter.
@@ -43,27 +43,23 @@ specified in the `q` parameter.
 
 2. user_uid
 
-3. user__*
+3. user__username
 
-    a. user__username
+4. user__email
 
-    b. user__email
+5. user__is_superuser
 
-    c. user__is_superuser
+6. metadata__source
 
-4. metadata__*
+7. metadata__ip_address
 
-    b. metadata__source
+8. metadata__asset_uid
 
-    c. metadata__ip_address
-
-    d. metadata__asset_uid
-
-    e. metadata__log_subtype
+9. metadata__log_subtype
 
     * available subtypes: "project", "permission"
 
-5. action
+10. action
 
 available actions:
 
@@ -332,9 +328,9 @@ export function useProjectHistoryLogsList<
 }
 
 /**
- * ## Export project history logs
+ * ## List of Project History Exports
 
-Export project history logs and send by email to requesting user.
+<sup>Note</sup> _Only available to superusers_
 
  */
 export type projectHistoryLogsExportRetrieveResponse202 = {
@@ -422,6 +418,10 @@ export function useProjectHistoryLogsExportRetrieve<
 
 /**
  * ## Create an export of projects history logs
+
+<sup>Note</sup> _Only available to superusers_
+
+Export project history logs and send it by email to the requesting user.
 
  */
 export type projectHistoryLogsExportCreateResponse202 = {
