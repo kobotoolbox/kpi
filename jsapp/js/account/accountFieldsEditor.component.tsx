@@ -3,7 +3,7 @@ import React from 'react'
 import cx from 'classnames'
 import { ORGANIZATION_TYPES } from '#/account/organization/organizationQuery'
 import { addRequiredToLabel } from '#/textUtils'
-import { recordKeys } from '#/utils'
+import { recordValues } from '#/utils'
 import Select from '../components/common/Select'
 import Checkbox from '../components/common/checkbox'
 import TextBox from '../components/common/textBox'
@@ -11,10 +11,10 @@ import envStore from '../envStore'
 import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from './account.constants'
 import styles from './accountFieldsEditor.module.scss'
 
-const ORGANIZATION_TYPE_SELECT_OPTIONS = recordKeys(ORGANIZATION_TYPES).map((typeName) => {
+const ORGANIZATION_TYPE_SELECT_OPTIONS = recordValues(ORGANIZATION_TYPES).map(({ name, label }) => {
   return {
-    value: typeName,
-    label: ORGANIZATION_TYPES[typeName].label,
+    value: name,
+    label: label,
   }
 })
 

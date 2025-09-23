@@ -3,17 +3,14 @@ import { useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { fetchPatch } from '#/api'
 import type { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import type { OrganizationTypeEnum } from '#/api/models/organizationTypeEnum'
 import { getOrganizationsRetrieveQueryKey, useOrganizationsRetrieve } from '#/api/react-query/organizations'
 import { queryClient } from '#/query/queryClient'
 import { QueryKeys } from '#/query/queryKeys'
 import { useSession } from '#/stores/useSession'
 
-// Comes from `kobo/apps/accounts/forms.py`
-export type OrganizationTypeName = 'non-profit' | 'government' | 'educational' | 'commercial' | 'none'
 
-export const ORGANIZATION_TYPES: {
-  [P in OrganizationTypeName]: { name: OrganizationTypeName; label: string }
-} = {
+export const ORGANIZATION_TYPES: { [P in OrganizationTypeEnum]: { name: P; label: string } } = {
   'non-profit': { name: 'non-profit', label: t('Non-profit organization') },
   government: { name: 'government', label: t('Government institution') },
   educational: { name: 'educational', label: t('Educational organization') },
@@ -25,14 +22,13 @@ export interface Organization {
   id: string
   name: string
   website: string
-  organization_type: OrganizationTypeName
+  organization_type: OrganizationTypeEnum
   created: string
   modified: string
   is_owner: boolean
   is_mmo: boolean
   request_user_role: MemberRoleEnum
 }
-
 /**
  * Mutation hook for updating organization. It ensures that all related queries
  * refetch data (are invalidated).
