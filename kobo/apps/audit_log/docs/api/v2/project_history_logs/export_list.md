@@ -1,3 +1,3 @@
-## Create an export task for all users
+## List of Project History Exports
 
 ⚠️ _Only available to superusers_

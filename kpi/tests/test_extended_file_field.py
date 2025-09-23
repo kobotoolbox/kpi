@@ -1,7 +1,7 @@
 from botocore.exceptions import ClientError
 from ddt import data, ddt
 from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage, FileSystemStorage
+from django.core.files.storage import default_storage
 from django.test import TestCase
 
 from kobo.apps.storage_backends.s3boto3 import S3Boto3Storage
