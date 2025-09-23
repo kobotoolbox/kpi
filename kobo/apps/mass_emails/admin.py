@@ -1,7 +1,13 @@
 from django.contrib import admin, messages
 from import_export_celery.admin_actions import create_export_job_action
 
-from .models import EmailStatus, EmailType, MassEmailConfig, MassEmailRecord, MassEmailQueryParam
+from .models import (
+    EmailStatus,
+    EmailType,
+    MassEmailConfig,
+    MassEmailQueryParam,
+    MassEmailRecord,
+)
 
 
 class MassEmailQueryParamAdminInline(admin.TabularInline):
@@ -11,7 +17,7 @@ class MassEmailQueryParamAdminInline(admin.TabularInline):
 @admin.register(MassEmailConfig)
 class MassEmailConfigAdmin(admin.ModelAdmin):
 
-    inlines = (MassEmailQueryParamAdminInline, )
+    inlines = (MassEmailQueryParamAdminInline,)
     list_display = ('name', 'date_modified', 'frequency', 'live')
     fields = ('name', 'subject', 'template', 'query', 'frequency', 'live')
     actions = ['enqueue_mass_emails', 'export_recipient_lists']
