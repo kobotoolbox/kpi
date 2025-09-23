@@ -23,7 +23,7 @@ BalanceDataComponent = ResolvedComponent(
 
 def get_balance_data_ref(auto_schema):
     """Ensure component is registered and return its $ref."""
-    registered = auto_schema.registry.register_on_missing(BalanceDataComponent)
+    auto_schema.registry.register_on_missing(BalanceDataComponent)
     return {'$ref': f'#/components/schemas/{BalanceDataComponent.name}'}
 
 
