@@ -99,7 +99,10 @@ class MassEmailConfigExpectedRecipientsResource(resources.ModelResource):
         )
 
     def get_recipients(self, email_config):
-        user_queryset = USER_QUERIES.get(email_config.query, lambda: [])()
+        parameters = {
+            param.name: param.value for param in email_config.parameters.all()
+        }
+        user_queryset = USER_QUERIES.get(email_config.query, lambda: [])(**parameters)
         return [
             user
             for user in user_queryset.values('username', 'email', 'extra_details__uid')
@@ -204,6 +207,14 @@ class MassEmailConfigRecipientsResource(resources.ModelResource):
             'status',
         ]
         dataset._data = reformatted
+
+
+class MassEmailQueryParam(models.Model):
+    email_config = models.ForeignKey(
+        MassEmailConfig, on_delete=models.CASCADE, related_name='parameters'
+    )
+    name = models.CharField()
+    value = models.CharField()
 
 
 class MassEmailJob(AbstractTimeStampedModel):
