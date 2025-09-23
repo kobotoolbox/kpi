@@ -31,6 +31,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.project_ownership.utils import create_invite
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
@@ -1953,6 +1954,27 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         root_uuid = remove_uuid_prefix(self.submission['_uuid'])
         instance = Instance.objects.get(root_uuid=root_uuid)
         assert 'deprecatedID' in instance.xml
+        self._simulate_edit_submission(instance)
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(USAGE_LIMIT_ENFORCEMENT=True)
+    @mock.patch(
+        'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances'  # noqa: E501
+    )
+    def test_edit_submission_ignores_usage_limit_enforcement(self, mock_usage):
+        mock_balances = {
+            UsageType.STORAGE_BYTES: {
+                'exceeded': True,
+            },
+            UsageType.SUBMISSION: {
+                'exceeded': True,
+            },
+        }
+        mock_usage.return_value = mock_balances
+        root_uuid = remove_uuid_prefix(self.submission['_uuid'])
+        instance = Instance.objects.get(root_uuid=root_uuid)
         self._simulate_edit_submission(instance)
 
 
