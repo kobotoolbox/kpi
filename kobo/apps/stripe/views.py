@@ -326,7 +326,6 @@ class CheckoutLinkView(APIView):
 
 class CustomerPortalView(APIView):
     permission_classes = (IsAuthenticated,)
-    versioning_class = APIV2Versioning
 
     @staticmethod
     def generate_portal_link(user, organization_id, price, quantity):
