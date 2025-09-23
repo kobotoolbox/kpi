@@ -117,9 +117,7 @@ const loadUsage = async (organizationId: string | null): Promise<UsageState | un
     storage: usage.data.total_storage_bytes,
     // @ts-expect-error schema: DEV-952
     submissions: usage.data.total_submission_count.current_period,
-    // @ts-expect-error schema: DEV-953
     transcriptionMinutes: convertSecondsToMinutes(usage.data.total_nlp_usage.asr_seconds_current_period),
-    // @ts-expect-error schema: DEV-953
     translationChars: usage.data.total_nlp_usage.mt_characters_current_period,
     currentPeriodStart: usage.data.current_period_start,
     currentPeriodEnd: usage.data.current_period_end,
