@@ -5,7 +5,6 @@ import UniversalTable, { DEFAULT_PAGE_SIZE } from '#/UniversalTable'
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import type { AuditLogResponse } from '#/api/models/auditLogResponse'
 import type { ErrorDetail } from '#/api/models/errorDetail'
-import type { ErrorObject } from '#/api/models/errorObject'
 import {
   getAccessLogsListQueryKey,
   useAccessLogsList,
@@ -41,7 +40,7 @@ export default function AccessLogsSection() {
   const handleStartExport = async () => {
     try {
       await accessLogsMeExport.mutateAsync()
-    } catch(error) {
+    } catch (error) {
       const failResponse: FailResponse = {
         status: 500,
         statusText: (error as Error).message || t('An error occurred while exporting the logs'),
@@ -67,7 +66,7 @@ export default function AccessLogsSection() {
         </div>
       </header>
 
-      <UniversalTable<AuditLogResponse, ErrorObject | ErrorDetail>
+      <UniversalTable<AuditLogResponse, ErrorDetail>
         pagination={pagination}
         setPagination={setPagination}
         queryResult={queryResult}
