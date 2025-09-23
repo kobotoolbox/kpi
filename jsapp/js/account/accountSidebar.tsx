@@ -3,9 +3,10 @@ import React, { useState } from 'react'
 import cx from 'classnames'
 import { observer } from 'mobx-react-lite'
 import { NavLink } from 'react-router-dom'
-import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
+import { useOrganizationQuery } from '#/account/organization/organizationQuery'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import subscriptionStore from '#/account/subscriptionStore'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import Icon from '#/components/common/icon'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore from '#/envStore'
@@ -58,9 +59,9 @@ function renderSingleUserOrgSidebar(isStripeEnabled: boolean, isOwner: boolean) 
   )
 }
 
-function renderMmoSidebar(userRole: OrganizationUserRole, isStripeEnabled: boolean, mmoLabel: string) {
-  const showBillingRoutes = userRole === OrganizationUserRole.owner && isStripeEnabled
-  const hasAdminPrivileges = [OrganizationUserRole.admin, OrganizationUserRole.owner].includes(userRole)
+function renderMmoSidebar(userRole: MemberRoleEnum, isStripeEnabled: boolean, mmoLabel: string) {
+  const showBillingRoutes = userRole === MemberRoleEnum.owner && isStripeEnabled
+  const hasAdminPrivileges = [MemberRoleEnum.admin, MemberRoleEnum.owner].includes(userRole)
 
   return (
     <nav className={styles.accountSidebar}>
@@ -111,7 +112,6 @@ function AccountSidebar() {
 
   if (orgQuery.data?.status === 200) {
     if (orgQuery.data?.data) {
-      // @ts-expect-error schema: Organization.request_user_role should be enum instead of string
       return renderMmoSidebar(orgQuery.data?.data.request_user_role, isStripeEnabled, mmoLabel)
     } else {
       return renderSingleUserOrgSidebar(isStripeEnabled, orgQuery.data?.data.is_owner)

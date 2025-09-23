@@ -2,13 +2,13 @@ import { type ReactNode, useState } from 'react'
 
 import { Menu } from '@mantine/core'
 import subscriptionStore from '#/account/subscriptionStore'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import envStore from '#/envStore'
 import router from '#/router/router'
 import { ROUTES } from '#/router/routerConstants'
 import { useSession } from '#/stores/useSession'
 import MemberRemoveModal from './MemberRemoveModal'
 import { getSimpleMMOLabel } from './organization.utils'
-import { OrganizationUserRole } from './organizationQuery'
 
 interface MemberActionsDropdownProps {
   target: ReactNode
@@ -17,7 +17,7 @@ interface MemberActionsDropdownProps {
    * The role of the currently logged in user, i.e. the role of the user that
    * wants to do the actions (not the role of the target member).
    */
-  currentUserRole: OrganizationUserRole
+  currentUserRole: MemberRoleEnum
 }
 
 /**
@@ -34,14 +34,14 @@ export default function MemberActionsDropdown({ target, targetUsername, currentU
 
   // Should Not Happen™, but let's make it foolproof :) Members are not allowed
   // to do anything here under any circumstances.
-  if (currentUserRole === OrganizationUserRole.member) {
+  if (currentUserRole === MemberRoleEnum.member) {
     return null
   }
 
   // If logged in user is an admin and tries to remove themselves, we need
   // different UI - thus we check it here.
   const isAdminRemovingSelf = Boolean(
-    targetUsername === session.currentLoggedAccount?.username && currentUserRole === OrganizationUserRole.admin,
+    targetUsername === session.currentLoggedAccount?.username && currentUserRole === MemberRoleEnum.admin,
   )
 
   // Different button label when user is removing themselves

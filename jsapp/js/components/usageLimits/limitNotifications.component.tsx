@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
 
 import { Cookies } from 'react-cookie'
-import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
+import { useOrganizationQuery } from '#/account/organization/organizationQuery'
 import { UsageLimitTypes } from '#/account/stripe.types'
 import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import { useServiceUsageQuery } from '#/account/usage/useServiceUsageQuery'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import LimitBanner from '#/components/usageLimits/overLimitBanner.component'
 import LimitModal from '#/components/usageLimits/overLimitModal.component'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
@@ -30,7 +31,7 @@ const LimitNotifications = ({ pageCanShowModal = false, accountPage = false }: L
   // and only show if list of exceeded limits includes storage or submissions
   const useModal =
     pageCanShowModal &&
-    (!orgQuery.data?.is_mmo || orgQuery.data?.request_user_role === OrganizationUserRole.owner) &&
+    (!orgQuery.data?.is_mmo || orgQuery.data?.request_user_role === MemberRoleEnum.owner) &&
     (serviceUsageData?.limitExceedList.includes(UsageLimitTypes.STORAGE) ||
       serviceUsageData?.limitExceedList.includes(UsageLimitTypes.SUBMISSION))
 

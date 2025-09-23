@@ -1,13 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchDelete, fetchGet, fetchPatch } from '#/api'
 import { endpoints } from '#/api.endpoints'
+import type { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import type { Json } from '#/components/common/common.interfaces'
 import type { Nullable } from '#/constants'
 import type { PaginatedResponse } from '#/dataInterface'
 import { QueryKeys } from '#/query/queryKeys'
 import { useSession } from '#/stores/useSession'
 import type { MemberInvite } from './membersInviteQuery'
-import { type OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
+import { useOrganizationQuery } from './organizationQuery'
 
 export interface OrganizationMember {
   /**
@@ -22,7 +23,7 @@ export interface OrganizationMember {
   user__email: string | ''
   /** can be an empty string in some edge cases */
   user__extra_details__name: string | ''
-  role: OrganizationUserRole
+  role: MemberRoleEnum
   user__has_mfa_enabled: boolean
   user__is_active: boolean
   /** yyyy-mm-dd HH:MM:SS */

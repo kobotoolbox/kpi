@@ -3,7 +3,8 @@ import React, { useState } from 'react'
 import cx from 'classnames'
 import { observer } from 'mobx-react-lite'
 import { useNavigate } from 'react-router-dom'
-import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
+import { useOrganizationQuery } from '#/account/organization/organizationQuery'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import Icon from '#/components/common/icon'
 import KoboDropdown from '#/components/common/koboDropdown'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
@@ -43,7 +44,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
 
   const displayMyOrgOption =
     orgQuery.data?.is_mmo &&
-    [OrganizationUserRole.admin, OrganizationUserRole.owner].includes(orgQuery.data?.request_user_role)
+    [MemberRoleEnum.admin, MemberRoleEnum.owner].includes(orgQuery.data?.request_user_role)
 
   const hasMultipleOptions = projectViews.views.length !== 0 || displayMyOrgOption
 
