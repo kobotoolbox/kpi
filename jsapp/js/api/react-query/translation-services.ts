@@ -147,15 +147,9 @@ export type translationServicesRetrieveResponse401 = {
   status: 401
 }
 
-export type translationServicesRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type translationServicesRetrieveResponseComposite =
   | translationServicesRetrieveResponse200
   | translationServicesRetrieveResponse401
-  | translationServicesRetrieveResponse404
 
 export type translationServicesRetrieveResponse = translationServicesRetrieveResponseComposite & {
   headers: Headers
@@ -181,7 +175,7 @@ export const getTranslationServicesRetrieveQueryKey = (code: string) => {
 
 export const getTranslationServicesRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof translationServicesRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   code: string,
   options?: {
@@ -206,11 +200,11 @@ export const getTranslationServicesRetrieveQueryOptions = <
 export type TranslationServicesRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof translationServicesRetrieve>>
 >
-export type TranslationServicesRetrieveQueryError = ErrorDetail | ErrorObject
+export type TranslationServicesRetrieveQueryError = ErrorDetail
 
 export function useTranslationServicesRetrieve<
   TData = Awaited<ReturnType<typeof translationServicesRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   code: string,
   options?: {

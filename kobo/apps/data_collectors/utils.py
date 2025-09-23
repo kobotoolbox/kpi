@@ -1,3 +1,5 @@
+import re
+
 import redis.exceptions
 from django_redis import get_redis_connection
 from shortuuid import ShortUUID
@@ -6,6 +8,31 @@ from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
 from kpi.deployment_backends.openrosa_utils import create_enketo_links
 from kpi.utils.log import logging
 
+URL_REGEX = re.compile(r'https?://(www\.)?(.*)/?')
+
+
+def get_url_for_enketo_key(initial_url):
+    # mimic the regex processing enketo does to urls to make them work as keys
+    match = URL_REGEX.match(initial_url)
+    stripped_url = match.groups()[1]
+    return stripped_url
+
+
+def get_redis_key_for_token_and_xform(token, xform_id):
+    initial_url = DC_ENKETO_URL_TEMPLATE.format(token)
+    url_for_key = get_url_for_enketo_key(initial_url)
+    return f'or:{url_for_key},{xform_id}'
+
+
+def get_redis_key_for_enketo_id(enketo_id):
+    return f'id:{enketo_id}'
+
+
+def get_all_redis_entries_for_token(redis_client, token):
+    initial_url = DC_ENKETO_URL_TEMPLATE.format(token)
+    url_for_key = get_url_for_enketo_key(initial_url)
+    keys = redis_client.keys(f'or:{url_for_key},*')
+    return [key.decode('utf-8') for key in keys]
 
 def set_data_collector_enketo_links(token: str, xform_ids: list[str]):
     redis_client = get_redis_connection('enketo_redis_main')
@@ -20,54 +47,61 @@ def set_data_collector_enketo_links(token: str, xform_ids: list[str]):
         enketo_id = response.json()['enketo_id']
         # replace the enketo hash with a longer one
         new_id = ShortUUID().random(31)
-        redis_client.hset(f'or:{server_url}', key=xform_id, value=new_id)
+        key = get_redis_key_for_token_and_xform(token, xform_id)
+        redis_client.set(key, value=new_id)
         # move the token-based url info under the new hash
+        old_id_key = get_redis_key_for_enketo_id(enketo_id)
         try:
-            redis_client.rename(f'id:{enketo_id}', f'id:{new_id}')
+            redis_client.rename(old_id_key, get_redis_key_for_enketo_id(new_id))
         except redis.exceptions.ResponseError:
-            logging.warning(f'Attempt to rename non-existent key id:{enketo_id}')
+            logging.warning(f'Attempt to rename non-existent key {old_id_key}')
             return
 
 
 def remove_data_collector_enketo_links(token:str, xform_ids: list[str] = None):
     redis_client = get_redis_connection('enketo_redis_main')
-    key_url = DC_ENKETO_URL_TEMPLATE.format(token)
     if xform_ids == []:
         return
     if xform_ids is not None:
-        # get all enketo hashes for specified xforms
-        all_ee_ids = redis_client.hmget(f'or:{key_url}',*xform_ids)
-        all_ee_ids = [ee_id.decode('utf-8') for ee_id in all_ee_ids if ee_id is not None]
-        # delete the url info under each hash
-        if len(all_ee_ids) > 0:
-            redis_client.delete(*[f'id:{ee_id}' for ee_id in all_ee_ids ])
-            # delete the xform ids from the data collector base url key
-            redis_client.hdel(f'or:{key_url}', *xform_ids)
-    else:
-        # get all enketo hashes for all xforms the DC has access to
-        all_entries = redis_client.hgetall(f'or:{key_url}')
-        redis_hashes = [
-            redis_hash.decode('utf-8') for redis_hash in all_entries.values()
+        all_keys = [
+            get_redis_key_for_token_and_xform(token, xform_id) for xform_id in xform_ids
         ]
-        if len(redis_hashes) > 0:
-            # delete the url info under each hash
-            redis_client.delete(*[f'id:{redis_hash}' for redis_hash in redis_hashes])
-        # delete the entire entry for the data collector base url key
-        redis_client.delete(f'or:{key_url}')
+    else:
+        # get all enketo redis entries for this token
+        all_keys = get_all_redis_entries_for_token(redis_client, token)
+        if not all_keys:
+            # no entries to rename, nothing to do
+            logging.warning(f'No redis entries found for data collector token {token}')
+            return
+    # get all enketo hashes for relevant xforms
+    enketo_ids = []
+    for key in all_keys:
+        enketo_id = redis_client.get(key)
+        if enketo_id:
+            enketo_ids.append(enketo_id.decode('utf-8'))
+        else:
+            logging.warning(f'No redis entry found for key {key}')
+    all_keys.extend(
+        [get_redis_key_for_enketo_id(enketo_id) for enketo_id in enketo_ids]
+    )
+    redis_client.delete(*all_keys)
 
 
 def rename_data_collector_enketo_links(old_token: str, new_token: str):
     redis_client = get_redis_connection('enketo_redis_main')
-    old_key_url = DC_ENKETO_URL_TEMPLATE.format(old_token)
-    new_key_url = DC_ENKETO_URL_TEMPLATE.format(new_token)
-    try:
-        redis_client.rename(f'or:{old_key_url}', f'or:{new_key_url}')
-    except redis.exceptions.ResponseError:
-        logging.warning(f'Attempt to rename non-existent key or:{old_key_url}')
+    new_server_url = DC_ENKETO_URL_TEMPLATE.format(new_token)
+    # get all redis keys that use the old token
+    all_keys = get_all_redis_entries_for_token(redis_client, old_token)
+    if not all_keys:
+        logging.warning(f'No redis entries found for data collector token {old_token}')
         return
-    enketo_ids = redis_client.hgetall(f'or:{new_key_url}')
-    for enketo_id in enketo_ids.values():
-        enketo_id_str = enketo_id.decode('utf-8')
-        redis_client.hset(
-            f'id:{enketo_id_str}', key='openRosaServer', value=new_key_url
-        )
+    for key in all_keys:
+        new_key = key.replace(old_token, new_token, 1)
+        try:
+            redis_client.rename(key, new_key)
+            enketo_id = redis_client.get(new_key).decode('utf-8')
+            enketo_key = get_redis_key_for_enketo_id(enketo_id)
+            # update the server urls to use the new token
+            redis_client.hset(enketo_key, 'openRosaServer', new_server_url)
+        except redis.exceptions.ResponseError:
+            logging.warning(f'Attempt to rename non-existent key {key}')

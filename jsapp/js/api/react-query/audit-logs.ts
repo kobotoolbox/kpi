@@ -12,8 +12,6 @@ import type { AuditLogsListParams } from '../models/auditLogsListParams'
 
 import type { ErrorDetail } from '../models/errorDetail'
 
-import type { ErrorObject } from '../models/errorObject'
-
 import type { PaginatedAuditLogResponseList } from '../models/paginatedAuditLogResponseList'
 
 import { fetchWithAuth } from '../orval.mutator'
@@ -102,15 +100,7 @@ export type auditLogsListResponse403 = {
   status: 403
 }
 
-export type auditLogsListResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
-export type auditLogsListResponseComposite =
-  | auditLogsListResponse200
-  | auditLogsListResponse403
-  | auditLogsListResponse404
+export type auditLogsListResponseComposite = auditLogsListResponse200 | auditLogsListResponse403
 
 export type auditLogsListResponse = auditLogsListResponseComposite & {
   headers: Headers
@@ -144,10 +134,7 @@ export const getAuditLogsListQueryKey = (params?: AuditLogsListParams) => {
   return ['api', 'v2', 'audit-logs', ...(params ? [params] : [])] as const
 }
 
-export const getAuditLogsListQueryOptions = <
-  TData = Awaited<ReturnType<typeof auditLogsList>>,
-  TError = ErrorDetail | ErrorObject,
->(
+export const getAuditLogsListQueryOptions = <TData = Awaited<ReturnType<typeof auditLogsList>>, TError = ErrorDetail>(
   params?: AuditLogsListParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof auditLogsList>>, TError, TData>
@@ -169,9 +156,9 @@ export const getAuditLogsListQueryOptions = <
 }
 
 export type AuditLogsListQueryResult = NonNullable<Awaited<ReturnType<typeof auditLogsList>>>
-export type AuditLogsListQueryError = ErrorDetail | ErrorObject
+export type AuditLogsListQueryError = ErrorDetail
 
-export function useAuditLogsList<TData = Awaited<ReturnType<typeof auditLogsList>>, TError = ErrorDetail | ErrorObject>(
+export function useAuditLogsList<TData = Awaited<ReturnType<typeof auditLogsList>>, TError = ErrorDetail>(
   params?: AuditLogsListParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof auditLogsList>>, TError, TData>

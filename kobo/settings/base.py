@@ -1018,8 +1018,10 @@ SPECTACULAR_SETTINGS = {
     'ENUM_NAME_OVERRIDES': {
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
         'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
+        'MemberRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_ENUM',
         'StripeProductType': 'kpi.schema_extensions.v2.stripe.schema.PRODUCT_TYPE_ENUM',  # noqa,
         'StripePriceType': 'kpi.schema_extensions.v2.stripe.schema.PRICE_TYPE_ENUM',  # noqa,
+
     },
 }
 
@@ -1373,19 +1375,16 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0),
         'options': {'queue': 'kpi_queue'},
     },
-    'remove-reversion-versions': {
-        'task': 'kpi.tasks.remove_old_versions',
-        'schedule': crontab(minute=0),
-        'options': {'queue': 'kpi_low_priority_queue'},
-    },
 }
 
 if STRIPE_ENABLED:
     # Schedule to run once per celery timeout
     # with a five minute buffer
+    minute_interval = (CELERY_TASK_TIME_LIMIT + (60 * 5)) // 60
+
     CELERY_BEAT_SCHEDULE['update-exceeded-limit-counters'] = {
         'task': 'kobo.apps.stripe.tasks.update_exceeded_limit_counters',
-        'schedule': timedelta(seconds=CELERY_TASK_TIME_LIMIT + (60 * 5)),
+        'schedule': crontab(minute='*/' + str(minute_interval)),
         'options': {'queue': 'kpi_low_priority_queue'},
     }
 

@@ -1,13 +1,19 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
-from drf_spectacular.plumbing import build_basic_type, build_object_type
+from drf_spectacular.plumbing import (
+    build_basic_type,
+    build_choice_field,
+    build_object_type,
+)
 from drf_spectacular.types import OpenApiTypes
+from rest_framework import serializers
 
 from kpi.schema_extensions.v2.generic.schema import (
-    BALANCE_FIELDS_SCHEMA,
     GENERIC_NLP_ALL_TIME_OBJECT_SCHEMA,
     GENERIC_NLP_OBJECT_SCHEMA,
 )
+from kpi.schema_extensions.v2.service_usage.extensions import get_balance_data_ref
 from kpi.utils.schema_extensions.url_builder import build_url_type
+from ..members.schema import ROLE_CHOICES_ENUM
 
 
 class AssetFieldExtension(OpenApiSerializerFieldExtension):
@@ -36,10 +42,10 @@ class BalanceFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'submission': BALANCE_FIELDS_SCHEMA,
-                'storage_bytes': BALANCE_FIELDS_SCHEMA,
-                'asr_seconds': BALANCE_FIELDS_SCHEMA,
-                'mt_characters': BALANCE_FIELDS_SCHEMA,
+                'submission': get_balance_data_ref(auto_schema),
+                'storage_bytes': get_balance_data_ref(auto_schema),
+                'asr_seconds': get_balance_data_ref(auto_schema),
+                'mt_characters': get_balance_data_ref(auto_schema),
             }
         )
 
@@ -106,4 +112,13 @@ class UrlFieldExtension(OpenApiSerializerFieldExtension):
         return build_url_type(
             'api_v2:organizations-detail',
             id='orgzeph7Ub8tVmJ82JBbH96n',
+        )
+
+
+class UserRoleFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.organizations.fields.UserRoleField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_choice_field(
+            field=serializers.ChoiceField(choices=ROLE_CHOICES_ENUM)
         )

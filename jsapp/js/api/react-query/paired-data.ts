@@ -17,6 +17,8 @@ import type {
 
 import type { AssetsPairedDataListParams } from '../models/assetsPairedDataListParams'
 
+import type { ErrorDetail } from '../models/errorDetail'
+
 import type { ErrorObject } from '../models/errorObject'
 
 import type { ExternalResponse } from '../models/externalResponse'
@@ -64,7 +66,7 @@ export type assetsPairedDataListResponse200 = {
 }
 
 export type assetsPairedDataListResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -107,7 +109,7 @@ export const getAssetsPairedDataListQueryKey = (parentLookupAsset: string, param
 
 export const getAssetsPairedDataListQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsPairedDataList>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   params?: AssetsPairedDataListParams,
@@ -131,9 +133,9 @@ export const getAssetsPairedDataListQueryOptions = <
 }
 
 export type AssetsPairedDataListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataList>>>
-export type AssetsPairedDataListQueryError = ErrorObject
+export type AssetsPairedDataListQueryError = ErrorDetail
 
-export function useAssetsPairedDataList<TData = Awaited<ReturnType<typeof assetsPairedDataList>>, TError = ErrorObject>(
+export function useAssetsPairedDataList<TData = Awaited<ReturnType<typeof assetsPairedDataList>>, TError = ErrorDetail>(
   parentLookupAsset: string,
   params?: AssetsPairedDataListParams,
   options?: {
@@ -170,9 +172,15 @@ export type assetsPairedDataCreateResponse400 = {
   status: 400
 }
 
+export type assetsPairedDataCreateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
 export type assetsPairedDataCreateResponseComposite =
   | assetsPairedDataCreateResponse201
   | assetsPairedDataCreateResponse400
+  | assetsPairedDataCreateResponse404
 
 export type assetsPairedDataCreateResponse = assetsPairedDataCreateResponseComposite & {
   headers: Headers
@@ -195,7 +203,10 @@ export const assetsPairedDataCreate = async (
   })
 }
 
-export const getAssetsPairedDataCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsPairedDataCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPairedDataCreate>>,
     TError,
@@ -230,9 +241,9 @@ export const getAssetsPairedDataCreateMutationOptions = <TError = ErrorObject, T
 
 export type AssetsPairedDataCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataCreate>>>
 export type AssetsPairedDataCreateMutationBody = NonReadonly<PairedData>
-export type AssetsPairedDataCreateMutationError = ErrorObject
+export type AssetsPairedDataCreateMutationError = ErrorObject | ErrorDetail
 
-export const useAssetsPairedDataCreate = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsPairedDataCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPairedDataCreate>>,
     TError,
@@ -255,7 +266,7 @@ export type assetsPairedDataRetrieveResponse200 = {
 }
 
 export type assetsPairedDataRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -291,7 +302,7 @@ export const getAssetsPairedDataRetrieveQueryKey = (parentLookupAsset: string, p
 
 export const getAssetsPairedDataRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsPairedDataRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   pairedDataUid: string,
@@ -315,11 +326,11 @@ export const getAssetsPairedDataRetrieveQueryOptions = <
 }
 
 export type AssetsPairedDataRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>>
-export type AssetsPairedDataRetrieveQueryError = ErrorObject
+export type AssetsPairedDataRetrieveQueryError = ErrorDetail
 
 export function useAssetsPairedDataRetrieve<
   TData = Awaited<ReturnType<typeof assetsPairedDataRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   pairedDataUid: string,
@@ -353,9 +364,15 @@ export type assetsPairedDataPartialUpdateResponse400 = {
   status: 400
 }
 
+export type assetsPairedDataPartialUpdateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
 export type assetsPairedDataPartialUpdateResponseComposite =
   | assetsPairedDataPartialUpdateResponse200
   | assetsPairedDataPartialUpdateResponse400
+  | assetsPairedDataPartialUpdateResponse404
 
 export type assetsPairedDataPartialUpdateResponse = assetsPairedDataPartialUpdateResponseComposite & {
   headers: Headers
@@ -382,7 +399,10 @@ export const assetsPairedDataPartialUpdate = async (
   )
 }
 
-export const getAssetsPairedDataPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsPairedDataPartialUpdateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>,
     TError,
@@ -419,9 +439,9 @@ export type AssetsPairedDataPartialUpdateMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>
 >
 export type AssetsPairedDataPartialUpdateMutationBody = PatchedPairedDataPatchPayload
-export type AssetsPairedDataPartialUpdateMutationError = ErrorObject
+export type AssetsPairedDataPartialUpdateMutationError = ErrorObject | ErrorDetail
 
-export const useAssetsPairedDataPartialUpdate = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsPairedDataPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>,
     TError,
@@ -444,7 +464,7 @@ export type assetsPairedDataDestroyResponse204 = {
 }
 
 export type assetsPairedDataDestroyResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -474,7 +494,7 @@ export const assetsPairedDataDestroy = async (
   )
 }
 
-export const getAssetsPairedDataDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsPairedDataDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPairedDataDestroy>>,
     TError,
@@ -509,9 +529,9 @@ export const getAssetsPairedDataDestroyMutationOptions = <TError = ErrorObject, 
 
 export type AssetsPairedDataDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsPairedDataDestroy>>>
 
-export type AssetsPairedDataDestroyMutationError = ErrorObject
+export type AssetsPairedDataDestroyMutationError = ErrorDetail
 
-export const useAssetsPairedDataDestroy = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsPairedDataDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPairedDataDestroy>>,
     TError,
@@ -538,7 +558,7 @@ export type assetsPairedDataExternalRetrieveResponse200 = {
 }
 
 export type assetsPairedDataExternalRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -574,7 +594,7 @@ export const getAssetsPairedDataExternalRetrieveQueryKey = (parentLookupAsset: s
 
 export const getAssetsPairedDataExternalRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   pairedDataUid: string,
@@ -601,11 +621,11 @@ export const getAssetsPairedDataExternalRetrieveQueryOptions = <
 export type AssetsPairedDataExternalRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>
 >
-export type AssetsPairedDataExternalRetrieveQueryError = ErrorObject
+export type AssetsPairedDataExternalRetrieveQueryError = ErrorDetail
 
 export function useAssetsPairedDataExternalRetrieve<
   TData = Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   pairedDataUid: string,
