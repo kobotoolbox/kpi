@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 
 import { useOrganizationQuery, usePatchOrganization, } from '#/account/organization/organizationQuery'
-import { ORGANIZATION_TYPES, type OrganizationTypeName } from '#/account/organization/organizationQuery'
+import { ORGANIZATION_TYPES } from '#/account/organization/organizationQuery'
 import styles from '#/account/organization/organizationSettingsRoute.module.scss'
 import subscriptionStore from '#/account/subscriptionStore'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import type { OrganizationTypeEnum } from '#/api/models/organizationTypeEnum'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import KoboSelect from '#/components/common/koboSelect'
@@ -29,7 +30,7 @@ export default function OrganizationSettingsRoute() {
   // All displayed fields
   const [name, setName] = useState<string>('')
   const [website, setWebsite] = useState<string>('')
-  const [orgType, setOrgType] = useState<OrganizationTypeName | null>(null)
+  const [orgType, setOrgType] = useState<OrganizationTypeEnum | null>(null)
 
   // We are invalidating the org query data when this component loads,
   // so we want to wait for a fetch fresh before setting the form data

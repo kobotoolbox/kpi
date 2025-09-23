@@ -16,6 +16,18 @@ import { toast } from 'react-hot-toast'
 import type { Json } from './components/common/common.interfaces'
 import type { MongoQuery } from './dataInterface'
 
+
+/**
+ * Type `Record<string, unknown>` raises problems down the road when using with interfaces without index signature.
+ * Type `object` handles both kinds of objects, with and without index signature. Useful for interface-d objects.
+ */
+type KeyValue<T extends object, K extends keyof T = keyof T> = [K, T[K]]
+export const recordEntries = <T extends object>(o: T) => Object.entries(o) as KeyValue<T>[]
+export const recordKeys = <T extends object>(o: T) => Object.keys(o) as (keyof T)[]
+export const recordValues = <T extends object>(o: T) => Object.values(o) as T[keyof T][]
+
+
+
 export const LANGUAGE_COOKIE_NAME = 'django_language'
 
 const cookies = new Cookies()
