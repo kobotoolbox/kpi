@@ -16,7 +16,7 @@ class TestMassEmailConfigModel(TestCase):
         Test that having a mass email config with parameters for the query function
         """
 
-        def parameterized_function(a: int=10, b: float, c: str) -> QuerySet:
+        def parameterized_function(a: int=10, b: float=15, c: str='') -> QuerySet:
             """
             This test parameterized query function obtains users with id > a, id < b,
             and where the username contains the substring c, for testing purposes
