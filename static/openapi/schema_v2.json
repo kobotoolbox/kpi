@@ -9,7 +9,7 @@
         "/api/v2/access-logs/": {
             "get": {
                 "operationId": "api_v2_access_logs_list",
-                "description": "## List actions performed by users.\n\n<sup>*</sup> _Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query specified in the\n\n`q` parameter.\n\n**Filterable fields:**\n\n1. app_label\n\n2. model_name\n\n3. action</br>\n  a. Available actions:\n   * create\n   * delete\n   * in-trash\n   * put-back\n   * remove\n   * update\n   * auth\n\n4. log_type</br>\na. Available log types:\n    * access\n    * project-history\n    * data-editing\n    * submission-management\n    * user-management\n    * asset-management\n\n5. date_created\n\n6. user_uid\n\n7. user__*</br>\na. user__username</br>\nb. user__email</br>\nc. user__is_superuser\n\n8. metadata__*</br>\n a. metadata__asset_uid</br>\n b. metadata__auth_type</br>\n c. some logs may have additional filterable fields in the metadata\n\n**Some examples:**\n\n1. All deleted submissions\n    `api/v2/audit-logs/?q=action:delete`\n\n2. All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`\n    `api/v2/audit-logs/?q=action:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`\n\n3. All submissions deleted by a specific user `my_username`\n    `api/v2/audit-logs/?q=action:delete AND user__username:my_username`\n\n4. All deleted submissions submitted after a specific date\n    `/api/v2/audit-logs/?q=action:delete AND date_created__gte:2022-11-15`\n\n5. All deleted submissions submitted after a specific date **and time**\n    `/api/v2/audit-logs/?q=action:delete AND date_created__gte:\"2022-11-15 20:34\"`\n\n6. All authentications from superusers\n    `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`\n\n*Notes: Do not forget to wrap search terms in double-quotes if they contain spaces\n(e.g. date and time \"2022-11-15 20:34\")*\n",
+                "description": "## List all access logs for all users\n\n⚠️ _Only available to superusers_\n\nSubmissions will be grouped together by user by hour\n\n**Filterable fields:**\n\n- date_created\n- user_uid\n- user__username\n- metadata__source\n- metadata__auth_type\n- metadata__ip_address\n\n**Some examples:**\n\n1. All logs from a specific IP address\n    `api/v2/access-logs/?q=metadata__ip_address:\"127.0.0.1\"`\n\n2. All logs created after Jan 1, 2025\n    `api/v2/access-logs/?q=date_created__gte:\"2025-01-01\"`\n\n*Notes: Do not forget to wrap search terms in double-quotes if they contain spaces\n(e.g. date and time \"2022-11-15 20:34\")*\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -53,7 +53,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/PaginatedAuditLogResponseList"
+                                    "$ref": "#/components/schemas/PaginatedAccessLogResponseList"
                                 }
                             }
                         },
@@ -76,24 +76,6 @@
                             }
                         },
                         "description": ""
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
                     }
                 }
             }
@@ -101,7 +83,7 @@
         "/api/v2/access-logs/export/": {
             "get": {
                 "operationId": "api_v2_access_logs_export_list",
-                "description": "## List all access logs export tasks for all users\n\n<sup>*</sup> _Only available to superusers_\n",
+                "description": "## List all access logs export tasks for all users\n\n⚠️ _Only available to superusers_\n",
                 "tags": [
                     "Access Logs"
                 ],
@@ -149,7 +131,7 @@
             },
             "post": {
                 "operationId": "api_v2_access_logs_export_create",
-                "description": "## Create an export task for all users\n\n<sup>*</sup> _Only available to superusers_\n",
+                "description": "## Create an export task for all users\n\n⚠️ _Only available to superusers_\n",
                 "tags": [
                     "Access Logs"
                 ],
@@ -214,7 +196,7 @@
         "/api/v2/access-logs/me/": {
             "get": {
                 "operationId": "api_v2_access_logs_me_list",
-                "description": "## List actions performed by users.\n\n<sup>*</sup> _Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query specified in the\n\n`q` parameter.\n\n**Filterable fields:**\n\n1. app_label\n\n2. model_name\n\n3. action</br>\n  a. Available actions:\n   * create\n   * delete\n   * in-trash\n   * put-back\n   * remove\n   * update\n   * auth\n\n4. log_type</br>\na. Available log types:\n    * access\n    * project-history\n    * data-editing\n    * submission-management\n    * user-management\n    * asset-management\n\n5. date_created\n\n6. user_uid\n\n7. user__*</br>\na. user__username</br>\nb. user__email</br>\nc. user__is_superuser\n\n8. metadata__*</br>\n a. metadata__asset_uid</br>\n b. metadata__auth_type</br>\n c. some logs may have additional filterable fields in the metadata\n\n**Some examples:**\n\n1. All deleted submissions\n    `api/v2/audit-logs/?q=action:delete`\n\n2. All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`\n    `api/v2/audit-logs/?q=action:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`\n\n3. All submissions deleted by a specific user `my_username`\n    `api/v2/audit-logs/?q=action:delete AND user__username:my_username`\n\n4. All deleted submissions submitted after a specific date\n    `/api/v2/audit-logs/?q=action:delete AND date_created__gte:2022-11-15`\n\n5. All deleted submissions submitted after a specific date **and time**\n    `/api/v2/audit-logs/?q=action:delete AND date_created__gte:\"2022-11-15 20:34\"`\n\n6. All authentications from superusers\n    `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`\n\n*Notes: Do not forget to wrap search terms in double-quotes if they contain spaces\n(e.g. date and time \"2022-11-15 20:34\")*\n",
+                "description": "## List all access logs for the authenticated user\n\nSubmissions will be grouped together by hour\n\nResults from this endpoint can be filtered by a boolean query specified in the `q` parameter.\n\n**Filterable fields:**\n\n* date_created\n* metadata__source\n* metadata__auth_type\n* metadata__ip_address\n\n**Some examples:**\n\n* All logs from a specific IP address\n    `api/v2/access-logs/?q=metadata__ip_address:\"127.0.0.1\"`\n* All logs created after Jan, 1 2025\n    `api/v2/access-logs/?q=date_created__date__gte:\"2025-01-01\"`\n\n*Notes: Do not forget to wrap search terms in double-quotes if they contain spaces\n(e.g. date and time \"2022-11-15 20:34\")*\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -258,42 +240,24 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/PaginatedAuditLogResponseList"
+                                    "$ref": "#/components/schemas/PaginatedAccessLogResponseList"
                                 }
                             }
                         },
                         "description": null
                     },
-                    "403": {
+                    "401": {
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorDetail"
                                 },
                                 "examples": {
-                                    "AccessDenied": {
+                                    "NotAuthenticated": {
                                         "value": {
-                                            "detail": "You do not have permission to perform this action."
+                                            "detail": "Authentication credentials were not provided."
                                         },
-                                        "summary": "Access Denied"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
+                                        "summary": "Not authenticated"
                                     }
                                 }
                             }
@@ -354,7 +318,7 @@
             },
             "post": {
                 "operationId": "api_v2_access_logs_me_export_create",
-                "description": "## Create an export task for authenticated user\n",
+                "description": "## Create an export task for the authenticated user\n",
                 "tags": [
                     "Access Logs"
                 ],
@@ -4267,7 +4231,7 @@
         "/api/v2/assets/{parent_lookup_asset}/history/": {
             "get": {
                 "operationId": "api_v2_assets_history_list",
-                "description": "## List project history logs\n\nLists all project history logs for a single project.\n\n<sup>*</sup> _Required permissions: `manage_asset` (Manage project)_\n\nResults from this endpoint can be filtered by a Boolean query specified in the q parameter.\n\n### Filterable fields for all project history logs:\n\n  date_created\n\n  user_uid\n\n  user__*\n  - user__username\n  - user__email\n  - user__is_superuser\n\n  metadata__*\n\n  - metadata__source\n  - metadata__ip_address\n  - metadata__asset_uid\n  - metadata__log_subtype\n    - available subtypes: \"project\", \"permission\"\n\n### action\n\navailable actions:\n  - add-media\n  - add-submission\n  - allow-anonymous-submissions\n  - archive\n  - clone-permissions\n  - connect-project\n  - delete-media\n  - delete-service\n  - delete-submission\n  - deploy\n  - disable-sharing\n  - disallow-anonymous-submissions\n  - disconnect-project\n  - enable-sharing\n  - export\n  - modify-imported-fields\n  - modify-qa-data\n  - modify-service\n  - modify-sharing\n  - modify-submission\n  - modify-user-permissions\n  - redeploy\n   - register-service\n  - replace-form\n  - share-data-publicly\n  - share-form-publicly\n  - transfer\n  - unarchive\n  - unshare-data-publicly\n  - unshare-form-publicly\n  - update-content\n  - update-name\n  - update-settings\n  - update-qa\n\n### Filterable fields by action:\n\n  add-media\n  - metadata__asset-file__uid\n  - metadata__asset-file__filename\n\n  add-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  archive\n  - metadata__latest_version_uid\n\n  clone-permissions\n  - metadata__cloned_from\n\n  connect-project\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  delete-media\n  - metadata__asset-file__uid\n  - metadata__asset-file__filename\n\n  delete-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  delete-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  deploy\n  - metadata__latest_version_uid\n  - metadata__latest_deployed_version_uid\n\n  disconnect-project\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  modify-imported-fields\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  modify-qa-data\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  modify-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  modify-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n  - metadata__submission__status (only present if changed)\n\n  modify-user-permissions\n  - metadata__permissions__username\n\n  redeploy\n  - metadata__latest_version_uid\n  - metadata__latest_deployed_version_uid\n\n  register-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  transfer\n  - metadata__username\n\n  unarchive\n  - metadata__latest_version_uid\n\n  update-name\n  - metadata__name__old\n  - metadata__name__new\n\n  update-settings\n  - metadata__settings__description__old\n  - metadata__settings__description__new\n\nThis endpoint can be paginated with 'offset' and 'limit' parameters.\n\n",
+                "description": "## List project history logs\n\nLists all project history logs for a single project.\n\n⚠️ _Required permissions: `manage_asset` (Manage project)_\n\nResults from this endpoint can be filtered by a Boolean query specified in the `q` parameter.\n\n### Filterable fields for all project history logs:\n\n  - date_created\n  - user_uid\n  - user__username\n  - user__email\n  - user__is_superuser\n  - metadata__source\n  - metadata__ip_address\n  - metadata__log_subtype\n    - available subtypes: \"project\", \"permission\"\n\n### action\n\navailable actions:\n  - add-media\n  - add-submission\n  - allow-anonymous-submissions\n  - archive\n  - clone-permissions\n  - connect-project\n  - delete-media\n  - delete-service\n  - delete-submission\n  - deploy\n  - disable-sharing\n  - disallow-anonymous-submissions\n  - disconnect-project\n  - enable-sharing\n  - export\n  - modify-imported-fields\n  - modify-qa-data\n  - modify-service\n  - modify-sharing\n  - modify-submission\n  - modify-user-permissions\n  - redeploy\n   - register-service\n  - replace-form\n  - share-data-publicly\n  - share-form-publicly\n  - transfer\n  - unarchive\n  - unshare-data-publicly\n  - unshare-form-publicly\n  - update-content\n  - update-name\n  - update-settings\n  - update-qa\n\n### Filterable fields by action:\n\n  add-media\n  - metadata__asset-file__uid\n  - metadata__asset-file__filename\n\n  add-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  archive\n  - metadata__latest_version_uid\n\n  clone-permissions\n  - metadata__cloned_from\n\n  connect-project\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  delete-media\n  - metadata__asset-file__uid\n  - metadata__asset-file__filename\n\n  delete-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  delete-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  deploy\n  - metadata__latest_version_uid\n  - metadata__latest_deployed_version_uid\n\n  disconnect-project\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  modify-imported-fields\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  modify-qa-data\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  modify-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  modify-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n  - metadata__submission__status (only present if changed)\n\n  modify-user-permissions\n  - metadata__permissions__username\n\n  redeploy\n  - metadata__latest_version_uid\n  - metadata__latest_deployed_version_uid\n\n  register-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  transfer\n  - metadata__username\n\n  unarchive\n  - metadata__latest_version_uid\n\n  update-name\n  - metadata__name__old\n  - metadata__name__new\n\n  update-settings\n  - metadata__settings__description__old\n  - metadata__settings__description__new\n\nThis endpoint can be paginated with 'offset' and 'limit' parameters.\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -4368,7 +4332,7 @@
         "/api/v2/assets/{parent_lookup_asset}/history/actions/": {
             "get": {
                 "operationId": "api_v2_assets_history_actions_retrieve",
-                "description": "## Retrieve distinct actions performed on the asset.\n",
+                "description": "## Retrieve distinct actions performed on the project.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -4444,7 +4408,7 @@
         "/api/v2/assets/{parent_lookup_asset}/history/export/": {
             "post": {
                 "operationId": "api_v2_assets_history_export_create",
-                "description": "## Export current project's history\n\nExports the project's history and sends it to the user via email.\n",
+                "description": "## Export current project's history\n\nExports the project's history and sends it by email to the requesting user.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -7602,7 +7566,7 @@
         "/api/v2/audit-logs/": {
             "get": {
                 "operationId": "api_v2_audit_logs_list",
-                "description": "## List actions performed by users.\n\n<sup>*</sup> _Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query specified in the\n\n`q` parameter.\n\n**Filterable fields:**\n\n1. app_label\n\n2. model_name\n\n3. action</br>\n  a. Available actions:\n   * create\n   * delete\n   * in-trash\n   * put-back\n   * remove\n   * update\n   * auth\n\n4. log_type</br>\na. Available log types:\n    * access\n    * project-history\n    * data-editing\n    * submission-management\n    * user-management\n    * asset-management\n\n5. date_created\n\n6. user_uid\n\n7. user__*</br>\na. user__username</br>\nb. user__email</br>\nc. user__is_superuser\n\n8. metadata__*</br>\n a. metadata__asset_uid</br>\n b. metadata__auth_type</br>\n c. some logs may have additional filterable fields in the metadata\n\n**Some examples:**\n\n1. All deleted submissions\n    `api/v2/audit-logs/?q=action:delete`\n\n2. All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`\n    `api/v2/audit-logs/?q=action:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`\n\n3. All submissions deleted by a specific user `my_username`\n    `api/v2/audit-logs/?q=action:delete AND user__username:my_username`\n\n4. All deleted submissions submitted after a specific date\n    `/api/v2/audit-logs/?q=action:delete AND date_created__gte:2022-11-15`\n\n5. All deleted submissions submitted after a specific date **and time**\n    `/api/v2/audit-logs/?q=action:delete AND date_created__gte:\"2022-11-15 20:34\"`\n\n6. All authentications from superusers\n    `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`\n\n*Notes: Do not forget to wrap search terms in double-quotes if they contain spaces\n(e.g. date and time \"2022-11-15 20:34\")*\n",
+                "description": "## List actions performed by users.\n\n⚠️ _Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query specified in the `q` parameter.\n\n**Filterable fields:**\n\n* app_label\n* model_name\n* action\n  Available actions:\n   * create\n   * delete\n   * in-trash\n   * put-back\n   * remove\n   * update\n   * auth\n* log_type\n  Available log types:\n    * access\n    * project-history\n    * data-editing\n    * submission-management\n    * user-management\n    * asset-management\n* date_created\n* user_uid\n* user__username\n* user__email\n* user__is_superuser\n* metadata__asset_uid\n* metadata__auth_type\n\n*Notes: Some logs may have additional filterable fields in the metadata*\n\n**Some examples:**\n\n* All deleted submissions\n    `api/v2/audit-logs/?q=action:delete`\n* All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`\n    `api/v2/audit-logs/?q=action:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`\n* All submissions deleted by a specific user `my_username`\n    `api/v2/audit-logs/?q=action:delete AND user__username:my_username`\n* All deleted submissions submitted after a specific date\n    `/api/v2/audit-logs/?q=action:delete AND date_created__gte:2022-11-15`\n* All deleted submissions submitted after a specific date **and time**\n    `/api/v2/audit-logs/?q=action:delete AND date_created__gte:\"2022-11-15 20:34\"`\n* All authentications from superusers\n    `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`\n\n*Notes: Do not forget to wrap search terms in double-quotes if they contain spaces\n(e.g. date and time \"2022-11-15 20:34\")*\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -9320,7 +9284,7 @@
         "/api/v2/project-history-logs/": {
             "get": {
                 "operationId": "api_v2_project_history_logs_list",
-                "description": "## List all project history logs for all projects.\n\n<sup>*</sup> _Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query\nspecified in the `q` parameter.\n\n**Filterable fields for all project history logs:**\n\n1. date_created\n\n2. user_uid\n\n3. user__*\n\n    a. user__username\n\n    b. user__email\n\n    c. user__is_superuser\n\n4. metadata__*\n\n    b. metadata__source\n\n    c. metadata__ip_address\n\n    d. metadata__asset_uid\n\n    e. metadata__log_subtype\n\n    * available subtypes: \"project\", \"permission\"\n\n5. action\n\navailable actions:\n\n>       add-media\n>       add-submission\n>       allow-anonymous-submissions\n>       archive\n>       clone-permissions\n>       connect-project\n>       delete-media\n>       delete-service\n>       delete-submission\n>       deploy\n>       disable-sharing\n>       disallow-anonymous-submissions\n>       disconnect-project\n>       enable-sharing\n>       export\n>       modify-imported-fields\n>       modify-qa-data\n>       modify-service\n>       modify-sharing\n>       modify-submission\n>       modify-user-permissions\n>       redeploy\n>       register-service\n>       replace-form\n>       share-data-publicly\n>       share-form-publicly\n>       transfer\n>       unarchive\n>       unshare-data-publicly\n>       unshare-form-publicly\n>       update-content\n>       update-name\n>       update-settings\n>       update-qa\n\n**Filterable fields by action:**\n\n* add-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* add-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* archive\n\n    a. metadata__latest_version_uid\n\n* clone-permissions\n\n    a. metadata__cloned_from\n\n* connect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* delete-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* delete-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* delete-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* deploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* disconnect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-imported-fields\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-qa-data\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* modify-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* modify-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n    b. metadata__submission__status (only present if changed)\n\n* modify-user-permissions\n\n    a. metadata__permissions__username\n\n* redeploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* register-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* transfer\n\n    a. metadata__username\n\n* unarchive\n\n    a. metadata__latest_version_uid\n\n* update-name\n\n    a. metadata__name__old\n\n    b. metadata__name__new\n\n* update-settings\n\n    a. metadata__settings__description__old\n\n    b. metadata__settings__description__new\n\nThis endpoint can be paginated with 'offset' and 'limit' parameters\n",
+                "description": "## List all project history logs for all projects.\n\n⚠️_Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query\nspecified in the `q` parameter.\n\n**Filterable fields for all project history logs:**\n\n* date_created\n* user_uid\n* user__username\n* user__email\n* user__is_superuser\n* metadata__source\n* metadata__ip_address\n* metadata__asset_uid\n* metadata__log_subtype\n    * available subtypes: \"project\", \"permission\"\n* action\n\navailable actions:\n\n>       add-media\n>       add-submission\n>       allow-anonymous-submissions\n>       archive\n>       clone-permissions\n>       connect-project\n>       delete-media\n>       delete-service\n>       delete-submission\n>       deploy\n>       disable-sharing\n>       disallow-anonymous-submissions\n>       disconnect-project\n>       enable-sharing\n>       export\n>       modify-imported-fields\n>       modify-qa-data\n>       modify-service\n>       modify-sharing\n>       modify-submission\n>       modify-user-permissions\n>       redeploy\n>       register-service\n>       replace-form\n>       share-data-publicly\n>       share-form-publicly\n>       transfer\n>       unarchive\n>       unshare-data-publicly\n>       unshare-form-publicly\n>       update-content\n>       update-name\n>       update-settings\n>       update-qa\n\n**Filterable fields by action:**\n\n* add-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* add-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* archive\n\n    a. metadata__latest_version_uid\n\n* clone-permissions\n\n    a. metadata__cloned_from\n\n* connect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* delete-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* delete-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* delete-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* deploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* disconnect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-imported-fields\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-qa-data\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* modify-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* modify-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n    b. metadata__submission__status (only present if changed)\n\n* modify-user-permissions\n\n    a. metadata__permissions__username\n\n* redeploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* register-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* transfer\n\n    a. metadata__username\n\n* unarchive\n\n    a. metadata__latest_version_uid\n\n* update-name\n\n    a. metadata__name__old\n\n    b. metadata__name__new\n\n* update-settings\n\n    a. metadata__settings__description__old\n\n    b. metadata__settings__description__new\n\nThis endpoint can be paginated with 'offset' and 'limit' parameters\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -9412,7 +9376,7 @@
         "/api/v2/project-history-logs/export/": {
             "get": {
                 "operationId": "api_v2_project_history_logs_export_retrieve",
-                "description": "## Export project history logs\n\nExport project history logs and send by email to requesting user.\n",
+                "description": "## List of Project History Exports\n\n⚠️ _Only available to superusers_\n",
                 "tags": [
                     "Project History Logs"
                 ],
@@ -9475,7 +9439,7 @@
             },
             "post": {
                 "operationId": "api_v2_project_history_logs_export_create",
-                "description": "## Create an export of projects history logs\n",
+                "description": "## Create an export of projects history logs\n\n⚠️ _Only available to superusers_\n\nExport project history logs and send it by email to the requesting user.\n",
                 "tags": [
                     "Project History Logs"
                 ],
@@ -11975,6 +11939,60 @@
     },
     "components": {
         "schemas": {
+            "AccessLogResponse": {
+                "type": "object",
+                "properties": {
+                    "user": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                    },
+                    "date_created": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "username": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "properties": {
+                            "source": {
+                                "type": "string"
+                            },
+                            "auth_type": {
+                                "type": "string"
+                            },
+                            "ip_address": {
+                                "type": "string"
+                            },
+                            "initial_user_uid": {
+                                "type": "string"
+                            },
+                            "initial_user_username": {
+                                "type": "string"
+                            },
+                            "authorized_app_name": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "user_uid": {
+                        "type": "string"
+                    },
+                    "count": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "count",
+                    "date_created",
+                    "metadata",
+                    "user",
+                    "user_uid",
+                    "username"
+                ]
+            },
             "Asset": {
                 "type": "object",
                 "properties": {
@@ -15909,6 +15927,37 @@
                 ],
                 "type": "string",
                 "description": "* `non-profit` - Non-profit organization\n* `government` - Government institution\n* `educational` - Educational organization\n* `commercial` - A commercial/for-profit company\n* `none` - I am not associated with any organization"
+            },
+            "PaginatedAccessLogResponseList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AccessLogResponse"
+                        }
+                    }
+                }
             },
             "PaginatedAssetCountResponseList": {
                 "type": "object",
