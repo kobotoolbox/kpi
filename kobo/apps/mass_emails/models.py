@@ -86,6 +86,17 @@ class MassEmailConfig(AbstractTimeStampedModel):
             ),
         }
 
+    def get_users_queryset(self):
+        queryset_getter = USER_QUERIES.get(self.query, lambda: [])
+        parameters = {
+            param.name: queryset_getter.__annotations__[param.name](param.value)
+            for param in self.parameters.all()
+            if param.name in queryset_getter.__annotations__
+            and queryset_getter.__annotations__[param.name] in (int, float, str)
+        }
+
+        return queryset_getter(**parameters)
+
 
 class MassEmailConfigExpectedRecipientsResource(resources.ModelResource):
     recipients = fields.Field(dehydrate_method='get_recipients')
@@ -99,10 +110,7 @@ class MassEmailConfigExpectedRecipientsResource(resources.ModelResource):
         )
 
     def get_recipients(self, email_config):
-        parameters = {
-            param.name: param.value for param in email_config.parameters.all()
-        }
-        user_queryset = USER_QUERIES.get(email_config.query, lambda: [])(**parameters)
+        user_queryset = email_config.get_users_queryset()
         return [
             user
             for user in user_queryset.values('username', 'email', 'extra_details__uid')
