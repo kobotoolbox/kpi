@@ -16,16 +16,14 @@ from .fields import BalanceDataField
 BalanceDataComponent = ResolvedComponent(
     name='ServiceUsageBalanceData',
     type=ResolvedComponent.SCHEMA,
-    object=BalanceDataField,  # must be truthy
+    object=BalanceDataField,
     schema=BALANCE_FIELDS_SCHEMA,
 )
 
 
 def get_balance_data_ref(auto_schema):
     """Ensure component is registered and return its $ref."""
-    registered = auto_schema.registry.register(BalanceDataComponent)
-    if registered:
-        return registered.ref
+    registered = auto_schema.registry.register_on_missing(BalanceDataComponent)
     return {'$ref': f'#/components/schemas/{BalanceDataComponent.name}'}
 
 
