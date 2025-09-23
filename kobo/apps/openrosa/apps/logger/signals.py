@@ -1,5 +1,6 @@
 import logging
 
+from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
@@ -52,6 +53,20 @@ def pre_delete_attachment(instance, **kwargs):
 
     if only_update_counters or not (media_file_name := str(attachment.media_file)):
         return
+
+    # Clean-up AttachmentTrash and related PeriodicTask
+    try:
+        AttachmentTrash = apps.get_model('trash_bin', 'AttachmentTrash')
+        with transaction.atomic():
+            att_trash = AttachmentTrash.objects.get(attachment_id=attachment.pk)
+            if att_trash:
+                periodic_task = att_trash.periodic_task
+                att_trash.delete()
+
+                if periodic_task:
+                    periodic_task.delete()
+    except Exception as e:
+        logging.error('Failed to delete attachment trash: ' + str(e), exc_info=True)
 
     # Clean-up storage
     try:
