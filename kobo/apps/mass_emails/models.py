@@ -88,12 +88,19 @@ class MassEmailConfig(AbstractTimeStampedModel):
 
     def get_users_queryset(self):
         queryset_getter = USER_QUERIES.get(self.query, lambda: [])
-        parameters = {
-            param.name: queryset_getter.__annotations__[param.name](param.value)
-            for param in self.parameters.all()
-            if param.name in queryset_getter.__annotations__
-            and queryset_getter.__annotations__[param.name] in (int, float, str)
-        }
+        parameters = {}
+        for param in self.parameters.all():
+            if (
+                param.name not in queryset_getter.__annotations__
+                or queryset_getter.__annotations__[param.name] not in (int, float, str)
+            ):
+                continue
+            try:
+                value = queryset_getter.__annotations__[param.name](param.value)
+            except ValueError:
+                continue
+
+            parameters[param.name] = value
 
         return queryset_getter(**parameters)
 
