@@ -1,15 +1,15 @@
 import { LoadingOverlay } from '@mantine/core'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import Select from '#/components/common/Select'
 import { usePatchMemberInvite } from './membersInviteQuery'
 import { usePatchOrganizationMember } from './membersQuery'
-import { OrganizationUserRole } from './organizationQuery'
 
 interface MemberRoleSelectorProps {
   username: string
   /** The role of the `username` user - the one we are modifying here. */
-  role: OrganizationUserRole
+  role: MemberRoleEnum
   /** The role of the currently logged in user. */
-  currentUserRole: OrganizationUserRole
+  currentUserRole: MemberRoleEnum
   /** URL for patching org member invites. Should only be passed if invite is still open */
   inviteUrl?: string
 }
@@ -20,7 +20,7 @@ export default function MemberRoleSelector({ username, role, inviteUrl }: Member
 
   const handleRoleChange = (newRole: string | null) => {
     if (newRole) {
-      const role = newRole as OrganizationUserRole
+      const role = newRole as MemberRoleEnum
       if (inviteUrl) {
         patchInvite.mutateAsync({ role })
       } else {
@@ -36,11 +36,11 @@ export default function MemberRoleSelector({ username, role, inviteUrl }: Member
         size='sm'
         data={[
           {
-            value: OrganizationUserRole.admin,
+            value: MemberRoleEnum.admin,
             label: t('Admin'),
           },
           {
-            value: OrganizationUserRole.member,
+            value: MemberRoleEnum.member,
             label: t('Member'),
           },
         ]}

@@ -7,6 +7,7 @@ import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/
 import InviteModal from '#/account/organization/InviteModal'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 import subscriptionStore from '#/account/subscriptionStore'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
 import Avatar from '#/components/common/avatar'
@@ -20,7 +21,7 @@ import MemberActionsDropdown from './MemberActionsDropdown'
 import MemberRoleSelector from './MemberRoleSelector'
 import { type OrganizationMember, type OrganizationMemberListItem, getOrganizationMembers } from './membersQuery'
 import styles from './membersRoute.module.scss'
-import { OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
+import { useOrganizationQuery } from './organizationQuery'
 
 export default function MembersRoute() {
   const orgQuery = useOrganizationQuery()
@@ -110,17 +111,17 @@ export default function MembersRoute() {
       cellFormatter: (obj: OrganizationMemberListItem) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
         if (
-          member?.role === OrganizationUserRole.owner ||
+          member?.role === MemberRoleEnum.owner ||
           !['owner', 'admin'].includes(orgQuery.data.request_user_role)
         ) {
           // If the member is the Owner or
           // If the user is not an owner or admin, we don't show the selector
           switch (member?.role || invite?.invitee_role) {
-            case OrganizationUserRole.owner:
+            case MemberRoleEnum.owner:
               return t('Owner')
-            case OrganizationUserRole.admin:
+            case MemberRoleEnum.admin:
               return t('Admin')
-            case OrganizationUserRole.member:
+            case MemberRoleEnum.member:
               return t('Member')
             default:
               return t('Unknown')
@@ -164,8 +165,8 @@ export default function MembersRoute() {
 
   // Actions column is only for owner and admins.
   if (
-    orgQuery.data.request_user_role === OrganizationUserRole.admin ||
-    orgQuery.data.request_user_role === OrganizationUserRole.owner
+    orgQuery.data.request_user_role === MemberRoleEnum.admin ||
+    orgQuery.data.request_user_role === MemberRoleEnum.owner
   ) {
     columns.push({
       key: 'url',
@@ -175,7 +176,7 @@ export default function MembersRoute() {
       cellFormatter: (obj: OrganizationMemberListItem) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
         // There is no action that can be done on an owner
-        if (member?.role === OrganizationUserRole.owner) {
+        if (member?.role === MemberRoleEnum.owner) {
           return null
         }
 

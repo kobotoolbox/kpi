@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 
 import { useMutation } from '@tanstack/react-query'
 import { fetchPatch } from '#/api'
+import type { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { getOrganizationsRetrieveQueryKey, useOrganizationsRetrieve } from '#/api/react-query/organizations'
 import { queryClient } from '#/query/queryClient'
 import { QueryKeys } from '#/query/queryKeys'
@@ -29,17 +30,7 @@ export interface Organization {
   modified: string
   is_owner: boolean
   is_mmo: boolean
-  request_user_role: OrganizationUserRole
-}
-
-/**
- * Note that it's only possible to update the role via API to either `admin` or
- * `member`.
- */
-export enum OrganizationUserRole {
-  member = 'member',
-  admin = 'admin',
-  owner = 'owner',
+  request_user_role: MemberRoleEnum
 }
 
 /**

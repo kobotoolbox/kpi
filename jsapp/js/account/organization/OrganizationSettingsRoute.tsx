@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react'
 
-import {
-  OrganizationUserRole,
-  useOrganizationQuery,
-  usePatchOrganization,
-} from '#/account/organization/organizationQuery'
+import { useOrganizationQuery, usePatchOrganization, } from '#/account/organization/organizationQuery'
 import { ORGANIZATION_TYPES, type OrganizationTypeName } from '#/account/organization/organizationQuery'
 import styles from '#/account/organization/organizationSettingsRoute.module.scss'
 import subscriptionStore from '#/account/subscriptionStore'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import KoboSelect from '#/components/common/koboSelect'
@@ -50,7 +47,7 @@ export default function OrganizationSettingsRoute() {
 
   const isUserAdminOrOwner =
     orgQuery.data?.request_user_role &&
-    [OrganizationUserRole.admin, OrganizationUserRole.owner].includes(orgQuery.data?.request_user_role)
+    [MemberRoleEnum.admin, MemberRoleEnum.owner].includes(orgQuery.data?.request_user_role)
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault()
