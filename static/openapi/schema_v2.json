@@ -15862,27 +15862,7 @@
                         ]
                     },
                     "balances": {
-                        "type": "object",
-                        "properties": {
-                            "submission": {
-                                "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
-                            },
-                            "storage_bytes": {
-                                "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
-                            },
-                            "asr_seconds": {
-                                "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
-                            },
-                            "mt_characters": {
-                                "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
-                            }
-                        },
-                        "required": [
-                            "asr_seconds",
-                            "mt_characters",
-                            "storage_bytes",
-                            "submission"
-                        ]
+                        "$ref": "#/components/schemas/ServiceUsageBalances"
                     },
                     "current_period_start": {
                         "type": "string",
@@ -18536,6 +18516,29 @@
                     "exceeded"
                 ]
             },
+            "ServiceUsageBalances": {
+                "type": "object",
+                "properties": {
+                    "submission": {
+                        "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
+                    },
+                    "storage_bytes": {
+                        "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
+                    },
+                    "asr_seconds": {
+                        "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
+                    },
+                    "mt_characters": {
+                        "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
+                    }
+                },
+                "required": [
+                    "asr_seconds",
+                    "mt_characters",
+                    "storage_bytes",
+                    "submission"
+                ]
+            },
             "ServiceUsageResponse": {
                 "type": "object",
                 "properties": {
@@ -18577,27 +18580,7 @@
                         }
                     },
                     "balances": {
-                        "type": "object",
-                        "properties": {
-                            "submission": {
-                                "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
-                            },
-                            "storage_bytes": {
-                                "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
-                            },
-                            "asr_seconds": {
-                                "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
-                            },
-                            "mt_characters": {
-                                "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
-                            }
-                        },
-                        "required": [
-                            "asr_seconds",
-                            "mt_characters",
-                            "storage_bytes",
-                            "submission"
-                        ]
+                        "$ref": "#/components/schemas/ServiceUsageBalances"
                     },
                     "current_period_start": {
                         "type": "string",

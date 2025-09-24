@@ -12,7 +12,7 @@ from kpi.schema_extensions.v2.generic.schema import (
     GENERIC_NLP_OBJECT_SCHEMA,
 )
 from kpi.schema_extensions.v2.service_usage.extensions import (
-    get_nullable_balance_data_ref,
+    get_service_usage_balances_ref,
 )
 from kpi.utils.schema_extensions.url_builder import build_url_type
 from ..members.schema import ROLE_CHOICES_ENUM
@@ -42,21 +42,7 @@ class BalanceFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.organizations.fields.BalanceField'
 
     def map_serializer_field(self, auto_schema, direction):
-        balance_ref = get_nullable_balance_data_ref(auto_schema)
-        return build_object_type(
-            properties={
-                'submission': balance_ref,
-                'storage_bytes': balance_ref,
-                'asr_seconds': balance_ref,
-                'mt_characters': balance_ref,
-            },
-            required=[
-                'submission',
-                'storage_bytes',
-                'asr_seconds',
-                'mt_characters',
-            ],
-        )
+        return get_service_usage_balances_ref(auto_schema)
 
 
 class MembersFieldExtensions(OpenApiSerializerFieldExtension):

@@ -14,18 +14,16 @@ from kpi.schema_extensions.v2.generic.schema import (
 )
 from .fields import BalanceDataField
 
-BalanceDataComponent = ResolvedComponent(
-    name='ServiceUsageBalanceData',
-    type=ResolvedComponent.SCHEMA,
-    object=BalanceDataField,
-    schema=BALANCE_FIELDS_SCHEMA,
-)
-
 
 def get_balance_data_ref(auto_schema):
-    """Ensure component is registered and return its $ref."""
-    auto_schema.registry.register_on_missing(BalanceDataComponent)
-    return {'$ref': f'#/components/schemas/{BalanceDataComponent.name}'}
+    component = ResolvedComponent(
+        name='ServiceUsageBalanceData',
+        type=ResolvedComponent.SCHEMA,
+        object=BalanceDataField,
+        schema=BALANCE_FIELDS_SCHEMA,
+    )
+    auto_schema.registry.register_on_missing(component)
+    return component.ref
 
 
 def get_nullable_balance_data_ref(auto_schema):
@@ -40,12 +38,11 @@ def get_nullable_balance_data_ref(auto_schema):
     return component.ref
 
 
-class BalancesFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.service_usage.fields.BalancesField'
-
-    def map_serializer_field(self, auto_schema, direction):
-        nullable_balance = get_nullable_balance_data_ref(auto_schema)
-        return build_object_type(
+def get_service_usage_balances_ref(auto_schema):
+    nullable_balance = get_nullable_balance_data_ref(auto_schema)
+    component = ResolvedComponent(
+        name="ServiceUsageBalances",
+        schema=build_object_type(
             properties={
                 'submission': nullable_balance,
                 'storage_bytes': nullable_balance,
@@ -58,7 +55,19 @@ class BalancesFieldExtension(OpenApiSerializerFieldExtension):
                 'asr_seconds',
                 'mt_characters',
             ],
-        )
+        ),
+        type=ResolvedComponent.SCHEMA,
+        object=dict,
+    )
+    auto_schema.registry.register_on_missing(component)
+    return component.ref
+
+
+class BalancesFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.service_usage.fields.BalancesField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return get_service_usage_balances_ref(auto_schema)
 
 
 class NlpUsageFieldExtension(OpenApiSerializerFieldExtension):
