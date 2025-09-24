@@ -4,6 +4,7 @@ from rest_framework import status
 
 from kobo.apps.subsequences.models import SubmissionSupplement
 from kobo.apps.subsequences.tests.api.v2.base import SubsequenceBaseTestCase
+from kobo.apps.subsequences.tests.constants import QUESTION_SUPPLEMENT
 
 
 class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
@@ -96,16 +97,9 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         # Simulate a completed transcription, first.
         mock_submission_supplement = {
             '_version': '20250820',
-            'q1': {
-                'automated_google_transcription': {
-                    'status': 'complete',
-                    'value': 'My audio has been transcribed',
-                    'language': 'en',
-                    '_dateCreated': '2025-08-25T21:17:35.535710Z',
-                    '_dateModified': '2025-08-26T11:41:21.917338Z',
-                },
-            },
+            'q1': QUESTION_SUPPLEMENT
         }
+
         SubmissionSupplement.objects.create(
             submission_uuid=self.submission_uuid,
             content=mock_submission_supplement,
@@ -190,15 +184,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         # Simulate a completed transcription, first.
         mock_submission_supplement = {
             '_version': '20250820',
-            'q1': {
-                'automated_google_transcription': {
-                    'status': 'complete',
-                    'value': 'My audio has been transcribed',
-                    'language': 'en',
-                    '_dateCreated': '2025-08-25T21:17:35.535710Z',
-                    '_dateModified': '2025-08-26T11:41:21.917338Z',
-                },
-            },
+            'q1': QUESTION_SUPPLEMENT
         }
         SubmissionSupplement.objects.create(
             submission_uuid=self.submission_uuid,

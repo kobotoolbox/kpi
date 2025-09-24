@@ -1,4 +1,6 @@
+import uuid
 from datetime import datetime
+from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 from ddt import data, ddt, unpack
@@ -152,12 +154,15 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
             self.asset.assign_perm(user, PERM_CHANGE_SUBMISSIONS)
 
         frozen_datetime_now = datetime(2024, 4, 8, 15, 27, 0, tzinfo=ZoneInfo('UTC'))
-        with freeze_time(frozen_datetime_now):
-            response = self.client.patch(
-                self.supplement_details_url, data=payload, format='json'
-            )
+        fixed_uuid = uuid.UUID('11111111-2222-3333-4444-555555555555')
+        with patch('uuid.uuid4', return_value=fixed_uuid):
+            with freeze_time(frozen_datetime_now):
+                response = self.client.patch(
+                    self.supplement_details_url, data=payload, format='json'
+                )
 
         assert response.status_code == status_code
+
         if status_code == status.HTTP_200_OK:
             expected = {
                 '_version': '20250820',
@@ -171,6 +176,7 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
                                 '_dateAccepted': '2024-04-08T15:27:00Z',
                                 'language': 'es',
                                 'value': 'buenas noches',
+                                '_uuid': '11111111-2222-3333-4444-555555555555',
                             }
                         ],
                     },

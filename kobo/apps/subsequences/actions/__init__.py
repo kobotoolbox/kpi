@@ -11,11 +11,4 @@ ACTIONS = (
     ManualTranslationAction,
 )
 
-TRANSCRIPTION_ACTIONS = (
-    AutomatedGoogleTranscriptionAction,
-    ManualTranscriptionAction,
-)
-
 ACTION_IDS_TO_CLASSES = {a.ID: a for a in ACTIONS}
-
-TRANSCRIPTION_ACTION_IDS_TO_CLASSES = {a.ID: a for a in TRANSCRIPTION_ACTIONS}

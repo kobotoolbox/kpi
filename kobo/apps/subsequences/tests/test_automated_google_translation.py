@@ -394,26 +394,40 @@ def test_cannot_revise_data_without_transcription():
                 EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, {'language': 'fr'}
             )
 
-def test_find_the_most_recent_transcription():
+def test_find_the_most_recent_accepted_transcription():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
     action = AutomatedGoogleTranslationAction(xpath, params)
 
     question_supplement_data = {
         'automated_google_transcription': {
-            'value': 'My audio has been transcribed automatically',
-            'language': 'en',
-            'status': 'completed',
             '_dateCreated': '2024-04-08T15:27:00Z',
             '_dateModified': '2024-04-08T15:27:00Z',
+            '_versions': [
+                {
+                    'value': 'My audio has been transcribed automatically',
+                    'language': 'en',
+                    'status': 'completed',
+                    '_dateCreated': '2024-04-08T15:27:00Z',
+                    '_dateAccepted': '2024-04-08T15:27:00Z',
+                    '_uuid': '4dcf9c9f-e503-4e5c-81f5-74250b295001',
+                },
+            ],
         },
         'manual_transcription': {
-            'value': 'My audio has been transcribed manually',
-            'language': 'en',
-            'locale': 'en-CA',
-            'status': 'completed',
             '_dateCreated': '2024-04-08T15:28:00Z',
             '_dateModified': '2024-04-08T15:28:00Z',
+            '_versions': [
+                {
+                    'value': 'My audio has been transcribed manually',
+                    'language': 'en',
+                    'locale': 'en-CA',
+                    'status': 'completed',
+                    '_dateCreated': '2024-04-08T15:28:00Z',
+                    '_dateAccepted': '2024-04-08T15:28:00Z',
+                    '_uuid': 'd69b9263-04fd-45b4-b011-2e166cfefd4a',
+                },
+            ],
         },
     }
 
@@ -423,6 +437,7 @@ def test_find_the_most_recent_transcription():
         'dependency': {
             'value': 'My audio has been transcribed manually',
             'language': 'en-CA',
+            '_uuid': 'd69b9263-04fd-45b4-b011-2e166cfefd4a',
         }
     }
     action_data = action._get_action_data_dependency(
@@ -432,13 +447,14 @@ def test_find_the_most_recent_transcription():
 
     # Automated transcription is the most recent
     action_data = {}
-    question_supplement_data['automated_google_transcription'][
-        '_dateModified'
-    ] = '2025-07-28T14:18:00Z'
+    question_supplement_data['automated_google_transcription']['_versions'][0][
+        '_dateAccepted'
+    ] = '2025-07-28T16:18:00Z'
     expected = {
         'dependency': {
             'value': 'My audio has been transcribed automatically',
             'language': 'en',
+            '_uuid': '4dcf9c9f-e503-4e5c-81f5-74250b295001',
         }
     }
     action_data = action._get_action_data_dependency(

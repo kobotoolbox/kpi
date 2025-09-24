@@ -1,5 +1,7 @@
+import uuid
 from copy import deepcopy
 from datetime import datetime
+from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -41,12 +43,14 @@ class SubmissionSupplementTestCase(TestCase):
                         'value': 'فارغ',
                         '_dateCreated': '2024-04-08T15:31:00Z',
                         '_dateAccepted': '2024-04-08T15:31:00Z',
+                        '_uuid': '51ff33a5-62d6-48ec-94b2-2dfb406e1dee',
                     },
                     {
                         'language': 'ar',
                         'value': 'هائج',
                         '_dateCreated': '2024-04-08T15:27:00Z',
                         '_dateAccepted': '2024-04-08T15:27:00Z',
+                        '_uuid': '123e4567-e89b-12d3-a456-426614174000',
                     }
                 ],
             },
@@ -59,6 +63,7 @@ class SubmissionSupplementTestCase(TestCase):
                         'value': 'berserk',
                         '_dateCreated': '2024-04-08T15:27:00Z',
                         '_dateAccepted': '2024-04-08T15:27:00Z',
+                        '_uuid': '22b04ce8-61c2-4383-836f-5d5f0ad73645',
                     }],
                 },
                 'es': {
@@ -70,12 +75,15 @@ class SubmissionSupplementTestCase(TestCase):
                             'value': 'enloquecido',
                             '_dateCreated': '2024-04-08T15:32:00Z',
                             '_dateAccepted': '2024-04-08T15:32:00Z',
+                            '_uuid': 'd69b9263-04fd-45b4-b011-2e166cfefd4a',
                         },
                         {
                             'language': 'es',
                             'value': 'loco',
                             '_dateCreated': '2024-04-08T15:29:00Z',
                             '_dateAccepted': '2024-04-08T15:29:00Z',
+                            '_uuid': '30d0f39c-a1dd-43fe-999a-844f12f83d31',
+
                         }
                     ],
                 },
@@ -193,92 +201,102 @@ class SubmissionSupplementTestCase(TestCase):
             submission_uuid=self.submission_root_uuid
         ).exists()
 
-        frozen_datetime_now = datetime(2024, 4, 8, 15, 27, 0, tzinfo=ZoneInfo('UTC'))
-        with freeze_time(frozen_datetime_now):
+        fake_uuids = [
+            uuid.UUID('123e4567-e89b-12d3-a456-426614174000'),
+            uuid.UUID('22b04ce8-61c2-4383-836f-5d5f0ad73645'),
+            uuid.UUID('30d0f39c-a1dd-43fe-999a-844f12f83d31'),
+            uuid.UUID('51ff33a5-62d6-48ec-94b2-2dfb406e1dee'),
+            uuid.UUID('d69b9263-04fd-45b4-b011-2e166cfefd4a'),
+        ]
 
-            # 1) First call with transcription (ar) and translation (en)
-            SubmissionSupplement.revise_data(
-                self.asset,
-                self.submission,
-                {
-                    '_version': '20250820',
-                    'group_name/question_name': {
-                        'manual_transcription': {
-                            'language': 'ar',
-                            'value': 'هائج',
-                        },
-                        'manual_translation': {
-                            'language': 'en',
-                            'value': 'berserk',
-                        },
-                    },
-                },
-            )
+        with patch('uuid.uuid4', side_effect=fake_uuids):
 
-        # Make sure a SubmissionSupplement object has been created
-        assert SubmissionSupplement.objects.filter(
-            submission_uuid=self.submission_root_uuid
-        ).exists()
+            frozen_datetime_now = datetime(2024, 4, 8, 15, 27, 0, tzinfo=ZoneInfo('UTC'))
+            with freeze_time(frozen_datetime_now):
 
-        # 2) Call with translation es = "loco"
-        frozen_datetime_now = datetime(2024, 4, 8, 15, 29, 0, tzinfo=ZoneInfo('UTC'))
-        with freeze_time(frozen_datetime_now):
-            SubmissionSupplement.revise_data(
-                self.asset,
-                self.submission,
-                {
-                    '_version': '20250820',
-                    'group_name/question_name': {
-                        'manual_translation': {
-                            'language': 'es',
-                            'value': 'loco',
+                # 1) First call with transcription (ar) and translation (en)
+                SubmissionSupplement.revise_data(
+                    self.asset,
+                    self.submission,
+                    {
+                        '_version': '20250820',
+                        'group_name/question_name': {
+                            'manual_transcription': {
+                                'language': 'ar',
+                                'value': 'هائج',
+                            },
+                            'manual_translation': {
+                                'language': 'en',
+                                'value': 'berserk',
+                            },
                         },
                     },
-                },
-            )
+                )
 
-        assert (
-            SubmissionSupplement.objects.filter(
+            # Make sure a SubmissionSupplement object has been created
+            assert SubmissionSupplement.objects.filter(
                 submission_uuid=self.submission_root_uuid
-            ).count()
-            == 1
-        )
+            ).exists()
 
-        # 3) Call with transcription ar = 'فارغ'
-        frozen_datetime_now = datetime(2024, 4, 8, 15, 31, 0, tzinfo=ZoneInfo('UTC'))
-        with freeze_time(frozen_datetime_now):
-            submission_supplement = SubmissionSupplement.revise_data(
-                self.asset,
-                self.submission,
-                {
-                    '_version': '20250820',
-                    'group_name/question_name': {
-                        'manual_transcription': {
-                            'language': 'ar',
-                            'value': 'فارغ',
+            # 2) Call with translation es = "loco"
+            frozen_datetime_now = datetime(2024, 4, 8, 15, 29, 0, tzinfo=ZoneInfo('UTC'))
+            with freeze_time(frozen_datetime_now):
+                SubmissionSupplement.revise_data(
+                    self.asset,
+                    self.submission,
+                    {
+                        '_version': '20250820',
+                        'group_name/question_name': {
+                            'manual_translation': {
+                                'language': 'es',
+                                'value': 'loco',
+                            },
                         },
                     },
-                },
+                )
+
+            assert (
+                SubmissionSupplement.objects.filter(
+                    submission_uuid=self.submission_root_uuid
+                ).count()
+                == 1
             )
 
-        # 4) Call with translation es = "enloquecido"
-        frozen_datetime_now = datetime(2024, 4, 8, 15, 32, 0, tzinfo=ZoneInfo('UTC'))
-        with freeze_time(frozen_datetime_now):
-            submission_supplement = SubmissionSupplement.revise_data(
-                self.asset,
-                self.submission,
-                {
-                    '_version': '20250820',
-                    'group_name/question_name': {
-                        'manual_translation': {
-                            'language': 'es',
-                            'value': 'enloquecido',
+            # 3) Call with transcription ar = 'فارغ'
+            frozen_datetime_now = datetime(2024, 4, 8, 15, 31, 0, tzinfo=ZoneInfo('UTC'))
+            with freeze_time(frozen_datetime_now):
+                submission_supplement = SubmissionSupplement.revise_data(
+                    self.asset,
+                    self.submission,
+                    {
+                        '_version': '20250820',
+                        'group_name/question_name': {
+                            'manual_transcription': {
+                                'language': 'ar',
+                                'value': 'فارغ',
+                            },
                         },
                     },
-                },
-            )
+                )
 
-        assert submission_supplement == self.EXPECTED_SUBMISSION_SUPPLEMENT
+            # 4) Call with translation es = "enloquecido"
+            frozen_datetime_now = datetime(2024, 4, 8, 15, 32, 0, tzinfo=ZoneInfo('UTC'))
+            with freeze_time(frozen_datetime_now):
+                submission_supplement = SubmissionSupplement.revise_data(
+                    self.asset,
+                    self.submission,
+                    {
+                        '_version': '20250820',
+                        'group_name/question_name': {
+                            'manual_translation': {
+                                'language': 'es',
+                                'value': 'enloquecido',
+                            },
+                        },
+                    },
+                )
+
+            assert submission_supplement == self.EXPECTED_SUBMISSION_SUPPLEMENT
 
     def test_revise_data_raise_error_wrong_action(self):
 

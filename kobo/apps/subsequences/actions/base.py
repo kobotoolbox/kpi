@@ -1,3 +1,4 @@
+import uuid
 from copy import deepcopy
 from dataclasses import dataclass
 
@@ -9,7 +10,6 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
-from ..exceptions import InvalidItem
 from ..tasks import poll_run_automated_process
 from ..type_aliases import NLPExternalServiceClass
 
@@ -63,12 +63,14 @@ idea of example data in SubmissionExtras based on the above
                     'language': 'ar',
                     '_dateCreated': '2025-08-21T20:57:28.154567Z',
                     '_dateAccepted': '2025-08-21T20:57:28.154567Z',
+                    '_uuid': '4dcf9c9f-e503-4e5c-81f5-74250b295001',
                 },
                 {
                     'value': 'فارغ',
                     'language': 'ar',
                     '_dateCreated': '2025-08-21T20:55:42.012053Z',
                     '_dateAccepted': '2025-08-21T20:55:42.012053Z',
+                    '_uuid': '850e6359-50e8-4252-9895-e9669a27b1ea',
                 }
             ],
         },
@@ -82,12 +84,14 @@ idea of example data in SubmissionExtras based on the above
                             'language': 'es',
                             '_dateCreated': '2025-08-21T21:40:54.644308Z',
                             '_dateAccepted': '2025-08-21T21:40:54.644308Z',
+                            '_uuid': '22b04ce8-61c2-4383-836f-5d5f0ad73645',
                         },
                         {
                             'value': 'loco',
                             'language': 'es',
                             '_dateCreated': '2025-08-21T21:39:42.141306Z',
                             '_dateAccepted': '2025-08-21T21:39:42.141306Z',
+                            '_uuid': '13403918-6b53-4222-8f8f-27397b53e2ce',
                         }
                     ],
                 },
@@ -100,6 +104,7 @@ idea of example data in SubmissionExtras based on the above
                             'language': 'fr',
                             '_dateCreated': '2025-08-21T22:00:10.862880Z',
                             '_dateAccepted': '2025-08-21T22:00:10.862880Z',
+                            '_uuid': 'de6501fd-71c0-43fe-a569-b8407e50bc70',
                         }
                     ],
                 }
@@ -107,16 +112,19 @@ idea of example data in SubmissionExtras based on the above
         ],
     },
     'my_video_question': {
-        '_dateCreated': '2025-08-21T21:06:20.059117Z',
-        '_dateModified': '2025-08-21T21:06:20.059117Z',
-        '_versions': [
-            {
-                'value': 'sea horse sea hell',
-                'language': 'en',
-                '_dateCreated': '2025-08-21T21:06:20.059117Z',
-                '_dateAccepted': '2025-08-21T21:06:20.059117Z',
-            }
-        ],
+        'manual_transcription': {
+            '_dateCreated': '2025-08-21T21:06:20.059117Z',
+            '_dateModified': '2025-08-21T21:06:20.059117Z',
+            '_versions': [
+                {
+                    'value': 'sea horse sea hell',
+                    'language': 'en',
+                    '_dateCreated': '2025-08-21T21:06:20.059117Z',
+                    '_dateAccepted': '2025-08-21T21:06:20.059117Z',
+                    '_uuid': 'fec5a51d-bd12-4d61-86ba-c2e8507a2a93',
+                }
+            ],
+        }
     },
     'my_number_question': {
         'number_multiplier': {
@@ -125,6 +133,7 @@ idea of example data in SubmissionExtras based on the above
             '_versions': [
                 'value': 99,
                 '_dateCreated': '2025-08-21T21:09:34.504546Z',
+                '_uuid': '12345678-90ab-cdef-1234-567890abcdef',
             ],
         },
     },
@@ -154,6 +163,7 @@ class BaseAction:
     DATE_CREATED_FIELD = '_dateCreated'
     DATE_MODIFIED_FIELD = '_dateModified'
     DATE_ACCEPTED_FIELD = '_dateAccepted'
+    UUID_FIELD = '_uuid'
     VERSION_FIELD = '_versions'
 
     action_class_config: ActionClassConfig | None = None
@@ -300,6 +310,7 @@ class BaseAction:
 
         new_version = deepcopy(action_data)
         new_version[self.DATE_CREATED_FIELD] = now_str
+        new_version[self.UUID_FIELD] = str(uuid.uuid4())
         if self.DATE_CREATED_FIELD not in localized_action_supplemental_data:
             localized_action_supplemental_data[self.DATE_CREATED_FIELD] = now_str
         localized_action_supplemental_data[self.DATE_MODIFIED_FIELD] = now_str

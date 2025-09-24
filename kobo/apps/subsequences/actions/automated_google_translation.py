@@ -1,6 +1,8 @@
 from dateutil import parser
 
 from kobo.apps.organizations.constants import UsageType
+from ..actions.automated_google_transcription import AutomatedGoogleTranscriptionAction
+from ..actions.manual_transcription import ManualTranscriptionAction
 from ..exceptions import TranscriptionNotFound
 from ..integrations.google.google_translate import GoogleTranslationService
 from ..type_aliases import NLPExternalServiceClass
@@ -38,47 +40,61 @@ class AutomatedGoogleTranslationAction(
         self, question_supplemental_data: dict, action_data: dict
     ) -> dict:
         """
-        Retrieve and attach dependency data from another transcription action.
+        Attach the latest accepted transcript as a dependency for a translation action.
 
-        This method searches `question_supplemental_data` for the most recent
-        transcription matching the base language of `action_data`. Regional
-        variants are not supported: only the language code is used to locate
-        the transcript. The found transcript (and locale if available) is then
-        added to `action_data` under the `transcript` field.
+        Looks up prior transcription actions in `question_supplemental_data` and
+        selects the most recent accepted version.
+        The chosen transcript is injected into `action_data['dependency']` with:
+          - 'value': transcript text
+          - 'language': preferred locale if present, else base language
+          - '_uuid': transcript UUID
+
+        The search is restricted to known transcription action IDs (e.g., Google
+        automated and manual transcription). If none is found, raises
+        `TranscriptionNotFound`.
         """
 
-        # Avoid circular imports
-        from ..actions import TRANSCRIPTION_ACTION_IDS_TO_CLASSES
+        # Action IDs that can provide a transcript dependency.
+        transcription_action_ids = (
+            AutomatedGoogleTranscriptionAction.ID,
+            ManualTranscriptionAction.ID,
+        )
 
-        transcript = transcript_language = None
-        last_date_modified = None
+        latest_version = None
+        latest_accepted_dt = None
 
-        # TODO Should we search only for accepted transcriptions?
-        for action_id in TRANSCRIPTION_ACTION_IDS_TO_CLASSES.keys():
-            try:
-                question_supplemental_data[action_id]['value']
-            except KeyError:
+        for action_id in transcription_action_ids:
+            # Each action's data is expected to store versions under "_versions".
+            action_supplemental_data = question_supplemental_data.get(action_id)
+            if not action_supplemental_data:
                 continue
 
-            action_version = question_supplemental_data[action_id]
-            dependency_date_modified = parser.parse(
-                action_version[self.DATE_MODIFIED_FIELD]
-            )
+            versions = action_supplemental_data.get(self.VERSION_FIELD) or []
+            for version in versions:
+                # Skip versions without an acceptance timestamp.
+                accepted_raw = version.get(self.DATE_ACCEPTED_FIELD)
+                if not accepted_raw:
+                    continue
 
-            if not last_date_modified or last_date_modified < dependency_date_modified:
-                last_date_modified = dependency_date_modified
-                transcript = action_version['value']
-                transcript_language = (
-                    action_version.get('locale') or action_version['language']
-                )
+                accepted_dt = parser.parse(accepted_raw)
 
-        if transcript is None:
+                if latest_accepted_dt is None or accepted_dt > latest_accepted_dt:
+                    latest_accepted_dt = accepted_dt
+                    latest_version = version
+
+        if latest_version is None:
             raise TranscriptionNotFound
+
+        # Prefer a specific locale when available; otherwise use the base language.
+        language_or_locale = (
+            latest_version.get('locale') or latest_version['language']
+        )
 
         # Inject dependency property for translation service
         action_data['dependency'] = {
-            'value': transcript,
-            'language': transcript_language,
+            'value': latest_version['value'],
+            'language': language_or_locale,
+            self.UUID_FIELD: latest_version[self.UUID_FIELD],
         }
 
         return action_data

@@ -37,9 +37,11 @@ class TranscriptionResultSchemaMixin:
                     'properties': {
                         self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
                         self.DATE_ACCEPTED_FIELD: {'$ref': '#/$defs/dateTime'},
+                        self.UUID_FIELD: {'$ref': '#/$defs/uuid'},
                     },
-                    'required': [self.DATE_CREATED_FIELD],
+                    'required': [self.DATE_CREATED_FIELD, self.UUID_FIELD],
                 },
+                'uuid': {'type': 'string', 'format': 'uuid'},
                 **data_schema_defs,  # Copy defs at the root level
             },
         }
@@ -100,9 +102,11 @@ class TranslationResultSchemaMixin:
                     'properties': {
                         self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
                         self.DATE_ACCEPTED_FIELD: {'$ref': '#/$defs/dateTime'},
+                        self.UUID_FIELD: {'$ref': '#/$defs/uuid'},
                     },
-                    'required': [self.DATE_CREATED_FIELD],
+                    'required': [self.DATE_CREATED_FIELD, self.UUID_FIELD],
                 },
+                'uuid': {'type': 'string', 'format': 'uuid'},
                 **data_schema_defs,
             },
         }
