@@ -839,6 +839,21 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
         )
         self.assertFalse(PeriodicTask.objects.filter(pk=periodic_task_id).exists())
 
+    def test_deleting_attachment_directly_without_attachment_trash_does_not_fail(self):
+        """
+        Ensure that deleting an Attachment that was never moved to trash does
+        not raise any exception and cleans up properly.
+        """
+        # Ensure no trash exists
+        self.assertFalse(
+            AttachmentTrash.objects.filter(attachment_id=self.attachment.pk).exists()
+        )
+
+        self.attachment.delete()
+
+        # Attachment must be gone
+        self.assertFalse(Attachment.objects.filter(pk=self.attachment.pk).exists())
+
     def _move_attachment_to_trash(self, asset, attachment, user):
         move_to_trash(
             request_author=user,

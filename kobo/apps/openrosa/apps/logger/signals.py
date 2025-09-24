@@ -55,18 +55,17 @@ def pre_delete_attachment(instance, **kwargs):
         return
 
     # Clean-up AttachmentTrash and related PeriodicTask
-    try:
-        AttachmentTrash = apps.get_model('trash_bin', 'AttachmentTrash')
-        with transaction.atomic():
+    AttachmentTrash = apps.get_model('trash_bin', 'AttachmentTrash')
+    with transaction.atomic():
+        try:
             att_trash = AttachmentTrash.objects.get(attachment_id=attachment.pk)
-            if att_trash:
-                periodic_task = att_trash.periodic_task
-                att_trash.delete()
-
-                if periodic_task:
-                    periodic_task.delete()
-    except Exception as e:
-        logging.error('Failed to delete attachment trash: ' + str(e), exc_info=True)
+        except AttachmentTrash.DoesNotExist:
+            pass
+        else:
+            periodic_task = att_trash.periodic_task
+            att_trash.delete()
+            if periodic_task:
+                periodic_task.delete()
 
     # Clean-up storage
     try:
