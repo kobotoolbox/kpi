@@ -15589,6 +15589,16 @@
                 "type": "string",
                 "description": "* `admin` - admin\n* `member` - member\n* `owner` - owner"
             },
+            "NullableServiceUsageBalanceData": {
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/ServiceUsageBalanceData"
+                    },
+                    {
+                        "type": "null"
+                    }
+                ]
+            },
             "OpenRosaXFormResponse": {
                 "type": "object",
                 "properties": {
@@ -15855,20 +15865,16 @@
                         "type": "object",
                         "properties": {
                             "submission": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData",
-                                "nullable": true
+                                "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
                             },
                             "storage_bytes": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData",
-                                "nullable": true
+                                "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
                             },
                             "asr_seconds": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData",
-                                "nullable": true
+                                "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
                             },
                             "mt_characters": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData",
-                                "nullable": true
+                                "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
                             }
                         },
                         "required": [
@@ -18574,20 +18580,16 @@
                         "type": "object",
                         "properties": {
                             "submission": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData",
-                                "nullable": true
+                                "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
                             },
                             "storage_bytes": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData",
-                                "nullable": true
+                                "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
                             },
                             "asr_seconds": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData",
-                                "nullable": true
+                                "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
                             },
                             "mt_characters": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData",
-                                "nullable": true
+                                "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
                             }
                         },
                         "required": [
