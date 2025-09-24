@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.core.exceptions import ValidationError
 from djstripe.models import (
     Price,
@@ -6,6 +7,7 @@ from djstripe.models import (
     SubscriptionItem,
     SubscriptionSchedule,
 )
+from drf_spectacular.utils import extend_schema_field, OpenApiTypes
 from rest_framework import serializers
 
 from kobo.apps.stripe.models import PlanAddOn
@@ -33,6 +35,8 @@ class BaseProductSerializer(serializers.ModelSerializer):
 
 
 class BasePriceSerializer(serializers.ModelSerializer):
+    human_readable_price = serializers.SerializerMethodField()
+
     class Meta:
         model = Price
         fields = (
@@ -46,6 +50,10 @@ class BasePriceSerializer(serializers.ModelSerializer):
             'active',
             'metadata',
         )
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_human_readable_price(self, obj):
+        return obj.human_readable_price
 
 
 class PriceIdSerializer(serializers.Serializer):
@@ -103,7 +111,6 @@ class CheckoutLinkSerializer(PriceIdSerializer):
 
 
 class PriceSerializer(BasePriceSerializer):
-
     class Meta(BasePriceSerializer.Meta):
         fields = (
             'id',
@@ -149,6 +156,14 @@ class SubscriptionScheduleSerializer(serializers.ModelSerializer):
 class SubscriptionSerializer(serializers.ModelSerializer):
     items = SubscriptionItemSerializer(many=True)
     schedule = SubscriptionScheduleSerializer()
+    application_fee_percent = serializers.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        min_value=Decimal("0"),
+        max_value=Decimal("100"),
+        required=True,
+        allow_null=True,
+    )
 
     class Meta:
         model = Subscription

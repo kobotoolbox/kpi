@@ -19395,6 +19395,12 @@
                     "schedule": {
                         "$ref": "#/components/schemas/SubscriptionSchedule"
                     },
+                    "application_fee_percent": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,3}(?:\\.\\d{0,2})?$",
+                        "nullable": true
+                    },
                     "djstripe_created": {
                         "type": "string",
                         "format": "date-time",
@@ -19428,13 +19434,6 @@
                         "type": "string",
                         "nullable": true,
                         "description": "A description of this object."
-                    },
-                    "application_fee_percent": {
-                        "type": "string",
-                        "format": "decimal",
-                        "pattern": "^-?\\d{0,3}(?:\\.\\d{0,2})?$",
-                        "nullable": true,
-                        "description": "A positive decimal that represents the fee percentage of the subscription invoice amount that will be transferred to the application owner's Stripe account each billing period."
                     },
                     "billing_cycle_anchor": {
                         "type": "string",
@@ -19610,6 +19609,7 @@
                     }
                 },
                 "required": [
+                    "application_fee_percent",
                     "collection_method",
                     "current_period_end",
                     "current_period_start",

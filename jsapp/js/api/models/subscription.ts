@@ -20,6 +20,11 @@ import type { SubscriptionStatusEnum } from './subscriptionStatusEnum'
 export interface Subscription {
   items: SubscriptionItem[]
   schedule: SubscriptionSchedule
+  /**
+   * @nullable
+   * @pattern ^-?\d{0,3}(?:\.\d{0,2})?$
+   */
+  application_fee_percent: string | null
   readonly djstripe_created: string
   readonly djstripe_updated: string
   /** @maxLength 255 */
@@ -44,12 +49,6 @@ export interface Subscription {
    * @nullable
    */
   description?: string | null
-  /**
-   * A positive decimal that represents the fee percentage of the subscription invoice amount that will be transferred to the application owner's Stripe account each billing period.
-   * @nullable
-   * @pattern ^-?\d{0,3}(?:\.\d{0,2})?$
-   */
-  application_fee_percent?: string | null
   /**
    * Determines the date of the first full invoice, and, for plans with `month` or `year` intervals, the day of the month for subsequent invoices.
    * @nullable
