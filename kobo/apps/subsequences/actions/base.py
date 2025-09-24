@@ -346,21 +346,21 @@ class BaseAction:
             new_version[self.DATE_ACCEPTED_FIELD] = now_str
 
         if not self.action_class_config.allow_multiple:
-            new_action_supplement_data = localized_action_supplemental_data
+            new_action_supplemental_data = localized_action_supplemental_data
         else:
-            new_action_supplement_data = deepcopy(action_supplemental_data)
+            new_action_supplemental_data = deepcopy(action_supplemental_data)
             # Handle the case where the default type is a list:
             # - If no index is provided, append the new record.
             # - Otherwise, replace the record at the given index.
             # Finally, update `new_record` to reference the full updated list.
 
-            new_action_supplement_data.update({
+            new_action_supplemental_data.update({
                 needle: localized_action_supplemental_data
             })
 
-        self.validate_result(new_action_supplement_data)
+        self.validate_result(new_action_supplemental_data)
 
-        return new_action_supplement_data
+        return new_action_supplemental_data
 
     @staticmethod
     def raise_for_any_leading_underscore_key(d: dict):
@@ -385,7 +385,7 @@ class BaseAction:
         self,
         submission: dict,
         question_supplemental_data: dict,
-        action_supplement_data: dict,
+        action_supplemental_data: dict,
         action_data: dict,
         *args,
         **kwargs,
@@ -695,7 +695,7 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
         self,
         submission: dict,
         question_supplemental_data: dict,
-        action_supplement_data: dict,
+        action_supplemental_data: dict,
         action_data: dict,
         *args,
         **kwargs,
@@ -725,9 +725,9 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
         # return the completed translation/transcription right away. `revise_data()`
         # will handle the merge and final validation of this acceptance.
         accepted = action_data.get('accepted', None)
-        if action_supplement_data.get('status') == 'complete' and accepted is not None:
+        if action_supplemental_data.get('status') == 'complete' and accepted is not None:
             return {
-                'value': action_supplement_data['value'],
+                'value': action_supplemental_data['value'],
                 'status': 'complete',
             }
 
@@ -766,14 +766,14 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
             accepted is None
             and service_data['status'] == 'in_progress'
         ):
-            if action_supplement_data.get('status'):
+            if action_supplemental_data.get('status'):
                 return None
             else:
                 # TODO Retry with Celery, make it work!
                 poll_run_automated_process.delay(
                     submission,
                     question_supplemental_data,
-                    action_supplement_data,
+                    action_supplemental_data,
                     action_data,
                     action_id=self.ID,
                     asset_id=asset.pk,
