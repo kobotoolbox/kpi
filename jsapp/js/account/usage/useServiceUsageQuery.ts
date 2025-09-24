@@ -115,7 +115,6 @@ const loadUsage = async (organizationId: string | null): Promise<UsageState | un
 
   return {
     storage: usage.data.total_storage_bytes,
-    // @ts-expect-error schema: DEV-952
     submissions: usage.data.total_submission_count.current_period,
     transcriptionMinutes: convertSecondsToMinutes(usage.data.total_nlp_usage.asr_seconds_current_period),
     translationChars: usage.data.total_nlp_usage.mt_characters_current_period,
