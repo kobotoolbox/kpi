@@ -41,7 +41,7 @@ def get_nullable_balance_data_ref(auto_schema):
 def get_service_usage_balances_ref(auto_schema):
     nullable_balance = get_nullable_balance_data_ref(auto_schema)
     component = ResolvedComponent(
-        name="ServiceUsageBalances",
+        name='ServiceUsageBalances',
         schema=build_object_type(
             properties={
                 'submission': nullable_balance,
