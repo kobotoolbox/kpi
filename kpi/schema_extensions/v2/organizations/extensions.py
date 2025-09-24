@@ -101,7 +101,11 @@ class TotalSubmissionCountFieldExtension(OpenApiSerializerFieldExtension):
             properties={
                 'all_time': build_basic_type(OpenApiTypes.INT),
                 'current_period': build_basic_type(OpenApiTypes.INT),
-            }
+            },
+            required=[
+                'all_time',
+                'current_period',
+            ]
         )
 
 

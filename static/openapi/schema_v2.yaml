@@ -11303,6 +11303,9 @@ components:
               type: integer
             current_period:
               type: integer
+          required:
+          - all_time
+          - current_period
         balances:
           type: object
           properties:
