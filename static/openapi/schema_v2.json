@@ -15851,18 +15851,28 @@
                         "type": "object",
                         "properties": {
                             "submission": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
+                                "$ref": "#/components/schemas/ServiceUsageBalanceData",
+                                "nullable": true
                             },
                             "storage_bytes": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
+                                "$ref": "#/components/schemas/ServiceUsageBalanceData",
+                                "nullable": true
                             },
                             "asr_seconds": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
+                                "$ref": "#/components/schemas/ServiceUsageBalanceData",
+                                "nullable": true
                             },
                             "mt_characters": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
+                                "$ref": "#/components/schemas/ServiceUsageBalanceData",
+                                "nullable": true
                             }
-                        }
+                        },
+                        "required": [
+                            "asr_seconds",
+                            "mt_characters",
+                            "storage_bytes",
+                            "submission"
+                        ]
                     },
                     "current_period_start": {
                         "type": "string",
@@ -18560,18 +18570,28 @@
                         "type": "object",
                         "properties": {
                             "submission": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
+                                "$ref": "#/components/schemas/ServiceUsageBalanceData",
+                                "nullable": true
                             },
                             "storage_bytes": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
+                                "$ref": "#/components/schemas/ServiceUsageBalanceData",
+                                "nullable": true
                             },
                             "asr_seconds": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
+                                "$ref": "#/components/schemas/ServiceUsageBalanceData",
+                                "nullable": true
                             },
                             "mt_characters": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
+                                "$ref": "#/components/schemas/ServiceUsageBalanceData",
+                                "nullable": true
                             }
-                        }
+                        },
+                        "required": [
+                            "asr_seconds",
+                            "mt_characters",
+                            "storage_bytes",
+                            "submission"
+                        ]
                     },
                     "current_period_start": {
                         "type": "string",

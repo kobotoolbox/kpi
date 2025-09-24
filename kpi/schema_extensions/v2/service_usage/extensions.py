@@ -12,7 +12,6 @@ from kpi.schema_extensions.v2.generic.schema import (
 )
 from .fields import BalanceDataField
 
-
 BalanceDataComponent = ResolvedComponent(
     name='ServiceUsageBalanceData',
     type=ResolvedComponent.SCHEMA,
@@ -31,13 +30,20 @@ class BalancesFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.service_usage.fields.BalancesField'
 
     def map_serializer_field(self, auto_schema, direction):
+        balance_ref = get_balance_data_ref(auto_schema)
         return build_object_type(
             properties={
-                'submission': get_balance_data_ref(auto_schema),
-                'storage_bytes': get_balance_data_ref(auto_schema),
-                'asr_seconds': get_balance_data_ref(auto_schema),
-                'mt_characters': get_balance_data_ref(auto_schema),
-            }
+                'submission': {**balance_ref, 'nullable': True},
+                'storage_bytes': {**balance_ref, 'nullable': True},
+                'asr_seconds': {**balance_ref, 'nullable': True},
+                'mt_characters': {**balance_ref, 'nullable': True},
+            },
+            required=[
+                'submission',
+                'storage_bytes',
+                'asr_seconds',
+                'mt_characters',
+            ],
         )
 
 
