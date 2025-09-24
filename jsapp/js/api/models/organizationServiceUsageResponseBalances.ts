@@ -5,15 +5,11 @@
  * Powerful and intuitive data collection tools to make an impact
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { ServiceUsageBalanceData } from './serviceUsageBalanceData'
+import type { NullableServiceUsageBalanceData } from './nullableServiceUsageBalanceData'
 
 export type OrganizationServiceUsageResponseBalances = {
-  /** @nullable */
-  submission: ServiceUsageBalanceData
-  /** @nullable */
-  storage_bytes: ServiceUsageBalanceData
-  /** @nullable */
-  asr_seconds: ServiceUsageBalanceData
-  /** @nullable */
-  mt_characters: ServiceUsageBalanceData
+  submission: NullableServiceUsageBalanceData
+  storage_bytes: NullableServiceUsageBalanceData
+  asr_seconds: NullableServiceUsageBalanceData
+  mt_characters: NullableServiceUsageBalanceData
 }

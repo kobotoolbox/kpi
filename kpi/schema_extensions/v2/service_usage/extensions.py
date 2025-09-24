@@ -1,3 +1,5 @@
+from typing import Optional
+
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import (
     ResolvedComponent,
@@ -26,17 +28,29 @@ def get_balance_data_ref(auto_schema):
     return {'$ref': f'#/components/schemas/{BalanceDataComponent.name}'}
 
 
+def get_nullable_balance_data_ref(auto_schema):
+    balance_ref = get_balance_data_ref(auto_schema)
+    component = ResolvedComponent(
+        name='NullableServiceUsageBalanceData',
+        schema={'oneOf': [balance_ref, {'type': 'null'}]},
+        type=ResolvedComponent.SCHEMA,
+        object=Optional[BalanceDataField],
+    )
+    auto_schema.registry.register_on_missing(component)
+    return component.ref
+
+
 class BalancesFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.service_usage.fields.BalancesField'
 
     def map_serializer_field(self, auto_schema, direction):
-        balance_ref = get_balance_data_ref(auto_schema)
+        nullable_balance = get_nullable_balance_data_ref(auto_schema)
         return build_object_type(
             properties={
-                'submission': {**balance_ref, 'nullable': True},
-                'storage_bytes': {**balance_ref, 'nullable': True},
-                'asr_seconds': {**balance_ref, 'nullable': True},
-                'mt_characters': {**balance_ref, 'nullable': True},
+                'submission': nullable_balance,
+                'storage_bytes': nullable_balance,
+                'asr_seconds': nullable_balance,
+                'mt_characters': nullable_balance,
             },
             required=[
                 'submission',

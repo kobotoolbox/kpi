@@ -11120,6 +11120,10 @@ components:
         * `admin` - admin
         * `member` - member
         * `owner` - owner
+    NullableServiceUsageBalanceData:
+      oneOf:
+      - $ref: '#/components/schemas/ServiceUsageBalanceData'
+      - type: 'null'
     OpenRosaXFormResponse:
       type: object
       properties:
@@ -11310,17 +11314,13 @@ components:
           type: object
           properties:
             submission:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-              nullable: true
+              $ref: '#/components/schemas/NullableServiceUsageBalanceData'
             storage_bytes:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-              nullable: true
+              $ref: '#/components/schemas/NullableServiceUsageBalanceData'
             asr_seconds:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-              nullable: true
+              $ref: '#/components/schemas/NullableServiceUsageBalanceData'
             mt_characters:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-              nullable: true
+              $ref: '#/components/schemas/NullableServiceUsageBalanceData'
           required:
           - asr_seconds
           - mt_characters
@@ -13250,17 +13250,13 @@ components:
           type: object
           properties:
             submission:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-              nullable: true
+              $ref: '#/components/schemas/NullableServiceUsageBalanceData'
             storage_bytes:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-              nullable: true
+              $ref: '#/components/schemas/NullableServiceUsageBalanceData'
             asr_seconds:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-              nullable: true
+              $ref: '#/components/schemas/NullableServiceUsageBalanceData'
             mt_characters:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-              nullable: true
+              $ref: '#/components/schemas/NullableServiceUsageBalanceData'
           required:
           - asr_seconds
           - mt_characters
