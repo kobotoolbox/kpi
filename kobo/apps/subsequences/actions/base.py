@@ -54,17 +54,18 @@ idea of example data in SubmissionExtras based on the above
     '_version': '20250820',
     'my_audio_question': {
         'manual_transcription': {
+            # TODO: think about wrapping in language dictionary like translations
             '_dateCreated': '2025-08-21T20:55:42.012053Z',
             '_dateModified': '2025-08-21T20:57:28.154567Z',
             '_versions': [
                 {
-                    'transcript': 'هائج',
+                    'value': 'هائج',
                     'language': 'ar',
                     '_dateCreated': '2025-08-21T20:57:28.154567Z',
                     '_dateAccepted': '2025-08-21T20:57:28.154567Z',
                 },
                 {
-                    'transcript': 'فارغ',
+                    'value': 'فارغ',
                     'language': 'ar',
                     '_dateCreated': '2025-08-21T20:55:42.012053Z',
                     '_dateAccepted': '2025-08-21T20:55:42.012053Z',
@@ -95,7 +96,7 @@ idea of example data in SubmissionExtras based on the above
                     '_dateModified': '2025-08-21T22:00:10.862880Z',
                     '_versions': [
                         {
-                            'translation': 'fou',
+                            'value': 'fou',
                             'language': 'fr',
                             '_dateCreated': '2025-08-21T22:00:10.862880Z',
                             '_dateAccepted': '2025-08-21T22:00:10.862880Z',
