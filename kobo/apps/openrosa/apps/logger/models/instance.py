@@ -1,6 +1,5 @@
 from hashlib import sha256
 
-import reversion
 from django.apps import apps
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GeometryCollection, Point
@@ -66,7 +65,6 @@ def get_id_string_from_xml_str(xml_str):
     return id_string
 
 
-@reversion.register
 class Instance(AbstractTimeStampedModel):
     XML_HASH_LENGTH = 64
     DEFAULT_XML_HASH = None
@@ -360,7 +358,10 @@ class InstanceHistory(AbstractTimeStampedModel):
         app_label = 'logger'
 
     xform_instance = models.ForeignKey(
-        Instance, related_name='submission_history', on_delete=models.CASCADE
+        Instance,
+        related_name='submission_history',
+        null=True,
+        on_delete=models.SET_NULL,
     )
     xml = models.TextField()
     # old instance id

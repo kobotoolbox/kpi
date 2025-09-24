@@ -13,19 +13,11 @@ from kobo.apps.help.models import InAppMessage, InAppMessageUsers
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.organizations.utils import get_real_owner
 from kpi.constants import PERM_MANAGE_ASSET
-from kpi.deployment_backends.kc_access.utils import (
-    assign_applicable_kc_permissions,
-    kc_transaction_atomic,
-    reset_kc_permissions,
-)
-from kpi.exceptions import (
-    InvalidXFormException,
-    MissingXFormException,
-)
+from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
+from kpi.exceptions import InvalidXFormException, MissingXFormException
 from kpi.fields import KpiUidField
-from kpi.models import Asset, ObjectPermission
+from kpi.models import Asset, AssetUserPartialPermission, ObjectPermission
 from kpi.models.abstract_models import AbstractTimeStampedModel
-
 from ..exceptions import TransferAlreadyProcessedException
 from ..tasks import async_task, send_email_to_admins
 from ..utils import get_target_folder
@@ -102,7 +94,7 @@ class Transfer(AbstractTimeStampedModel):
             )
             if isinstance(value, tuple):
                 global_status.status = value[0]
-                global_status.error = value[1]
+                TransferStatus._add_error(global_status, error=value[1])
             else:
                 global_status.status = value
 
@@ -202,6 +194,10 @@ class Transfer(AbstractTimeStampedModel):
 
         # Delete existing new owner's permissions on the project if any
         self.asset.permissions.filter(user=new_owner).delete()
+        # Delete every partial permission related to new owner just in case
+        AssetUserPartialPermission.objects.filter(
+            user=new_owner, asset=self.asset
+        ).delete()
         old_owner = self.asset.owner
         self.asset.owner = new_owner
 
@@ -223,15 +219,6 @@ class Transfer(AbstractTimeStampedModel):
                 xform.xls.move(target_folder)
 
             xform.save(update_fields=['user_id', 'xls'])
-            # Kobocat adds 3 more permissions that KPI ignores:
-            # - add_xform
-            # - transfer_xform
-            # - move_xform
-            # There are not transferred since they are not used anymore by KoboCAT,
-            # and it does not break anything.
-            assign_applicable_kc_permissions(self.asset, new_owner, owner_perms)
-            reset_kc_permissions(self.asset, old_owner)
-
             backend_response = self.asset.deployment.backend_response
             backend_response['owner'] = new_owner.username
             self.asset.deployment.store_data(
@@ -400,6 +387,7 @@ class TransferStatus(AbstractTimeStampedModel):
         default=TransferStatusTypeChoices.GLOBAL,
         db_index=True
     )
+    # deprecated in favor of TransferStatusError
     error = models.TextField(null=True)
 
     class Meta:
@@ -430,12 +418,19 @@ class TransferStatus(AbstractTimeStampedModel):
             transfer_status = cls.objects.select_for_update().get(
                 transfer_id=transfer_id, status_type=status_type
             )
+            if (
+                transfer_status.status == TransferStatusChoices.SUCCESS
+                and status != TransferStatusChoices.SUCCESS
+            ):
+                cls._add_error(
+                    transfer_status,
+                    f'Updating status of previously successful transfer to {status}',
+                )
             transfer_status.status = status
             transfer_status.date_modified = timezone.now()
-            transfer_status.error = cls._add_error(transfer_status, error)
-            transfer_status.save(
-                update_fields=['status', 'error', 'date_modified']
-            )
+            if error:
+                cls._add_error(transfer_status, error)
+            transfer_status.save(update_fields=['status', 'date_modified'])
 
             # No need to update parent if `status` is still 'in_progress'
             if status != TransferStatusChoices.IN_PROGRESS:
@@ -458,13 +453,14 @@ class TransferStatus(AbstractTimeStampedModel):
 
     @classmethod
     def _add_error(cls, transfer_status, error):
-        if not error:
-            return transfer_status.error
+        if error:
+            TransferStatusError.objects.create(
+                transfer_status=transfer_status, error=error
+            )
 
-        log_date = transfer_status.date_modified.strftime('%Y-%m-%d %H:%M:%S')
-        error_message = f'[{log_date}] - {error}'
-        return (
-            f'{error_message}\n{transfer_status.error}'
-            if transfer_status.error
-            else error_message
-        )
+
+class TransferStatusError(AbstractTimeStampedModel):
+    transfer_status = models.ForeignKey(
+        TransferStatus, related_name='errors', on_delete=models.CASCADE
+    )
+    error = models.CharField(null=True, blank=True)

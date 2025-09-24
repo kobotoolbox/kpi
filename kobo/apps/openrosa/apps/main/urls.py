@@ -123,7 +123,7 @@ urlpatterns = [
     re_path(
         r'^formList$',
         XFormListApi.as_view({'get': 'form_list_authenticated'}),
-        name='form-list'
+        name='form-list',
     ),
     re_path(
         r'^(?P<username>\w+)/formList$',

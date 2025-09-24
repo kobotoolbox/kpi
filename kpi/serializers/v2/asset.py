@@ -40,7 +40,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.fields import WritableJSONField
-from kpi.models import Asset, AssetVersion, ObjectPermission, UserAssetSubscription
+from kpi.models import Asset, ObjectPermission, UserAssetSubscription
 from kpi.models.asset import AssetDeploymentStatus
 from kpi.utils.object_permission import (
     get_cached_code_names,
@@ -659,24 +659,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     @extend_schema_field(OpenApiTypes.STR)
     def get_deployed_version_id(self, obj):
         if not obj.has_deployment:
-            return
-        if isinstance(obj.deployment.version_id, int):
-            asset_versions_uids_only = obj.asset_versions.only('uid')
-            # this can be removed once the 'replace_deployment_ids'
-            # migration has been run
-            v_id = obj.deployment.version_id
-            try:
-                return asset_versions_uids_only.get(
-                    _reversion_version_id=v_id
-                ).uid
-            except AssetVersion.DoesNotExist:
-                deployed_version = asset_versions_uids_only.filter(
-                    deployed=True
-                ).first()
-                if deployed_version:
-                    return deployed_version.uid
-                else:
-                    return None
+            return None
         else:
             return obj.deployment.version_id
 

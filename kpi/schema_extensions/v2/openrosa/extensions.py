@@ -59,7 +59,9 @@ class OpenRosaXFormActionFieldExtension(OpenApiSerializerFieldExtension):
 
 
 class OpenRosaXFormSerializerExtension(OpenApiSerializerExtension):
-    target_class = 'kpi.schema_extensions.v2.openrosa.serializers.OpenRosaFormListResponse'  # noqa
+    target_class = (
+        'kpi.schema_extensions.v2.openrosa.serializers.OpenRosaFormListResponse'  # noqa
+    )
 
     def map_serializer(self, auto_schema, direction):
         xform_schema = build_object_type(
@@ -75,7 +77,7 @@ class OpenRosaXFormSerializerExtension(OpenApiSerializerExtension):
                 'manifestUrl': build_url_type(
                     'api_v2:assetsnapshot-manifest-openrosa',
                     uid='sEMPghTguZsxj4rn4s9dvS',
-                )
+                ),
             }
         )
         # Ensure XML item element name

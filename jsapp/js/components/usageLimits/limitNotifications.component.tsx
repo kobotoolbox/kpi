@@ -3,7 +3,6 @@ import React, { useState } from 'react'
 import { Cookies } from 'react-cookie'
 import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
 import { UsageLimitTypes } from '#/account/stripe.types'
-import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import { useServiceUsageQuery } from '#/account/usage/useServiceUsageQuery'
 import LimitBanner from '#/components/usageLimits/overLimitBanner.component'
 import LimitModal from '#/components/usageLimits/overLimitModal.component'
@@ -12,44 +11,40 @@ import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
 const cookies = new Cookies()
 
 interface LimitNotificationsProps {
-  useModal?: boolean
+  pageCanShowModal?: boolean
   accountPage?: boolean
 }
 
-const LimitNotifications = ({ useModal = false, accountPage = false }: LimitNotificationsProps) => {
-  const [showModal, setShowModal] = useState(false)
-  const [dismissed, setDismissed] = useState(!useModal)
+const LimitNotifications = ({ pageCanShowModal = false, accountPage = false }: LimitNotificationsProps) => {
+  const [modalDismissed, setModalDismissed] = useState(false)
   const [stripeEnabled, setStripeEnabled] = useState(false)
-
-  const { billingPeriod } = useBillingPeriod()
 
   const { data: serviceUsageData } = useServiceUsageQuery()
 
   const orgQuery = useOrganizationQuery()
 
+  // Only show modal on certain pages (set by parent), only to non-MMO users and MMO users with role of 'owner',
+  // and only show if list of exceeded limits includes storage or submissions
+  const useModal =
+    pageCanShowModal &&
+    (!orgQuery.data?.is_mmo || orgQuery.data?.request_user_role === OrganizationUserRole.owner) &&
+    (serviceUsageData?.limitExceedList.includes(UsageLimitTypes.STORAGE) ||
+      serviceUsageData?.limitExceedList.includes(UsageLimitTypes.SUBMISSION))
+
   useWhenStripeIsEnabled(() => {
     setStripeEnabled(true)
-    // only check cookies if we're displaying a modal
+    // only check cookies if we will display a modal
     if (!useModal) {
       return
     }
-
     const limitsCookie = cookies.get('kpiOverLimitsCookie')
-    if (
-      (!orgQuery.data?.is_mmo || orgQuery.data?.request_user_role === OrganizationUserRole.owner) &&
-      limitsCookie === undefined &&
-      (serviceUsageData?.limitExceedList.includes(UsageLimitTypes.STORAGE) ||
-        serviceUsageData?.limitExceedList.includes(UsageLimitTypes.SUBMISSION))
-    ) {
-      setShowModal(true)
-    }
     if (limitsCookie) {
-      setDismissed(true)
+      setModalDismissed(true)
     }
-  }, [serviceUsageData, orgQuery.data, useModal])
+  }, [])
 
-  const modalDismissed = () => {
-    setDismissed(true)
+  const dismissModal = () => {
+    setModalDismissed(true)
     const dateNow = new Date()
     const expireDate = new Date(dateNow.setDate(dateNow.getDate() + 1))
     cookies.set('kpiOverLimitsCookie', {
@@ -61,31 +56,22 @@ const LimitNotifications = ({ useModal = false, accountPage = false }: LimitNoti
     return null
   }
 
+  // We only want to display exceeded limit notifications for submissions and storage
+  // in the modal
+  const modalLimits = serviceUsageData.limitExceedList.filter((limit) =>
+    [UsageLimitTypes.STORAGE, UsageLimitTypes.SUBMISSION].includes(limit),
+  )
+
   return (
     <>
-      {dismissed && (
-        <LimitBanner
-          interval={billingPeriod}
-          limits={serviceUsageData.limitExceedList}
-          accountPage={Boolean(accountPage)}
-        />
-      )}
-      {!serviceUsageData.limitExceedList.length && (
-        <LimitBanner
-          warning
-          interval={billingPeriod}
-          limits={serviceUsageData.limitWarningList}
-          accountPage={Boolean(accountPage)}
-        />
-      )}
-      {useModal && (
-        <LimitModal
-          show={showModal}
-          limits={serviceUsageData.limitExceedList}
-          interval={billingPeriod}
-          dismissed={modalDismissed}
-        />
-      )}
+      <LimitBanner
+        warning={!serviceUsageData.limitExceedList.length}
+        limits={
+          serviceUsageData.limitExceedList.length ? serviceUsageData.limitExceedList : serviceUsageData.limitWarningList
+        }
+        accountPage={Boolean(accountPage)}
+      />
+      {useModal && <LimitModal show={!modalDismissed} limits={modalLimits} dismissed={dismissModal} />}
     </>
   )
 }

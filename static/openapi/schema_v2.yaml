@@ -8,72 +8,28 @@ paths:
     get:
       operationId: api_v2_access_logs_list
       description: |
-        ## List actions performed by users.
+        ## List all access logs for all users
 
-        <sup>*</sup> _Only available to superusers_
+        ⚠️ _Only available to superusers_
 
-        Results from this endpoint can be filtered by a Boolean query specified in the
-
-        `q` parameter.
+        Submissions will be grouped together by user by hour
 
         **Filterable fields:**
 
-        1. app_label
-
-        2. model_name
-
-        3. action</br>
-          a. Available actions:
-           * create
-           * delete
-           * in-trash
-           * put-back
-           * remove
-           * update
-           * auth
-
-        4. log_type</br>
-        a. Available log types:
-            * access
-            * project-history
-            * data-editing
-            * submission-management
-            * user-management
-            * asset-management
-
-        5. date_created
-
-        6. user_uid
-
-        7. user__*</br>
-        a. user__username</br>
-        b. user__email</br>
-        c. user__is_superuser
-
-        8. metadata__*</br>
-         a. metadata__asset_uid</br>
-         b. metadata__auth_type</br>
-         c. some logs may have additional filterable fields in the metadata
+        - date_created
+        - user_uid
+        - user__username
+        - metadata__source
+        - metadata__auth_type
+        - metadata__ip_address
 
         **Some examples:**
 
-        1. All deleted submissions
-            `api/v2/audit-logs/?q=action:delete`
+        1. All logs from a specific IP address
+            `api/v2/access-logs/?q=metadata__ip_address:"127.0.0.1"`
 
-        2. All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`
-            `api/v2/audit-logs/?q=action:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`
-
-        3. All submissions deleted by a specific user `my_username`
-            `api/v2/audit-logs/?q=action:delete AND user__username:my_username`
-
-        4. All deleted submissions submitted after a specific date
-            `/api/v2/audit-logs/?q=action:delete AND date_created__gte:2022-11-15`
-
-        5. All deleted submissions submitted after a specific date **and time**
-            `/api/v2/audit-logs/?q=action:delete AND date_created__gte:"2022-11-15 20:34"`
-
-        6. All authentications from superusers
-            `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`
+        2. All logs created after Jan 1, 2025
+            `api/v2/access-logs/?q=date_created__gte:"2025-01-01"`
 
         *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces
         (e.g. date and time "2022-11-15 20:34")*
@@ -104,7 +60,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedAuditLogResponseList'
+                $ref: '#/components/schemas/PaginatedAccessLogResponseList'
           description: null
         '403':
           content:
@@ -117,24 +73,13 @@ paths:
                     detail: You do not have permission to perform this action.
                   summary: Access Denied
           description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
   /api/v2/access-logs/export/:
     get:
       operationId: api_v2_access_logs_export_list
       description: |
         ## List all access logs export tasks for all users
 
-        <sup>*</sup> _Only available to superusers_
+        ⚠️ _Only available to superusers_
       tags:
       - Access Logs
       security:
@@ -165,7 +110,7 @@ paths:
       description: |
         ## Create an export task for all users
 
-        <sup>*</sup> _Only available to superusers_
+        ⚠️ _Only available to superusers_
       tags:
       - Access Logs
       security:
@@ -204,72 +149,25 @@ paths:
     get:
       operationId: api_v2_access_logs_me_list
       description: |
-        ## List actions performed by users.
+        ## List all access logs for the authenticated user
 
-        <sup>*</sup> _Only available to superusers_
+        Submissions will be grouped together by hour
 
-        Results from this endpoint can be filtered by a Boolean query specified in the
-
-        `q` parameter.
+        Results from this endpoint can be filtered by a boolean query specified in the `q` parameter.
 
         **Filterable fields:**
 
-        1. app_label
-
-        2. model_name
-
-        3. action</br>
-          a. Available actions:
-           * create
-           * delete
-           * in-trash
-           * put-back
-           * remove
-           * update
-           * auth
-
-        4. log_type</br>
-        a. Available log types:
-            * access
-            * project-history
-            * data-editing
-            * submission-management
-            * user-management
-            * asset-management
-
-        5. date_created
-
-        6. user_uid
-
-        7. user__*</br>
-        a. user__username</br>
-        b. user__email</br>
-        c. user__is_superuser
-
-        8. metadata__*</br>
-         a. metadata__asset_uid</br>
-         b. metadata__auth_type</br>
-         c. some logs may have additional filterable fields in the metadata
+        * date_created
+        * metadata__source
+        * metadata__auth_type
+        * metadata__ip_address
 
         **Some examples:**
 
-        1. All deleted submissions
-            `api/v2/audit-logs/?q=action:delete`
-
-        2. All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`
-            `api/v2/audit-logs/?q=action:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`
-
-        3. All submissions deleted by a specific user `my_username`
-            `api/v2/audit-logs/?q=action:delete AND user__username:my_username`
-
-        4. All deleted submissions submitted after a specific date
-            `/api/v2/audit-logs/?q=action:delete AND date_created__gte:2022-11-15`
-
-        5. All deleted submissions submitted after a specific date **and time**
-            `/api/v2/audit-logs/?q=action:delete AND date_created__gte:"2022-11-15 20:34"`
-
-        6. All authentications from superusers
-            `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`
+        * All logs from a specific IP address
+            `api/v2/access-logs/?q=metadata__ip_address:"127.0.0.1"`
+        * All logs created after Jan, 1 2025
+            `api/v2/access-logs/?q=date_created__date__gte:"2025-01-01"`
 
         *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces
         (e.g. date and time "2022-11-15 20:34")*
@@ -300,29 +198,18 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedAuditLogResponseList'
+                $ref: '#/components/schemas/PaginatedAccessLogResponseList'
           description: null
-        '403':
+        '401':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorDetail'
               examples:
-                AccessDenied:
+                NotAuthenticated:
                   value:
-                    detail: You do not have permission to perform this action.
-                  summary: Access Denied
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
           description: ''
   /api/v2/access-logs/me/export/:
     get:
@@ -357,7 +244,7 @@ paths:
     post:
       operationId: api_v2_access_logs_me_export_create
       description: |
-        ## Create an export task for authenticated user
+        ## Create an export task for the authenticated user
       tags:
       - Access Logs
       security:
@@ -555,7 +442,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -595,7 +482,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -627,7 +514,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -692,7 +579,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -796,7 +683,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -828,7 +715,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -1061,7 +948,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -1133,7 +1020,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -1215,7 +1102,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -1328,7 +1215,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -1394,7 +1281,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -1479,7 +1366,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -1558,7 +1445,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -1637,7 +1524,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -1673,7 +1560,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -1721,7 +1608,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -1781,7 +1668,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -1841,7 +1728,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -1901,7 +1788,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -1959,7 +1846,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -2017,7 +1904,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -2059,7 +1946,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -2110,7 +1997,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -2146,7 +2033,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -2200,7 +2087,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -2258,7 +2145,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -2312,7 +2199,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -2375,7 +2262,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -2424,7 +2311,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -2503,7 +2390,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -2559,7 +2446,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -2606,7 +2493,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -2658,7 +2545,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -2710,7 +2597,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -2799,7 +2686,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -2881,7 +2768,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -2946,7 +2833,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -2993,7 +2880,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -3045,7 +2932,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -3136,7 +3023,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -3189,7 +3076,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -3224,7 +3111,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -3261,7 +3148,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -3271,31 +3158,24 @@ paths:
   /api/v2/assets/{parent_lookup_asset}/history/:
     get:
       operationId: api_v2_assets_history_list
-      description: |+
+      description: |
         ## List project history logs
 
         Lists all project history logs for a single project.
 
-        <sup>*</sup> _Required permissions: `manage_asset` (Manage project)_
+        ⚠️ _Required permissions: `manage_asset` (Manage project)_
 
-        Results from this endpoint can be filtered by a Boolean query specified in the q parameter.
+        Results from this endpoint can be filtered by a Boolean query specified in the `q` parameter.
 
         ### Filterable fields for all project history logs:
 
-          date_created
-
-          user_uid
-
-          user__*
+          - date_created
+          - user_uid
           - user__username
           - user__email
           - user__is_superuser
-
-          metadata__*
-
           - metadata__source
           - metadata__ip_address
-          - metadata__asset_uid
           - metadata__log_subtype
             - available subtypes: "project", "permission"
 
@@ -3423,7 +3303,6 @@ paths:
           - metadata__settings__description__new
 
         This endpoint can be paginated with 'offset' and 'limit' parameters.
-
       parameters:
       - name: limit
         required: false
@@ -3474,7 +3353,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -3485,7 +3364,7 @@ paths:
     get:
       operationId: api_v2_assets_history_actions_retrieve
       description: |
-        ## Retrieve distinct actions performed on the asset.
+        ## Retrieve distinct actions performed on the project.
       parameters:
       - in: path
         name: parent_lookup_asset
@@ -3520,7 +3399,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -3533,7 +3412,7 @@ paths:
       description: |
         ## Export current project's history
 
-        Exports the project's history and sends it to the user via email.
+        Exports the project's history and sends it by email to the requesting user.
       parameters:
       - in: path
         name: parent_lookup_asset
@@ -3568,7 +3447,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -3617,7 +3496,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -3693,7 +3572,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -3800,7 +3679,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -3857,7 +3736,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -3925,7 +3804,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -3966,7 +3845,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4017,7 +3896,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4066,7 +3945,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4111,7 +3990,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4162,7 +4041,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4214,7 +4093,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4268,7 +4147,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4315,7 +4194,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4364,7 +4243,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4409,7 +4288,7 @@ paths:
           content:
             application/xml:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4457,7 +4336,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4529,7 +4408,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4594,7 +4473,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4641,7 +4520,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4689,7 +4568,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4747,7 +4626,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4815,7 +4694,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4875,7 +4754,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4917,7 +4796,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -4966,7 +4845,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -5036,7 +4915,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -5089,7 +4968,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -5123,7 +5002,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -5157,7 +5036,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -5209,7 +5088,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -5275,7 +5154,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -5326,7 +5205,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -5399,7 +5278,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -5563,7 +5442,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -5623,20 +5502,16 @@ paths:
       description: |
         ## List actions performed by users.
 
-        <sup>*</sup> _Only available to superusers_
+        ⚠️ _Only available to superusers_
 
-        Results from this endpoint can be filtered by a Boolean query specified in the
-
-        `q` parameter.
+        Results from this endpoint can be filtered by a Boolean query specified in the `q` parameter.
 
         **Filterable fields:**
 
-        1. app_label
-
-        2. model_name
-
-        3. action</br>
-          a. Available actions:
+        * app_label
+        * model_name
+        * action
+          Available actions:
            * create
            * delete
            * in-trash
@@ -5644,48 +5519,37 @@ paths:
            * remove
            * update
            * auth
-
-        4. log_type</br>
-        a. Available log types:
+        * log_type
+          Available log types:
             * access
             * project-history
             * data-editing
             * submission-management
             * user-management
             * asset-management
+        * date_created
+        * user_uid
+        * user__username
+        * user__email
+        * user__is_superuser
+        * metadata__asset_uid
+        * metadata__auth_type
 
-        5. date_created
-
-        6. user_uid
-
-        7. user__*</br>
-        a. user__username</br>
-        b. user__email</br>
-        c. user__is_superuser
-
-        8. metadata__*</br>
-         a. metadata__asset_uid</br>
-         b. metadata__auth_type</br>
-         c. some logs may have additional filterable fields in the metadata
+        *Notes: Some logs may have additional filterable fields in the metadata*
 
         **Some examples:**
 
-        1. All deleted submissions
+        * All deleted submissions
             `api/v2/audit-logs/?q=action:delete`
-
-        2. All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`
+        * All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`
             `api/v2/audit-logs/?q=action:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`
-
-        3. All submissions deleted by a specific user `my_username`
+        * All submissions deleted by a specific user `my_username`
             `api/v2/audit-logs/?q=action:delete AND user__username:my_username`
-
-        4. All deleted submissions submitted after a specific date
+        * All deleted submissions submitted after a specific date
             `/api/v2/audit-logs/?q=action:delete AND date_created__gte:2022-11-15`
-
-        5. All deleted submissions submitted after a specific date **and time**
+        * All deleted submissions submitted after a specific date **and time**
             `/api/v2/audit-logs/?q=action:delete AND date_created__gte:"2022-11-15 20:34"`
-
-        6. All authentications from superusers
+        * All authentications from superusers
             `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`
 
         *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces
@@ -5734,7 +5598,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -5823,7 +5687,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -5882,7 +5746,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -5986,7 +5850,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -6027,7 +5891,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -6062,7 +5926,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -6101,7 +5965,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -6151,7 +6015,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -6195,7 +6059,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -6238,7 +6102,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -6285,7 +6149,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -6329,7 +6193,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -6383,7 +6247,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -6452,7 +6316,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -6514,7 +6378,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -6563,7 +6427,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -6606,7 +6470,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -6668,7 +6532,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -6730,7 +6594,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -6805,38 +6669,24 @@ paths:
       description: |
         ## List all project history logs for all projects.
 
-        <sup>*</sup> _Only available to superusers_
+        ⚠️_Only available to superusers_
 
         Results from this endpoint can be filtered by a Boolean query
         specified in the `q` parameter.
 
         **Filterable fields for all project history logs:**
 
-        1. date_created
-
-        2. user_uid
-
-        3. user__*
-
-            a. user__username
-
-            b. user__email
-
-            c. user__is_superuser
-
-        4. metadata__*
-
-            b. metadata__source
-
-            c. metadata__ip_address
-
-            d. metadata__asset_uid
-
-            e. metadata__log_subtype
-
+        * date_created
+        * user_uid
+        * user__username
+        * user__email
+        * user__is_superuser
+        * metadata__source
+        * metadata__ip_address
+        * metadata__asset_uid
+        * metadata__log_subtype
             * available subtypes: "project", "permission"
-
-        5. action
+        * action
 
         available actions:
 
@@ -7046,7 +6896,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -7057,9 +6907,9 @@ paths:
     get:
       operationId: api_v2_project_history_logs_export_retrieve
       description: |
-        ## Export project history logs
+        ## List of Project History Exports
 
-        Export project history logs and send by email to requesting user.
+        ⚠️ _Only available to superusers_
       tags:
       - Project History Logs
       security:
@@ -7087,7 +6937,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -7098,6 +6948,10 @@ paths:
       operationId: api_v2_project_history_logs_export_create
       description: |
         ## Create an export of projects history logs
+
+        ⚠️ _Only available to superusers_
+
+        Export project history logs and send it by email to the requesting user.
       tags:
       - Project History Logs
       security:
@@ -7125,7 +6979,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -7291,7 +7145,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -7338,7 +7192,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -7399,7 +7253,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -7452,7 +7306,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -7538,7 +7392,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -7603,7 +7457,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -7679,7 +7533,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -7747,7 +7601,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -7815,7 +7669,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -7940,7 +7794,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -8015,7 +7869,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -8111,7 +7965,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -8221,7 +8075,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -8298,7 +8152,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -8615,7 +8469,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -8661,7 +8515,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -8670,6 +8524,44 @@ paths:
           description: ''
 components:
   schemas:
+    AccessLogResponse:
+      type: object
+      properties:
+        user:
+          type: string
+          format: uri
+          example: https://kf.kobotoolbox.org/api/v2/users/bob/
+        date_created:
+          type: string
+          format: date-time
+        username:
+          type: string
+        metadata:
+          type: object
+          properties:
+            source:
+              type: string
+            auth_type:
+              type: string
+            ip_address:
+              type: string
+            initial_user_uid:
+              type: string
+            initial_user_username:
+              type: string
+            authorized_app_name:
+              type: string
+        user_uid:
+          type: string
+        count:
+          type: integer
+      required:
+      - count
+      - date_created
+      - metadata
+      - user
+      - user_uid
+      - username
     Asset:
       type: object
       properties:
@@ -9404,6 +9296,9 @@ components:
               type: integer
             total_nlp_mt_characters:
               type: integer
+          required:
+          - total_nlp_asr_seconds
+          - total_nlp_mt_characters
         nlp_usage_all_time:
           type: object
           properties:
@@ -9411,6 +9306,9 @@ components:
               type: integer
             total_nlp_mt_characters:
               type: integer
+          required:
+          - total_nlp_asr_seconds
+          - total_nlp_mt_characters
         storage_bytes:
           type: integer
         submission_count_current_period:
@@ -10776,12 +10674,12 @@ components:
     InviteCreatePayload:
       type: object
       properties:
+        role:
+          $ref: '#/components/schemas/InviteeRoleEnum'
         invitees:
           type: array
           items:
             type: string
-        role:
-          $ref: '#/components/schemas/InviteeRoleEnum'
       required:
       - invitees
       - role
@@ -10830,6 +10728,10 @@ components:
     InviteResponse:
       type: object
       properties:
+        invitee_role:
+          $ref: '#/components/schemas/InviteeRoleEnum'
+        status:
+          $ref: '#/components/schemas/InviteStatusChoicesEnum'
         url:
           type: string
           format: uri
@@ -10838,10 +10740,6 @@ components:
           type: string
           format: uri
           example: https://kf.kobotoolbox.org/api/v2/users/bob/
-        status:
-          $ref: '#/components/schemas/InviteStatusChoicesEnum'
-        invitee_role:
-          $ref: '#/components/schemas/InviteeRoleEnum'
         organization_name:
           type: string
         created:
@@ -11138,7 +11036,7 @@ components:
         user__extra_details__name:
           type: string
         role:
-          $ref: '#/components/schemas/MemberListResponseRoleEnum'
+          $ref: '#/components/schemas/MemberRoleEnum'
         user__has_mfa_enabled:
           type: boolean
         date_joined:
@@ -11212,7 +11110,7 @@ components:
       - user__has_mfa_enabled
       - user__is_active
       - user__username
-    MemberListResponseRoleEnum:
+    MemberRoleEnum:
       enum:
       - admin
       - member
@@ -11295,7 +11193,8 @@ components:
           type: boolean
           readOnly: true
         request_user_role:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/MemberRoleEnum'
           readOnly: true
         members:
           type: string
@@ -11346,6 +11245,9 @@ components:
               type: integer
             total_nlp_mt_characters:
               type: integer
+          required:
+          - total_nlp_asr_seconds
+          - total_nlp_mt_characters
         nlp_usage_all_time:
           type: object
           properties:
@@ -11353,6 +11255,9 @@ components:
               type: integer
             total_nlp_mt_characters:
               type: integer
+          required:
+          - total_nlp_asr_seconds
+          - total_nlp_mt_characters
         storage_bytes:
           type: integer
         submission_count_current_period:
@@ -11384,6 +11289,11 @@ components:
               type: integer
             mt_characters_all_time:
               type: integer
+          required:
+          - asr_seconds_all_time
+          - asr_seconds_current_period
+          - mt_characters_all_time
+          - mt_characters_current_period
         total_storage_bytes:
           type: integer
         total_submission_count:
@@ -11397,49 +11307,13 @@ components:
           type: object
           properties:
             submission:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
             storage_bytes:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
             asr_seconds:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
             mt_characters:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
         current_period_start:
           type: string
           format: date-time
@@ -11471,6 +11345,29 @@ components:
         * `educational` - Educational organization
         * `commercial` - A commercial/for-profit company
         * `none` - I am not associated with any organization
+    PaginatedAccessLogResponseList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccessLogResponse'
     PaginatedAssetCountResponseList:
       type: object
       required:
@@ -12605,13 +12502,13 @@ components:
       - type: object
         properties:
           status:
-            type: string
+            $ref: '#/components/schemas/InviteStatusChoicesEnum'
         required:
         - status
       - type: object
         properties:
           role:
-            type: string
+            $ref: '#/components/schemas/InviteeRoleEnum'
         required:
         - role
     PatchedInviteUpdatePayload:
@@ -13293,6 +13190,22 @@ components:
       - count
       - list
       - url
+    ServiceUsageBalanceData:
+      type: object
+      properties:
+        effective_limit:
+          type: integer
+        balance_value:
+          type: integer
+        balance_percent:
+          type: integer
+        exceeded:
+          type: integer
+      required:
+      - balance_percent
+      - balance_value
+      - effective_limit
+      - exceeded
     ServiceUsageResponse:
       type: object
       properties:
@@ -13307,6 +13220,11 @@ components:
               type: integer
             mt_characters_all_time:
               type: integer
+          required:
+          - asr_seconds_all_time
+          - asr_seconds_current_period
+          - mt_characters_all_time
+          - mt_characters_current_period
         total_storage_bytes:
           type: integer
         total_submission_count:
@@ -13320,49 +13238,13 @@ components:
           type: object
           properties:
             submission:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
             storage_bytes:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
             asr_seconds:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
             mt_characters:
-              type: object
-              properties:
-                effective_limit:
-                  type: integer
-                balance_value:
-                  type: integer
-                balance_percent:
-                  type: integer
-                exceeded:
-                  type: integer
+              $ref: '#/components/schemas/ServiceUsageBalanceData'
         current_period_start:
           type: string
           format: date-time

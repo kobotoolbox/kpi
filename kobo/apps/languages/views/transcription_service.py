@@ -28,7 +28,7 @@ from .base import BaseViewSet
             raise_access_forbidden=False,
             raise_not_found=False,
             validate_payload=False,
-        )
+        ),
     ),
     retrieve=extend_schema(
         description=read_md('languages', 'transcription/retrieve.md'),
@@ -36,7 +36,7 @@ from .base import BaseViewSet
             TranscriptionServiceSerializer,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
 )
 class TranscriptionServiceViewSet(BaseViewSet):

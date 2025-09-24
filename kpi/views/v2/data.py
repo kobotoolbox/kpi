@@ -273,8 +273,8 @@ class DataViewSet(
     @action(
         detail=True,
         methods=['POST'],
-        renderer_classes=[renderers.JSONRenderer],
         permission_classes=[DuplicateSubmissionPermission],
+        renderer_classes=[renderers.JSONRenderer],
     )
     def duplicate(self, request, submission_id_or_root_uuid: int, *args, **kwargs):
         """
@@ -331,9 +331,9 @@ class DataViewSet(
     @action(
         detail=True,
         methods=['GET'],
-        renderer_classes=[renderers.JSONRenderer],
         permission_classes=[EditLinkSubmissionPermission],
         url_path='enketo/edit',
+        renderer_classes=[renderers.JSONRenderer],
     )
     def enketo_edit(self, request, submission_id_or_root_uuid: int, *args, **kwargs):
         submission_id = positive_int(submission_id_or_root_uuid)
@@ -367,9 +367,9 @@ class DataViewSet(
     @action(
         detail=True,
         methods=['GET'],
-        renderer_classes=[renderers.JSONRenderer],
         permission_classes=[ViewSubmissionPermission],
         url_path='enketo/view',
+        renderer_classes=[renderers.JSONRenderer],
     )
     def enketo_view(self, request, submission_id_or_root_uuid: int, *args, **kwargs):
         submission_id = positive_int(submission_id_or_root_uuid)
@@ -613,6 +613,7 @@ class DataViewSet(
         detail=True,
         methods=['GET', 'PATCH', 'DELETE'],
         permission_classes=[SubmissionValidationStatusPermission],
+        renderer_classes=[renderers.JSONRenderer],
     )
     def validation_status(
         self, request, submission_id_or_root_uuid: int, *args, **kwargs
@@ -654,9 +655,12 @@ class DataViewSet(
             raise_access_forbidden=False,
         ),
     )
-    @action(detail=False, methods=['PATCH', 'DELETE'],
-            renderer_classes=[renderers.JSONRenderer],
-            permission_classes=[SubmissionValidationStatusPermission])
+    @action(
+        detail=False,
+        methods=['PATCH', 'DELETE'],
+        permission_classes=[SubmissionValidationStatusPermission],
+        renderer_classes=[renderers.JSONRenderer],
+    )
     def validation_statuses(self, request, *args, **kwargs):
         deployment = self._get_deployment()
         bulk_actions_validator = DataBulkActionsValidator(

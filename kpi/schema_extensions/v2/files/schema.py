@@ -11,7 +11,7 @@ BASE64_METADATA_SCHEMA = build_object_type(
     required=['filename'],
     properties={
         'filename': build_basic_type(OpenApiTypes.STR),
-    }
+    },
 )
 
 FILE_URL_SCHEMA = build_url_type(
@@ -24,5 +24,5 @@ URL_METADATA_SCHEMA = build_object_type(
     required=['redirect_url'],
     properties={
         'redirect_url': build_basic_type(OpenApiTypes.URI),
-    }
+    },
 )

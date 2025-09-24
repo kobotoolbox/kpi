@@ -1,12 +1,7 @@
 from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
-from .fields import (
-    AssetUrlField,
-    StatusesField,
-    TransferUrlField,
-)
-
+from .fields import AssetUrlField, StatusesField, TransferUrlField
 
 TransferListResponse = inline_serializer_class(
     name='TransferListResponse',

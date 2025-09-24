@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
@@ -37,7 +39,6 @@ def check_exceeded_limit(user, usage_type: UsageType, **kwargs):
         counter, created = ExceededLimitCounter.objects.get_or_create(
             user=user,
             limit_type=usage_type,
-            defaults={'days': 1},
         )
 
         if not created and counter.date_modified.date() < timezone.now().date():
@@ -55,8 +56,9 @@ def update_or_remove_limit_counter(counter, **kwargs):
     balance = balances[counter.limit_type]
     if not balance or not balance['exceeded']:
         counter.delete()
+        return
 
-    if counter.date_modified.date() < timezone.now().date():
-        delta = timezone.now().date() - counter.date_modified.date()
+    if counter.date_modified <= timezone.now() - timedelta(hours=24):
+        delta = timezone.now() - counter.date_modified
         counter.days += delta.days
         counter.save()

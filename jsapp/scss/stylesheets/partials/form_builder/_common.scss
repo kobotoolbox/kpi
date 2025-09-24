@@ -1,7 +1,8 @@
 @use 'scss/colors';
+@use 'scss/_variables';
 
 %card-content {
-  border: $cardBorderStyle;
+  border: variables.$cardBorderStyle;
   border-top-width: 1px;
   background: colors.$kobo-white;
   margin-top: -2px;
@@ -9,7 +10,7 @@
 }
 
 %card-expansion {
-    border: $cardBorderStyle;
+    border: variables.$cardBorderStyle;
     border-top-width: 1px;
     background: colors.$kobo-white;
     margin-top: -2px;

@@ -74,7 +74,7 @@ class DataBulkUpdatePayloadFieldExtension(OpenApiSerializerFieldExtension):
                     properties={
                         'field_to_update': GENERIC_STRING_SCHEMA,
                     }
-                )
+                ),
             }
         )
 

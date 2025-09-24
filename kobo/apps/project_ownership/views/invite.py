@@ -53,7 +53,7 @@ from ..serializers import InviteSerializer
                 required=False,
                 location=OpenApiParameter.QUERY,
             ),
-        ]
+        ],
     ),
     retrieve=extend_schema(
         description=read_md(

@@ -249,7 +249,7 @@ class AssetExportSettingsViewSet(
 
         if export.status in (
             ImportExportStatusChoices.CREATED,
-            ImportExportStatusChoices.PROCESSING
+            ImportExportStatusChoices.PROCESSING,
         ):
             expected_latest_finish = export.date_created + datetime.timedelta(
                 seconds=settings.SYNCHRONOUS_REQUEST_TIME_LIMIT
