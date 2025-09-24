@@ -3,7 +3,6 @@ import React, { useState } from 'react'
 import { Cookies } from 'react-cookie'
 import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
 import { UsageLimitTypes } from '#/account/stripe.types'
-import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import { useServiceUsageQuery } from '#/account/usage/useServiceUsageQuery'
 import LimitBanner from '#/components/usageLimits/overLimitBanner.component'
 import LimitModal from '#/components/usageLimits/overLimitModal.component'
@@ -19,8 +18,6 @@ interface LimitNotificationsProps {
 const LimitNotifications = ({ pageCanShowModal = false, accountPage = false }: LimitNotificationsProps) => {
   const [modalDismissed, setModalDismissed] = useState(false)
   const [stripeEnabled, setStripeEnabled] = useState(false)
-
-  const { billingPeriod } = useBillingPeriod()
 
   const { data: serviceUsageData } = useServiceUsageQuery()
 
@@ -74,9 +71,7 @@ const LimitNotifications = ({ pageCanShowModal = false, accountPage = false }: L
         }
         accountPage={Boolean(accountPage)}
       />
-      {useModal && (
-        <LimitModal show={!modalDismissed} limits={modalLimits} interval={billingPeriod} dismissed={dismissModal} />
-      )}
+      {useModal && <LimitModal show={!modalDismissed} limits={modalLimits} dismissed={dismissModal} />}
     </>
   )
 }

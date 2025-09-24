@@ -137,9 +137,7 @@ const AddOnList = (props: {
           <label className={styles.header}>{t('available add-ons')}</label>
           <p>
             {t(
-              `Add-ons can be added to your Community plan to increase your usage limits. If you are approaching or
-              have reached the usage limits included with your plan, increase your limits with add-ons to continue
-              data collection.`,
+              `You can add add-ons to increase your usage caps as needed when you are close to or over your plan's limits.`,
             )}
           </p>
         </caption>
