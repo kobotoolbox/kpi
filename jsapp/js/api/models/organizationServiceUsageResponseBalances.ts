@@ -8,8 +8,12 @@
 import type { ServiceUsageBalanceData } from './serviceUsageBalanceData'
 
 export type OrganizationServiceUsageResponseBalances = {
-  submission?: ServiceUsageBalanceData
-  storage_bytes?: ServiceUsageBalanceData
-  asr_seconds?: ServiceUsageBalanceData
-  mt_characters?: ServiceUsageBalanceData
+  /** @nullable */
+  submission: ServiceUsageBalanceData
+  /** @nullable */
+  storage_bytes: ServiceUsageBalanceData
+  /** @nullable */
+  asr_seconds: ServiceUsageBalanceData
+  /** @nullable */
+  mt_characters: ServiceUsageBalanceData
 }
