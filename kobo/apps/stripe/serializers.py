@@ -159,8 +159,8 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     application_fee_percent = serializers.DecimalField(
         max_digits=5,
         decimal_places=2,
-        min_value=Decimal("0"),
-        max_value=Decimal("100"),
+        min_value=Decimal('0'),
+        max_value=Decimal('100'),
         required=True,
         allow_null=True,
     )
