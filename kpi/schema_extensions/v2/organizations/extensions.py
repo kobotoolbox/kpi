@@ -105,7 +105,7 @@ class TotalSubmissionCountFieldExtension(OpenApiSerializerFieldExtension):
             required=[
                 'all_time',
                 'current_period',
-            ]
+            ],
         )
 
 
