@@ -174,8 +174,8 @@ class GoogleTranslationService(GoogleService):
         """
 
         try:
-            content = params['dependency']['value']
-            source_lang = params['dependency']['language']
+            content = params['_dependency']['value']
+            source_lang = params['_dependency']['language']
             target_lang = params['language']
         except KeyError:
             message = 'Error while setting up translation'

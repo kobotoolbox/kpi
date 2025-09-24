@@ -3,6 +3,12 @@ class AudioTooLongError(Exception):
     Audio file is too long for the specified speech service
     """
 
+    pass
+
+
+class DependencyNotFound(Exception):
+    pass
+
 
 class InvalidAction(Exception):
     """
@@ -34,7 +40,7 @@ class SubsequenceTimeoutError(Exception):
     pass
 
 
-class TranscriptionNotFound(Exception):
+class TranscriptionNotFound(DependencyNotFound):
     pass
 
 

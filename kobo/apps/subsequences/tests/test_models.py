@@ -83,7 +83,6 @@ class SubmissionSupplementTestCase(TestCase):
                             '_dateCreated': '2024-04-08T15:29:00Z',
                             '_dateAccepted': '2024-04-08T15:29:00Z',
                             '_uuid': '30d0f39c-a1dd-43fe-999a-844f12f83d31',
-
                         }
                     ],
                 },

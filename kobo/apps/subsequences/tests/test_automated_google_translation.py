@@ -434,10 +434,11 @@ def test_find_the_most_recent_accepted_transcription():
     # Manual transcription is the most recent
     action_data = {}  # not really relevant for this test
     expected = {
-        'dependency': {
+        '_dependency': {
             'value': 'My audio has been transcribed manually',
             'language': 'en-CA',
             '_uuid': 'd69b9263-04fd-45b4-b011-2e166cfefd4a',
+            '_actionId': 'manual_transcription',
         }
     }
     action_data = action._get_action_data_dependency(
@@ -451,10 +452,11 @@ def test_find_the_most_recent_accepted_transcription():
         '_dateAccepted'
     ] = '2025-07-28T16:18:00Z'
     expected = {
-        'dependency': {
+        '_dependency': {
             'value': 'My audio has been transcribed automatically',
             'language': 'en',
             '_uuid': '4dcf9c9f-e503-4e5c-81f5-74250b295001',
+            '_actionId': 'automated_google_transcription',
         }
     }
     action_data = action._get_action_data_dependency(

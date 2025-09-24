@@ -160,9 +160,11 @@ class ActionClassConfig:
 
 class BaseAction:
 
+    ACTION_ID_FIELD = '_actionId'
     DATE_CREATED_FIELD = '_dateCreated'
     DATE_MODIFIED_FIELD = '_dateModified'
     DATE_ACCEPTED_FIELD = '_dateAccepted'
+    DEPENDENCY_FIELD = '_dependency'
     UUID_FIELD = '_uuid'
     VERSION_FIELD = '_versions'
 
@@ -267,7 +269,6 @@ class BaseAction:
         self.raise_for_any_leading_underscore_key(action_data)
 
         now_str = utc_datetime_to_js_str(timezone.now())
-        item_index = None
 
         localized_action_supplemental_data = deepcopy(action_supplemental_data)
         if self.action_class_config.allow_multiple:
@@ -301,16 +302,22 @@ class BaseAction:
 
             # Otherwise, merge the service response into action_data and keep going
             # the validation process.
-            action_data = deepcopy(action_data)
+
+            dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
+            # action_data = deepcopy(action_data)
             action_data.update(service_response)
             self.validate_automated_data(action_data)
             accepted = action_data.pop('accepted', None)
         else:
+            dependency_supplemental_data = None
             accepted = True
 
         new_version = deepcopy(action_data)
         new_version[self.DATE_CREATED_FIELD] = now_str
         new_version[self.UUID_FIELD] = str(uuid.uuid4())
+        if dependency_supplemental_data:
+            new_version[self.DEPENDENCY_FIELD] = dependency_supplemental_data
+
         if self.DATE_CREATED_FIELD not in localized_action_supplemental_data:
             localized_action_supplemental_data[self.DATE_CREATED_FIELD] = now_str
         localized_action_supplemental_data[self.DATE_MODIFIED_FIELD] = now_str
@@ -472,12 +479,30 @@ class BaseManualNLPAction(BaseAction):
     def data_schema(self):
         """
         POST to "/api/v2/assets/<asset uid>/data/<submission uuid>/supplemental/"
+        The payload must be an object with:
+          - language : required string, one of the allowed languages (e.g. "fr", "es")
+          - value    : required string or null
+          - locale   : optional string or null (e.g. "fr-CA", "es-ES")
+
+        Examples
+        --------
+        # Minimal valid example (required fields only)
         {
-            'language_action_id': {
-                'language': 'es',
-                'locale': 'es-ES',
-                'value': 'Almorzamos muy bien hoy',
-            }
+            "language": "es",
+            "value": "Almorzamos muy bien hoy"
+        }
+
+        # With explicit locale
+        {
+            "language": "fr",
+            "locale": "fr-CA",
+            "value": "Bonjour tout le monde"
+        }
+
+        # Null value is allowed when data is intentionally deleted
+        {
+            "language": "fr",
+            "value": null
         }
         """
 
@@ -525,13 +550,14 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
         Schema rules:
 
         - The field `status` is always required and must be one of:
-          ["requested", "in_progress", "completed", "failed"].
-        - If `status` == "done":
+          ["requested", "in_progress", "complete", "failed"].
+        - If `status` == "complete":
             * The field `value` becomes required and must be a string.
         - If `status` == "failed":
             * The field `error` becomes required and must be a string.
         - No additional properties are allowed beyond `language`, `status` and `value`.
         """
+
         return {
             '$schema': 'https://json-schema.org/draft/2020-12/schema',
             'type': 'object',
@@ -635,6 +661,7 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
           * If `accepted` is present, `value` must be absent.
         - No additional properties are allowed beyond: `language`, `locale`, `value`, `accepted`.
         """
+
         return {
             '$schema': 'https://json-schema.org/draft/2020-12/schema',
             'type': 'object',
@@ -724,9 +751,14 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
         service = NLPService(submission, asset=asset)
         service_data = service.process_data(self.source_question_xpath, action_data)
 
-        # Remove the 'dependency' flag from action_data since it is only used
-        # internally to resolve prerequisites and must not be kept in the final payload.
-        action_data.pop('dependency', None)
+        # Sanitize 'dependency' before persisting: keep only stable identifiers and drop
+        # all other fields (e.g., 'value', 'language', timestamps).
+        if dependency := action_data.pop(self.DEPENDENCY_FIELD, None):
+            action_data[self.DEPENDENCY_FIELD] = {
+                self.ACTION_ID_FIELD: dependency[self.ACTION_ID_FIELD],
+                self.UUID_FIELD: dependency[self.UUID_FIELD],
+            }
+
 
         # If the request is still running, stop processing here.
         # Returning None ensures that `revise_data()` will not be called afterwards.
