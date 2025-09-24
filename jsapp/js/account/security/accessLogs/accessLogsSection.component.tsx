@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { keepPreviousData } from '@tanstack/react-query'
 import UniversalTable, { DEFAULT_PAGE_SIZE } from '#/UniversalTable'
 import securityStyles from '#/account/security/securityRoute.module.scss'
-import type { AuditLogResponse } from '#/api/models/auditLogResponse'
+import type { AccessLogResponse } from '#/api/models/accessLogResponse'
 import type { ErrorDetail } from '#/api/models/errorDetail'
 import {
   getAccessLogsListQueryKey,
@@ -66,7 +66,7 @@ export default function AccessLogsSection() {
         </div>
       </header>
 
-      <UniversalTable<AuditLogResponse, ErrorDetail>
+      <UniversalTable<AccessLogResponse, ErrorDetail>
         pagination={pagination}
         setPagination={setPagination}
         queryResult={queryResult}
@@ -76,9 +76,8 @@ export default function AccessLogsSection() {
           {
             key: 'metadata.source',
             label: t('Source'),
-            cellFormatter: (log: AuditLogResponse) => {
+            cellFormatter: (log: AccessLogResponse) => {
               if (log.metadata.auth_type === 'submission-group') {
-                // @ts-expect-error schema: AuditLogResponse.count property is missing
                 return t('Data Submissions (##count##)').replace('##count##', String(log.count))
               } else {
                 return log.metadata.source
@@ -88,7 +87,7 @@ export default function AccessLogsSection() {
           {
             key: 'date_created',
             label: t('Last activity'),
-            cellFormatter: (log: AuditLogResponse) => formatTime(log.date_created),
+            cellFormatter: (log: AccessLogResponse) => formatTime(log.date_created),
           },
           { key: 'metadata.ip_address', label: t('IP Address') },
         ]}
