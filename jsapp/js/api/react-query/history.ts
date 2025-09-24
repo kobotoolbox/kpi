@@ -34,26 +34,19 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 Lists all project history logs for a single project.
 
-<sup>*</sup> _Required permissions: `manage_asset` (Manage project)_
+⚠️ _Required permissions: `manage_asset` (Manage project)_
 
-Results from this endpoint can be filtered by a Boolean query specified in the q parameter.
+Results from this endpoint can be filtered by a Boolean query specified in the `q` parameter.
 
 ### Filterable fields for all project history logs:
 
-  date_created
-
-  user_uid
-
-  user__*
+  - date_created
+  - user_uid
   - user__username
   - user__email
   - user__is_superuser
-
-  metadata__*
-
   - metadata__source
   - metadata__ip_address
-  - metadata__asset_uid
   - metadata__log_subtype
     - available subtypes: "project", "permission"
 
@@ -182,7 +175,6 @@ available actions:
 
 This endpoint can be paginated with 'offset' and 'limit' parameters.
 
-
  */
 export type assetsHistoryListResponse200 = {
   data: PaginatedHistoryListResponseList
@@ -277,7 +269,7 @@ export function useAssetsHistoryList<TData = Awaited<ReturnType<typeof assetsHis
 }
 
 /**
- * ## Retrieve distinct actions performed on the asset.
+ * ## Retrieve distinct actions performed on the project.
 
  */
 export type assetsHistoryActionsRetrieveResponse200 = {
@@ -367,7 +359,7 @@ export function useAssetsHistoryActionsRetrieve<
 /**
  * ## Export current project's history
 
-Exports the project's history and sends it to the user via email.
+Exports the project's history and sends it by email to the requesting user.
 
  */
 export type assetsHistoryExportCreateResponse202 = {
