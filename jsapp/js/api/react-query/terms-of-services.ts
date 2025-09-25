@@ -10,8 +10,6 @@ import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@
 
 import type { ErrorDetail } from '../models/errorDetail'
 
-import type { ErrorObject } from '../models/errorObject'
-
 import type { TermsOfServiceResponse } from '../models/termsOfServiceResponse'
 
 import { fetchWithAuth } from '../orval.mutator'
@@ -107,15 +105,9 @@ export type termsOfServiceRetrieveResponse401 = {
   status: 401
 }
 
-export type termsOfServiceRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type termsOfServiceRetrieveResponseComposite =
   | termsOfServiceRetrieveResponse200
   | termsOfServiceRetrieveResponse401
-  | termsOfServiceRetrieveResponse404
 
 export type termsOfServiceRetrieveResponse = termsOfServiceRetrieveResponseComposite & {
   headers: Headers
@@ -141,7 +133,7 @@ export const getTermsOfServiceRetrieveQueryKey = (slug: string) => {
 
 export const getTermsOfServiceRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof termsOfServiceRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   slug: string,
   options?: {
@@ -164,11 +156,11 @@ export const getTermsOfServiceRetrieveQueryOptions = <
 }
 
 export type TermsOfServiceRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof termsOfServiceRetrieve>>>
-export type TermsOfServiceRetrieveQueryError = ErrorDetail | ErrorObject
+export type TermsOfServiceRetrieveQueryError = ErrorDetail
 
 export function useTermsOfServiceRetrieve<
   TData = Awaited<ReturnType<typeof termsOfServiceRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   slug: string,
   options?: {

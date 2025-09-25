@@ -1,9 +1,12 @@
 @use 'scss/colors';
+@use 'scss/libs/_mdl';
+@use 'scss/variables';
+@use 'scss/stylesheets/partials/_content' as *;
 
 // form_builder miscellaneous rules
 
 .survey-editor__message {
-  border: $cardBorderStyle;
+  border: variables.$cardBorderStyle;
   padding: 20px;
   background: colors.$kobo-white;
   color: colors.$kobo-gray-700;
@@ -26,7 +29,7 @@
 
 .card__text input,
 .editable-wrapper input {
-  font-family: $font;
+  font-family: mdl.$font;
   border: none;
   padding: 0;
   margin: 0;
@@ -47,7 +50,7 @@ code input[type='text'] {
   display: inline;
   background: none;
   font-size: 11px;
-  color: $linkColor;
+  color: variables.$linkColor;
   height: auto !important;
 }
 

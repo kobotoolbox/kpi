@@ -10,7 +10,7 @@ from kobo.celery import celery_app
 @celery_app.task
 def update_exceeded_limit_counters():
     qs = ExceededLimitCounter.objects.filter(
-        date_modified__date__lte=timezone.now().date() - timedelta(days=1)
+        date_modified__lte=timezone.now() - timedelta(hours=24)
     )
 
     for counter in qs:

@@ -48,9 +48,10 @@ export default function TransferProjects(props: TransferProjectsProps) {
 
   const isTransferBlocked = useMemo(
     () =>
-      !serviceUsageData ||
-      serviceUsageData.limitExceedList.includes(UsageLimitTypes.STORAGE) ||
-      serviceUsageData.limitExceedList.includes(UsageLimitTypes.SUBMISSION),
+      envStore.data.usage_limit_enforcement &&
+      (!serviceUsageData ||
+        serviceUsageData.limitExceedList.includes(UsageLimitTypes.STORAGE) ||
+        serviceUsageData.limitExceedList.includes(UsageLimitTypes.SUBMISSION)),
     [serviceUsageData],
   )
 

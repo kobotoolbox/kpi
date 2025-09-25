@@ -68,8 +68,11 @@ def get_target_folder(
 
 
 def move_attachments(transfer: 'project_ownership.Transfer'):
+    TransferStatus = apps.get_model('project_ownership', 'TransferStatus')
+
 
     async_task_type = TransferStatusTypeChoices.ATTACHMENTS
+    transfer_status = transfer.statuses.get(status_type=async_task_type)
 
     # Attachments cannot be moved until `_userform_id` is updated successfully
     if not (
@@ -117,7 +120,7 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
                 # There is no way to ensure atomicity when moving the file and saving
                 # the object to the database. Fingers crossed that the process doesn't
                 # get interrupted between these two operations.
-                if attachment.media_file.move(target_folder):
+                if attachment.media_file.move(target_folder, reraise_errors=True):
                     update_fields.append('media_file')
                     _delete_thumbnails(media_file_path)
                     # attachment.save(update_fields=['media_file'])
@@ -126,10 +129,11 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
                     )
                 else:
                     errors = True
-                    logging.error(
-                        f'File {attachment.media_file_basename} (#{attachment.pk}) '
-                        f'could not be moved to {target_folder}'
+                    error = (
+                        f'File {attachment.media_file_basename} (#{attachment.pk})'
+                        f' could not be moved to {target_folder}'
                     )
+                    TransferStatus._add_error(transfer_status, error)
 
             attachment.user_id = transfer.invite.recipient.pk
             attachment.save(update_fields=update_fields)
@@ -138,8 +142,14 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
             # TODO: remove this general exception when we have a better idea of
             # the errors
             errors = True
+            TransferStatus._add_error(
+                transfer_status, f'Error moving {attachment.media_file_basename}: {e}'
+            )
+            # also log to console so we get the stack trace
             logging.error(
-                f'Error moving {attachment.media_file_basename}', e, exc_info=True
+                f'Error moving {attachment.media_file_basename}',
+                exc_info=True,
+                stack_info=True,
             )
         finally:
             heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
@@ -153,6 +163,8 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
 def move_media_files(transfer: 'project_ownership.Transfer'):
 
     async_task_type = TransferStatusTypeChoices.MEDIA_FILES
+    TransferStatus = apps.get_model('project_ownership', 'TransferStatus')
+    transfer_status = transfer.statuses.get(status_type=async_task_type)
     media_files = transfer.asset.asset_files.filter(
         file_type=AssetFile.FORM_MEDIA
     ).exclude(content__startswith=f'{transfer.asset.owner.username}/')
@@ -169,36 +181,64 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
 
     heartbeat = int(time.time())
     # Moving files is pretty slow, thus it should run in a celery task.
+    success = True
     for media_file in media_files:
-        if not (
-            target_folder := get_target_folder(
-                transfer.invite.sender.username,
-                transfer.invite.recipient.username,
-                media_file.content.name,
-            )
-        ):
-            continue
-        else:
-            # There is no way to ensure atomicity when moving the file and saving the
-            # object to the database. Fingers crossed that the process doesn't get
-            # interrupted between these two operations.
-            media_file.content.move(target_folder)
-            old_md5 = media_file.metadata.pop('hash', None)
-            media_file.set_md5_hash()
-            media_file.save(update_fields=['content', 'metadata'])
-
-            if old_md5 in kc_files.keys():
-                kc_obj = kc_files[old_md5]
-                if kc_target_folder := get_target_folder(
+        try:
+            if not (
+                target_folder := get_target_folder(
                     transfer.invite.sender.username,
                     transfer.invite.recipient.username,
-                    kc_obj.data_file.name,
-                ):
-                    kc_obj.data_file.move(kc_target_folder)
-                    kc_obj.file_hash = media_file.md5_hash
-                    kc_obj.save(update_fields=['file_hash', 'data_file'])
+                    media_file.content.name,
+                )
+            ):
+                continue
+            else:
+                # There is no way to ensure atomicity when moving the file and saving
+                # the object to the database. Fingers crossed that the process doesn't
+                # get interrupted between these two operations.
+                if not media_file.content.move(target_folder, reraise_errors=True):
+                    success = False
+                    TransferStatus._add_error(
+                        transfer_status,
+                        f'File {media_file.content.name} (#{media_file.pk})'
+                        f' could not be moved to {target_folder}',
+                    )
+                else:
+                    old_md5 = media_file.metadata.pop('hash', None)
+                    media_file.set_md5_hash()
+                    media_file.save(update_fields=['content', 'metadata'])
 
-            heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
+                    if old_md5 in kc_files.keys():
+                        kc_obj = kc_files[old_md5]
+                        if kc_target_folder := get_target_folder(
+                            transfer.invite.sender.username,
+                            transfer.invite.recipient.username,
+                            kc_obj.data_file.name,
+                        ):
+                            if not kc_obj.data_file.move(
+                                kc_target_folder, reraise_errors=True
+                            ):
+                                success = False
+                                TransferStatus._add_error(
+                                    transfer_status,
+                                    f'Kobocat file {kc_obj.data_file.name}'
+                                    f' (#{media_file.pk})'
+                                    f' could not be moved to {kc_target_folder}',
+                                )
+                            else:
+                                kc_obj.file_hash = media_file.md5_hash
+                                kc_obj.save(update_fields=['file_hash', 'data_file'])
+
+                heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
+        except Exception as e:
+            TransferStatus._add_error(
+                transfer_status, f'Error moving {media_file.content.name}: {e}'
+            )
+            success = False
+
+        # will mark the task as failed if any file failed
+    if not success:
+        raise AsyncTaskException('Some media files could not be moved')
 
     _mark_task_as_successful(transfer, async_task_type)
 

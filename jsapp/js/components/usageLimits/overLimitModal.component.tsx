@@ -18,7 +18,6 @@ interface OverLimitModalProps {
   show: boolean
   limits: UsageLimitTypes[]
   dismissed: () => void
-  interval: 'month' | 'year'
 }
 
 function getLimitReachedMessage(isMmo: boolean, isTeamLabelActive: boolean, limits: string) {

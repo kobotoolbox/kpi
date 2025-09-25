@@ -7,8 +7,8 @@
  */
 
 export type ServiceUsageResponseTotalNlpUsage = {
-  asr_seconds_current_period?: number
-  mt_characters_current_period?: number
-  asr_seconds_all_time?: number
-  mt_characters_all_time?: number
+  asr_seconds_current_period: number
+  mt_characters_current_period: number
+  asr_seconds_all_time: number
+  mt_characters_all_time: number
 }

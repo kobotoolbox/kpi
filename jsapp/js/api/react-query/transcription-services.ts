@@ -10,8 +10,6 @@ import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@
 
 import type { ErrorDetail } from '../models/errorDetail'
 
-import type { ErrorObject } from '../models/errorObject'
-
 import type { PaginatedTranscriptionServiceList } from '../models/paginatedTranscriptionServiceList'
 
 import type { TranscriptionService } from '../models/transcriptionService'
@@ -140,15 +138,9 @@ export type transcriptionServicesRetrieveResponse401 = {
   status: 401
 }
 
-export type transcriptionServicesRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type transcriptionServicesRetrieveResponseComposite =
   | transcriptionServicesRetrieveResponse200
   | transcriptionServicesRetrieveResponse401
-  | transcriptionServicesRetrieveResponse404
 
 export type transcriptionServicesRetrieveResponse = transcriptionServicesRetrieveResponseComposite & {
   headers: Headers
@@ -174,7 +166,7 @@ export const getTranscriptionServicesRetrieveQueryKey = (code: string) => {
 
 export const getTranscriptionServicesRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   code: string,
   options?: {
@@ -199,11 +191,11 @@ export const getTranscriptionServicesRetrieveQueryOptions = <
 export type TranscriptionServicesRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof transcriptionServicesRetrieve>>
 >
-export type TranscriptionServicesRetrieveQueryError = ErrorDetail | ErrorObject
+export type TranscriptionServicesRetrieveQueryError = ErrorDetail
 
 export function useTranscriptionServicesRetrieve<
   TData = Awaited<ReturnType<typeof transcriptionServicesRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   code: string,
   options?: {

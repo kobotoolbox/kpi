@@ -12,6 +12,7 @@ import envStore from '#/envStore'
 import { notify } from '#/utils'
 import { dataInterface } from '../dataInterface'
 import { useSession } from '../stores/useSession'
+import DeleteAccountBanner from './DeleteAccountBanner'
 import type { AccountFieldsErrors, AccountFieldsValues } from './account.constants'
 import { getInitialAccountFieldsValues, getProfilePatchData } from './account.utils'
 import AccountFieldsEditor from './accountFieldsEditor.component'
@@ -28,6 +29,7 @@ const AccountSettings = () => {
   const [fieldErrors, setFieldErrors] = useState<AccountFieldsErrors>({})
   const [formFields, setFormFields] = useState<AccountFieldsValues>(getInitialAccountFieldsValues())
   const [editedFields, setEditedFields] = useState<Partial<AccountFieldsValues>>({})
+  const isSelfDeleteFeatureEnabled = envStore.data.allow_self_account_deletion
 
   const { currentLoggedAccount, refreshAccount } = useSession()
 
@@ -169,6 +171,8 @@ const AccountSettings = () => {
               onFieldChange={onFieldChange}
               displayedFields={displayedFields}
             />
+
+            {isSelfDeleteFeatureEnabled && <DeleteAccountBanner />}
           </bem.AccountSettings__item>
         )}
       </bem.AccountSettings__item>

@@ -626,8 +626,13 @@ class PermissionsTestCase(BasePermissionsTestCase):
             }]
         }
         codename = PERM_PARTIAL_SUBMISSIONS
-        self.assertRaises(BadPermissionsException, asset.assign_perm, grantee,
-                          codename, partial_perms=partial_perms)
+        self.assertRaises(
+            BadPermissionsException,
+            asset.assign_perm,
+            grantee,
+            codename,
+            partial_perms=partial_perms,
+        )
 
     def test_mandatory_partial_perms_with_partial_submissions_permission(self):
         """

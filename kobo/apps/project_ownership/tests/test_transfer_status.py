@@ -7,6 +7,7 @@ from ..models import (
     Invite,
     InviteStatusChoices,
     Transfer,
+    TransferStatus,
     TransferStatusChoices,
     TransferStatusTypeChoices,
 )
@@ -117,3 +118,24 @@ class ProjectOwnershipTransferStatusTestCase(TestCase):
         # 'success'.
         for transfer_status in self.transfer.statuses.all():
             assert transfer_status.status == TransferStatusChoices.SUCCESS
+
+    def test_update_status_of_previously_succeeded_transfer(self):
+        submissions_status = self.transfer.statuses.get(
+            status_type=TransferStatusTypeChoices.SUBMISSIONS
+        )
+        TransferStatus.update_status(
+            transfer_id=self.transfer.id,
+            status_type=TransferStatusTypeChoices.SUBMISSIONS,
+            status=TransferStatusChoices.SUCCESS,
+        )
+        TransferStatus.update_status(
+            transfer_id=self.transfer.id,
+            status_type=TransferStatusTypeChoices.SUBMISSIONS,
+            status=TransferStatusChoices.FAILED,
+        )
+        errors_qset = submissions_status.errors
+        assert errors_qset.count() == 1
+        error = errors_qset.first()
+        assert (
+            error.error == 'Updating status of previously successful transfer to failed'
+        )

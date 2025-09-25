@@ -9,11 +9,11 @@ from django.utils.translation import gettext as t
 from rest_framework import exceptions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.settings import api_settings
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api import tools as utils
 from kobo.apps.openrosa.apps.api.permissions import XFormPermissions
+from kobo.apps.openrosa.apps.api.utils.rest_framework import openrosa_drf_settings
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.libs import filters
@@ -528,7 +528,7 @@ class XFormViewSet(
     >
     >        HTTP 200 OK
     """
-    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [
+    renderer_classes = openrosa_drf_settings.DEFAULT_RENDERER_CLASSES + [
         renderers.XLSRenderer,
         renderers.XLSXRenderer,
         renderers.CSVRenderer,

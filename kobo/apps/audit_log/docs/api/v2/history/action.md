@@ -1,1 +1,1 @@
-## Retrieve distinct actions performed on the asset.
+## Retrieve distinct actions performed on the project.

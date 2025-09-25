@@ -1,7 +1,7 @@
 import datetime
 
-import constance
 import pytest
+from constance import config
 from constance.test import override_config
 from django.conf import settings
 from django.http import HttpRequest
@@ -54,23 +54,23 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         self.user = User.objects.get(username='someuser')
         self.password = 'someuser'
         self.dict_checks = {
-            'terms_of_service_url': constance.config.TERMS_OF_SERVICE_URL,
-            'privacy_policy_url': constance.config.PRIVACY_POLICY_URL,
-            'source_code_url': constance.config.SOURCE_CODE_URL,
-            'support_email': constance.config.SUPPORT_EMAIL,
-            'support_url': constance.config.SUPPORT_URL,
-            'academy_url': constance.config.ACADEMY_URL,
-            'community_url': constance.config.COMMUNITY_URL,
-            'frontend_min_retry_time': constance.config.FRONTEND_MIN_RETRY_TIME,
-            'frontend_max_retry_time': constance.config.FRONTEND_MAX_RETRY_TIME,
+            'terms_of_service_url': config.TERMS_OF_SERVICE_URL,
+            'privacy_policy_url': config.PRIVACY_POLICY_URL,
+            'source_code_url': config.SOURCE_CODE_URL,
+            'support_email': config.SUPPORT_EMAIL,
+            'support_url': config.SUPPORT_URL,
+            'academy_url': config.ACADEMY_URL,
+            'community_url': config.COMMUNITY_URL,
+            'frontend_min_retry_time': config.FRONTEND_MIN_RETRY_TIME,
+            'frontend_max_retry_time': config.FRONTEND_MAX_RETRY_TIME,
             'project_metadata_fields': lambda x: self.assertEqual(
                 len(x),
-                len(to_python_object(constance.config.PROJECT_METADATA_FIELDS)),
+                len(to_python_object(config.PROJECT_METADATA_FIELDS)),
             )
             and self.assertIn({'name': 'organization', 'required': False}, x),
             'user_metadata_fields': lambda x: self.assertEqual(
                 len(x),
-                len(to_python_object(constance.config.USER_METADATA_FIELDS)),
+                len(to_python_object(config.USER_METADATA_FIELDS)),
             )
             and self.assertIn({'name': 'sector', 'required': False}, x),
             'sector_choices': lambda x: self.assertGreater(len(x), 10)
@@ -89,7 +89,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
             ),
             'submission_placeholder': SUBMISSION_PLACEHOLDER,
             'asr_mt_features_enabled': False,
-            'mfa_enabled': constance.config.MFA_ENABLED,
+            'mfa_enabled': config.MFA_ENABLED,
             'mfa_per_user_availability': lambda response: (
                 MfaAvailableToUser.objects.filter(
                     user=get_database_user(self.user)
@@ -100,35 +100,28 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
             ),
             'mfa_localized_help_text': markdown(
                 I18nUtils.get_mfa_help_text().replace(
-                    '##support email##', constance.config.SUPPORT_EMAIL
+                    '##support email##', config.SUPPORT_EMAIL
                 )
             ),
             'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH'],
             # stripe key added below if stripe is enabled
             'stripe_public_key': None,
-            'free_tier_thresholds': to_python_object(
-                constance.config.FREE_TIER_THRESHOLDS
-            ),
-            'free_tier_display': to_python_object(
-                constance.config.FREE_TIER_DISPLAY
-            ),
+            'free_tier_thresholds': to_python_object(config.FREE_TIER_THRESHOLDS),
+            'free_tier_display': to_python_object(config.FREE_TIER_DISPLAY),
             'social_apps': [],
-            'enable_password_entropy_meter': (
-                constance.config.ENABLE_PASSWORD_ENTROPY_METER
-            ),
+            'enable_password_entropy_meter': (config.ENABLE_PASSWORD_ENTROPY_METER),
             'enable_custom_password_guidance_text': (
-                constance.config.ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT
+                config.ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT
             ),
             'custom_password_localized_help_text': markdown(
                 I18nUtils.get_custom_password_help_text()
             ),
             'open_rosa_server': settings.KOBOCAT_URL,
             'terms_of_service__sitewidemessage__exists': False,
-            'project_history_log_lifespan': (
-                constance.config.PROJECT_HISTORY_LOG_LIFESPAN
-            ),
-            'use_team_label': constance.config.USE_TEAM_LABEL,
-            'usage_limit_enforcement': constance.config.USAGE_LIMIT_ENFORCEMENT,
+            'project_history_log_lifespan': (config.PROJECT_HISTORY_LOG_LIFESPAN),
+            'use_team_label': config.USE_TEAM_LABEL,
+            'usage_limit_enforcement': config.USAGE_LIMIT_ENFORCEMENT,
+            'allow_self_account_deletion': config.ALLOW_SELF_ACCOUNT_DELETION,
         }
         if settings.STRIPE_ENABLED:
             from djstripe.models import APIKey
@@ -167,7 +160,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         context = RequestContext(HttpRequest())  # NB: empty request
         template = Template('{{ config.TERMS_OF_SERVICE_URL }}')
         result = template.render(context)
-        self.assertEqual(result, constance.config.TERMS_OF_SERVICE_URL)
+        self.assertEqual(result, config.TERMS_OF_SERVICE_URL)
 
     @override_config(MFA_ENABLED=True)
     def test_mfa_value_globally_enabled(self):
@@ -323,7 +316,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
     def test_social_apps(self):
         # GET mutates state, call it first to test num queries later
         self.client.get(self.url, format='json')
-        queries = FuzzyInt(18, 30)
+        queries = FuzzyInt(18, 31)
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -342,7 +335,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
     def test_social_apps_no_custom_data(self):
         SocialAppCustomData.objects.all().delete()
         self.client.get(self.url, format='json')
-        queries = FuzzyInt(18, 30)
+        queries = FuzzyInt(18, 31)
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
 

@@ -261,15 +261,9 @@ export type projectOwnershipInvitesRetrieveResponse403 = {
   status: 403
 }
 
-export type projectOwnershipInvitesRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type projectOwnershipInvitesRetrieveResponseComposite =
   | projectOwnershipInvitesRetrieveResponse200
   | projectOwnershipInvitesRetrieveResponse403
-  | projectOwnershipInvitesRetrieveResponse404
 
 export type projectOwnershipInvitesRetrieveResponse = projectOwnershipInvitesRetrieveResponseComposite & {
   headers: Headers
@@ -295,7 +289,7 @@ export const getProjectOwnershipInvitesRetrieveQueryKey = (uid: string) => {
 
 export const getProjectOwnershipInvitesRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   uid: string,
   options?: {
@@ -320,11 +314,11 @@ export const getProjectOwnershipInvitesRetrieveQueryOptions = <
 export type ProjectOwnershipInvitesRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>
 >
-export type ProjectOwnershipInvitesRetrieveQueryError = ErrorDetail | ErrorObject
+export type ProjectOwnershipInvitesRetrieveQueryError = ErrorDetail
 
 export function useProjectOwnershipInvitesRetrieve<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   uid: string,
   options?: {
@@ -470,15 +464,9 @@ export type projectOwnershipInvitesDestroyResponse403 = {
   status: 403
 }
 
-export type projectOwnershipInvitesDestroyResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type projectOwnershipInvitesDestroyResponseComposite =
   | projectOwnershipInvitesDestroyResponse204
   | projectOwnershipInvitesDestroyResponse403
-  | projectOwnershipInvitesDestroyResponse404
 
 export type projectOwnershipInvitesDestroyResponse = projectOwnershipInvitesDestroyResponseComposite & {
   headers: Headers
@@ -498,10 +486,7 @@ export const projectOwnershipInvitesDestroy = async (
   })
 }
 
-export const getProjectOwnershipInvitesDestroyMutationOptions = <
-  TError = ErrorDetail | ErrorObject,
-  TContext = unknown,
->(options?: {
+export const getProjectOwnershipInvitesDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof projectOwnershipInvitesDestroy>>,
     TError,
@@ -537,9 +522,9 @@ export type ProjectOwnershipInvitesDestroyMutationResult = NonNullable<
   Awaited<ReturnType<typeof projectOwnershipInvitesDestroy>>
 >
 
-export type ProjectOwnershipInvitesDestroyMutationError = ErrorDetail | ErrorObject
+export type ProjectOwnershipInvitesDestroyMutationError = ErrorDetail
 
-export const useProjectOwnershipInvitesDestroy = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
+export const useProjectOwnershipInvitesDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof projectOwnershipInvitesDestroy>>,
     TError,

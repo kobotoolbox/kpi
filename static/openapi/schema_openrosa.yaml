@@ -90,7 +90,7 @@ paths:
           content:
             application/xml:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -149,7 +149,7 @@ paths:
           content:
             application/xml:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -229,7 +229,7 @@ paths:
           content:
             application/xml:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:
@@ -282,7 +282,7 @@ paths:
           content:
             application/xml:
               schema:
-                $ref: '#/components/schemas/ErrorObject'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 NotFound:
                   value:

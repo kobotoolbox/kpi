@@ -125,7 +125,7 @@
                         "content": {
                             "application/xml": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorDetail"
                                 },
                                 "examples": {
                                     "NotFound": {
@@ -212,7 +212,7 @@
                         "content": {
                             "application/xml": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorDetail"
                                 },
                                 "examples": {
                                     "NotFound": {
@@ -328,7 +328,7 @@
                         "content": {
                             "application/xml": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorDetail"
                                 },
                                 "examples": {
                                     "NotFound": {
@@ -406,7 +406,7 @@
                         "content": {
                             "application/xml": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
+                                    "$ref": "#/components/schemas/ErrorDetail"
                                 },
                                 "examples": {
                                     "NotFound": {

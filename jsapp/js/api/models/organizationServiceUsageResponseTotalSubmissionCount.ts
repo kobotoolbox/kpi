@@ -7,6 +7,6 @@
  */
 
 export type OrganizationServiceUsageResponseTotalSubmissionCount = {
-  all_time?: number
-  current_period?: number
+  all_time: number
+  current_period: number
 }

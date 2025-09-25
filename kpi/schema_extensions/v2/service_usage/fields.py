@@ -11,3 +11,22 @@ class NlpUsageField(serializers.JSONField):
 
 class SubmissionCountField(serializers.JSONField):
     pass
+
+
+class BalanceDataField(serializers.Field):
+    """
+    Represents service usage balance values.
+    Returns a dict like:
+    {
+        "effective_limit": int,
+        "balance_value": int,
+        "balance_percent": int,
+        "exceeded": int
+    }
+    """
+
+    def to_representation(self, value):
+        return value
+
+    def to_internal_value(self, data):
+        return value
