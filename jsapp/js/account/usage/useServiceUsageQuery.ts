@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
-import { fetchGet } from '#/api'
-import { endpoints } from '#/api.endpoints'
+import type { ServiceUsageBalances } from '#/api/models/serviceUsageBalances'
 import {
   getOrganizationsServiceUsageRetrieveQueryKey,
   organizationsServiceUsageRetrieve,
@@ -23,35 +22,6 @@ export const recordKeys = <T extends object>(o: T) => Object.keys(o) as (keyof T
 export const recordValues = <T extends object>(o: T) => Object.values(o) as T[keyof T][]
 
 
-
-interface UsageBalance {
-  effective_limit: number
-  balance_value: number
-  balance_percent: number
-  exceeded: boolean
-}
-export interface UsageResponse {
-  current_period_start: string
-  current_period_end: string
-  total_submission_count: {
-    current_period: number
-    all_time: number
-  }
-  total_storage_bytes: number
-  total_nlp_usage: {
-    asr_seconds_current_period: number
-    mt_characters_current_period: number
-    asr_seconds_all_time: number
-    mt_characters_all_time: number
-  }
-  balances: {
-    storage_bytes: UsageBalance | null
-    submission: UsageBalance | null
-    asr_seconds: UsageBalance | null
-    mt_characters: UsageBalance | null
-  }
-}
-
 export interface UsageState {
   storage: number
   submissions: number
@@ -60,19 +30,11 @@ export interface UsageState {
   currentPeriodStart: string
   currentPeriodEnd: string
   lastUpdated?: String | null
-  balances: {
-    storage_bytes: UsageBalance | null
-    submission: UsageBalance | null
-    asr_seconds: UsageBalance | null
-    mt_characters: UsageBalance | null
-  }
+  balances: ServiceUsageBalances
   limitWarningList: UsageLimitTypes[]
   limitExceedList: UsageLimitTypes[]
 }
 
-export async function getOrgServiceUsage(organization_id: string) {
-  return fetchGet<UsageResponse>(endpoints.ORG_SERVICE_USAGE_URL.replace(':organization_id', organization_id))
-}
 
 const usageBalanceKeyMapping = {
   storage_bytes: UsageLimitTypes.STORAGE,
@@ -121,7 +83,6 @@ const loadUsage = async (organizationId: string | null): Promise<UsageState | un
     currentPeriodStart: usage.data.current_period_start,
     currentPeriodEnd: usage.data.current_period_end,
     lastUpdated,
-    // @ts-expect-error schema: DEV-954
     balances: usage.data.balances,
     limitWarningList,
     limitExceedList,
