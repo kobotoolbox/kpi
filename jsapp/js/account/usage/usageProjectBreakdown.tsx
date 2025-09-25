@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import prettyBytes from 'pretty-bytes'
+import { Link } from 'react-router-dom'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import { useOrganizationQuery } from '#/account/organization/organizationQuery'
 import type { AssetWithUsage } from '#/account/usage/assetUsage.api'
@@ -9,7 +10,11 @@ import { getOrgAssetUsage } from '#/account/usage/assetUsage.api'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
+import type { ProjectFieldDefinition } from '#/projects/projectViews/constants'
+import type { ProjectsTableOrder } from '#/projects/projectsTable/projectsTable'
+import SortableProjectColumnHeader from '#/projects/projectsTable/sortableProjectColumnHeader'
 import { QueryKeys } from '#/query/queryKeys'
+import { ROUTES } from '#/router/routerConstants'
 import { convertSecondsToMinutes } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
@@ -22,12 +27,32 @@ const ProjectBreakdown = () => {
     limit: DEFAULT_PAGE_SIZE,
     offset: 0,
   })
+  const [order, setOrder] = useState({})
 
   const queryResult = useQuery({
-    queryKey: [QueryKeys.assetUsage, pagination.limit, pagination.offset, orgQuery.data, orgQuery.data?.id],
-    queryFn: () => getOrgAssetUsage(pagination.limit, pagination.offset, orgQuery.data ? orgQuery.data.id : ''),
+    queryKey: [QueryKeys.assetUsage, pagination.limit, pagination.offset, orgQuery.data, orgQuery.data?.id, order],
+    queryFn: () => getOrgAssetUsage(pagination.limit, pagination.offset, orgQuery.data ? orgQuery.data.id : '', order),
     placeholderData: keepPreviousData,
   })
+
+  const usageName: ProjectFieldDefinition = {
+    name: 'name',
+    label: t('Projects'),
+    apiFilteringName: 'name',
+    apiOrderingName: 'name',
+    availableConditions: [],
+  }
+  const usageStatus: ProjectFieldDefinition = {
+    name: 'status',
+    label: 'Status',
+    apiFilteringName: '_deployment_status',
+    apiOrderingName: '_deployment_status',
+    availableConditions: [],
+  }
+
+  const updateOrder = (newOrder: ProjectsTableOrder) => {
+    setOrder(newOrder)
+  }
 
   function dismissIntervalBanner() {
     setShowIntervalBanner(false)
@@ -36,9 +61,22 @@ const ProjectBreakdown = () => {
   const columns: Array<UniversalTableColumn<AssetWithUsage>> = [
     {
       key: 'asset_name',
-      label: t('Project name'),
+      label: (
+        <SortableProjectColumnHeader
+          styling={false}
+          field={usageName}
+          orderableFields={['name', 'status']}
+          order={order}
+          onChangeOrderRequested={updateOrder}
+        />
+      ),
       size: 100,
-      cellFormatter: (data: AssetWithUsage) => data.asset__name,
+      cellFormatter: (data: AssetWithUsage) => (
+        // WIP: this currently links to `undefined`
+        <Link className={styles.link} to={ROUTES.FORM_SUMMARY.replace(':uid', data.uid)}>
+          {data.asset__name}
+        </Link>
+      ),
     },
     {
       key: 'submissions_all',
@@ -66,15 +104,23 @@ const ProjectBreakdown = () => {
         convertSecondsToMinutes(data.nlp_usage_current_period.total_nlp_asr_seconds).toLocaleString(),
     },
     {
-      key: 'transcript_minutes',
-      label: t('Transcript minutes'),
+      key: 'translation_characters',
+      label: t('Translation characters'),
       size: 100,
       cellFormatter: (data: AssetWithUsage) =>
         convertSecondsToMinutes(data.nlp_usage_current_period.total_nlp_mt_characters).toLocaleString(),
     },
     {
-      key: 'transcript_minutes',
-      label: t('Transcript minutes'),
+      key: 'staus',
+      label: (
+        <SortableProjectColumnHeader
+          styling={false}
+          field={usageStatus}
+          orderableFields={['name', 'status']}
+          order={order}
+          onChangeOrderRequested={updateOrder}
+        />
+      ),
       size: 100,
       cellFormatter: (data: AssetWithUsage) => <AssetStatusBadge deploymentStatus={data.deployment_status} />,
     },
