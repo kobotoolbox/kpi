@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchDelete, fetchGet, fetchPatch } from '#/api'
 import { endpoints } from '#/api.endpoints'
+import type { InviteResponse } from '#/api/models/inviteResponse'
 import type { Json } from '#/components/common/common.interfaces'
 import type { Nullable } from '#/constants'
 import type { PaginatedResponse } from '#/dataInterface'
 import { QueryKeys } from '#/query/queryKeys'
 import { useSession } from '#/stores/useSession'
-import type { MemberInvite } from './membersInviteQuery'
 import { type OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 
 export interface OrganizationMember {
@@ -30,7 +30,7 @@ export interface OrganizationMember {
 }
 
 export interface OrganizationMemberListItem extends Nullable<OrganizationMember> {
-  invite?: MemberInvite
+  invite?: InviteResponse
 }
 
 function getMemberEndpoint(orgId: string, username: string) {
