@@ -147,6 +147,7 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
     'kobo.apps.long_running_migrations.app.LongRunningMigrationAppConfig',
+    'kobo.apps.user_reports.apps.UserReportsConfig',
     'drf_spectacular',
 )
 
@@ -1335,6 +1336,12 @@ CELERY_BEAT_SCHEDULE = {
     'attachment-cleanup-for-users-exceeding-limits': {
         'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
         'schedule': crontab(minute='*/30'),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every 30 minutes
+    'refresh-user-report-snapshot': {
+        'task': 'kpi.tasks.refresh_user_report_snapshots',
+        'schedule': crontab(minute='*/15'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every day at midnight UTC
