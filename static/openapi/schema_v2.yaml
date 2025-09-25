@@ -5885,7 +5885,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedOrganizationList'
+                $ref: '#/components/schemas/PaginatedOrganizationResponseList'
           description: null
         '404':
           content:
@@ -5920,7 +5920,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Organization'
+                $ref: '#/components/schemas/OrganizationResponse'
           description: null
         '404':
           content:
@@ -11275,6 +11275,78 @@ components:
       - storage_bytes
       - submission_count_all_time
       - submission_count_current_period
+    OrganizationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        url:
+          type: string
+          format: uri
+          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/
+          readOnly: true
+        name:
+          type: string
+          maxLength: 200
+        website:
+          type: string
+          maxLength: 255
+        organization_type:
+          $ref: '#/components/schemas/OrganizationTypeEnum'
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        modified:
+          type: string
+          format: date-time
+          readOnly: true
+        is_owner:
+          type: boolean
+          readOnly: true
+        is_mmo:
+          type: boolean
+          readOnly: true
+        request_user_role:
+          allOf:
+          - $ref: '#/components/schemas/MemberRoleEnum'
+          readOnly: true
+        members:
+          type: string
+          format: uri
+          example: https://kf.kobotoolbox.org/api/v2/organizations/{id}/members/
+          readOnly: true
+        assets:
+          type: string
+          format: uri
+          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets/
+          readOnly: true
+        service_usage:
+          type: string
+          format: uri
+          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/service_usage/
+          readOnly: true
+        asset_usage:
+          type: string
+          format: uri
+          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets_usage/
+          readOnly: true
+      required:
+      - asset_usage
+      - assets
+      - created
+      - id
+      - is_mmo
+      - is_owner
+      - members
+      - modified
+      - name
+      - organization_type
+      - request_user_role
+      - service_usage
+      - url
+      - website
     OrganizationServiceUsageResponse:
       type: object
       properties:
@@ -11831,7 +11903,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/OrganizationAssetUsageResponse'
-    PaginatedOrganizationList:
+    PaginatedOrganizationResponseList:
       type: object
       required:
       - count
@@ -11853,7 +11925,7 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/Organization'
+            $ref: '#/components/schemas/OrganizationResponse'
     PaginatedPairedDataResponseList:
       type: object
       required:

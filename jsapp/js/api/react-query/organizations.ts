@@ -21,6 +21,8 @@ import type { ErrorObject } from '../models/errorObject'
 
 import type { Organization } from '../models/organization'
 
+import type { OrganizationResponse } from '../models/organizationResponse'
+
 import type { OrganizationServiceUsageResponse } from '../models/organizationServiceUsageResponse'
 
 import type { OrganizationsListParams } from '../models/organizationsListParams'
@@ -29,7 +31,7 @@ import type { PaginatedAssetList } from '../models/paginatedAssetList'
 
 import type { PaginatedOrganizationAssetUsageResponseList } from '../models/paginatedOrganizationAssetUsageResponseList'
 
-import type { PaginatedOrganizationList } from '../models/paginatedOrganizationList'
+import type { PaginatedOrganizationResponseList } from '../models/paginatedOrganizationResponseList'
 
 import type { PatchedOrganizationPatchPayload } from '../models/patchedOrganizationPatchPayload'
 
@@ -42,7 +44,7 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
  */
 export type organizationsListResponse200 = {
-  data: PaginatedOrganizationList
+  data: PaginatedOrganizationResponseList
   status: 200
 }
 
@@ -133,7 +135,7 @@ export function useOrganizationsList<TData = Awaited<ReturnType<typeof organizat
 
  */
 export type organizationsRetrieveResponse200 = {
-  data: Organization
+  data: OrganizationResponse
   status: 200
 }
 
