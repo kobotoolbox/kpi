@@ -8,10 +8,12 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, authentication_classes
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from kobo.apps.data_collectors.authentication import DataCollectorTokenAuthentication
+from kobo.apps.data_collectors.models import DataCollector
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.tools import get_media_file_response
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
@@ -52,7 +54,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         # Respect DEFAULT_AUTHENTICATION_CLASSES, but also ensure that the
         # previously hard-coded authentication classes are included first
         authentication_classes = [
-            DigestAuthentication,
+            DigestAuthentication
         ]
         self.authentication_classes = authentication_classes + [
             auth_class
@@ -86,8 +88,13 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
     def filter_queryset(self, queryset):
         username = self.kwargs.get('username')
-
-        if username is None:
+        token = self.kwargs.get('token')
+        if token:
+            collector = DataCollector.objects.get(token=token)
+            collector_group = collector.group
+            assets = list(collector_group.assets.values_list('uid', flat=True))
+            queryset = queryset.filter(kpi_asset_uid__in=assets)
+        elif username is None:
             # If no username is specified, the request must be authenticated
             if self.request.user.is_anonymous:
                 # raises a permission denied exception, forces authentication
@@ -151,7 +158,8 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         tags=['OpenRosa Form List'],
         operation_id='form_list_anonymous',
     )
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], authentication_classes=[DataCollectorTokenAuthentication
+])
     def form_list_anonymous(self, request, *args, **kwargs):
         """
         Publish the OpenRosa formList via a custom action instead of relying on the
@@ -254,7 +262,8 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         tags=['OpenRosa Form Manifest'],
         operation_id='manifest_anonymous',
     )
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=['GET'], authentication_classes=[DataCollectorTokenAuthentication
+])
     def manifest_anonymous(self, request, *args, **kwargs):
         return self.manifest(request, *args, **kwargs)
 
