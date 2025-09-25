@@ -5,13 +5,13 @@
  * Powerful and intuitive data collection tools to make an impact
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { Organization } from './organization'
+import type { OrganizationResponse } from './organizationResponse'
 
-export interface PaginatedOrganizationList {
+export interface PaginatedOrganizationResponseList {
   count: number
   /** @nullable */
   next?: string | null
   /** @nullable */
   previous?: string | null
-  results: Organization[]
+  results: OrganizationResponse[]
 }
