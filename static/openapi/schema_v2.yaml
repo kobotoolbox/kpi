@@ -13198,7 +13198,7 @@ components:
         balance_percent:
           type: integer
         exceeded:
-          type: integer
+          type: boolean
       required:
       - balance_percent
       - balance_value

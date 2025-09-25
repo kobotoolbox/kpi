@@ -18506,7 +18506,7 @@
                         "type": "integer"
                     },
                     "exceeded": {
-                        "type": "integer"
+                        "type": "boolean"
                     }
                 },
                 "required": [
