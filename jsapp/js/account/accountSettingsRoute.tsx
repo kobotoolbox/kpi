@@ -9,7 +9,6 @@ import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
 import envStore from '#/envStore'
-import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { notify } from '#/utils'
 import { dataInterface } from '../dataInterface'
 import { useSession } from '../stores/useSession'
@@ -30,7 +29,7 @@ const AccountSettings = () => {
   const [fieldErrors, setFieldErrors] = useState<AccountFieldsErrors>({})
   const [formFields, setFormFields] = useState<AccountFieldsValues>(getInitialAccountFieldsValues())
   const [editedFields, setEditedFields] = useState<Partial<AccountFieldsValues>>({})
-  const isSelfDeleteFeatureEnabled = useFeatureFlag(FeatureFlag.selfDeleteAccountEnabled)
+  const isSelfDeleteFeatureEnabled = envStore.data.allow_self_account_deletion
 
   const { currentLoggedAccount, refreshAccount } = useSession()
 
