@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
+from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..tasks import poll_run_automated_process
@@ -214,7 +215,8 @@ class BaseAction:
 
         Must be implemented by subclasses.
         """
-        raise NotImplementedError()
+        # raise NotImplementedError()
+        return []
 
     def validate_automated_data(self, data):
         jsonschema.validate(data, self.automated_data_schema)
@@ -268,15 +270,11 @@ class BaseAction:
         self.validate_data(action_data)
         self.raise_for_any_leading_underscore_key(action_data)
 
-        now_str = utc_datetime_to_js_str(timezone.now())
-
-        localized_action_supplemental_data = deepcopy(action_supplemental_data)
-        if self.action_class_config.allow_multiple:
-            # TODO: Multiple keys are not supported.
-            #   Not a big issue for now since translation actions don’t use locale
-            #   (yet?) and transcription actions only involve one occurrence at a time.
-            needle = action_data[self.action_class_config.action_data_key]
-            localized_action_supplemental_data = action_supplemental_data.get(needle, {})
+        localized_action_supplemental_data, needle = (
+            self.get_localized_action_supplemental_data(
+                action_supplemental_data, action_data
+            )
+        )
 
         try:
             current_version = localized_action_supplemental_data.get(
@@ -302,15 +300,51 @@ class BaseAction:
 
             # Otherwise, merge the service response into action_data and keep going
             # the validation process.
-
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
-            # action_data = deepcopy(action_data)
             action_data.update(service_response)
             self.validate_automated_data(action_data)
             accepted = action_data.pop('accepted', None)
         else:
             dependency_supplemental_data = None
             accepted = True
+
+        return self.get_new_action_supplemental_data(
+            action_supplemental_data,
+            action_data,
+            dependency_supplemental_data,
+            accepted,
+        )
+
+    def get_localized_action_supplemental_data(
+        self, action_supplemental_data: dict, action_data: dict
+    ) -> tuple[dict, str | None]:
+
+        localized_action_supplemental_data = deepcopy(action_supplemental_data)
+        needle = None
+
+        if self.action_class_config.allow_multiple:
+            # TODO: Multiple keys are not supported.
+            #   Not a big issue for now since translation actions don’t use locale
+            #   (yet?) and transcription actions only involve one occurrence at a time.
+            needle = action_data[self.action_class_config.action_data_key]
+            localized_action_supplemental_data = action_supplemental_data.get(needle, {})
+
+        return localized_action_supplemental_data, needle
+
+    def get_new_action_supplemental_data(
+        self,
+        action_supplemental_data: dict,
+        action_data: dict,
+        dependency_supplemental_data: dict,
+        accepted: bool | None = None,
+    ) -> dict:
+        now_str = utc_datetime_to_js_str(timezone.now())
+
+        localized_action_supplemental_data, needle = (
+            self.get_localized_action_supplemental_data(
+                action_supplemental_data, action_data
+            )
+        )
 
         new_version = deepcopy(action_data)
         new_version[self.DATE_CREATED_FIELD] = now_str
@@ -349,11 +383,6 @@ class BaseAction:
             new_action_supplemental_data = localized_action_supplemental_data
         else:
             new_action_supplemental_data = deepcopy(action_supplemental_data)
-            # Handle the case where the default type is a list:
-            # - If no index is provided, append the new record.
-            # - Otherwise, replace the record at the given index.
-            # Finally, update `new_record` to reference the full updated list.
-
             new_action_supplemental_data.update({
                 needle: localized_action_supplemental_data
             })
@@ -721,6 +750,8 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
           returned and passed back to `revise_data()`.
         """
 
+        print('ACTION DATA', action_data, flush=True)
+
         # If the client sent "accepted" while the supplement is already complete,
         # return the completed translation/transcription right away. `revise_data()`
         # will handle the merge and final validation of this acceptance.
@@ -734,6 +765,7 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
         # If the client explicitly removed a previously stored result,
         # preserve the deletion by returning a `deleted` status instead
         # of reprocessing with the automated service.
+        # TODO add comment for delete here
         if 'value' in action_data:
             return {
                 'value': action_data['value'],
@@ -766,18 +798,23 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
             accepted is None
             and service_data['status'] == 'in_progress'
         ):
-            if action_supplemental_data.get('status'):
+            print('HERE', service_data, flush=True)
+            if action_supplemental_data.get('status') == 'in_progress':
                 return None
             else:
-                # TODO Retry with Celery, make it work!
-                poll_run_automated_process.delay(
-                    submission,
-                    question_supplemental_data,
-                    action_supplemental_data,
-                    action_data,
-                    action_id=self.ID,
-                    asset_id=asset.pk,
-                )
+                # Make Celery update in the background.
+                # Since Celery is calling the same code, we want to ensure
+                if not celery_app.current_worker_task:
+                    poll_run_automated_process.apply_async(
+                        kwargs={
+                            'submission': submission,
+                            'action_data': action_data,
+                            'action_id': self.ID,
+                            'asset_id': asset.pk,
+                            'question_xpath': self.source_question_xpath,
+                        },
+                        countdown=10,
+                    )
 
         # Normal case: return the processed transcription data.
         return service_data
