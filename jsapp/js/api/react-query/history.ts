@@ -19,8 +19,6 @@ import type { AssetsHistoryListParams } from '../models/assetsHistoryListParams'
 
 import type { ErrorDetail } from '../models/errorDetail'
 
-import type { ErrorObject } from '../models/errorObject'
-
 import type { HistoryActionResponse } from '../models/historyActionResponse'
 
 import type { HistoryExportResponse } from '../models/historyExportResponse'
@@ -36,26 +34,19 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 Lists all project history logs for a single project.
 
-<sup>*</sup> _Required permissions: `manage_asset` (Manage project)_
+⚠️ _Required permissions: `manage_asset` (Manage project)_
 
-Results from this endpoint can be filtered by a Boolean query specified in the q parameter.
+Results from this endpoint can be filtered by a Boolean query specified in the `q` parameter.
 
 ### Filterable fields for all project history logs:
 
-  date_created
-
-  user_uid
-
-  user__*
+  - date_created
+  - user_uid
   - user__username
   - user__email
   - user__is_superuser
-
-  metadata__*
-
   - metadata__source
   - metadata__ip_address
-  - metadata__asset_uid
   - metadata__log_subtype
     - available subtypes: "project", "permission"
 
@@ -184,7 +175,6 @@ available actions:
 
 This endpoint can be paginated with 'offset' and 'limit' parameters.
 
-
  */
 export type assetsHistoryListResponse200 = {
   data: PaginatedHistoryListResponseList
@@ -196,15 +186,7 @@ export type assetsHistoryListResponse403 = {
   status: 403
 }
 
-export type assetsHistoryListResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
-export type assetsHistoryListResponseComposite =
-  | assetsHistoryListResponse200
-  | assetsHistoryListResponse403
-  | assetsHistoryListResponse404
+export type assetsHistoryListResponseComposite = assetsHistoryListResponse200 | assetsHistoryListResponse403
 
 export type assetsHistoryListResponse = assetsHistoryListResponseComposite & {
   headers: Headers
@@ -243,7 +225,7 @@ export const getAssetsHistoryListQueryKey = (parentLookupAsset: string, params?:
 
 export const getAssetsHistoryListQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsHistoryList>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   params?: AssetsHistoryListParams,
@@ -267,12 +249,9 @@ export const getAssetsHistoryListQueryOptions = <
 }
 
 export type AssetsHistoryListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHistoryList>>>
-export type AssetsHistoryListQueryError = ErrorDetail | ErrorObject
+export type AssetsHistoryListQueryError = ErrorDetail
 
-export function useAssetsHistoryList<
-  TData = Awaited<ReturnType<typeof assetsHistoryList>>,
-  TError = ErrorDetail | ErrorObject,
->(
+export function useAssetsHistoryList<TData = Awaited<ReturnType<typeof assetsHistoryList>>, TError = ErrorDetail>(
   parentLookupAsset: string,
   params?: AssetsHistoryListParams,
   options?: {
@@ -290,7 +269,7 @@ export function useAssetsHistoryList<
 }
 
 /**
- * ## Retrieve distinct actions performed on the asset.
+ * ## Retrieve distinct actions performed on the project.
 
  */
 export type assetsHistoryActionsRetrieveResponse200 = {
@@ -303,15 +282,9 @@ export type assetsHistoryActionsRetrieveResponse403 = {
   status: 403
 }
 
-export type assetsHistoryActionsRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type assetsHistoryActionsRetrieveResponseComposite =
   | assetsHistoryActionsRetrieveResponse200
   | assetsHistoryActionsRetrieveResponse403
-  | assetsHistoryActionsRetrieveResponse404
 
 export type assetsHistoryActionsRetrieveResponse = assetsHistoryActionsRetrieveResponseComposite & {
   headers: Headers
@@ -337,7 +310,7 @@ export const getAssetsHistoryActionsRetrieveQueryKey = (parentLookupAsset: strin
 
 export const getAssetsHistoryActionsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   options?: {
@@ -362,11 +335,11 @@ export const getAssetsHistoryActionsRetrieveQueryOptions = <
 export type AssetsHistoryActionsRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>
 >
-export type AssetsHistoryActionsRetrieveQueryError = ErrorDetail | ErrorObject
+export type AssetsHistoryActionsRetrieveQueryError = ErrorDetail
 
 export function useAssetsHistoryActionsRetrieve<
   TData = Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   options?: {
@@ -386,7 +359,7 @@ export function useAssetsHistoryActionsRetrieve<
 /**
  * ## Export current project's history
 
-Exports the project's history and sends it to the user via email.
+Exports the project's history and sends it by email to the requesting user.
 
  */
 export type assetsHistoryExportCreateResponse202 = {
@@ -399,15 +372,9 @@ export type assetsHistoryExportCreateResponse403 = {
   status: 403
 }
 
-export type assetsHistoryExportCreateResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type assetsHistoryExportCreateResponseComposite =
   | assetsHistoryExportCreateResponse202
   | assetsHistoryExportCreateResponse403
-  | assetsHistoryExportCreateResponse404
 
 export type assetsHistoryExportCreateResponse = assetsHistoryExportCreateResponseComposite & {
   headers: Headers
@@ -427,10 +394,7 @@ export const assetsHistoryExportCreate = async (
   })
 }
 
-export const getAssetsHistoryExportCreateMutationOptions = <
-  TError = ErrorDetail | ErrorObject,
-  TContext = unknown,
->(options?: {
+export const getAssetsHistoryExportCreateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHistoryExportCreate>>,
     TError,
@@ -465,9 +429,9 @@ export const getAssetsHistoryExportCreateMutationOptions = <
 
 export type AssetsHistoryExportCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHistoryExportCreate>>>
 
-export type AssetsHistoryExportCreateMutationError = ErrorDetail | ErrorObject
+export type AssetsHistoryExportCreateMutationError = ErrorDetail
 
-export const useAssetsHistoryExportCreate = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
+export const useAssetsHistoryExportCreate = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHistoryExportCreate>>,
     TError,

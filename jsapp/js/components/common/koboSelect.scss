@@ -1,5 +1,6 @@
 @use 'scss/colors';
 @use 'scss/mixins';
+@use 'sass:color';
 @use 'js/components/common/button';
 @use 'js/components/common/textBox.module';
 
@@ -259,7 +260,7 @@ $k-select-menu-padding: 6px;
   &:not(.k-select--is-menu-visible) .k-select__trigger:hover,
   &.k-select--is-pending .k-select__trigger {
     color: colors.$kobo-gray-800;
-    background-color: darken(colors.$kobo-bg-blue, 2);
+    background-color: color.adjust(colors.$kobo-bg-blue, $lightness: -2%);
   }
 }
 
@@ -271,7 +272,7 @@ $k-select-menu-padding: 6px;
   &:not(.k-select--is-menu-visible) .k-select__trigger:hover,
   &.k-select--is-pending .k-select__trigger {
     color: colors.$kobo-gray-800;
-    background-color: darken(colors.$kobo-light-storm, 2);
+    background-color: color.adjust(colors.$kobo-light-storm, $lightness: -2%);
   }
 }
 

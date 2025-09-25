@@ -19,6 +19,8 @@ import type { AssetsDataAttachmentsListParams } from '../models/assetsDataAttach
 
 import type { AttachmentRetrieveParams } from '../models/attachmentRetrieveParams'
 
+import type { ErrorDetail } from '../models/errorDetail'
+
 import type { ErrorObject } from '../models/errorObject'
 
 import { fetchWithAuth } from '../orval.mutator'
@@ -41,9 +43,15 @@ export type assetsAttachmentsDestroyResponse400 = {
   status: 400
 }
 
+export type assetsAttachmentsDestroyResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
 export type assetsAttachmentsDestroyResponseComposite =
   | assetsAttachmentsDestroyResponse204
   | assetsAttachmentsDestroyResponse400
+  | assetsAttachmentsDestroyResponse404
 
 export type assetsAttachmentsDestroyResponse = assetsAttachmentsDestroyResponseComposite & {
   headers: Headers
@@ -64,7 +72,10 @@ export const assetsAttachmentsDestroy = async (
   })
 }
 
-export const getAssetsAttachmentsDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsAttachmentsDestroyMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsAttachmentsDestroy>>,
     TError,
@@ -99,9 +110,9 @@ export const getAssetsAttachmentsDestroyMutationOptions = <TError = ErrorObject,
 
 export type AssetsAttachmentsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsAttachmentsDestroy>>>
 
-export type AssetsAttachmentsDestroyMutationError = ErrorObject
+export type AssetsAttachmentsDestroyMutationError = ErrorObject | ErrorDetail
 
-export const useAssetsAttachmentsDestroy = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsAttachmentsDestroy = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsAttachmentsDestroy>>,
     TError,
@@ -156,9 +167,15 @@ export type assetsAttachmentsBulkDestroyResponse400 = {
   status: 400
 }
 
+export type assetsAttachmentsBulkDestroyResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
 export type assetsAttachmentsBulkDestroyResponseComposite =
   | assetsAttachmentsBulkDestroyResponse202
   | assetsAttachmentsBulkDestroyResponse400
+  | assetsAttachmentsBulkDestroyResponse404
 
 export type assetsAttachmentsBulkDestroyResponse = assetsAttachmentsBulkDestroyResponseComposite & {
   headers: Headers
@@ -178,7 +195,10 @@ export const assetsAttachmentsBulkDestroy = async (
   })
 }
 
-export const getAssetsAttachmentsBulkDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsAttachmentsBulkDestroyMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>,
     TError,
@@ -215,9 +235,9 @@ export type AssetsAttachmentsBulkDestroyMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>
 >
 
-export type AssetsAttachmentsBulkDestroyMutationError = ErrorObject
+export type AssetsAttachmentsBulkDestroyMutationError = ErrorObject | ErrorDetail
 
-export const useAssetsAttachmentsBulkDestroy = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsAttachmentsBulkDestroy = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsAttachmentsBulkDestroy>>,
     TError,
@@ -261,9 +281,15 @@ export type assetsDataAttachmentsListResponse400 = {
   status: 400
 }
 
+export type assetsDataAttachmentsListResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
 export type assetsDataAttachmentsListResponseComposite =
   | assetsDataAttachmentsListResponse200
   | assetsDataAttachmentsListResponse400
+  | assetsDataAttachmentsListResponse404
 
 export type assetsDataAttachmentsListResponse = assetsDataAttachmentsListResponseComposite & {
   headers: Headers
@@ -323,7 +349,7 @@ export const getAssetsDataAttachmentsListQueryKey = (
 
 export const getAssetsDataAttachmentsListQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsDataAttachmentsList>>,
-  TError = ErrorObject,
+  TError = ErrorObject | ErrorDetail,
 >(
   parentLookupAsset: string,
   parentLookupData: string,
@@ -349,11 +375,11 @@ export const getAssetsDataAttachmentsListQueryOptions = <
 }
 
 export type AssetsDataAttachmentsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsDataAttachmentsList>>>
-export type AssetsDataAttachmentsListQueryError = ErrorObject
+export type AssetsDataAttachmentsListQueryError = ErrorObject | ErrorDetail
 
 export function useAssetsDataAttachmentsList<
   TData = Awaited<ReturnType<typeof assetsDataAttachmentsList>>,
-  TError = ErrorObject,
+  TError = ErrorObject | ErrorDetail,
 >(
   parentLookupAsset: string,
   parentLookupData: string,
@@ -408,7 +434,15 @@ export type attachmentRetrieveResponse400 = {
   status: 400
 }
 
-export type attachmentRetrieveResponseComposite = attachmentRetrieveResponse200 | attachmentRetrieveResponse400
+export type attachmentRetrieveResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type attachmentRetrieveResponseComposite =
+  | attachmentRetrieveResponse200
+  | attachmentRetrieveResponse400
+  | attachmentRetrieveResponse404
 
 export type attachmentRetrieveResponse = attachmentRetrieveResponseComposite & {
   headers: Headers
@@ -472,7 +506,7 @@ export const getAttachmentRetrieveQueryKey = (
 
 export const getAttachmentRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof attachmentRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorObject | ErrorDetail,
 >(
   parentLookupAsset: string,
   parentLookupData: string,
@@ -500,9 +534,12 @@ export const getAttachmentRetrieveQueryOptions = <
 }
 
 export type AttachmentRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof attachmentRetrieve>>>
-export type AttachmentRetrieveQueryError = ErrorObject
+export type AttachmentRetrieveQueryError = ErrorObject | ErrorDetail
 
-export function useAttachmentRetrieve<TData = Awaited<ReturnType<typeof attachmentRetrieve>>, TError = ErrorObject>(
+export function useAttachmentRetrieve<
+  TData = Awaited<ReturnType<typeof attachmentRetrieve>>,
+  TError = ErrorObject | ErrorDetail,
+>(
   parentLookupAsset: string,
   parentLookupData: string,
   id: number,
@@ -547,7 +584,7 @@ export type attachmentThumbnailResponse200 = {
 }
 
 export type attachmentThumbnailResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -593,7 +630,7 @@ export const getAttachmentThumbnailQueryKey = (
 
 export const getAttachmentThumbnailQueryOptions = <
   TData = Awaited<ReturnType<typeof attachmentThumbnail>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   parentLookupData: string,
@@ -621,9 +658,9 @@ export const getAttachmentThumbnailQueryOptions = <
 }
 
 export type AttachmentThumbnailQueryResult = NonNullable<Awaited<ReturnType<typeof attachmentThumbnail>>>
-export type AttachmentThumbnailQueryError = ErrorObject
+export type AttachmentThumbnailQueryError = ErrorDetail
 
-export function useAttachmentThumbnail<TData = Awaited<ReturnType<typeof attachmentThumbnail>>, TError = ErrorObject>(
+export function useAttachmentThumbnail<TData = Awaited<ReturnType<typeof attachmentThumbnail>>, TError = ErrorDetail>(
   parentLookupAsset: string,
   parentLookupData: string,
   id: number,

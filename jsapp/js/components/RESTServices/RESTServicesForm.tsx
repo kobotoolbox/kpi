@@ -425,7 +425,7 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
       <bem.FormModal__item>
         <KoboTagsInput
           tags={this.state.subsetFields.join(',')}
-          onChange={this.onSubsetFieldsChange}
+          onChange={this.onSubsetFieldsChange.bind(this)}
           placeholder={t('Add field(s)')}
           label={t('Select fields subset')}
         />

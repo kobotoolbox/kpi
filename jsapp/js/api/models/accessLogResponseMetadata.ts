@@ -6,9 +6,11 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type OrganizationServiceUsageResponseBalancesSubmission = {
-  effective_limit?: number
-  balance_value?: number
-  balance_percent?: number
-  exceeded?: number
+export type AccessLogResponseMetadata = {
+  source?: string
+  auth_type?: string
+  ip_address?: string
+  initial_user_uid?: string
+  initial_user_username?: string
+  authorized_app_name?: string
 }

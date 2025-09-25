@@ -65,7 +65,7 @@
     cursor: pointer;
 
     &:hover {
-      color: $linkColor;
+      color: variables.$linkColor;
     }
 }
 

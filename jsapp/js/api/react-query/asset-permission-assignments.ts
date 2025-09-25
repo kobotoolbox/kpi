@@ -45,15 +45,9 @@ export type assetsPermissionAssignmentsListResponse403 = {
   status: 403
 }
 
-export type assetsPermissionAssignmentsListResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type assetsPermissionAssignmentsListResponseComposite =
   | assetsPermissionAssignmentsListResponse200
   | assetsPermissionAssignmentsListResponse403
-  | assetsPermissionAssignmentsListResponse404
 
 export type assetsPermissionAssignmentsListResponse = assetsPermissionAssignmentsListResponseComposite & {
   headers: Headers
@@ -82,7 +76,7 @@ export const getAssetsPermissionAssignmentsListQueryKey = (parentLookupAsset: st
 
 export const getAssetsPermissionAssignmentsListQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   options?: {
@@ -107,11 +101,11 @@ export const getAssetsPermissionAssignmentsListQueryOptions = <
 export type AssetsPermissionAssignmentsListQueryResult = NonNullable<
   Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>
 >
-export type AssetsPermissionAssignmentsListQueryError = ErrorDetail | ErrorObject
+export type AssetsPermissionAssignmentsListQueryError = ErrorDetail
 
 export function useAssetsPermissionAssignmentsList<
   TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsList>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   options?: {
@@ -250,15 +244,9 @@ export type assetsPermissionAssignmentsRetrieveResponse403 = {
   status: 403
 }
 
-export type assetsPermissionAssignmentsRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type assetsPermissionAssignmentsRetrieveResponseComposite =
   | assetsPermissionAssignmentsRetrieveResponse200
   | assetsPermissionAssignmentsRetrieveResponse403
-  | assetsPermissionAssignmentsRetrieveResponse404
 
 export type assetsPermissionAssignmentsRetrieveResponse = assetsPermissionAssignmentsRetrieveResponseComposite & {
   headers: Headers
@@ -288,7 +276,7 @@ export const getAssetsPermissionAssignmentsRetrieveQueryKey = (parentLookupAsset
 
 export const getAssetsPermissionAssignmentsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   uid: string,
@@ -314,11 +302,11 @@ export const getAssetsPermissionAssignmentsRetrieveQueryOptions = <
 export type AssetsPermissionAssignmentsRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>
 >
-export type AssetsPermissionAssignmentsRetrieveQueryError = ErrorDetail | ErrorObject
+export type AssetsPermissionAssignmentsRetrieveQueryError = ErrorDetail
 
 export function useAssetsPermissionAssignmentsRetrieve<
   TData = Awaited<ReturnType<typeof assetsPermissionAssignmentsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   uid: string,
@@ -350,15 +338,9 @@ export type assetsPermissionAssignmentsDestroyResponse403 = {
   status: 403
 }
 
-export type assetsPermissionAssignmentsDestroyResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type assetsPermissionAssignmentsDestroyResponseComposite =
   | assetsPermissionAssignmentsDestroyResponse204
   | assetsPermissionAssignmentsDestroyResponse403
-  | assetsPermissionAssignmentsDestroyResponse404
 
 export type assetsPermissionAssignmentsDestroyResponse = assetsPermissionAssignmentsDestroyResponseComposite & {
   headers: Headers
@@ -383,7 +365,7 @@ export const assetsPermissionAssignmentsDestroy = async (
 }
 
 export const getAssetsPermissionAssignmentsDestroyMutationOptions = <
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -422,12 +404,9 @@ export type AssetsPermissionAssignmentsDestroyMutationResult = NonNullable<
   Awaited<ReturnType<typeof assetsPermissionAssignmentsDestroy>>
 >
 
-export type AssetsPermissionAssignmentsDestroyMutationError = ErrorDetail | ErrorObject
+export type AssetsPermissionAssignmentsDestroyMutationError = ErrorDetail
 
-export const useAssetsPermissionAssignmentsDestroy = <
-  TError = ErrorDetail | ErrorObject,
-  TContext = unknown,
->(options?: {
+export const useAssetsPermissionAssignmentsDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPermissionAssignmentsDestroy>>,
     TError,
@@ -454,15 +433,9 @@ export type assetsPermissionAssignmentsDeleteAllDestroyResponse403 = {
   status: 403
 }
 
-export type assetsPermissionAssignmentsDeleteAllDestroyResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type assetsPermissionAssignmentsDeleteAllDestroyResponseComposite =
   | assetsPermissionAssignmentsDeleteAllDestroyResponse204
   | assetsPermissionAssignmentsDeleteAllDestroyResponse403
-  | assetsPermissionAssignmentsDeleteAllDestroyResponse404
 
 export type assetsPermissionAssignmentsDeleteAllDestroyResponse =
   assetsPermissionAssignmentsDeleteAllDestroyResponseComposite & {
@@ -488,7 +461,7 @@ export const assetsPermissionAssignmentsDeleteAllDestroy = async (
 }
 
 export const getAssetsPermissionAssignmentsDeleteAllDestroyMutationOptions = <
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -527,12 +500,9 @@ export type AssetsPermissionAssignmentsDeleteAllDestroyMutationResult = NonNulla
   Awaited<ReturnType<typeof assetsPermissionAssignmentsDeleteAllDestroy>>
 >
 
-export type AssetsPermissionAssignmentsDeleteAllDestroyMutationError = ErrorDetail | ErrorObject
+export type AssetsPermissionAssignmentsDeleteAllDestroyMutationError = ErrorDetail
 
-export const useAssetsPermissionAssignmentsDeleteAllDestroy = <
-  TError = ErrorDetail | ErrorObject,
-  TContext = unknown,
->(options?: {
+export const useAssetsPermissionAssignmentsDeleteAllDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPermissionAssignmentsDeleteAllDestroy>>,
     TError,

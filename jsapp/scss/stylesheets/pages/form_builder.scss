@@ -1,5 +1,18 @@
 @use 'scss/z-indexes';
 
+@use '../partials/form_builder/common';
+
+@use '../partials/form_builder/survey_row';
+@use '../partials/form_builder/row_questiontypes';
+@use '../partials/form_builder/card';
+@use '../partials/form_builder/card_settings';
+@use '../partials/form_builder/card_multichoice';
+@use '../partials/form_builder/group';
+@use '../partials/form_builder/settings_skiplogic';
+@use '../partials/form_builder/params_view';
+@use '../partials/form_builder/mandatory_setting';
+@use '../partials/form_builder/misc';
+
 // All variables are now in kobo.scss
 
 // ==========================================================================
@@ -44,16 +57,3 @@ into understanding it, I simply gathered the sum of the styles below:
     height: 100%;
   }
 }
-
-@import '../partials/form_builder/common';
-
-@import '../partials/form_builder/survey_row';
-@import '../partials/form_builder/row_questiontypes';
-@import '../partials/form_builder/card';
-@import '../partials/form_builder/card_settings';
-@import '../partials/form_builder/card_multichoice';
-@import '../partials/form_builder/group';
-@import '../partials/form_builder/settings_skiplogic';
-@import '../partials/form_builder/params_view';
-@import '../partials/form_builder/mandatory_setting';
-@import '../partials/form_builder/misc';

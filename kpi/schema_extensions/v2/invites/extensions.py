@@ -18,7 +18,7 @@ from kpi.schema_extensions.v2.generic.schema import (
 )
 from kpi.utils.schema_extensions.url_builder import build_url_type
 from ..members.schema import ROLE_CHOICES_PAYLOAD_ENUM
-from .schema import INVITE_ROLE_SCHEMA, INVITE_STATUS_SCHEMA
+from .fields import InviteRoleField, InviteStatusField
 
 
 class InvitedByUrlFieldExtension(OpenApiSerializerFieldExtension):
@@ -48,7 +48,7 @@ class InvitePatchRequestSerializerExtension(OpenApiSerializerExtension):
                         'status',
                     ],
                     properties={
-                        'status': INVITE_STATUS_SCHEMA,
+                        'status': build_choice_field(field=InviteStatusField),
                     },
                 ),
                 build_object_type(
@@ -56,7 +56,7 @@ class InvitePatchRequestSerializerExtension(OpenApiSerializerExtension):
                         'role',
                     ],
                     properties={
-                        'role': INVITE_ROLE_SCHEMA,
+                        'role': build_choice_field(field=InviteRoleField),
                     },
                 ),
             ]
