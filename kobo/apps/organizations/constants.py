@@ -1,16 +1,6 @@
 from django.db import models
 
 
-# Temporary const for code that iterates over usage types
-# TODO: Remove when Stripe code has been updated to
-# handle LLM usage type
-class SupportedUsageType(models.TextChoices):
-    SUBMISSION = 'submission'
-    STORAGE_BYTES = 'storage_bytes'
-    MT_CHARACTERS = 'mt_characters'
-    ASR_SECONDS = 'asr_seconds'
-
-
 class UsageType(models.TextChoices):
     SUBMISSION = 'submission'
     STORAGE_BYTES = 'storage_bytes'

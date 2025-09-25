@@ -104,7 +104,7 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
         self,
         seconds_current_month=4586,
         characters_current_month=5473,
-        requests_current_month=20,
+        requests_current_month=30,
         seconds_last_month=142,
         characters_last_month=1253,
         requests_last_month=50,
@@ -223,8 +223,8 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert nlp_usage['asr_seconds_all_time'] == 4728
         assert nlp_usage['mt_characters_current_period'] == 5473
         assert nlp_usage['mt_characters_all_time'] == 6726
-        assert nlp_usage['llm_requests_current_period'] == 20
-        assert nlp_usage['llm_requests_all_time'] == 70
+        assert nlp_usage['llm_requests_current_period'] == 30
+        assert nlp_usage['llm_requests_all_time'] == 80
 
     def test_no_data(self):
         self.add_nlp_trackers()
