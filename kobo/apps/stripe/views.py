@@ -15,6 +15,7 @@ from djstripe.models import (
     SubscriptionSchedule,
 )
 from djstripe.settings import djstripe_settings
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from organizations.utils import create_organization
 from rest_framework import mixins, status, viewsets
 from rest_framework.response import Response
@@ -36,6 +37,8 @@ from kobo.apps.stripe.utils.view_utils import (
     get_total_price_for_quantity,
 )
 from kpi.permissions import IsAuthenticated
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
+from kpi.versioning import APIV2Versioning
 
 
 class OneTimeAddOnViewSet(viewsets.ReadOnlyModelViewSet):
@@ -45,6 +48,7 @@ class OneTimeAddOnViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = OneTimeAddOnSerializer
     queryset = PlanAddOn.objects.all()
+    versioning_class = APIV2Versioning
 
     def get_queryset(self):
         return self.queryset.filter(
@@ -84,6 +88,7 @@ class ChangePlanView(APIView):
     """
     permission_classes = (IsAuthenticated,)
     serializer_class = ChangePlanSerializer
+    versioning_class = APIV2Versioning
 
     @staticmethod
     def modify_subscription(price, subscription, quantity):
@@ -201,6 +206,7 @@ class ChangePlanView(APIView):
 class CheckoutLinkView(APIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = CheckoutLinkSerializer
+    versioning_class = APIV2Versioning
 
     @staticmethod
     def generate_payment_link(price, user, organization_id, quantity=1):
@@ -483,11 +489,23 @@ class CustomerPortalView(APIView):
         return response
 
 
+@extend_schema(tags=['Stripe'])
+@extend_schema_view(
+    list=extend_schema(
+        responses=open_api_200_ok_response(
+            SubscriptionSerializer,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+)
 class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
     lookup_field = 'id'
     permission_classes = (IsAuthenticated,)
+    versioning_class = APIV2Versioning
 
     def get_queryset(self):
         return self.queryset.filter(
@@ -579,3 +597,4 @@ class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         .distinct()
     )
     serializer_class = ProductSerializer
+    versioning_class = APIV2Versioning

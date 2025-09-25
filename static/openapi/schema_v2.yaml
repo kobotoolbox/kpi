@@ -7713,6 +7713,271 @@ paths:
                     detail: Authentication credentials were not provided.
                   summary: Not authenticated
           description: ''
+  /api/v2/stripe/addons/:
+    get:
+      operationId: api_v2_stripe_addons_list
+      description: Lists the one-time add-ons for the authenticated user's organization.
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - api
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOneTimeAddOnList'
+          description: ''
+  /api/v2/stripe/addons/{id}/:
+    get:
+      operationId: api_v2_stripe_addons_retrieve
+      description: Lists the one-time add-ons for the authenticated user's organization.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        description: A unique value identifying this plan add-on.
+        required: true
+      tags:
+      - api
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OneTimeAddOn'
+          description: ''
+  /api/v2/stripe/change-plan:
+    get:
+      operationId: api_v2_stripe_change_plan_retrieve
+      description: |-
+        Change an existing subscription to a new price.
+
+        This will immediately change their subscription to the new plan if upgrading, prorating the charge.
+        If the user is downgrading to a lower price, it will schedule the change at the end of the current billing period.
+
+        <pre class="prettyprint">
+        <b>GET</b> /api/v2/stripe/change-plan/?subscription_id=<code>{subscription_id}</code>&price_id=<code>{price_id}</code>
+        </pre>
+
+        > Example
+        >
+        >       curl -X GET https://[kpi]/api/v2/stripe/change-plan/
+
+        > **Payload**
+        >
+        >        {
+        >           "price_id": "price_A34cds8fmske3tf",
+        >           "subscription_id": "sub_s9aNFrd2fsmld4gz",
+        >           "quantity": 100000
+        >        }
+
+        where:
+
+        * "price_id" (required) is the Stripe Price ID for the plan the user is changing to.
+        * "quantity" is the quantity for the new subscription price (default: 1).
+        * "subscription_id" (required) is a Stripe Subscription ID for the subscription being changed.
+      tags:
+      - api
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangePlan'
+          description: ''
+  /api/v2/stripe/checkout-link:
+    post:
+      operationId: api_v2_stripe_checkout_link_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutLink'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CheckoutLink'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CheckoutLink'
+        required: true
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutLink'
+          description: ''
+  /api/v2/stripe/products/:
+    get:
+      operationId: api_v2_stripe_products_list
+      description: |-
+        Returns Product and Price Lists, sorted from the product with the lowest price to highest
+        <strong>This endpoint is cached for an amount of time determined by ENDPOINT_CACHE_DURATION</strong>
+
+        <pre class="prettyprint">
+        <b>GET</b> /api/v2/stripe/products/
+        </pre>
+
+        > Example
+        >
+        >       curl -X GET https://[kpi]/api/v2/stripe/products/
+
+        > Response
+        >
+        >       HTTP 200 Ok
+        >        {
+        >           "count": ...
+        >           "next": ...
+        >           "previous": ...
+        >           "results": [
+        >               {
+        >                   "id": string,
+        >                   "name": string,
+        >                   "type": string,
+        >                   "prices": [
+        >                       {
+        >                           "id": string,
+        >                           "nickname": string,
+        >                           "currency": string,
+        >                           "type": string,
+        >                           "recurring": {
+        >                               "aggregate_usage": string ('sum', 'last_during_period`, `last_ever`, `max`)
+        >                               "interval": string ('month', 'year', 'week', 'day')
+        >                               "interval_count": int,
+        >                               "usage_type": string ('metered', 'licensed')
+        >                           },
+        >                           "unit_amount": int (cents),
+        >                           "human_readable_price": string,
+        >                           "metadata": {},
+        >                           "active": bool,
+        >                           "product": string,
+        >                           "transform_quantity": null | {'round': 'up'|'down', 'divide_by': int}
+        >                       },
+        >                       ...
+        >                   ],
+        >                   "metadata": {},
+        >               },
+        >               ...
+        >           ]
+        >        }
+        >
+
+        ### Note: unit_amount is price in cents (assuming currency is USD/AUD/CAD/etc.)
+
+        ## Current Endpoint
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - api
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProductList'
+          description: ''
+  /api/v2/stripe/subscriptions/:
+    get:
+      operationId: api_v2_stripe_subscriptions_list
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - Stripe
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSubscriptionList'
+          description: null
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+  /api/v2/stripe/subscriptions/{id}/:
+    get:
+      operationId: api_v2_stripe_subscriptions_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Stripe
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
   /api/v2/tags/:
     get:
       operationId: api_v2_tags_list
@@ -9543,6 +9808,76 @@ components:
       description: |-
         * `no_auth` - no_auth
         * `basic_auth` - basic_auth
+    BaseProduct:
+      type: object
+      properties:
+        id:
+          type: string
+          maxLength: 255
+        name:
+          type: string
+          description: The product's name, meant to be displayable to the customer.
+            Applicable to both `service` and `good` types.
+          maxLength: 5000
+        description:
+          type: string
+          nullable: true
+          description: A description of this object.
+        type:
+          allOf:
+          - $ref: '#/components/schemas/StripeProductType'
+          description: |-
+            The type of the product. The product is either of type `good`, which is eligible for use with Orders and SKUs, or `service`, which is eligible for use with Subscriptions and Plans.
+
+            * `good` - Good
+            * `service` - Service
+        metadata:
+          nullable: true
+          description: A set of key/value pairs that you can attach to an object.
+            It can be useful for storing additional information about an object in
+            a structured format.
+      required:
+      - id
+      - name
+      - type
+    BlankEnum:
+      enum:
+      - ''
+    ChangePlan:
+      type: object
+      properties:
+        price_id:
+          type: string
+        subscription_id:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+          default: 1
+      required:
+      - price_id
+      - subscription_id
+    CheckoutLink:
+      type: object
+      properties:
+        price_id:
+          type: string
+        organization_id:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+          default: 1
+      required:
+      - price_id
+    CollectionMethodEnum:
+      enum:
+      - charge_automatically
+      - send_invoice
+      type: string
+      description: |-
+        * `charge_automatically` - Charge automatically
+        * `send_invoice` - Send invoice
     ContentResponse:
       type: object
       properties:
@@ -11120,6 +11455,45 @@ components:
         * `admin` - admin
         * `member` - member
         * `owner` - owner
+    OneTimeAddOn:
+      type: object
+      properties:
+        id:
+          type: string
+          maxLength: 27
+        created:
+          type: string
+          format: date-time
+          description: The time when the add-on purchased.
+        is_available:
+          type: boolean
+          readOnly: true
+        usage_limits:
+          description: |-
+            The historical usage limits when the add-on was purchased.
+                    Possible keys:
+                    "submission_limit", "asr_seconds_limit", and/or "mt_characters_limit"
+        total_usage_limits:
+          type: object
+          additionalProperties: {}
+          description: |-
+            The total usage limits for this add-on, based on the usage_limits for a single
+            add-on.
+          readOnly: true
+        limits_remaining:
+          description: The amount of each of the add-on's individual limits left to
+            use.
+        organization:
+          type: string
+          nullable: true
+        product:
+          type: string
+          nullable: true
+      required:
+      - created
+      - id
+      - is_available
+      - total_usage_limits
     OpenRosaXFormResponse:
       type: object
       properties:
@@ -11817,6 +12191,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MemberListResponse'
+    PaginatedOneTimeAddOnList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/OneTimeAddOn'
     PaginatedOrganizationAssetUsageResponseList:
       type: object
       required:
@@ -11909,6 +12306,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PermissionResponse'
+    PaginatedProductList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
     PaginatedProjectHistoryLogResponseList:
       type: object
       required:
@@ -12047,6 +12467,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SocialAccount'
+    PaginatedSubscriptionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
     PaginatedTagListResponseList:
       type: object
       required:
@@ -12671,6 +13114,160 @@ components:
       - implied
       - name
       - url
+    Price:
+      type: object
+      properties:
+        id:
+          type: string
+          maxLength: 255
+        nickname:
+          type: string
+          description: A brief description of the plan, hidden from customers.
+          maxLength: 250
+        currency:
+          type: string
+          description: Three-letter ISO currency code
+          maxLength: 3
+        type:
+          allOf:
+          - $ref: '#/components/schemas/StripePriceType'
+          description: |-
+            Whether the price is for a one-time purchase or a recurring (subscription) purchase.
+
+            * `one_time` - One-time
+            * `recurring` - Recurring
+        recurring:
+          nullable: true
+          description: The recurring components of a price such as `interval` and
+            `usage_type`.
+        unit_amount:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+          description: The unit amount in cents to be charged, represented as a whole
+            integer if possible. Null if a sub-cent precision is required.
+        human_readable_price:
+          type: string
+          readOnly: true
+        metadata:
+          nullable: true
+          description: A set of key/value pairs that you can attach to an object.
+            It can be useful for storing additional information about an object in
+            a structured format.
+        active:
+          type: boolean
+          description: Whether the price can be used for new purchases.
+        product:
+          type: string
+          description: The product this price is associated with.
+        transform_quantity:
+          nullable: true
+          description: Apply a transformation to the reported usage or set quantity
+            before computing the amount billed. Cannot be combined with `tiers`.
+      required:
+      - active
+      - currency
+      - human_readable_price
+      - id
+      - product
+      - type
+    PriceWithProduct:
+      type: object
+      properties:
+        id:
+          type: string
+          maxLength: 255
+        nickname:
+          type: string
+          description: A brief description of the plan, hidden from customers.
+          maxLength: 250
+        currency:
+          type: string
+          description: Three-letter ISO currency code
+          maxLength: 3
+        type:
+          allOf:
+          - $ref: '#/components/schemas/StripePriceType'
+          description: |-
+            Whether the price is for a one-time purchase or a recurring (subscription) purchase.
+
+            * `one_time` - One-time
+            * `recurring` - Recurring
+        recurring:
+          nullable: true
+          description: The recurring components of a price such as `interval` and
+            `usage_type`.
+        unit_amount:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+          description: The unit amount in cents to be charged, represented as a whole
+            integer if possible. Null if a sub-cent precision is required.
+        human_readable_price:
+          type: string
+          readOnly: true
+        metadata:
+          nullable: true
+          description: A set of key/value pairs that you can attach to an object.
+            It can be useful for storing additional information about an object in
+            a structured format.
+        active:
+          type: boolean
+          description: Whether the price can be used for new purchases.
+        product:
+          $ref: '#/components/schemas/BaseProduct'
+        transform_quantity:
+          nullable: true
+          description: Apply a transformation to the reported usage or set quantity
+            before computing the amount billed. Cannot be combined with `tiers`.
+      required:
+      - active
+      - currency
+      - human_readable_price
+      - id
+      - product
+      - type
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          maxLength: 255
+        name:
+          type: string
+          description: The product's name, meant to be displayable to the customer.
+            Applicable to both `service` and `good` types.
+          maxLength: 5000
+        description:
+          type: string
+          nullable: true
+          description: A description of this object.
+        type:
+          allOf:
+          - $ref: '#/components/schemas/StripeProductType'
+          description: |-
+            The type of the product. The product is either of type `good`, which is eligible for use with Orders and SKUs, or `service`, which is eligible for use with Subscriptions and Plans.
+
+            * `good` - Good
+            * `service` - Service
+        prices:
+          type: array
+          items:
+            $ref: '#/components/schemas/Price'
+        metadata:
+          nullable: true
+          description: A set of key/value pairs that you can attach to an object.
+            It can be useful for storing additional information about an object in
+            a structured format.
+      required:
+      - id
+      - name
+      - prices
+      - type
     ProjectHistoryLogResponse:
       type: object
       properties:
@@ -13159,6 +13756,16 @@ components:
       - last_login
       - metadata
       - username
+    ProrationBehaviorEnum:
+      enum:
+      - always_invoice
+      - create_prorations
+      - none
+      type: string
+      description: |-
+        * `always_invoice` - Always invoice
+        * `create_prorations` - Create prorations
+        * `none` - None
     ReportResponse:
       type: object
       properties:
@@ -13312,6 +13919,335 @@ components:
       - provider
       - uid
       - username
+    StripePriceType:
+      enum:
+      - one_time
+      - recurring
+      type: string
+      description: |-
+        * `one_time` - One-time
+        * `recurring` - Recurring
+    StripeProductType:
+      enum:
+      - good
+      - service
+      type: string
+      description: |-
+        * `good` - Good
+        * `service` - Service
+    Subscription:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionItem'
+        schedule:
+          $ref: '#/components/schemas/SubscriptionSchedule'
+        application_fee_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          nullable: true
+        djstripe_created:
+          type: string
+          format: date-time
+          readOnly: true
+        djstripe_updated:
+          type: string
+          format: date-time
+          readOnly: true
+        id:
+          type: string
+          maxLength: 255
+        livemode:
+          type: boolean
+          nullable: true
+          description: Null here indicates that the livemode status is unknown or
+            was previously unrecorded. Otherwise, this field indicates whether this
+            record comes from Stripe test mode or live mode operation.
+        created:
+          type: string
+          format: date-time
+          nullable: true
+          description: The datetime this object was created in stripe.
+        metadata:
+          nullable: true
+          description: A set of key/value pairs that you can attach to an object.
+            It can be useful for storing additional information about an object in
+            a structured format.
+        description:
+          type: string
+          nullable: true
+          description: A description of this object.
+        billing_cycle_anchor:
+          type: string
+          format: date-time
+          nullable: true
+          description: Determines the date of the first full invoice, and, for plans
+            with `month` or `year` intervals, the day of the month for subsequent
+            invoices.
+        billing_thresholds:
+          nullable: true
+          description: Define thresholds at which an invoice will be sent, and the
+            subscription advanced to a new billing period.
+        cancel_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: A date in the future at which the subscription will automatically
+            get canceled.
+        cancel_at_period_end:
+          type: boolean
+          description: If the subscription has been canceled with the ``at_period_end``
+            flag set to true, ``cancel_at_period_end`` on the subscription will be
+            true. You can use this attribute to determine whether a subscription that
+            has a status of active is scheduled to be canceled at the end of the current
+            period.
+        canceled_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: If the subscription has been canceled, the date of that cancellation.
+            If the subscription was canceled with ``cancel_at_period_end``, canceled_at
+            will still reflect the date of the initial cancellation request, not the
+            end of the subscription period when the subscription is automatically
+            moved to a canceled state.
+        collection_method:
+          allOf:
+          - $ref: '#/components/schemas/CollectionMethodEnum'
+          description: |-
+            Either `charge_automatically`, or `send_invoice`. When charging automatically, Stripe will attempt to pay this subscription at the end of the cycle using the default source attached to the customer. When sending an invoice, Stripe will email your customer an invoice with payment instructions.
+
+            * `charge_automatically` - Charge automatically
+            * `send_invoice` - Send invoice
+        current_period_end:
+          type: string
+          format: date-time
+          description: End of the current period for which the subscription has been
+            invoiced. At the end of this period, a new invoice will be created.
+        current_period_start:
+          type: string
+          format: date-time
+          description: Start of the current period for which the subscription has
+            been invoiced.
+        days_until_due:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+          description: Number of days a customer has to pay invoices generated by
+            this subscription. This value will be `null` for subscriptions where `billing=charge_automatically`.
+        discount:
+          nullable: true
+          description: Describes the current discount applied to this subscription,
+            if there is one. When billing, a discount applied to a subscription overrides
+            a discount applied on a customer-wide basis.
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: If the subscription has ended (either because it was canceled
+            or because the customer was switched to a subscription to a new plan),
+            the date the subscription ended.
+        next_pending_invoice_item_invoice:
+          type: string
+          format: date-time
+          nullable: true
+          description: Specifies the approximate timestamp on which any pending invoice
+            items will be billed according to the schedule provided at pending_invoice_item_interval.
+        pause_collection:
+          nullable: true
+          description: If specified, payment collection for this subscription will
+            be paused.
+        pending_invoice_item_interval:
+          nullable: true
+          description: Specifies an interval for how often to bill for any pending
+            invoice items. It is analogous to calling Create an invoice for the given
+            subscription at the specified interval.
+        pending_update:
+          nullable: true
+          description: If specified, pending updates that will be applied to the subscription
+            once the latest_invoice has been paid.
+        proration_behavior:
+          description: |-
+            Determines how to handle prorations when the billing cycle changes (e.g., when switching plans, resetting billing_cycle_anchor=now, or starting a trial), or if an item’s quantity changes
+
+            * `always_invoice` - Always invoice
+            * `create_prorations` - Create prorations
+            * `none` - None
+          oneOf:
+          - $ref: '#/components/schemas/ProrationBehaviorEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        proration_date:
+          type: string
+          format: date-time
+          nullable: true
+          description: If set, the proration will be calculated as though the subscription
+            was updated at the given time. This can be used to apply exactly the same
+            proration that was previewed with upcoming invoice endpoint. It can also
+            be used to implement custom proration logic, such as prorating by day
+            instead of by second, by providing the time that you wish to use for proration
+            calculations
+        quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+          description: The quantity applied to this subscription. This value will
+            be `null` for multi-plan subscriptions
+        start_date:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date when the subscription was first created. The date might
+            differ from the created date due to backdating.
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SubscriptionStatusEnum'
+          description: |-
+            The status of this subscription.
+
+            * `active` - Active
+            * `canceled` - Canceled
+            * `incomplete` - Incomplete
+            * `incomplete_expired` - Incomplete Expired
+            * `past_due` - Past due
+            * `trialing` - Trialing
+            * `unpaid` - Unpaid
+        trial_end:
+          type: string
+          format: date-time
+          nullable: true
+          description: If the subscription has a trial, the end of that trial.
+        trial_start:
+          type: string
+          format: date-time
+          nullable: true
+          description: If the subscription has a trial, the beginning of that trial.
+        djstripe_owner_account:
+          type: string
+          nullable: true
+          description: The Stripe Account this object belongs to.
+        customer:
+          type: string
+          description: The customer associated with this subscription.
+        default_payment_method:
+          type: string
+          nullable: true
+          description: The default payment method for the subscription. It must belong
+            to the customer associated with the subscription. If not set, invoices
+            will use the default payment method in the customer's invoice settings.
+        default_source:
+          type: string
+          nullable: true
+          description: The default payment source for the subscription. It must belong
+            to the customer associated with the subscription and be in a chargeable
+            state. If not set, defaults to the customer's default source.
+        latest_invoice:
+          type: string
+          nullable: true
+          description: The most recent invoice this subscription has generated.
+        pending_setup_intent:
+          type: string
+          nullable: true
+          description: We can use this SetupIntent to collect user authentication
+            when creating a subscription without immediate payment or updating a subscription's
+            payment method, allowing you to optimize for off-session payments.
+        plan:
+          type: integer
+          title: ID
+          nullable: true
+          description: The plan associated with this subscription. This value will
+            be `null` for multi-plan subscriptions
+        default_tax_rates:
+          type: array
+          items:
+            type: integer
+            title: ID
+          description: The tax rates that will apply to any subscription item that
+            does not have tax_rates set. Invoices created will have their default_tax_rates
+            populated from the subscription.
+      required:
+      - application_fee_percent
+      - collection_method
+      - current_period_end
+      - current_period_start
+      - customer
+      - djstripe_created
+      - djstripe_updated
+      - id
+      - items
+      - schedule
+      - status
+    SubscriptionItem:
+      type: object
+      properties:
+        id:
+          type: string
+          maxLength: 255
+        price:
+          $ref: '#/components/schemas/PriceWithProduct'
+        quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+          description: The quantity of the plan to which the customer should be subscribed.
+      required:
+      - id
+      - price
+    SubscriptionSchedule:
+      type: object
+      properties:
+        phases:
+          nullable: true
+          description: Configuration for the subscription schedule's phases.
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SubscriptionScheduleStatusEnum'
+          description: |-
+            The present status of the subscription schedule. Possible values are `not_started`, `active`, `completed`, `released`, and `canceled`.
+
+            * `active` - Active
+            * `canceled` - Canceled
+            * `completed` - Completed
+            * `not_started` - Not started
+            * `released` - Released
+      required:
+      - status
+    SubscriptionScheduleStatusEnum:
+      enum:
+      - active
+      - canceled
+      - completed
+      - not_started
+      - released
+      type: string
+      description: |-
+        * `active` - Active
+        * `canceled` - Canceled
+        * `completed` - Completed
+        * `not_started` - Not started
+        * `released` - Released
+    SubscriptionStatusEnum:
+      enum:
+      - active
+      - canceled
+      - incomplete
+      - incomplete_expired
+      - past_due
+      - trialing
+      - unpaid
+      type: string
+      description: |-
+        * `active` - Active
+        * `canceled` - Canceled
+        * `incomplete` - Incomplete
+        * `incomplete_expired` - Incomplete Expired
+        * `past_due` - Past due
+        * `trialing` - Trialing
+        * `unpaid` - Unpaid
     TagListResponse:
       type: object
       properties:
