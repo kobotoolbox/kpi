@@ -1,10 +1,12 @@
 import React from 'react'
 
 import alertify from 'alertifyjs'
-import { Map } from 'immutable'
+import { List, Map, type OrderedMap } from 'immutable'
 import autoBind from 'react-autobind'
 import Select from 'react-select'
 import Checkbox from '#/components/common/checkbox'
+import type { AnyRowTypeName } from '#/constants'
+import type { LabelValuePair } from '#/dataInterface'
 import { bemComponents } from '#/libs/reactBemComponents'
 import { txtid } from '#/utils'
 import { sluggify } from '../../../xlform/src/model.utils'
@@ -25,8 +27,60 @@ const bem = bemComponents({
   MatrixButton: ['kobomatrix-button', '<button>'],
 })
 
-class KoboMatrix extends React.Component {
-  constructor(props) {
+interface KoboMatrixProps {
+  model: {
+    data: KoboMatrixData
+    kuid: string
+    kobomatrix_list: string
+  }
+}
+
+// TODO: see if this is something from dataInterface
+type KoboMatrixDataRow = Map<string, string> & KoboMatrixDataRowObject
+
+interface KoboMatrixDataRowObject {
+  default: string
+  appearance: string
+  constraint_message: string
+  hint: string
+  $kuid: string
+  name: string
+  guidance_hint: string
+  label: string
+  tags: string
+  $xpath: string
+  type: AnyRowTypeName
+  constraint: string
+  relevant: string
+  $autoname: string
+}
+
+// TODO: see if this is something from dataInterface
+interface KoboMatrixDataChoice extends Map<string, string> {
+  name: string
+  $kuid: string
+  $autovalue: string
+  label: string
+}
+
+type KoboMatrixDataChoicesList = OrderedMap<string, KoboMatrixDataChoice>
+
+type KoboMatrixData = Map<string, string | KoboMatrixDataRow | List<string> | KoboMatrixDataChoicesList>
+
+interface KoboMatrixState {
+  data: KoboMatrixData
+  kuid: string
+  kobomatrix_list: string
+  expandedColKuid: false | string
+  expandedRowKuid: false | string
+  typeChoices: Array<LabelValuePair>
+}
+
+class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
+  _listDetails: {}
+  typingTimer?: number
+
+  constructor(props: KoboMatrixProps) {
     super(props)
     this._listDetails = {}
 
@@ -64,7 +118,11 @@ class KoboMatrix extends React.Component {
     localStorage.setItem(`koboMatrix.${kuid}`, JSON.stringify(data.toJS()))
 
     // generate cols/rows for a new matrix
-    if (data.get('cols').size < 1 && data.get('choices').size < 1) {
+    const cols = data.get('cols')
+    const colsSize = typeof cols === 'object' && 'size' in cols ? cols.size : -1
+    const choices = data.get('choices')
+    const choicesSize = typeof choices === 'object' && 'size' in choices ? choices.size : -1
+    if (colsSize < 1 && choicesSize < 1) {
       this.generateDefault()
     }
   }
@@ -81,7 +139,7 @@ class KoboMatrix extends React.Component {
     }, 500)
   }
 
-  expandColumn(colKuid) {
+  expandColumn(colKuid: string) {
     if (this.state.expandedColKuid === colKuid) {
       this.setState({ expandedColKuid: false })
     } else {
@@ -89,30 +147,31 @@ class KoboMatrix extends React.Component {
     }
   }
 
-  expandRow(rowKuid) {
+  expandRow(rowKuid: string) {
     if (this.state.expandedRowKuid === rowKuid) {
       this.setState({ expandedRowKuid: false })
     } else {
       this.setState({ expandedRowKuid: rowKuid, expandedColKuid: false })
     }
-  }
-
-  /**
+  } /**
    * @param {string} val
-   * @param {string} type
-   * @param {string} [ln]
+   * @param {string} type - sometimes `false` is being passed. Why? :)
+   * @param {string} [ln] - sometimes can be `null`
    */
-  autoName(val, type, ln) {
-    var names = []
+  autoName(val: string, type: string | false, ln?: string | null) {
+    var names: string[] = []
     var data = this.state.data
 
+    const cols = data.get('cols') as List<string>
+    const choices = data.get('choices') as unknown as KoboMatrixDataChoicesList
+
     if (type === 'column') {
-      data.get('cols').forEach((ch) => {
+      cols.forEach((ch) => {
         names.push(data.getIn([ch, '$autoname']))
       })
     } else {
-      data.get('choices').forEach((ch) => {
-        if (ch.get('list_name') === ln) {
+      choices.forEach((ch) => {
+        if (ch && ch.get('list_name') === ln) {
           names.push(ch.get('$autovalue'))
         }
       })
@@ -136,32 +195,31 @@ class KoboMatrix extends React.Component {
    * @param {string} type
    * @param {Event} evt
    */
-  onRowChange(type, evt) {
+  onRowChange(type: string, evt: React.ChangeEvent<HTMLInputElement>) {
     const rowKuid = this.state.expandedRowKuid
     const val = evt.target.value
 
     this.setRow(this.state.expandedRowKuid, type, val)
     clearTimeout(this.typingTimer)
-    this.typingTimer = setTimeout(this.setRow.bind(this, rowKuid, type, val, true), 1500)
-  }
+    this.typingTimer = window.setTimeout(this.setRow.bind(this, rowKuid, type, val, true), 1500)
+  } // TODO: unused?
+  // /**
+  //  * Here we save a cleaned up value.
+  //  * @param {string} type
+  //  * @param {Event} evt
+  //  */
+  // onRowBlur(type, evt) {
+  //   this.setRow(this.state.expandedRowKuid, type, evt.target.value, true)
+  //   clearTimeout(this.typingTimer)
+  // }
 
   /**
-   * Here we save a cleaned up value.
-   * @param {string} type
-   * @param {Event} evt
-   */
-  onRowBlur(type, evt) {
-    this.setRow(this.state.expandedRowKuid, type, evt.target.value, true)
-    clearTimeout(this.typingTimer)
-  }
-
-  /**
-   * @param {string} rowKuid
+   * @param {string} rowKuid - sometimes `false` is being passed. Why? :)
    * @param {string} type
    * @param {string} value
    * @param {boolean} [applyAutoName=false]
    */
-  setRow(rowKuid, type, value, applyAutoName = false) {
+  setRow(rowKuid: string | false, type: string, value: string, applyAutoName = false) {
     var data = this.state.data
     let newValue = value
 
@@ -187,13 +245,13 @@ class KoboMatrix extends React.Component {
    * @param {string} type
    * @param {Event} evt
    */
-  onColumnChange(type, evt) {
+  onColumnChange(type: string, evt: React.ChangeEvent<HTMLInputElement>) {
     const colKuid = this.state.expandedColKuid
     const val = evt.target.value
 
     this.setColumn(colKuid, type, val)
     clearTimeout(this.typingTimer)
-    this.typingTimer = setTimeout(this.setColumn.bind(this, colKuid, type, val, true), 1500)
+    this.typingTimer = window.setTimeout(this.setColumn.bind(this, colKuid, type, val, true), 1500)
   }
 
   /**
@@ -201,18 +259,18 @@ class KoboMatrix extends React.Component {
    * @param {string} type
    * @param {Event} evt
    */
-  onColumnBlur(type, evt) {
+  onColumnBlur(type: string, evt: React.FocusEvent<HTMLInputElement>) {
     this.setColumn(this.state.expandedColKuid, type, evt.target.value, true)
     clearTimeout(this.typingTimer)
   }
 
   /**
-   * @param {string} colKuid
+   * @param {string} colKuid - sometimes `false` is being passed. Why? :)
    * @param {string} type
    * @param {string} value
    * @param {boolean} [applyAutoName=false]
    */
-  setColumn(colKuid, type, value, applyAutoName = false) {
+  setColumn(colKuid: string | false, type: string, value: string, applyAutoName = false) {
     let data = this.state.data
     let newValue = value
 
@@ -226,7 +284,7 @@ class KoboMatrix extends React.Component {
     this.toLocalStorage(data)
   }
 
-  requiredChange(isChecked) {
+  requiredChange(isChecked: boolean) {
     const colKuid = this.state.expandedColKuid
     var data = this.state.data
     data = data.setIn([colKuid, 'required'], isChecked)
@@ -234,15 +292,19 @@ class KoboMatrix extends React.Component {
     this.toLocalStorage(data)
   }
 
-  colChangeType(e) {
+  colChangeType(e: null | { value: string | null }) {
     const colKuid = this.state.expandedColKuid
     var data = this.state.data
-    const newType = e.value
+    const newType = e?.value || null
     const prevType = data.getIn([colKuid, 'type'])
 
     // warn only if existing column type is one of (Select One, Select Many)
     // and new type is NOT one of (Select One, Select Many)
-    if (['select_one', 'select_many'].includes(prevType) && !['select_one', 'select_many'].includes(newType)) {
+    if (
+      newType !== null &&
+      ['select_one', 'select_many'].includes(prevType) &&
+      !['select_one', 'select_many'].includes(newType)
+    ) {
       const dialog = alertify.dialog('confirm')
       const opts = {
         title: t('Change column type?'),
@@ -262,7 +324,7 @@ class KoboMatrix extends React.Component {
     } else {
       data = data.setIn([colKuid, 'type'], newType)
       const prevListName = data.getIn([colKuid, 'select_from_list_name'])
-      if (['select_one', 'select_many'].includes(newType) && prevListName === undefined) {
+      if (newType !== null && ['select_one', 'select_many'].includes(newType) && prevListName === undefined) {
         const newListId = txtid()
         data = this._addDefaultList(data, newListId)
         data = data.setIn([colKuid, 'select_from_list_name'], newListId)
@@ -272,7 +334,7 @@ class KoboMatrix extends React.Component {
     }
   }
 
-  _addDefaultList(data, newListId) {
+  _addDefaultList(data: KoboMatrixData, newListId: string) {
     const choice1kuid = txtid()
     const val1 = this.autoName(t('Option 1'), false, newListId)
 
@@ -298,7 +360,7 @@ class KoboMatrix extends React.Component {
     return data
   }
 
-  choiceChange(e) {
+  choiceChange(e: React.ChangeEvent<HTMLInputElement>) {
     const kuid = e.target.getAttribute('data-kuid')
     const type = e.target.getAttribute('data-type')
     var data = this.state.data
@@ -318,29 +380,30 @@ class KoboMatrix extends React.Component {
     this.toLocalStorage(data)
   }
 
-  getCol(colKuid, field) {
+  getCol(colKuid: string, field: string) {
     return this.state.data.getIn([colKuid, field])
   }
 
-  getSelectTypeVal(expandedCol) {
+  getSelectTypeVal(expandedCol: string) {
     const typeVal = this.getCol(expandedCol, 'type')
     return this.state.typeChoices.find((option) => option.value === typeVal)
   }
 
-  getChoiceField(kuid, field) {
+  getChoiceField(kuid: string, field: string) {
     return this.state.data.getIn(['choices', kuid, field])
   }
 
-  getRequiredStatus(colKuid) {
+  getRequiredStatus(colKuid: string) {
     const val = this.state.data.getIn([colKuid, 'required'])
     return val === true || val === 'true' ? true : false
   }
 
-  newChoiceOption(e) {
+  newChoiceOption(e: React.MouseEvent<HTMLElement> | false) {
     let data = this.state.data
     let listName = null
     if (e && e.target) {
-      listName = e.target.getAttribute('data-list-name')
+      const target = e.target as HTMLElement
+      listName = target.getAttribute('data-list-name')
     } else {
       listName = this.state.kobomatrix_list
     }
@@ -380,13 +443,13 @@ class KoboMatrix extends React.Component {
     })
 
     data = data.set(newColKuid, newCol)
-    data = data.update('cols', (list) => list.push(newColKuid))
+    data = data.update('cols', (cols) => (cols as List<string>).push(newColKuid))
 
     this.setState({ data: data })
     this.toLocalStorage(data)
   }
 
-  deleteRow(rowKuid) {
+  deleteRow(rowKuid: string) {
     const dialog = alertify.dialog('confirm')
     const opts = {
       title: t('Delete row?'),
@@ -411,7 +474,8 @@ class KoboMatrix extends React.Component {
       message: t('Are you sure you want to delete this column? This action cannot be undone.'),
       labels: { ok: t('Delete'), cancel: t('Cancel') },
       onok: () => {
-        data = data.update('cols', (cols) => cols.filterNot((col) => col === colKuid))
+        // We need to convert this back to List, as `.filterNot` is not returning a `List`. Not sure why this worked previously
+        data = data.update('cols', (cols) => List((cols as List<string>).filterNot((col) => col === colKuid)))
         this.setState({ data: data, expandedColKuid: false })
         this.toLocalStorage(data)
       },
@@ -420,17 +484,17 @@ class KoboMatrix extends React.Component {
     dialog.set(opts).show()
   }
 
-  toLocalStorage(data) {
+  toLocalStorage(data: KoboMatrixData) {
     const dataJS = data.toJS()
     localStorage.setItem(`koboMatrix.${this.state.kuid}`, JSON.stringify(dataJS))
   }
 
-  getListDetails(listName) {
-    const list = this.state.data.get('choices')
-    var _list = []
+  getListDetails(listName: string) {
+    const list = this.state.data.get('choices') as KoboMatrixDataChoicesList
+    var _list: Array<KoboMatrixDataRowObject> = []
 
     list.forEach((item) => {
-      if (item.get('list_name') === listName) {
+      if (item && item.get('list_name') === listName) {
         _list.push(item.toJS())
       }
     })
@@ -440,8 +504,9 @@ class KoboMatrix extends React.Component {
 
   render() {
     const data = this.state.data
-    const cols = data.get('cols')
-    const choices = data.get('choices').toArray()
+    const cols = data.get('cols') as List<string>
+    const choices = data.get('choices') as KoboMatrixDataChoicesList
+    const choicesArray = choices.toArray()
     const expandedCol = this.state.expandedColKuid
     const expandedRow = this.state.expandedRowKuid
 
@@ -452,7 +517,9 @@ class KoboMatrix extends React.Component {
         <bem.MatrixCols m={'header'}>
           <bem.MatrixCols__col m={'label'} key={'label'} />
           {cols.map((colKuid, n) => {
-            const col = data.get(colKuid)
+            if (!colKuid) return null
+
+            const col = data.get(colKuid) as KoboMatrixDataRow
             return (
               <bem.MatrixCols__col key={n} m={'header'} className={expandedCol === colKuid ? 'active' : ''}>
                 <bem.MatrixCols__colattr m={'label'}>{col.get('label')}</bem.MatrixCols__colattr>
@@ -471,7 +538,7 @@ class KoboMatrix extends React.Component {
                   value={this.getSelectTypeVal(expandedCol)}
                   isClearable={false}
                   options={this.state.typeChoices}
-                  onChange={this.colChangeType}
+                  onChange={this.colChangeType.bind(this)}
                   className='kobo-select'
                   classNamePrefix='kobo-select'
                   menuPlacement='auto'
@@ -503,7 +570,7 @@ class KoboMatrix extends React.Component {
                 <span>{t('Required')}</span>
                 <Checkbox
                   checked={this.getRequiredStatus(expandedCol)}
-                  onChange={this.requiredChange}
+                  onChange={this.requiredChange.bind(this)}
                   className='js-cancel-sort'
                 />
               </label>
@@ -513,7 +580,7 @@ class KoboMatrix extends React.Component {
                     <span>{t('Label')}</span>
                     <span>{t('Data Column Name')}</span>
                   </div>
-                  {choices.map((choice) => {
+                  {choicesArray.map((choice) => {
                     if (choice.get('list_name') === this.getCol(expandedCol, 'select_from_list_name')) {
                       const ch = choice.get('$kuid')
                       return (
@@ -544,12 +611,14 @@ class KoboMatrix extends React.Component {
                           </span>
                         </div>
                       )
+                    } else {
+                      return null
                     }
                   })}
                   <div className='matrix-cols__options--row-foot'>
                     <i
                       className='k-icon k-icon-plus'
-                      onClick={this.newChoiceOption}
+                      onClick={this.newChoiceOption.bind(this)}
                       data-list-name={this.getCol(expandedCol, 'select_from_list_name')}
                     />
                   </div>
@@ -572,10 +641,12 @@ class KoboMatrix extends React.Component {
                   <i className='k-icon k-icon-settings' onClick={this.expandRow.bind(this, item.$kuid)} />
                 </bem.MatrixItems__itemattr>
                 {cols.map((colKuid) => {
-                  const col = data.get(colKuid)
+                  if (!colKuid) return null
+
+                  const col = data.get(colKuid) as KoboMatrixDataRow
                   const _listName = col.get('select_from_list_name')
                   let _isUnderscores = false
-                  let contents = []
+                  let contents: string[] = []
 
                   if (_listName) {
                     const list = this.getListDetails(_listName)
@@ -635,7 +706,7 @@ class KoboMatrix extends React.Component {
           <bem.MatrixItems__item key={'new'} m={'new'}>
             <i
               className='k-icon k-icon-plus'
-              onClick={this.newChoiceOption}
+              onClick={this.newChoiceOption.bind(this)}
               data-list-name={this.state.kobomatrix_list}
             />
           </bem.MatrixItems__item>
