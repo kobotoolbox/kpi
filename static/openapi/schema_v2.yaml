@@ -9832,12 +9832,13 @@ components:
             * `good` - Good
             * `service` - Service
         metadata:
-          nullable: true
-          description: A set of key/value pairs that you can attach to an object.
-            It can be useful for storing additional information about an object in
-            a structured format.
+          type: object
+          additionalProperties:
+            type: string
+          readOnly: true
       required:
       - id
+      - metadata
       - name
       - type
     BlankEnum:
@@ -13128,9 +13129,9 @@ components:
             * `one_time` - One-time
             * `recurring` - Recurring
         recurring:
+          allOf:
+          - $ref: '#/components/schemas/Recurring'
           nullable: true
-          description: The recurring components of a price such as `interval` and
-            `usage_type`.
         unit_amount:
           type: integer
           maximum: 9223372036854775807
@@ -13163,6 +13164,7 @@ components:
       - human_readable_price
       - id
       - product
+      - recurring
       - type
     PriceWithProduct:
       type: object
@@ -13187,9 +13189,9 @@ components:
             * `one_time` - One-time
             * `recurring` - Recurring
         recurring:
+          allOf:
+          - $ref: '#/components/schemas/Recurring'
           nullable: true
-          description: The recurring components of a price such as `interval` and
-            `usage_type`.
         unit_amount:
           type: integer
           maximum: 9223372036854775807
@@ -13221,6 +13223,7 @@ components:
       - human_readable_price
       - id
       - product
+      - recurring
       - type
     Product:
       type: object
@@ -13250,12 +13253,13 @@ components:
           items:
             $ref: '#/components/schemas/Price'
         metadata:
-          nullable: true
-          description: A set of key/value pairs that you can attach to an object.
-            It can be useful for storing additional information about an object in
-            a structured format.
+          type: object
+          additionalProperties:
+            type: string
+          readOnly: true
       required:
       - id
+      - metadata
       - name
       - prices
       - type
@@ -13757,6 +13761,22 @@ components:
         * `always_invoice` - Always invoice
         * `create_prorations` - Create prorations
         * `none` - None
+    Recurring:
+      type: object
+      properties:
+        interval:
+          $ref: '#/components/schemas/StripeUsageType'
+        interval_count:
+          type: integer
+        meter:
+          type: string
+          nullable: true
+        usage_type:
+          $ref: '#/components/schemas/StripeIntervalEnum'
+      required:
+      - interval
+      - interval_count
+      - usage_type
     ReportResponse:
       type: object
       properties:
@@ -13901,6 +13921,18 @@ components:
       - provider
       - uid
       - username
+    StripeIntervalEnum:
+      enum:
+      - day
+      - week
+      - month
+      - year
+      type: string
+      description: |-
+        * `day` - Day
+        * `week` - Week
+        * `month` - Month
+        * `year` - Year
     StripePriceType:
       enum:
       - one_time
@@ -13917,6 +13949,14 @@ components:
       description: |-
         * `good` - Good
         * `service` - Service
+    StripeUsageType:
+      enum:
+      - metered
+      - licensed
+      type: string
+      description: |-
+        * `metered` - Metered
+        * `licensed` - Licensed
     Subscription:
       type: object
       properties:

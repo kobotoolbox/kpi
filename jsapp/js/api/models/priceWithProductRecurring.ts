@@ -5,9 +5,9 @@
  * Powerful and intuitive data collection tools to make an impact
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
+import type { Recurring } from './recurring'
 
 /**
- * The recurring components of a price such as `interval` and `usage_type`.
  * @nullable
  */
-export type PriceWithProductRecurring = unknown | null
+export type PriceWithProductRecurring = Recurring | null

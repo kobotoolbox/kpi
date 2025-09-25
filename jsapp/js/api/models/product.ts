@@ -28,9 +28,5 @@ export interface Product {
 * `service` - Service */
   type: StripeProductType
   prices: Price[]
-  /**
-   * A set of key/value pairs that you can attach to an object. It can be useful for storing additional information about an object in a structured format.
-   * @nullable
-   */
-  metadata?: ProductMetadata
+  readonly metadata: ProductMetadata
 }

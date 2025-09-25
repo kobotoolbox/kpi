@@ -13739,12 +13739,16 @@
                         "description": "The type of the product. The product is either of type `good`, which is eligible for use with Orders and SKUs, or `service`, which is eligible for use with Subscriptions and Plans.\n\n* `good` - Good\n* `service` - Service"
                     },
                     "metadata": {
-                        "nullable": true,
-                        "description": "A set of key/value pairs that you can attach to an object. It can be useful for storing additional information about an object in a structured format."
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "readOnly": true
                     }
                 },
                 "required": [
                     "id",
+                    "metadata",
                     "name",
                     "type"
                 ]
@@ -18302,8 +18306,12 @@
                         "description": "Whether the price is for a one-time purchase or a recurring (subscription) purchase.\n\n* `one_time` - One-time\n* `recurring` - Recurring"
                     },
                     "recurring": {
-                        "nullable": true,
-                        "description": "The recurring components of a price such as `interval` and `usage_type`."
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Recurring"
+                            }
+                        ],
+                        "nullable": true
                     },
                     "unit_amount": {
                         "type": "integer",
@@ -18340,6 +18348,7 @@
                     "human_readable_price",
                     "id",
                     "product",
+                    "recurring",
                     "type"
                 ]
             },
@@ -18369,8 +18378,12 @@
                         "description": "Whether the price is for a one-time purchase or a recurring (subscription) purchase.\n\n* `one_time` - One-time\n* `recurring` - Recurring"
                     },
                     "recurring": {
-                        "nullable": true,
-                        "description": "The recurring components of a price such as `interval` and `usage_type`."
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Recurring"
+                            }
+                        ],
+                        "nullable": true
                     },
                     "unit_amount": {
                         "type": "integer",
@@ -18406,6 +18419,7 @@
                     "human_readable_price",
                     "id",
                     "product",
+                    "recurring",
                     "type"
                 ]
             },
@@ -18441,12 +18455,16 @@
                         }
                     },
                     "metadata": {
-                        "nullable": true,
-                        "description": "A set of key/value pairs that you can attach to an object. It can be useful for storing additional information about an object in a structured format."
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "readOnly": true
                     }
                 },
                 "required": [
                     "id",
+                    "metadata",
                     "name",
                     "prices",
                     "type"
@@ -19163,6 +19181,29 @@
                 "type": "string",
                 "description": "* `always_invoice` - Always invoice\n* `create_prorations` - Create prorations\n* `none` - None"
             },
+            "Recurring": {
+                "type": "object",
+                "properties": {
+                    "interval": {
+                        "$ref": "#/components/schemas/StripeUsageType"
+                    },
+                    "interval_count": {
+                        "type": "integer"
+                    },
+                    "meter": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "usage_type": {
+                        "$ref": "#/components/schemas/StripeIntervalEnum"
+                    }
+                },
+                "required": [
+                    "interval",
+                    "interval_count",
+                    "usage_type"
+                ]
+            },
             "ReportResponse": {
                 "type": "object",
                 "properties": {
@@ -19367,6 +19408,16 @@
                     "username"
                 ]
             },
+            "StripeIntervalEnum": {
+                "enum": [
+                    "day",
+                    "week",
+                    "month",
+                    "year"
+                ],
+                "type": "string",
+                "description": "* `day` - Day\n* `week` - Week\n* `month` - Month\n* `year` - Year"
+            },
             "StripePriceType": {
                 "enum": [
                     "one_time",
@@ -19382,6 +19433,14 @@
                 ],
                 "type": "string",
                 "description": "* `good` - Good\n* `service` - Service"
+            },
+            "StripeUsageType": {
+                "enum": [
+                    "metered",
+                    "licensed"
+                ],
+                "type": "string",
+                "description": "* `metered` - Metered\n* `licensed` - Licensed"
             },
             "Subscription": {
                 "type": "object",
