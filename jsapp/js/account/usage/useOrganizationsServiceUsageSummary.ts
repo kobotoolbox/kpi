@@ -1,12 +1,11 @@
-import { useEffect } from 'react'
+import type { UseQueryOptions } from '@tanstack/react-query'
+import type { ErrorDetail } from '#/api/models/errorDetail'
 import type { ServiceUsageBalances } from '#/api/models/serviceUsageBalances'
 import {
   type organizationsServiceUsageRetrieveResponse,
   useOrganizationsServiceUsageRetrieve,
 } from '#/api/react-query/organizations'
 import { USAGE_WARNING_RATIO } from '#/constants'
-import { queryClient } from '#/query/queryClient'
-import { QueryKeys } from '#/query/queryKeys'
 import { convertSecondsToMinutes, formatRelativeTime } from '#/utils'
 import { useOrganizationQuery } from '../organization/organizationQuery'
 import { UsageLimitTypes } from '../stripe.types'
@@ -32,6 +31,20 @@ export interface OrganizationsServiceUsageSummary {
   limitWarningList: UsageLimitTypes[]
   limitExceedList: UsageLimitTypes[]
 }
+export type OrganizationsServiceUsageSummaryResponse200 = {
+  data: OrganizationsServiceUsageSummary
+  status: 200
+}
+export type OrganizationsServiceUsageSummaryResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+export type OrganizationsServiceUsageSummaryResponseComposite =
+  | OrganizationsServiceUsageSummaryResponse200
+  | OrganizationsServiceUsageSummaryResponse404
+export type OrganizationsServiceUsageSummaryResponse = OrganizationsServiceUsageSummaryResponseComposite & {
+  headers: Headers
+}
 
 const usageBalanceKeyMapping = {
   storage_bytes: UsageLimitTypes.STORAGE,
@@ -40,10 +53,10 @@ const usageBalanceKeyMapping = {
   mt_characters: UsageLimitTypes.TRANSLATION,
 }
 
-const transformUsage = (response: organizationsServiceUsageRetrieveResponse): OrganizationsServiceUsageSummary => {
-  if (!response || response.status !== 200) {
-    throw Error(t("Couldn't get usage data"))
-  }
+const transformOrganizationsService = (
+  response: organizationsServiceUsageRetrieveResponse,
+): OrganizationsServiceUsageSummaryResponse => {
+  if (response.status !== 200) return response
 
   let lastUpdated: OrganizationsServiceUsageSummary['lastUpdated'] = null
   if ('headers' in response && response.headers instanceof Headers) {
@@ -66,47 +79,45 @@ const transformUsage = (response: organizationsServiceUsageRetrieveResponse): Or
   }
 
   return {
-    storage: data.total_storage_bytes,
-    submissions: data.total_submission_count.current_period,
-    transcriptionMinutes: convertSecondsToMinutes(data.total_nlp_usage.asr_seconds_current_period),
-    translationChars: data.total_nlp_usage.mt_characters_current_period,
-    currentPeriodStart: data.current_period_start,
-    currentPeriodEnd: data.current_period_end,
-    lastUpdated,
-    balances: data.balances,
-    limitWarningList,
-    limitExceedList,
+    status: response.status,
+    headers: response.headers,
+    data: {
+      storage: data.total_storage_bytes,
+      submissions: data.total_submission_count.current_period,
+      transcriptionMinutes: convertSecondsToMinutes(data.total_nlp_usage.asr_seconds_current_period),
+      translationChars: data.total_nlp_usage.mt_characters_current_period,
+      currentPeriodStart: data.current_period_start,
+      currentPeriodEnd: data.current_period_end,
+      lastUpdated,
+      balances: data.balances,
+      limitWarningList,
+      limitExceedList,
+    },
   }
 }
 
-interface ServiceUsageQueryParams {
-  shouldForceInvalidation?: boolean
-}
-
-export const useServiceUsageQuery = (params?: ServiceUsageQueryParams) => {
+export const useOrganizationsServiceUsageSummary = (
+  options?: Omit<
+    UseQueryOptions<organizationsServiceUsageRetrieveResponse, ErrorDetail, OrganizationsServiceUsageSummary>,
+    'queryKey' | 'select'
+  >,
+) => {
+  // TODO: error handling for useOrganizationQuery.
   const { data: organizationData } = useOrganizationQuery()
 
-  useEffect(() => {
-    if (params?.shouldForceInvalidation) {
-      queryClient.invalidateQueries({
-        queryKey: [QueryKeys.serviceUsage, organizationData?.id],
-        refetchType: 'none',
-      })
-    }
-  }, [params?.shouldForceInvalidation])
-
   // Note: for "!" see https://github.com/orval-labs/orval/issues/2397
-  return useOrganizationsServiceUsageRetrieve(organizationData?.id!, {
+  const query = useOrganizationsServiceUsageRetrieve(organizationData?.id!, {
     query: {
+      staleTime: 60 * 1000,
+      ...options,
       queryKey: undefined as any, // Note: for `any` see https://github.com/orval-labs/orval/issues/2396
-      // A low stale time is needed to avoid calling the API twice on some situations
-      // (e.g. usage component that contains limits banner which also uses this query).
-      staleTime: 1000 * 60, // 1 minute stale time
-      select: transformUsage,
+      select: transformOrganizationsService,
     },
     request: {
       includeHeaders: true,
       errorMessageDisplay: t('There was an error fetching usage data.'),
     },
   })
+
+  return query
 }

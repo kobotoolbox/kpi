@@ -18,7 +18,10 @@ import { OneTimeAddOnsContext } from '../useOneTimeAddonList.hook'
 import { ProductsContext } from '../useProducts.hook'
 import styles from './usage.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
-import { useServiceUsageQuery } from './useServiceUsageQuery'
+import {
+  type OrganizationsServiceUsageSummary,
+  useOrganizationsServiceUsageSummary,
+} from './useOrganizationsServiceUsageSummary'
 
 interface LimitState {
   storageByteRemainingLimit: LimitAmount
@@ -54,17 +57,20 @@ export default function Usage() {
     data: usageData,
     isLoading: isUsageLoading,
     isFetchedAfterMount: isUsageFetchedAfterMount,
-  } = useServiceUsageQuery({ shouldForceInvalidation: true })
+  } = useOrganizationsServiceUsageSummary({ staleTime: 0 /** fetch fresh data! */ })
   const { billingPeriod } = useBillingPeriod()
 
   const location = useLocation()
 
   const dateRange = useMemo(() => {
-    if (!usageData) return ''
-    const startDate = formatDate(usageData.currentPeriodStart)
-    const endDate = formatDate(usageData.currentPeriodEnd)
+    if (usageData?.status !== 200) return ''
+    const startDate = formatDate(usageData.data.currentPeriodStart)
+    const endDate = formatDate(usageData.data.currentPeriodEnd)
     return t('##start_date## to ##end_date##').replace('##start_date##', startDate).replace('##end_date##', endDate)
-  }, [usageData?.currentPeriodStart, usageData?.currentPeriodEnd])
+  }, [
+    (usageData?.data as OrganizationsServiceUsageSummary)?.currentPeriodStart,
+    (usageData?.data as OrganizationsServiceUsageSummary)?.currentPeriodEnd,
+  ])
 
   // check if stripe is enabled - if so, get limit data
   useEffect(() => {
@@ -154,7 +160,7 @@ export default function Usage() {
   if (
     isUsageLoading ||
     !isUsageFetchedAfterMount ||
-    !usageData ||
+    usageData?.status !== 200 ||
     !limits.isLoaded ||
     (limits.stripeEnabled && (!products.isLoaded || !oneTimeAddOnsContext.isLoaded))
   ) {
@@ -166,9 +172,9 @@ export default function Usage() {
       <LimitNotifications accountPage />
       <header className={styles.header}>
         <h2 className={styles.headerText}>{t('Your usage')}</h2>
-        {typeof usageData.lastUpdated === 'string' && (
+        {typeof usageData.data.lastUpdated === 'string' && (
           <p className={styles.updated}>
-            {t('Last update: ##LAST_UPDATE_TIME##').replace('##LAST_UPDATE_TIME##', usageData.lastUpdated)}
+            {t('Last update: ##LAST_UPDATE_TIME##').replace('##LAST_UPDATE_TIME##', usageData.data.lastUpdated)}
           </p>
         )}
       </header>
@@ -181,7 +187,7 @@ export default function Usage() {
               <time className={styles.date}>{dateRange}</time>
             </span>
             <UsageContainer
-              usage={usageData.submissions}
+              usage={usageData.data.submissions}
               remainingLimit={limits.submissionsRemainingLimit}
               recurringLimit={limits.submissionsRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.SUBMISSIONS)}
@@ -196,7 +202,7 @@ export default function Usage() {
               <div className={styles.date}>{t('per account')}</div>
             </span>
             <UsageContainer
-              usage={usageData.storage}
+              usage={usageData.data.storage}
               remainingLimit={limits.storageByteRemainingLimit}
               recurringLimit={limits.storageByteRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.STORAGE)}
@@ -214,7 +220,7 @@ export default function Usage() {
               <time className={styles.date}>{dateRange}</time>
             </span>
             <UsageContainer
-              usage={usageData.transcriptionMinutes}
+              usage={usageData.data.transcriptionMinutes}
               remainingLimit={limits.nlpMinuteRemainingLimit}
               recurringLimit={limits.nlpMinuteRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSCRIPTION)}
@@ -229,7 +235,7 @@ export default function Usage() {
               <time className={styles.date}>{dateRange}</time>
             </span>
             <UsageContainer
-              usage={usageData.translationChars}
+              usage={usageData.data.translationChars}
               remainingLimit={limits.nlpCharacterRemainingLimit}
               recurringLimit={limits.nlpCharacterRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSLATION)}
