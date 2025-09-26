@@ -1,10 +1,9 @@
 import { useEffect } from 'react'
 import type { ServiceUsageBalances } from '#/api/models/serviceUsageBalances'
 import {
-  getOrganizationsServiceUsageRetrieveQueryKey,
-  organizationsServiceUsageRetrieve,
+  type organizationsServiceUsageRetrieveResponse,
+  useOrganizationsServiceUsageRetrieve,
 } from '#/api/react-query/organizations'
-import { useServiceUsageList } from '#/api/react-query/service-usage'
 import { USAGE_WARNING_RATIO } from '#/constants'
 import { queryClient } from '#/query/queryClient'
 import { QueryKeys } from '#/query/queryKeys'
@@ -21,8 +20,7 @@ export const recordEntries = <T extends object>(o: T) => Object.entries(o) as Ke
 export const recordKeys = <T extends object>(o: T) => Object.keys(o) as (keyof T)[]
 export const recordValues = <T extends object>(o: T) => Object.values(o) as T[keyof T][]
 
-
-export interface UsageState {
+export interface OrganizationsServiceUsageSummary {
   storage: number
   submissions: number
   transcriptionMinutes: number
@@ -35,7 +33,6 @@ export interface UsageState {
   limitExceedList: UsageLimitTypes[]
 }
 
-
 const usageBalanceKeyMapping = {
   storage_bytes: UsageLimitTypes.STORAGE,
   submission: UsageLimitTypes.SUBMISSION,
@@ -43,31 +40,24 @@ const usageBalanceKeyMapping = {
   mt_characters: UsageLimitTypes.TRANSLATION,
 }
 
-const loadUsage = async (organizationId: string | null): Promise<UsageState | undefined> => {
-  if (!organizationId) {
-    throw Error(t('No organization found'))
-  }
-
-  const usage = await organizationsServiceUsageRetrieve(organizationId, {
-    includeHeaders: true,
-    errorMessageDisplay: t('There was an error fetching usage data.'),
-  } as any)
-
-  if (!usage || usage.status !== 200) {
+const transformUsage = (response: organizationsServiceUsageRetrieveResponse): OrganizationsServiceUsageSummary => {
+  if (!response || response.status !== 200) {
     throw Error(t("Couldn't get usage data"))
   }
-  let lastUpdated: UsageState['lastUpdated'] = null
-  if ('headers' in usage && usage.headers instanceof Headers) {
-    const lastUpdateDate = usage.headers.get('date')
+
+  let lastUpdated: OrganizationsServiceUsageSummary['lastUpdated'] = null
+  if ('headers' in response && response.headers instanceof Headers) {
+    const lastUpdateDate = response.headers.get('date')
     if (lastUpdateDate) {
       lastUpdated = formatRelativeTime(lastUpdateDate)
     }
   }
 
+  const data = response.data
+
   const limitWarningList: UsageLimitTypes[] = []
   const limitExceedList: UsageLimitTypes[] = []
-
-  for (const [key, balance] of recordEntries(usage.data.balances)) {
+  for (const [key, balance] of recordEntries(data.balances)) {
     if (balance?.exceeded) {
       limitExceedList.push(usageBalanceKeyMapping[key])
     } else if (balance?.balance_percent && balance.balance_percent / 100 >= USAGE_WARNING_RATIO) {
@@ -76,14 +66,14 @@ const loadUsage = async (organizationId: string | null): Promise<UsageState | un
   }
 
   return {
-    storage: usage.data.total_storage_bytes,
-    submissions: usage.data.total_submission_count.current_period,
-    transcriptionMinutes: convertSecondsToMinutes(usage.data.total_nlp_usage.asr_seconds_current_period),
-    translationChars: usage.data.total_nlp_usage.mt_characters_current_period,
-    currentPeriodStart: usage.data.current_period_start,
-    currentPeriodEnd: usage.data.current_period_end,
+    storage: data.total_storage_bytes,
+    submissions: data.total_submission_count.current_period,
+    transcriptionMinutes: convertSecondsToMinutes(data.total_nlp_usage.asr_seconds_current_period),
+    translationChars: data.total_nlp_usage.mt_characters_current_period,
+    currentPeriodStart: data.current_period_start,
+    currentPeriodEnd: data.current_period_end,
     lastUpdated,
-    balances: usage.data.balances,
+    balances: data.balances,
     limitWarningList,
     limitExceedList,
   }
@@ -105,13 +95,18 @@ export const useServiceUsageQuery = (params?: ServiceUsageQueryParams) => {
     }
   }, [params?.shouldForceInvalidation])
 
-  return useServiceUsageList({
+  // Note: for "!" see https://github.com/orval-labs/orval/issues/2397
+  return useOrganizationsServiceUsageRetrieve(organizationData?.id!, {
     query: {
-      enabled: !!organizationData,
-      queryKey: getOrganizationsServiceUsageRetrieveQueryKey(organizationData?.id!),
+      queryKey: undefined as any, // Note: for `any` see https://github.com/orval-labs/orval/issues/2396
       // A low stale time is needed to avoid calling the API twice on some situations
       // (e.g. usage component that contains limits banner which also uses this query).
       staleTime: 1000 * 60, // 1 minute stale time
+      select: transformUsage,
+    },
+    request: {
+      includeHeaders: true,
+      errorMessageDisplay: t('There was an error fetching usage data.'),
     },
   })
 }
