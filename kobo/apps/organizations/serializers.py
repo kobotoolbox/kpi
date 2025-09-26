@@ -263,9 +263,11 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
 
 class OrganizationResponseSerializer(OrganizationSerializer):
-    name = serializers.CharField(max_length=200)
-    website = serializers.CharField(max_length=255)
-    organization_type = serializers.ChoiceField(choices=OrganizationType.choices)
+    name = serializers.CharField(max_length=200, read_only=True)
+    website = serializers.CharField(max_length=255, read_only=True)
+    organization_type = serializers.ChoiceField(
+        choices=OrganizationType.choices, read_only=True
+    )
 
 
 class OrgMembershipInviteSerializer(serializers.ModelSerializer):

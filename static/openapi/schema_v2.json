@@ -15822,14 +15822,21 @@
                     },
                     "name": {
                         "type": "string",
+                        "readOnly": true,
                         "maxLength": 200
                     },
                     "website": {
                         "type": "string",
+                        "readOnly": true,
                         "maxLength": 255
                     },
                     "organization_type": {
-                        "$ref": "#/components/schemas/OrganizationTypeEnum"
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/OrganizationTypeEnum"
+                            }
+                        ],
+                        "readOnly": true
                     },
                     "created": {
                         "type": "string",

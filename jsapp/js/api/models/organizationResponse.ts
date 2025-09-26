@@ -12,10 +12,10 @@ export interface OrganizationResponse {
   readonly id: string
   readonly url: string
   /** @maxLength 200 */
-  name: string
+  readonly name: string
   /** @maxLength 255 */
-  website: string
-  organization_type: OrganizationTypeEnum
+  readonly website: string
+  readonly organization_type: OrganizationTypeEnum
   readonly created: string
   readonly modified: string
   readonly is_owner: boolean
