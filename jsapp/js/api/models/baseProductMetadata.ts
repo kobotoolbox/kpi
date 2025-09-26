@@ -6,8 +6,4 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-/**
- * A set of key/value pairs that you can attach to an object. It can be useful for storing additional information about an object in a structured format.
- * @nullable
- */
-export type BaseProductMetadata = unknown | null
+export type BaseProductMetadata = { [key: string]: string }

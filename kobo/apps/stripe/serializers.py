@@ -1,4 +1,6 @@
 from decimal import Decimal
+from typing import Dict
+
 from django.core.exceptions import ValidationError
 from djstripe.models import (
     Price,
@@ -7,10 +9,11 @@ from djstripe.models import (
     SubscriptionItem,
     SubscriptionSchedule,
 )
-from drf_spectacular.utils import extend_schema_field, OpenApiTypes
+from drf_spectacular.utils import OpenApiTypes, extend_schema_field
 from rest_framework import serializers
 
 from kobo.apps.stripe.models import PlanAddOn
+from kpi.schema_extensions.v2.stripe.schema import INTERVAL_ENUM, USAGE_TYPE_ENUM
 
 
 class OneTimeAddOnSerializer(serializers.ModelSerializer):
@@ -29,13 +32,26 @@ class OneTimeAddOnSerializer(serializers.ModelSerializer):
 
 
 class BaseProductSerializer(serializers.ModelSerializer):
+    metadata = serializers.SerializerMethodField()
+
     class Meta:
         model = Product
         fields = ('id', 'name', 'description', 'type', 'metadata')
 
+    def get_metadata(self, obj) -> Dict[str, str]:
+        return obj.metadata
+
+
+class RecurringSerializer(serializers.Serializer):
+    interval = serializers.ChoiceField(choices=USAGE_TYPE_ENUM)
+    interval_count = serializers.IntegerField()
+    meter = serializers.CharField(required=False, allow_null=True)
+    usage_type = serializers.ChoiceField(choices=INTERVAL_ENUM)
+
 
 class BasePriceSerializer(serializers.ModelSerializer):
     human_readable_price = serializers.SerializerMethodField()
+    recurring = RecurringSerializer(required=True, allow_null=True)
 
     class Meta:
         model = Price

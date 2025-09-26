@@ -29,11 +29,8 @@ export interface PriceWithProduct {
 * `one_time` - One-time
 * `recurring` - Recurring */
   type: StripePriceType
-  /**
-   * The recurring components of a price such as `interval` and `usage_type`.
-   * @nullable
-   */
-  recurring?: PriceWithProductRecurring
+  /** @nullable */
+  recurring: PriceWithProductRecurring
   /**
    * The unit amount in cents to be charged, represented as a whole integer if possible. Null if a sub-cent precision is required.
    * @minimum -9223372036854776000
