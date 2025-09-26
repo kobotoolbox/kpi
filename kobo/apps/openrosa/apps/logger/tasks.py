@@ -16,7 +16,7 @@ from django.utils import timezone
 from django_redis import get_redis_connection
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.libs.utils.jsonbfield_helper import ReplaceValues
+from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from kobo.celery import celery_app
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
@@ -167,7 +167,7 @@ def fix_stale_submissions_suspended_flag():
 
     if usernames:
         UserProfile.objects.filter(user__username__in=usernames).update(
-            metadata=ReplaceValues(
+            metadata=UpdateJSONFieldAttributes(
                 'metadata',
                 updates={'submissions_suspended': False},
             ),

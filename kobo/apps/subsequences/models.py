@@ -3,7 +3,7 @@ from django.db import models
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from .actions import ACTION_IDS_TO_CLASSES
-from .constants import SUBMISSION_UUID_FIELD
+from .constants import SUBMISSION_UUID_FIELD, SCHEMA_VERSIONS
 from .exceptions import InvalidAction, InvalidXPath
 from .schemas import validate_submission_supplement
 
@@ -38,11 +38,16 @@ class SubmissionSupplement(SubmissionExtras):
             raise InvalidAction
 
         schema_version = incoming_data.get('_version')
-        if schema_version != '20250820':
+
+        if schema_version not in SCHEMA_VERSIONS:
+            # TODO: raise error. Unknown version
+            raise NotImplementedError
+
+        if schema_version != SCHEMA_VERSIONS[0]:
             # TODO: migrate from old per-submission schema
             raise NotImplementedError
 
-        if asset.advanced_features['_version'] != schema_version:
+        if asset.advanced_features.get('_version') != schema_version:
             # TODO: migrate from old per-asset schema
             raise NotImplementedError
 
@@ -154,11 +159,16 @@ class SubmissionSupplement(SubmissionExtras):
             return {}
 
         schema_version = supplemental_data.pop('_version')
-        if schema_version != '20250820':
+
+        if schema_version not in SCHEMA_VERSIONS:
+            # TODO: raise error. Unknown version
+            raise NotImplementedError
+
+        if schema_version != SCHEMA_VERSIONS[0]:
             # TODO: migrate from old per-submission schema
             raise NotImplementedError
 
-        if asset.advanced_features['_version'] != schema_version:
+        if asset.advanced_features.get('_version') != schema_version:
             # TODO: migrate from old per-asset schema
             raise NotImplementedError
 

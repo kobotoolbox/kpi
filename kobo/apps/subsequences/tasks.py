@@ -2,19 +2,26 @@ from celery.signals import task_failure
 
 from django.apps import apps
 from kobo.celery import celery_app
-from kobo.apps.openrosa.libs.utils.jsonbfield_helper import ReplaceValues
+from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from kobo.apps.subsequences.exceptions import SubsequenceTimeoutError
 from .constants import SUBMISSION_UUID_FIELD
-from .exceptions import InvalidAction, InvalidXPath
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
+from .utils.versioning import set_version
 
-
-# TODO Adjust max_retries. Should be no longer than external service timeout (28800 s).
+# With retry_backoff=5 and retry_backoff_max=60, each retry waits:
+#   min(5 * 2^(n-1), 60) seconds.
+# We also add an initial 10s delay before the first attempt.
+# Total wait time must stay ≤ 28,800 s (GOOGLE_CACHE_TIMEOUT).
+# Calculation:
+#   10 (initial) + (5 + 10 + 20 + 40) + 60 * k  ≤ 28,800
+#   => k = floor((28,800 - 10 - 75) / 60) = 478
+#   => max_retries = 4 (before cap) + 478 = 482
+# So set max_retries to 482 or less to stay within the 8-hour limit.
 @celery_app.task(
     autoretry_for=(SubsequenceTimeoutError,),
     retry_backoff=5,
     retry_backoff_max=60,
-    max_retries=2,
+    max_retries=482,
     retry_jitter=False,
     queue='kpi_low_priority_queue',
 )
@@ -27,10 +34,9 @@ def poll_run_automated_process(
 ):
     Asset = apps.get_model('kpi', 'Asset')  # noqa: N806
     SubmissionSupplement = apps.get_model('subsequences', 'SubmissionSupplement')  # noqa: N806
-    incoming_data = {
-        '_version': '20250820',
+    incoming_data = set_version({
         question_xpath: {action_id: action_data},
-    }
+    })
     asset = Asset.objects.only('pk', 'owner_id').get(id=asset_id)
     supplement_data = SubmissionSupplement.revise_data(asset, submission, incoming_data)
 
@@ -63,7 +69,6 @@ def poll_run_automated_process_failure(sender=None, **kwargs):
     supplemental_data = SubmissionSupplement.retrieve_data(
         asset, submission_root_uuid=submission[SUBMISSION_UUID_FIELD]
     )
-    # TODO Add failure to DB
     if 'is still in progress for submission' in error:
         error = 'Maximum retries exceeded.'
 
@@ -90,7 +95,7 @@ def poll_run_automated_process_failure(sender=None, **kwargs):
     SubmissionSupplement.objects.filter(
         asset=asset, submission_uuid=submission_uuid
     ).update(
-        content=ReplaceValues(
+        content=UpdateJSONFieldAttributes(
             'content',
             path=f'{question_xpath}__{action_id}',
             updates=new_action_supplemental_data,
