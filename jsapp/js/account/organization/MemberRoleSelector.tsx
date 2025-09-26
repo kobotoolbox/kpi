@@ -18,14 +18,13 @@ export default function MemberRoleSelector({ username, role, inviteUrl }: Member
   const patchMember = usePatchOrganizationMember(username)
   const patchInvite = usePatchMemberInvite(inviteUrl)
 
-  const handleRoleChange = (newRole: string | null) => {
-    if (newRole) {
-      const role = newRole as MemberRoleEnum
-      if (inviteUrl) {
-        patchInvite.mutateAsync({ role })
-      } else {
-        patchMember.mutateAsync({ role })
-      }
+  const handleRoleChange = (newRole: MemberRoleEnum | null) => {
+    if (!newRole) return
+
+    if (inviteUrl) {
+      patchInvite.mutateAsync({ role })
+    } else {
+      patchMember.mutateAsync({ role })
     }
   }
 
@@ -45,7 +44,8 @@ export default function MemberRoleSelector({ username, role, inviteUrl }: Member
           },
         ]}
         value={role}
-        onChange={handleRoleChange}
+        // TODO: parameterize <Select/> to infer values from data property.
+        onChange={(value) => handleRoleChange(value as MemberRoleEnum | null)}
       />
     </>
   )

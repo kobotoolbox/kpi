@@ -3,12 +3,11 @@ import React, { useState } from 'react'
 import cx from 'classnames'
 import { observer } from 'mobx-react-lite'
 import { NavLink } from 'react-router-dom'
-import { useOrganizationQuery } from '#/account/organization/organizationQuery'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import subscriptionStore from '#/account/subscriptionStore'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Icon from '#/components/common/icon'
-import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore from '#/envStore'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
 import type { IconName } from '#/k-icons'
@@ -61,7 +60,7 @@ function renderSingleUserOrgSidebar(isStripeEnabled: boolean, isOwner: boolean) 
 
 function renderMmoSidebar(userRole: MemberRoleEnum, isStripeEnabled: boolean, mmoLabel: string) {
   const showBillingRoutes = userRole === MemberRoleEnum.owner && isStripeEnabled
-  const hasAdminPrivileges = [MemberRoleEnum.admin, MemberRoleEnum.owner].includes(userRole)
+  const hasAdminPrivileges = userRole === MemberRoleEnum.admin || userRole === MemberRoleEnum.owner
 
   return (
     <nav className={styles.accountSidebar}>
@@ -90,7 +89,9 @@ function renderMmoSidebar(userRole: MemberRoleEnum, isStripeEnabled: boolean, mm
 
 function AccountSidebar() {
   const [isStripeEnabled, setIsStripeEnabled] = useState(false)
-  const orgQuery = useOrganizationQuery()
+
+  // Note: This `useOrganizationAssumed` isn't in a RequireAuth'd route, but RequireAuth'd in the parent `Drawer`.
+  const [organization] = useOrganizationAssumed()
 
   useWhenStripeIsEnabled(() => {
     if (!subscriptionStore.isInitialised) {
@@ -101,25 +102,11 @@ function AccountSidebar() {
 
   const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0])
 
-  if (orgQuery.status === 'pending') {
-    return <LoadingSpinner />
+  if (organization.is_mmo) {
+    return renderMmoSidebar(organization.request_user_role, isStripeEnabled, mmoLabel)
+  } else {
+    return renderSingleUserOrgSidebar(isStripeEnabled, organization.is_owner)
   }
-
-  // TODO
-  if (orgQuery.status === 'error') {
-    return <LoadingSpinner />
-  }
-
-  if (orgQuery.data?.status === 200) {
-    if (orgQuery.data?.data) {
-      return renderMmoSidebar(orgQuery.data?.data.request_user_role, isStripeEnabled, mmoLabel)
-    } else {
-      return renderSingleUserOrgSidebar(isStripeEnabled, orgQuery.data?.data.is_owner)
-    }
-  }
-
-  // TODO
-  return <LoadingSpinner />
 }
 
 export default observer(AccountSidebar)

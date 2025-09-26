@@ -1,8 +1,8 @@
 import { type default as React, Suspense, useEffect } from 'react'
 
 import { useNavigate } from 'react-router-dom'
-import { useOrganizationQuery } from '#/account/organization/organizationQuery'
-import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import type { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 
 interface Props {
@@ -19,17 +19,15 @@ interface Props {
  */
 export const RequireOrgPermissions = ({ children, redirectRoute, validRoles = undefined, mmoOnly = false }: Props) => {
   const navigate = useNavigate()
-  const orgQuery = useOrganizationQuery()
-  const hasValidRole = validRoles
-    ? validRoles.includes(orgQuery.data?.request_user_role ?? MemberRoleEnum.member)
-    : true
-  const hasValidOrg = mmoOnly ? orgQuery.data?.is_mmo : true
+  const [organization] = useOrganizationAssumed()
+  const hasValidRole = validRoles ? validRoles.includes(organization.request_user_role) : true
+  const hasValidOrg = mmoOnly ? organization.is_mmo : true
 
   useEffect(() => {
-    if (orgQuery.data && (!hasValidRole || !hasValidOrg)) {
+    if (!hasValidRole || !hasValidOrg) {
       navigate(redirectRoute)
     }
-  }, [redirectRoute, orgQuery.data, navigate])
+  }, [redirectRoute, navigate])
 
   return hasValidRole && hasValidOrg ? <Suspense fallback={null}>{children}</Suspense> : <LoadingSpinner />
 }

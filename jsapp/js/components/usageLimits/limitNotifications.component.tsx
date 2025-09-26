@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 
 import { Cookies } from 'react-cookie'
-import { useOrganizationQuery } from '#/account/organization/organizationQuery'
 import { UsageLimitTypes } from '#/account/stripe.types'
 import { useServiceUsageQuery } from '#/account/usage/useServiceUsageQuery'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import LimitBanner from '#/components/usageLimits/overLimitBanner.component'
 import LimitModal from '#/components/usageLimits/overLimitModal.component'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
@@ -22,13 +22,13 @@ const LimitNotifications = ({ pageCanShowModal = false, accountPage = false }: L
 
   const { data: serviceUsageData } = useServiceUsageQuery()
 
-  const orgQuery = useOrganizationQuery()
+  const [organization] = useOrganizationAssumed()
 
   // Only show modal on certain pages (set by parent), only to non-MMO users and MMO users with role of 'owner',
   // and only show if list of exceeded limits includes storage or submissions
   const useModal =
     pageCanShowModal &&
-    (!orgQuery.data?.is_mmo || orgQuery.data?.request_user_role === MemberRoleEnum.owner) &&
+    (!organization.is_mmo || organization.request_user_role === MemberRoleEnum.owner) &&
     (serviceUsageData?.limitExceedList.includes(UsageLimitTypes.STORAGE) ||
       serviceUsageData?.limitExceedList.includes(UsageLimitTypes.SUBMISSION))
 

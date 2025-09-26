@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 
-import { useOrganizationQuery, usePatchOrganization, } from '#/account/organization/organizationQuery'
-import { ORGANIZATION_TYPES } from '#/account/organization/organizationQuery'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+
 import styles from '#/account/organization/organizationSettingsRoute.module.scss'
 import subscriptionStore from '#/account/subscriptionStore'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import type { OrganizationTypeEnum } from '#/api/models/organizationTypeEnum'
+import { getOrganizationsRetrieveQueryKey, useOrganizationsPartialUpdate } from '#/api/react-query/organizations'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import KoboSelect from '#/components/common/koboSelect'
@@ -13,7 +14,16 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import TextBox from '#/components/common/textBox'
 import envStore from '#/envStore'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
+import { queryClient } from '#/query/queryClient'
 import { getSimpleMMOLabel } from './organization.utils'
+
+export const ORGANIZATION_TYPES: { [P in OrganizationTypeEnum]: { name: P; label: string } } = {
+  'non-profit': { name: 'non-profit', label: t('Non-profit organization') },
+  government: { name: 'government', label: t('Government institution') },
+  educational: { name: 'educational', label: t('Educational organization') },
+  commercial: { name: 'commercial', label: t('A commercial/for-profit company') },
+  none: { name: 'none', label: t('I am not associated with any organization') },
+}
 
 /**
  * Renders few fields with organization related settings, like name or website
@@ -21,11 +31,24 @@ import { getSimpleMMOLabel } from './organization.utils'
  * they can edit available fields.
  */
 export default function OrganizationSettingsRoute() {
-  const orgQuery = useOrganizationQuery({ shouldForceInvalidation: true })
+  const [organization, orgQuery] = useOrganizationAssumed({ staleTime: 0 /** always fetch fresh data */ })
 
   const [subscriptions] = useState(() => subscriptionStore)
   const [isStripeEnabled, setIsStripeEnabled] = useState(false)
-  const patchOrganization = usePatchOrganization()
+  const patchOrganization = useOrganizationsPartialUpdate({
+    mutation: {
+      onSettled: () => {
+        queryClient.invalidateQueries({ queryKey: getOrganizationsRetrieveQueryKey(organization.id) })
+      },
+    },
+    request: {
+      // We're asserting the `organizationUrl` is not `undefined` here, because
+      // the parent query (`useOrganizationQuery`) wouldn't be enabled without
+      // it. Plus all the organization-related UI is accessible only to
+      // logged in users.
+      prependRootUrl: false,
+    },
+  })
 
   // All displayed fields
   const [name, setName] = useState<string>('')
@@ -35,24 +58,23 @@ export default function OrganizationSettingsRoute() {
   // We are invalidating the org query data when this component loads,
   // so we want to wait for a fetch fresh before setting the form data
   useEffect(() => {
-    if (orgQuery.data && orgQuery.isFetchedAfterMount) {
-      setName(orgQuery.data.name)
-      setWebsite(orgQuery.data.website)
-      setOrgType(orgQuery.data.organization_type)
-    }
-  }, [orgQuery.data, orgQuery.isFetchedAfterMount])
+    if (!orgQuery.isFetchedAfterMount) return
+
+    setName(organization.name)
+    setWebsite(organization.website)
+    setOrgType(organization.organization_type)
+  }, [organization, orgQuery.isFetchedAfterMount])
 
   useWhenStripeIsEnabled(() => {
     setIsStripeEnabled(true)
   }, [])
 
   const isUserAdminOrOwner =
-    orgQuery.data?.request_user_role &&
-    [MemberRoleEnum.admin, MemberRoleEnum.owner].includes(orgQuery.data?.request_user_role)
+    organization.request_user_role === MemberRoleEnum.owner || organization.request_user_role === MemberRoleEnum.admin
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault()
-    patchOrganization.mutateAsync({ name, website })
+    patchOrganization.mutateAsync({ id: organization.id, data: { name, website } })
   }
 
   function handleChangeName(newName: string) {
@@ -66,7 +88,7 @@ export default function OrganizationSettingsRoute() {
   const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0], false, true)
   const mmoLabelLowercase = mmoLabel.toLowerCase()
 
-  if (orgQuery.isLoading || !orgQuery.isFetchedAfterMount) {
+  if (!orgQuery.isFetchedAfterMount) {
     return <LoadingSpinner />
   }
 
@@ -102,7 +124,7 @@ export default function OrganizationSettingsRoute() {
           value={name}
           required
           onChange={handleChangeName}
-          disabled={!isUserAdminOrOwner || orgQuery.isPending || patchOrganization.isPending}
+          disabled={!isUserAdminOrOwner || orgQuery.isFetching || patchOrganization.isPending}
           errors={name === ''}
         />
 
@@ -119,7 +141,7 @@ export default function OrganizationSettingsRoute() {
             value={website}
             required
             onChange={handleChangeWebsite}
-            disabled={!isUserAdminOrOwner || orgQuery.isPending || patchOrganization.isPending}
+            disabled={!isUserAdminOrOwner || orgQuery.isFetching || patchOrganization.isPending}
             errors={website === ''}
           />
         )}
@@ -157,7 +179,8 @@ export default function OrganizationSettingsRoute() {
           size='m'
           label={t('Save')}
           isDisabled={!isUserAdminOrOwner}
-          isPending={orgQuery.isPending || patchOrganization.isPending}
+          // REVIEWER: I think here was a bug, fixed along the way.
+          isPending={orgQuery.isFetching || patchOrganization.isPending}
           isSubmit
         />
       </section>
