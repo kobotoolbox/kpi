@@ -4,11 +4,9 @@ import { ACTIVE_STRIPE_STATUSES } from '#/constants'
 
 export const getBillingPeriod = (subscriptionList: PaginatedSubscriptionList) => {
   const activeSubscription = subscriptionList.results
-    // @ts-expect-error
     .filter((sub) => sub.items[0]?.price.product.metadata.product_type === 'plan')
     .find((sub) => ACTIVE_STRIPE_STATUSES.includes(sub.status))
 
-  // @ts-expect-error
   return activeSubscription?.items[0].price.recurring?.interval || 'month'
 }
 
