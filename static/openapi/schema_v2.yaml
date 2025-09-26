@@ -12532,10 +12532,12 @@ components:
       properties:
         name:
           type: string
+          maxLength: 200
         website:
           type: string
+          maxLength: 255
         organization_type:
-          type: string
+          $ref: '#/components/schemas/OrganizationTypeEnum'
     PatchedPairedDataPatchPayload:
       type: object
       properties:

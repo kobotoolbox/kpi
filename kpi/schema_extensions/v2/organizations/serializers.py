@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from kobo.apps.organizations.models import OrganizationType
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
     AssetField,
@@ -42,8 +43,10 @@ OrganizationServiceUsageResponse = inline_serializer_class(
 OrganizationPatchPayload = inline_serializer_class(
     name='OrganizationPatchPayload',
     fields={
-        'name': serializers.CharField(),
-        'website': serializers.CharField(),
-        'organization_type': serializers.CharField(),
+        'name': serializers.CharField(max_length=200),
+        'website': serializers.CharField(max_length=255),
+        'organization_type': serializers.ChoiceField(
+            choices=OrganizationType.choices,
+        ),
     },
 )
