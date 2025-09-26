@@ -82,28 +82,22 @@ class SubmissionSupplement(SubmissionExtras):
                 except KeyError as e:
                     raise InvalidAction from e
 
-                action = action_class(question_xpath, action_params)
+                action = action_class(question_xpath, action_params, asset)
+                # TODO REMOVE The comment below
                 # action.check_limits(asset.owner)
+
                 question_supplemental_data = supplemental_data.setdefault(
                     question_xpath, {}
                 )
                 action_supplemental_data = question_supplemental_data.setdefault(
                     action_id, {}
                 )
-
-                # TODO: `action.revise_data()` may need `question_xpath` to retry when
-                #   the action is automated and returns "in_progress" (see
-                #   `tasks.py::poll_run_automated_progress()`).
-                #   Also, `action_supplemental_data` seems redundant now that
-                #   `question_supplemental_data` is passed; it could potentially be
-                #   rebuilt inside `action.revise_data()`.
+                action.get_action_dependencies(question_supplemental_data)
                 if not (
                     action_supplemental_data := action.revise_data(
                         submission,
-                        question_supplemental_data,
                         action_supplemental_data,
                         action_data,
-                        asset=asset,
                     )
                 ):
                     # TODO is line below really needed?

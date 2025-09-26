@@ -1,6 +1,7 @@
 import uuid
 from copy import deepcopy
 from dataclasses import dataclass
+from typing import Optional
 
 import jsonschema
 from django.conf import settings
@@ -171,9 +172,19 @@ class BaseAction:
 
     action_class_config: ActionClassConfig | None = None
 
-    def __init__(self, source_question_xpath, params):
+    def __init__(
+        self,
+        source_question_xpath: str,
+        params: list[dict],
+        asset: Optional['kpi.models.Asset'] = None,
+    ):
         self.source_question_xpath = source_question_xpath
         self.params = params
+        self.asset = asset
+        self._action_dependencies = {}
+
+    def attach_action_dependency(self, action_data: dict):
+        pass
 
     def check_limits(self, user: User):
 
@@ -198,122 +209,20 @@ class BaseAction:
         """
         raise NotImplementedError
 
-    def get_output_fields(self) -> list[dict]:
+    def get_action_dependencies(self, question_supplemental_data: dict) -> dict | None:
         """
-        Returns a list of fields contributed by this action to outputted
-        submission data as shown in exports, the table view UI, etc.
+        Return a mapping of supplemental data required by this action, or None.
 
-        For a manual transcription to French, this might look like:
-            [
-                {
-                    'language': 'fr',
-                    'name': 'group_name/question_name/transcript__fr',
-                    'source': 'group_name/question_name',
-                    'type': 'transcript',
-                }
-            ]
-
-        Must be implemented by subclasses.
-        """
-        # raise NotImplementedError()
-        return []
-
-    def validate_automated_data(self, data):
-        jsonschema.validate(data, self.automated_data_schema)
-
-    def validate_data(self, data):
-        jsonschema.validate(data, self.data_schema)
-
-    @classmethod
-    def validate_params(cls, params):
-        jsonschema.validate(params, cls.params_schema)
-
-    def validate_result(self, result):
-        jsonschema.validate(result, self.result_schema)
-
-    @property
-    def result_schema(self):
-        """
-        must be implemented by subclasses
-        """
-        raise NotImplementedError()
-
-    def retrieve_data(self, action_data: dict) -> dict:
-        """
-        `action_data` must be ONLY the data for this particular action
-        instance, not the entire SubmissionExtras caboodle
-
-        subclasses could override with special manipulation if needed
-        """
-        return action_data
-
-    def revise_field(self, *args, **kwargs):
-        # TODO: remove this alias
-        import warnings
-
-        warnings.warn('Oh no, this method is going away!', DeprecationWarning)
-        return self.revise_data(*args, **kwargs)
-
-    def revise_data(
-        self,
-        submission: dict,
-        question_supplemental_data: dict,
-        action_supplemental_data: dict,
-        action_data: dict,
-        asset: 'kpi.models.Asset' = None,
-    ) -> dict | None:
-        """
-        `submission` argument for future use by subclasses
-        this method might need to be made more friendly for overriding
+        This method allows an action to declare which parts of
+        `question_supplemental_data` (or other context data) it depends on
+        in order to run correctly. By default it returns None, meaning the
+        action has no external dependencies. Subclasses can override this
+        to return a dictionary of prerequisite data—typically other actions’
+        results or metadata—that must be present before executing this
+        action.
         """
 
-        self.validate_data(action_data)
-        self.raise_for_any_leading_underscore_key(action_data)
-
-        localized_action_supplemental_data, needle = (
-            self.get_localized_action_supplemental_data(
-                action_supplemental_data, action_data
-            )
-        )
-
-        try:
-            current_version = localized_action_supplemental_data.get(
-                self.VERSION_FIELD, []
-            )[0]
-        except IndexError:
-            current_version = {}
-
-        if self.action_class_config.automated:
-            # If the action is automated, run the external process first.
-            if not (
-                service_response := self.run_automated_process(
-                    submission,
-                    question_supplemental_data,
-                    current_version,
-                    action_data,
-                    asset=asset,
-                )
-            ):
-                # If the service response is None, the automated task is still running.
-                # Stop here to avoid processing data and creating redundant revisions.
-                return None
-
-            # Otherwise, merge the service response into action_data and keep going
-            # the validation process.
-            dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
-            action_data.update(service_response)
-            self.validate_automated_data(action_data)
-            accepted = action_data.pop('accepted', None)
-        else:
-            dependency_supplemental_data = None
-            accepted = True
-
-        return self.get_new_action_supplemental_data(
-            action_supplemental_data,
-            action_data,
-            dependency_supplemental_data,
-            accepted,
-        )
+        return None
 
     def get_localized_action_supplemental_data(
         self, action_supplemental_data: dict, action_data: dict
@@ -391,6 +300,121 @@ class BaseAction:
 
         return new_action_supplemental_data
 
+    def get_output_fields(self) -> list[dict]:
+        """
+        Returns a list of fields contributed by this action to outputted
+        submission data as shown in exports, the table view UI, etc.
+
+        For a manual transcription to French, this might look like:
+            [
+                {
+                    'language': 'fr',
+                    'name': 'group_name/question_name/transcript__fr',
+                    'source': 'group_name/question_name',
+                    'type': 'transcript',
+                }
+            ]
+
+        Must be implemented by subclasses.
+        """
+        # raise NotImplementedError()
+        return []
+
+    def validate_automated_data(self, data):
+        jsonschema.validate(data, self.automated_data_schema)
+
+    def validate_data(self, data):
+        jsonschema.validate(data, self.data_schema)
+
+    @classmethod
+    def validate_params(cls, params):
+        jsonschema.validate(params, cls.params_schema)
+
+    def validate_result(self, result):
+        jsonschema.validate(result, self.result_schema)
+
+    @property
+    def result_schema(self):
+        """
+        must be implemented by subclasses
+        """
+        raise NotImplementedError()
+
+    def retrieve_data(self, action_data: dict) -> dict:
+        """
+        `action_data` must be ONLY the data for this particular action
+        instance, not the entire SubmissionExtras caboodle
+
+        subclasses could override with special manipulation if needed
+        """
+        return action_data
+
+    def revise_field(self, *args, **kwargs):
+        # TODO: remove this alias
+        import warnings
+
+        warnings.warn('Oh no, this method is going away!', DeprecationWarning)
+        return self.revise_data(*args, **kwargs)
+
+    def revise_data(
+        self,
+        submission: dict,
+        action_supplemental_data: dict,
+        action_data: dict,
+        action_dependencies: dict | None = None,
+    ) -> dict | None:
+        """
+        `submission` argument for future use by subclasses
+        this method might need to be made more friendly for overriding
+        """
+
+        self.validate_data(action_data)
+        self.raise_for_any_leading_underscore_key(action_data)
+
+        localized_action_supplemental_data, needle = (
+            self.get_localized_action_supplemental_data(
+                action_supplemental_data, action_data
+            )
+        )
+
+        try:
+            current_version = localized_action_supplemental_data.get(
+                self.VERSION_FIELD, []
+            )[0]
+        except IndexError:
+            current_version = {}
+
+        if self.action_class_config.automated:
+            # If the action is automated, run the external process first.
+            if not (
+                service_response := self.run_automated_process(
+                    submission,
+                    current_version,
+                    action_data,
+                    action_dependencies,
+                )
+            ):
+                # If the service response is None, the automated task is still running.
+                # Stop here to avoid processing data and creating redundant revisions.
+                return None
+
+            # Otherwise, merge the service response into action_data and keep going
+            # the validation process.
+            dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
+            action_data.update(service_response)
+            self.validate_automated_data(action_data)
+            accepted = action_data.pop('accepted', None)
+        else:
+            dependency_supplemental_data = None
+            accepted = True
+
+        return self.get_new_action_supplemental_data(
+            action_supplemental_data,
+            action_data,
+            dependency_supplemental_data,
+            accepted,
+        )
+
     @staticmethod
     def raise_for_any_leading_underscore_key(d: dict):
         """
@@ -413,9 +437,9 @@ class BaseAction:
     def run_automated_process(
         self,
         submission: dict,
-        question_supplemental_data: dict,
         action_supplemental_data: dict,
         action_data: dict,
+        action_dependencies: dict | None = None,
         *args,
         **kwargs,
     ) -> dict | bool:
@@ -723,9 +747,9 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
     def run_automated_process(
         self,
         submission: dict,
-        question_supplemental_data: dict,
         action_supplemental_data: dict,
         action_data: dict,
+        action_dependencies: dict | None = None,
         *args,
         **kwargs,
     ) -> dict | None:
@@ -750,8 +774,6 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
           returned and passed back to `revise_data()`.
         """
 
-        print('ACTION DATA', action_data, flush=True)
-
         # If the client sent "accepted" while the supplement is already complete,
         # return the completed translation/transcription right away. `revise_data()`
         # will handle the merge and final validation of this acceptance.
@@ -772,15 +794,11 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
                 'status': 'deleted',
             }
 
-        if hasattr(self, '_get_action_data_dependency'):
-            action_data = self._get_action_data_dependency(
-                question_supplemental_data, action_data
-            )
+        self.attach_action_dependency(action_data)
 
         # Otherwise, trigger the external service.
-        asset = kwargs['asset']
         NLPService = self.get_nlp_service_class()  # noqa
-        service = NLPService(submission, asset=asset)
+        service = NLPService(submission, asset=self.asset)
         service_data = service.process_data(self.source_question_xpath, action_data)
 
         # Sanitize 'dependency' before persisting: keep only stable identifiers and drop
@@ -791,29 +809,28 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
                 self.UUID_FIELD: dependency[self.UUID_FIELD],
             }
 
-
         # If the request is still running, stop processing here.
         # Returning None ensures that `revise_data()` will not be called afterwards.
         if (
             accepted is None
             and service_data['status'] == 'in_progress'
         ):
-            print('HERE', service_data, flush=True)
             if action_supplemental_data.get('status') == 'in_progress':
                 return None
             else:
                 # Make Celery update in the background.
                 # Since Celery is calling the same code, we want to ensure
+                #  it does not recall itself.
                 if not celery_app.current_worker_task:
                     poll_run_automated_process.apply_async(
                         kwargs={
                             'submission': submission,
                             'action_data': action_data,
                             'action_id': self.ID,
-                            'asset_id': asset.pk,
+                            'asset_id': self.asset.pk,
                             'question_xpath': self.source_question_xpath,
                         },
-                        countdown=10,
+                        countdown=10,  # Give it a small delay before retrying
                     )
 
         # Normal case: return the processed transcription data.

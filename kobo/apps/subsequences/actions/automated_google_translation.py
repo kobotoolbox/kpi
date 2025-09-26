@@ -19,8 +19,85 @@ class AutomatedGoogleTranslationAction(
         allow_multiple=True, automated=True, action_data_key='language'
     )
 
+    def attach_action_dependency(self, action_data: dict):
+        """
+        Attach the latest accepted transcript as a dependency for a translation action.
+
+        Looks up prior transcription actions in `self._action_dependencies` and
+        selects the most recent accepted version.
+        The chosen transcript is injected into `action_data['dependency']` with:
+          - 'value': transcript text
+          - 'language': preferred locale if present, else base language
+          - '_uuid': transcript UUID
+
+        If none is found, raises `TranscriptionNotFound`.
+        """
+
+        latest_version = latest_accepted_dt = None
+
+        for action_id, action_supplemental_data in self._action_dependencies.items():
+
+            versions = action_supplemental_data.get(self.VERSION_FIELD) or []
+            for version in versions:
+                # Skip versions without an acceptance timestamp.
+                accepted_raw = version.get(self.DATE_ACCEPTED_FIELD)
+                if not accepted_raw:
+                    continue
+
+                accepted_dt = parser.parse(accepted_raw)
+
+                if latest_accepted_dt is None or accepted_dt > latest_accepted_dt:
+                    latest_accepted_dt = accepted_dt
+                    latest_version = version
+                    latest_version[self.ACTION_ID_FIELD] = action_id
+
+        if latest_version is None:
+            raise TranscriptionNotFound
+
+        # Prefer a specific locale when available; otherwise use the base language.
+        language_or_locale = (
+            latest_version.get('locale') or latest_version['language']
+        )
+
+        # Inject dependency property for translation service
+        action_data[self.DEPENDENCY_FIELD] = {
+            'value': latest_version['value'],
+            'language': language_or_locale,
+            self.UUID_FIELD: latest_version[self.UUID_FIELD],
+            self.ACTION_ID_FIELD: latest_version.pop(self.ACTION_ID_FIELD),
+        }
+
+        return action_data
+
+
     def get_nlp_service_class(self) -> NLPExternalServiceClass:
         return GoogleTranslationService
+
+    def get_action_dependencies(self, question_supplemental_data: dict) -> dict:
+        """
+        Return only the supplemental data required by this action.
+
+        This method inspects the full `question_supplemental_data` payload
+        and extracts a subset containing only the actions on which the
+        current action relies (e.g., transcription results needed before a
+        translation).  It never mutates the original dictionary and does not
+        include unrelated entries—only the minimal keys and values needed
+        for this action to run correctly.
+        """
+
+        transcription_action_ids = (
+            AutomatedGoogleTranscriptionAction.ID,
+            ManualTranscriptionAction.ID,
+        )
+
+        for action_id in transcription_action_ids:
+
+            action_supplemental_data = question_supplemental_data.get(action_id)
+            if not action_supplemental_data:
+                continue
+            self._action_dependencies[action_id] = action_supplemental_data
+
+        return self._action_dependencies
 
     @property
     def result_schema(self):
@@ -177,71 +254,6 @@ class AutomatedGoogleTranslationAction(
         )
 
         return schema
-
-    def _get_action_data_dependency(
-        self, question_supplemental_data: dict, action_data: dict
-    ) -> dict:
-        """
-        Attach the latest accepted transcript as a dependency for a translation action.
-
-        Looks up prior transcription actions in `question_supplemental_data` and
-        selects the most recent accepted version.
-        The chosen transcript is injected into `action_data['dependency']` with:
-          - 'value': transcript text
-          - 'language': preferred locale if present, else base language
-          - '_uuid': transcript UUID
-
-        The search is restricted to known transcription action IDs (e.g., Google
-        automated and manual transcription). If none is found, raises
-        `TranscriptionNotFound`.
-        """
-
-        # Action IDs that can provide a transcript dependency.
-        transcription_action_ids = (
-            AutomatedGoogleTranscriptionAction.ID,
-            ManualTranscriptionAction.ID,
-        )
-
-        latest_version = None
-        latest_accepted_dt = None
-
-        for action_id in transcription_action_ids:
-            # Each action's data is expected to store versions under "_versions".
-            action_supplemental_data = question_supplemental_data.get(action_id)
-            if not action_supplemental_data:
-                continue
-
-            versions = action_supplemental_data.get(self.VERSION_FIELD) or []
-            for version in versions:
-                # Skip versions without an acceptance timestamp.
-                accepted_raw = version.get(self.DATE_ACCEPTED_FIELD)
-                if not accepted_raw:
-                    continue
-
-                accepted_dt = parser.parse(accepted_raw)
-
-                if latest_accepted_dt is None or accepted_dt > latest_accepted_dt:
-                    latest_accepted_dt = accepted_dt
-                    latest_version = version
-                    latest_version[self.ACTION_ID_FIELD] = action_id
-
-        if latest_version is None:
-            raise TranscriptionNotFound
-
-        # Prefer a specific locale when available; otherwise use the base language.
-        language_or_locale = (
-            latest_version.get('locale') or latest_version['language']
-        )
-
-        # Inject dependency property for translation service
-        action_data[self.DEPENDENCY_FIELD] = {
-            'value': latest_version['value'],
-            'language': language_or_locale,
-            self.UUID_FIELD: latest_version[self.UUID_FIELD],
-            self.ACTION_ID_FIELD: latest_version.pop(self.ACTION_ID_FIELD),
-        }
-
-        return action_data
 
     @property
     def _limit_identifier(self):

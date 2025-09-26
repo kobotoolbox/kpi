@@ -89,9 +89,7 @@ def poll_run_automated_process_failure(sender=None, **kwargs):
         action_supplemental_data, action_data, dependency_supplemental_data
     )
 
-    SubmissionSupplement.objects.filter()
     submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])
-
     SubmissionSupplement.objects.filter(
         asset=asset, submission_uuid=submission_uuid
     ).update(
