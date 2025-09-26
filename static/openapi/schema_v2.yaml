@@ -5959,7 +5959,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Organization'
+                $ref: '#/components/schemas/OrganizationResponse'
           description: null
         '404':
           content:
@@ -11159,76 +11159,6 @@ components:
                       type: string
       required:
       - html
-    Organization:
-      type: object
-      properties:
-        id:
-          type: string
-          readOnly: true
-        url:
-          type: string
-          format: uri
-          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/
-          readOnly: true
-        name:
-          type: string
-          description: The name of the organization
-          maxLength: 200
-        website:
-          type: string
-        organization_type:
-          $ref: '#/components/schemas/OrganizationTypeEnum'
-        created:
-          type: string
-          format: date-time
-          readOnly: true
-        modified:
-          type: string
-          format: date-time
-          readOnly: true
-        is_owner:
-          type: boolean
-          readOnly: true
-        is_mmo:
-          type: boolean
-          readOnly: true
-        request_user_role:
-          allOf:
-          - $ref: '#/components/schemas/MemberRoleEnum'
-          readOnly: true
-        members:
-          type: string
-          format: uri
-          example: https://kf.kobotoolbox.org/api/v2/organizations/{id}/members/
-          readOnly: true
-        assets:
-          type: string
-          format: uri
-          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets/
-          readOnly: true
-        service_usage:
-          type: string
-          format: uri
-          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/service_usage/
-          readOnly: true
-        asset_usage:
-          type: string
-          format: uri
-          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets_usage/
-          readOnly: true
-      required:
-      - asset_usage
-      - assets
-      - created
-      - id
-      - is_mmo
-      - is_owner
-      - members
-      - modified
-      - name
-      - request_user_role
-      - service_usage
-      - url
     OrganizationAssetUsageResponse:
       type: object
       properties:

@@ -19,8 +19,6 @@ import type { ErrorDetail } from '../models/errorDetail'
 
 import type { ErrorObject } from '../models/errorObject'
 
-import type { Organization } from '../models/organization'
-
 import type { OrganizationResponse } from '../models/organizationResponse'
 
 import type { OrganizationServiceUsageResponse } from '../models/organizationServiceUsageResponse'
@@ -219,7 +217,7 @@ export function useOrganizationsRetrieve<
 
  */
 export type organizationsPartialUpdateResponse200 = {
-  data: Organization
+  data: OrganizationResponse
   status: 200
 }
 

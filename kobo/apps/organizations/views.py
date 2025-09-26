@@ -139,7 +139,7 @@ class OrganizationAssetViewSet(AssetViewSet):
         description=read_md('kpi', 'organizations/org_update.md'),
         request={'application/json': OrganizationPatchPayload},
         responses=open_api_200_ok_response(
-            OrganizationSerializer,
+            OrganizationResponseSerializer,
             require_auth=False,
             raise_access_forbidden=False,
         ),
