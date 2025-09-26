@@ -391,6 +391,7 @@ class CustomerPortalView(APIView):
             needs_custom_config = (
                 metadata.get('product_type') == 'addon'
                 or metadata.get('plan_type') == 'enterprise'
+                or metadata.get('plan_type') == 'unlimited'
             )
             if needs_custom_config:
                 # Try getting the portal configuration that lets us switch to the provided price
