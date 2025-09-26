@@ -1,7 +1,6 @@
 import React from 'react'
 
 import cx from 'classnames'
-import { ORGANIZATION_TYPES } from '#/account/organization/organizationQuery'
 import { addRequiredToLabel } from '#/textUtils'
 import { recordValues } from '#/utils'
 import Select from '../components/common/Select'
@@ -10,6 +9,7 @@ import TextBox from '../components/common/textBox'
 import envStore from '../envStore'
 import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from './account.constants'
 import styles from './accountFieldsEditor.module.scss'
+import { ORGANIZATION_TYPES } from './organization/OrganizationSettingsRoute'
 
 const ORGANIZATION_TYPE_SELECT_OPTIONS = recordValues(ORGANIZATION_TYPES).map(({ name, label }) => {
   return {

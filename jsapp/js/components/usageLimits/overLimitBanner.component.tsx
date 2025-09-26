@@ -2,11 +2,11 @@ import cx from 'classnames'
 import Markdown from 'react-markdown'
 import { useNavigate } from 'react-router-dom'
 import { shouldUseTeamLabel } from '#/account/organization/organization.utils'
-import { useOrganizationQuery } from '#/account/organization/organizationQuery'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { UsageLimitTypes } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import envStore from '#/envStore'
@@ -90,14 +90,14 @@ function getMessage(
 const OverLimitBanner = (props: OverLimitBannerProps) => {
   const navigate = useNavigate()
 
-  const orgQuery = useOrganizationQuery()
+  const [organization] = useOrganizationAssumed()
 
-  if (!orgQuery.data || !envStore.isReady || !subscriptionStore.isInitialised || !props.limits.length) {
+  if (!envStore.isReady || !subscriptionStore.isInitialised || !props.limits.length) {
     return null
   }
 
   const { limits, warning } = props
-  const { is_mmo: isMmo, request_user_role: userRole } = orgQuery.data
+  const { is_mmo: isMmo, request_user_role: userRole } = organization
   const subscription = subscriptionStore.activeSubscriptions[0]
 
   // If the user is a member of an MMO, we don't show a warning for near-exceeded limits:

@@ -5,19 +5,19 @@ import { Group, Loader, Modal, Stack, Text, TextInput } from '@mantine/core'
 import { useField } from '@mantine/form'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 import subscriptionStore from '#/account/subscriptionStore'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import ButtonNew from '#/components/common/ButtonNew'
 import Select from '#/components/common/Select'
 import envStore from '#/envStore'
 import userExistence from '#/users/userExistence.store'
 import { checkEmailPattern, notify } from '#/utils'
 import { useSendMemberInvite } from './membersInviteQuery'
-import { OrganizationUserRole } from './organizationQuery'
 
 export default function InviteModal(props: ModalProps) {
   const inviteQuery = useSendMemberInvite()
   const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0])
 
-  const [role, setRole] = useState<string | null>(null)
+  const [role, setRole] = useState<MemberRoleEnum | null>(null)
 
   async function handleUsernameOrEmailCheck(value: string) {
     if (value === '' || checkEmailPattern(value)) {
@@ -39,25 +39,25 @@ export default function InviteModal(props: ModalProps) {
   })
 
   const handleSendInvite = () => {
-    if (role) {
-      inviteQuery
-        .mutateAsync({
-          invitees: [userOrEmail.getValue()],
-          role: role as OrganizationUserRole,
-        })
-        .then(() => {
-          userOrEmail.reset()
-          setRole(null)
-          props.onClose()
-        })
-        .catch((error) => {
-          if (error.responseText && JSON.parse(error.responseText)?.invitees) {
-            notify(JSON.parse(error.responseText)?.invitees.join(), 'error')
-          } else {
-            notify(t('Failed to send invite'), 'error')
-          }
-        })
-    }
+    if (!role) return
+
+    inviteQuery
+      .mutateAsync({
+        invitees: [userOrEmail.getValue()],
+        role: role,
+      })
+      .then(() => {
+        userOrEmail.reset()
+        setRole(null)
+        props.onClose()
+      })
+      .catch((error) => {
+        if (error.responseText && JSON.parse(error.responseText)?.invitees) {
+          notify(JSON.parse(error.responseText)?.invitees.join(), 'error')
+        } else {
+          notify(t('Failed to send invite'), 'error')
+        }
+      })
   }
 
   const handleClose = () => {
@@ -89,16 +89,17 @@ export default function InviteModal(props: ModalProps) {
             placeholder='Role'
             data={[
               {
-                value: OrganizationUserRole.admin,
+                value: MemberRoleEnum.admin,
                 label: t('Admin'),
               },
               {
-                value: OrganizationUserRole.member,
+                value: MemberRoleEnum.member,
                 label: t('Member'),
               },
             ]}
             value={role}
-            onChange={setRole}
+            // TODO: parameterize <Select/> to infer values from data property.
+            onChange={(value) => setRole(value as MemberRoleEnum)}
           />
         </Group>
         <Group w='100%' justify='flex-end'>

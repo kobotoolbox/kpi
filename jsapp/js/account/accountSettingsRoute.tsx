@@ -3,6 +3,7 @@ import './accountSettings.scss'
 import React, { useEffect, useState } from 'react'
 
 import { unstable_usePrompt as usePrompt } from 'react-router-dom'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import bem, { makeBem } from '#/bem'
 import Avatar from '#/components/common/avatar'
 import Button from '#/components/common/button'
@@ -15,7 +16,6 @@ import { useSession } from '../stores/useSession'
 import type { AccountFieldsErrors, AccountFieldsValues } from './account.constants'
 import { getInitialAccountFieldsValues, getProfilePatchData } from './account.utils'
 import AccountFieldsEditor from './accountFieldsEditor.component'
-import { useOrganizationQuery } from './organization/organizationQuery'
 
 bem.AccountSettings = makeBem(null, 'account-settings', 'form')
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left')
@@ -33,11 +33,10 @@ const AccountSettings = () => {
 
   const [displayedFields, setDisplayedFields] = useState<Array<keyof AccountFieldsValues>>([])
 
-  const orgQuery = useOrganizationQuery()
+  const [organization] = useOrganizationAssumed()
 
   useEffect(() => {
     if (!currentLoggedAccount) return
-    if(orgQuery.data?.status !== 200) return
 
     const fields = {
       name: currentLoggedAccount.extra_details.name,
@@ -60,8 +59,6 @@ const AccountSettings = () => {
 
     const fieldKeys = Object.keys(fields) as Array<keyof AccountFieldsValues>
 
-    const organization = orgQuery.data.data
-
     // We will not display organization fields if user is a member of an MMO,
     // only displaying these fields in organization settings view
     setDisplayedFields(
@@ -69,7 +66,7 @@ const AccountSettings = () => {
         ? fieldKeys.filter((key) => !['organization', 'organization_website', 'organization_type'].includes(key))
         : fieldKeys,
     )
-  }, [currentLoggedAccount, orgQuery.data])
+  }, [currentLoggedAccount, organization])
 
   usePrompt({
     when: !isPristine,
