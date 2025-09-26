@@ -13,7 +13,6 @@ from django.utils import timezone
 from django.utils.translation import gettext
 
 from kobo.apps.mass_emails.models import (
-    USER_QUERIES,
     EmailStatus,
     EmailType,
     MassEmailConfig,
@@ -340,7 +339,7 @@ def get_users_for_config(email_config):
     frequency > 1: Recurring emails
     """
     now = timezone.now()
-    users = USER_QUERIES.get(email_config.query, lambda: [])()
+    users = email_config.get_users_queryset()
     if email_config.frequency == -1:
         return users
     day_boundary = MassEmailSender.get_cache_key_date(now)

@@ -66,7 +66,13 @@ jobs:
         run: pip-sync dependencies/pip/dev_requirements.txt
 
       - name: Generate OpenAPI with drf-spectacular
-        run: ./scripts/generate_api.sh --skip-orval
+        run: |
+          if ./run.py -cf run --rm kpi ./scripts/generate_api.sh --skip-orval 2>&1 | tee /dev/tty | grep -q "Warning"; then
+            echo ""
+            echo "A warning found, aborted! Please treat drf-spectacular warnings as errors and resolve them."
+            echo "P.S. This is only the first warning. You may want to run the script locally to see all warnings at once."
+            exit 2
+          fi
 
       - name: Fail on uncommitted OpenAPI changes
         run: |

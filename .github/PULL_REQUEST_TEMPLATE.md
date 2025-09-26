@@ -2,7 +2,7 @@
 
 1. [ ] run linter locally
 2. [ ] update developer docs (API, README, inline, etc.), if any
-3. [ ] for user-facing doc changes create a Zulip thread at #Kobo support docs, if any
+3. [ ] for user-facing doc changes create a Zulip thread at `#Support Docs Updates`, if any
 4. [ ] draft PR with a title `<type>(<scope>)<!>: <title> DEV-1234`
 5. [ ] assign yourself, tag PR: at least `Front end` and/or `Back end` or `workflow`
 6. [ ] fill in the template below and delete template comments
