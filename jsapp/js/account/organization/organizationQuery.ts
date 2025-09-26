@@ -1,14 +1,13 @@
 import { useEffect } from 'react'
-
-import { useMutation } from '@tanstack/react-query'
-import { fetchPatch } from '#/api'
-import type { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import type { OrganizationTypeEnum } from '#/api/models/organizationTypeEnum'
-import { getOrganizationsRetrieveQueryKey, useOrganizationsRetrieve } from '#/api/react-query/organizations'
+import {
+  getOrganizationsRetrieveQueryKey,
+  useOrganizationsPartialUpdate,
+  useOrganizationsRetrieve,
+} from '#/api/react-query/organizations'
 import { queryClient } from '#/query/queryClient'
 import { QueryKeys } from '#/query/queryKeys'
 import { useSession } from '#/stores/useSession'
-
 
 export const ORGANIZATION_TYPES: { [P in OrganizationTypeEnum]: { name: P; label: string } } = {
   'non-profit': { name: 'non-profit', label: t('Non-profit organization') },
@@ -18,34 +17,26 @@ export const ORGANIZATION_TYPES: { [P in OrganizationTypeEnum]: { name: P; label
   none: { name: 'none', label: t('I am not associated with any organization') },
 }
 
-export interface Organization {
-  id: string
-  name: string
-  website: string
-  organization_type: OrganizationTypeEnum
-  created: string
-  modified: string
-  is_owner: boolean
-  is_mmo: boolean
-  request_user_role: MemberRoleEnum
-}
 /**
  * Mutation hook for updating organization. It ensures that all related queries
  * refetch data (are invalidated).
  */
 export function usePatchOrganization() {
   const session = useSession()
-  const organizationUrl = session.currentLoggedAccount?.organization?.url
+  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
 
-  return useMutation({
-    mutationFn: async (data: Partial<Organization>) =>
+  return useOrganizationsPartialUpdate({
+    mutation: {
+      onSettled: () => {
+        queryClient.invalidateQueries({ queryKey: getOrganizationsRetrieveQueryKey(organizationId!) })
+      },
+    },
+    request: {
       // We're asserting the `organizationUrl` is not `undefined` here, because
       // the parent query (`useOrganizationQuery`) wouldn't be enabled without
       // it. Plus all the organization-related UI is accessible only to
       // logged in users.
-      fetchPatch<Organization>(organizationUrl!, data, { prependRootUrl: false }),
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKeys.organization] })
+      prependRootUrl: false,
     },
   })
 }
@@ -62,7 +53,7 @@ interface OrganizationQueryParams {
  */
 export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
   const session = useSession()
-  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
+  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid!
 
   useEffect(() => {
     if (params?.shouldForceInvalidation) {
@@ -75,8 +66,7 @@ export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
 
   const query = useOrganizationsRetrieve(organizationId!, {
     query: {
-      enabled: !!organizationId,
-      queryKey: getOrganizationsRetrieveQueryKey(organizationId!),
+      queryKey: undefined as any, // Note: see Orval issue
       staleTime: 1000 * 60 * 2,
       throwOnError(error, query) {
         // `organizationUrl` must exist, unless it's changed (e.g. user added/removed from organization).
