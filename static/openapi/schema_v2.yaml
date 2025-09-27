@@ -11120,6 +11120,10 @@ components:
         * `admin` - admin
         * `member` - member
         * `owner` - owner
+    NullableServiceUsageBalanceData:
+      oneOf:
+      - $ref: '#/components/schemas/ServiceUsageBalanceData'
+      - type: 'null'
     OpenRosaXFormResponse:
       type: object
       properties:
@@ -11307,16 +11311,7 @@ components:
           - all_time
           - current_period
         balances:
-          type: object
-          properties:
-            submission:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-            storage_bytes:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-            asr_seconds:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-            mt_characters:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
+          $ref: '#/components/schemas/ServiceUsageBalances'
         current_period_start:
           type: string
           format: date-time
@@ -13203,12 +13198,28 @@ components:
         balance_percent:
           type: integer
         exceeded:
-          type: integer
+          type: boolean
       required:
       - balance_percent
       - balance_value
       - effective_limit
       - exceeded
+    ServiceUsageBalances:
+      type: object
+      properties:
+        submission:
+          $ref: '#/components/schemas/NullableServiceUsageBalanceData'
+        storage_bytes:
+          $ref: '#/components/schemas/NullableServiceUsageBalanceData'
+        asr_seconds:
+          $ref: '#/components/schemas/NullableServiceUsageBalanceData'
+        mt_characters:
+          $ref: '#/components/schemas/NullableServiceUsageBalanceData'
+      required:
+      - asr_seconds
+      - mt_characters
+      - storage_bytes
+      - submission
     ServiceUsageResponse:
       type: object
       properties:
@@ -13238,16 +13249,7 @@ components:
             current_period:
               type: integer
         balances:
-          type: object
-          properties:
-            submission:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-            storage_bytes:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-            asr_seconds:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-            mt_characters:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
+          $ref: '#/components/schemas/ServiceUsageBalances'
         current_period_start:
           type: string
           format: date-time
