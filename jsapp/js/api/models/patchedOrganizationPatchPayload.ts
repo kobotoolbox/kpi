@@ -5,9 +5,12 @@
  * Powerful and intuitive data collection tools to make an impact
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
+import type { OrganizationTypeEnum } from './organizationTypeEnum'
 
 export interface PatchedOrganizationPatchPayload {
+  /** @maxLength 200 */
   name?: string
+  /** @maxLength 255 */
   website?: string
-  organization_type?: string
+  organization_type?: OrganizationTypeEnum
 }

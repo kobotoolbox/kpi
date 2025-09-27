@@ -67,6 +67,7 @@ from .permissions import (
     OrgMembershipInvitePermission,
 )
 from .serializers import (
+    OrganizationResponseSerializer,
     OrganizationSerializer,
     OrganizationUserSerializer,
     OrgMembershipInviteSerializer,
@@ -119,7 +120,7 @@ class OrganizationAssetViewSet(AssetViewSet):
     list=extend_schema(
         description=read_md('kpi', 'organizations/org_list.md'),
         responses=open_api_200_ok_response(
-            OrganizationSerializer,
+            OrganizationResponseSerializer,
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
@@ -128,7 +129,7 @@ class OrganizationAssetViewSet(AssetViewSet):
     retrieve=extend_schema(
         description=read_md('kpi', 'organizations/org_retrieve.md'),
         responses=open_api_200_ok_response(
-            OrganizationSerializer,
+            OrganizationResponseSerializer,
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
@@ -138,7 +139,7 @@ class OrganizationAssetViewSet(AssetViewSet):
         description=read_md('kpi', 'organizations/org_update.md'),
         request={'application/json': OrganizationPatchPayload},
         responses=open_api_200_ok_response(
-            OrganizationSerializer,
+            OrganizationResponseSerializer,
             require_auth=False,
             raise_access_forbidden=False,
         ),
