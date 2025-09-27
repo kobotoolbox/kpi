@@ -7,9 +7,4 @@
  */
 import type { ServiceUsageBalanceData } from './serviceUsageBalanceData'
 
-export type ServiceUsageResponseBalances = {
-  submission?: ServiceUsageBalanceData
-  storage_bytes?: ServiceUsageBalanceData
-  asr_seconds?: ServiceUsageBalanceData
-  mt_characters?: ServiceUsageBalanceData
-}
+export type NullableServiceUsageBalanceData = ServiceUsageBalanceData | null

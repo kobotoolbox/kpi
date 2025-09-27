@@ -16001,6 +16001,16 @@
                 "type": "string",
                 "description": "* `admin` - admin\n* `member` - member\n* `owner` - owner"
             },
+            "NullableServiceUsageBalanceData": {
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/ServiceUsageBalanceData"
+                    },
+                    {
+                        "type": "null"
+                    }
+                ]
+            },
             "OneTimeAddOn": {
                 "type": "object",
                 "properties": {
@@ -16301,24 +16311,14 @@
                             "current_period": {
                                 "type": "integer"
                             }
-                        }
+                        },
+                        "required": [
+                            "all_time",
+                            "current_period"
+                        ]
                     },
                     "balances": {
-                        "type": "object",
-                        "properties": {
-                            "submission": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
-                            },
-                            "storage_bytes": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
-                            },
-                            "asr_seconds": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
-                            },
-                            "mt_characters": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
-                            }
-                        }
+                        "$ref": "#/components/schemas/ServiceUsageBalances"
                     },
                     "current_period_start": {
                         "type": "string",
@@ -19277,7 +19277,7 @@
                         "type": "integer"
                     },
                     "exceeded": {
-                        "type": "integer"
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -19285,6 +19285,29 @@
                     "balance_value",
                     "effective_limit",
                     "exceeded"
+                ]
+            },
+            "ServiceUsageBalances": {
+                "type": "object",
+                "properties": {
+                    "submission": {
+                        "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
+                    },
+                    "storage_bytes": {
+                        "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
+                    },
+                    "asr_seconds": {
+                        "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
+                    },
+                    "mt_characters": {
+                        "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
+                    }
+                },
+                "required": [
+                    "asr_seconds",
+                    "mt_characters",
+                    "storage_bytes",
+                    "submission"
                 ]
             },
             "ServiceUsageResponse": {
@@ -19328,21 +19351,7 @@
                         }
                     },
                     "balances": {
-                        "type": "object",
-                        "properties": {
-                            "submission": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
-                            },
-                            "storage_bytes": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
-                            },
-                            "asr_seconds": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
-                            },
-                            "mt_characters": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
-                            }
-                        }
+                        "$ref": "#/components/schemas/ServiceUsageBalances"
                     },
                     "current_period_start": {
                         "type": "string",
