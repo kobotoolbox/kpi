@@ -19195,7 +19195,7 @@
                 "type": "object",
                 "properties": {
                     "interval": {
-                        "$ref": "#/components/schemas/StripeUsageType"
+                        "$ref": "#/components/schemas/StripeIntervalEnum"
                     },
                     "interval_count": {
                         "type": "integer"
@@ -19205,7 +19205,7 @@
                         "nullable": true
                     },
                     "usage_type": {
-                        "$ref": "#/components/schemas/StripeIntervalEnum"
+                        "$ref": "#/components/schemas/StripeUsageType"
                     }
                 },
                 "required": [

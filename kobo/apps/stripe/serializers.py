@@ -43,10 +43,10 @@ class BaseProductSerializer(serializers.ModelSerializer):
 
 
 class RecurringSerializer(serializers.Serializer):
-    interval = serializers.ChoiceField(choices=USAGE_TYPE_ENUM)
+    interval = serializers.ChoiceField(choices=INTERVAL_ENUM)
     interval_count = serializers.IntegerField()
     meter = serializers.CharField(required=False, allow_null=True)
-    usage_type = serializers.ChoiceField(choices=INTERVAL_ENUM)
+    usage_type = serializers.ChoiceField(choices=USAGE_TYPE_ENUM)
 
 
 class BasePriceSerializer(serializers.ModelSerializer):
