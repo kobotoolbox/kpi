@@ -5,8 +5,8 @@ import { endpoints } from '#/api.endpoints'
 import { USAGE_WARNING_RATIO } from '#/constants'
 import { queryClient } from '#/query/queryClient'
 import { QueryKeys } from '#/query/queryKeys'
+import { useSession } from '#/stores/useSession'
 import { convertSecondsToMinutes, formatRelativeTime, recordEntries } from '#/utils'
-import { useOrganizationQuery } from '../organization/organizationQuery'
 import { UsageLimitTypes } from '../stripe.types'
 
 interface UsageBalance {
@@ -119,23 +119,25 @@ interface ServiceUsageQueryParams {
 }
 
 export const useServiceUsageQuery = (params?: ServiceUsageQueryParams): UseQueryResult<UsageState | undefined> => {
-  const { data: organizationData } = useOrganizationQuery()
+  // Note: not using `useOrganizationAssumed` due being used within routes that accessible by anonymous user as well.
+  const session = useSession()
+  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
 
   useEffect(() => {
     if (params?.shouldForceInvalidation) {
       queryClient.invalidateQueries({
-        queryKey: [QueryKeys.serviceUsage, organizationData?.id],
+        queryKey: [QueryKeys.serviceUsage, organizationId],
         refetchType: 'none',
       })
     }
   }, [params?.shouldForceInvalidation])
 
   return useQuery({
-    queryKey: [QueryKeys.serviceUsage, organizationData?.id],
-    queryFn: () => loadUsage(organizationData?.id || null),
+    queryKey: [QueryKeys.serviceUsage, organizationId],
+    queryFn: () => loadUsage(organizationId || null),
     // A low stale time is needed to avoid calling the API twice on some situations
     // (e.g. usage component that contains limits banner which also uses this query).
     staleTime: 1000 * 60, // 1 minute stale time
-    enabled: !!organizationData,
+    enabled: !!organizationId,
   })
 }

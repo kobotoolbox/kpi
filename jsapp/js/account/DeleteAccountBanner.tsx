@@ -4,13 +4,13 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchGet } from '#/api'
 import { endpoints } from '#/api.endpoints'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/ButtonNew'
 import type { AssetResponse, PaginatedResponse } from '#/dataInterface'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
 import { useSession } from '#/stores/useSession'
 import styles from './DeleteAccountBanner.module.scss'
 import DeleteAccountModal from './DeleteAccountModal'
-import { useOrganizationQuery } from './organization/organizationQuery'
 
 interface DeleteAccountBannerProps {
   /** Internal property used in stories file. */
@@ -21,9 +21,9 @@ export default function DeleteAccountBanner(props: DeleteAccountBannerProps) {
   const [isModalOpened, { open, close }] = useDisclosure(false)
   const navigate = useNavigate()
   const session = useSession()
-  const orgQuery = useOrganizationQuery()
+  const [organization] = useOrganizationAssumed()
   const [isAccountWithoutAssets, setIsAccountWithoutAssets] = useState<boolean | undefined>(undefined)
-  const isAccountOrganizationOwner = orgQuery.data?.is_mmo && orgQuery.data?.is_owner
+  const isAccountOrganizationOwner = organization.is_mmo && organization.is_owner
 
   useEffect(() => {
     const username = session.currentLoggedAccount.username

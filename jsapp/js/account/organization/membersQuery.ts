@@ -1,13 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchDelete, fetchGet, fetchPatch } from '#/api'
 import { endpoints } from '#/api.endpoints'
+import type { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { getOrganizationsRetrieveQueryKey } from '#/api/react-query/organizations'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import type { Json } from '#/components/common/common.interfaces'
 import type { Nullable } from '#/constants'
 import type { PaginatedResponse } from '#/dataInterface'
 import { QueryKeys } from '#/query/queryKeys'
 import { useSession } from '#/stores/useSession'
 import type { MemberInvite } from './membersInviteQuery'
-import { type OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 
 export interface OrganizationMember {
   /**
@@ -22,7 +24,7 @@ export interface OrganizationMember {
   user__email: string | ''
   /** can be an empty string in some edge cases */
   user__extra_details__name: string | ''
-  role: OrganizationUserRole
+  role: MemberRoleEnum
   user__has_mfa_enabled: boolean
   user__is_active: boolean
   /** yyyy-mm-dd HH:MM:SS */
@@ -43,9 +45,7 @@ function getMemberEndpoint(orgId: string, username: string) {
  */
 export function usePatchOrganizationMember(username: string) {
   const queryClient = useQueryClient()
-
-  const orgQuery = useOrganizationQuery()
-  const orgId = orgQuery.data?.id
+  const [organization] = useOrganizationAssumed()
 
   return useMutation({
     mutationFn: async (data: Partial<OrganizationMember>) =>
@@ -53,7 +53,7 @@ export function usePatchOrganizationMember(username: string) {
       // query (`useOrganizationMembersQuery`) wouldn't be enabled without it.
       // Plus all the organization-related UI (that would use this hook) is
       // accessible only to logged in users.
-      fetchPatch<OrganizationMember>(getMemberEndpoint(orgId!, username), data as Json),
+      fetchPatch<OrganizationMember>(getMemberEndpoint(organization.id, username), data as Json),
     onMutate: async (mutationData) => {
       if (mutationData.role) {
         // If we are updating the user's role, we want to optimistically update their role in queries for
@@ -92,8 +92,7 @@ export function useRemoveOrganizationMember() {
 
   const session = useSession()
 
-  const orgQuery = useOrganizationQuery()
-  const orgId = orgQuery.data?.id
+  const [organization] = useOrganizationAssumed()
 
   return useMutation({
     mutationFn: async (username: string) =>
@@ -101,16 +100,14 @@ export function useRemoveOrganizationMember() {
       // query (`useOrganizationMembersQuery`) wouldn't be enabled without it.
       // Plus all the organization-related UI (that would use this hook) is
       // accessible only to logged in users.
-      fetchDelete(getMemberEndpoint(orgId!, username)),
+      fetchDelete(getMemberEndpoint(organization.id, username)),
     onSuccess: (_data, username) => {
       if (username === session.currentLoggedAccount?.username) {
         // If user is removing themselves, we need to clear the session
         session.refreshAccount()
-      } else {
-        queryClient.invalidateQueries({
-          queryKey: [QueryKeys.organizationMembers],
-        })
+        queryClient.invalidateQueries({ queryKey: getOrganizationsRetrieveQueryKey(organization.id) })
       }
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMembers] })
     },
   })
 }
@@ -138,14 +135,15 @@ export async function getOrganizationMembers(limit: number, offset: number, orgI
 }
 
 export function useOrganizationMemberDetailQuery(username: string, notifyAboutError = true) {
-  const orgQuery = useOrganizationQuery()
-  const orgId = orgQuery.data?.id
+  const [organization] = useOrganizationAssumed()
   // `orgId!` because it's ensured to be there in `enabled` property :ok:
-  const apiPath = endpoints.ORGANIZATION_MEMBER_URL.replace(':organization_id', orgId!).replace(':username', username)
+  const apiPath = endpoints.ORGANIZATION_MEMBER_URL.replace(':organization_id', organization.id).replace(
+    ':username',
+    username,
+  )
   return useQuery({
     queryFn: () => fetchGet<OrganizationMemberListItem>(apiPath, { notifyAboutError }),
     queryKey: [QueryKeys.organizationMemberDetail, apiPath, notifyAboutError],
-    enabled: !!orgId,
     retry: false,
     refetchOnWindowFocus: false,
   })
