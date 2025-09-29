@@ -10,7 +10,6 @@ import { useSession } from '#/stores/useSession'
 import { convertSecondsToMinutes, formatRelativeTime, recordEntries } from '#/utils'
 import { UsageLimitTypes } from '../stripe.types'
 
-
 export interface OrganizationsServiceUsageSummary {
   storage: number
   submissions: number
