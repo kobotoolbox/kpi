@@ -4,7 +4,7 @@
     "paths": {
       "#/*": ["./jsapp/js/*"],
       "js/*": ["./jsapp/js/*"], // for scss files only.
-      "scss/*": ["./jsapp/scss/*"], // for scss files only.
+      "scss/*": ["./jsapp/scss/*"] // for scss files only.
     },
     "target": "es2017",
     "module": "es2020",
