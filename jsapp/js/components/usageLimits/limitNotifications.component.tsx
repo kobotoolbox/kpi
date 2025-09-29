@@ -4,7 +4,7 @@ import { Cookies } from 'react-cookie'
 import { UsageLimitTypes } from '#/account/stripe.types'
 import { useServiceUsageQuery } from '#/account/usage/useServiceUsageQuery'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
-import { useOrganizationsRetrieve } from '#/api/react-query/organizations'
+import { getOrganizationsRetrieveQueryKey, useOrganizationsRetrieve } from '#/api/react-query/organizations'
 import LimitBanner from '#/components/usageLimits/overLimitBanner.component'
 import LimitModal from '#/components/usageLimits/overLimitModal.component'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
@@ -25,7 +25,12 @@ const LimitNotifications = ({ pageCanShowModal = false, accountPage = false }: L
 
   const session = useSession()
   const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
-  const orgQuery = useOrganizationsRetrieve(organizationId!)
+  const orgQuery = useOrganizationsRetrieve(organizationId!, {
+    query: {
+      queryKey: getOrganizationsRetrieveQueryKey(organizationId!), // Note: see Orval issue https://github.com/orval-labs/orval/issues/2396
+      staleTime: Number.POSITIVE_INFINITY,
+    },
+  })
 
   // Only show modal on certain pages (set by parent), only to non-MMO users and MMO users with role of 'owner',
   // and only show if list of exceeded limits includes storage or submissions

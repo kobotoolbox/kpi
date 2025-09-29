@@ -1,5 +1,5 @@
 import type React from 'react'
-import { useOrganizationsRetrieve } from '#/api/react-query/organizations'
+import { getOrganizationsRetrieveQueryKey, useOrganizationsRetrieve } from '#/api/react-query/organizations'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { useSession } from '#/stores/useSession'
 
@@ -13,10 +13,11 @@ export const RequireOrg = ({ children }: { children: React.ReactNode }) => {
   const session = useSession()
   const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
 
+
   const orgQuery = useOrganizationsRetrieve(organizationId!, {
     query: {
-      staleTime: 0, // As per default, always refetch on re-mount (e.g. refresh) and re-focus.
-      queryKey: undefined as any, // Note: see Orval issue https://github.com/orval-labs/orval/issues/2396
+      staleTime: Number.POSITIVE_INFINITY, // It will refetch on refresh or 404 anyways, no need to fetch proactively.
+      queryKey: getOrganizationsRetrieveQueryKey(organizationId!), // Note: see Orval issue https://github.com/orval-labs/orval/issues/2396
       throwOnError(_error, query) {
         // `organizationId` must exist, unless it's changed (e.g. user added/removed from organization).
         // In such case, refetch `organizationId` to fetch the new organization.
@@ -42,6 +43,7 @@ export const RequireOrg = ({ children }: { children: React.ReactNode }) => {
   if (orgQuery.data?.status !== 200) {
     return <LoadingSpinner />
   }
+
 
   return children
 }

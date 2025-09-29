@@ -2,7 +2,7 @@ import type { UseQueryOptions } from '@tanstack/react-query'
 import type React from 'react'
 import type { ErrorDetail } from '#/api/models/errorDetail'
 import type { organizationsRetrieveResponse } from '#/api/react-query/organizations'
-import { useOrganizationsRetrieve } from '#/api/react-query/organizations'
+import { getOrganizationsRetrieveQueryKey, useOrganizationsRetrieve } from '#/api/react-query/organizations'
 import { useSession } from '#/stores/useSession'
 
 /**
@@ -26,7 +26,7 @@ export const useOrganizationAssumed = (
     query: {
       staleTime: Number.POSITIVE_INFINITY, // dont refetch, let <RequireOrg /> deal with in one place.
       ...options,
-      queryKey: undefined as any, // Note: `any` is a workaround, see https://github.com/orval-labs/orval/issues/2396
+      queryKey: getOrganizationsRetrieveQueryKey(organizationId!), // Note: see Orval issue https://github.com/orval-labs/orval/issues/2396
     },
   })
 
