@@ -64,7 +64,11 @@ def poll_run_automated_process_failure(sender=None, **kwargs):
     action_id = kwargs['kwargs']['action_id']
     action_data = kwargs['kwargs']['action_data']
 
-    asset = Asset.objects.only('pk', 'owner_id', 'advanced_features').get(id=asset_id)
+    asset = (
+        Asset.objects.only('pk', 'owner_id', 'advanced_features')
+        .select_related('owner')
+        .get(id=asset_id)
+    )
 
     supplemental_data = SubmissionSupplement.retrieve_data(
         asset, submission_root_uuid=submission[SUBMISSION_UUID_FIELD]
@@ -76,14 +80,19 @@ def poll_run_automated_process_failure(sender=None, **kwargs):
     action_configs = asset.advanced_features['_actionConfigs']
     action_configs_for_this_question = action_configs[question_xpath]
     action_params = action_configs_for_this_question[action_id]
-    action = action_class(question_xpath, action_params)
+    action = action_class(question_xpath, action_params, asset=asset)
+    action.get_action_dependencies(supplemental_data[question_xpath])
 
     action_supplemental_data = supplemental_data[question_xpath][action_id]
     action_data.update({
         'error': error,
-        'status': 'failed', # TODO maybe add dependency?
+        'status': 'failed',
     })
-    dependency_supplemental_data = {}
+    # FIXME We assume that the last action is the one in progress but it could
+    #   be another one.
+    dependency_supplemental_data = action_supplemental_data['_versions'][0].get(
+        action.DEPENDENCY_FIELD
+    )
 
     new_action_supplemental_data = action.get_new_action_supplemental_data(
         action_supplemental_data, action_data, dependency_supplemental_data
