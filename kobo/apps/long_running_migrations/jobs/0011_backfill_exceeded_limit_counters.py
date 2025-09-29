@@ -14,15 +14,18 @@ CHUNK_SIZE = 1000
 
 
 def process_user(user_id, username):
+    print(f'Checking exceeded limits for {username}...')
     counter = ExceededLimitCounter.objects.filter(
         user_id=user_id,
         limit_type=UsageType.STORAGE_BYTES,
     ).first()
+    user = User.objects.get(pk=user_id)
     if counter is None:
-        print(f'Checking exceeded limits for {username}...')
-        user = User.objects.get(pk=user_id)
         counter = check_exceeded_limit(user, UsageType.STORAGE_BYTES)
-        return 1 if counter else 0
+
+    user.extra_details.data['done_storage_limits_check'] = True
+    user.extra_details.save()
+    return 1 if counter is None else 0
 
 
 def get_queryset(from_user_pk: int) -> QuerySet:
@@ -30,8 +33,10 @@ def get_queryset(from_user_pk: int) -> QuerySet:
         User.objects.order_by('pk')
         .filter(
             pk__gt=from_user_pk,
-            # Filter organization admins
-            organizations_organizationuser__is_admin=True,
+            # Filter organization owners only
+            organizations_organizationuser__organizationowner__id__isnull=False,
+            # Filter out users that already went through the exceeded limits check
+            extra_details__data__done_storage_limits_check__isnull=True,
         )
         .values('id', 'username')[:CHUNK_SIZE]
     )
@@ -41,7 +46,7 @@ def get_queryset(from_user_pk: int) -> QuerySet:
 
 def run():
     """
-    Checks exceeded storage limits on all users
+    Checks exceeded storage limits on all users for the STORAGE_BYTES usage type
     """
     if not settings.STRIPE_ENABLED:
         print('Nothing to do because Stripe is disabled.')
