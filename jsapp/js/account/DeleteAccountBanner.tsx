@@ -55,7 +55,11 @@ export default function DeleteAccountBanner(props: DeleteAccountBannerProps) {
     } else if (isAccountWithoutAssets === false) {
       return (
         <Group gap='4px'>
-          <Text>{t('You need to delete all projects owned by your user before you can delete your account.')}</Text>
+          <Text>
+            {t(
+              'You need to delete or transfer ownership of all projects owned by your user before you can delete your account.',
+            )}
+          </Text>
 
           <Button p='0' size='sm' onClick={goToProjectsList} rightIcon='arrow-right' variant='transparent'>
             {t('Go to project list')}
