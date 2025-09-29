@@ -38,7 +38,7 @@ import envStore from '#/envStore'
 import type { IconName } from '#/k-icons'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME_URL } from '#/users/utils'
-import { currentLang } from '#/utils'
+import { currentLang, recordKeys } from '#/utils'
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -669,14 +669,14 @@ export function getAssetProcessingRows(assetUid: string) {
   const foundAsset = assetStore.getAsset(assetUid)
   if (foundAsset?.advanced_submission_schema?.properties) {
     const rows: string[] = []
-    Object.keys(foundAsset.advanced_submission_schema.properties).forEach((propertyName) => {
+    recordKeys(foundAsset.advanced_submission_schema.properties).forEach((propertyName) => {
       if (foundAsset.advanced_submission_schema?.properties !== undefined) {
         const propertyObj = foundAsset.advanced_submission_schema.properties[propertyName]
         // NOTE: we assume that the properties will hold only a special string
         // "submission" property and one object property for each
         // processing-enabled row.
         if (propertyObj.type === 'object') {
-          rows.push(propertyName)
+          rows.push(propertyName as string)
         }
       }
     })

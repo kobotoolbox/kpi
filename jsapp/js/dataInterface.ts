@@ -36,7 +36,7 @@ import type {
 } from './components/projectDownloads/exportsConstants'
 import { COMMON_QUERIES, ROOT_URL } from './constants'
 import type { ProjectViewsSettings } from './projects/customViewStore'
-import type { LangString } from './utils'
+import { type LangString, recordEntries } from './utils'
 
 interface AssetsRequestData {
   q?: string
@@ -313,9 +313,7 @@ export interface PartialPermissionFilterByUsers {
   _submitted_by?: string | { $in: string[] }
 }
 
-export interface PartialPermissionFilterByResponses {
-  [questionName: string]: string
-}
+export type PartialPermissionFilterByResponses = Record<string, string>
 
 /**
  * Filter can have properties of both of these interfaces, thus we use union
@@ -1807,8 +1805,8 @@ export const dataInterface: DataInterface = {
 
   createImport(data: CreateImportRequest): JQuery.jqXHR<any> {
     const formData = new FormData()
-    for (const [key, value] of Object.entries(data)) {
-      formData.append(key, value)
+    for (const [key, value] of recordEntries(data)) {
+      formData.append(key, value as string)
     }
 
     return $ajax({
@@ -1940,8 +1938,8 @@ export const dataInterface: DataInterface = {
 
   uploadAssetFile(uid: string, data: AssetFileRequest): JQuery.jqXHR<any> {
     const formData = new FormData()
-    for (const [key, value] of Object.entries(data)) {
-      formData.append(key, value)
+    for (const [key, value] of recordEntries(data)) {
+      formData.append(key, value as string)
     }
 
     return $ajax({

@@ -5,7 +5,7 @@ import { endpoints } from '#/api.endpoints'
 import { USAGE_WARNING_RATIO } from '#/constants'
 import { queryClient } from '#/query/queryClient'
 import { QueryKeys } from '#/query/queryKeys'
-import { convertSecondsToMinutes, formatRelativeTime } from '#/utils'
+import { convertSecondsToMinutes, formatRelativeTime, recordEntries } from '#/utils'
 import { useOrganizationQuery } from '../organization/organizationQuery'
 import { UsageLimitTypes } from '../stripe.types'
 
@@ -89,11 +89,9 @@ const loadUsage = async (organizationId: string | null): Promise<UsageState | un
   const limitWarningList: UsageLimitTypes[] = []
   const limitExceedList: UsageLimitTypes[] = []
 
-  Object.keys(usage.balances).forEach((key) => {
-    const balance = usage.balances[key as keyof UsageResponse['balances']]
-
+  recordEntries(usage.balances).forEach(([key, balance]) => {
     // Mapping the balance to our Stripe's UsageLimitTypes enum
-    const limitType = usageBalanceKeyMapping[key as keyof typeof usageBalanceKeyMapping]
+    const limitType = usageBalanceKeyMapping[key]
 
     if (balance?.exceeded) {
       limitExceedList.push(limitType)

@@ -9,7 +9,7 @@ import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
 import envStore from '#/envStore'
-import { notify } from '#/utils'
+import { notify, recordKeys } from '#/utils'
 import { dataInterface } from '../dataInterface'
 import { useSession } from '../stores/useSession'
 import DeleteAccountBanner from './DeleteAccountBanner'
@@ -61,7 +61,7 @@ const AccountSettings = () => {
 
     setFormFields(fields)
 
-    const fieldKeys = Object.keys(fields) as Array<keyof AccountFieldsValues>
+    const fieldKeys = recordKeys(fields)
 
     const organization = orgQuery.data
 

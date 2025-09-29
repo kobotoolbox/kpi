@@ -5,6 +5,7 @@ import { generatePath, matchPath } from 'react-router-dom'
 import { router } from '#/router/legacy'
 import { PROCESSING_ROUTES, PROCESSING_ROUTE_GENERIC, ROUTES } from '#/router/routerConstants'
 import { getCurrentPath } from '#/router/routerUtils'
+import { recordValues } from '#/utils'
 
 /**
  * This is a list of available tabs in Single Processing View. Each tab uses
@@ -61,7 +62,7 @@ export function getProcessingRouteParts(path: string): ProcessingRouteParts {
   output.submissionEditId = matchProfile.params.submissionEditId as string
   if (
     'tabName' in matchProfile.params &&
-    Object.values(ProcessingTab).includes(matchProfile.params.tabName as ProcessingTab)
+    recordValues(ProcessingTab).includes(matchProfile.params.tabName as ProcessingTab)
   ) {
     output.tabName = matchProfile.params.tabName as ProcessingTab
   }
