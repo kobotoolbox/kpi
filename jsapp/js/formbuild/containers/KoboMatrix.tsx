@@ -812,7 +812,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
           </bem.MatrixItems__item>
         </bem.MatrixItems>
         <bem.MatrixItemsNewCol>
-          <i className='k-icon k-icon-plus' onClick={this.newColumn} />
+          <i title={t('Add new column')} className='k-icon k-icon-plus' onClick={this.newColumn} />
         </bem.MatrixItemsNewCol>
       </bem.Matrix>
     )
