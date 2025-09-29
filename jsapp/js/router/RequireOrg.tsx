@@ -13,7 +13,6 @@ export const RequireOrg = ({ children }: { children: React.ReactNode }) => {
   const session = useSession()
   const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
 
-
   const orgQuery = useOrganizationsRetrieve(organizationId!, {
     query: {
       staleTime: Number.POSITIVE_INFINITY, // It will refetch on refresh or 404 anyways, no need to fetch proactively.
@@ -43,7 +42,6 @@ export const RequireOrg = ({ children }: { children: React.ReactNode }) => {
   if (orgQuery.data?.status !== 200) {
     return <LoadingSpinner />
   }
-
 
   return children
 }
