@@ -2,10 +2,10 @@ import { type UseQueryResult, useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { fetchGet } from '#/api'
 import { endpoints } from '#/api.endpoints'
-import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import { USAGE_WARNING_RATIO } from '#/constants'
 import { queryClient } from '#/query/queryClient'
 import { QueryKeys } from '#/query/queryKeys'
+import { useSession } from '#/stores/useSession'
 import { convertSecondsToMinutes, formatRelativeTime, recordEntries } from '#/utils'
 import { UsageLimitTypes } from '../stripe.types'
 
@@ -119,22 +119,24 @@ interface ServiceUsageQueryParams {
 }
 
 export const useServiceUsageQuery = (params?: ServiceUsageQueryParams): UseQueryResult<UsageState | undefined> => {
-  const [organization] = useOrganizationAssumed()
+  const session = useSession()
+  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid!
 
   useEffect(() => {
     if (params?.shouldForceInvalidation) {
       queryClient.invalidateQueries({
-        queryKey: [QueryKeys.serviceUsage, organization.id],
+        queryKey: [QueryKeys.serviceUsage, organizationId],
         refetchType: 'none',
       })
     }
   }, [params?.shouldForceInvalidation])
 
   return useQuery({
-    queryKey: [QueryKeys.serviceUsage, organization.id],
-    queryFn: () => loadUsage(organization.id || null),
+    queryKey: [QueryKeys.serviceUsage, organizationId],
+    queryFn: () => loadUsage(organizationId || null),
     // A low stale time is needed to avoid calling the API twice on some situations
     // (e.g. usage component that contains limits banner which also uses this query).
     staleTime: 1000 * 60, // 1 minute stale time
+    enabled: !!organizationId,
   })
 }
