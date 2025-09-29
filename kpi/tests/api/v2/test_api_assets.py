@@ -877,12 +877,8 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         self.client.force_login(self.anotheruser)
         data = {
             'advanced_features': {
-                'transcript': {
-                    'languages': ['en']
-                },
-                'translation': {
-                    'languages': []
-                },
+                'transcript': {'languages': ['en']},
+                'translation': {'languages': []},
             },
         }
 
