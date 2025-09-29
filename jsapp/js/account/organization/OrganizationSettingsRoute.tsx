@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 
-import type { P } from 'msw/lib/core/HttpResponse-CKZrrwKE'
 import styles from '#/account/organization/organizationSettingsRoute.module.scss'
 import subscriptionStore from '#/account/subscriptionStore'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
@@ -18,7 +17,7 @@ import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
 import { queryClient } from '#/query/queryClient'
 import { getSimpleMMOLabel } from './organization.utils'
 
-export const ORGANIZATION_TYPES: Record<OrganizationTypeEnum, { name: P; label: string }> = {
+export const ORGANIZATION_TYPES: { [P in OrganizationTypeEnum]: { name: P; label: string } } = {
   'non-profit': { name: 'non-profit', label: t('Non-profit organization') },
   government: { name: 'government', label: t('Government institution') },
   educational: { name: 'educational', label: t('Educational organization') },
