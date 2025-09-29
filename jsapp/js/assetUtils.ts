@@ -676,7 +676,7 @@ export function getAssetProcessingRows(assetUid: string) {
         // "submission" property and one object property for each
         // processing-enabled row.
         if (propertyObj.type === 'object') {
-          rows.push(propertyName as string)
+          rows.push(propertyName)
         }
       }
     })

@@ -557,17 +557,16 @@ export interface AssetAdvancedFeatures {
   }
 }
 
-interface AdvancedSubmissionSchemaDefinition {
-  [name: string]: {
-    type?: 'string' | 'object'
-    description?: string
-    properties?: { [name: string]: {} }
-    additionalProperties?: boolean
-    required?: string[]
-    anyOf?: Array<{ $ref: string }>
-    allOf?: Array<{ $ref: string }>
-  }
+interface AdvancedSubmissionSchemaDefinitionValue {
+  type?: 'string' | 'object'
+  description?: string
+  properties?: { [name: string]: {} }
+  additionalProperties?: boolean
+  required?: string[]
+  anyOf?: Array<{ $ref: string }>
+  allOf?: Array<{ $ref: string }>
 }
+type AdvancedSubmissionSchemaDefinition = Record<string, AdvancedSubmissionSchemaDefinitionValue>
 
 export interface TableSortBySetting {
   fieldId: string
