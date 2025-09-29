@@ -1,5 +1,5 @@
 @use 'scss/colors';
-@use 'js/components/common/button';
+@use '#/components/common/button';
 
 .mini-audio-player {
   display: flex;

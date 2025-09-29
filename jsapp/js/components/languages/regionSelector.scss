@@ -1,6 +1,6 @@
 @use 'scss/colors';
 @use 'scss/mixins';
-@use 'js/components/common/button';
+@use '#/components/common/button';
 
 .region-selector {
   @include mixins.centerRowFlex;
