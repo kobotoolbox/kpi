@@ -15,7 +15,8 @@
       "kobo/apps/openrosa/apps/logger/fixtures/*",
       "kpi/static/js/swagger/swagger-ui-bundle.js",
       "kpi/static/js/swagger/swagger-ui-standalone-preset.js",
-      "msw-mocks/*"
+      "msw-mocks/*",
+      "package.json"
     ]
   },
   "vcs": {

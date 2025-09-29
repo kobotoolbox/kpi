@@ -69,7 +69,7 @@ const usageBalanceKeyMapping = {
   mt_characters: UsageLimitTypes.TRANSLATION,
 }
 
-const loadUsage = async (organizationId: string | null): Promise<UsageState | undefined> => {
+const loadUsage = async (organizationId: string | null): Promise<UsageState> => {
   if (!organizationId) {
     throw Error(t('No organization found'))
   }
@@ -120,7 +120,7 @@ interface ServiceUsageQueryParams {
   shouldForceInvalidation?: boolean
 }
 
-export const useServiceUsageQuery = (params?: ServiceUsageQueryParams): UseQueryResult<UsageState | undefined> => {
+export const useServiceUsageQuery = (params?: ServiceUsageQueryParams): UseQueryResult<UsageState> => {
   const { data: organizationData } = useOrganizationQuery()
 
   useEffect(() => {
