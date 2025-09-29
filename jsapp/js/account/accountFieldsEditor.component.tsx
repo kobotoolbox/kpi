@@ -11,7 +11,6 @@ import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from './
 import styles from './accountFieldsEditor.module.scss'
 import { ORGANIZATION_TYPES } from './organization/OrganizationSettingsRoute'
 
-// REVIEWER: unrelated refactor
 const ORGANIZATION_TYPE_SELECT_OPTIONS = recordValues(ORGANIZATION_TYPES).map(({ name, label }) => {
   return {
     value: name,

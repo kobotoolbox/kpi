@@ -16,7 +16,7 @@ export const RequireOrg = ({ children }: { children: React.ReactNode }) => {
   const orgQuery = useOrganizationsRetrieve(organizationId!, {
     query: {
       staleTime: 0, // As per default, always refetch on re-mount (e.g. refresh) and re-focus.
-      queryKey: undefined as any, // Note: see Orval issue
+      queryKey: undefined as any, // Note: see Orval issue https://github.com/orval-labs/orval/issues/2396
       throwOnError(_error, query) {
         // `organizationId` must exist, unless it's changed (e.g. user added/removed from organization).
         // In such case, refetch `organizationId` to fetch the new organization.

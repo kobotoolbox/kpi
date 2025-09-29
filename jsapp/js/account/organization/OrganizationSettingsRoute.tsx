@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 
+import type { P } from 'msw/lib/core/HttpResponse-CKZrrwKE'
 import styles from '#/account/organization/organizationSettingsRoute.module.scss'
 import subscriptionStore from '#/account/subscriptionStore'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
@@ -17,7 +18,7 @@ import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
 import { queryClient } from '#/query/queryClient'
 import { getSimpleMMOLabel } from './organization.utils'
 
-export const ORGANIZATION_TYPES: { [P in OrganizationTypeEnum]: { name: P; label: string } } = {
+export const ORGANIZATION_TYPES: Record<OrganizationTypeEnum, { name: P; label: string }> = {
   'non-profit': { name: 'non-profit', label: t('Non-profit organization') },
   government: { name: 'government', label: t('Government institution') },
   educational: { name: 'educational', label: t('Educational organization') },
@@ -40,13 +41,6 @@ export default function OrganizationSettingsRoute() {
       onSettled: () => {
         queryClient.invalidateQueries({ queryKey: getOrganizationsRetrieveQueryKey(organization.id) })
       },
-    },
-    request: {
-      // We're asserting the `organizationUrl` is not `undefined` here, because
-      // the parent query (`useOrganizationQuery`) wouldn't be enabled without
-      // it. Plus all the organization-related UI is accessible only to
-      // logged in users.
-      prependRootUrl: false,
     },
   })
 
@@ -179,7 +173,6 @@ export default function OrganizationSettingsRoute() {
           size='m'
           label={t('Save')}
           isDisabled={!isUserAdminOrOwner}
-          // REVIEWER: I think here was a bug, fixed along the way.
           isPending={orgQuery.isFetching || patchOrganization.isPending}
           isSubmit
         />

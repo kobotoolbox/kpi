@@ -119,6 +119,7 @@ interface ServiceUsageQueryParams {
 }
 
 export const useServiceUsageQuery = (params?: ServiceUsageQueryParams): UseQueryResult<UsageState | undefined> => {
+  // Note: not using `useOrganizationAssumed` due being used within routes that accessible by anonymous user as well.
   const session = useSession()
   const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
 
