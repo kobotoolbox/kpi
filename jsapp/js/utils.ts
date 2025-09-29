@@ -22,20 +22,25 @@ import type { MongoQuery } from './dataInterface'
  */
 type KeyValue<T extends object, K extends keyof T = keyof T> = [K, T[K]]
 /**
- * A typed `Object.entries`, assuming the object is a simple Record<T, U>.
- */
-export const recordEntries = <T extends object>(o: T) => Object.entries(o) as KeyValue<T>[]
-/**
- * A typed `Object.keys`, assuming the object is a simple Record<T, U>.
+ * A strongly-typed version of `Object.entries()`, always use this instead.
  *
- * P.S. Prefer `Record<K,V>` over `{[k:K]: V}`, note that `recordKeys<Record<string, string>(..): string[]`,
- * but `recordKeys<{[k: string]: string}>(..): (string | number)[]`.
+ * P.S. Prefer mapped types (`Record<K,V>`) over index signatures (`{[k:K]: V}`) where possible in your types.
  */
-export const recordKeys = <T extends object>(o: T) => Object.keys(o) as (keyof T)[]
+export const recordEntries = <T extends object>(o: T) => Object.entries(o) as KeyValue<T>[];
 /**
- * A typed `Object.values`, assuming the object is a simple Record<T, U>.
+ * A strongly-typed version of `Object.keys()`, always use this instead.
+ *
+ * P.S. Prefer mapped types (`Record<K,V>`) over index signatures (`{[k:K]: V}`) where possible in your types.
  */
-export const recordValues = <T extends object>(o: T) => Object.values(o) as T[keyof T][]
+export const recordKeys = <T extends object>(o: T) => Object.keys(o) as (keyof T)[];
+/**
+ * A strongly-typed version of `Object.values()`, always use this instead.
+ *
+ * P.S. Prefer mapped types (`Record<K,V>`) over index signatures (`{[k:K]: V}`) where possible in your types.
+ */
+export const recordValues = <T extends object>(o: T) => Object.values(o) as T[keyof T][];
+
+
 
 export const LANGUAGE_COOKIE_NAME = 'django_language'
 
