@@ -362,6 +362,8 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
    * Generates a list of (2) default choices for `select_x` matrix columns
    */
   _addDefaultList(data: KoboMatrixData, newListId: string) {
+    const biggestOrder = this.getChoiceCurrentBiggestOrder()
+
     const choice1kuid = txtid()
     const val1 = this.autoName(t('Option 1'), false, newListId)
 
@@ -371,6 +373,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
       name: val1,
       $kuid: choice1kuid,
       list_name: newListId,
+      order: biggestOrder + 1,
     })
     data = data.setIn(['choices', choice1kuid], choice1)
 
@@ -382,6 +385,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
       name: val2,
       $kuid: choice2kuid,
       list_name: newListId,
+      order: biggestOrder + 2,
     })
     data = data.setIn(['choices', choice2kuid], choice2)
     return data
@@ -438,6 +442,22 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
   getRequiredStatus(colKuid: string) {
     const val = this.state.data.getIn([colKuid, 'required'])
     return val === true || val === 'true' ? true : false
+  } /**
+   * From all choices (of all lists) finds the biggest `order` number
+   */
+  getChoiceCurrentBiggestOrder() {
+    const currentChoices = this.state.data.get('choices') as KoboMatrixDataChoicesList
+
+    // We need to find what is the biggest order of all existing choices
+    let biggestOrder = 0
+    currentChoices.forEach((ch) => {
+      const chOrder = ch?.get('order')
+      if (chOrder && Number.parseInt(chOrder) > biggestOrder) {
+        biggestOrder = Number.parseInt(chOrder)
+      }
+    })
+
+    return biggestOrder
   }
 
   /**
@@ -455,17 +475,6 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
       listName = this.state.kobomatrix_list
     }
 
-    const currentChoices = data.get('choices') as KoboMatrixDataChoicesList
-
-    // We need to find what is the biggest order of all existing choices
-    let currentBiggestOrder = 0
-    currentChoices.forEach((ch) => {
-      const chOrder = ch?.get('order')
-      if (chOrder && Number.parseInt(chOrder) > currentBiggestOrder) {
-        currentBiggestOrder = Number.parseInt(chOrder)
-      }
-    })
-
     const val = this.autoName(t('Row'), false, listName)
     const newRowKuid = txtid()
     const newRow = Map({
@@ -474,7 +483,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
       name: val,
       $kuid: newRowKuid,
       list_name: listName,
-      order: currentBiggestOrder + 1,
+      order: this.getChoiceCurrentBiggestOrder() + 1,
     })
 
     data = data.setIn(['choices', newRowKuid], newRow)
@@ -707,6 +716,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
                   <div className='matrix-cols__options--row-foot'>
                     <i
                       className='k-icon k-icon-plus'
+                      title={t('Add new option')}
                       onClick={this.newChoiceOption.bind(this)}
                       data-list-name={this.getCol(expandedCol, 'select_from_list_name')}
                     />
@@ -794,6 +804,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
           ))}
           <bem.MatrixItems__item key={'new'} m={'new'}>
             <i
+              title={t('Add new row')}
               className='k-icon k-icon-plus'
               onClick={this.newChoiceOption.bind(this)}
               data-list-name={this.state.kobomatrix_list}
