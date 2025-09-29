@@ -156,15 +156,13 @@ class AssetPermission(
         method = request._request.method
         if (
             method == 'PATCH'
-            and user_has_project_view_asset_perm(
-                obj, user, PERM_CHANGE_METADATA_ASSET
+            and (
+                user_has_project_view_asset_perm(obj, user, PERM_CHANGE_METADATA_ASSET)
+                or user_can_modify_advanced_features(obj, user, request)
             )
         ) or (
             method == 'GET'
             and user_has_project_view_asset_perm(obj, user, PERM_VIEW_ASSET)
-        ) or (
-            method == 'PATCH'
-            and user_can_modify_advanced_features(obj, user, request)
         ):
             return True
 
