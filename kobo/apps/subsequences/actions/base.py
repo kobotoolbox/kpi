@@ -361,7 +361,6 @@ class BaseAction:
         submission: dict,
         action_supplemental_data: dict,
         action_data: dict,
-        action_dependencies: dict | None = None,
     ) -> dict | None:
         """
         `submission` argument for future use by subclasses
@@ -384,6 +383,8 @@ class BaseAction:
         except IndexError:
             current_version = {}
 
+        self.attach_action_dependency(action_data)
+
         if self.action_class_config.automated:
             # If the action is automated, run the external process first.
             if not (
@@ -391,7 +392,6 @@ class BaseAction:
                     submission,
                     current_version,
                     action_data,
-                    action_dependencies,
                 )
             ):
                 # If the service response is None, the automated task is still running.
@@ -405,8 +405,16 @@ class BaseAction:
             self.validate_automated_data(action_data)
             accepted = action_data.pop('accepted', None)
         else:
-            dependency_supplemental_data = None
+            dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
             accepted = True
+
+        if dependency_supplemental_data:
+            # Sanitize 'dependency' before persisting: keep only stable identifiers and
+            # drop all other fields (e.g., 'value', 'language', timestamps).
+            dependency_supplemental_data = {
+                self.ACTION_ID_FIELD: dependency_supplemental_data[self.ACTION_ID_FIELD],
+                self.UUID_FIELD: dependency_supplemental_data[self.UUID_FIELD],
+            }
 
         return self.get_new_action_supplemental_data(
             action_supplemental_data,
@@ -439,7 +447,6 @@ class BaseAction:
         submission: dict,
         action_supplemental_data: dict,
         action_data: dict,
-        action_dependencies: dict | None = None,
         *args,
         **kwargs,
     ) -> dict | bool:
@@ -749,7 +756,6 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
         submission: dict,
         action_supplemental_data: dict,
         action_data: dict,
-        action_dependencies: dict | None = None,
         *args,
         **kwargs,
     ) -> dict | None:
@@ -794,20 +800,10 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
                 'status': 'deleted',
             }
 
-        self.attach_action_dependency(action_data)
-
         # Otherwise, trigger the external service.
         NLPService = self.get_nlp_service_class()  # noqa
         service = NLPService(submission, asset=self.asset)
         service_data = service.process_data(self.source_question_xpath, action_data)
-
-        # Sanitize 'dependency' before persisting: keep only stable identifiers and drop
-        # all other fields (e.g., 'value', 'language', timestamps).
-        if dependency := action_data.pop(self.DEPENDENCY_FIELD, None):
-            action_data[self.DEPENDENCY_FIELD] = {
-                self.ACTION_ID_FIELD: dependency[self.ACTION_ID_FIELD],
-                self.UUID_FIELD: dependency[self.UUID_FIELD],
-            }
 
         # If the request is still running, stop processing here.
         # Returning None ensures that `revise_data()` will not be called afterwards.
@@ -822,10 +818,14 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
                 # Since Celery is calling the same code, we want to ensure
                 #  it does not recall itself.
                 if not celery_app.current_worker_task:
+
+                    celery_action_data = deepcopy(action_data)
+                    celery_action_data.pop(self.DEPENDENCY_FIELD, None)
+
                     poll_run_automated_process.apply_async(
                         kwargs={
                             'submission': submission,
-                            'action_data': action_data,
+                            'action_data': celery_action_data,
                             'action_id': self.ID,
                             'asset_id': self.asset.pk,
                             'question_xpath': self.source_question_xpath,

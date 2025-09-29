@@ -40,7 +40,7 @@ class SubmissionSupplementTestCase(TestCase):
                 '_versions': [
                     {
                         'language': 'ar',
-                        'value': 'فارغ',
+                        'value': 'مجنون',
                         '_dateCreated': '2024-04-08T15:31:00Z',
                         '_dateAccepted': '2024-04-08T15:31:00Z',
                         '_uuid': '51ff33a5-62d6-48ec-94b2-2dfb406e1dee',
@@ -64,6 +64,10 @@ class SubmissionSupplementTestCase(TestCase):
                         '_dateCreated': '2024-04-08T15:27:00Z',
                         '_dateAccepted': '2024-04-08T15:27:00Z',
                         '_uuid': '22b04ce8-61c2-4383-836f-5d5f0ad73645',
+                        '_dependency': {
+                            '_uuid': '123e4567-e89b-12d3-a456-426614174000',
+                            '_actionId': 'manual_transcription'
+                        }
                     }],
                 },
                 'es': {
@@ -76,6 +80,10 @@ class SubmissionSupplementTestCase(TestCase):
                             '_dateCreated': '2024-04-08T15:32:00Z',
                             '_dateAccepted': '2024-04-08T15:32:00Z',
                             '_uuid': 'd69b9263-04fd-45b4-b011-2e166cfefd4a',
+                            '_dependency': {
+                                '_uuid': '51ff33a5-62d6-48ec-94b2-2dfb406e1dee',
+                                '_actionId': 'manual_transcription'
+                            }
                         },
                         {
                             'language': 'es',
@@ -83,6 +91,10 @@ class SubmissionSupplementTestCase(TestCase):
                             '_dateCreated': '2024-04-08T15:29:00Z',
                             '_dateAccepted': '2024-04-08T15:29:00Z',
                             '_uuid': '30d0f39c-a1dd-43fe-999a-844f12f83d31',
+                            '_dependency': {
+                                '_uuid': '123e4567-e89b-12d3-a456-426614174000',
+                                '_actionId': 'manual_transcription'
+                            }
                         }
                     ],
                 },
@@ -261,7 +273,7 @@ class SubmissionSupplementTestCase(TestCase):
                 == 1
             )
 
-            # 3) Call with transcription ar = 'فارغ'
+            # 3) Call with transcription ar = 'مجنون'
             frozen_datetime_now = datetime(2024, 4, 8, 15, 31, 0, tzinfo=ZoneInfo('UTC'))
             with freeze_time(frozen_datetime_now):
                 submission_supplement = SubmissionSupplement.revise_data(
@@ -272,7 +284,7 @@ class SubmissionSupplementTestCase(TestCase):
                         'group_name/question_name': {
                             'manual_transcription': {
                                 'language': 'ar',
-                                'value': 'فارغ',
+                                'value': 'مجنون',
                             },
                         },
                     },

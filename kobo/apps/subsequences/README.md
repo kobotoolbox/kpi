@@ -55,10 +55,10 @@ class AutomatedGoogleTranscription
 class AutomatedGoogleTranslation
 
 %% ==== Mixins (provide result_schema) ====
-class TranscriptionResultSchemaMixin {
+class TranscriptionActionMixin {
   +result_schema [property]
 }
-class TranslationResultSchemaMixin {
+class TranslationActionMixin {
   +result_schema [property]
 }
 
@@ -73,10 +73,10 @@ BaseAutomatedNLPAction <|-- AutomatedGoogleTranscription
 BaseAutomatedNLPAction <|-- AutomatedGoogleTranslation
 
 %% ==== Mixins -> Concretes ====
-TranscriptionResultSchemaMixin <.. ManualTranscription : mixin
-TranscriptionResultSchemaMixin <.. AutomatedGoogleTranscription : mixin
-TranslationResultSchemaMixin  <.. ManualTranslation : mixin
-TranslationResultSchemaMixin  <.. AutomatedGoogleTranslation : mixin
+TranscriptionActionMixin <.. ManualTranscription : mixin
+TranscriptionActionMixin <.. AutomatedGoogleTranscription : mixin
+TranslationActionMixin  <.. ManualTranslation : mixin
+TranslationActionMixin  <.. AutomatedGoogleTranslation : mixin
 ```
 
 ---

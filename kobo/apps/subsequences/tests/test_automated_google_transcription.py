@@ -22,7 +22,6 @@ def test_invalid_params_fail_validation():
 def test_valid_user_data_passes_validation():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
-
     action = AutomatedGoogleTranscriptionAction(xpath, params)
 
     allowed_data = [
@@ -34,9 +33,9 @@ def test_valid_user_data_passes_validation():
         {'language': 'fr', 'value': None},
         # Delete transcript with locale
         {'language': 'fr', 'locale': 'fr-CA', 'value': None},
-        # Accept translation
+        # Accept transcript
         {'language': 'fr', 'accepted': True},
-        # Accept translation with locale
+        # Accept translat with locale
         {'language': 'fr', 'locale': 'fr-CA', 'accepted': True},
     ]
 
@@ -44,7 +43,7 @@ def test_valid_user_data_passes_validation():
         action.validate_data(data)
 
 
-def test_valid_automated_translation_data_passes_validation():
+def test_valid_automated_transcription_data_passes_validation():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
 
@@ -66,12 +65,12 @@ def test_valid_automated_translation_data_passes_validation():
         {'language': 'es', 'status': 'in_progress'},
         {'language': 'es', 'locale': 'fr-CA', 'status': 'in_progress'},
         # Store error with status
-        {'language': 'es', 'status': 'failed', 'error': 'Translation failed'},
+        {'language': 'es', 'status': 'failed', 'error': 'Transcription failed'},
         {
             'language': 'es',
             'locale': 'fr-CA',
             'status': 'failed',
-            'error': 'Translation failed',
+            'error': 'Transcription failed',
         },
     ]
 
@@ -89,13 +88,13 @@ def test_invalid_user_data_fails_validation():
         {'language': 'en'},
         # Empty data
         {},
-        # Cannot push a translation
+        # Cannot push a transcription
         {'language': 'fr', 'value': 'Aucune idée'},
-        # Cannot push a translation
+        # Cannot push a transcription
         {'language': 'fr', 'value': 'Aucune idée', 'status': 'complete'},
-        # Cannot push a translation
+        # Cannot push a transcription
         {'language': 'fr', 'value': 'Aucune idée', 'status': 'in_progress'},
-        # Cannot push a translation
+        # Cannot push a transcription
         {'language': 'fr', 'value': 'Aucune idée', 'status': 'failed'},
         # Cannot push a status
         {'language': 'fr', 'status': 'in_progress'},
@@ -120,9 +119,9 @@ def test_invalid_automated_data_fails_validation():
         {'language': 'es', 'value': 'Ni idea', 'status': 'in_progress'},
         # Cannot pass an empty object
         {},
-        # Cannot accept an empty translation
+        # Cannot accept an empty transcription
         {'language': 'es', 'accepted': True},
-        # Cannot deny an empty translation
+        # Cannot deny an empty transcription
         {'language': 'es', 'accepted': False},
         # Cannot pass value and accepted at the same time
         {'language': 'es', 'value': None, 'accepted': False},
@@ -135,7 +134,7 @@ def test_invalid_automated_data_fails_validation():
         # Delete transcript with locale without status
         {'language': 'fr', 'locale': 'fr-CA', 'value': None},
         # failed with no status
-        {'language': 'es', 'error': 'Translation failed'},
+        {'language': 'es', 'error': 'Transcription failed'},
         # failed with no error
         {'language': 'es', 'status': 'failed'},
     ]
@@ -156,7 +155,7 @@ def test_valid_result_passes_validation():
     fourth = {'language': 'fr', 'accepted': True}
     fifth = {'language': 'fr', 'value': None}
     six = {'language': 'es', 'value': 'seis'}
-    mock_sup_det = {}
+    mock_sup_det = EMPTY_SUPPLEMENT
 
     mock_service = MagicMock()
     with patch(
@@ -174,9 +173,7 @@ def test_valid_result_passes_validation():
                 'value': value,
                 'status': 'complete',
             }
-            mock_sup_det = action.revise_data(
-                EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, data
-            )
+            mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
         action.validate_result(mock_sup_det)
 
@@ -192,7 +189,7 @@ def test_acceptance_does_not_produce_versions():
     first = {'language': 'fr', 'value': 'un'}
     second = {'language': 'fr', 'accepted': True}
     third = {'language': 'fr', 'accepted': False}
-    mock_sup_det = {}
+    mock_sup_det = EMPTY_SUPPLEMENT
 
     mock_service = MagicMock()
     with patch(
@@ -210,9 +207,7 @@ def test_acceptance_does_not_produce_versions():
                 'value': value,
                 'status': 'complete',
             }
-            mock_sup_det = action.revise_data(
-                EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, data
-            )
+            mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
             assert '_versions' in mock_sup_det
             if data.get('value') is None:
                 is_date_accepted_present = (
@@ -235,7 +230,7 @@ def test_invalid_result_fails_validation():
     fourth = {'language': 'fr', 'accepted': True}
     fifth = {'language': 'fr', 'value': None}
     six = {'language': 'es', 'value': 'seis'}
-    mock_sup_det = {}
+    mock_sup_det = EMPTY_SUPPLEMENT
 
     mock_service = MagicMock()
     with patch(
@@ -253,9 +248,7 @@ def test_invalid_result_fails_validation():
                 'value': value,
                 'status': 'complete',
             }
-            mock_sup_det = action.revise_data(
-                EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, data
-            )
+            mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
         action.validate_result(mock_sup_det)
 
@@ -281,12 +274,7 @@ def test_transcription_versions_are_retained_in_supplemental_details():
     ):
         value = first.pop('value', None)
         mock_service.process_data.return_value = {'value': value, 'status': 'complete'}
-        mock_sup_det = action.revise_data(
-            EMPTY_SUBMISSION,
-            EMPTY_SUPPLEMENT,
-            {},
-            first,
-        )
+        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, first)
 
     assert mock_sup_det['_versions'][0]['language'] == 'es'
     assert mock_sup_det['_versions'][0]['value'] == 'Ni idea'
@@ -301,9 +289,7 @@ def test_transcription_versions_are_retained_in_supplemental_details():
     ):
         value = second.pop('value', None)
         mock_service.process_data.return_value = {'value': value, 'status': 'complete'}
-        mock_sup_det = action.revise_data(
-            EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, second
-        )
+        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
 
     assert len(mock_sup_det['_versions']) == 2
 
@@ -333,7 +319,7 @@ def test_latest_version_is_first():
     second = {'language': 'fr', 'value': 'deux'}
     third = {'language': 'fr', 'value': 'trois'}
 
-    mock_sup_det = {}
+    mock_sup_det = EMPTY_SUPPLEMENT
     mock_service = MagicMock()
     with patch(
         'kobo.apps.subsequences.actions.automated_google_transcription.GoogleTranscriptionService',  # noqa
@@ -345,9 +331,7 @@ def test_latest_version_is_first():
                 'value': value,
                 'status': 'complete',
             }
-            mock_sup_det = action.revise_data(
-                EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, data
-            )
+            mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
     assert mock_sup_det['_versions'][0]['value'] == 'trois'
     assert mock_sup_det['_versions'][1]['value'] == 'deux'

@@ -61,11 +61,9 @@ def test_valid_result_passes_validation():
     third = {'language': 'fr', 'value': 'trois'}
     fourth = {'language': 'fr', 'value': None}
     fifth = {'language': 'en', 'value': 'fifth'}
-    mock_sup_det = {}
+    mock_sup_det = EMPTY_SUPPLEMENT
     for data in first, second, third, fourth, fifth:
-        mock_sup_det = action.revise_data(
-            EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, data
-        )
+        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
     action.validate_result(mock_sup_det)
 
 
@@ -79,11 +77,9 @@ def test_invalid_result_fails_validation():
     third = {'language': 'fr', 'value': 'trois'}
     fourth = {'language': 'fr', 'value': None}
     fifth = {'language': 'en', 'value': 'fifth'}
-    mock_sup_det = {}
+    mock_sup_det = EMPTY_SUPPLEMENT
     for data in first, second, third, fourth, fifth:
-        mock_sup_det = action.revise_data(
-            EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, data
-        )
+        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
     # erroneously add '_dateModified' onto a revision
     mock_sup_det['_versions'][0]['_dateModified'] = mock_sup_det['_versions'][0][
@@ -101,12 +97,7 @@ def test_transcript_versions_are_retained_in_supplemental_details():
 
     first = {'language': 'en', 'value': 'No idea'}
     second = {'language': 'fr', 'value': 'Aucune idée'}
-    mock_sup_det = action.revise_data(
-        EMPTY_SUBMISSION,
-        EMPTY_SUPPLEMENT,
-        {},
-        first,
-    )
+    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, first)
 
     assert mock_sup_det['_dateCreated'] == mock_sup_det['_dateModified']
     assert len(mock_sup_det['_versions']) == 1
@@ -114,9 +105,7 @@ def test_transcript_versions_are_retained_in_supplemental_details():
     assert mock_sup_det['_versions'][0]['value'] == 'No idea'
     first_time = mock_sup_det['_dateCreated']
 
-    mock_sup_det = action.revise_data(
-        EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, second
-    )
+    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
     assert len(mock_sup_det['_versions']) == 2
 
     # the version should have a creation timestamp equal to that of the first
@@ -144,17 +133,10 @@ def test_setting_transcript_to_empty_string():
     first = {'language': 'fr', 'value': 'Aucune idée'}
     second = {'language': 'fr', 'value': ''}
 
-    mock_sup_det = action.revise_data(
-        EMPTY_SUBMISSION,
-        EMPTY_SUPPLEMENT,
-        {},
-        first,
-    )
+    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, first)
     assert mock_sup_det['_versions'][0]['value'] == 'Aucune idée'
 
-    mock_sup_det = action.revise_data(
-        EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, second
-    )
+    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
     assert mock_sup_det['_versions'][0]['value'] == ''
     assert mock_sup_det['_versions'][1]['value'] == 'Aucune idée'
 
@@ -167,17 +149,10 @@ def test_setting_transcript_to_none():
     first = {'language': 'fr', 'value': 'Aucune idée'}
     second = {'language': 'fr', 'value': None}
 
-    mock_sup_det = action.revise_data(
-        EMPTY_SUBMISSION,
-        EMPTY_SUPPLEMENT,
-        {},
-        first,
-    )
+    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, first)
     assert mock_sup_det['_versions'][0]['value'] == 'Aucune idée'
 
-    mock_sup_det = action.revise_data(
-        EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, second
-    )
+    mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
     assert mock_sup_det['_versions'][0]['value'] is None
     assert mock_sup_det['_versions'][1]['value'] == 'Aucune idée'
 
@@ -191,11 +166,9 @@ def test_latest_revision_is_first():
     second = {'language': 'fr', 'value': 'deux'}
     third = {'language': 'fr', 'value': 'trois'}
 
-    mock_sup_det = {}
+    mock_sup_det = EMPTY_SUPPLEMENT
     for data in first, second, third:
-        mock_sup_det = action.revise_data(
-            EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, data
-        )
+        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
     assert mock_sup_det['_versions'][0]['value'] == 'trois'
     assert mock_sup_det['_versions'][1]['value'] == 'deux'

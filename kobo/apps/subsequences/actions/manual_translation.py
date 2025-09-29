@@ -1,10 +1,10 @@
 from typing import Any
 
 from .base import ActionClassConfig, BaseManualNLPAction
-from .mixins import TranslationResultSchemaMixin
+from .mixins import TranslationActionMixin
 
 
-class ManualTranslationAction(TranslationResultSchemaMixin, BaseManualNLPAction):
+class ManualTranslationAction(TranslationActionMixin, BaseManualNLPAction):
 
     ID = 'manual_translation'
     action_class_config = ActionClassConfig(

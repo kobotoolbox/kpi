@@ -2,11 +2,11 @@ from kobo.apps.organizations.constants import UsageType
 from ..integrations.google.google_transcribe import GoogleTranscriptionService
 from ..type_aliases import NLPExternalServiceClass
 from .base import ActionClassConfig, BaseAutomatedNLPAction
-from .mixins import TranscriptionResultSchemaMixin
+from .mixins import TranscriptionActionMixin
 
 
 class AutomatedGoogleTranscriptionAction(
-    TranscriptionResultSchemaMixin, BaseAutomatedNLPAction
+    TranscriptionActionMixin, BaseAutomatedNLPAction
 ):
 
     ID = 'automated_google_transcription'
@@ -115,7 +115,7 @@ class AutomatedGoogleTranscriptionAction(
         schema['$defs']['action_status'] = {
             'action_status': {
                 'type': 'string',
-                'enum': ['in_progress', 'complete', 'error'],
+                'enum': ['in_progress', 'complete', 'failed', 'deleted'],
             },
         }
         return schema

@@ -1,3 +1,4 @@
+from copy import deepcopy
 from unittest.mock import MagicMock, patch
 
 import dateutil
@@ -21,10 +22,7 @@ def test_invalid_params_fail_validation():
 
 
 def test_valid_user_data_passes_validation():
-    xpath = 'group_name/question_name'  # irrelevant for this test
-    params = [{'language': 'fr'}, {'language': 'es'}]
-
-    action = AutomatedGoogleTranslationAction(xpath, params)
+    action = _get_action()
 
     allowed_data = [
         # Trivial case
@@ -46,10 +44,7 @@ def test_valid_user_data_passes_validation():
 
 
 def test_valid_automated_translation_data_passes_validation():
-    xpath = 'group_name/question_name'  # irrelevant for this test
-    params = [{'language': 'fr'}, {'language': 'es'}]
-
-    action = AutomatedGoogleTranslationAction(xpath, params)
+    action = _get_action()
 
     allowed_data = [
         # Trivial case
@@ -81,9 +76,7 @@ def test_valid_automated_translation_data_passes_validation():
 
 
 def test_invalid_user_data_fails_validation():
-    xpath = 'group_name/question_name'  # irrelevant for this test
-    params = [{'language': 'fr'}, {'language': 'es'}]
-    action = AutomatedGoogleTranslationAction(xpath, params)
+    action = _get_action()
 
     invalid_data = [
         # Wrong language
@@ -110,9 +103,7 @@ def test_invalid_user_data_fails_validation():
 
 
 def test_invalid_automated_data_fails_validation():
-    xpath = 'group_name/question_name'  # irrelevant for this test
-    params = [{'language': 'fr'}, {'language': 'es'}]
-    action = AutomatedGoogleTranslationAction(xpath, params)
+    action = _get_action()
 
     invalid_data = [
         # Wrong language
@@ -147,9 +138,7 @@ def test_invalid_automated_data_fails_validation():
 
 
 def test_valid_result_passes_validation():
-    xpath = 'group_name/question_name'  # irrelevant for this test
-    params = [{'language': 'fr'}, {'language': 'es'}]
-    action = AutomatedGoogleTranslationAction(xpath, params)
+    action = _get_action()
 
     first = {'language': 'fr', 'value': 'un'}
     second = {'language': 'es', 'value': 'dos'}
@@ -157,7 +146,7 @@ def test_valid_result_passes_validation():
     fourth = {'language': 'fr', 'accepted': True}
     fifth = {'language': 'fr', 'value': None}
     six = {'language': 'es', 'value': 'seis'}
-    mock_sup_det = {}
+    mock_sup_det = EMPTY_SUPPLEMENT
 
     mock_service = MagicMock()
     with patch(
@@ -175,9 +164,7 @@ def test_valid_result_passes_validation():
                 'value': value,
                 'status': 'complete',
             }
-            mock_sup_det = action.revise_data(
-                EMPTY_SUBMISSION, QUESTION_SUPPLEMENT, mock_sup_det, data
-            )
+            mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
         action.validate_result(mock_sup_det)
 
@@ -188,14 +175,12 @@ def test_valid_result_passes_validation():
 
 
 def test_acceptance_does_not_produce_versions():
-    xpath = 'group_name/question_name'  # irrelevant for this test
-    params = [{'language': 'fr'}, {'language': 'es'}]
-    action = AutomatedGoogleTranslationAction(xpath, params)
+    action = _get_action()
 
     first = {'language': 'fr', 'value': 'un'}
     second = {'language': 'fr', 'accepted': True}
     third = {'language': 'fr', 'accepted': False}
-    mock_sup_det = {}
+    mock_sup_det = EMPTY_SUPPLEMENT
 
     mock_service = MagicMock()
     with patch(
@@ -214,19 +199,22 @@ def test_acceptance_does_not_produce_versions():
                 'status': 'complete',
             }
             mock_sup_det = action.revise_data(
-                EMPTY_SUBMISSION, QUESTION_SUPPLEMENT, mock_sup_det, data
+                EMPTY_SUBMISSION, mock_sup_det, data
             )
             if data.get('value') is None:
-                is_date_accepted_present = mock_sup_det['fr']['_versions'][0].get('_dateAccepted') is None
-                assert is_date_accepted_present is not bool(data.get('accepted'))
+                is_date_accepted_present = (
+                    mock_sup_det['fr']['_versions'][0].get('_dateAccepted')
+                    is None
+                )
+                assert is_date_accepted_present is not bool(
+                    data.get('accepted')
+                )
 
         action.validate_result(mock_sup_det)
 
 
 def test_invalid_result_fails_validation():
-    xpath = 'group_name/question_name'  # irrelevant for this test
-    params = [{'language': 'fr'}, {'language': 'es'}]
-    action = AutomatedGoogleTranslationAction(xpath, params)
+    action = _get_action()
 
     first = {'language': 'fr', 'value': 'un'}
     second = {'language': 'es', 'value': 'dos'}
@@ -234,7 +222,7 @@ def test_invalid_result_fails_validation():
     fourth = {'language': 'fr', 'accepted': True}
     fifth = {'language': 'fr', 'value': None}
     six = {'language': 'es', 'value': 'seis'}
-    mock_sup_det = {}
+    mock_sup_det = EMPTY_SUPPLEMENT
 
     mock_service = MagicMock()
     with patch(
@@ -253,9 +241,7 @@ def test_invalid_result_fails_validation():
                 'value': value,
                 'status': 'complete',
             }
-            mock_sup_det = action.revise_data(
-                EMPTY_SUBMISSION, QUESTION_SUPPLEMENT, mock_sup_det, data
-            )
+            mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
         action.validate_result(mock_sup_det)
 
@@ -268,9 +254,7 @@ def test_invalid_result_fails_validation():
 
 
 def test_translation_versions_are_retained_in_supplemental_details():
-    xpath = 'group_name/question_name'  # irrelevant for this test
-    params = [{'language': 'fr'}, {'language': 'es'}]
-    action = AutomatedGoogleTranslationAction(xpath, params)
+    action = _get_action()
 
     first = {'language': 'es', 'value': 'Ni idea'}
     second = {'language': 'fr', 'value': 'Aucune idée'}
@@ -284,12 +268,7 @@ def test_translation_versions_are_retained_in_supplemental_details():
     ):
         value = first.pop('value', None)
         mock_service.process_data.return_value = {'value': value, 'status': 'complete'}
-        mock_sup_det = action.revise_data(
-            EMPTY_SUBMISSION,
-            QUESTION_SUPPLEMENT,
-            {},
-            first,
-        )
+        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, first)
 
     assert mock_sup_det['es']['_versions'][0]['language'] == 'es'
     assert mock_sup_det['es']['_versions'][0]['value'] == 'Ni idea'
@@ -302,9 +281,7 @@ def test_translation_versions_are_retained_in_supplemental_details():
     ):
         value = second.pop('value', None)
         mock_service.process_data.return_value = {'value': value, 'status': 'complete'}
-        mock_sup_det = action.revise_data(
-            EMPTY_SUBMISSION, QUESTION_SUPPLEMENT, mock_sup_det, second
-        )
+        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
 
     assert len(mock_sup_det.keys()) == 2
 
@@ -318,9 +295,7 @@ def test_translation_versions_are_retained_in_supplemental_details():
     ):
         value = third.pop('value', None)
         mock_service.process_data.return_value = {'value': value, 'status': 'complete'}
-        mock_sup_det = action.revise_data(
-            EMPTY_SUBMISSION, QUESTION_SUPPLEMENT, mock_sup_det, third
-        )
+        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, third)
 
     assert len(mock_sup_det.keys()) == 2
 
@@ -342,15 +317,13 @@ def test_translation_versions_are_retained_in_supplemental_details():
 
 
 def test_latest_version_is_first():
-    xpath = 'group_name/question_name'  # irrelevant for this test
-    params = [{'language': 'fr'}, {'language': 'en'}]
-    action = AutomatedGoogleTranslationAction(xpath, params)
+    action = _get_action()
 
     first = {'language': 'fr', 'value': 'un'}
     second = {'language': 'fr', 'value': 'deux'}
     third = {'language': 'fr', 'value': 'trois'}
 
-    mock_sup_det = {}
+    mock_sup_det = EMPTY_SUPPLEMENT
     mock_service = MagicMock()
     with patch(
         'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',
@@ -363,21 +336,16 @@ def test_latest_version_is_first():
                 'value': value,
                 'status': 'complete',
             }
-            mock_sup_det = action.revise_data(
-                EMPTY_SUBMISSION, QUESTION_SUPPLEMENT, mock_sup_det, data
-            )
+            mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
     assert mock_sup_det['fr']['_versions'][0]['value'] == 'trois'
     assert mock_sup_det['fr']['_versions'][1]['value'] == 'deux'
     assert mock_sup_det['fr']['_versions'][2]['value'] == 'un'
 
-def test_cannot_revise_data_without_transcription():
-    xpath = 'group_name/question_name'  # irrelevant for this test
-    params = [{'language': 'fr'}, {'language': 'en'}]
-    action = AutomatedGoogleTranslationAction(xpath, params)
 
-    first = {'language': 'fr', 'value': 'un'}
-    mock_sup_det = {}
+def test_cannot_revise_data_without_transcription():
+    action = _get_action(fetch_action_dependencies=False)
+
     mock_service = MagicMock()
     with patch(
         'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',  # noqa
@@ -389,49 +357,33 @@ def test_cannot_revise_data_without_transcription():
         }
 
         with pytest.raises(TranscriptionNotFound):
-            # question supplement data is empty
-            mock_sup_det = action.revise_data(
-                EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, mock_sup_det, {'language': 'fr'}
-            )
+            action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, {'language': 'fr'})
+
 
 def test_find_the_most_recent_accepted_transcription():
-    xpath = 'group_name/question_name'  # irrelevant for this test
-    params = [{'language': 'fr'}, {'language': 'en'}]
-    action = AutomatedGoogleTranslationAction(xpath, params)
+    action = _get_action()
 
-    question_supplement_data = {
-        'automated_google_transcription': {
-            '_dateCreated': '2024-04-08T15:27:00Z',
-            '_dateModified': '2024-04-08T15:27:00Z',
-            '_versions': [
-                {
-                    'value': 'My audio has been transcribed automatically',
-                    'language': 'en',
-                    'status': 'completed',
-                    '_dateCreated': '2024-04-08T15:27:00Z',
-                    '_dateAccepted': '2024-04-08T15:27:00Z',
-                    '_uuid': '4dcf9c9f-e503-4e5c-81f5-74250b295001',
-                },
-            ],
-        },
-        'manual_transcription': {
-            '_dateCreated': '2024-04-08T15:28:00Z',
-            '_dateModified': '2024-04-08T15:28:00Z',
-            '_versions': [
-                {
-                    'value': 'My audio has been transcribed manually',
-                    'language': 'en',
-                    'locale': 'en-CA',
-                    'status': 'completed',
-                    '_dateCreated': '2024-04-08T15:28:00Z',
-                    '_dateAccepted': '2024-04-08T15:28:00Z',
-                    '_uuid': 'd69b9263-04fd-45b4-b011-2e166cfefd4a',
-                },
-            ],
-        },
+    # Automated transcription is the most recent
+    action_data = {}
+    expected = {
+        '_dependency': {
+            'value': 'My audio has been transcribed automatically',
+            'language': 'en',
+            '_uuid': '4dcf9c9f-e503-4e5c-81f5-74250b295001',
+            '_actionId': 'automated_google_transcription',
+        }
     }
+    action_data = action.attach_action_dependency(action_data)
+    assert action_data == expected
 
     # Manual transcription is the most recent
+    question_supplement_data = deepcopy(QUESTION_SUPPLEMENT)
+    question_supplement_data['manual_transcription']['_versions'][0][
+        '_dateAccepted'
+    ] = '2025-07-28T16:18:00Z'
+    action.get_action_dependencies(question_supplement_data)
+
+
     action_data = {}  # not really relevant for this test
     expected = {
         '_dependency': {
@@ -441,25 +393,15 @@ def test_find_the_most_recent_accepted_transcription():
             '_actionId': 'manual_transcription',
         }
     }
-    action_data = action._get_action_data_dependency(
-        question_supplement_data, action_data
-    )
+
+    action_data = action.attach_action_dependency(action_data)
     assert action_data == expected
 
-    # Automated transcription is the most recent
-    action_data = {}
-    question_supplement_data['automated_google_transcription']['_versions'][0][
-        '_dateAccepted'
-    ] = '2025-07-28T16:18:00Z'
-    expected = {
-        '_dependency': {
-            'value': 'My audio has been transcribed automatically',
-            'language': 'en',
-            '_uuid': '4dcf9c9f-e503-4e5c-81f5-74250b295001',
-            '_actionId': 'automated_google_transcription',
-        }
-    }
-    action_data = action._get_action_data_dependency(
-        question_supplement_data, action_data
-    )
-    assert action_data == expected
+
+def _get_action(fetch_action_dependencies=True):
+    xpath = 'group_name/question_name'  # irrelevant for this test
+    params = [{'language': 'fr'}, {'language': 'es'}]
+    action = AutomatedGoogleTranslationAction(xpath, params)
+    if fetch_action_dependencies:
+        action.get_action_dependencies(QUESTION_SUPPLEMENT)
+    return action
