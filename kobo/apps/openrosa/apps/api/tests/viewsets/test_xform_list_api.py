@@ -3,10 +3,12 @@ import re
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.utils.http import urlencode
 from django_digest.test import DigestAuth
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
     TestAbstractViewSet,
@@ -821,3 +823,178 @@ class TestXFormListAsOrgAdminApiBase(TestXFormListApiBase):
             request, pk=self.xform.pk, metadata=self.metadata.pk, format='png'
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class TestXFormListApiAsDataCollector(TestXFormListApiBase):
+    def setUp(self):
+        super().setUp()
+        dcg = DataCollectorGroup.objects.create(name='DCG_0')
+        dc = DataCollector.objects.create(name='DC_00', group=dcg)
+        self.xform_without_auth = self.xform
+        self.xform_without_auth.require_auth = False
+        self.xform_without_auth.save(update_fields=['require_auth'])
+
+        data = {
+            'owner': self.user.username,
+            'public': False,
+            'public_data': False,
+            'description': 'transportation_with_attachment',
+            'downloadable': True,
+            'encrypted': False,
+            'id_string': 'transportation_with_attachment',
+            'title': 'transportation_with_attachment',
+        }
+
+        path = os.path.join(
+            settings.OPENROSA_APP_DIR,
+            'apps',
+            'main',
+            'tests',
+            'fixtures',
+            'transportation',
+            'transportation_with_attachment.xls',
+        )
+        self.publish_xls_form(data=data, path=path)
+        self.assertNotEqual(self.xform.pk, self.xform_without_auth.pk)
+        self.assertEqual(XForm.objects.all().count(), 2)
+        self.assertEqual(XForm.objects.filter(require_auth=False).count(), 1)
+        dcg.assets.add(self.xform.asset)
+        dcg.assets.add(self.xform_without_auth.asset)
+        self.data_collector = dc
+
+    def test_get_xform_list(self):
+        request = self.factory.get('/')
+        response = self.view(request)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        response = self.client.get(
+            reverse('form-list', kwargs={'token': self.data_collector.token})
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        both_forms = os.path.join(
+            os.path.dirname(__file__),
+            '..',
+            'fixtures',
+            'formList_with_both_for_dcs.xml',
+        )
+
+        with open(both_forms, 'r') as f:
+            form_list_xml = f.read().strip()
+            data = {
+                'hash_0': self.xform_without_auth.md5_hash,
+                'hash_1': self.xform.md5_hash,
+                'key': self.data_collector.token,
+                'pk_0': self.xform_without_auth.pk,
+                'pk_1': self.xform.pk,
+            }
+            content = response.render().content
+            self.assertEqual(content.decode(), form_list_xml % data)
+            self.assertTrue(response.has_header('X-OpenRosa-Version'))
+            self.assertTrue(response.has_header('X-OpenRosa-Accept-Content-Length'))
+            self.assertTrue(response.has_header('Date'))
+            self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
+
+    def test_get_individual_xform(self):
+        base_url = reverse('form-list', kwargs={'token': self.data_collector.token})
+        url = '%s?%s' % (base_url, urlencode({'formID': self.xform.id_string}))
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        path = os.path.join(
+            os.path.dirname(__file__),
+            '..',
+            'fixtures',
+            'formList_for_dc.xml',
+        )
+
+        with open(path) as f:
+            form_list_xml = f.read().strip()
+            data = {
+                'hash': self.xform.md5_hash,
+                'pk': self.xform.pk,
+                'key': self.data_collector.token,
+            }
+            content = response.render().content.decode()
+            self.assertEqual(content, form_list_xml % data)
+
+    def test_retrieve_xform_manifest(self):
+        self._load_metadata(self.xform)
+
+        base_url = reverse(
+            'manifest-url',
+            kwargs={'token': self.data_collector.token, 'pk': self.xform.pk},
+        )
+
+        response = self.client.get(base_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        manifest_xml = (
+            '<?xml version="1.0" encoding="utf-8"?>\n'
+            '<manifest xmlns="http://openrosa.org/xforms/xformsManifest">'
+            '   <mediaFile>'
+            '        <filename>screenshot.png</filename>'
+            '        <hash>%(hash)s</hash>'
+            '        <downloadUrl>http://testserver/key/%(key)s/xformsMedia/%(xform)s/%(pk)s.png</downloadUrl>'  # noqa
+            '    </mediaFile>'
+            '</manifest>'
+        )
+
+        manifest_xml = re.sub(r'> +<', '><', manifest_xml).strip()
+
+        data = {
+            'key': self.data_collector.token,
+            'hash': self.metadata.md5_hash,
+            'pk': self.metadata.pk,
+            'xform': self.xform.pk,
+        }
+        content = response.render().content.decode().strip()
+        self.assertEqual(content, manifest_xml % data)
+        self.assertTrue(response.has_header('X-OpenRosa-Version'))
+        self.assertTrue(response.has_header('X-OpenRosa-Accept-Content-Length'))
+        self.assertTrue(response.has_header('Date'))
+        self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
+
+    def test_get_media(self):
+        self._load_metadata(self.xform)
+        base_url = reverse(
+            'xform-media',
+            kwargs={
+                'token': self.data_collector.token,
+                'pk': self.xform.pk,
+                'metadata': self.metadata.pk,
+                'format': 'png',
+            },
+        )
+        response = self.client.get(base_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_retrieve_xform_xml(self):
+        base_url = reverse(
+            'download_xform',
+            kwargs={
+                'token': self.data_collector.token,
+                'pk': self.xform_without_auth.pk,
+            },
+        )
+        response = self.client.get(base_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
+        self.assertTrue(response.has_header('X-OpenRosa-Version'))
+        self.assertTrue(response.has_header('X-OpenRosa-Accept-Content-Length'))
+        self.assertTrue(response.has_header('Date'))
+
+        path = os.path.join(
+            os.path.dirname(__file__),
+            '..',
+            'fixtures',
+            'Transportation Form.xml',
+        )
+
+        with open(path) as f:
+            form_xml = f.read().strip()
+            data = {'form_uuid': self.xform_without_auth.uuid}
+            content = response.render().content.decode().strip()
+            self.assertEqual(content, form_xml % data)

@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, status
-from rest_framework.decorators import action, authentication_classes
+from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -81,7 +81,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         )
 
     def get_renderers(self):
-        if self.action and self.action == 'manifest':
+        if self.action and self.action.startswith('manifest'):
             return [XFormManifestRenderer()]
 
         return super().get_renderers()
