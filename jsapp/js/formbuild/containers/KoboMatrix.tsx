@@ -475,10 +475,19 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
       listName = this.state.kobomatrix_list
     }
 
-    const val = this.autoName(t('Row'), false, listName)
+    let label = ''
+    // This means we are adding a row:
+    if (listName === this.state.kobomatrix_list) {
+      label = t('Row')
+      // This means wa are adding a select_x option:
+    } else {
+      label = t('Option')
+    }
+
+    const val = this.autoName(label, false, listName)
     const newRowKuid = txtid()
     const newRow = Map({
-      label: t('Row'),
+      label: label,
       $autovalue: val,
       name: val,
       $kuid: newRowKuid,
