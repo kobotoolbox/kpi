@@ -1,8 +1,8 @@
 @use 'scss/colors';
 @use 'scss/mixins';
 @use 'sass:color';
-@use '#/components/common/button';
-@use '#/components/common/textBox.module';
+@use 'js/components/common/button';
+@use 'js/components/common/textBox.module';
 
 $k-select-option-height: 36px;
 $k-select-menu-padding: 6px;

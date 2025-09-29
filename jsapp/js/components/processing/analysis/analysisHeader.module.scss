@@ -2,8 +2,8 @@
 @use 'scss/mixins';
 @use 'scss/breakpoints';
 @use 'scss/colors';
-@use '#/components/common/button';
-@use '#/components/common/koboSelect';
+@use 'js/components/common/button';
+@use 'js/components/common/koboSelect';
 
 // For now we just mimick the KoboSelect styles
 $option-height: koboSelect.$k-select-option-height;

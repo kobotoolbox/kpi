@@ -1,6 +1,6 @@
 @use 'scss/colors';
 @use 'scss/breakpoints';
-@use '#/account/plans/plan.module';
+@use 'js/account/plans/plan.module';
 
 .header {
   font-size: 18px;

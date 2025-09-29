@@ -1,6 +1,6 @@
 @use 'scss/mixins';
 @use 'scss/colors';
-@use '#/components/modals/koboModal.scss';
+@use 'js/components/modals/koboModal.scss';
 
 .root {
   display: inline-block;

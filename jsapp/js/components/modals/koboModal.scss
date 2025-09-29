@@ -3,8 +3,8 @@
 @use 'scss/z-indexes';
 @use 'scss/breakpoints';
 @use 'sass:color';
-@use '#/components/common/icon';
-@use '#/components/common/button';
+@use 'js/components/common/icon';
+@use 'js/components/common/button';
 
 $kobo-modal-elements-height-min: 60px;
 $kobo-modal-width-min: 280px;

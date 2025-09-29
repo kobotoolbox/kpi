@@ -2,7 +2,7 @@
 @use 'sass:math';
 @use 'scss/mixins';
 @use 'scss/colors';
-@use '#/components/common/icon';
+@use 'js/components/common/icon';
 @use './projectsTableRow.module';
 
 // This file contains all the styles that are being used exclusively in
