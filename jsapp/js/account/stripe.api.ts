@@ -8,6 +8,7 @@ import { endpoints } from '#/api.endpoints'
 import { ACTIVE_STRIPE_STATUSES } from '#/constants'
 import type { PaginatedResponse } from '#/dataInterface'
 import envStore from '#/envStore'
+import { recordEntries } from '#/utils'
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   submission_limit: Limits.unlimited,
@@ -74,7 +75,7 @@ export async function postCustomerPortal(organizationId: string, priceId = '', q
 function getLimitsForMetadata(metadata: PriceMetadata, limitsToCompare: false | AccountLimit = false) {
   const limits: Partial<AccountLimit> = {}
   const quantity = getAdjustedQuantityForPrice(Number.parseInt(metadata['quantity']), metadata.transform_quantity)
-  for (const [key, value] of Object.entries(metadata)) {
+  for (const [key, value] of recordEntries(metadata)) {
     // if we need to compare limits, make sure we're not overwriting a higher limit from somewhere else
     if (limitsToCompare) {
       if (!(key in limitsToCompare) || value === null) {

@@ -14,6 +14,7 @@ import type { SortValues } from '#/components/submissions/tableConstants'
 import { getAllDataColumns } from '#/components/submissions/tableUtils'
 import type { AssetSettings, AssetTableSettings, SubmissionResponse, TableSortBySetting } from '#/dataInterface'
 import { getRouteAssetUid } from '#/router/routerUtils'
+import { recordEntries } from '#/utils'
 
 export interface TableStoreData {
   overrides: AssetTableSettings
@@ -89,7 +90,7 @@ class TableStore extends Reflux.Store {
       // Cleanup all `null` settings, as we don't want to store `null`s and `null`
       // means "delete setting"
       const tableSettings = newSettings[DATA_TABLE_SETTING]
-      Object.entries(tableSettings).forEach((key, value) => {
+      recordEntries(tableSettings).forEach((key, value) => {
         if (value === null && typeof key === 'string') {
           delete tableSettings[key]
         }

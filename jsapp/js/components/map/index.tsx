@@ -27,7 +27,7 @@ import { getSurveyFlatPaths } from '../../../js/assetUtils'
 import { dataInterface } from '../../../js/dataInterface'
 import pageState from '../../../js/pageState.store'
 import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
-import { checkLatLng, notify } from '../../../js/utils'
+import { checkLatLng, notify, recordKeys } from '../../../js/utils'
 
 // Constants and types
 import { ASSET_FILE_TYPES, MODAL_TYPES, QUERY_LIMIT_DEFAULT, QUESTION_TYPES } from '../../../js/constants'
@@ -107,9 +107,7 @@ type MarkerMap = Array<{
   value: string | undefined
 }>
 
-interface MapValueCounts {
-  [key: string]: { count: number; id: number }
-}
+type MapValueCounts = Record<string, { count: number; id: number }>
 
 // Function to validate GeoJSON object
 function isValidGeoJSON(geojson: string): boolean {
@@ -514,7 +512,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         currentQuestionChoices = choices.filter((ch) => ch.list_name === question.select_from_list_name)
       }
 
-      Object.keys(mapMarkers).map((m) => {
+      recordKeys(mapMarkers).map((m) => {
         let choice
         if (question && question.type === 'select_one') {
           choice = currentQuestionChoices.find((ch) => ch.name === m || ch.$autoname === m)
