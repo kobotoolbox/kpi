@@ -177,6 +177,8 @@ def test_cannot_revise_data_without_transcription():
         )
 
 
+
+
 def _get_action(fetch_action_dependencies=True):
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]

@@ -8,6 +8,7 @@ import pytest
 from ..actions.automated_google_translation import AutomatedGoogleTranslationAction
 from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 from ..exceptions import TranscriptionNotFound
+from ..tasks import poll_run_automated_process
 
 
 def test_valid_params_pass_validation():
@@ -398,10 +399,33 @@ def test_find_the_most_recent_accepted_transcription():
     assert action_data == expected
 
 
+def test_action_is_updated_in_background_if_in_progress():
+    action = _get_action()
+    mock_service = MagicMock()
+    submission = {'meta/rootUuid': '123-abdc'}
+
+    with patch(
+        'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',  # noqa
+        return_value=mock_service,
+    ):
+        mock_service.process_data.return_value = {'status': 'in_progress'}
+        with patch(
+            'kobo.apps.subsequences.actions.base.poll_run_automated_process'
+        ) as task_mock:
+            action.revise_data(
+                submission, EMPTY_SUPPLEMENT, {'language': 'fr'}
+            )
+
+        task_mock.apply_async.assert_called_once()
+
+
 def _get_action(fetch_action_dependencies=True):
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
-    action = AutomatedGoogleTranslationAction(xpath, params)
+    mock_asset = MagicMock()
+    mock_asset.pk = 1
+    mock_asset.owner.pk = 1
+    action = AutomatedGoogleTranslationAction(xpath, params, asset=mock_asset)
     if fetch_action_dependencies:
         action.get_action_dependencies(QUESTION_SUPPLEMENT)
     return action
