@@ -24,14 +24,15 @@ const LimitNotifications = ({ pageCanShowModal = false, accountPage = false }: L
   const { data: serviceUsageData } = useServiceUsageQuery()
 
   const session = useSession()
-  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid!
+  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
   const orgQuery = useOrganizationsRetrieve(organizationId!)
 
   // Only show modal on certain pages (set by parent), only to non-MMO users and MMO users with role of 'owner',
   // and only show if list of exceeded limits includes storage or submissions
   const useModal =
     pageCanShowModal &&
-    (orgQuery.data?.status === 200 && (!orgQuery.data.data.is_mmo || orgQuery.data.data.request_user_role === MemberRoleEnum.owner)) &&
+    orgQuery.data?.status === 200 &&
+    (!orgQuery.data.data.is_mmo || orgQuery.data.data.request_user_role === MemberRoleEnum.owner) &&
     (serviceUsageData?.limitExceedList.includes(UsageLimitTypes.STORAGE) ||
       serviceUsageData?.limitExceedList.includes(UsageLimitTypes.SUBMISSION))
 

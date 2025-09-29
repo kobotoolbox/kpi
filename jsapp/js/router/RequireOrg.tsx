@@ -3,7 +3,6 @@ import { useOrganizationsRetrieve } from '#/api/react-query/organizations'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { useSession } from '#/stores/useSession'
 
-
 /**
  * Organization object is used globally.
  * Handle error once at the top for convenience to avoid error handling every time.
@@ -12,7 +11,7 @@ import { useSession } from '#/stores/useSession'
  */
 export const RequireOrg = ({ children }: { children: React.ReactNode }) => {
   const session = useSession()
-  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid!
+  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
 
   const orgQuery = useOrganizationsRetrieve(organizationId!, {
     query: {

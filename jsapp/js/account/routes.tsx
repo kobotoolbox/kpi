@@ -33,10 +33,7 @@ export default function routes() {
         index
         element={
           <RequireAuth>
-            <RequireOrgPermissions
-              validRoles={[MemberRoleEnum.owner]}
-              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
-            >
+            <RequireOrgPermissions validRoles={[MemberRoleEnum.owner]} redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}>
               <PlansRoute />
             </RequireOrgPermissions>
           </RequireAuth>
@@ -47,10 +44,7 @@ export default function routes() {
         index
         element={
           <RequireAuth>
-            <RequireOrgPermissions
-              validRoles={[MemberRoleEnum.owner]}
-              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
-            >
+            <RequireOrgPermissions validRoles={[MemberRoleEnum.owner]} redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}>
               <AddOnsRoute />
             </RequireOrgPermissions>
           </RequireAuth>

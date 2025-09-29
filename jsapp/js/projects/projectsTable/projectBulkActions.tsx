@@ -24,8 +24,7 @@ function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>) {
 export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
   const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false)
   const [organization] = useOrganizationAssumed()
-  const canBulkDelete =
-    userCanDeleteAssets(props.assets) || organization.request_user_role === MemberRoleEnum.admin
+  const canBulkDelete = userCanDeleteAssets(props.assets) || organization.request_user_role === MemberRoleEnum.admin
 
   let tooltipForDelete = t('Delete projects')
   if (canBulkDelete) {

@@ -328,7 +328,7 @@ export default function Plan(props: PlanProps) {
 
   const buySubscription = (price: Price, quantity = 1) => {
     if (!price.id) return
-    if(isDisabled) return
+    if (isDisabled) return
 
     setIsBusy(true)
     if (activeSubscriptions.length) {

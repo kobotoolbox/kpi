@@ -155,8 +155,7 @@ export default function MembersRoute() {
   ]
 
   // Actions column is only for owner and admins.
-  if (isUserAdminOrOwner
-  ) {
+  if (isUserAdminOrOwner) {
     columns.push({
       key: 'url',
       label: '',

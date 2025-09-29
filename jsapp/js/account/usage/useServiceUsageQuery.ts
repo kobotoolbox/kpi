@@ -120,7 +120,7 @@ interface ServiceUsageQueryParams {
 
 export const useServiceUsageQuery = (params?: ServiceUsageQueryParams): UseQueryResult<UsageState | undefined> => {
   const session = useSession()
-  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid!
+  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
 
   useEffect(() => {
     if (params?.shouldForceInvalidation) {
