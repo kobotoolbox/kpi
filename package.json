@@ -149,7 +149,7 @@
     "coffee-loader": "^0.9.0",
     "coffeelint": "^1.16.2",
     "coffeescript": "^1.12.0",
-    "concurrently": "^9.2.0",
+    "concurrently": "^9.2.1",
     "css-loader": "^6.11.0",
     "eslint": "^9.17.0",
     "eslint-formatter-compact": "^8.40.0",
