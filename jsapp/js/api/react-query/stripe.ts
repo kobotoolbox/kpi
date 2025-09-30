@@ -17,7 +17,13 @@ import type {
 
 import type { CheckoutLink } from '../models/checkoutLink'
 
+import type { CustomerPortal } from '../models/customerPortal'
+
+import type { CustomerPortalPostResponse } from '../models/customerPortalPostResponse'
+
 import type { ErrorDetail } from '../models/errorDetail'
+
+import type { ErrorObject } from '../models/errorObject'
 
 import type { OneTimeAddOn } from '../models/oneTimeAddOn'
 
@@ -269,6 +275,101 @@ export const useStripeCheckoutLinkCreate = <TError = unknown, TContext = unknown
   request?: SecondParameter<typeof fetchWithAuth>
 }) => {
   const mutationOptions = getStripeCheckoutLinkCreateMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}
+export type stripeCustomerPortalCreateResponse200 = {
+  data: CustomerPortalPostResponse
+  status: 200
+}
+
+export type stripeCustomerPortalCreateResponse400 = {
+  data: ErrorObject
+  status: 400
+}
+
+export type stripeCustomerPortalCreateResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type stripeCustomerPortalCreateResponseComposite =
+  | stripeCustomerPortalCreateResponse200
+  | stripeCustomerPortalCreateResponse400
+  | stripeCustomerPortalCreateResponse401
+
+export type stripeCustomerPortalCreateResponse = stripeCustomerPortalCreateResponseComposite & {
+  headers: Headers
+}
+
+export const getStripeCustomerPortalCreateUrl = () => {
+  return `/api/v2/stripe/customer-portal`
+}
+
+export const stripeCustomerPortalCreate = async (
+  customerPortal: CustomerPortal,
+  options?: RequestInit,
+): Promise<stripeCustomerPortalCreateResponse> => {
+  return fetchWithAuth<stripeCustomerPortalCreateResponse>(getStripeCustomerPortalCreateUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(customerPortal),
+  })
+}
+
+export const getStripeCustomerPortalCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof stripeCustomerPortalCreate>>,
+    TError,
+    { data: CustomerPortal },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof stripeCustomerPortalCreate>>,
+  TError,
+  { data: CustomerPortal },
+  TContext
+> => {
+  const mutationKey = ['stripeCustomerPortalCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof stripeCustomerPortalCreate>>,
+    { data: CustomerPortal }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return stripeCustomerPortalCreate(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type StripeCustomerPortalCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof stripeCustomerPortalCreate>>
+>
+export type StripeCustomerPortalCreateMutationBody = CustomerPortal
+export type StripeCustomerPortalCreateMutationError = ErrorObject | ErrorDetail
+
+export const useStripeCustomerPortalCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof stripeCustomerPortalCreate>>,
+    TError,
+    { data: CustomerPortal },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getStripeCustomerPortalCreateMutationOptions(options)
 
   return useMutation(mutationOptions)
 }

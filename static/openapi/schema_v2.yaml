@@ -7834,6 +7834,51 @@ paths:
               schema:
                 $ref: '#/components/schemas/CheckoutLink'
           description: ''
+  /api/v2/stripe/customer-portal:
+    post:
+      operationId: api_v2_stripe_customer_portal_create
+      tags:
+      - Stripe
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerPortal'
+        required: true
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerPortalPostResponse'
+          description: null
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
   /api/v2/stripe/products/:
     get:
       operationId: api_v2_stripe_products_list
@@ -9981,6 +10026,26 @@ components:
         - file_type
         - metadata
         - user
+    CustomerPortal:
+      type: object
+      properties:
+        organization_id:
+          type: string
+        price_id:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+          default: 1
+      required:
+      - organization_id
+    CustomerPortalPostResponse:
+      type: object
+      properties:
+        url:
+          type: string
+      required:
+      - url
     DataBulkDelete:
       type: object
       properties:

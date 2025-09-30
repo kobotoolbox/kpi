@@ -37,6 +37,7 @@ from kobo.apps.stripe.utils.view_utils import (
     get_total_price_for_quantity,
 )
 from kpi.permissions import IsAuthenticated
+from kpi.schema_extensions.v2.stripe.serializers import CustomerPortalPostResponse
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from kpi.versioning import APIV2Versioning
 
@@ -326,8 +327,23 @@ class CheckoutLinkView(APIView):
         return Response({'url': url})
 
 
+@extend_schema(tags=['Stripe'])
+@extend_schema_view(
+    post=extend_schema(
+        request={'application/json': CustomerPortalSerializer},
+        # Using an inline serializer given that
+        responses=open_api_200_ok_response(
+            CustomerPortalPostResponse,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            # Can throw 400 due to invalid payload
+            validate_payload=True,
+        ),
+    ),
+)
 class CustomerPortalView(APIView):
     permission_classes = (IsAuthenticated,)
+    versioning_class = APIV2Versioning
 
     @staticmethod
     def generate_portal_link(user, organization_id, price, quantity):
