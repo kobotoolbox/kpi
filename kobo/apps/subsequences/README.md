@@ -268,18 +268,159 @@ flowchart TB
 
 ## 3. Where Schemas Apply
 
-- **`params_schema`** (class-level attribute, `BaseManualNLPAction`)
-  Defines the schema for the parameters used to instantiate the action.
-  These parameters are configured when the action is enabled on the **Asset**
-  and are stored under `Asset.advanced_features`.
-  > Example: `[ { "language": "en" }, { "language": "es" } ]`
+Every action relies on a set of schemas to validate its lifecycle:
+- **`params_schema`** – defines how the action is instantiated and configured on the Asset.
+- **`data_schema`** – validates the client payload sent in supplements.
+- **`automated_data_schema`** – extends `data_schema` for automated actions by adding status and system-generated fields.
+- **`result_schema`** – validates the persisted revision format, including metadata and version history.
 
-- **`data_schema`** (property)
-  Validates the **client payload** for a given action.
-  > Example: `{ "language": "en", "value": "My transcript" }`
+---
 
-- **`automated_data_schema`** (property, automated actions only)
-  Validates the **augmented payload** returned by the external service.
+### 3.1 `params_schema`
 
-- **`result_schema`** (property, via mixin)
-  Validates the **version JSON** that is persisted and returned.
+Defined on all classes inheriting from `BaseAction`.
+It describes the configuration stored in `Asset.advanced_features` when an action is enabled.
+
+**Example: enabling Manual Transcription in English and Spanish**
+
+```json
+{
+  "audio_question": {
+    "manual_transcription": [
+      { "language": "en" },
+      { "language": "es" }
+    ]
+  }
+}
+```
+
+---
+
+### 3.2 `data_schema`
+
+Validates the **client payload** sent for a supplement.
+Each action has its own expected format:
+
+- **Manual Transcription**
+  ```json
+  { "language": "en", "value": "My transcript" }
+  ```
+
+- **Manual Translation**
+  ```json
+  { "language": "en", "value": "My translation" }
+  ```
+
+- **Automated Transcription / Automated Translation**
+  ```json
+  { "language": "en" }
+  ```
+
+- **All actions – delete request**
+  ```json
+  { "language": "en", "value": null }
+  ```
+
+---
+
+### 3.3 `automated_data_schema`
+
+Used only for **automated actions** (`BaseAutomatedNLPAction`).
+It validates the **augmented payload** returned by the external service.
+
+- **Example (complete)**
+  ```json
+  { "language": "en", "value": "My automated result", "status": "complete" }
+  ```
+
+- **Example (in progress)**
+  ```json
+  { "language": "en", "status": "in_progress" }
+  ```
+
+- **Example (deleted)**
+  ```json
+  { "language": "en", "status": "deleted", "value": null }
+  ```
+
+- **Example (failed)**
+  ```json
+  { "language": "en", "status": "failed", "error": "Could not process action" }
+  ```
+
+---
+
+### 3.4 `result_schema`
+
+Validates the **revision JSON** persisted in the database.
+The structure is the same for both manual and automated actions:
+
+- Metadata about the action itself (`_dateCreated`, `_dateModified`).
+- A list of versions under `_versions`, each containing:
+  - The properties defined by `data_schema` (manual) or `automated_data_schema` (automated).
+  - Audit fields (`_dateCreated`, `_dateAccepted`, `_uuid`).
+
+**Generic Example**
+
+```json
+{
+  "_dateCreated": "2025-08-21T20:55:42Z",
+  "_dateModified": "2025-08-21T20:57:28Z",
+  "_versions": [
+    {
+      "language": "en",
+      "value": "My automated result",
+      "status": "complete",
+      "_dateCreated": "2025-08-21T20:57:28Z",
+      "_dateAccepted": "2025-08-21T20:57:28Z",
+      "_uuid": "4dcf9c9f-e503-4e5c-81f5-74250b295001"
+    },
+    {
+      "language": "en",
+      "value": "Previous revision",
+      "status": "complete",
+      "_dateCreated": "2025-08-21T20:55:42Z",
+      "_dateAccepted": "2025-08-21T20:55:42Z",
+      "_uuid": "850e6359-50e8-4252-9895-e9669a27b1ea"
+    }
+  ]
+}
+```
+
+> For manual actions, the inner version objects correspond to `data_schema`.
+>
+> For automated actions, they correspond to `automated_data_schema`.
+
+---
+
+### 3.5 `result_schema` with dependencies
+
+Some actions depend on the result of other actions.
+For example, a **translation** action requires an existing **transcription**.
+In this case, a `_dependency` property is added to the persisted JSON.
+
+**Example: Automated Translation result depending on an Automated Transcription**
+
+```json
+{
+  "_dateCreated": "2025-09-01T12:15:42Z",
+  "_dateModified": "2025-09-01T12:17:28Z",
+  "_versions": [
+    {
+      "language": "fr",
+      "value": "Mon audio a été traduit automatiquement",
+      "status": "complete",
+      "_dateCreated": "2025-09-01T12:17:28Z",
+      "_uuid": "91ab5f30-0f73-4e2e-b91f-8ad2f67a4729",
+      "_dependency": {
+        "_uuid": "4dcf9c9f-e503-4e5c-81f5-74250b295001",
+        "_actionId": "automated_google_transcription"
+      }
+    }
+  ]
+}
+```
+
+- The `_dependency` object references the transcription result that the translation was built upon.
+- It reuses the UUID and action ID from the transcription’s persisted result, ensuring referential integrity.
+- This allows clients to trace back a translation to the exact transcription version it relied on.
