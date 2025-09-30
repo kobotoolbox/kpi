@@ -6,7 +6,6 @@ import type { ProjectsTableOrder } from '#/projects/projectsTable/projectsTable'
 
 export interface AssetWithUsage {
   asset: string
-  uid: string
   asset__name: string
   nlp_usage_current_period: {
     total_nlp_asr_seconds: number

@@ -71,18 +71,30 @@ const ProjectBreakdown = () => {
         />
       ),
       size: 100,
-      cellFormatter: (data: AssetWithUsage) => (
-        // WIP: this currently links to `undefined`
-        <Link className={styles.link} to={ROUTES.FORM_SUMMARY.replace(':uid', data.uid)}>
-          {data.asset__name}
-        </Link>
-      ),
+      cellFormatter: (data: AssetWithUsage) => {
+        const assetParts = data.asset.split('/')
+        const uid = assetParts[assetParts.length - 2]
+
+        return (
+          <Link className={styles.link} to={ROUTES.FORM_SUMMARY.replace(':uid', uid)}>
+            {data.asset__name}
+          </Link>
+        )
+      },
     },
     {
       key: 'submissions_all',
       label: t('Submissions (Total)'),
       size: 100,
       cellFormatter: (data: AssetWithUsage) => data.submission_count_all_time,
+    },
+    {
+      key: 'submissions_all',
+      label: t('Submissions (Total)'),
+      size: 100,
+      cellFormatter: (data: AssetWithUsage) => {
+        return data.submission_count_all_time
+      },
     },
     {
       key: 'submissions_current',
