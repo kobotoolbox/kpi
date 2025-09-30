@@ -97,14 +97,6 @@ const ProjectBreakdown = () => {
       cellFormatter: (data: AssetWithUsage) => data.submission_count_all_time,
     },
     {
-      key: 'submissions_all',
-      label: t('Submissions (Total)'),
-      size: 100,
-      cellFormatter: (data: AssetWithUsage) => {
-        return data.submission_count_all_time
-      },
-    },
-    {
       key: 'submissions_current',
       label: t('Submissions'),
       size: 100,
