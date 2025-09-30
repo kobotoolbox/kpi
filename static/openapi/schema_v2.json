@@ -10735,7 +10735,7 @@
                 "operationId": "api_v2_stripe_change_plan_retrieve",
                 "description": "Change an existing subscription to a new price.\n\nThis will immediately change their subscription to the new plan if upgrading, prorating the charge.\nIf the user is downgrading to a lower price, it will schedule the change at the end of the current billing period.\n\n<pre class=\"prettyprint\">\n<b>GET</b> /api/v2/stripe/change-plan/?subscription_id=<code>{subscription_id}</code>&price_id=<code>{price_id}</code>\n</pre>\n\n> Example\n>\n>       curl -X GET https://[kpi]/api/v2/stripe/change-plan/\n\n> **Payload**\n>\n>        {\n>           \"price_id\": \"price_A34cds8fmske3tf\",\n>           \"subscription_id\": \"sub_s9aNFrd2fsmld4gz\",\n>           \"quantity\": 100000\n>        }\n\nwhere:\n\n* \"price_id\" (required) is the Stripe Price ID for the plan the user is changing to.\n* \"quantity\" is the quantity for the new subscription price (default: 1).\n* \"subscription_id\" (required) is a Stripe Subscription ID for the subscription being changed.",
                 "tags": [
-                    "api"
+                    "Stripe"
                 ],
                 "security": [
                     {

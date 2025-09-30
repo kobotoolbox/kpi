@@ -7796,7 +7796,7 @@ paths:
         * "quantity" is the quantity for the new subscription price (default: 1).
         * "subscription_id" (required) is a Stripe Subscription ID for the subscription being changed.
       tags:
-      - api
+      - Stripe
       security:
       - BasicAuth: []
       - TokenAuth: []

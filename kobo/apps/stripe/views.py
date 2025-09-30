@@ -59,6 +59,7 @@ class OneTimeAddOnViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
+@extend_schema(tags=['Stripe'])
 class ChangePlanView(APIView):
     """
     Change an existing subscription to a new price.
