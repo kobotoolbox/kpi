@@ -14,6 +14,7 @@ darker:
 
 biome:
   - './**/*.(js|jsx|ts|tsx)'           # js or ts files.
+  - 'tsconfig.json'                    # non-source files.
   - 'biome.jsonc'                      # configuration.
   - '{package*.json,patches/*.patch}'  # npm + postinstall
   - '.github/workflows/biome.yml'      # ci

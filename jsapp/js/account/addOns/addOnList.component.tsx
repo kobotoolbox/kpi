@@ -1,11 +1,11 @@
 import React, { useContext, useEffect, useState } from 'react'
 
 import { AddOnProductRow } from '#/account/addOns/addOnProductRow.component'
-import type { Organization } from '#/account/organization/organizationQuery'
 import type { OneTimeAddOn, Price, Product, SubscriptionInfo } from '#/account/stripe.types'
 import { isAddonProduct } from '#/account/stripe.utils'
 import subscriptionStore from '#/account/subscriptionStore'
 import { OneTimeAddOnsContext } from '#/account/useOneTimeAddonList.hook'
+import type { OrganizationResponse } from '#/api/models/organizationResponse'
 import type { BadgeColor } from '#/components/common/badge'
 import Badge from '#/components/common/badge'
 import useWhen from '#/hooks/useWhen.hook'
@@ -17,7 +17,7 @@ import styles from './addOnList.module.scss'
  */
 const AddOnList = (props: {
   products: Product[]
-  organization: Organization | null
+  organization: OrganizationResponse
   isBusy: boolean
   setIsBusy: (value: boolean) => void
   onClickBuy: (price: Price) => void
@@ -58,7 +58,7 @@ const AddOnList = (props: {
     [],
   )
 
-  if (!addOnProducts.length || !props.organization) {
+  if (!addOnProducts.length) {
     return null
   }
 

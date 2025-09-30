@@ -8,16 +8,14 @@ import type { MemberRoleEnum } from './memberRoleEnum'
  */
 import type { OrganizationTypeEnum } from './organizationTypeEnum'
 
-export interface Organization {
+export interface OrganizationResponse {
   readonly id: string
   readonly url: string
-  /**
-   * The name of the organization
-   * @maxLength 200
-   */
-  name: string
-  website?: string
-  organization_type?: OrganizationTypeEnum
+  /** @maxLength 200 */
+  readonly name: string
+  /** @maxLength 255 */
+  readonly website: string
+  readonly organization_type: OrganizationTypeEnum
   readonly created: string
   readonly modified: string
   readonly is_owner: boolean
