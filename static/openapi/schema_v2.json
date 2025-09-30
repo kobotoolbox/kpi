@@ -10666,7 +10666,7 @@
                     }
                 ],
                 "tags": [
-                    "api"
+                    "Stripe"
                 ],
                 "security": [
                     {
@@ -10706,7 +10706,7 @@
                     }
                 ],
                 "tags": [
-                    "api"
+                    "Stripe"
                 ],
                 "security": [
                     {
@@ -10763,7 +10763,7 @@
             "post": {
                 "operationId": "api_v2_stripe_checkout_link_create",
                 "tags": [
-                    "api"
+                    "Stripe"
                 ],
                 "requestBody": {
                     "content": {
@@ -10832,7 +10832,7 @@
                     }
                 ],
                 "tags": [
-                    "api"
+                    "Stripe"
                 ],
                 "security": [
                     {

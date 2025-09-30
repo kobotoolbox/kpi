@@ -7731,7 +7731,7 @@ paths:
         schema:
           type: integer
       tags:
-      - api
+      - Stripe
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7754,7 +7754,7 @@ paths:
         description: A unique value identifying this plan add-on.
         required: true
       tags:
-      - api
+      - Stripe
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7811,7 +7811,7 @@ paths:
     post:
       operationId: api_v2_stripe_checkout_link_create
       tags:
-      - api
+      - Stripe
       requestBody:
         content:
           application/json:
@@ -7906,7 +7906,7 @@ paths:
         schema:
           type: integer
       tags:
-      - api
+      - Stripe
       security:
       - BasicAuth: []
       - TokenAuth: []

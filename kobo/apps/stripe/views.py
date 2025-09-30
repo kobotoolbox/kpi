@@ -41,6 +41,7 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from kpi.versioning import APIV2Versioning
 
 
+@extend_schema(tags=['Stripe'])
 class OneTimeAddOnViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Lists the one-time add-ons for the authenticated user's organization.
@@ -203,6 +204,7 @@ class ChangePlanView(APIView):
         return ChangePlanView.modify_subscription(price, subscription, quantity)
 
 
+@extend_schema(tags=['Stripe'])
 class CheckoutLinkView(APIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = CheckoutLinkSerializer
@@ -523,6 +525,7 @@ class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
+@extend_schema(tags=['Stripe'])
 @method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='list')
 @method_decorator(only_vary_on('Origin'), name='list')
 class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
