@@ -409,8 +409,9 @@ class BaseAction:
             accepted = True
 
         if dependency_supplemental_data:
-            # Sanitize 'dependency' before persisting: keep only stable identifiers and
-            # drop all other fields (e.g., 'value', 'language', timestamps).
+            # Sanitize 'dependency' before persisting: keep only a reference of the
+            # dependency (with '_actionId' and '_uuid') and drop all other fields
+            # (e.g., 'value', 'language', timestamps).
             dependency_supplemental_data = {
                 self.ACTION_ID_FIELD: dependency_supplemental_data[self.ACTION_ID_FIELD],
                 self.UUID_FIELD: dependency_supplemental_data[self.UUID_FIELD],

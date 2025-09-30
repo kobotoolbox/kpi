@@ -42,8 +42,10 @@ class BaseManualNLPAction {
 }
 
 class BaseAutomatedNLPAction {
+  +attach_action_dependency() [abstract]
   +automated_data_schema [property]
   +data_schema [property]
+  +get_action_dependencies() [abstract]
   +run_automated_process()
   +get_nlp_service_class() [abstract]
 }
@@ -59,6 +61,8 @@ class TranscriptionActionMixin {
   +result_schema [property]
 }
 class TranslationActionMixin {
+  +attach_action_dependency()
+  +get_action_dependencies()
   +result_schema [property]
 }
 
@@ -155,7 +159,12 @@ PATCH /api/v2/assets/<asset_uid>/data/<submission_root_uuid>/supplement/
 
 ### 2.3 Sequence Diagram (End-to-End Flow)
 
-> This diagram illustrates the complete call flow from the client request to persistence.
+This section explains how the system handles a supplement from the initial
+client request, through validation and optional background retries.
+
+#### 2.3.1 Sequence Diagram – End-to-End
+
+> The diagram shows the synchronous request until the first response.
 
 ```mermaid
 sequenceDiagram
@@ -165,6 +174,7 @@ participant API as KPI API
 participant SS as SubmissionSupplement
 participant Action as Action (Manual/Automated)
 participant Ext as NLP Service (if automated)
+participant Celery as Celery Worker
 participant DB as Database
 
 Client->>API: POST /assets/<asset_uid>/data/<submission_root_uuid>/supplement
@@ -180,6 +190,9 @@ loop For each action in _actionConfigs
     Action->>Action: run_automated_process()
     Action->>Ext: Call external NLP service
     Ext-->>Action: Response (augmented payload)
+    alt status == "in_progress"
+      Action->>Celery: enqueue poll_automated_process task
+    end
     Action->>Action: Validate with automated_data_schema
   end
 
@@ -194,34 +207,61 @@ API-->>Client: 200 OK (or error)
 
 ---
 
-### 2.4 Flowchart (Logic inside `revise_data` per Action)
+#### 2.3.2 Background Polling with Celery
+
+If run_automated_process receives a response like:
+
+```json
+{"status": "in_progress"}
+```
+
+
+a Celery task (e.g. poll_automated_process) is queued.
+This task will periodically re-invoke the external service until the action’s
+status becomes complete or a maximum retry limit is reached.
+The task uses the same validation chain (automated_data_schema → result_schema)
+before persisting the final revision.
+
+---
+
+#### 2.3.3 Flowchart (Logic inside `revise_data` per Action)
 
 > This diagram shows the decision tree when validating and processing a single action payload.
 
 ```mermaid
 flowchart TB
   A[Incoming action payload]
-  B{Validate with data schema}
+  B[Attach action dependency]
   C{Is automated action?}
-  D[Build version]
-  G[Validate with result schema]
-  H[Save to DB]
-  I[Done]
-  F[Run automated process]
-  J[Validate with automated data schema]
-  E[Return 4xx error]
+  D[Add dependency supplemental data if any]
+  E[Build version]
+  F[Validate with result schema]
+  G[Save to DB]
+  H[Done]
+  I[Run automated process]
+  J[Sanitize dependency supplemental data]
+  K[Validate with automated data schema]
+  L[Enqueue Celery task poll_automated_process]
+  M[Return 4xx error]
+  N{Status in_progress?}
 
   A --> B
-  B -->|fail| E
-  B -->|ok| C
+  B --> C
   C -->|no| D
-  D --> G
+  D --> E
+  E --> F
+  F --> G
   G --> H
-  H --> I
-  C -->|yes| F
-  F --> J
-  J -->|fail| E
-  J -->|ok| D
+
+  C -->|yes| I
+  I --> N
+  N -->|yes| L
+  N -->|no| J
+  J --> K
+  K -->|fail| M
+  K -->|ok| E
+
+  B -->|invalid dependency| M
 ```
 
 ---
