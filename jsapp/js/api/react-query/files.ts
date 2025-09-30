@@ -19,6 +19,8 @@ import type { AssetsFilesListParams } from '../models/assetsFilesListParams'
 
 import type { CreateFilePayload } from '../models/createFilePayload'
 
+import type { ErrorDetail } from '../models/errorDetail'
+
 import type { ErrorObject } from '../models/errorObject'
 
 import type { FilesResponse } from '../models/filesResponse'
@@ -44,7 +46,7 @@ export type assetsFilesListResponse200 = {
 }
 
 export type assetsFilesListResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -87,7 +89,7 @@ export const getAssetsFilesListQueryKey = (parentLookupAsset: string, params?: A
 
 export const getAssetsFilesListQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsFilesList>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   params?: AssetsFilesListParams,
@@ -111,9 +113,9 @@ export const getAssetsFilesListQueryOptions = <
 }
 
 export type AssetsFilesListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsFilesList>>>
-export type AssetsFilesListQueryError = ErrorObject
+export type AssetsFilesListQueryError = ErrorDetail
 
-export function useAssetsFilesList<TData = Awaited<ReturnType<typeof assetsFilesList>>, TError = ErrorObject>(
+export function useAssetsFilesList<TData = Awaited<ReturnType<typeof assetsFilesList>>, TError = ErrorDetail>(
   parentLookupAsset: string,
   params?: AssetsFilesListParams,
   options?: {
@@ -168,7 +170,15 @@ export type assetsFilesCreateResponse400 = {
   status: 400
 }
 
-export type assetsFilesCreateResponseComposite = assetsFilesCreateResponse201 | assetsFilesCreateResponse400
+export type assetsFilesCreateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type assetsFilesCreateResponseComposite =
+  | assetsFilesCreateResponse201
+  | assetsFilesCreateResponse400
+  | assetsFilesCreateResponse404
 
 export type assetsFilesCreateResponse = assetsFilesCreateResponseComposite & {
   headers: Headers
@@ -191,7 +201,7 @@ export const assetsFilesCreate = async (
   })
 }
 
-export const getAssetsFilesCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsFilesCreateMutationOptions = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsFilesCreate>>,
     TError,
@@ -226,9 +236,9 @@ export const getAssetsFilesCreateMutationOptions = <TError = ErrorObject, TConte
 
 export type AssetsFilesCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsFilesCreate>>>
 export type AssetsFilesCreateMutationBody = CreateFilePayload
-export type AssetsFilesCreateMutationError = ErrorObject
+export type AssetsFilesCreateMutationError = ErrorObject | ErrorDetail
 
-export const useAssetsFilesCreate = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsFilesCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsFilesCreate>>,
     TError,
@@ -251,7 +261,7 @@ export type assetsFilesRetrieveResponse200 = {
 }
 
 export type assetsFilesRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -282,7 +292,7 @@ export const getAssetsFilesRetrieveQueryKey = (parentLookupAsset: string, uid: s
 
 export const getAssetsFilesRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsFilesRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   uid: string,
@@ -306,9 +316,9 @@ export const getAssetsFilesRetrieveQueryOptions = <
 }
 
 export type AssetsFilesRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsFilesRetrieve>>>
-export type AssetsFilesRetrieveQueryError = ErrorObject
+export type AssetsFilesRetrieveQueryError = ErrorDetail
 
-export function useAssetsFilesRetrieve<TData = Awaited<ReturnType<typeof assetsFilesRetrieve>>, TError = ErrorObject>(
+export function useAssetsFilesRetrieve<TData = Awaited<ReturnType<typeof assetsFilesRetrieve>>, TError = ErrorDetail>(
   parentLookupAsset: string,
   uid: string,
   options?: {
@@ -335,7 +345,7 @@ export type assetsFilesDestroyResponse204 = {
 }
 
 export type assetsFilesDestroyResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -360,7 +370,7 @@ export const assetsFilesDestroy = async (
   })
 }
 
-export const getAssetsFilesDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetsFilesDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsFilesDestroy>>,
     TError,
@@ -395,9 +405,9 @@ export const getAssetsFilesDestroyMutationOptions = <TError = ErrorObject, TCont
 
 export type AssetsFilesDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsFilesDestroy>>>
 
-export type AssetsFilesDestroyMutationError = ErrorObject
+export type AssetsFilesDestroyMutationError = ErrorDetail
 
-export const useAssetsFilesDestroy = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetsFilesDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsFilesDestroy>>,
     TError,
@@ -420,7 +430,7 @@ export type assetsFilesContentRetrieveResponse200 = {
 }
 
 export type assetsFilesContentRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -453,7 +463,7 @@ export const getAssetsFilesContentRetrieveQueryKey = (parentLookupAsset: string,
 
 export const getAssetsFilesContentRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsFilesContentRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   uid: string,
@@ -477,11 +487,11 @@ export const getAssetsFilesContentRetrieveQueryOptions = <
 }
 
 export type AssetsFilesContentRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsFilesContentRetrieve>>>
-export type AssetsFilesContentRetrieveQueryError = ErrorObject
+export type AssetsFilesContentRetrieveQueryError = ErrorDetail
 
 export function useAssetsFilesContentRetrieve<
   TData = Awaited<ReturnType<typeof assetsFilesContentRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   uid: string,

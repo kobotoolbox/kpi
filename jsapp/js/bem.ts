@@ -1,6 +1,7 @@
 import React from 'react'
 
 import classnames from 'classnames'
+import { recordEntries } from './utils'
 
 /**
  * USAGE:
@@ -86,7 +87,7 @@ export function makeBem(parent: BemInstance | null, name: string, htmlTagName = 
 
       // Keep all the original props expect for modifiers (don't need it) and
       // className (we use our own).
-      Object.entries(this.props).forEach((propEntry) => {
+      recordEntries(this.props).forEach((propEntry) => {
         if (propEntry[0] !== 'm' && propEntry[0] !== 'className') {
           newProps[propEntry[0]] = propEntry[1]
         }

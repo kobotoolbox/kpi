@@ -86,6 +86,24 @@ class MassEmailConfig(AbstractTimeStampedModel):
             ),
         }
 
+    def get_users_queryset(self):
+        queryset_getter = USER_QUERIES.get(self.query, lambda: [])
+        parameters = {}
+        for param in self.parameters.all():
+            if (
+                param.name not in queryset_getter.__annotations__
+                or queryset_getter.__annotations__[param.name] not in (int, float, str)
+            ):
+                continue
+            try:
+                value = queryset_getter.__annotations__[param.name](param.value)
+            except ValueError:
+                continue
+
+            parameters[param.name] = value
+
+        return queryset_getter(**parameters)
+
 
 class MassEmailConfigExpectedRecipientsResource(resources.ModelResource):
     recipients = fields.Field(dehydrate_method='get_recipients')
@@ -99,7 +117,7 @@ class MassEmailConfigExpectedRecipientsResource(resources.ModelResource):
         )
 
     def get_recipients(self, email_config):
-        user_queryset = USER_QUERIES.get(email_config.query, lambda: [])()
+        user_queryset = email_config.get_users_queryset()
         return [
             user
             for user in user_queryset.values('username', 'email', 'extra_details__uid')
@@ -204,6 +222,14 @@ class MassEmailConfigRecipientsResource(resources.ModelResource):
             'status',
         ]
         dataset._data = reformatted
+
+
+class MassEmailQueryParam(models.Model):
+    email_config = models.ForeignKey(
+        MassEmailConfig, on_delete=models.CASCADE, related_name='parameters'
+    )
+    name = models.CharField()
+    value = models.CharField()
 
 
 class MassEmailJob(AbstractTimeStampedModel):

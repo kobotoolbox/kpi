@@ -10,8 +10,6 @@ import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@
 
 import type { ErrorDetail } from '../models/errorDetail'
 
-import type { ErrorObject } from '../models/errorObject'
-
 import type { PaginatedUserListResponseList } from '../models/paginatedUserListResponseList'
 
 import type { UserRetrieveResponse } from '../models/userRetrieveResponse'
@@ -117,7 +115,7 @@ export type usersRetrieveResponse200 = {
 }
 
 export type usersRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -142,7 +140,7 @@ export const getUsersRetrieveQueryKey = (username: string) => {
   return ['api', 'v2', 'users', username] as const
 }
 
-export const getUsersRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof usersRetrieve>>, TError = ErrorObject>(
+export const getUsersRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof usersRetrieve>>, TError = ErrorDetail>(
   username: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof usersRetrieve>>, TError, TData>
@@ -164,9 +162,9 @@ export const getUsersRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof u
 }
 
 export type UsersRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof usersRetrieve>>>
-export type UsersRetrieveQueryError = ErrorObject
+export type UsersRetrieveQueryError = ErrorDetail
 
-export function useUsersRetrieve<TData = Awaited<ReturnType<typeof usersRetrieve>>, TError = ErrorObject>(
+export function useUsersRetrieve<TData = Awaited<ReturnType<typeof usersRetrieve>>, TError = ErrorDetail>(
   username: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof usersRetrieve>>, TError, TData>

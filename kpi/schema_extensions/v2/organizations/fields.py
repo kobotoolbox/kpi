@@ -39,3 +39,7 @@ class TotalSubmissionCountField(serializers.JSONField):
 
 class UrlField(serializers.URLField):
     pass
+
+
+class UserRoleField(serializers.CharField):
+    pass

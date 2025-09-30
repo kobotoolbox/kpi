@@ -1,13 +1,14 @@
 import React, { useState } from 'react'
 
 import { Cookies } from 'react-cookie'
-import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
 import { UsageLimitTypes } from '#/account/stripe.types'
-import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import { useServiceUsageQuery } from '#/account/usage/useServiceUsageQuery'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { getOrganizationsRetrieveQueryKey, useOrganizationsRetrieve } from '#/api/react-query/organizations'
 import LimitBanner from '#/components/usageLimits/overLimitBanner.component'
 import LimitModal from '#/components/usageLimits/overLimitModal.component'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
+import { useSession } from '#/stores/useSession'
 
 const cookies = new Cookies()
 
@@ -20,17 +21,23 @@ const LimitNotifications = ({ pageCanShowModal = false, accountPage = false }: L
   const [modalDismissed, setModalDismissed] = useState(false)
   const [stripeEnabled, setStripeEnabled] = useState(false)
 
-  const { billingPeriod } = useBillingPeriod()
-
   const { data: serviceUsageData } = useServiceUsageQuery()
 
-  const orgQuery = useOrganizationQuery()
+  const session = useSession()
+  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
+  const orgQuery = useOrganizationsRetrieve(organizationId!, {
+    query: {
+      queryKey: getOrganizationsRetrieveQueryKey(organizationId!), // Note: see Orval issue https://github.com/orval-labs/orval/issues/2396
+      staleTime: Number.POSITIVE_INFINITY,
+    },
+  })
 
   // Only show modal on certain pages (set by parent), only to non-MMO users and MMO users with role of 'owner',
   // and only show if list of exceeded limits includes storage or submissions
   const useModal =
     pageCanShowModal &&
-    (!orgQuery.data?.is_mmo || orgQuery.data?.request_user_role === OrganizationUserRole.owner) &&
+    orgQuery.data?.status === 200 &&
+    (!orgQuery.data.data.is_mmo || orgQuery.data.data.request_user_role === MemberRoleEnum.owner) &&
     (serviceUsageData?.limitExceedList.includes(UsageLimitTypes.STORAGE) ||
       serviceUsageData?.limitExceedList.includes(UsageLimitTypes.SUBMISSION))
 
@@ -74,9 +81,7 @@ const LimitNotifications = ({ pageCanShowModal = false, accountPage = false }: L
         }
         accountPage={Boolean(accountPage)}
       />
-      {useModal && (
-        <LimitModal show={!modalDismissed} limits={modalLimits} interval={billingPeriod} dismissed={dismissModal} />
-      )}
+      {useModal && <LimitModal show={!modalDismissed} limits={modalLimits} dismissed={dismissModal} />}
     </>
   )
 }

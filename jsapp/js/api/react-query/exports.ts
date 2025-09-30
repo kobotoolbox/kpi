@@ -57,15 +57,7 @@ export type assetsExportsListResponse403 = {
   status: 403
 }
 
-export type assetsExportsListResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
-export type assetsExportsListResponseComposite =
-  | assetsExportsListResponse200
-  | assetsExportsListResponse403
-  | assetsExportsListResponse404
+export type assetsExportsListResponseComposite = assetsExportsListResponse200 | assetsExportsListResponse403
 
 export type assetsExportsListResponse = assetsExportsListResponseComposite & {
   headers: Headers
@@ -104,7 +96,7 @@ export const getAssetsExportsListQueryKey = (parentLookupAsset: string, params?:
 
 export const getAssetsExportsListQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsExportsList>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   params?: AssetsExportsListParams,
@@ -128,12 +120,9 @@ export const getAssetsExportsListQueryOptions = <
 }
 
 export type AssetsExportsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsExportsList>>>
-export type AssetsExportsListQueryError = ErrorDetail | ErrorObject
+export type AssetsExportsListQueryError = ErrorDetail
 
-export function useAssetsExportsList<
-  TData = Awaited<ReturnType<typeof assetsExportsList>>,
-  TError = ErrorDetail | ErrorObject,
->(
+export function useAssetsExportsList<TData = Awaited<ReturnType<typeof assetsExportsList>>, TError = ErrorDetail>(
   parentLookupAsset: string,
   params?: AssetsExportsListParams,
   options?: {
@@ -293,15 +282,7 @@ export type assetsExportsRetrieveResponse403 = {
   status: 403
 }
 
-export type assetsExportsRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
-export type assetsExportsRetrieveResponseComposite =
-  | assetsExportsRetrieveResponse200
-  | assetsExportsRetrieveResponse403
-  | assetsExportsRetrieveResponse404
+export type assetsExportsRetrieveResponseComposite = assetsExportsRetrieveResponse200 | assetsExportsRetrieveResponse403
 
 export type assetsExportsRetrieveResponse = assetsExportsRetrieveResponseComposite & {
   headers: Headers
@@ -328,7 +309,7 @@ export const getAssetsExportsRetrieveQueryKey = (parentLookupAsset: string, uid:
 
 export const getAssetsExportsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsExportsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   uid: string,
@@ -352,11 +333,11 @@ export const getAssetsExportsRetrieveQueryOptions = <
 }
 
 export type AssetsExportsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsExportsRetrieve>>>
-export type AssetsExportsRetrieveQueryError = ErrorDetail | ErrorObject
+export type AssetsExportsRetrieveQueryError = ErrorDetail
 
 export function useAssetsExportsRetrieve<
   TData = Awaited<ReturnType<typeof assetsExportsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   parentLookupAsset: string,
   uid: string,
@@ -388,15 +369,7 @@ export type assetsExportsDestroyResponse403 = {
   status: 403
 }
 
-export type assetsExportsDestroyResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
-export type assetsExportsDestroyResponseComposite =
-  | assetsExportsDestroyResponse204
-  | assetsExportsDestroyResponse403
-  | assetsExportsDestroyResponse404
+export type assetsExportsDestroyResponseComposite = assetsExportsDestroyResponse204 | assetsExportsDestroyResponse403
 
 export type assetsExportsDestroyResponse = assetsExportsDestroyResponseComposite & {
   headers: Headers
@@ -417,10 +390,7 @@ export const assetsExportsDestroy = async (
   })
 }
 
-export const getAssetsExportsDestroyMutationOptions = <
-  TError = ErrorDetail | ErrorObject,
-  TContext = unknown,
->(options?: {
+export const getAssetsExportsDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsExportsDestroy>>,
     TError,
@@ -455,9 +425,9 @@ export const getAssetsExportsDestroyMutationOptions = <
 
 export type AssetsExportsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsExportsDestroy>>>
 
-export type AssetsExportsDestroyMutationError = ErrorDetail | ErrorObject
+export type AssetsExportsDestroyMutationError = ErrorDetail
 
-export const useAssetsExportsDestroy = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
+export const useAssetsExportsDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsExportsDestroy>>,
     TError,

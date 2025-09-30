@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react'
 
 import cx from 'classnames'
 import securityStyles from '#/account/security/securityRoute.module.scss'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import TextBox from '#/components/common/textBox'
 import sessionStore from '#/stores/session'
 import { formatTime, notify } from '#/utils'
-import { useOrganizationQuery } from '../../organization/organizationQuery'
 import { deleteUnverifiedUserEmails, getUserEmails, setUserEmail } from './emailSection.api'
 import type { EmailResponse } from './emailSection.api'
 import styles from './emailSection.module.scss'
@@ -22,7 +23,7 @@ interface EmailState {
 export default function EmailSection() {
   const [session] = useState(() => sessionStore)
 
-  const orgQuery = useOrganizationQuery()
+  const [organization] = useOrganizationAssumed()
 
   let initialEmail = ''
   if ('email' in session.currentAccount) {
@@ -111,9 +112,9 @@ export default function EmailSection() {
   const currentAccount = session.currentAccount
   const unverifiedEmail = email.emails.find((userEmail) => !userEmail.verified && !userEmail.primary)
   const isReady = session.isInitialLoadComplete && 'email' in currentAccount
-  const userCanChangeEmail = orgQuery.data?.is_mmo ? orgQuery.data.request_user_role !== 'member' : true
   const isSSO =
     session.isInitialLoadComplete && 'social_accounts' in currentAccount && currentAccount.social_accounts.length >= 1
+  const userCanChangeEmail = organization.is_mmo ? organization.request_user_role !== MemberRoleEnum.member : true
 
   return (
     <section className={securityStyles.securitySection}>

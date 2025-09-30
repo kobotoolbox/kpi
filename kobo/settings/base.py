@@ -653,6 +653,10 @@ CONSTANCE_CONFIG = {
         'List (one per line) users who will be sent test emails when using the \n'
         '"test_users" query for MassEmailConfigs',
     ),
+    'ALLOW_SELF_ACCOUNT_DELETION': (
+        True,
+        'Allow users to delete their own account.',
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -782,6 +786,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'PROJECT_TRASH_GRACE_PERIOD',
         'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD',
         'AUTO_DELETE_ATTACHMENTS',
+        'ALLOW_SELF_ACCOUNT_DELETION',
     ),
     'Regular maintenance settings': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
@@ -1018,6 +1023,7 @@ SPECTACULAR_SETTINGS = {
     'ENUM_NAME_OVERRIDES': {
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
         'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
+        'MemberRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_ENUM',
     },
 }
 
