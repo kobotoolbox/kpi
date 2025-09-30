@@ -1,103 +1,43 @@
-import React, { useEffect, useState } from 'react'
+import { useState } from 'react'
 
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import prettyBytes from 'pretty-bytes'
 import { Link } from 'react-router-dom'
+import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import { useOrganizationQuery } from '#/account/organization/organizationQuery'
-import type { AssetUsage, AssetWithUsage } from '#/account/usage/assetUsage.api'
+import type { AssetWithUsage } from '#/account/usage/assetUsage.api'
 import { getOrgAssetUsage } from '#/account/usage/assetUsage.api'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
-import LoadingSpinner from '#/components/common/loadingSpinner'
-import { USAGE_ASSETS_PER_PAGE } from '#/constants'
 import type { ProjectFieldDefinition } from '#/projects/projectViews/constants'
 import type { ProjectsTableOrder } from '#/projects/projectsTable/projectsTable'
 import SortableProjectColumnHeader from '#/projects/projectsTable/sortableProjectColumnHeader'
+import { QueryKeys } from '#/query/queryKeys'
 import { ROUTES } from '#/router/routerConstants'
 import { convertSecondsToMinutes } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
 
-type ButtonType = 'back' | 'forward'
-
 const ProjectBreakdown = () => {
-  const [currentPage, setCurrentPage] = useState(1)
-  const [projectData, setProjectData] = useState<AssetUsage>({
-    count: '0',
-    next: null,
-    previous: null,
-    results: [],
-  })
-  const [order, setOrder] = useState({})
   const [showIntervalBanner, setShowIntervalBanner] = useState(true)
-  const [loading, setLoading] = useState(true)
   const orgQuery = useOrganizationQuery()
   const { billingPeriod } = useBillingPeriod()
+  const [pagination, setPagination] = useState({
+    limit: DEFAULT_PAGE_SIZE,
+    offset: 0,
+  })
+  const [order, setOrder] = useState({})
 
-  useEffect(() => {
-    async function fetchData(orgId: string) {
-      const data = await getOrgAssetUsage(currentPage, orgId, order)
-      const updatedResults = data.results.map((projectResult) => {
-        const assetParts = projectResult.asset.split('/')
-        const uid = assetParts[assetParts.length - 2]
-        return {
-          ...projectResult,
-          uid: uid,
-        }
-      })
-
-      setProjectData({
-        ...data,
-        results: updatedResults,
-      })
-      setLoading(false)
-    }
-
-    if (orgQuery.data) {
-      fetchData(orgQuery.data.id)
-    }
-  }, [currentPage, order, orgQuery.data])
-
-  if (loading) {
-    return <LoadingSpinner />
-  }
-
-  function dismissIntervalBanner() {
-    setShowIntervalBanner(false)
-  }
-
-  const calculateRange = (): string => {
-    const totalProjects = Number.parseInt(projectData.count)
-    let startRange = (currentPage - 1) * USAGE_ASSETS_PER_PAGE + 1
-    if (Number.parseInt(projectData.count) === 0) {
-      startRange = 0
-    }
-    const endRange = Math.min(currentPage * USAGE_ASSETS_PER_PAGE, totalProjects)
-    return `${startRange}-${endRange} of ${totalProjects}`
-  }
-
-  const handleClick = async (event: React.MouseEvent<HTMLButtonElement>, buttonType: ButtonType): Promise<void> => {
-    event.preventDefault()
-
-    try {
-      if (buttonType === 'back' && projectData.previous) {
-        setCurrentPage((prevPage) => Math.max(prevPage - 1, 1))
-      } else if (buttonType === 'forward' && projectData.next) {
-        setCurrentPage((prevPage) =>
-          Math.min(prevPage + 1, Math.ceil(Number.parseInt(projectData.count) / USAGE_ASSETS_PER_PAGE)),
-        )
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error)
-    }
-  }
-
-  const isActiveBack = currentPage > 1
-  const isActiveForward = currentPage < Math.ceil(Number.parseInt(projectData.count) / USAGE_ASSETS_PER_PAGE)
+  const queryResult = useQuery({
+    queryKey: [QueryKeys.assetUsage, pagination.limit, pagination.offset, orgQuery.data, orgQuery.data?.id, order],
+    queryFn: () => getOrgAssetUsage(pagination.limit, pagination.offset, orgQuery.data ? orgQuery.data.id : '', order),
+    placeholderData: keepPreviousData,
+  })
 
   const usageName: ProjectFieldDefinition = {
     name: 'name',
-    label: t('##count## Projects').replace('##count##', projectData.count),
+    label: getUsageNameLabel(),
     apiFilteringName: 'name',
     apiOrderingName: 'name',
     availableConditions: [],
@@ -114,33 +54,89 @@ const ProjectBreakdown = () => {
     setOrder(newOrder)
   }
 
-  const renderProjectRow = (project: AssetWithUsage) => {
-    const periodSubmissions = project.submission_count_current_period.toLocaleString()
-
-    const periodASRSeconds = convertSecondsToMinutes(
-      project.nlp_usage_current_period.total_nlp_asr_seconds,
-    ).toLocaleString()
-
-    const periodMTCharacters = project.nlp_usage_current_period.total_nlp_mt_characters.toLocaleString()
-
-    return (
-      <tr key={project.asset}>
-        <td dir='auto'>
-          <Link className={styles.link} to={ROUTES.FORM_SUMMARY.replace(':uid', project.uid)}>
-            {project.asset__name}
-          </Link>
-        </td>
-        <td>{project.submission_count_all_time.toLocaleString()}</td>
-        <td className={styles.currentMonth}>{periodSubmissions}</td>
-        <td>{prettyBytes(project.storage_bytes)}</td>
-        <td>{periodASRSeconds}</td>
-        <td>{periodMTCharacters}</td>
-        <td className={styles.badge}>
-          <AssetStatusBadge deploymentStatus={project.deployment_status} />
-        </td>
-      </tr>
-    )
+  function dismissIntervalBanner() {
+    setShowIntervalBanner(false)
   }
+
+  function getUsageNameLabel() {
+    if (queryResult.data) {
+      return t('##count## Projects').replace('##count##', queryResult.data.data.count.toString())
+    } else {
+      return t('Projects')
+    }
+  }
+
+  const columns: Array<UniversalTableColumn<AssetWithUsage>> = [
+    {
+      key: 'asset_name',
+      label: (
+        <SortableProjectColumnHeader
+          styling={false}
+          field={usageName}
+          orderableFields={['name', 'status']}
+          order={order}
+          onChangeOrderRequested={updateOrder}
+        />
+      ),
+      size: 100,
+      cellFormatter: (data: AssetWithUsage) => {
+        const assetParts = data.asset.split('/')
+        const uid = assetParts[assetParts.length - 2]
+
+        return (
+          <Link className={styles.link} to={ROUTES.FORM_SUMMARY.replace(':uid', uid)}>
+            {data.asset__name}
+          </Link>
+        )
+      },
+    },
+    {
+      key: 'submissions_all',
+      label: t('Submissions (Total)'),
+      size: 100,
+      cellFormatter: (data: AssetWithUsage) => data.submission_count_all_time,
+    },
+    {
+      key: 'submissions_current',
+      label: t('Submissions'),
+      size: 100,
+      cellFormatter: (data: AssetWithUsage) => data.submission_count_current_period,
+    },
+    {
+      key: 'storage',
+      label: t('Storage'),
+      size: 100,
+      cellFormatter: (data: AssetWithUsage) => prettyBytes(data.storage_bytes),
+    },
+    {
+      key: 'transcript_minutes',
+      label: t('Transcript minutes'),
+      size: 100,
+      cellFormatter: (data: AssetWithUsage) =>
+        convertSecondsToMinutes(data.nlp_usage_current_period.total_nlp_asr_seconds).toLocaleString(),
+    },
+    {
+      key: 'translation_characters',
+      label: t('Translation characters'),
+      size: 100,
+      cellFormatter: (data: AssetWithUsage) =>
+        convertSecondsToMinutes(data.nlp_usage_current_period.total_nlp_mt_characters).toLocaleString(),
+    },
+    {
+      key: 'staus',
+      label: (
+        <SortableProjectColumnHeader
+          styling={false}
+          field={usageStatus}
+          orderableFields={['name', 'status']}
+          order={order}
+          onChangeOrderRequested={updateOrder}
+        />
+      ),
+      size: 100,
+      cellFormatter: (data: AssetWithUsage) => <AssetStatusBadge deploymentStatus={data.deployment_status} />,
+    },
+  ]
 
   return (
     <div className={styles.root}>
@@ -157,57 +153,12 @@ const ProjectBreakdown = () => {
           <Button size='s' type='text' startIcon='close' onClick={dismissIntervalBanner} />
         </div>
       )}
-      <table>
-        <thead className={styles.headerFont}>
-          <tr>
-            <th className={styles.projects}>
-              <SortableProjectColumnHeader
-                styling={false}
-                field={usageName}
-                orderableFields={['name', 'status']}
-                order={order}
-                onChangeOrderRequested={updateOrder}
-              />
-            </th>
-            <th>{t('Submissions (Total)')}</th>
-            <th>{t('Submissions')}</th>
-            <th>{t('Data storage')}</th>
-            <th>{t('Transcript minutes')}</th>
-            <th>{t('Translation characters')}</th>
-            <th>
-              <SortableProjectColumnHeader
-                styling={false}
-                field={usageStatus}
-                orderableFields={['name', 'status']}
-                order={order}
-                onChangeOrderRequested={updateOrder}
-              />
-            </th>
-          </tr>
-        </thead>
-        {Number.parseInt(projectData.count) === 0 ? (
-          <tbody>
-            <tr>
-              <td colSpan={7} style={{ border: 'none' }}>
-                <div className={styles.emptyMessage}>{t('There are no projects to display.')}</div>
-              </td>
-            </tr>
-          </tbody>
-        ) : (
-          <tbody>{projectData.results.map((project) => renderProjectRow(project))}</tbody>
-        )}
-      </table>
-      <nav>
-        <div className={styles.pagination}>
-          <button className={`${isActiveBack ? styles.active : ''}`} onClick={(e) => handleClick(e, 'back')}>
-            <i className='k-icon k-icon-arrow-left' />
-          </button>
-          <span className={styles.range}>{calculateRange()}</span>
-          <button className={`${isActiveForward ? styles.active : ''}`} onClick={(e) => handleClick(e, 'forward')}>
-            <i className='k-icon k-icon-arrow-right' />
-          </button>
-        </div>
-      </nav>
+      <UniversalTable<AssetWithUsage>
+        pagination={pagination}
+        setPagination={setPagination}
+        queryResult={queryResult}
+        columns={columns}
+      />
     </div>
   )
 }
