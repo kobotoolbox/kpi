@@ -37,7 +37,7 @@ const ProjectBreakdown = () => {
 
   const usageName: ProjectFieldDefinition = {
     name: 'name',
-    label: t('Projects'),
+    label: getUsageNameLabel(),
     apiFilteringName: 'name',
     apiOrderingName: 'name',
     availableConditions: [],
@@ -56,6 +56,14 @@ const ProjectBreakdown = () => {
 
   function dismissIntervalBanner() {
     setShowIntervalBanner(false)
+  }
+
+  function getUsageNameLabel() {
+    if (queryResult.data) {
+      return t('##count## Projects').replace('##count##', queryResult.data.data.count.toString())
+    } else {
+      return t('Projects')
+    }
   }
 
   const columns: Array<UniversalTableColumn<AssetWithUsage>> = [
