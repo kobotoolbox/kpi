@@ -1,6 +1,7 @@
 import os
 import re
 
+from ddt import data, ddt
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.utils.http import urlencode
@@ -19,6 +20,8 @@ from kobo.apps.openrosa.libs.permissions import assign_perm
 from kobo.apps.organizations.models import Organization
 from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_MANAGE_ASSET, PERM_VIEW_ASSET
 from kpi.models import Asset
+
+EMPTY_LIST_CONTENT = '<?xml version="1.0" encoding="utf-8"?>\n<xforms xmlns="http://openrosa.org/xforms/xformsList"></xforms>'  # noqa
 
 
 class TestXFormListApiBase(TestAbstractViewSet):
@@ -825,6 +828,7 @@ class TestXFormListAsOrgAdminApiBase(TestXFormListApiBase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
+@ddt
 class TestXFormListApiAsDataCollector(TestXFormListApiBase):
     def setUp(self):
         super().setUp()
@@ -861,16 +865,30 @@ class TestXFormListApiAsDataCollector(TestXFormListApiBase):
         dcg.assets.add(self.xform.asset)
         dcg.assets.add(self.xform_without_auth.asset)
         self.data_collector = dc
+        # a data collector without access to anything
+        self.data_collector_no_assets = DataCollector.objects.create(name='DC_noassets')
+        self.maxDiff = None
 
-    def test_get_xform_list(self):
-        request = self.factory.get('/')
-        response = self.view(request)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    def get_test_token(self, token_type):
+        if token_type == 'valid':
+            return self.data_collector.token
+        elif token_type == 'invalid':
+            return 'badtoken'
+        else:
+            return self.data_collector_no_assets.token
+
+    @data('valid', 'invalid', 'no_assets')
+    def test_get_xform_list(self, token_type):
         response = self.client.get(
-            reverse('form-list', kwargs={'token': self.data_collector.token})
+            reverse('form-list', kwargs={'token': self.get_test_token(token_type)})
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.render().content.decode()
+
+        if token_type in ['invalid', 'no_assets']:
+            self.assertEqual(content, EMPTY_LIST_CONTENT)
+            return
 
         both_forms = os.path.join(
             os.path.dirname(__file__),
@@ -888,19 +906,25 @@ class TestXFormListApiAsDataCollector(TestXFormListApiBase):
                 'pk_0': self.xform_without_auth.pk,
                 'pk_1': self.xform.pk,
             }
-            content = response.render().content
-            self.assertEqual(content.decode(), form_list_xml % data)
+            self.assertEqual(content, form_list_xml % data)
             self.assertTrue(response.has_header('X-OpenRosa-Version'))
             self.assertTrue(response.has_header('X-OpenRosa-Accept-Content-Length'))
             self.assertTrue(response.has_header('Date'))
             self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
 
-    def test_get_individual_xform(self):
-        base_url = reverse('form-list', kwargs={'token': self.data_collector.token})
+    @data('valid', 'invalid', 'no_assets')
+    def test_get_individual_xform(self, token_type):
+        token = self.get_test_token(token_type)
+        base_url = reverse('form-list', kwargs={'token': token})
         url = '%s?%s' % (base_url, urlencode({'formID': self.xform.id_string}))
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.render().content.decode()
+
+        if token_type in ['invalid', 'no_assets']:
+            self.assertEqual(content, EMPTY_LIST_CONTENT)
+            return
         path = os.path.join(
             os.path.dirname(__file__),
             '..',
@@ -915,18 +939,22 @@ class TestXFormListApiAsDataCollector(TestXFormListApiBase):
                 'pk': self.xform.pk,
                 'key': self.data_collector.token,
             }
-            content = response.render().content.decode()
             self.assertEqual(content, form_list_xml % data)
 
-    def test_retrieve_xform_manifest(self):
+    @data('valid', 'invalid', 'no_assets')
+    def test_retrieve_xform_manifest(self, token_type):
         self._load_metadata(self.xform)
+        token = self.get_test_token(token_type)
 
         base_url = reverse(
             'manifest-url',
-            kwargs={'token': self.data_collector.token, 'pk': self.xform.pk},
+            kwargs={'token': token, 'pk': self.xform.pk},
         )
 
         response = self.client.get(base_url)
+        if token_type in ['invalid', 'no_assets']:
+            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+            return
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         manifest_xml = (
@@ -955,29 +983,39 @@ class TestXFormListApiAsDataCollector(TestXFormListApiBase):
         self.assertTrue(response.has_header('Date'))
         self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
 
-    def test_get_media(self):
+    @data('valid', 'invalid', 'no_assets')
+    def test_get_media(self, token_type):
         self._load_metadata(self.xform)
+        token = self.get_test_token(token_type)
         base_url = reverse(
             'xform-media',
             kwargs={
-                'token': self.data_collector.token,
+                'token': token,
                 'pk': self.xform.pk,
                 'metadata': self.metadata.pk,
                 'format': 'png',
             },
         )
         response = self.client.get(base_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        if token_type == 'valid':
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+        else:
+            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_retrieve_xform_xml(self):
+    @data('valid', 'invalid', 'no_assets')
+    def test_retrieve_xform_xml(self, token_type):
+        token = self.get_test_token(token_type)
         base_url = reverse(
             'download_xform',
             kwargs={
-                'token': self.data_collector.token,
+                'token': token,
                 'pk': self.xform_without_auth.pk,
             },
         )
         response = self.client.get(base_url)
+        if token_type in ['invalid', 'no_assets']:
+            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+            return
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -998,3 +1036,37 @@ class TestXFormListApiAsDataCollector(TestXFormListApiBase):
             data = {'form_uuid': self.xform_without_auth.uuid}
             content = response.render().content.decode().strip()
             self.assertEqual(content, form_xml % data)
+
+    @data('valid', 'invalid', 'no_assets')
+    def test_head_xform_manifest(self, token_type):
+        self._load_metadata(self.xform)
+        token = self.get_test_token(token_type)
+
+        base_url = reverse(
+            'manifest-url',
+            kwargs={'token': token, 'pk': self.xform.pk},
+        )
+        response = self.client.head(base_url)
+        if token_type in ['invalid', 'no_assets']:
+            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        else:
+            self.validate_openrosa_head_response(response)
+
+    @data('valid', 'invalid', 'no_assets')
+    def test_head_xform_media(self, token_type):
+        self._load_metadata(self.xform)
+        token = self.get_test_token(token_type)
+        base_url = reverse(
+            'xform-media',
+            kwargs={
+                'token': token,
+                'pk': self.xform.pk,
+                'metadata': self.metadata.pk,
+                'format': 'png',
+            },
+        )
+        response = self.client.head(base_url)
+        if token_type in ['invalid', 'no_assets']:
+            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        else:
+            self.validate_openrosa_head_response(response)

@@ -90,10 +90,16 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         username = self.kwargs.get('username')
         token = self.kwargs.get('token')
         if token:
-            collector = DataCollector.objects.get(token=token)
-            collector_group = collector.group
-            assets = list(collector_group.assets.values_list('uid', flat=True))
-            queryset = queryset.filter(kpi_asset_uid__in=assets)
+            try:
+                collector = DataCollector.objects.get(token=token)
+                collector_group = collector.group
+                if collector_group:
+                    assets = list(collector_group.assets.values_list('uid', flat=True))
+                    queryset = queryset.filter(kpi_asset_uid__in=assets)
+                else:
+                    return XForm.objects.none()
+            except DataCollector.DoesNotExist:
+                return XForm.objects.none()
         elif username is None:
             # If no username is specified, the request must be authenticated
             if self.request.user.is_anonymous:
