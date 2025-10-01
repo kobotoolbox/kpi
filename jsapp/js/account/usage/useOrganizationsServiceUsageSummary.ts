@@ -2,6 +2,7 @@ import type { UseQueryOptions } from '@tanstack/react-query'
 import type { ErrorDetail } from '#/api/models/errorDetail'
 import type { ServiceUsageBalances } from '#/api/models/serviceUsageBalances'
 import {
+  getOrganizationsServiceUsageRetrieveQueryKey,
   type organizationsServiceUsageRetrieveResponse,
   useOrganizationsServiceUsageRetrieve,
 } from '#/api/react-query/organizations'
@@ -102,7 +103,7 @@ export const useOrganizationsServiceUsageSummary = (
     query: {
       staleTime: 1000 * 60, // 1 minute stale time
       ...options,
-      queryKey: undefined as any, // Note: for `any` see https://github.com/orval-labs/orval/issues/2396
+      queryKey: getOrganizationsServiceUsageRetrieveQueryKey(organizationId!), // Note: for `any` see https://github.com/orval-labs/orval/issues/2396
       select: transformOrganizationsService,
     },
     request: {
