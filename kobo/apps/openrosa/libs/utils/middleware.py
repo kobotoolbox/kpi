@@ -81,7 +81,9 @@ class RestrictedAccessMiddleware(MiddlewareMixin):
         self._skipped_view = False
 
     def process_response(self, request, response):
-        if not request.user.is_authenticated or isinstance(request.user, DataCollectorUser):
+        if not request.user.is_authenticated or isinstance(
+            request.user, DataCollectorUser
+        ):
             return response
 
         if self._skipped_view:
