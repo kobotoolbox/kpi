@@ -114,10 +114,11 @@ jobs:
           git push -f --set-upstream origin changelog/$CURRENT_PATCH
 
 
+  # Note: deploy only the latest release branch instead of all cascading release branches.
   deploy-to-beta:
     needs:
       - version
-    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' && needs.version.outputs.next_branch == 'main' }}
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
