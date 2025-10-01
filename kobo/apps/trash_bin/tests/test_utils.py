@@ -825,7 +825,7 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
 
             # Verify that the Attachment object is deleted but the AttachmentTrash
             # entry and periodic task still exist
-            self.assertFalse(Attachment.objects.filter(pk=self.attachment.pk).exists())
+            self.assertFalse(Attachment.all_objects.filter(pk=self.attachment.pk).exists())
             self.assertTrue(AttachmentTrash.objects.filter(pk=trash_obj.pk).exists())
             self.assertTrue(PeriodicTask.objects.filter(pk=periodic_task_id).exists())
 
@@ -852,7 +852,7 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
         self.attachment.delete()
 
         # Attachment must be gone
-        self.assertFalse(Attachment.objects.filter(pk=self.attachment.pk).exists())
+        self.assertFalse(Attachment.all_objects.filter(pk=self.attachment.pk).exists())
 
     def _move_attachment_to_trash(self, asset, attachment, user):
         move_to_trash(
