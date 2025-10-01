@@ -132,7 +132,7 @@ urlpatterns = [
     ),
     re_path(
         r'^key/(?P<token>\w+)/formList$',
-        XFormListApi.as_view({'get': 'form_list_anonymous'}),
+        XFormListApi.as_view({'get': 'form_list_dc'}),
         name='form-list',
     ),
     re_path(
@@ -147,7 +147,7 @@ urlpatterns = [
     ),
     re_path(
         r'^key/(?P<token>\w+)/xformsManifest/(?P<pk>[\d+^/]+)$',
-        XFormListApi.as_view({'get': 'manifest_anonymous'}),
+        XFormListApi.as_view({'get': 'manifest_dc'}),
         name='manifest-url',
     ),
     re_path(
