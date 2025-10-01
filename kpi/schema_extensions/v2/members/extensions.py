@@ -1,23 +1,18 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import (
-    build_basic_type,
     build_choice_field,
-    build_object_type,
 )
-from drf_spectacular.types import OpenApiTypes
 from rest_framework import serializers
 
-from kobo.apps.organizations.models import OrganizationInviteStatusChoices
 from kobo.apps.project_ownership.schema_extensions.v2.project_ownership.invites.extensions import (  # noqa
     StatusEnumFieldExtension,
 )
 from kpi.schema_extensions.v2.generic.schema import (
-    GENERIC_STRING_SCHEMA,
     USER_URL_SCHEMA,
 )
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from .schema import ROLE_CHOICES_ENUM, ROLE_CHOICES_PAYLOAD_ENUM
-from .fields import RoleChoiceField
+
+from .schema import ROLE_CHOICES_PAYLOAD_ENUM
 
 
 class MemberUrlFieldExtension(OpenApiSerializerFieldExtension):
