@@ -53,23 +53,19 @@ export default function Usage() {
     stripeEnabled: false,
   })
 
-  const {
-    data: usageData,
-    isLoading: isUsageLoading,
-    isFetchedAfterMount: isUsageFetchedAfterMount,
-  } = useOrganizationsServiceUsageSummary({ staleTime: 0 /** fetch fresh data! */ })
+  const usageQuery = useOrganizationsServiceUsageSummary({ staleTime: 0 /** fetch fresh data! */ })
   const { billingPeriod } = useBillingPeriod()
 
   const location = useLocation()
 
   const dateRange = useMemo(() => {
-    if (usageData?.status !== 200) return ''
-    const startDate = formatDate(usageData.data.currentPeriodStart)
-    const endDate = formatDate(usageData.data.currentPeriodEnd)
+    if (usageQuery.data?.status !== 200) return ''
+    const startDate = formatDate(usageQuery.data.data.currentPeriodStart)
+    const endDate = formatDate(usageQuery.data.data.currentPeriodEnd)
     return t('##start_date## to ##end_date##').replace('##start_date##', startDate).replace('##end_date##', endDate)
   }, [
-    (usageData?.data as OrganizationsServiceUsageSummary)?.currentPeriodStart,
-    (usageData?.data as OrganizationsServiceUsageSummary)?.currentPeriodEnd,
+    (usageQuery.data?.data as OrganizationsServiceUsageSummary)?.currentPeriodStart,
+    (usageQuery.data?.data as OrganizationsServiceUsageSummary)?.currentPeriodEnd,
   ])
 
   // check if stripe is enabled - if so, get limit data
@@ -158,9 +154,9 @@ export default function Usage() {
   }, [location])
 
   if (
-    isUsageLoading ||
-    !isUsageFetchedAfterMount ||
-    usageData?.status !== 200 ||
+    usageQuery.isLoading ||
+    !usageQuery.isFetchedAfterMount ||
+    usageQuery.data?.status !== 200 ||
     !limits.isLoaded ||
     (limits.stripeEnabled && (!products.isLoaded || !oneTimeAddOnsContext.isLoaded))
   ) {
@@ -172,9 +168,9 @@ export default function Usage() {
       <LimitNotifications accountPage />
       <header className={styles.header}>
         <h2 className={styles.headerText}>{t('Your usage')}</h2>
-        {typeof usageData.data.lastUpdated === 'string' && (
+        {typeof usageQuery.data.data.lastUpdated === 'string' && (
           <p className={styles.updated}>
-            {t('Last update: ##LAST_UPDATE_TIME##').replace('##LAST_UPDATE_TIME##', usageData.data.lastUpdated)}
+            {t('Last update: ##LAST_UPDATE_TIME##').replace('##LAST_UPDATE_TIME##', usageQuery.data.data.lastUpdated)}
           </p>
         )}
       </header>
@@ -187,7 +183,7 @@ export default function Usage() {
               <time className={styles.date}>{dateRange}</time>
             </span>
             <UsageContainer
-              usage={usageData.data.submissions}
+              usage={usageQuery.data.data.submissions}
               remainingLimit={limits.submissionsRemainingLimit}
               recurringLimit={limits.submissionsRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.SUBMISSIONS)}
@@ -202,7 +198,7 @@ export default function Usage() {
               <div className={styles.date}>{t('per account')}</div>
             </span>
             <UsageContainer
-              usage={usageData.data.storage}
+              usage={usageQuery.data.data.storage}
               remainingLimit={limits.storageByteRemainingLimit}
               recurringLimit={limits.storageByteRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.STORAGE)}
@@ -220,7 +216,7 @@ export default function Usage() {
               <time className={styles.date}>{dateRange}</time>
             </span>
             <UsageContainer
-              usage={usageData.data.transcriptionMinutes}
+              usage={usageQuery.data.data.transcriptionMinutes}
               remainingLimit={limits.nlpMinuteRemainingLimit}
               recurringLimit={limits.nlpMinuteRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSCRIPTION)}
@@ -235,7 +231,7 @@ export default function Usage() {
               <time className={styles.date}>{dateRange}</time>
             </span>
             <UsageContainer
-              usage={usageData.data.translationChars}
+              usage={usageQuery.data.data.translationChars}
               remainingLimit={limits.nlpCharacterRemainingLimit}
               recurringLimit={limits.nlpCharacterRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSLATION)}
