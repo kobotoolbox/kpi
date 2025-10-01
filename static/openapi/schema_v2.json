@@ -3,7 +3,7 @@
     "info": {
         "title": "KoboToolbox API",
         "version": "2.0.0 (api_v2)",
-        "description": "Powerful and intuitive data collection tools to make an impact"
+        "description": "This page documents all KoboToolbox API endpoints.\n\nThe endpoints are grouped by area of intended use. Each category contains related endpoints, with detailed documentation on usage and configuration. Use this as a reference to quickly find the right endpoint for managing projects, forms, data, permissions, integrations, logs, and organizational resources.\n\n**General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as assets."
     },
     "paths": {
         "/api/v2/access-logs/": {
@@ -38,7 +38,7 @@
                     }
                 ],
                 "tags": [
-                    "Access Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -85,7 +85,7 @@
                 "operationId": "api_v2_access_logs_export_list",
                 "description": "## List all access logs export tasks for all users\n\n⚠️ _Only available to superusers_\n",
                 "tags": [
-                    "Access Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -133,7 +133,7 @@
                 "operationId": "api_v2_access_logs_export_create",
                 "description": "## Create an export task for all users\n\n⚠️ _Only available to superusers_\n",
                 "tags": [
-                    "Access Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -225,7 +225,7 @@
                     }
                 ],
                 "tags": [
-                    "Access Logs"
+                    "Logging"
                 ],
                 "security": [
                     {
@@ -272,7 +272,7 @@
                 "operationId": "api_v2_access_logs_me_export_list",
                 "description": "## List all access logs export tasks for the authenticated user\n",
                 "tags": [
-                    "Access Logs"
+                    "Logging"
                 ],
                 "security": [
                     {
@@ -320,7 +320,7 @@
                 "operationId": "api_v2_access_logs_me_export_create",
                 "description": "## Create an export task for the authenticated user\n",
                 "tags": [
-                    "Access Logs"
+                    "Logging"
                 ],
                 "security": [
                     {
@@ -387,7 +387,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -432,7 +432,7 @@
                 "operationId": "api_v2_asset_snapshots_create",
                 "description": "## Create an asset snapshot\n\nWhen creating an asset snapshot, you must provide either:\n\n- the asset (as a URI), or\n- the source (as a JSON object representing the asset)\n\n…but not both.\n",
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "requestBody": {
                     "content": {
@@ -580,7 +580,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -658,7 +658,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -726,7 +726,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -776,7 +776,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -818,7 +818,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -885,7 +885,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Subscriptions"
+                    "Library collections"
                 ],
                 "security": [
                     {
@@ -913,7 +913,7 @@
                 "operationId": "api_v2_asset_subscriptions_create",
                 "description": "## Create an asset subscription\n\nCreate a subscription to a public collection for the user.\n",
                 "tags": [
-                    "Asset Subscriptions"
+                    "Library collections"
                 ],
                 "requestBody": {
                     "content": {
@@ -985,7 +985,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Subscriptions"
+                    "Library collections"
                 ],
                 "security": [
                     {
@@ -1041,7 +1041,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Subscriptions"
+                    "Library collections"
                 ],
                 "security": [
                     {
@@ -1102,7 +1102,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Usage"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -1178,7 +1178,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -1205,7 +1205,7 @@
                 "operationId": "api_v2_assets_create",
                 "description": "## Create or clone an asset\n\nWhen cloning an asset, you must provide:\n\n- the name (as a string),\n- the `clone_from` (the uid representing the asset),\n- the asset_type\n\nWhere `asset_type` must be one of these values:\n\n* block (can be cloned to `block`, `question`, `survey`, `template`)\n* question (can be cloned to `question`, `survey`, `template`)\n* survey (can be cloned to `block`, `question`, `survey`, `template`)\n* template (can be cloned to `survey`, `template`)\n\nSettings are cloned only when type of assets are `survey` or `template`.\nIn that case, `share-metadata` is not preserved.\n\nWhen creating a new `block` or `question` asset, settings are not saved either.\n",
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -1326,7 +1326,7 @@
                     }
                 ],
                 "tags": [
-                    "Attachments"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1399,7 +1399,7 @@
                     }
                 ],
                 "tags": [
-                    "Attachments"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1490,7 +1490,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -1596,7 +1596,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1686,7 +1686,7 @@
                     }
                 ],
                 "tags": [
-                    "Attachments"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1787,7 +1787,7 @@
                     }
                 ],
                 "tags": [
-                    "Attachments"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1887,7 +1887,7 @@
                     }
                 ],
                 "tags": [
-                    "Attachments"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1959,7 +1959,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2029,7 +2029,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2089,7 +2089,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -2166,7 +2166,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2251,7 +2251,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2336,7 +2336,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2421,7 +2421,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2506,7 +2506,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2591,7 +2591,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2656,7 +2656,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -2730,7 +2730,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2781,7 +2781,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -2846,7 +2846,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2897,7 +2897,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -2962,7 +2962,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3031,7 +3031,7 @@
                     }
                 ],
                 "tags": [
-                    "Export Settings"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3087,7 +3087,7 @@
                     }
                 ],
                 "tags": [
-                    "Export Settings"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -3186,7 +3186,7 @@
                     }
                 ],
                 "tags": [
-                    "Export Settings"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3251,7 +3251,7 @@
                     }
                 ],
                 "tags": [
-                    "Export Settings"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -3347,7 +3347,7 @@
                     }
                 ],
                 "tags": [
-                    "Export Settings"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3419,7 +3419,7 @@
                     }
                 ],
                 "tags": [
-                    "Export Settings"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3519,7 +3519,7 @@
                     }
                 ],
                 "tags": [
-                    "Exports"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3593,7 +3593,7 @@
                     }
                 ],
                 "tags": [
-                    "Exports"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -3710,7 +3710,7 @@
                     }
                 ],
                 "tags": [
-                    "Exports"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3793,7 +3793,7 @@
                     }
                 ],
                 "tags": [
-                    "Exports"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3880,7 +3880,7 @@
                     }
                 ],
                 "tags": [
-                    "Files"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3936,7 +3936,7 @@
                     }
                 ],
                 "tags": [
-                    "Files"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -4070,7 +4070,7 @@
                     }
                 ],
                 "tags": [
-                    "Files"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -4134,7 +4134,7 @@
                     }
                 ],
                 "tags": [
-                    "Files"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -4193,7 +4193,7 @@
                     }
                 ],
                 "tags": [
-                    "Files"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -4269,7 +4269,7 @@
                     }
                 ],
                 "tags": [
-                    "History"
+                    "Logging"
                 ],
                 "security": [
                     {
@@ -4345,7 +4345,7 @@
                     }
                 ],
                 "tags": [
-                    "History"
+                    "Logging"
                 ],
                 "security": [
                     {
@@ -4421,7 +4421,7 @@
                     }
                 ],
                 "tags": [
-                    "History"
+                    "Logging"
                 ],
                 "security": [
                     {
@@ -4515,7 +4515,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "security": [
                     {
@@ -4571,7 +4571,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "requestBody": {
                     "content": {
@@ -4718,7 +4718,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "security": [
                     {
@@ -4811,7 +4811,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "security": [
                     {
@@ -4904,7 +4904,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "requestBody": {
                     "content": {
@@ -5008,7 +5008,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "security": [
                     {
@@ -5073,7 +5073,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "requestBody": {
                     "content": {
@@ -5179,7 +5179,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "security": [
                     {
@@ -5239,7 +5239,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "security": [
                     {
@@ -5315,7 +5315,7 @@
                     }
                 ],
                 "tags": [
-                    "Paired Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -5371,7 +5371,7 @@
                     }
                 ],
                 "tags": [
-                    "Paired Data"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -5480,7 +5480,7 @@
                     }
                 ],
                 "tags": [
-                    "Paired Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -5545,7 +5545,7 @@
                     }
                 ],
                 "tags": [
-                    "Paired Data"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -5641,7 +5641,7 @@
                     }
                 ],
                 "tags": [
-                    "Paired Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -5701,7 +5701,7 @@
                     }
                 ],
                 "tags": [
-                    "Paired Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -5759,7 +5759,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "security": [
                     {
@@ -5836,7 +5836,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "requestBody": {
                     "content": {
@@ -5982,7 +5982,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "security": [
                     {
@@ -6065,7 +6065,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "security": [
                     {
@@ -6143,7 +6143,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "security": [
                     {
@@ -6212,7 +6212,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "requestBody": {
                     "content": {
@@ -6326,7 +6326,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "requestBody": {
                     "content": {
@@ -6454,7 +6454,7 @@
                     }
                 ],
                 "tags": [
-                    "Versions"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -6520,7 +6520,7 @@
                     }
                 ],
                 "tags": [
-                    "Versions"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -6590,7 +6590,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -6655,7 +6655,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -6777,7 +6777,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -6845,7 +6845,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -6902,7 +6902,7 @@
                     }
                 ],
                 "tags": [
-                    "Deployment"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -6957,7 +6957,7 @@
                     }
                 ],
                 "tags": [
-                    "Deployment"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -7062,7 +7062,7 @@
                     }
                 ],
                 "tags": [
-                    "Deployment"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -7168,7 +7168,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -7225,7 +7225,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -7273,7 +7273,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -7330,7 +7330,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -7378,7 +7378,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -7416,7 +7416,7 @@
                 "operationId": "api_v2_assets_bulk_create",
                 "description": "## Perform bulk actions on assets\n\nActions available:\n\n- `archive`\n- `delete`\n- `unarchive`\n- `undelete` (superusers only)\n",
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -7492,7 +7492,7 @@
                 "operationId": "api_v2_assets_hash_retrieve",
                 "description": "## Get a hash of all `version_id`s of all accessible assets by the current user.\n\nUseful to detect any changes in assets with only one call to `API`\n",
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -7539,7 +7539,7 @@
                 "operationId": "api_v2_assets_metadata_retrieve",
                 "description": "## Get metadata for all authenticated user' assets\n",
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -7595,7 +7595,7 @@
                     }
                 ],
                 "tags": [
-                    "Audit Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -7680,7 +7680,7 @@
                     }
                 ],
                 "tags": [
-                    "Imports"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -7726,7 +7726,7 @@
                 "operationId": "api_v2_imports_create",
                 "description": "## Import file\n\n_**Note**: this endpoint is expecting a multipart/form-data_\n",
                 "tags": [
-                    "Imports"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -7834,7 +7834,7 @@
                     }
                 ],
                 "tags": [
-                    "Imports"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -7920,7 +7920,7 @@
                     }
                 ],
                 "tags": [
-                    "Languages"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -7977,7 +7977,7 @@
                     }
                 ],
                 "tags": [
-                    "Languages"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -8062,7 +8062,7 @@
                     }
                 ],
                 "tags": [
-                    "Organizations"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8120,7 +8120,7 @@
                     }
                 ],
                 "tags": [
-                    "Organizations"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8176,7 +8176,7 @@
                     }
                 ],
                 "tags": [
-                    "Organizations"
+                    "User / team / organization / usage"
                 ],
                 "requestBody": {
                     "content": {
@@ -8265,7 +8265,7 @@
                     }
                 ],
                 "tags": [
-                    "Organizations"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8323,7 +8323,7 @@
                     }
                 ],
                 "tags": [
-                    "Organizations"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8381,7 +8381,7 @@
                     }
                 ],
                 "tags": [
-                    "Organizations"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8457,7 +8457,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Invites"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8513,7 +8513,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Invites"
+                    "User / team / organization / usage"
                 ],
                 "requestBody": {
                     "content": {
@@ -8612,7 +8612,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Invites"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8677,7 +8677,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Invites"
+                    "User / team / organization / usage"
                 ],
                 "requestBody": {
                     "content": {
@@ -8805,7 +8805,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Invites"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8892,7 +8892,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Members"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8959,7 +8959,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Members"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -9024,7 +9024,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Members"
+                    "User / team / organization / usage"
                 ],
                 "requestBody": {
                     "content": {
@@ -9138,7 +9138,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Members"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -9216,7 +9216,7 @@
                     }
                 ],
                 "tags": [
-                    "Permissions"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -9256,7 +9256,7 @@
                     }
                 ],
                 "tags": [
-                    "Permissions"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -9313,7 +9313,7 @@
                     }
                 ],
                 "tags": [
-                    "Project History Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -9378,7 +9378,7 @@
                 "operationId": "api_v2_project_history_logs_export_retrieve",
                 "description": "## List of Project History Exports\n\n⚠️ _Only available to superusers_\n",
                 "tags": [
-                    "Project History Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -9441,7 +9441,7 @@
                 "operationId": "api_v2_project_history_logs_export_create",
                 "description": "## Create an export of projects history logs\n\n⚠️ _Only available to superusers_\n\nExport project history logs and send it by email to the requesting user.\n",
                 "tags": [
-                    "Project History Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -9533,7 +9533,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Ownership Invites"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -9578,7 +9578,7 @@
                 "operationId": "api_v2_project_ownership_invites_create",
                 "description": "## Create (send) an invite\n\nWhere the assets `uid` are given in the payload's list\n\n\n",
                 "tags": [
-                    "Project Ownership Invites"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -9676,7 +9676,7 @@
                     }
                 ],
                 "tags": [
-                    "Transfers"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -9769,7 +9769,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Ownership Invites"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -9842,7 +9842,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Ownership Invites"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -9946,7 +9946,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Ownership Invites"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -10024,7 +10024,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Views"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10081,7 +10081,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Views"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10165,7 +10165,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Views"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10287,7 +10287,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Views"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10418,7 +10418,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Views"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10531,7 +10531,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Views"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10596,7 +10596,7 @@
                 "operationId": "api_v2_service_usage_list",
                 "description": "<span class='label label-warning'>⚠️ Deprecated</span>\n## Track Service Usage\n\nTracks the total usage of different services for the logged-in user. </br>\nTracks the submissions and NLP seconds/characters for the current month/year/all time. </br>\nTracks the current total storage used. </br>\nNote: this endpoint is not currently used by the frontend to display usage information. </br>\nSee `/api/v2/organizations/{organization_id}/service_usage/` for the endpoint we use on the Usage page. </br>\n",
                 "tags": [
-                    "Service Usage"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10666,7 +10666,7 @@
                     }
                 ],
                 "tags": [
-                    "Tags"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -10724,7 +10724,7 @@
                     }
                 ],
                 "tags": [
-                    "Tags"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -10790,7 +10790,7 @@
                 "operationId": "api_v2_terms_of_service_list",
                 "description": "## List the different terms of service\n",
                 "tags": [
-                    "Terms of Services"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -10850,7 +10850,7 @@
                     }
                 ],
                 "tags": [
-                    "Terms of Services"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -10942,7 +10942,7 @@
                     }
                 ],
                 "tags": [
-                    "Transcription Services"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -10999,7 +10999,7 @@
                     }
                 ],
                 "tags": [
-                    "Transcription Services"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -11091,7 +11091,7 @@
                     }
                 ],
                 "tags": [
-                    "Translation Services"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -11170,7 +11170,7 @@
                     }
                 ],
                 "tags": [
-                    "Translation Services"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -11255,7 +11255,7 @@
                     }
                 ],
                 "tags": [
-                    "Users"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11313,7 +11313,7 @@
                     }
                 ],
                 "tags": [
-                    "Users"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11360,7 +11360,7 @@
                 "operationId": "me_retrieve",
                 "description": "## Retrieve current user profile\n",
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11405,7 +11405,7 @@
                 "operationId": "me_partial_update",
                 "description": "## Update current user infos\n",
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "requestBody": {
                     "content": {
@@ -11491,7 +11491,7 @@
                 "operationId": "me_destroy",
                 "description": "## Delete current user\n\n> Payload Example:\n>\n>       {\n>           \"confirm\": \"user__extra_details__uid\",\n>       }\n\n\n### !! Due to current DRF-Spectacular limitations with AOS 3.1, DELETE operations do not display request or response bodies in this documentation (as payloads are not typically recommended for DELETE). This means direct testing is unavailable. However, example payloads and responses are provided for reference, and HTTP codes/error messages are accurate.  !!\n",
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11591,7 +11591,7 @@
                     }
                 ],
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11636,7 +11636,7 @@
                 "operationId": "me_emails_create",
                 "description": "## Set a new email\n\nThe new email will be unverified and replace existing unverified, non-primary emails.\nNew email is not usable until verified.\n",
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "requestBody": {
                     "content": {
@@ -11735,7 +11735,7 @@
                     }
                 ],
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11801,7 +11801,7 @@
                     }
                 ],
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11883,7 +11883,7 @@
                     }
                 ],
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -19137,5 +19137,49 @@
                 "description": "Token-based authentication. Use the format: `Token <your-token>`"
             }
         }
-    }
+    },
+    "tags": [
+        {
+            "name": "Manage projects and library content",
+            "description": [
+                "Create, organize, and manage projects, assets (projects/library content), and tags"
+            ]
+        },
+        {
+            "name": "Form content",
+            "description": "Export and preview assets (projects/library content) in different formats"
+        },
+        {
+            "name": "Survey data",
+            "description": "View, edit, validate, export, and report collected data"
+        },
+        {
+            "name": "Survey data - Rest Services",
+            "description": "Configure and manage webhooks for survey data integrations"
+        },
+        {
+            "name": "Manage permissions",
+            "description": "Assign, clone, and bulk-manage project and asset (projects/library content) permissions"
+        },
+        {
+            "name": "Logging",
+            "description": "Project history logs, access logs, Rest Service hook logs"
+        },
+        {
+            "name": "Library collections",
+            "description": "Subscribe to and manage shared library collections"
+        },
+        {
+            "name": "Audit logs (superusers)",
+            "description": "View server-wide logs"
+        },
+        {
+            "name": "User / team / organization / usage",
+            "description": "Manage users, orgs, invites, roles, and usage tracking"
+        },
+        {
+            "name": "Other",
+            "description": "Languages, available permissions, other"
+        }
+    ]
 }
