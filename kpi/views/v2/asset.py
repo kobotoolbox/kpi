@@ -94,7 +94,7 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 
 @extend_schema(
-    tags=['Assets'],
+    tags=['Manage projects and library content'],
 )
 @extend_schema_view(
     bulk=extend_schema(
@@ -171,7 +171,7 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
             validate_payload=False,
         ),
     ),
-    deployment=extend_schema(tags=['Deployment']),
+    deployment=extend_schema(tags=['Manage projects and library content']),
     hash=extend_schema(
         description=read_md('kpi', 'assets/hash.md'),
         responses=open_api_200_ok_response(
@@ -237,6 +237,7 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        tags=['Survey data']
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'assets/retrieve.md'),
@@ -415,6 +416,7 @@ class AssetViewSet(
     def bulk(self, request, *args, **kwargs):
         return Response(self._bulk_asset_actions(request.data))
 
+    @extend_schema(tags=['Form content'])
     @action(detail=True)
     def content(self, request, uid):
         asset = self.get_object()
@@ -892,6 +894,7 @@ class AssetViewSet(
                                              context=self.get_serializer_context())
         return Response(serializer.data)
 
+    @extend_schema(tags=['Form content'])
     @action(detail=True)
     def valid_content(self, request, uid):
         asset = self.get_object()
@@ -901,6 +904,7 @@ class AssetViewSet(
             'data': to_xlsform_structure(asset.content),
         })
 
+    @extend_schema(tags=['Form content'])
     @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
     def table_view(self, request, *args, **kwargs):
         sa = self.get_object()
@@ -922,6 +926,7 @@ class AssetViewSet(
             response_data['highlighted_xform'] = highlight_xform(export.xml, **options)
         return Response(response_data, template_name='highlighted_xform.html')
 
+    @extend_schema(tags=['Form content'])
     @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
     def xls(self, request, *args, **kwargs):
         return self.table_view(self, request, *args, **kwargs)

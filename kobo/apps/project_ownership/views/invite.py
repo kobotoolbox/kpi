@@ -19,7 +19,7 @@ from ..serializers import InviteSerializer
 
 
 @extend_schema(
-    tags=['Project Ownership Invites'],
+    tags=['Manage projects and library content'],
 )
 @extend_schema_view(
     create=extend_schema(

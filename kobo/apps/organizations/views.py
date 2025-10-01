@@ -112,9 +112,7 @@ class OrganizationAssetViewSet(AssetViewSet):
             raise NotImplementedError
 
 
-@extend_schema(
-    tags=['Organizations'],
-)
+@extend_schema(tags=['User / team / organization / usage'])
 @extend_schema_view(
     list=extend_schema(
         description=read_md('kpi', 'organizations/org_list.md'),
@@ -289,7 +287,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
-    tags=['Organization Members'],
+    tags=['User / team / organization / usage'],
     parameters=[
         OpenApiParameter(
             name='organization_id',
@@ -486,7 +484,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
-    tags=['Organization Invites'],
+    tags=['User / team / organization / usage'],
     parameters=[
         OpenApiParameter(
             name='organization_id',

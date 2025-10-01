@@ -55,7 +55,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 @extend_schema(
-    tags=['Asset Permission Assignments'],
+    tags=['Manage permissions'],
     parameters=[
         OpenApiParameter(
             name='parent_lookup_asset',

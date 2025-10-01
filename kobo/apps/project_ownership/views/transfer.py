@@ -14,7 +14,7 @@ from ..serializers import TransferDetailSerializer
 
 
 @extend_schema(
-    tags=['Transfers'],
+    tags=['Manage projects and library content'],
     parameters=[
         OpenApiParameter(
             name='parent_lookup_invite_uid',

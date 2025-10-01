@@ -1004,12 +1004,23 @@ REST_FRAMEWORK = {
 # Settings for the API documentation using drf-spectacular
 SPECTACULAR_SETTINGS = {
     'TITLE': 'KoboToolbox API',
-    'DESCRIPTION': 'Powerful and intuitive data collection tools to make an impact',
+    'DESCRIPTION': (
+        'This page documents all KoboToolbox API endpoints.\n\n'
+        'The endpoints are grouped by area of intended use. Each category contains '
+        'related endpoints, with detailed documentation on usage and configuration. '
+        'Use this as a reference to quickly find the right endpoint for managing '
+        'projects, forms, data, permissions, integrations, logs, and organizational '
+        'resources.\n\n'
+        '**General note**: All projects (whether deployed or draft), as well as all '
+        'library content (questions, blocks, templates, and collections) in the '
+        'user-facing application are represented in the API as assets.'
+    ),
     'VERSION': '2.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'SWAGGER_UI_FAVICON_HREF': '/static/favicon.png',
     'SWAGGER_UI_SETTINGS': {
         'filter': True,
+        'docExpansion': None,   # collapse all by default
     },
     'AUTHENTICATION_WHITELIST': [
         'kpi.authentication.BasicAuthentication',
@@ -1019,6 +1030,57 @@ SPECTACULAR_SETTINGS = {
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
         'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
     },
+    'TAGS': [
+        {
+            'name': 'Manage projects and library content',
+            'description': (
+                'Create, organize, and manage projects, assets '
+                '(projects/library content), and tags',
+            )
+        },
+        {
+            'name': 'Form content',
+            'description': (
+                'Export and preview assets (projects/library content) in different '
+                'formats'
+            ),
+        },
+        {
+            'name': 'Survey data',
+            'description': 'View, edit, validate, export, and report collected data',
+        },
+        {
+            'name': 'Survey data - Rest Services',
+            'description': 'Configure and manage webhooks for survey data integrations',
+        },
+        {
+            'name': 'Manage permissions',
+            'description': (
+                'Assign, clone, and bulk-manage project and asset '
+                '(projects/library content) permissions'
+            ),
+        },
+        {
+            'name': 'Logging',
+            'description': 'Project history logs, access logs, Rest Service hook logs',
+        },
+        {
+            'name': 'Library collections',
+            'description': 'Subscribe to and manage shared library collections',
+        },
+        {
+            'name': 'Audit logs (superusers)',
+            'description': 'View server-wide logs',
+        },
+        {
+            'name': 'User / team / organization / usage',
+            'description': 'Manage users, orgs, invites, roles, and usage tracking',
+        },
+        {
+            'name': 'Other',
+            'description': 'Languages, available permissions, other',
+        },
+    ],
 }
 
 OPENROSA_REST_FRAMEWORK = {
