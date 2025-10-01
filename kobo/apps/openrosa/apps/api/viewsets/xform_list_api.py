@@ -164,8 +164,11 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         tags=['OpenRosa Form List'],
         operation_id='form_list_anonymous',
     )
-    @action(detail=False, methods=['get'], authentication_classes=[DataCollectorTokenAuthentication
-])
+    @action(
+        detail=False,
+        methods=['get'],
+        authentication_classes=[DataCollectorTokenAuthentication],
+    )
     def form_list_anonymous(self, request, *args, **kwargs):
         """
         Publish the OpenRosa formList via a custom action instead of relying on the
@@ -268,8 +271,11 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         tags=['OpenRosa Form Manifest'],
         operation_id='manifest_anonymous',
     )
-    @action(detail=False, methods=['GET'], authentication_classes=[DataCollectorTokenAuthentication
-])
+    @action(
+        detail=False,
+        methods=['GET'],
+        authentication_classes=[DataCollectorTokenAuthentication],
+    )
     def manifest_anonymous(self, request, *args, **kwargs):
         return self.manifest(request, *args, **kwargs)
 
