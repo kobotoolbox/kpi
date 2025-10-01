@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 import { Cookies } from 'react-cookie'
 import { UsageLimitTypes } from '#/account/stripe.types'
-import { useServiceUsageQuery } from '#/account/usage/useServiceUsageQuery'
+import { useOrganizationsServiceUsageSummary } from '#/account/usage/useOrganizationsServiceUsageSummary'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { getOrganizationsRetrieveQueryKey, useOrganizationsRetrieve } from '#/api/react-query/organizations'
 import LimitBanner from '#/components/usageLimits/overLimitBanner.component'
@@ -21,7 +21,7 @@ const LimitNotifications = ({ pageCanShowModal = false, accountPage = false }: L
   const [modalDismissed, setModalDismissed] = useState(false)
   const [stripeEnabled, setStripeEnabled] = useState(false)
 
-  const { data: serviceUsageData } = useServiceUsageQuery()
+  const { data: serviceUsageData } = useOrganizationsServiceUsageSummary()
 
   const session = useSession()
   const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
@@ -38,8 +38,9 @@ const LimitNotifications = ({ pageCanShowModal = false, accountPage = false }: L
     pageCanShowModal &&
     orgQuery.data?.status === 200 &&
     (!orgQuery.data.data.is_mmo || orgQuery.data.data.request_user_role === MemberRoleEnum.owner) &&
-    (serviceUsageData?.limitExceedList.includes(UsageLimitTypes.STORAGE) ||
-      serviceUsageData?.limitExceedList.includes(UsageLimitTypes.SUBMISSION))
+    serviceUsageData?.status === 200 &&
+    (serviceUsageData?.data.limitExceedList.includes(UsageLimitTypes.STORAGE) ||
+      serviceUsageData?.data.limitExceedList.includes(UsageLimitTypes.SUBMISSION))
 
   useWhenStripeIsEnabled(() => {
     setStripeEnabled(true)
@@ -62,22 +63,24 @@ const LimitNotifications = ({ pageCanShowModal = false, accountPage = false }: L
     })
   }
 
-  if (!stripeEnabled || !serviceUsageData) {
+  if (!stripeEnabled || serviceUsageData?.status !== 200) {
     return null
   }
 
   // We only want to display exceeded limit notifications for submissions and storage
   // in the modal
-  const modalLimits = serviceUsageData.limitExceedList.filter((limit) =>
+  const modalLimits = serviceUsageData.data.limitExceedList.filter((limit) =>
     [UsageLimitTypes.STORAGE, UsageLimitTypes.SUBMISSION].includes(limit),
   )
 
   return (
     <>
       <LimitBanner
-        warning={!serviceUsageData.limitExceedList.length}
+        warning={!serviceUsageData.data.limitExceedList.length}
         limits={
-          serviceUsageData.limitExceedList.length ? serviceUsageData.limitExceedList : serviceUsageData.limitWarningList
+          serviceUsageData.data.limitExceedList.length
+            ? serviceUsageData.data.limitExceedList
+            : serviceUsageData.data.limitWarningList
         }
         accountPage={Boolean(accountPage)}
       />
