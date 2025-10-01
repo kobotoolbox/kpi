@@ -52,6 +52,5 @@ InviteResponse = inline_serializer_class(
         'organization_name': serializers.CharField(),
         'created': serializers.DateTimeField(),
         'modified': serializers.DateTimeField(),
-        'invitee': serializers.CharField(),
     },
 )

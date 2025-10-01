@@ -16,5 +16,4 @@ export interface InviteResponse {
   organization_name: string
   created: string
   modified: string
-  invitee: string
 }

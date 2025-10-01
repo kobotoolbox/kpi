@@ -8,6 +8,7 @@ from .fields import (
     RoleChoicePayloadField,
     UserUrlField,
 )
+from kpi.schema_extensions.v2.invites.serializers import InviteResponse
 
 MemberListResponse = inline_serializer_class(
     name='MemberListResponse',
@@ -17,11 +18,11 @@ MemberListResponse = inline_serializer_class(
         'user__username': serializers.CharField(),
         'user__email': serializers.EmailField(),
         'user__extra_details__name': serializers.CharField(),
-        'role': RoleChoiceField(),
+        'role': RoleChoiceField,
         'user__has_mfa_enabled': serializers.BooleanField(),
         'date_joined': serializers.DateTimeField(),
         'user__is_active': serializers.BooleanField(),
-        'invite': InviteField(required=True),
+        'invite': InviteResponse(),
     },
 )
 
