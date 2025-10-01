@@ -24,7 +24,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 @extend_schema(
-    tags=['Exports'],
+    tags=['Survey data'],
     parameters=[
         OpenApiParameter(
             name='parent_lookup_asset',

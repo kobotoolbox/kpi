@@ -48,7 +48,7 @@ from .serializers import (
 
 
 @extend_schema(
-    tags=['Audit Logs'],
+    tags=['Audit logs (superusers)'],
 )
 @extend_schema_view(
     list=extend_schema(
@@ -93,7 +93,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 @extend_schema_view(
     list=extend_schema(
-        tags=['Access Logs'],
+        tags=['Audit logs (superusers)'],
         description=read_md('audit_log', 'access_logs/list'),
         responses=open_api_200_ok_response(
             AccessLogResponse,
@@ -120,7 +120,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
 
 @extend_schema_view(
     list=extend_schema(
-        tags=['Access Logs'],
+        tags=['Logging'],
         description=read_md('audit_log', 'access_logs/me/list'),
         responses=open_api_200_ok_response(
             AccessLogResponse,
@@ -156,7 +156,7 @@ class AccessLogViewSet(AuditLogViewSet):
             require_auth=False,
             validate_payload=False,
         ),
-        tags=['Project History Logs'],
+        tags=['Audit logs (superusers)'],
     )
 )
 class AllProjectHistoryLogViewSet(AuditLogViewSet):
@@ -187,7 +187,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
             require_auth=False,
             validate_payload=False,
         ),
-        tags=['Project History Logs'],
+        tags=['Audit logs (superusers)'],
     )
     @extend_schema(
         methods=['POST'],
@@ -200,7 +200,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
             require_auth=False,
             validate_payload=False,
         ),
-        tags=['Project History Logs'],
+        tags=['Audit logs (superusers)'],
     )
     @action(detail=False, methods=['GET', 'POST'])
     def export(self, request, *args, **kwargs):
@@ -240,7 +240,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
 
 @extend_schema(
-    tags=['History'],
+    tags=['Logging'],
     parameters=[
         OpenApiParameter(
             name='parent_lookup_asset',
@@ -407,7 +407,7 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
 
 
 @extend_schema(
-    tags=['Access Logs'],
+    tags=['Logging'],
 )
 @extend_schema_view(
     list=extend_schema(
@@ -465,7 +465,7 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 
 
 @extend_schema(
-    tags=['Access Logs'],
+    tags=['Audit logs (superusers)'],
 )
 @extend_schema_view(
     list=extend_schema(

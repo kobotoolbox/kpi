@@ -20,7 +20,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 @extend_schema(
-    tags=['Rest Services'],
+    tags=['Survey data - Rest Services'],
     parameters=[
         OpenApiParameter(
             name='parent_lookup_asset',

@@ -19,7 +19,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 @extend_schema(
-    tags=['Versions'],
+    tags=['Manage projects and library content'],
     parameters=[
         OpenApiParameter(
             name='parent_lookup_asset',

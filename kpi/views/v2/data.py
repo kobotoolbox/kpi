@@ -73,7 +73,7 @@ from kpi.utils.xml import (
 
 
 @extend_schema(
-    tags=['Data'],
+    tags=['Survey data'],
     parameters=[
         OpenApiParameter(
             name='parent_lookup_asset',
