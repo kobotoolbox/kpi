@@ -10,10 +10,6 @@ export enum QueryKeys {
   accessLogs = 'accessLogs',
   activityLogs = 'activityLogs',
   activityLogsFilter = 'activityLogsFilter',
-  organization = 'organization',
-  organizationMembers = 'organizationMembers',
-  organizationMemberDetail = 'organizationMemberDetail',
-  organizationMemberInviteDetail = 'organizationMemberInviteDetail',
   billingPeriod = 'billingPeriod',
   serviceUsage = 'serviceUsage',
 }
