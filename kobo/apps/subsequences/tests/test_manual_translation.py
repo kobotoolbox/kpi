@@ -90,8 +90,8 @@ def test_translation_versions_are_retained_in_supplemental_details():
 
     assert len(mock_sup_det.keys()) == 1
     assert '_versions' in mock_sup_det['en']
-    assert mock_sup_det['en']['_versions'][0]['language'] == 'en'
-    assert mock_sup_det['en']['_versions'][0]['value'] == 'No idea'
+    assert mock_sup_det['en']['_versions'][0]['_data']['language'] == 'en'
+    assert mock_sup_det['en']['_versions'][0]['_data']['value'] == 'No idea'
     assert mock_sup_det['en']['_dateCreated'] == mock_sup_det['en']['_dateModified']
 
     first_time = mock_sup_det['en']['_dateCreated']
@@ -99,8 +99,8 @@ def test_translation_versions_are_retained_in_supplemental_details():
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
     assert len(mock_sup_det.keys()) == 2
     assert '_versions' in mock_sup_det['fr']
-    assert mock_sup_det['fr']['_versions'][0]['language'] == 'fr'
-    assert mock_sup_det['fr']['_versions'][0]['value'] == 'Aucune idée'
+    assert mock_sup_det['fr']['_versions'][0]['_data']['language'] == 'fr'
+    assert mock_sup_det['fr']['_versions'][0]['_data']['value'] == 'Aucune idée'
     assert mock_sup_det['fr']['_dateCreated'] == mock_sup_det['fr']['_dateModified']
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, third)
@@ -129,11 +129,11 @@ def test_setting_translation_to_empty_string():
     first = {'language': 'fr', 'value': 'Aucune idée'}
     second = {'language': 'fr', 'value': ''}
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, first)
-    assert mock_sup_det['fr']['_versions'][0]['value'] == 'Aucune idée'
+    assert mock_sup_det['fr']['_versions'][0]['_data']['value'] == 'Aucune idée'
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
-    assert mock_sup_det['fr']['_versions'][0]['value'] == ''
-    assert mock_sup_det['fr']['_versions'][1]['value'] == 'Aucune idée'
+    assert mock_sup_det['fr']['_versions'][0]['_data']['value'] == ''
+    assert mock_sup_det['fr']['_versions'][1]['_data']['value'] == 'Aucune idée'
 
 
 def test_setting_translation_to_none():
@@ -143,11 +143,11 @@ def test_setting_translation_to_none():
     second = {'language': 'fr', 'value': None}
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, first)
-    assert mock_sup_det['fr']['_versions'][0]['value'] == 'Aucune idée'
+    assert mock_sup_det['fr']['_versions'][0]['_data']['value'] == 'Aucune idée'
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
-    assert mock_sup_det['fr']['_versions'][0]['value'] is None
-    assert mock_sup_det['fr']['_versions'][1]['value'] == 'Aucune idée'
+    assert mock_sup_det['fr']['_versions'][0]['_data']['value'] is None
+    assert mock_sup_det['fr']['_versions'][1]['_data']['value'] == 'Aucune idée'
 
 
 def test_latest_version_is_first():
@@ -161,9 +161,9 @@ def test_latest_version_is_first():
     for data in first, second, third:
         mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
-    assert mock_sup_det['fr']['_versions'][0]['value'] == 'trois'
-    assert mock_sup_det['fr']['_versions'][1]['value'] == 'deux'
-    assert mock_sup_det['fr']['_versions'][2]['value'] == 'un'
+    assert mock_sup_det['fr']['_versions'][0]['_data']['value'] == 'trois'
+    assert mock_sup_det['fr']['_versions'][1]['_data']['value'] == 'deux'
+    assert mock_sup_det['fr']['_versions'][2]['_data']['value'] == 'un'
 
 
 def test_cannot_revise_data_without_transcription():
