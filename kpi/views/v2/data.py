@@ -284,7 +284,9 @@ class DataViewSet(
         # Coerce to int because the back-end only finds matches with the same type
         submission_id = positive_int(submission_id_or_root_uuid)
         original_submission = deployment.get_submission(
-            submission_id=submission_id, user=request.user, fields=['_id', '_uuid']
+            submission_id=submission_id,
+            user=request.user,
+            fields=['_id', '_uuid', 'meta/rootUuid'],
         )
 
         with http_open_rosa_error_handler(

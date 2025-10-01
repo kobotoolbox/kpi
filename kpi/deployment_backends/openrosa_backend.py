@@ -342,6 +342,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             # very un-Pythonic!
             if element is not None:
                 element.text = date_formatted
+
         # Rely on `meta/instanceID` being present. If it's absent, something is
         # fishy enough to warrant raising an exception instead of continuing
         # silently
@@ -389,6 +390,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         The returned Response should be in XML (expected format by Enketo Express)
         """
+
         user = request.user
         submission_xml = xml_submission_file.read()
         try:
@@ -1518,7 +1520,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         add_supplements_to_query = self.asset.has_advanced_features
 
         fields = params.get('fields', [])
-        if len(fields) > 0 and '_uuid' not in fields:
+        if len(fields) > 0 and self.SUBMISSION_ROOT_UUID_XPATH not in fields:
             # skip the query if submission '_uuid' is not even q'd from mongo
             add_supplements_to_query = False
 

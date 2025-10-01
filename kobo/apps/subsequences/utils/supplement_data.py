@@ -2,8 +2,10 @@ from typing import Generator
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
-from kobo.apps.subsequences.constants import SUBMISSION_UUID_FIELD, SUPPLEMENT_KEY
+from kobo.apps.subsequences.constants import SUBMISSION_UUID_FIELD, SUPPLEMENT_KEY, \
+    SCHEMA_VERSIONS
 from kobo.apps.subsequences.models import SubmissionSupplement
+from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
 
 
 def get_supplemental_output_fields(asset: 'kpi.models.Asset') -> list[dict]:
@@ -37,9 +39,8 @@ def get_supplemental_output_fields(asset: 'kpi.models.Asset') -> list[dict]:
     """
     advanced_features = asset.advanced_features
 
-    if advanced_features.get('_version') != '20250820':
-        # TODO: add a migration to update the schema version
-        raise NotImplementedError()
+    if migrated_schema := migrate_advanced_features(advanced_features):
+        asset.advanced_features = migrated_schema
 
     output_fields_by_name = {}
     # FIXME: `_actionConfigs` is 👎 and should be dropped in favor of top-level configs, eh?

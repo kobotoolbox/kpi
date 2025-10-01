@@ -21,6 +21,7 @@ from kobo.apps.data_collectors.models import DataCollectorGroup
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
 from kobo.apps.subsequences.schemas import ACTION_PARAMS_SCHEMA
 from kobo.apps.subsequences.utils.supplement_data import get_supplemental_output_fields
+from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
 from kpi.constants import (
     ASSET_TYPE_BLOCK,
     ASSET_TYPE_COLLECTION,
@@ -1153,6 +1154,12 @@ class Asset(
     def validate_advanced_features(self):
         if self.advanced_features is None:
             self.advanced_features = {}
+
+        if migrated_schema := migrate_advanced_features(self.advanced_features):
+            self.advanced_features = migrated_schema
+            # We should save the new schema, but for debugging purposes,
+            # we don't yet!
+            # self.save(update_fields=['advanced_features'])
 
         jsonschema.validate(
             instance=self.advanced_features,
