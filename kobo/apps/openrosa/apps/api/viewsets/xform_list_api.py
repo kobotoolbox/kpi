@@ -360,7 +360,6 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             xform=xform,
             pk=pk,
         )
-
         if request.method == 'HEAD':
             return self.get_response_for_head_request()
 

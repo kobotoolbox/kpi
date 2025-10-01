@@ -218,15 +218,5 @@ urlpatterns = [
         XFormListApi.as_view({'get': 'retrieve'}),
         name='download_xform',
     ),
-    re_path(
-        r'^key/(?P<token>\w+)/forms/(?P<id_string>[^/]+)/form\.xls$',
-        download_xlsform,
-        name='download_xlsform',
-    ),
-    re_path(
-        r'^key/(?P<token>\w+)/forms/(?P<id_string>[^/]+)/form\.json',
-        download_jsonform,
-        name='download_jsonform',
-    ),
     re_path(r'^favicon\.ico', RedirectView.as_view(url='/static/images/favicon.ico')),
 ]
