@@ -237,7 +237,7 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
             raise_access_forbidden=False,
             validate_payload=False,
         ),
-        tags=['Survey data']
+        tags=['Survey data'],
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'assets/retrieve.md'),

@@ -1020,7 +1020,7 @@ SPECTACULAR_SETTINGS = {
     'SWAGGER_UI_FAVICON_HREF': '/static/favicon.png',
     'SWAGGER_UI_SETTINGS': {
         'filter': True,
-        'docExpansion': None,   # collapse all by default
+        'docExpansion': None,  # collapse all by default
     },
     'AUTHENTICATION_WHITELIST': [
         'kpi.authentication.BasicAuthentication',
@@ -1036,7 +1036,7 @@ SPECTACULAR_SETTINGS = {
             'description': (
                 'Create, organize, and manage projects, assets '
                 '(projects/library content), and tags',
-            )
+            ),
         },
         {
             'name': 'Form content',
