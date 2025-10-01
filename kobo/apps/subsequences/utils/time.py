@@ -18,5 +18,8 @@ def js_str_to_datetime(js_str: str) -> datetime.datetime:
     """
     Return a `datetime` from a string following the simplification of the ISO
     8601 format used by JavaScript
+
+    TODO: trash this in favor of `dateutil.parser.parse` (and eventual support
+    by `datetime` itself)?
     """
     return datetime.datetime.fromisoformat(js_str.replace('Z', '+00:00'))
