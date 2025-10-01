@@ -98,8 +98,7 @@ export default function InviteModal(props: ModalProps) {
               },
             ]}
             value={role}
-            // TODO: parameterize <Select/> to infer values from data property.
-            onChange={(value) => setRole(value as MemberRoleEnum)}
+            onChange={setRole}
           />
         </Group>
         <Group w='100%' justify='flex-end'>
