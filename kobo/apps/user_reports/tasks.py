@@ -128,8 +128,12 @@ def refresh_user_report_snapshots(batch_size: int = BATCH_SIZE):
                     s = existing_map[oid]
                     s.effective_user_id = data.get('effective_user_id')
                     s.storage_bytes_total = data.get('storage_bytes_total', 0)
-                    s.submission_counts_all_time = data.get('submission_counts_all_time', 0)
-                    s.current_period_submissions = data.get('current_period_submissions', 0)
+                    s.submission_counts_all_time = data.get(
+                        'submission_counts_all_time', 0
+                    )
+                    s.current_period_submissions = data.get(
+                        'current_period_submissions', 0
+                    )
                     s.billing_period_start = data.get('billing_period_start')
                     s.billing_period_end = data.get('billing_period_end')
                     s.snapshot_created_at = now
@@ -157,7 +161,7 @@ def refresh_user_report_snapshots(batch_size: int = BATCH_SIZE):
             with transaction.atomic():
                 if to_update:
                     for i in range(0, len(to_update), BULK_UPDATE_BATCH):
-                        batch = to_update[i : i + BULK_UPDATE_BATCH]
+                        batch = to_update[i: i + BULK_UPDATE_BATCH]
                         BillingAndUsageSnapshot.objects.bulk_update(
                             batch,
                             fields=[
