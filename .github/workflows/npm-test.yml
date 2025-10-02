@@ -65,6 +65,11 @@ jobs:
         if: steps.cache-nodemodules.outputs.cache-hit != 'true'
         run: npm install
 
+      - name: Fail on uncommitted package-lock.json changes
+        run: |
+          git diff
+          git diff-index --exit-code HEAD
+
       # Check for TypeScript errors
       - name: Check TypeScript
         run: npm run lint:types
