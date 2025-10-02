@@ -15103,11 +15103,15 @@
                     "modified": {
                         "type": "string",
                         "format": "date-time"
+                    },
+                    "invitee": {
+                        "type": "string"
                     }
                 },
                 "required": [
                     "created",
                     "invited_by",
+                    "invitee",
                     "invitee_role",
                     "modified",
                     "organization_name",
