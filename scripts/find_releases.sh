@@ -16,10 +16,8 @@ fi
 
 current_branch="${1-}"
 if [[ -z "${current_branch}" ]]; then current_branch=$(git rev-parse --abbrev-ref HEAD); fi;
-echo "current_branch=${current_branch}" >> $GITHUB_OUTPUT
 
 current_minor=`echo "${current_branch}" | cut -d '/' -f 2`
-echo "current_minor=${current_minor}" >> $GITHUB_OUTPUT
 
 current_patch="$(git tag -l $current_minor* | tail -1)"
 if [[ $current_patch == "" ]]; then
@@ -29,7 +27,6 @@ elif [[ $current_patch == $current_minor ]]; then
 else
     current_patch="$(echo ${current_patch%?})$(echo -n "$current_patch" | tail -c1 | tr "0-9a-z" "1-9a-z_")"
 fi
-echo "current_patch=${current_patch}" >> $GITHUB_OUTPUT
 echo "Current release branch: '${current_branch}'"
 echo "Current patch version: '${current_patch}'"
 
@@ -37,6 +34,9 @@ if [[ $current_branch != "release/"* ]]; then
     echo "ERROR: Please checkout a release branch instead."
     exit 1
 fi
+echo "current_branch=${current_branch}" >> $GITHUB_OUTPUT
+echo "current_minor=${current_minor}" >> $GITHUB_OUTPUT
+echo "current_patch=${current_patch}" >> $GITHUB_OUTPUT
 
 
 # Find previous version. Note: prev_patch is the patch of minor that's already released, empty if minor is not released.
