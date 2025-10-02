@@ -2,10 +2,11 @@ import cx from 'classnames'
 import Markdown from 'react-markdown'
 import { useNavigate } from 'react-router-dom'
 import { shouldUseTeamLabel } from '#/account/organization/organization.utils'
-import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { UsageLimitTypes } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import envStore from '#/envStore'
@@ -22,7 +23,7 @@ function getMessage(
   accountPage: boolean,
   isWarning: boolean,
   isMmo: boolean,
-  userRole: OrganizationUserRole,
+  userRole: MemberRoleEnum,
   isTeamLabelActive: boolean,
   limits: UsageLimitTypes[],
 ) {
@@ -45,7 +46,7 @@ function getMessage(
       .replace('##LIMITS_LIST##', limitsListText)
       .replace('##LIMIT_PLURALIZED##', pluralizeLimit(limits.length))
 
-    if (userRole === OrganizationUserRole.owner) {
+    if (userRole === MemberRoleEnum.owner) {
       secondSection = accountPage
         ? t('Please review your usage and [upgrade your plan](##PLAN_LINK##) or purchase an add-on if needed.')
         : t(
@@ -72,7 +73,7 @@ function getMessage(
     .replace('##LIMITS##', limitsListText)
     .replace('##LIMIT_PLURALIZED##', pluralizeLimit(limits.length))
 
-  if (userRole === OrganizationUserRole.owner) {
+  if (userRole === MemberRoleEnum.owner) {
     secondSection = t('Please upgrade your plan or purchase an add-on to increase your usage limits.')
 
     if (!accountPage) {
@@ -89,18 +90,18 @@ function getMessage(
 const OverLimitBanner = (props: OverLimitBannerProps) => {
   const navigate = useNavigate()
 
-  const orgQuery = useOrganizationQuery()
+  const [organization] = useOrganizationAssumed()
 
-  if (!orgQuery.data || !envStore.isReady || !subscriptionStore.isInitialised || !props.limits.length) {
+  if (!envStore.isReady || !subscriptionStore.isInitialised || !props.limits.length) {
     return null
   }
 
   const { limits, warning } = props
-  const { is_mmo: isMmo, request_user_role: userRole } = orgQuery.data
+  const { is_mmo: isMmo, request_user_role: userRole } = organization
   const subscription = subscriptionStore.activeSubscriptions[0]
 
   // If the user is a member of an MMO, we don't show a warning for near-exceeded limits:
-  if (isMmo && userRole === OrganizationUserRole.member && !!warning) {
+  if (isMmo && userRole === MemberRoleEnum.member && !!warning) {
     return null
   }
 
@@ -114,7 +115,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
   )
 
   // Only owners can see the call to action links
-  const shouldDisplayCTA = !isMmo || userRole === OrganizationUserRole.owner
+  const shouldDisplayCTA = !isMmo || userRole === MemberRoleEnum.owner
 
   return (
     <div

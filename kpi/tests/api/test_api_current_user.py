@@ -41,6 +41,7 @@ class CurrentUserTestCase(BaseTestCase):
         assert self.user.extra_details.date_removal_requested is not None
         assert type(self.user.extra_details.date_removal_requested) is datetime
 
+    @override_config(ALLOW_SELF_ACCOUNT_DELETION=True)
     def test_cannot_delete_when_confirm_different_from_uid(self):
         # Check user account is as expected
         assert self.user.is_active is True
@@ -59,6 +60,7 @@ class CurrentUserTestCase(BaseTestCase):
         assert self.user.is_active is True
         assert self.user.extra_details.date_removal_requested is None
 
+    @override_config(ALLOW_SELF_ACCOUNT_DELETION=True)
     def test_cannot_delete_without_confirm(self):
         # Check user account is as expected
         assert self.user.is_active is True
@@ -77,6 +79,7 @@ class CurrentUserTestCase(BaseTestCase):
         assert self.user.is_active is True
         assert self.user.extra_details.date_removal_requested is None
 
+    @override_config(ALLOW_SELF_ACCOUNT_DELETION=True)
     def test_cannot_delete_without_payload(self):
         # Check user account is as expected
         assert self.user.is_active is True
@@ -86,6 +89,42 @@ class CurrentUserTestCase(BaseTestCase):
         self.client.login(username='delete_me', password='delete_me')
         response = self.client.delete(self.url, format='json')
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Check the db to make sure that no changes were made
+        self.user.refresh_from_db()
+        assert self.user.is_active is True
+        assert self.user.extra_details.date_removal_requested is None
+
+    @override_config(ALLOW_SELF_ACCOUNT_DELETION=True)
+    def test_cannot_delete_as_a_mmo_owner(self):
+        # Check user account is as expected
+        assert self.user.is_active is True
+        assert self.user.extra_details.date_removal_requested is None
+
+        organization = self.user.organization
+        organization.mmo_override = True
+        organization.save()
+
+        # Prepare and send the request
+        self.client.login(username='delete_me', password='delete_me')
+        payload = {
+            'confirm': self.user.extra_details.uid,
+        }
+        response = self.client.delete(self.url, data=payload, format='json')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        # Check the db to make sure the expected changes were made
+        self.user.refresh_from_db()
+        assert self.user.is_active is True
+        assert self.user.extra_details.date_removal_requested is None
+
+    @override_config(ALLOW_SELF_ACCOUNT_DELETION=False)
+    def test_cannot_delete_when_action_is_disabled(self):
+
+        # Prepare and send the request
+        self.client.login(username='delete_me', password='delete_me')
+        response = self.client.delete(self.url, format='json')
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
         # Check the db to make sure that no changes were made
         self.user.refresh_from_db()

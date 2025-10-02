@@ -5885,7 +5885,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedOrganizationList'
+                $ref: '#/components/schemas/PaginatedOrganizationResponseList'
           description: null
         '404':
           content:
@@ -5920,7 +5920,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Organization'
+                $ref: '#/components/schemas/OrganizationResponse'
           description: null
         '404':
           content:
@@ -5959,7 +5959,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Organization'
+                $ref: '#/components/schemas/OrganizationResponse'
           description: null
         '404':
           content:
@@ -11120,6 +11120,10 @@ components:
         * `admin` - admin
         * `member` - member
         * `owner` - owner
+    NullableServiceUsageBalanceData:
+      oneOf:
+      - $ref: '#/components/schemas/ServiceUsageBalanceData'
+      - type: 'null'
     OpenRosaXFormResponse:
       type: object
       properties:
@@ -11159,7 +11163,53 @@ components:
                       type: string
       required:
       - html
-    Organization:
+    OrganizationAssetUsageResponse:
+      type: object
+      properties:
+        asset:
+          type: string
+          format: uri
+          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets/
+        asset__name:
+          type: string
+        nlp_usage_current_period:
+          type: object
+          properties:
+            total_nlp_asr_seconds:
+              type: integer
+            total_nlp_mt_characters:
+              type: integer
+          required:
+          - total_nlp_asr_seconds
+          - total_nlp_mt_characters
+        nlp_usage_all_time:
+          type: object
+          properties:
+            total_nlp_asr_seconds:
+              type: integer
+            total_nlp_mt_characters:
+              type: integer
+          required:
+          - total_nlp_asr_seconds
+          - total_nlp_mt_characters
+        storage_bytes:
+          type: integer
+        submission_count_current_period:
+          type: integer
+        submission_count_all_time:
+          type: integer
+        deployment_status:
+          type: string
+      required:
+      - asset
+      - asset__name
+      - deployment_status
+      - nlp_usage_all_time
+      - nlp_usage_current_period
+      - storage_bytes
+      - submission_count_all_time
+      - submission_count_current_period
+    OrganizationResponse:
       type: object
       properties:
         id:
@@ -11172,12 +11222,16 @@ components:
           readOnly: true
         name:
           type: string
-          description: The name of the organization
+          readOnly: true
           maxLength: 200
         website:
           type: string
+          readOnly: true
+          maxLength: 255
         organization_type:
-          $ref: '#/components/schemas/OrganizationTypeEnum'
+          allOf:
+          - $ref: '#/components/schemas/OrganizationTypeEnum'
+          readOnly: true
         created:
           type: string
           format: date-time
@@ -11226,55 +11280,11 @@ components:
       - members
       - modified
       - name
+      - organization_type
       - request_user_role
       - service_usage
       - url
-    OrganizationAssetUsageResponse:
-      type: object
-      properties:
-        asset:
-          type: string
-          format: uri
-          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets/
-        asset__name:
-          type: string
-        nlp_usage_current_period:
-          type: object
-          properties:
-            total_nlp_asr_seconds:
-              type: integer
-            total_nlp_mt_characters:
-              type: integer
-          required:
-          - total_nlp_asr_seconds
-          - total_nlp_mt_characters
-        nlp_usage_all_time:
-          type: object
-          properties:
-            total_nlp_asr_seconds:
-              type: integer
-            total_nlp_mt_characters:
-              type: integer
-          required:
-          - total_nlp_asr_seconds
-          - total_nlp_mt_characters
-        storage_bytes:
-          type: integer
-        submission_count_current_period:
-          type: integer
-        submission_count_all_time:
-          type: integer
-        deployment_status:
-          type: string
-      required:
-      - asset
-      - asset__name
-      - deployment_status
-      - nlp_usage_all_time
-      - nlp_usage_current_period
-      - storage_bytes
-      - submission_count_all_time
-      - submission_count_current_period
+      - website
     OrganizationServiceUsageResponse:
       type: object
       properties:
@@ -11303,17 +11313,11 @@ components:
               type: integer
             current_period:
               type: integer
+          required:
+          - all_time
+          - current_period
         balances:
-          type: object
-          properties:
-            submission:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-            storage_bytes:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-            asr_seconds:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-            mt_characters:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
+          $ref: '#/components/schemas/ServiceUsageBalances'
         current_period_start:
           type: string
           format: date-time
@@ -11831,7 +11835,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/OrganizationAssetUsageResponse'
-    PaginatedOrganizationList:
+    PaginatedOrganizationResponseList:
       type: object
       required:
       - count
@@ -11853,7 +11857,7 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/Organization'
+            $ref: '#/components/schemas/OrganizationResponse'
     PaginatedPairedDataResponseList:
       type: object
       required:
@@ -12526,10 +12530,12 @@ components:
       properties:
         name:
           type: string
+          maxLength: 200
         website:
           type: string
+          maxLength: 255
         organization_type:
-          type: string
+          $ref: '#/components/schemas/OrganizationTypeEnum'
     PatchedPairedDataPatchPayload:
       type: object
       properties:
@@ -13200,12 +13206,28 @@ components:
         balance_percent:
           type: integer
         exceeded:
-          type: integer
+          type: boolean
       required:
       - balance_percent
       - balance_value
       - effective_limit
       - exceeded
+    ServiceUsageBalances:
+      type: object
+      properties:
+        submission:
+          $ref: '#/components/schemas/NullableServiceUsageBalanceData'
+        storage_bytes:
+          $ref: '#/components/schemas/NullableServiceUsageBalanceData'
+        asr_seconds:
+          $ref: '#/components/schemas/NullableServiceUsageBalanceData'
+        mt_characters:
+          $ref: '#/components/schemas/NullableServiceUsageBalanceData'
+      required:
+      - asr_seconds
+      - mt_characters
+      - storage_bytes
+      - submission
     ServiceUsageResponse:
       type: object
       properties:
@@ -13235,16 +13257,7 @@ components:
             current_period:
               type: integer
         balances:
-          type: object
-          properties:
-            submission:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-            storage_bytes:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-            asr_seconds:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-            mt_characters:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
+          $ref: '#/components/schemas/ServiceUsageBalances'
         current_period_start:
           type: string
           format: date-time

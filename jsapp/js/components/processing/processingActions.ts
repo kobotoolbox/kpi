@@ -11,7 +11,7 @@ import { actions } from '#/actions'
 import { getAssetAdvancedFeatures, getAssetProcessingUrl } from '#/assetUtils'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetAdvancedFeatures, AssetResponse, FailResponse } from '#/dataInterface'
-import { notify } from '#/utils'
+import { notify, recordValues } from '#/utils'
 
 /**
  * A safety check error message for calls made with assets that don't have
@@ -116,9 +116,7 @@ interface AutoTranslationRequestEngineParams {
 export interface ProcessingDataResponse {
   [key: string]: {
     transcript: TransxObject
-    translation: {
-      [languageCode: LanguageCode]: TransxObject
-    }
+    translation: Record<LanguageCode, TransxObject>
     googlets?: GoogleTsResponse
     googletx?: GoogleTxResponse
   }
@@ -463,11 +461,7 @@ processingActions.requestAutoTranscription.listen((assetUid, xpath, submissionEd
 
 /** A small utility function for getting easier to use data. */
 function pickTranslationsFromProcessingDataResponse(response: ProcessingDataResponse, xpath: string): TransxObject[] {
-  const translations: TransxObject[] = []
-  Object.values(response[xpath]?.translation).forEach((translation) => {
-    translations.push(translation)
-  })
-  return translations
+  return recordValues(response[xpath]?.translation)
 }
 
 /** A function that builds translation data object for processing endpoint. */

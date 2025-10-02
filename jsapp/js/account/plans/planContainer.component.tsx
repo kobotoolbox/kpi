@@ -14,6 +14,7 @@ import {
 } from '#/account/stripe.utils'
 import Icon from '#/components/common/icon'
 import KoboSelect, { type KoboSelectOption } from '#/components/common/koboSelect'
+import { recordKeys } from '#/utils'
 
 interface PlanContainerProps {
   product: SinglePricedProduct
@@ -130,7 +131,7 @@ export const PlanContainer = ({
   const getListItem = (listType: string, plan: string) => {
     const listItems: Array<{ icon: boolean; item: string }> = []
     filteredPriceProducts.map((product) =>
-      Object.keys(product.metadata).map((featureItem: string) => {
+      recordKeys(product.metadata).map((featureItem) => {
         const numberItem = featureItem.lastIndexOf('_')
         const currentResult = featureItem.substring(numberItem + 1)
 
@@ -261,7 +262,7 @@ export const PlanContainer = ({
                 </li>
               </>
             )}
-            {Object.keys(product.metadata).map(
+            {recordKeys(product.metadata).map(
               (featureItem: string) =>
                 featureItem.includes('feature_list_') && (
                   <li key={featureItem + product.id}>

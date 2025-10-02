@@ -1,10 +1,11 @@
+import { recordValues } from './utils'
+
 /**
  * In URL use value, not key of enum.
  * For our sanity, use camel case and match key with value.
  */
 export enum FeatureFlag {
-  // exampleFeatureEnabled = 'exampleFeatureEnabled', //Comment out when we have active FFs
-  selfDeleteAccountEnabled = 'selfDeleteAccountEnabled', //Comment out when we have active FFs
+  exampleFeatureEnabled = 'exampleFeatureEnabled', //Comment out when we have active FFs
 }
 
 /**
@@ -52,7 +53,7 @@ const getFeatureFlags = (): Record<FeatureFlag, boolean> => {
     }
 
     const flag = key.slice(3)
-    if (!Object.values(FeatureFlag).includes(flag as FeatureFlag)) {
+    if (!recordValues(FeatureFlag).includes(flag as FeatureFlag)) {
       continue
     }
     // A flag will be removed from storage if set to anything different from 'true'

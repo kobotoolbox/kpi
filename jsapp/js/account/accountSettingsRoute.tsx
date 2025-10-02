@@ -3,21 +3,20 @@ import './accountSettings.scss'
 import React, { useEffect, useState } from 'react'
 
 import { unstable_usePrompt as usePrompt } from 'react-router-dom'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import bem, { makeBem } from '#/bem'
 import Avatar from '#/components/common/avatar'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
 import envStore from '#/envStore'
-import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
-import { notify } from '#/utils'
+import { notify, recordKeys } from '#/utils'
 import { dataInterface } from '../dataInterface'
 import { useSession } from '../stores/useSession'
 import DeleteAccountBanner from './DeleteAccountBanner'
 import type { AccountFieldsErrors, AccountFieldsValues } from './account.constants'
 import { getInitialAccountFieldsValues, getProfilePatchData } from './account.utils'
 import AccountFieldsEditor from './accountFieldsEditor.component'
-import { useOrganizationQuery } from './organization/organizationQuery'
 
 bem.AccountSettings = makeBem(null, 'account-settings', 'form')
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left')
@@ -30,18 +29,16 @@ const AccountSettings = () => {
   const [fieldErrors, setFieldErrors] = useState<AccountFieldsErrors>({})
   const [formFields, setFormFields] = useState<AccountFieldsValues>(getInitialAccountFieldsValues())
   const [editedFields, setEditedFields] = useState<Partial<AccountFieldsValues>>({})
-  const isSelfDeleteFeatureEnabled = useFeatureFlag(FeatureFlag.selfDeleteAccountEnabled)
+  const isSelfDeleteFeatureEnabled = envStore.data.allow_self_account_deletion
 
   const { currentLoggedAccount, refreshAccount } = useSession()
 
   const [displayedFields, setDisplayedFields] = useState<Array<keyof AccountFieldsValues>>([])
 
-  const orgQuery = useOrganizationQuery()
+  const [organization] = useOrganizationAssumed()
 
   useEffect(() => {
-    if (!currentLoggedAccount || !orgQuery.data) {
-      return
-    }
+    if (!currentLoggedAccount) return
 
     const fields = {
       name: currentLoggedAccount.extra_details.name,
@@ -62,9 +59,7 @@ const AccountSettings = () => {
 
     setFormFields(fields)
 
-    const fieldKeys = Object.keys(fields) as Array<keyof AccountFieldsValues>
-
-    const organization = orgQuery.data
+    const fieldKeys = recordKeys(fields)
 
     // We will not display organization fields if user is a member of an MMO,
     // only displaying these fields in organization settings view
@@ -73,7 +68,7 @@ const AccountSettings = () => {
         ? fieldKeys.filter((key) => !['organization', 'organization_website', 'organization_type'].includes(key))
         : fieldKeys,
     )
-  }, [currentLoggedAccount, orgQuery.data])
+  }, [currentLoggedAccount, organization])
 
   usePrompt({
     when: !isPristine,
