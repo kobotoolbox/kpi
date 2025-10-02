@@ -57,8 +57,8 @@ class DataUrlCSVFieldExtensions(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:asset-export-settings-detail-format',
-            parent_lookup_asset='a3C9wWefqZVkChNLKqqXVZ',
-            uid='esMxJfzPhnWn6r2c3EKkuaV',
+            uid_asset='a3C9wWefqZVkChNLKqqXVZ',
+            uid_export='esMxJfzPhnWn6r2c3EKkuaV',
             format='csv',
         )
 
@@ -69,8 +69,8 @@ class DataUrlXLSXFieldExtensions(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:asset-export-settings-detail-format',
-            parent_lookup_asset='a3C9wWefqZVkChNLKqqXVZ',
-            uid='esMxJfzPhnWn6r2c3EKkuaV',
+            uid_asset='a3C9wWefqZVkChNLKqqXVZ',
+            uid_export='esMxJfzPhnWn6r2c3EKkuaV',
             format='xlsx',
         )
 
@@ -117,6 +117,6 @@ class UrlFieldFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:asset-export-settings-detail',
-            parent_lookup_asset='a3C9wWefqZVkChNLKqqXVZ',
-            uid='esMxJfzPhnWn6r2c3EKkuaV',
+            uid_asset='a3C9wWefqZVkChNLKqqXVZ',
+            uid_export='esMxJfzPhnWn6r2c3EKkuaV',
         )

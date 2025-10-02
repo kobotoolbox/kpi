@@ -69,17 +69,17 @@ router_api_v1.register(r'authorized_application/users',
 # them correctly, often resulting in broken routes and schema generation errors.
 enketo_url_aliases = [
     path(
-        'assets/<parent_lookup_asset>/submissions/<pk>/edit/',
+        'assets/<uid_asset>/submissions/<pk>/edit/',
         SubmissionViewSet.as_view({'get': 'enketo_edit'}),
         name='submission-enketo-edit-legacy',
     ),
     path(
-        'assets/<parent_lookup_asset>/submissions/<pk>/enketo/redirect/edit/',
+        'assets/<uid_asset>/submissions/<pk>/enketo/redirect/edit/',
         SubmissionViewSet.as_view({'get': 'enketo_edit'}),
         name='submission-enketo-edit-redirect',
     ),
     path(
-        'assets/<parent_lookup_asset>/submissions/<pk>/enketo/redirect/view/',
+        'assets/<uid_asset>/submissions/<pk>/enketo/redirect/view/',
         SubmissionViewSet.as_view({'get': 'enketo_view'}),
         name='submission-enketo-view-redirect',
     ),

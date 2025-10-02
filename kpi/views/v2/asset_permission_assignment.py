@@ -58,11 +58,18 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     tags=['Manage permissions'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
             description='UID of the parent asset',
+        ),
+        OpenApiParameter(
+            name='uid_permission_assignment',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the permission assignment',
         ),
     ],
 )
@@ -204,6 +211,7 @@ class AssetPermissionAssignmentViewSet(
 
     model = ObjectPermission
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_permission_assignment'
     serializer_class = AssetPermissionAssignmentSerializer
     permission_classes = (AssetPermissionAssignmentPermission,)
     pagination_class = None

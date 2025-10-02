@@ -27,6 +27,7 @@ class PairedDataSerializer(serializers.Serializer):
 
     source = RelativePrefixHyperlinkedRelatedField(
         lookup_field='uid',
+        lookup_url_kwarg='uid_asset',
         queryset=Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY),
         view_name='asset-detail',
         required=True,

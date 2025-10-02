@@ -167,7 +167,10 @@ class TestAssetSnapshotList(AssetSnapshotBase):
         snapshot_uid = creation_response.data['uid']
         self.client.login(username='someuser', password='someuser')
         for view_name in VIEW_NAMES_TO_TEST:
-            url = reverse(self._get_endpoint(view_name), args=(snapshot_uid,))
+            url = reverse(
+                self._get_endpoint(view_name),
+                kwargs={'uid_asset_snapshot': snapshot_uid},
+            )
             response = self.client.head(url)
             assert response.status_code == status.HTTP_204_NO_CONTENT
             assert not response.data
@@ -290,7 +293,7 @@ class TestAssetSnapshotDetail(AssetSnapshotBase):
         )
         snapshot_url = reverse(
             self._get_endpoint('assetsnapshot-xml-with-disclaimer'),
-            kwargs={'uid': response.data['uid'], 'format': 'xml'}
+            kwargs={'uid_asset_snapshot': response.data['uid'], 'format': 'xml'},
         )
         xml_response = self.client.get(snapshot_url)
         self.assertContains(xml_response, 'Global message in English')
@@ -314,7 +317,7 @@ class TestAssetSnapshotDetail(AssetSnapshotBase):
         )
         snapshot_url = reverse(
             self._get_endpoint('assetsnapshot-xml-with-disclaimer'),
-            kwargs={'uid': response.data['uid'], 'format': 'xml'}
+            kwargs={'uid_asset_snapshot': response.data['uid'], 'format': 'xml'},
         )
         xml_response = self.client.get(snapshot_url)
         self.assertContains(xml_response, 'Overridden message in English')
@@ -338,7 +341,7 @@ class TestAssetSnapshotDetail(AssetSnapshotBase):
         )
         snapshot_url = reverse(
             self._get_endpoint('assetsnapshot-xml-with-disclaimer'),
-            kwargs={'uid': response.data['uid'], 'format': 'xml'}
+            kwargs={'uid_asset_snapshot': response.data['uid'], 'format': 'xml'},
         )
         xml_response = self.client.get(snapshot_url)
         self.assertNotContains(xml_response, 'Global message in English')
@@ -362,7 +365,7 @@ class TestAssetSnapshotDetail(AssetSnapshotBase):
         )
         snapshot_url = reverse(
             self._get_endpoint('assetsnapshot-xml-with-disclaimer'),
-            kwargs={'uid': response.data['uid'], 'format': 'xml'}
+            kwargs={'uid_asset_snapshot': response.data['uid'], 'format': 'xml'},
         )
         xml_response = self.client.get(snapshot_url)
         self.assertContains(xml_response, 'Global message in English')
@@ -393,7 +396,7 @@ class TestAssetSnapshotDetail(AssetSnapshotBase):
         )
         snapshot_url = reverse(
             self._get_endpoint('assetsnapshot-xml-with-disclaimer'),
-            kwargs={'uid': response.data['uid'], 'format': 'xml'}
+            kwargs={'uid_asset_snapshot': response.data['uid'], 'format': 'xml'},
         )
         xml_response = self.client.get(snapshot_url)
         self.assertNotContains(xml_response, 'Global message in English')
@@ -420,7 +423,7 @@ class TestAssetSnapshotDetail(AssetSnapshotBase):
         )
         snapshot_url = reverse(
             self._get_endpoint('assetsnapshot-xml-with-disclaimer'),
-            kwargs={'uid': response.data['uid'], 'format': 'xml'}
+            kwargs={'uid_asset_snapshot': response.data['uid'], 'format': 'xml'},
         )
         xml_response = self.client.get(snapshot_url)
         self.assertNotContains(xml_response, 'Global message in English')

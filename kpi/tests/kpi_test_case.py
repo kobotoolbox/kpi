@@ -80,15 +80,18 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
         if owner and owner_password:
             self.login(owner.username, owner_password)
 
-        parent_url = reverse(self._get_endpoint('asset-detail'),
-                             kwargs={'uid': parent_collection.uid})
+        parent_url = reverse(
+            self._get_endpoint('asset-detail'),
+            kwargs={'uid_asset': parent_collection.uid},
+        )
         parent_detail_response = self.client.get(parent_url)
         self.assertEqual(
             parent_detail_response.status_code, status.HTTP_200_OK)
 
         child_view_name = child._meta.model_name + '-detail'
-        child_url = reverse(self._get_endpoint(child_view_name),
-                            kwargs={'uid': child.uid})
+        child_url = reverse(
+            self._get_endpoint(child_view_name), kwargs={'uid_asset': child.uid}
+        )
         child_detail_response = self.client.get(child_url)
         self.assertEqual(child_detail_response.status_code, status.HTTP_200_OK)
 
@@ -107,12 +110,15 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
         if owner and owner_password:
             self.login(owner.username, owner_password)
 
-        parent_url = reverse(self._get_endpoint('asset-detail'),
-                             kwargs={'uid': parent_collection.uid})
+        parent_url = reverse(
+            self._get_endpoint('asset-detail'),
+            kwargs={'uid_asset': parent_collection.uid},
+        )
 
         child_view_name = child._meta.model_name + '-detail'
-        child_url = reverse(self._get_endpoint(child_view_name),
-                            kwargs={'uid': child.uid})
+        child_url = reverse(
+            self._get_endpoint(child_view_name), kwargs={'uid_asset': child.uid}
+        )
         response = self.client.patch(child_url, {'parent': parent_url})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assert_child_of(child, parent_collection, owner, owner_password)
@@ -224,7 +230,7 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
     def assert_detail_viewable(self, obj, user=None, password=None,
                                viewable=True, msg=None):
         view_name = obj._meta.model_name + '-detail'
-        url = reverse(self._get_endpoint(view_name), kwargs={'uid': obj.uid})
+        url = reverse(self._get_endpoint(view_name), kwargs={'uid_asset': obj.uid})
 
         if user and password:
             self.login(user.username, password)

@@ -22,7 +22,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     tags=['Manage projects and library content'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -78,6 +78,7 @@ class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
 
     model = AssetVersion
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_version'
     permission_classes = (AssetVersionReadOnlyPermission,)
 
     def get_serializer_class(self):

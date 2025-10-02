@@ -64,7 +64,7 @@ class UsageAPITestCase(BaseAssetDetailTestCase):
         # this date.
         count_url = reverse(
             self._get_endpoint('asset-counts-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid}
+            kwargs={'uid_asset': self.asset.uid}
         )
         # Test owner
         response = self.client.get(count_url)
@@ -76,7 +76,7 @@ class UsageAPITestCase(BaseAssetDetailTestCase):
     def test_count_endpoint_anonymous_user(self):
         count_url = reverse(
             self._get_endpoint('asset-counts-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid}
+            kwargs={'uid_asset': self.asset.uid}
         )
         # Test anonymous user
         self.client.logout()
@@ -86,7 +86,7 @@ class UsageAPITestCase(BaseAssetDetailTestCase):
     def test_count_endpoint_anonymous_user_public_access(self):
         count_url = reverse(
             self._get_endpoint('asset-counts-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid}
+            kwargs={'uid_asset': self.asset.uid}
         )
         # Test anonymous user with public access to data
         anonymous_user = get_anonymous_user()
@@ -98,7 +98,7 @@ class UsageAPITestCase(BaseAssetDetailTestCase):
     def test_count_endpoint_another_user_no_perms(self):
         count_url = reverse(
             self._get_endpoint('asset-counts-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid}
+            kwargs={'uid_asset': self.asset.uid}
         )
         # Test another user without perms
         self.client.login(username='anotheruser', password='anotheruser')
@@ -114,7 +114,7 @@ class UsageAPITestCase(BaseAssetDetailTestCase):
         # this date.
         count_url = reverse(
             self._get_endpoint('asset-counts-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid}
+            kwargs={'uid_asset': self.asset.uid}
         )
         response = self.client.get(count_url)
         # Test another user with perms

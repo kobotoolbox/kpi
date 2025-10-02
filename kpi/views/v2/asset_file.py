@@ -37,7 +37,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     tags=['Survey data'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -156,6 +156,7 @@ class AssetFileViewSet(
 
     model = AssetFile
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_file'
     filter_backends = (RelatedAssetPermissionsFilter,)
     serializer_class = AssetFileSerializer
     permission_classes = (AssetEditorPermission,)

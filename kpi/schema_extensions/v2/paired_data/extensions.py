@@ -55,6 +55,6 @@ class URLFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:paired-data-detail',
-            parent_lookup_asset='a5owyo85mHyFazzgsZK45c',
+            uid_asset='a5owyo85mHyFazzgsZK45c',
             paired_data_uid='pd9CWSKADt4T7h5bMKwhLqq',
         )

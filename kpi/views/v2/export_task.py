@@ -27,11 +27,18 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     tags=['Survey data'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
             description='UID of the parent asset',
+        ),
+        OpenApiParameter(
+            name='uid_export',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the export',
         ),
     ],
 )
@@ -115,6 +122,7 @@ class ExportTaskViewSet(
     model = SubmissionExportTask
     serializer_class = ExportTaskSerializer
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_export'
 
     filter_backends = [
         filters.OrderingFilter,
@@ -133,5 +141,5 @@ class ExportTaskViewSet(
         user = get_database_user(self.request.user)
         return self.model.objects.filter(
             user=user,
-            data__source__icontains=self.kwargs['parent_lookup_asset'],
+            data__source__icontains=self.kwargs['uid_asset'],
         )

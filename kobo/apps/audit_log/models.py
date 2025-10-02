@@ -475,7 +475,7 @@ class ProjectHistoryLog(AuditLog):
         initial_data = getattr(request, 'initial_data', None)
         if initial_data is None:
             return
-        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        asset_uid = request.resolver_match.kwargs['uid_asset']
         asset_id = initial_data['asset.id']
         ProjectHistoryLog.objects.create(
             object_id=asset_id,
@@ -500,7 +500,7 @@ class ProjectHistoryLog(AuditLog):
             return
 
         initial_data = request.initial_data
-        asset_uid = request.resolver_match.kwargs['uid']
+        asset_uid = request.resolver_match.kwargs['uid_asset']
         object_id = request.initial_data['id']
         metadata = {
             'asset_uid': asset_uid,
@@ -555,7 +555,7 @@ class ProjectHistoryLog(AuditLog):
             # Something went wrong with the request, don't try to create a log
             return
 
-        asset_uid = request.resolver_match.kwargs['uid']
+        asset_uid = request.resolver_match.kwargs['uid_asset']
         object_id = initial_data['id']
 
         common_metadata = {
@@ -725,7 +725,7 @@ class ProjectHistoryLog(AuditLog):
         logs = []
         initial_data = getattr(request, 'initial_data', None)
         updated_data = getattr(request, 'updated_data', None)
-        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        asset_uid = request.resolver_match.kwargs['uid_asset']
         source_data = updated_data if updated_data else initial_data
         if source_data is None:
             # there was an error on the request, ignore
@@ -940,7 +940,7 @@ class ProjectHistoryLog(AuditLog):
     def _related_request_base(request, label, add_action, delete_action, modify_action):
         initial_data = getattr(request, 'initial_data', None)
         updated_data = getattr(request, 'updated_data', None)
-        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        asset_uid = request.resolver_match.kwargs['uid_asset']
         source_data = updated_data if updated_data else initial_data
         if not source_data:
             # request failed, don't try to log

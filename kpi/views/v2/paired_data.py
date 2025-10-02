@@ -36,7 +36,7 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
     tags=['Survey data'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,

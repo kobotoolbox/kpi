@@ -3,7 +3,12 @@ import copy
 import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
-from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiParameter,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -56,6 +61,17 @@ from kpi.versioning import OpenRosaAPIVersioning
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
 
+@extend_schema(
+    parameters=[
+        OpenApiParameter(
+            name='uid_asset_snapshot',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the asset snapshot',
+        ),
+    ],
+)
 @extend_schema_view(
     # description for list
     list=extend_schema(
@@ -237,7 +253,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
     """
 
     serializer_class = AssetSnapshotSerializer
-    lookup_field = 'uid'
+    lookup_field = 'uid_asset_snapshot'
     queryset = AssetSnapshot.objects.all()
     permission_classes = [AssetSnapshotPermission]
 
@@ -361,7 +377,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
             data = {
                 'server_url': reverse(
                     viewname='assetsnapshot-detail',
-                    kwargs={'uid': snapshot.uid},
+                    kwargs={'uid_asset_snapshot': snapshot.uid},
                     request=request,
                 ),
                 'form_id': snapshot.uid,

@@ -440,7 +440,7 @@ class AssetContentTests(AssetsTestCase):
                 'base64Encoded': encoded_xls,
                 'destination': reverse(
                     'api_v2:asset-detail',
-                    kwargs={'uid': self.asset.uid},
+                    kwargs={'uid_asset': self.asset.uid},
                 ),
                 'filename': f'{self.asset.uid}.xlsx',
                 'assetUid': self.asset.uid,
@@ -928,11 +928,11 @@ class TestAssetExcludedFromProjectsListFlag(BaseOrganizationAssetApiTestCase):
         self.asset_list_url = reverse(self._get_endpoint('asset-list'))
         self.asset_detail_url = lambda uid: reverse(
             self._get_endpoint('asset-detail'),
-            kwargs={'uid': uid}
+            kwargs={'uid_asset': uid}
         )
         self.invite_detail_url = lambda uid: reverse(
             self._get_endpoint('project-ownership-invite-detail'),
-            kwargs={'uid': uid}
+            kwargs={'uid_invite': uid}
         )
         self.org_assets_list_url = lambda org_id: reverse(
             self._get_endpoint('organizations-assets'),

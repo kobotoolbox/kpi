@@ -324,6 +324,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     url = HyperlinkedIdentityFieldWithSchemaField(
         schema_field=AssetHyperlinkedURLField,
         lookup_field='uid',
+        lookup_url_kwarg='uid_asset',
         view_name='asset-detail',
     )
     asset_type = serializers.ChoiceField(choices=ASSET_TYPES)
@@ -358,6 +359,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     parent = RelativePrefixHyperlinkedRelatedFieldWithSchemaField(
         schema_field=ParentURLField,
         lookup_field='uid',
+        lookup_url_kwarg='uid_asset',
         queryset=Asset.objects.filter(asset_type=ASSET_TYPE_COLLECTION),
         view_name='asset-detail',
         required=False,
@@ -660,7 +662,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     @extend_schema_field(DataURLField)
     def get_data(self, obj):
-        kwargs = {'parent_lookup_asset': obj.uid}
+        kwargs = {'uid_asset': obj.uid}
         format = self.context.get('format')
         if format:
             kwargs['format'] = format
@@ -1277,7 +1279,7 @@ class AssetMetadataListSerializer(AssetListSerializer):
 
     def _get_view(self) -> str:
         request = self.context['request']
-        return request.parser_context['kwargs']['uid']
+        return request.parser_context['kwargs']['uid_project_view']
 
     # FIXME Remove this method, seems to not be used anywhere
     @cache_for_request

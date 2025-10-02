@@ -76,7 +76,7 @@ from kpi.utils.xml import (
     tags=['Survey data'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -783,7 +783,7 @@ class DataViewSet(
         data = {
             'server_url': reverse(
                 viewname='assetsnapshot-detail',
-                kwargs={'uid': snapshot.uid},
+                kwargs={'uid_asset_snapshot': snapshot.uid},
                 request=request,
             ),
             'instance': xml_tostring(submission_xml_root),

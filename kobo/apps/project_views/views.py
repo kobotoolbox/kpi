@@ -127,6 +127,7 @@ class ProjectViewViewSet(
     serializer_class = ProjectViewSerializer
     permission_classes = (IsAuthenticated,)
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_project_view'
     filter_backends = [SearchFilter]
     search_default_field_lookups = [
         'name__icontains',
@@ -145,8 +146,8 @@ class ProjectViewViewSet(
         filter_backends=[SearchFilter, AssetOrderingFilter],
         pagination_class=FastPagination,
     )
-    def assets(self, request, uid):
-        if not user_has_view_perms(request.user, uid):
+    def assets(self, request, uid_project_view):
+        if not user_has_view_perms(request.user, uid_project_view):
             raise Http404
         assets = Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY).defer(
             'content',
@@ -160,7 +161,7 @@ class ProjectViewViewSet(
             'paired_data',
         )
         queryset = self.filter_queryset(
-            self._get_regional_queryset(assets, uid, obj_type='asset')
+            self._get_regional_queryset(assets, uid_project_view, obj_type='asset')
         ).select_related(
             'owner', 'owner__extra_details'
         )

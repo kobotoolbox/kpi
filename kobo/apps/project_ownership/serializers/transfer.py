@@ -14,6 +14,7 @@ class TransferListSerializer(serializers.ModelSerializer):
     asset = RelativePrefixHyperlinkedRelatedField(
         view_name='asset-detail',
         lookup_field='uid',
+        lookup_url_kwarg='uid_asset',
         queryset=Asset.objects.all(),
         style={'base_template': 'input.html'}  # Render as a simple text box
     )
@@ -66,8 +67,8 @@ class TransferListSerializer(serializers.ModelSerializer):
         return reverse(
             'project-ownership-transfer-detail',
             kwargs={
-                'parent_lookup_invite_uid': transfer.invite.uid,
-                'uid': transfer.uid,
+                'uid_invite_uid': transfer.invite.uid,
+                'uid_transfer': transfer.uid,
             },
             request=self.context.get('request', None),
         )

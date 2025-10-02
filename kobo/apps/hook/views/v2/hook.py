@@ -32,11 +32,18 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     tags=['Survey data - Rest Services'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
             description='UID of the parent assets',
+        ),
+        OpenApiParameter(
+            name='uid_hook',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the hook',
         ),
     ],
 )
@@ -156,6 +163,7 @@ class HookViewSet(
 
     model = Hook
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_hook'
     serializer_class = HookSerializer
     permission_classes = (AssetEditorSubmissionViewerPermission,)
     log_type = AuditType.PROJECT_HISTORY

@@ -17,7 +17,7 @@ from ..serializers import TransferDetailSerializer
     tags=['Manage projects and library content'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_invite_uid',
+            name='uid_invite_uid',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -52,6 +52,7 @@ class TransferViewSet(viewsets.ReadOnlyModelViewSet):
 
     model = Transfer
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_transfer'
     permission_classes = (IsAuthenticated,)
     serializer_class = TransferDetailSerializer
 

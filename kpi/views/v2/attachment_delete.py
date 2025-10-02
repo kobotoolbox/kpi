@@ -21,7 +21,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     tags=['Survey data'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,

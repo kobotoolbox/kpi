@@ -243,7 +243,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     tags=['Logging'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,

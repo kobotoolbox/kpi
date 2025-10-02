@@ -37,11 +37,18 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     tags=['Survey data'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
             description='UID of the parent asset',
+        ),
+        OpenApiParameter(
+            name='uid_export_setting',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the export setting',
         ),
     ],
 )
@@ -170,6 +177,7 @@ class AssetExportSettingsViewSet(
 
     model = AssetExportSettings
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_export_setting'
     serializer_class = AssetExportSettingsSerializer
     permission_classes = (AssetExportSettingsPermission,)
 

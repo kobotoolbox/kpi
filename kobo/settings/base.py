@@ -999,6 +999,7 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_CONTENT_NEGOTIATION_CLASS': 'kpi.negotiation.DefaultContentNegotiation',
+    'DEFAULT_PARENT_LOOKUP_KWARG_NAME_PREFIX': 'uid_',
 }
 
 # Settings for the API documentation using drf-spectacular
