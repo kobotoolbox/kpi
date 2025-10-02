@@ -290,7 +290,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         """
         url = reverse(
             # this view name is a bit... bulky
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
 
@@ -608,7 +608,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             assignments
         )
         bulk_endpoint = reverse(
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
@@ -653,7 +653,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             assignments
         )
         bulk_endpoint = reverse(
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
         # Perform bulk assignment twice to check permission-difference
@@ -700,7 +700,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             good_assignments
         )
         bulk_endpoint = reverse(
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
@@ -741,7 +741,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
 
         bulk_endpoint = reverse(
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
@@ -783,7 +783,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
 
         bulk_endpoint = reverse(
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
@@ -844,7 +844,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
 
         bulk_endpoint = reverse(
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
@@ -915,7 +915,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
 
         bulk_endpoint = reverse(
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
@@ -979,7 +979,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
 
         bulk_endpoint = reverse(
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
