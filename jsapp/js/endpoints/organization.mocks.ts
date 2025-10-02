@@ -22,8 +22,8 @@ const organizationReponse = (organizationId: string): OrganizationResponse => ({
   is_owner: true,
   is_mmo: true,
   request_user_role: 'owner',
-  members: 'http://kf.kobo.local/api/v2/organizations/orgaziUixYLNArojSY6MYnxA/members/',
-  assets: 'http://kf.kobo.local/api/v2/organizations/orgaziUixYLNArojSY6MYnxA/assets/',
-  service_usage: 'http://kf.kobo.local/api/v2/organizations/orgaziUixYLNArojSY6MYnxA/service_usage/',
-  asset_usage: 'http://kf.kobo.local/api/v2/organizations/orgaziUixYLNArojSY6MYnxA/asset_usage/',
+  members: `http://kf.kobo.local/api/v2/organizations/${organizationId}/members/`,
+  assets: `http://kf.kobo.local/api/v2/organizations/${organizationId}/assets/`,
+  service_usage: `http://kf.kobo.local/api/v2/organizations/${organizationId}/service_usage/`,
+  asset_usage: `http://kf.kobo.local/api/v2/organizations/${organizationId}/asset_usage/`,
 })
