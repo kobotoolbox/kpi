@@ -40,7 +40,7 @@ function doSearch(query, tags) {
     clearInterval(endpointsInterval)
 
     tags.forEach((tag) => {
-      let showTag = false
+      let showTag = !query
       const operations = tag.querySelectorAll('.opblock')
 
       operations.forEach((op) => {
