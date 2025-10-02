@@ -7,13 +7,11 @@
 {% endblock %}
 
 {% block breadcrumbs %}
-  <p>&nbsp;</p>
-  <p>
-    Please visit our <a href="{% url 'swagger-ui' %}?q={{ q_param }}">new API documentation</a>
-  </p>
 {% endblock %}
 
 {% block content %}
-    <p>&nbsp;</p>
+    <h1>KoboToolbox API</h1>
+    <p>For a general introduction to our API, please visit <a href="https://support.kobotoolbox.org/api.html">https://support.kobotoolbox.org/api.html</a>.</p>
+    <p>Detailed, developer-focused documentation can now be found on our <a href="{% url 'swagger-ui' %}?q={{ q_param }}">new API documentation pages</a>.</p>
     <pre>{{ pretty }}</pre>
 {% endblock %}
