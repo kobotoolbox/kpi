@@ -1,0 +1,19 @@
+{% extends "rest_framework/base.html" %}
+
+{% load static %}
+{% load i18n %}
+
+{% block navbar %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  <p>&nbsp;</p>
+  <p>
+    Please visit our <a href="{% url 'swagger-ui' %}?q={{ match }}">new API documentation</a>
+  </p>
+{% endblock %}
+
+{% block content %}
+    <p>&nbsp;</p>
+    <pre>{{ pretty }}</pre>
+{% endblock %}

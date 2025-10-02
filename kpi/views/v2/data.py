@@ -44,7 +44,8 @@ from kpi.permissions import (
     SubmissionValidationStatusPermission,
     ViewSubmissionPermission,
 )
-from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
+from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer, \
+    BasicHTMLRenderer
 from kpi.schema_extensions.v2.data.serializers import (
     DataBulkDelete,
     DataBulkUpdate,
@@ -192,6 +193,7 @@ class DataViewSet(
 
     parent_model = Asset
     renderer_classes = (
+        BasicHTMLRenderer,
         renderers.JSONRenderer,
         SubmissionGeoJsonRenderer,
         SubmissionXMLRenderer,
