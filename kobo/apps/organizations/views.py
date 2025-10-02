@@ -10,7 +10,6 @@ from drf_spectacular.utils import (
 )
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.renderers import JSONRenderer
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -202,9 +201,6 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     lookup_field = 'id'
     permission_classes = [HasOrgRolePermission]
     http_method_names = ['get', 'patch']
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     @action(
         detail=True, methods=['GET'], permission_classes=[IsOrgAdminPermission]
@@ -385,9 +381,6 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     permission_classes = [OrganizationNestedHasOrgRolePermission]
     http_method_names = ['get', 'patch', 'delete']
     lookup_field = 'user__username'
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     def paginate_queryset(self, queryset):
         page = super().paginate_queryset(queryset)
@@ -604,7 +597,6 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     serializer_class = OrgMembershipInviteSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     lookup_field = 'guid'
-    renderer_classes = (JSONRenderer,)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

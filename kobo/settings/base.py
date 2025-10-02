@@ -992,7 +992,9 @@ REST_FRAMEWORK = {
         'kpi.authentication.OAuth2Authentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
-       'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.JSONRenderer',
+        # "BasicHTMLRenderer" must always come after JSONRenderer
+        'kpi.renderers.BasicHTMLRenderer',
     ],
     'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIAutoVersioning',
     # Cannot be placed in kpi.exceptions.py because of circular imports
@@ -1030,6 +1032,32 @@ SPECTACULAR_SETTINGS = {
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
         'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
     },
+    # We only want to blacklist BasicHTMLRenderer, but nothing like RENDERER_WHITELIST
+    # exists 🤦
+    # List all the renderers that are used by documented API
+    'RENDERER_WHITELIST': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.StaticHTMLRenderer',
+        'kpi.renderers.MediaFileRenderer',
+        'kpi.renderers.MP3ConversionRenderer',
+        'kpi.renderers.OpenRosaRenderer',
+        'kpi.renderers.OpenRosaFormListRenderer',
+        'kpi.renderers.OpenRosaManifestRenderer',
+        'kpi.renderers.SSJsonRenderer',
+        'kpi.renderers.SubmissionGeoJsonRenderer',
+        'kpi.renderers.DoNothingRenderer',
+        'kpi.renderers.SubmissionXLSXRenderer',
+        'kpi.renderers.SubmissionCSVRenderer',
+        'kpi.renderers.SubmissionXMLRenderer',
+        'kpi.renderers.XMLRenderer',
+        'kpi.renderers.XFormRenderer',
+        'kpi.renderers.XlsRenderer',
+        'kobo.apps.openrosa.libs.renderers.renderers.XLSRenderer',
+        'kobo.apps.openrosa.libs.renderers.renderers.XLSXRenderer',
+        'kobo.apps.openrosa.libs.renderers.renderers.CSVRenderer',
+        'kobo.apps.openrosa.libs.renderers.renderers.RawXMLRenderer',
+        'kobo.apps.openrosa.libs.renderers.renderers.TemplateXMLRenderer'
+    ],
     'TAGS': [
         {
             'name': 'Manage projects and library content',
