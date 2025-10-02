@@ -270,7 +270,7 @@ export type assetSnapshotsRetrieveResponse = assetSnapshotsRetrieveResponseCompo
   headers: Headers
 }
 
-export const getAssetSnapshotsRetrieveUrl = (uid: string, params?: AssetSnapshotsRetrieveParams) => {
+export const getAssetSnapshotsRetrieveUrl = (uidAssetSnapshot: string, params?: AssetSnapshotsRetrieveParams) => {
   const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -282,30 +282,30 @@ export const getAssetSnapshotsRetrieveUrl = (uid: string, params?: AssetSnapshot
   const stringifiedParams = normalizedParams.toString()
 
   return stringifiedParams.length > 0
-    ? `/api/v2/asset_snapshots/${uid}/?${stringifiedParams}`
-    : `/api/v2/asset_snapshots/${uid}/`
+    ? `/api/v2/asset_snapshots/${uidAssetSnapshot}/?${stringifiedParams}`
+    : `/api/v2/asset_snapshots/${uidAssetSnapshot}/`
 }
 
 export const assetSnapshotsRetrieve = async (
-  uid: string,
+  uidAssetSnapshot: string,
   params?: AssetSnapshotsRetrieveParams,
   options?: RequestInit,
 ): Promise<assetSnapshotsRetrieveResponse> => {
-  return fetchWithAuth<assetSnapshotsRetrieveResponse>(getAssetSnapshotsRetrieveUrl(uid, params), {
+  return fetchWithAuth<assetSnapshotsRetrieveResponse>(getAssetSnapshotsRetrieveUrl(uidAssetSnapshot, params), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getAssetSnapshotsRetrieveQueryKey = (uid: string, params?: AssetSnapshotsRetrieveParams) => {
-  return ['api', 'v2', 'asset_snapshots', uid, ...(params ? [params] : [])] as const
+export const getAssetSnapshotsRetrieveQueryKey = (uidAssetSnapshot: string, params?: AssetSnapshotsRetrieveParams) => {
+  return ['api', 'v2', 'asset_snapshots', uidAssetSnapshot, ...(params ? [params] : [])] as const
 }
 
 export const getAssetSnapshotsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetSnapshotsRetrieve>>,
   TError = ErrorDetail | ErrorObject,
 >(
-  uid: string,
+  uidAssetSnapshot: string,
   params?: AssetSnapshotsRetrieveParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsRetrieve>>, TError, TData>
@@ -314,12 +314,12 @@ export const getAssetSnapshotsRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetSnapshotsRetrieveQueryKey(uid, params)
+  const queryKey = queryOptions?.queryKey ?? getAssetSnapshotsRetrieveQueryKey(uidAssetSnapshot, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetSnapshotsRetrieve>>> = ({ signal }) =>
-    assetSnapshotsRetrieve(uid, params, { signal, ...requestOptions })
+    assetSnapshotsRetrieve(uidAssetSnapshot, params, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidAssetSnapshot, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetSnapshotsRetrieve>>,
     TError,
     TData
@@ -333,14 +333,14 @@ export function useAssetSnapshotsRetrieve<
   TData = Awaited<ReturnType<typeof assetSnapshotsRetrieve>>,
   TError = ErrorDetail | ErrorObject,
 >(
-  uid: string,
+  uidAssetSnapshot: string,
   params?: AssetSnapshotsRetrieveParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetSnapshotsRetrieveQueryOptions(uid, params, options)
+  const queryOptions = getAssetSnapshotsRetrieveQueryOptions(uidAssetSnapshot, params, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -377,15 +377,15 @@ export type assetSnapshotsDestroyResponse = assetSnapshotsDestroyResponseComposi
   headers: Headers
 }
 
-export const getAssetSnapshotsDestroyUrl = (uid: string) => {
-  return `/api/v2/asset_snapshots/${uid}/`
+export const getAssetSnapshotsDestroyUrl = (uidAssetSnapshot: string) => {
+  return `/api/v2/asset_snapshots/${uidAssetSnapshot}/`
 }
 
 export const assetSnapshotsDestroy = async (
-  uid: string,
+  uidAssetSnapshot: string,
   options?: RequestInit,
 ): Promise<assetSnapshotsDestroyResponse> => {
-  return fetchWithAuth<assetSnapshotsDestroyResponse>(getAssetSnapshotsDestroyUrl(uid), {
+  return fetchWithAuth<assetSnapshotsDestroyResponse>(getAssetSnapshotsDestroyUrl(uidAssetSnapshot), {
     ...options,
     method: 'DELETE',
   })
@@ -395,9 +395,19 @@ export const getAssetSnapshotsDestroyMutationOptions = <
   TError = ErrorDetail | ErrorObject,
   TContext = unknown,
 >(options?: {
-  mutation?: UseMutationOptions<Awaited<ReturnType<typeof assetSnapshotsDestroy>>, TError, { uid: string }, TContext>
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetSnapshotsDestroy>>,
+    TError,
+    { uidAssetSnapshot: string },
+    TContext
+  >
   request?: SecondParameter<typeof fetchWithAuth>
-}): UseMutationOptions<Awaited<ReturnType<typeof assetSnapshotsDestroy>>, TError, { uid: string }, TContext> => {
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetSnapshotsDestroy>>,
+  TError,
+  { uidAssetSnapshot: string },
+  TContext
+> => {
   const mutationKey = ['assetSnapshotsDestroy']
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
@@ -405,10 +415,13 @@ export const getAssetSnapshotsDestroyMutationOptions = <
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined }
 
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetSnapshotsDestroy>>, { uid: string }> = (props) => {
-    const { uid } = props ?? {}
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetSnapshotsDestroy>>,
+    { uidAssetSnapshot: string }
+  > = (props) => {
+    const { uidAssetSnapshot } = props ?? {}
 
-    return assetSnapshotsDestroy(uid, requestOptions)
+    return assetSnapshotsDestroy(uidAssetSnapshot, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -419,7 +432,12 @@ export type AssetSnapshotsDestroyMutationResult = NonNullable<Awaited<ReturnType
 export type AssetSnapshotsDestroyMutationError = ErrorDetail | ErrorObject
 
 export const useAssetSnapshotsDestroy = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<Awaited<ReturnType<typeof assetSnapshotsDestroy>>, TError, { uid: string }, TContext>
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetSnapshotsDestroy>>,
+    TError,
+    { uidAssetSnapshot: string },
+    TContext
+  >
   request?: SecondParameter<typeof fetchWithAuth>
 }) => {
   const mutationOptions = getAssetSnapshotsDestroyMutationOptions(options)
@@ -450,29 +468,29 @@ export type assetSnapshotsPreviewRetrieveResponse = assetSnapshotsPreviewRetriev
   headers: Headers
 }
 
-export const getAssetSnapshotsPreviewRetrieveUrl = (uid: string) => {
-  return `/api/v2/asset_snapshots/${uid}/preview/`
+export const getAssetSnapshotsPreviewRetrieveUrl = (uidAssetSnapshot: string) => {
+  return `/api/v2/asset_snapshots/${uidAssetSnapshot}/preview/`
 }
 
 export const assetSnapshotsPreviewRetrieve = async (
-  uid: string,
+  uidAssetSnapshot: string,
   options?: RequestInit,
 ): Promise<assetSnapshotsPreviewRetrieveResponse> => {
-  return fetchWithAuth<assetSnapshotsPreviewRetrieveResponse>(getAssetSnapshotsPreviewRetrieveUrl(uid), {
+  return fetchWithAuth<assetSnapshotsPreviewRetrieveResponse>(getAssetSnapshotsPreviewRetrieveUrl(uidAssetSnapshot), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getAssetSnapshotsPreviewRetrieveQueryKey = (uid: string) => {
-  return ['api', 'v2', 'asset_snapshots', uid, 'preview'] as const
+export const getAssetSnapshotsPreviewRetrieveQueryKey = (uidAssetSnapshot: string) => {
+  return ['api', 'v2', 'asset_snapshots', uidAssetSnapshot, 'preview'] as const
 }
 
 export const getAssetSnapshotsPreviewRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>,
   TError = void | ErrorObject,
 >(
-  uid: string,
+  uidAssetSnapshot: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -480,12 +498,12 @@ export const getAssetSnapshotsPreviewRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetSnapshotsPreviewRetrieveQueryKey(uid)
+  const queryKey = queryOptions?.queryKey ?? getAssetSnapshotsPreviewRetrieveQueryKey(uidAssetSnapshot)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>> = ({ signal }) =>
-    assetSnapshotsPreviewRetrieve(uid, { signal, ...requestOptions })
+    assetSnapshotsPreviewRetrieve(uidAssetSnapshot, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidAssetSnapshot, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>,
     TError,
     TData
@@ -501,13 +519,13 @@ export function useAssetSnapshotsPreviewRetrieve<
   TData = Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>,
   TError = void | ErrorObject,
 >(
-  uid: string,
+  uidAssetSnapshot: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetSnapshotsPreviewRetrieveQueryOptions(uid, options)
+  const queryOptions = getAssetSnapshotsPreviewRetrieveQueryOptions(uidAssetSnapshot, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -540,29 +558,29 @@ export type assetSnapshotsXformRetrieveResponse = assetSnapshotsXformRetrieveRes
   headers: Headers
 }
 
-export const getAssetSnapshotsXformRetrieveUrl = (uid: string) => {
-  return `/api/v2/asset_snapshots/${uid}/xform/`
+export const getAssetSnapshotsXformRetrieveUrl = (uidAssetSnapshot: string) => {
+  return `/api/v2/asset_snapshots/${uidAssetSnapshot}/xform/`
 }
 
 export const assetSnapshotsXformRetrieve = async (
-  uid: string,
+  uidAssetSnapshot: string,
   options?: RequestInit,
 ): Promise<assetSnapshotsXformRetrieveResponse> => {
-  return fetchWithAuth<assetSnapshotsXformRetrieveResponse>(getAssetSnapshotsXformRetrieveUrl(uid), {
+  return fetchWithAuth<assetSnapshotsXformRetrieveResponse>(getAssetSnapshotsXformRetrieveUrl(uidAssetSnapshot), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getAssetSnapshotsXformRetrieveQueryKey = (uid: string) => {
-  return ['api', 'v2', 'asset_snapshots', uid, 'xform'] as const
+export const getAssetSnapshotsXformRetrieveQueryKey = (uidAssetSnapshot: string) => {
+  return ['api', 'v2', 'asset_snapshots', uidAssetSnapshot, 'xform'] as const
 }
 
 export const getAssetSnapshotsXformRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>,
   TError = void,
 >(
-  uid: string,
+  uidAssetSnapshot: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -570,12 +588,12 @@ export const getAssetSnapshotsXformRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetSnapshotsXformRetrieveQueryKey(uid)
+  const queryKey = queryOptions?.queryKey ?? getAssetSnapshotsXformRetrieveQueryKey(uidAssetSnapshot)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>> = ({ signal }) =>
-    assetSnapshotsXformRetrieve(uid, { signal, ...requestOptions })
+    assetSnapshotsXformRetrieve(uidAssetSnapshot, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidAssetSnapshot, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>,
     TError,
     TData
@@ -591,13 +609,13 @@ export function useAssetSnapshotsXformRetrieve<
   TData = Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>,
   TError = void,
 >(
-  uid: string,
+  uidAssetSnapshot: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsXformRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetSnapshotsXformRetrieveQueryOptions(uid, options)
+  const queryOptions = getAssetSnapshotsXformRetrieveQueryOptions(uidAssetSnapshot, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -633,16 +651,16 @@ export type assetSnapshotsXmlWithDisclaimerRetrieveResponse =
     headers: Headers
   }
 
-export const getAssetSnapshotsXmlWithDisclaimerRetrieveUrl = (uid: string) => {
-  return `/api/v2/asset_snapshots/${uid}/xml_with_disclaimer/`
+export const getAssetSnapshotsXmlWithDisclaimerRetrieveUrl = (uidAssetSnapshot: string) => {
+  return `/api/v2/asset_snapshots/${uidAssetSnapshot}/xml_with_disclaimer/`
 }
 
 export const assetSnapshotsXmlWithDisclaimerRetrieve = async (
-  uid: string,
+  uidAssetSnapshot: string,
   options?: RequestInit,
 ): Promise<assetSnapshotsXmlWithDisclaimerRetrieveResponse> => {
   return fetchWithAuth<assetSnapshotsXmlWithDisclaimerRetrieveResponse>(
-    getAssetSnapshotsXmlWithDisclaimerRetrieveUrl(uid),
+    getAssetSnapshotsXmlWithDisclaimerRetrieveUrl(uidAssetSnapshot),
     {
       ...options,
       method: 'GET',
@@ -650,15 +668,15 @@ export const assetSnapshotsXmlWithDisclaimerRetrieve = async (
   )
 }
 
-export const getAssetSnapshotsXmlWithDisclaimerRetrieveQueryKey = (uid: string) => {
-  return ['api', 'v2', 'asset_snapshots', uid, 'xml_with_disclaimer'] as const
+export const getAssetSnapshotsXmlWithDisclaimerRetrieveQueryKey = (uidAssetSnapshot: string) => {
+  return ['api', 'v2', 'asset_snapshots', uidAssetSnapshot, 'xml_with_disclaimer'] as const
 }
 
 export const getAssetSnapshotsXmlWithDisclaimerRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>,
   TError = ErrorObject,
 >(
-  uid: string,
+  uidAssetSnapshot: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -666,12 +684,12 @@ export const getAssetSnapshotsXmlWithDisclaimerRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetSnapshotsXmlWithDisclaimerRetrieveQueryKey(uid)
+  const queryKey = queryOptions?.queryKey ?? getAssetSnapshotsXmlWithDisclaimerRetrieveQueryKey(uidAssetSnapshot)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>> = ({ signal }) =>
-    assetSnapshotsXmlWithDisclaimerRetrieve(uid, { signal, ...requestOptions })
+    assetSnapshotsXmlWithDisclaimerRetrieve(uidAssetSnapshot, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidAssetSnapshot, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>,
     TError,
     TData
@@ -687,13 +705,13 @@ export function useAssetSnapshotsXmlWithDisclaimerRetrieve<
   TData = Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>,
   TError = ErrorObject,
 >(
-  uid: string,
+  uidAssetSnapshot: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetSnapshotsXmlWithDisclaimerRetrieveQueryOptions(uid, options)
+  const queryOptions = getAssetSnapshotsXmlWithDisclaimerRetrieveQueryOptions(uidAssetSnapshot, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -722,29 +740,29 @@ export type assetsContentRetrieveResponse = assetsContentRetrieveResponseComposi
   headers: Headers
 }
 
-export const getAssetsContentRetrieveUrl = (uid: string) => {
-  return `/api/v2/assets/${uid}/content/`
+export const getAssetsContentRetrieveUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/content/`
 }
 
 export const assetsContentRetrieve = async (
-  uid: string,
+  uidAsset: string,
   options?: RequestInit,
 ): Promise<assetsContentRetrieveResponse> => {
-  return fetchWithAuth<assetsContentRetrieveResponse>(getAssetsContentRetrieveUrl(uid), {
+  return fetchWithAuth<assetsContentRetrieveResponse>(getAssetsContentRetrieveUrl(uidAsset), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getAssetsContentRetrieveQueryKey = (uid: string) => {
-  return ['api', 'v2', 'assets', uid, 'content'] as const
+export const getAssetsContentRetrieveQueryKey = (uidAsset: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'content'] as const
 }
 
 export const getAssetsContentRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsContentRetrieve>>,
   TError = ErrorObject,
 >(
-  uid: string,
+  uidAsset: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsContentRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -752,12 +770,12 @@ export const getAssetsContentRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetsContentRetrieveQueryKey(uid)
+  const queryKey = queryOptions?.queryKey ?? getAssetsContentRetrieveQueryKey(uidAsset)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsContentRetrieve>>> = ({ signal }) =>
-    assetsContentRetrieve(uid, { signal, ...requestOptions })
+    assetsContentRetrieve(uidAsset, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsContentRetrieve>>,
     TError,
     TData
@@ -771,13 +789,13 @@ export function useAssetsContentRetrieve<
   TData = Awaited<ReturnType<typeof assetsContentRetrieve>>,
   TError = ErrorObject,
 >(
-  uid: string,
+  uidAsset: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsContentRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsContentRetrieveQueryOptions(uid, options)
+  const queryOptions = getAssetsContentRetrieveQueryOptions(uidAsset, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -808,29 +826,29 @@ export type assetsTableViewRetrieveResponse = assetsTableViewRetrieveResponseCom
   headers: Headers
 }
 
-export const getAssetsTableViewRetrieveUrl = (uid: string) => {
-  return `/api/v2/assets/${uid}/table_view/`
+export const getAssetsTableViewRetrieveUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/table_view/`
 }
 
 export const assetsTableViewRetrieve = async (
-  uid: string,
+  uidAsset: string,
   options?: RequestInit,
 ): Promise<assetsTableViewRetrieveResponse> => {
-  return fetchWithAuth<assetsTableViewRetrieveResponse>(getAssetsTableViewRetrieveUrl(uid), {
+  return fetchWithAuth<assetsTableViewRetrieveResponse>(getAssetsTableViewRetrieveUrl(uidAsset), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getAssetsTableViewRetrieveQueryKey = (uid: string) => {
-  return ['api', 'v2', 'assets', uid, 'table_view'] as const
+export const getAssetsTableViewRetrieveQueryKey = (uidAsset: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'table_view'] as const
 }
 
 export const getAssetsTableViewRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsTableViewRetrieve>>,
   TError = void,
 >(
-  uid: string,
+  uidAsset: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsTableViewRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -838,12 +856,12 @@ export const getAssetsTableViewRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetsTableViewRetrieveQueryKey(uid)
+  const queryKey = queryOptions?.queryKey ?? getAssetsTableViewRetrieveQueryKey(uidAsset)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsTableViewRetrieve>>> = ({ signal }) =>
-    assetsTableViewRetrieve(uid, { signal, ...requestOptions })
+    assetsTableViewRetrieve(uidAsset, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsTableViewRetrieve>>,
     TError,
     TData
@@ -854,13 +872,13 @@ export type AssetsTableViewRetrieveQueryResult = NonNullable<Awaited<ReturnType<
 export type AssetsTableViewRetrieveQueryError = void
 
 export function useAssetsTableViewRetrieve<TData = Awaited<ReturnType<typeof assetsTableViewRetrieve>>, TError = void>(
-  uid: string,
+  uidAsset: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsTableViewRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsTableViewRetrieveQueryOptions(uid, options)
+  const queryOptions = getAssetsTableViewRetrieveQueryOptions(uidAsset, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -891,29 +909,29 @@ export type assetsValidContentRetrieveResponse = assetsValidContentRetrieveRespo
   headers: Headers
 }
 
-export const getAssetsValidContentRetrieveUrl = (uid: string) => {
-  return `/api/v2/assets/${uid}/valid_content/`
+export const getAssetsValidContentRetrieveUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/valid_content/`
 }
 
 export const assetsValidContentRetrieve = async (
-  uid: string,
+  uidAsset: string,
   options?: RequestInit,
 ): Promise<assetsValidContentRetrieveResponse> => {
-  return fetchWithAuth<assetsValidContentRetrieveResponse>(getAssetsValidContentRetrieveUrl(uid), {
+  return fetchWithAuth<assetsValidContentRetrieveResponse>(getAssetsValidContentRetrieveUrl(uidAsset), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getAssetsValidContentRetrieveQueryKey = (uid: string) => {
-  return ['api', 'v2', 'assets', uid, 'valid_content'] as const
+export const getAssetsValidContentRetrieveQueryKey = (uidAsset: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'valid_content'] as const
 }
 
 export const getAssetsValidContentRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsValidContentRetrieve>>,
   TError = ErrorObject,
 >(
-  uid: string,
+  uidAsset: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsValidContentRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -921,12 +939,12 @@ export const getAssetsValidContentRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetsValidContentRetrieveQueryKey(uid)
+  const queryKey = queryOptions?.queryKey ?? getAssetsValidContentRetrieveQueryKey(uidAsset)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsValidContentRetrieve>>> = ({ signal }) =>
-    assetsValidContentRetrieve(uid, { signal, ...requestOptions })
+    assetsValidContentRetrieve(uidAsset, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsValidContentRetrieve>>,
     TError,
     TData
@@ -940,13 +958,13 @@ export function useAssetsValidContentRetrieve<
   TData = Awaited<ReturnType<typeof assetsValidContentRetrieve>>,
   TError = ErrorObject,
 >(
-  uid: string,
+  uidAsset: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsValidContentRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsValidContentRetrieveQueryOptions(uid, options)
+  const queryOptions = getAssetsValidContentRetrieveQueryOptions(uidAsset, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -975,23 +993,26 @@ export type assetsXlsRetrieveResponse = assetsXlsRetrieveResponseComposite & {
   headers: Headers
 }
 
-export const getAssetsXlsRetrieveUrl = (uid: string) => {
-  return `/api/v2/assets/${uid}/xls/`
+export const getAssetsXlsRetrieveUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/xls/`
 }
 
-export const assetsXlsRetrieve = async (uid: string, options?: RequestInit): Promise<assetsXlsRetrieveResponse> => {
-  return fetchWithAuth<assetsXlsRetrieveResponse>(getAssetsXlsRetrieveUrl(uid), {
+export const assetsXlsRetrieve = async (
+  uidAsset: string,
+  options?: RequestInit,
+): Promise<assetsXlsRetrieveResponse> => {
+  return fetchWithAuth<assetsXlsRetrieveResponse>(getAssetsXlsRetrieveUrl(uidAsset), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getAssetsXlsRetrieveQueryKey = (uid: string) => {
-  return ['api', 'v2', 'assets', uid, 'xls'] as const
+export const getAssetsXlsRetrieveQueryKey = (uidAsset: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'xls'] as const
 }
 
 export const getAssetsXlsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsXlsRetrieve>>, TError = void>(
-  uid: string,
+  uidAsset: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsXlsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -999,12 +1020,12 @@ export const getAssetsXlsRetrieveQueryOptions = <TData = Awaited<ReturnType<type
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetsXlsRetrieveQueryKey(uid)
+  const queryKey = queryOptions?.queryKey ?? getAssetsXlsRetrieveQueryKey(uidAsset)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsXlsRetrieve>>> = ({ signal }) =>
-    assetsXlsRetrieve(uid, { signal, ...requestOptions })
+    assetsXlsRetrieve(uidAsset, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsXlsRetrieve>>,
     TError,
     TData
@@ -1015,13 +1036,13 @@ export type AssetsXlsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof
 export type AssetsXlsRetrieveQueryError = void
 
 export function useAssetsXlsRetrieve<TData = Awaited<ReturnType<typeof assetsXlsRetrieve>>, TError = void>(
-  uid: string,
+  uidAsset: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsXlsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsXlsRetrieveQueryOptions(uid, options)
+  const queryOptions = getAssetsXlsRetrieveQueryOptions(uidAsset, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 

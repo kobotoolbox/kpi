@@ -463,7 +463,7 @@
                             "examples": {
                                 "UsingAsset": {
                                     "value": {
-                                        "asset": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
+                                        "asset": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/",
                                         "details": {
                                             "status": "string",
                                             "warnings": [
@@ -4654,7 +4654,7 @@
                                 "CreatingAFileWithBinaryContent": {
                                     "value": {
                                         "user": "https://kf.kobotoolbox.org/api/v2/users/bob/",
-                                        "asset": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
+                                        "asset": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/",
                                         "description": "Description of the file",
                                         "file_type": "image/png",
                                         "content": "<binary>"
@@ -4664,7 +4664,7 @@
                                 "CreatingAFileWithBase64Content": {
                                     "value": {
                                         "user": "https://kf.kobotoolbox.org/api/v2/users/bob/",
-                                        "asset": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
+                                        "asset": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/",
                                         "description": "Description of the file",
                                         "file_type": "image/png",
                                         "base64Encoded": "SGVsbG8sIFdvcmxkIQ",
@@ -4677,7 +4677,7 @@
                                 "CreatingAFileWithARemoteUrl": {
                                     "value": {
                                         "user": "https://kf.kobotoolbox.org/api/v2/users/bob/",
-                                        "asset": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
+                                        "asset": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/",
                                         "description": "Description of the file",
                                         "file_type": "image/png",
                                         "metadata": {
@@ -6637,7 +6637,7 @@
                                                         }
                                                     }
                                                 ],
-                                                "url": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/"
+                                                "url": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/"
                                             }
                                         ],
                                         "permission": "https://kf.kobotoolbox.org/api/v2/permissions/change_asset/"
@@ -12231,7 +12231,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/",
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/",
                         "readOnly": true
                     },
                     "owner": {
@@ -12248,7 +12248,7 @@
                     "parent": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/",
                         "nullable": true
                     },
                     "settings": {
@@ -12391,7 +12391,7 @@
                                         "url": {
                                             "type": "string",
                                             "format": "uri",
-                                            "example": "https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/versions/vBeA23YCYjkGTFvYVHuAyU/"
+                                            "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/versions/{uid}/"
                                         },
                                         "content_hash": {
                                             "type": "string"
@@ -12580,7 +12580,7 @@
                     "hooks_link": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/hooks/",
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/hooks/",
                         "readOnly": true
                     },
                     "tag_string": {
@@ -12633,7 +12633,7 @@
                     "exports": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/exports/",
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/exports/",
                         "readOnly": true
                     },
                     "export_settings": {
@@ -12646,7 +12646,7 @@
                     "data": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/submissions/",
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/submissions/",
                         "readOnly": true
                     },
                     "children": {
@@ -12679,7 +12679,7 @@
                     "paired_data": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/paired-data/",
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/paired-data/",
                         "readOnly": true
                     },
                     "project_ownership": {
@@ -12964,7 +12964,7 @@
                             "asset": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                                "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/"
                             },
                             "details": {
                                 "type": "object",
@@ -13075,7 +13075,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid}/"
                     },
                     "uid": {
                         "type": "string"
@@ -13092,17 +13092,17 @@
                     "xml": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid}/"
                     },
                     "enketopreviewlink": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/preview/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid}/preview/"
                     },
                     "asset": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/"
                     },
                     "asset_version_id": {
                         "type": "string"
@@ -13191,7 +13191,7 @@
                     "asset": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/"
                     }
                 },
                 "required": [
@@ -13204,12 +13204,12 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/asset_subscription/sEMPghTguZsxj4rn4s9dvS/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/asset_subscription/{uid}/"
                     },
                     "asset": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/"
                     },
                     "uid": {
                         "type": "string"
@@ -13240,7 +13240,7 @@
                     "asset": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/"
                     },
                     "asset__name": {
                         "type": "string"
@@ -13660,7 +13660,7 @@
                             "asset": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                                "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/"
                             },
                             "description": {
                                 "type": "string"
@@ -13691,7 +13691,7 @@
                             "asset": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                                "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/"
                             },
                             "description": {
                                 "type": "string"
@@ -13734,7 +13734,7 @@
                             "asset": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                                "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/"
                             },
                             "description": {
                                 "type": "string"
@@ -13864,22 +13864,22 @@
                             "download_url": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/1"
+                                "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/1"
                             },
                             "download_large_url": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/"
+                                "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/"
                             },
                             "download_medium_url": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/"
+                                "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/"
                             },
                             "download_small_url": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/"
+                                "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/"
                             },
                             "mimetype": {
                                 "type": "string"
@@ -14239,7 +14239,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/exports/eYeXfo2KjbSzXgWuKsJNPY/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/exports/{uid}/"
                     },
                     "status": {
                         "type": "string"
@@ -14261,7 +14261,7 @@
                     "result": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.orguser/export/NEW PROJECT - all versions - False - 2025-01-01-01-01.csv"
+                        "example": "http://kf.kobo.local:8080user/export/NEW PROJECT - all versions - False - 2025-01-01-01-01.csv"
                     },
                     "data": {
                         "type": "object",
@@ -14284,7 +14284,7 @@
                             "source": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                                "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/"
                             },
                             "group_sep": {
                                 "type": "string"
@@ -14406,17 +14406,17 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/export-settings/esMxJfzPhnWn6r2c3EKkuaV/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/export-settings/{uid}/"
                     },
                     "data_url_csv": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/export-settings/esMxJfzPhnWn6r2c3EKkuaV/data.csv"
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/export-settings/{uid}/data.csv"
                     },
                     "data_url_xlsx": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/export-settings/esMxJfzPhnWn6r2c3EKkuaV/data.xlsx"
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/export-settings/{uid}/data.xlsx"
                     },
                     "name": {
                         "type": "string"
@@ -14521,12 +14521,12 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/files/afSa8PqnoYe8vJqkrsGz3oN/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/files/{uid}/"
                     },
                     "asset": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/"
                     },
                     "user": {
                         "type": "string",
@@ -14549,7 +14549,7 @@
                     "content": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/files/afSa8PqnoYe8vJqkrsGz3oN/content/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/files/{uid}/content/"
                     },
                     "metadata": {
                         "type": "object",
@@ -14884,7 +14884,7 @@
                     "logs_url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/hooks/hZzzeedWxQoFHgibsTCysv/logs/",
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/",
                         "readOnly": true
                     },
                     "name": {
@@ -14938,7 +14938,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/",
                         "readOnly": true
                     }
                 },
@@ -14963,7 +14963,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/hooks/hsw3Ec5vz7Lqg7TrwrxdaS/logs/hl8Ldv5m84SBpU5UB5J7QBD/",
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/",
                         "readOnly": true
                     },
                     "uid": {
@@ -15076,7 +15076,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/imports/iYxVZhbZb6poxVpPqrd6eG/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/imports/{uid}/"
                     },
                     "status": {
                         "type": "string"
@@ -15094,7 +15094,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/imports/iYxVZhbZb6poxVpPqrd6eG/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/imports/{uid}/"
                     },
                     "status": {
                         "type": "string"
@@ -17292,7 +17292,7 @@
                     "source": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/"
                     },
                     "source__name": {
                         "type": "string",
@@ -17310,7 +17310,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/paired-data/pd9CWSKADt4T7h5bMKwhLqq"
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/paired-data/pd9CWSKADt4T7h5bMKwhLqq"
                     }
                 },
                 "required": [
@@ -17643,7 +17643,7 @@
                     "logs_url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/hooks/hZzzeedWxQoFHgibsTCysv/logs/",
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/",
                         "readOnly": true
                     },
                     "name": {
@@ -17697,7 +17697,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/",
                         "readOnly": true
                     }
                 }
@@ -17708,7 +17708,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/hooks/hsw3Ec5vz7Lqg7TrwrxdaS/logs/hl8Ldv5m84SBpU5UB5J7QBD/",
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/",
                         "readOnly": true
                     },
                     "uid": {
@@ -17839,7 +17839,7 @@
                     "permission": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/"
                     }
                 },
                 "required": [
@@ -17899,7 +17899,7 @@
                                         "url": {
                                             "type": "string",
                                             "format": "uri",
-                                            "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/"
+                                            "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/"
                                         }
                                     }
                                 }
@@ -17929,7 +17929,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/"
                     },
                     "user": {
                         "type": "string",
@@ -18287,7 +18287,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/project-ownership/invites/{uid}/"
                     },
                     "sender |  recipient": {
                         "type": "string",
@@ -18313,12 +18313,12 @@
                                 "url": {
                                     "type": "string",
                                     "format": "uri",
-                                    "example": "https://kf.kobotoolbox.org/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/"
+                                    "example": "https://kf.kobotoolbox.org/api/v2/project-ownership/invites/{parent_lookup_invite_uid}/transfers/{uid}/"
                                 },
                                 "asset": {
                                     "type": "string",
                                     "format": "uri",
-                                    "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                                    "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/"
                                 },
                                 "status": {
                                     "type": "string"
@@ -18349,7 +18349,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/assets/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/{uid}/assets/"
                     },
                     "date_created": {
                         "type": "string",
@@ -18366,7 +18366,7 @@
                     "owner": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/users/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/{uid}/users/"
                     },
                     "owner__username": {
                         "type": "string"
@@ -18467,7 +18467,7 @@
                                 "url": {
                                     "type": "string",
                                     "format": "uri",
-                                    "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/"
+                                    "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/"
                                 }
                             }
                         }
@@ -18544,27 +18544,27 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/{uid}/"
                     },
                     "assets": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/assets/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/{uid}/assets/"
                     },
                     "assets_export": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/assets/export/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/{uid}/assets/export/"
                     },
                     "users": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/users/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/{uid}/users/"
                     },
                     "users_export": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/users/export/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/{uid}/users/export/"
                     },
                     "countries": {
                         "type": "array",
@@ -18959,7 +18959,7 @@
                         "items": {
                             "type": "string",
                             "format": "uri",
-                            "example": "https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/"
+                            "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/"
                         }
                     },
                     "parent": {
@@ -19023,12 +19023,12 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/project-ownership/invites/{parent_lookup_invite_uid}/transfers/{uid}/"
                     },
                     "asset": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid}/"
                     },
                     "status": {
                         "type": "string"
@@ -19218,7 +19218,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/versions/vf7pK9SmkJPYZVzr4uypi4/",
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/versions/{uid}/",
                         "readOnly": true
                     },
                     "content_hash": {
@@ -19254,7 +19254,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/versions/vf7pK9SmkJPYZVzr4uypi4/",
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/versions/{uid}/",
                         "readOnly": true
                     },
                     "content_hash": {

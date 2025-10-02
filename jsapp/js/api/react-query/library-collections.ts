@@ -233,29 +233,29 @@ export type assetSubscriptionsRetrieveResponse = assetSubscriptionsRetrieveRespo
   headers: Headers
 }
 
-export const getAssetSubscriptionsRetrieveUrl = (uid: string) => {
-  return `/api/v2/asset_subscriptions/${uid}/`
+export const getAssetSubscriptionsRetrieveUrl = (uidAssetSubscription: string) => {
+  return `/api/v2/asset_subscriptions/${uidAssetSubscription}/`
 }
 
 export const assetSubscriptionsRetrieve = async (
-  uid: string,
+  uidAssetSubscription: string,
   options?: RequestInit,
 ): Promise<assetSubscriptionsRetrieveResponse> => {
-  return fetchWithAuth<assetSubscriptionsRetrieveResponse>(getAssetSubscriptionsRetrieveUrl(uid), {
+  return fetchWithAuth<assetSubscriptionsRetrieveResponse>(getAssetSubscriptionsRetrieveUrl(uidAssetSubscription), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getAssetSubscriptionsRetrieveQueryKey = (uid: string) => {
-  return ['api', 'v2', 'asset_subscriptions', uid] as const
+export const getAssetSubscriptionsRetrieveQueryKey = (uidAssetSubscription: string) => {
+  return ['api', 'v2', 'asset_subscriptions', uidAssetSubscription] as const
 }
 
 export const getAssetSubscriptionsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>,
   TError = ErrorObject,
 >(
-  uid: string,
+  uidAssetSubscription: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -263,12 +263,12 @@ export const getAssetSubscriptionsRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetSubscriptionsRetrieveQueryKey(uid)
+  const queryKey = queryOptions?.queryKey ?? getAssetSubscriptionsRetrieveQueryKey(uidAssetSubscription)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>> = ({ signal }) =>
-    assetSubscriptionsRetrieve(uid, { signal, ...requestOptions })
+    assetSubscriptionsRetrieve(uidAssetSubscription, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidAssetSubscription, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>,
     TError,
     TData
@@ -282,13 +282,13 @@ export function useAssetSubscriptionsRetrieve<
   TData = Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>,
   TError = ErrorObject,
 >(
-  uid: string,
+  uidAssetSubscription: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetSubscriptionsRetrieveQueryOptions(uid, options)
+  const queryOptions = getAssetSubscriptionsRetrieveQueryOptions(uidAssetSubscription, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -321,15 +321,15 @@ export type assetSubscriptionsDestroyResponse = assetSubscriptionsDestroyRespons
   headers: Headers
 }
 
-export const getAssetSubscriptionsDestroyUrl = (uid: string) => {
-  return `/api/v2/asset_subscriptions/${uid}/`
+export const getAssetSubscriptionsDestroyUrl = (uidAssetSubscription: string) => {
+  return `/api/v2/asset_subscriptions/${uidAssetSubscription}/`
 }
 
 export const assetSubscriptionsDestroy = async (
-  uid: string,
+  uidAssetSubscription: string,
   options?: RequestInit,
 ): Promise<assetSubscriptionsDestroyResponse> => {
-  return fetchWithAuth<assetSubscriptionsDestroyResponse>(getAssetSubscriptionsDestroyUrl(uid), {
+  return fetchWithAuth<assetSubscriptionsDestroyResponse>(getAssetSubscriptionsDestroyUrl(uidAssetSubscription), {
     ...options,
     method: 'DELETE',
   })
@@ -339,11 +339,16 @@ export const getAssetSubscriptionsDestroyMutationOptions = <TError = ErrorObject
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetSubscriptionsDestroy>>,
     TError,
-    { uid: string },
+    { uidAssetSubscription: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
-}): UseMutationOptions<Awaited<ReturnType<typeof assetSubscriptionsDestroy>>, TError, { uid: string }, TContext> => {
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetSubscriptionsDestroy>>,
+  TError,
+  { uidAssetSubscription: string },
+  TContext
+> => {
   const mutationKey = ['assetSubscriptionsDestroy']
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
@@ -351,12 +356,13 @@ export const getAssetSubscriptionsDestroyMutationOptions = <TError = ErrorObject
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined }
 
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetSubscriptionsDestroy>>, { uid: string }> = (
-    props,
-  ) => {
-    const { uid } = props ?? {}
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetSubscriptionsDestroy>>,
+    { uidAssetSubscription: string }
+  > = (props) => {
+    const { uidAssetSubscription } = props ?? {}
 
-    return assetSubscriptionsDestroy(uid, requestOptions)
+    return assetSubscriptionsDestroy(uidAssetSubscription, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -370,7 +376,7 @@ export const useAssetSubscriptionsDestroy = <TError = ErrorObject, TContext = un
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetSubscriptionsDestroy>>,
     TError,
-    { uid: string },
+    { uidAssetSubscription: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>

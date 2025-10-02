@@ -1795,29 +1795,29 @@ export type projectViewsRetrieveResponse = projectViewsRetrieveResponseComposite
   headers: Headers
 }
 
-export const getProjectViewsRetrieveUrl = (uid: string) => {
-  return `/api/v2/project-views/${uid}/`
+export const getProjectViewsRetrieveUrl = (uidProjectView: string) => {
+  return `/api/v2/project-views/${uidProjectView}/`
 }
 
 export const projectViewsRetrieve = async (
-  uid: string,
+  uidProjectView: string,
   options?: RequestInit,
 ): Promise<projectViewsRetrieveResponse> => {
-  return fetchWithAuth<projectViewsRetrieveResponse>(getProjectViewsRetrieveUrl(uid), {
+  return fetchWithAuth<projectViewsRetrieveResponse>(getProjectViewsRetrieveUrl(uidProjectView), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getProjectViewsRetrieveQueryKey = (uid: string) => {
-  return ['api', 'v2', 'project-views', uid] as const
+export const getProjectViewsRetrieveQueryKey = (uidProjectView: string) => {
+  return ['api', 'v2', 'project-views', uidProjectView] as const
 }
 
 export const getProjectViewsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectViewsRetrieve>>,
   TError = ErrorDetail | ErrorObject,
 >(
-  uid: string,
+  uidProjectView: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -1825,12 +1825,12 @@ export const getProjectViewsRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getProjectViewsRetrieveQueryKey(uid)
+  const queryKey = queryOptions?.queryKey ?? getProjectViewsRetrieveQueryKey(uidProjectView)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsRetrieve>>> = ({ signal }) =>
-    projectViewsRetrieve(uid, { signal, ...requestOptions })
+    projectViewsRetrieve(uidProjectView, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidProjectView, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectViewsRetrieve>>,
     TError,
     TData
@@ -1844,13 +1844,13 @@ export function useProjectViewsRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsRetrieve>>,
   TError = ErrorDetail | ErrorObject,
 >(
-  uid: string,
+  uidProjectView: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getProjectViewsRetrieveQueryOptions(uid, options)
+  const queryOptions = getProjectViewsRetrieveQueryOptions(uidProjectView, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -1890,30 +1890,30 @@ export type projectViewsExportRetrieveResponse = projectViewsExportRetrieveRespo
   headers: Headers
 }
 
-export const getProjectViewsExportRetrieveUrl = (uid: string, objType: string) => {
-  return `/api/v2/project-views/${uid}/${objType}/export/`
+export const getProjectViewsExportRetrieveUrl = (uidProjectView: string, objType: string) => {
+  return `/api/v2/project-views/${uidProjectView}/${objType}/export/`
 }
 
 export const projectViewsExportRetrieve = async (
-  uid: string,
+  uidProjectView: string,
   objType: string,
   options?: RequestInit,
 ): Promise<projectViewsExportRetrieveResponse> => {
-  return fetchWithAuth<projectViewsExportRetrieveResponse>(getProjectViewsExportRetrieveUrl(uid, objType), {
+  return fetchWithAuth<projectViewsExportRetrieveResponse>(getProjectViewsExportRetrieveUrl(uidProjectView, objType), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getProjectViewsExportRetrieveQueryKey = (uid: string, objType: string) => {
-  return ['api', 'v2', 'project-views', uid, objType, 'export'] as const
+export const getProjectViewsExportRetrieveQueryKey = (uidProjectView: string, objType: string) => {
+  return ['api', 'v2', 'project-views', uidProjectView, objType, 'export'] as const
 }
 
 export const getProjectViewsExportRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
   TError = ErrorObject | ErrorDetail,
 >(
-  uid: string,
+  uidProjectView: string,
   objType: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsExportRetrieve>>, TError, TData>
@@ -1922,12 +1922,12 @@ export const getProjectViewsExportRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getProjectViewsExportRetrieveQueryKey(uid, objType)
+  const queryKey = queryOptions?.queryKey ?? getProjectViewsExportRetrieveQueryKey(uidProjectView, objType)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsExportRetrieve>>> = ({ signal }) =>
-    projectViewsExportRetrieve(uid, objType, { signal, ...requestOptions })
+    projectViewsExportRetrieve(uidProjectView, objType, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!(uid && objType), ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!(uidProjectView && objType), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
     TError,
     TData
@@ -1941,14 +1941,14 @@ export function useProjectViewsExportRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
   TError = ErrorObject | ErrorDetail,
 >(
-  uid: string,
+  uidProjectView: string,
   objType: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsExportRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getProjectViewsExportRetrieveQueryOptions(uid, objType, options)
+  const queryOptions = getProjectViewsExportRetrieveQueryOptions(uidProjectView, objType, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -1987,16 +1987,16 @@ export type projectViewsExportCreateResponse = projectViewsExportCreateResponseC
   headers: Headers
 }
 
-export const getProjectViewsExportCreateUrl = (uid: string, objType: string) => {
-  return `/api/v2/project-views/${uid}/${objType}/export/`
+export const getProjectViewsExportCreateUrl = (uidProjectView: string, objType: string) => {
+  return `/api/v2/project-views/${uidProjectView}/${objType}/export/`
 }
 
 export const projectViewsExportCreate = async (
-  uid: string,
+  uidProjectView: string,
   objType: string,
   options?: RequestInit,
 ): Promise<projectViewsExportCreateResponse> => {
-  return fetchWithAuth<projectViewsExportCreateResponse>(getProjectViewsExportCreateUrl(uid, objType), {
+  return fetchWithAuth<projectViewsExportCreateResponse>(getProjectViewsExportCreateUrl(uidProjectView, objType), {
     ...options,
     method: 'POST',
   })
@@ -2009,14 +2009,14 @@ export const getProjectViewsExportCreateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof projectViewsExportCreate>>,
     TError,
-    { uid: string; objType: string },
+    { uidProjectView: string; objType: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof projectViewsExportCreate>>,
   TError,
-  { uid: string; objType: string },
+  { uidProjectView: string; objType: string },
   TContext
 > => {
   const mutationKey = ['projectViewsExportCreate']
@@ -2028,11 +2028,11 @@ export const getProjectViewsExportCreateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof projectViewsExportCreate>>,
-    { uid: string; objType: string }
+    { uidProjectView: string; objType: string }
   > = (props) => {
-    const { uid, objType } = props ?? {}
+    const { uidProjectView, objType } = props ?? {}
 
-    return projectViewsExportCreate(uid, objType, requestOptions)
+    return projectViewsExportCreate(uidProjectView, objType, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -2046,7 +2046,7 @@ export const useProjectViewsExportCreate = <TError = ErrorObject | ErrorDetail, 
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof projectViewsExportCreate>>,
     TError,
-    { uid: string; objType: string },
+    { uidProjectView: string; objType: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -2083,7 +2083,7 @@ export type projectViewsAssetsRetrieveResponse = projectViewsAssetsRetrieveRespo
   headers: Headers
 }
 
-export const getProjectViewsAssetsRetrieveUrl = (uid: string, params?: ProjectViewsAssetsRetrieveParams) => {
+export const getProjectViewsAssetsRetrieveUrl = (uidProjectView: string, params?: ProjectViewsAssetsRetrieveParams) => {
   const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -2095,30 +2095,33 @@ export const getProjectViewsAssetsRetrieveUrl = (uid: string, params?: ProjectVi
   const stringifiedParams = normalizedParams.toString()
 
   return stringifiedParams.length > 0
-    ? `/api/v2/project-views/${uid}/assets/?${stringifiedParams}`
-    : `/api/v2/project-views/${uid}/assets/`
+    ? `/api/v2/project-views/${uidProjectView}/assets/?${stringifiedParams}`
+    : `/api/v2/project-views/${uidProjectView}/assets/`
 }
 
 export const projectViewsAssetsRetrieve = async (
-  uid: string,
+  uidProjectView: string,
   params?: ProjectViewsAssetsRetrieveParams,
   options?: RequestInit,
 ): Promise<projectViewsAssetsRetrieveResponse> => {
-  return fetchWithAuth<projectViewsAssetsRetrieveResponse>(getProjectViewsAssetsRetrieveUrl(uid, params), {
+  return fetchWithAuth<projectViewsAssetsRetrieveResponse>(getProjectViewsAssetsRetrieveUrl(uidProjectView, params), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getProjectViewsAssetsRetrieveQueryKey = (uid: string, params?: ProjectViewsAssetsRetrieveParams) => {
-  return ['api', 'v2', 'project-views', uid, 'assets', ...(params ? [params] : [])] as const
+export const getProjectViewsAssetsRetrieveQueryKey = (
+  uidProjectView: string,
+  params?: ProjectViewsAssetsRetrieveParams,
+) => {
+  return ['api', 'v2', 'project-views', uidProjectView, 'assets', ...(params ? [params] : [])] as const
 }
 
 export const getProjectViewsAssetsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
   TError = ErrorObject | ErrorDetail,
 >(
-  uid: string,
+  uidProjectView: string,
   params?: ProjectViewsAssetsRetrieveParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>, TError, TData>
@@ -2127,12 +2130,12 @@ export const getProjectViewsAssetsRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getProjectViewsAssetsRetrieveQueryKey(uid, params)
+  const queryKey = queryOptions?.queryKey ?? getProjectViewsAssetsRetrieveQueryKey(uidProjectView, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>> = ({ signal }) =>
-    projectViewsAssetsRetrieve(uid, params, { signal, ...requestOptions })
+    projectViewsAssetsRetrieve(uidProjectView, params, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidProjectView, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
     TError,
     TData
@@ -2146,14 +2149,14 @@ export function useProjectViewsAssetsRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
   TError = ErrorObject | ErrorDetail,
 >(
-  uid: string,
+  uidProjectView: string,
   params?: ProjectViewsAssetsRetrieveParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getProjectViewsAssetsRetrieveQueryOptions(uid, params, options)
+  const queryOptions = getProjectViewsAssetsRetrieveQueryOptions(uidProjectView, params, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -2190,7 +2193,7 @@ export type projectViewsUsersRetrieveResponse = projectViewsUsersRetrieveRespons
   headers: Headers
 }
 
-export const getProjectViewsUsersRetrieveUrl = (uid: string, params?: ProjectViewsUsersRetrieveParams) => {
+export const getProjectViewsUsersRetrieveUrl = (uidProjectView: string, params?: ProjectViewsUsersRetrieveParams) => {
   const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -2202,30 +2205,33 @@ export const getProjectViewsUsersRetrieveUrl = (uid: string, params?: ProjectVie
   const stringifiedParams = normalizedParams.toString()
 
   return stringifiedParams.length > 0
-    ? `/api/v2/project-views/${uid}/users/?${stringifiedParams}`
-    : `/api/v2/project-views/${uid}/users/`
+    ? `/api/v2/project-views/${uidProjectView}/users/?${stringifiedParams}`
+    : `/api/v2/project-views/${uidProjectView}/users/`
 }
 
 export const projectViewsUsersRetrieve = async (
-  uid: string,
+  uidProjectView: string,
   params?: ProjectViewsUsersRetrieveParams,
   options?: RequestInit,
 ): Promise<projectViewsUsersRetrieveResponse> => {
-  return fetchWithAuth<projectViewsUsersRetrieveResponse>(getProjectViewsUsersRetrieveUrl(uid, params), {
+  return fetchWithAuth<projectViewsUsersRetrieveResponse>(getProjectViewsUsersRetrieveUrl(uidProjectView, params), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getProjectViewsUsersRetrieveQueryKey = (uid: string, params?: ProjectViewsUsersRetrieveParams) => {
-  return ['api', 'v2', 'project-views', uid, 'users', ...(params ? [params] : [])] as const
+export const getProjectViewsUsersRetrieveQueryKey = (
+  uidProjectView: string,
+  params?: ProjectViewsUsersRetrieveParams,
+) => {
+  return ['api', 'v2', 'project-views', uidProjectView, 'users', ...(params ? [params] : [])] as const
 }
 
 export const getProjectViewsUsersRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
   TError = ErrorDetail | ErrorObject,
 >(
-  uid: string,
+  uidProjectView: string,
   params?: ProjectViewsUsersRetrieveParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>, TError, TData>
@@ -2234,12 +2240,12 @@ export const getProjectViewsUsersRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getProjectViewsUsersRetrieveQueryKey(uid, params)
+  const queryKey = queryOptions?.queryKey ?? getProjectViewsUsersRetrieveQueryKey(uidProjectView, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>> = ({ signal }) =>
-    projectViewsUsersRetrieve(uid, params, { signal, ...requestOptions })
+    projectViewsUsersRetrieve(uidProjectView, params, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidProjectView, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
     TError,
     TData
@@ -2253,14 +2259,14 @@ export function useProjectViewsUsersRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
   TError = ErrorDetail | ErrorObject,
 >(
-  uid: string,
+  uidProjectView: string,
   params?: ProjectViewsUsersRetrieveParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getProjectViewsUsersRetrieveQueryOptions(uid, params, options)
+  const queryOptions = getProjectViewsUsersRetrieveQueryOptions(uidProjectView, params, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -3050,23 +3056,23 @@ export type meSocialAccountsRetrieveResponse = meSocialAccountsRetrieveResponseC
   headers: Headers
 }
 
-export const getMeSocialAccountsRetrieveUrl = (provider: string, uid: string) => {
-  return `/me/social-accounts/${provider}/${uid}/`
+export const getMeSocialAccountsRetrieveUrl = (provider: string, uidSocialAccount: string) => {
+  return `/me/social-accounts/${provider}/${uidSocialAccount}/`
 }
 
 export const meSocialAccountsRetrieve = async (
   provider: string,
-  uid: string,
+  uidSocialAccount: string,
   options?: RequestInit,
 ): Promise<meSocialAccountsRetrieveResponse> => {
-  return fetchWithAuth<meSocialAccountsRetrieveResponse>(getMeSocialAccountsRetrieveUrl(provider, uid), {
+  return fetchWithAuth<meSocialAccountsRetrieveResponse>(getMeSocialAccountsRetrieveUrl(provider, uidSocialAccount), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getMeSocialAccountsRetrieveQueryKey = (provider: string, uid: string) => {
-  return ['me', 'social-accounts', provider, uid] as const
+export const getMeSocialAccountsRetrieveQueryKey = (provider: string, uidSocialAccount: string) => {
+  return ['me', 'social-accounts', provider, uidSocialAccount] as const
 }
 
 export const getMeSocialAccountsRetrieveQueryOptions = <
@@ -3074,7 +3080,7 @@ export const getMeSocialAccountsRetrieveQueryOptions = <
   TError = ErrorDetail | ErrorObject,
 >(
   provider: string,
-  uid: string,
+  uidSocialAccount: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -3082,12 +3088,12 @@ export const getMeSocialAccountsRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getMeSocialAccountsRetrieveQueryKey(provider, uid)
+  const queryKey = queryOptions?.queryKey ?? getMeSocialAccountsRetrieveQueryKey(provider, uidSocialAccount)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>> = ({ signal }) =>
-    meSocialAccountsRetrieve(provider, uid, { signal, ...requestOptions })
+    meSocialAccountsRetrieve(provider, uidSocialAccount, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!(provider && uid), ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!(provider && uidSocialAccount), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
     TError,
     TData
@@ -3102,13 +3108,13 @@ export function useMeSocialAccountsRetrieve<
   TError = ErrorDetail | ErrorObject,
 >(
   provider: string,
-  uid: string,
+  uidSocialAccount: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getMeSocialAccountsRetrieveQueryOptions(provider, uid, options)
+  const queryOptions = getMeSocialAccountsRetrieveQueryOptions(provider, uidSocialAccount, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -3145,16 +3151,16 @@ export type meSocialAccountsDestroyResponse = meSocialAccountsDestroyResponseCom
   headers: Headers
 }
 
-export const getMeSocialAccountsDestroyUrl = (provider: string, uid: string) => {
-  return `/me/social-accounts/${provider}/${uid}/`
+export const getMeSocialAccountsDestroyUrl = (provider: string, uidSocialAccount: string) => {
+  return `/me/social-accounts/${provider}/${uidSocialAccount}/`
 }
 
 export const meSocialAccountsDestroy = async (
   provider: string,
-  uid: string,
+  uidSocialAccount: string,
   options?: RequestInit,
 ): Promise<meSocialAccountsDestroyResponse> => {
-  return fetchWithAuth<meSocialAccountsDestroyResponse>(getMeSocialAccountsDestroyUrl(provider, uid), {
+  return fetchWithAuth<meSocialAccountsDestroyResponse>(getMeSocialAccountsDestroyUrl(provider, uidSocialAccount), {
     ...options,
     method: 'DELETE',
   })
@@ -3167,14 +3173,14 @@ export const getMeSocialAccountsDestroyMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
     TError,
-    { provider: string; uid: string },
+    { provider: string; uidSocialAccount: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
   TError,
-  { provider: string; uid: string },
+  { provider: string; uidSocialAccount: string },
   TContext
 > => {
   const mutationKey = ['meSocialAccountsDestroy']
@@ -3186,11 +3192,11 @@ export const getMeSocialAccountsDestroyMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
-    { provider: string; uid: string }
+    { provider: string; uidSocialAccount: string }
   > = (props) => {
-    const { provider, uid } = props ?? {}
+    const { provider, uidSocialAccount } = props ?? {}
 
-    return meSocialAccountsDestroy(provider, uid, requestOptions)
+    return meSocialAccountsDestroy(provider, uidSocialAccount, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -3204,7 +3210,7 @@ export const useMeSocialAccountsDestroy = <TError = ErrorDetail | ErrorObject, T
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
     TError,
-    { provider: string; uid: string },
+    { provider: string; uidSocialAccount: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
