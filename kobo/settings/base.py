@@ -1032,8 +1032,30 @@ SPECTACULAR_SETTINGS = {
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
         'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
     },
-    'PREPROCESSING_HOOKS': [
-        'kpi.utils.spectacular_processing.ignore_basic_html_renderer',
+    # We only want to blacklist BasicHTMLRenderer 🤦
+    # List all the renderers that are used by documentated API
+    'RENDERER_WHITELIST': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.StaticHTMLRenderer',
+        'kpi.renderers.MediaFileRenderer',
+        'kpi.renderers.MP3ConversionRenderer',
+        'kpi.renderers.OpenRosaRenderer',
+        'kpi.renderers.OpenRosaFormListRenderer',
+        'kpi.renderers.OpenRosaManifestRenderer',
+        'kpi.renderers.SSJsonRenderer',
+        'kpi.renderers.SubmissionGeoJsonRenderer',
+        'kpi.renderers.DoNothingRenderer',
+        'kpi.renderers.SubmissionXLSXRenderer',
+        'kpi.renderers.SubmissionCSVRenderer',
+        'kpi.renderers.SubmissionXMLRenderer',
+        'kpi.renderers.XMLRenderer',
+        'kpi.renderers.XFormRenderer',
+        'kpi.renderers.XlsRenderer',
+        'kobo.apps.openrosa.libs.renderers.renderers.XLSRenderer',
+        'kobo.apps.openrosa.libs.renderers.renderers.XLSXRenderer',
+        'kobo.apps.openrosa.libs.renderers.renderers.CSVRenderer',
+        'kobo.apps.openrosa.libs.renderers.renderers.RawXMLRenderer',
+        'kobo.apps.openrosa.libs.renderers.renderers.TemplateXMLRenderer'
     ],
     'TAGS': [
         {

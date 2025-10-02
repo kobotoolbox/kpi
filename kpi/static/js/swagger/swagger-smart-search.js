@@ -58,7 +58,6 @@ function doSearch(query, tags) {
   })
 }
 
-
 function expandAllTags() {
   document.querySelectorAll('#swagger-ui .opblock-tag').forEach((btn) => {
     const section = btn.closest('.opblock-tag-section')
