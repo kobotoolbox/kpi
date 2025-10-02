@@ -3,7 +3,7 @@ import type { OrganizationResponse } from '#/api/models/organizationResponse'
 import { getOrganizationsRetrieveUrl } from '#/api/react-query/organizations'
 
 /**
- * Mock API for session endpoint. Use it in Storybook tests in `parameters.msw.handlers[]`.
+ * Mock API for organization endpoint. Use it in Storybook tests in `parameters.msw.handlers[]`.
  */
 const organizationMock = (organizationId: string) =>
   http.get<never, never, OrganizationResponse>(getOrganizationsRetrieveUrl(organizationId), () =>
