@@ -448,7 +448,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         payload = {'username': username}
 
         url = reverse(
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
         response = self.client.delete(url, data=payload, format='json')
