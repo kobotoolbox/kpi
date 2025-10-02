@@ -7,14 +7,17 @@ class DefaultContentNegotiation(UpstreamDefaultContentNegociation):
 
     def select_renderer(self, request, renderers, format_suffix=None):
         """
-        Overrides the default DRF `select_renderer` to handle cases where the client
-        does not specify a compatible `Accept` header nor a format suffix.
+        Overrides DRF's `select_renderer` to customize content negotiation.
 
-        If the first available renderer is not included in the accepted media types
-        and no explicit format suffix is given, this override will forcibly return
-        the first renderer in the list.
+        - If the client request comes from a browser (i.e., the Accept header
+          includes `text/html`) and `BasicHTMLRenderer` is available, use it
+          as the renderer.
 
-        Otherwise, the default DRF negotiation logic is applied.
+        - If the first available renderer is not included in the accepted media
+          types and no explicit format suffix is provided, fall back to the
+          first renderer in the list.
+
+        - In all other cases, defer to DRF's default content negotiation logic.
         """
         format_query_param = self.settings.URL_FORMAT_OVERRIDE
         format_ = format_suffix or request.query_params.get(format_query_param)
@@ -23,9 +26,19 @@ class DefaultContentNegotiation(UpstreamDefaultContentNegociation):
         first_renderer = renderers[0]
         first_renderer_format_allowed = first_renderer.format in accepts
 
+        # Force HTML if the request comes from a browser
+        # (i.e., the Accept header includes HTML) and `BasicHTMLRenderer` is available
+        # in the list of renderers.
+        if (
+            'text/html' in accepts
+            and len(renderers) > 1
+            and renderers[1].__class__.__name__ == 'BasicHTMLRenderer'
+        ):
+            return renderers[1], renderers[1].media_type
+
+        # Force fallback to the first renderer
         if not first_renderer_format_allowed and not format_:
-            # force fallback to first renderer
             return first_renderer, first_renderer.media_type
 
-        # otherwise fallback to DRF's default content negotiation
+        # Otherwise fallback to DRF's default content negotiation
         return super().select_renderer(request, renderers, format_suffix)
