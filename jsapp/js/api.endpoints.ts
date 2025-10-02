@@ -26,8 +26,6 @@ export const endpoints = {
   PROJECT_HISTORY_LOGS: '/api/v2/project-history-logs/',
   /** Expected parameters: price_id and subscription_id **/
   CHANGE_PLAN_URL: '/api/v2/stripe/change-plan',
-  ACCESS_LOGS_URL: '/api/v2/access-logs/me',
-  ACCESS_LOGS_EXPORT_URL: '/api/v2/access-logs/me/export/',
   LOGOUT_ALL: '/logout-all/',
   LANGUAGES_LIST_URL: '/api/v2/languages/',
   LANGUAGE_DETAIL_URL: '/api/v2/languages/:language_id/',
