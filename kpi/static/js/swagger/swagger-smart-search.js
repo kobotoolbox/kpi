@@ -13,6 +13,14 @@ window.onload = () => {
     newInput.addEventListener('input', () => {
       const query = newInput.value.toLowerCase()
 
+      // When tags are collapsed, their content is not in the DOM and we cannot search
+      // for keywords.
+      if (query !== '') {
+        expandAllTags()
+      } else {
+        collapseAllTags()
+      }
+
       tags.forEach((tag) => {
         let showTag = false
         const operations = tag.querySelectorAll('.opblock')
@@ -31,4 +39,18 @@ window.onload = () => {
       })
     })
   }, 200)
+}
+
+function expandAllTags() {
+  document.querySelectorAll('#swagger-ui .opblock-tag').forEach((btn) => {
+    const section = btn.closest('.opblock-tag-section')
+    if (section && !section.classList.contains('is-open')) btn.click()
+  })
+}
+
+function collapseAllTags() {
+  document.querySelectorAll('#swagger-ui .opblock-tag').forEach((btn) => {
+    const section = btn.closest('.opblock-tag-section')
+    if (section && section.classList.contains('is-open')) btn.click()
+  })
 }
