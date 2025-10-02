@@ -121,7 +121,7 @@ export const AddOnProductRow = ({
             data={products.map((product) => {
               return { value: product.id, label: product.name }
             })}
-            onChange={(productId: string | null) => onChangeProduct(productId)}
+            onChange={onChangeProduct}
             value={selectedProduct.id}
           />
           {isRecurring && (

@@ -44,8 +44,7 @@ export default function MemberRoleSelector({ username, role, inviteUrl }: Member
           },
         ]}
         value={role}
-        // TODO: parameterize <Select/> to infer values from data property.
-        onChange={(value) => handleRoleChange(value as MemberRoleEnum | null)}
+        onChange={handleRoleChange}
       />
     </>
   )
