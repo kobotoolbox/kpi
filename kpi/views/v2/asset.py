@@ -42,7 +42,7 @@ from kpi.permissions import (
     ReportPermission,
     get_perm_name,
 )
-from kpi.renderers import SSJsonRenderer, XFormRenderer, XlsRenderer
+from kpi.renderers import BasicHTMLRenderer, SSJsonRenderer, XFormRenderer, XlsRenderer
 from kpi.schema_extensions.v2.assets.schema import (
     ASSET_CLONE_FROM_SCHEMA,
     ASSET_CONTENT_SCHEMA,
@@ -331,44 +331,6 @@ class AssetViewSet(
     - docs/api/v2/assets/bulk.md
     - docs/api/v2/assets/hash.md
     - docs/api/v2/assets/metadata.md
-    """
-
-    # TODO
-    #   Define the leftover docstring in their respective endpoint documentation in
-    #   next PRs.
-    """
-    * Assign an asset to a collection
-      <span class='label label-warning'>
-        partially implemented
-      </span>
-    * Run a partial update of a asset <span class='label label-danger'>TODO</span>
-
-    ## List of asset endpoints
-
-    Lists the asset endpoints accessible to requesting user, for anonymous access
-    a list of public data endpoints is returned.
-
-
-    ### Data
-
-    Retrieves data
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/{uid}/data/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/
-
-    Overwrites the entire deployment, including the form contents, but does not change the deployment's identifier
-    <pre class="prettyprint">
-    <b>PUT</b> /api/v2/assets/{uid}/deployment/
-    </pre>
-
-    > Example
-    >
-    >       curl -X PUT https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/deployment/
-
     """
 
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
@@ -715,6 +677,7 @@ class AssetViewSet(
         if self.action == 'retrieve':
             return [
                 JSONRenderer(),
+                BasicHTMLRenderer(),
                 SSJsonRenderer(),
                 XFormRenderer(),
                 XlsRenderer(),

@@ -15,6 +15,7 @@ from kpi.models.import_export_task import (
 )
 from kpi.paginators import FastPagination, Paginated
 from kpi.permissions import IsAuthenticated
+from kpi.renderers import BasicHTMLRenderer
 from kpi.tasks import export_task_in_background
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
@@ -368,7 +369,10 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
     # the schema, even if the viewset doesn’t override the renderers or return content
     # that would need them. Without this, it falls back to the default DRF settings,
     # which may not reflect the actual behavior of the viewset.
-    renderer_classes = (JSONRenderer,)
+    renderer_classes = (
+        JSONRenderer,
+        BasicHTMLRenderer,
+    )
 
     def create_task(self, request, get_all_logs):
 
