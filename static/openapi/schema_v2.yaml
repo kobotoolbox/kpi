@@ -291,6 +291,12 @@ paths:
         description: The initial index from which to return the results.
         schema:
           type: integer
+      - in: path
+        name: uid_asset_snapshot
+        schema:
+          type: string
+        description: UID of the asset snapshot
+        required: true
       tags:
       - Form content
       security:
@@ -325,6 +331,13 @@ paths:
         - the source (as a JSON object representing the asset)
 
         …but not both.
+      parameters:
+      - in: path
+        name: uid_asset_snapshot
+        schema:
+          type: string
+        description: UID of the asset snapshot
+        required: true
       tags:
       - Form content
       requestBody:
@@ -395,7 +408,7 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/asset_snapshots/{uid}/:
+  /api/v2/asset_snapshots/{uid_asset_snapshot}/:
     get:
       operationId: api_v2_asset_snapshots_retrieve
       description: |
@@ -413,9 +426,10 @@ paths:
           - json
           - xml
       - in: path
-        name: uid
+        name: uid_asset_snapshot
         schema:
           type: string
+        description: UID of the asset snapshot
         required: true
       tags:
       - Form content
@@ -460,9 +474,10 @@ paths:
         ## Delete an asset snapshot
       parameters:
       - in: path
-        name: uid
+        name: uid_asset_snapshot
         schema:
           type: string
+        description: UID of the asset snapshot
         required: true
       tags:
       - Form content
@@ -494,7 +509,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/asset_snapshots/{uid}/preview/:
+  /api/v2/asset_snapshots/{uid_asset_snapshot}/preview/:
     get:
       operationId: api_v2_asset_snapshots_preview_retrieve
       description: |
@@ -503,9 +518,10 @@ paths:
         Returns a `302 Found` redirect to the Enketo preview page associated with the asset.
       parameters:
       - in: path
-        name: uid
+        name: uid_asset_snapshot
         schema:
           type: string
+        description: UID of the asset snapshot
         required: true
       tags:
       - Form content
@@ -526,7 +542,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/asset_snapshots/{uid}/xform/:
+  /api/v2/asset_snapshots/{uid_asset_snapshot}/xform/:
     get:
       operationId: api_v2_asset_snapshots_xform_retrieve
       description: |
@@ -535,9 +551,10 @@ paths:
         It is useful for debugging pyxform transformations
       parameters:
       - in: path
-        name: uid
+        name: uid_asset_snapshot
         schema:
           type: string
+        description: UID of the asset snapshot
         required: true
       tags:
       - Form content
@@ -553,7 +570,7 @@ paths:
           description: null
         '404':
           description: No response body
-  /api/v2/asset_snapshots/{uid}/xml_with_disclaimer/:
+  /api/v2/asset_snapshots/{uid_asset_snapshot}/xml_with_disclaimer/:
     get:
       operationId: api_v2_asset_snapshots_xml_with_disclaimer_retrieve
       description: |
@@ -564,9 +581,10 @@ paths:
         node containing the disclaimer, if one exists.
       parameters:
       - in: path
-        name: uid
+        name: uid_asset_snapshot
         schema:
           type: string
+        description: UID of the asset snapshot
         required: true
       tags:
       - Form content
@@ -660,14 +678,14 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/asset_subscriptions/{uid}/:
+  /api/v2/asset_subscriptions/{uid_asset_subscription}/:
     get:
       operationId: api_v2_asset_subscriptions_retrieve
       description: |
         ## Retrieve an asset subscription
       parameters:
       - in: path
-        name: uid
+        name: uid_asset_subscription
         schema:
           type: string
         required: true
@@ -703,7 +721,7 @@ paths:
         Unsubscribe from a public asset.
       parameters:
       - in: path
-        name: uid
+        name: uid_asset_subscription
         schema:
           type: string
         required: true
@@ -921,7 +939,179 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/attachments/{id}/:
+  /api/v2/assets/{uid_asset}/:
+    get:
+      operationId: api_v2_assets_retrieve
+      description: |
+        ## Get a user's current asset
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - ssjson
+          - xls
+          - xml
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        required: true
+      tags:
+      - Manage projects and library content
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Asset'
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                $ref: '#/components/schemas/Asset'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+    patch:
+      operationId: api_v2_assets_partial_update
+      description: |
+        ## Update or connect a user's asset
+
+        Updates a project or connect project's data from this project to other projects
+
+        When `Data sharing`:
+
+        `fields`: Optional. List of questions whose responses will be shared. If
+        missing or empty, all responses will be shared. Questions must be
+        identified by full group path separated by slashes, e.g.
+        `group/subgroup/question_name`.
+      parameters:
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        required: true
+      tags:
+      - Manage projects and library content
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAssetPatchRequest'
+            examples:
+              UpdatingAnAsset:
+                value:
+                  content: string
+                  name: string
+                summary: Updating an asset
+              DataSharingOfTheProject:
+                value:
+                  enabled: true
+                  fields:
+                  - string
+                summary: Data sharing of the project
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+          description: null
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
+    delete:
+      operationId: api_v2_assets_destroy
+      description: |
+        ## Delete a user's asset
+      parameters:
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        required: true
+      tags:
+      - Manage projects and library content
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /api/v2/assets/{uid_asset}/attachments/{id}/:
     delete:
       operationId: api_v2_assets_attachments_destroy
       description: |
@@ -936,7 +1126,7 @@ paths:
         description: ID of the attachment
         required: true
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -973,7 +1163,7 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/attachments/bulk/:
+  /api/v2/assets/{uid_asset}/attachments/bulk/:
     delete:
       operationId: api_v2_assets_attachments_bulk_destroy
       description: |
@@ -1008,7 +1198,7 @@ paths:
         ### !! Due to current DRF-Spectacular limitations with AOS 3.1, DELETE operations do not display request or response bodies in this documentation (as payloads are not typically recommended for DELETE). This means direct testing is unavailable. However, example payloads and responses are provided for reference, and HTTP codes/error messages are accurate.  !!
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -1045,7 +1235,41 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/counts/:
+  /api/v2/assets/{uid_asset}/content/:
+    get:
+      operationId: api_v2_assets_content_retrieve
+      description: |
+        ## Return the content of a user's asset.
+      parameters:
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        required: true
+      tags:
+      - Form content
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentResponse'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /api/v2/assets/{uid_asset}/counts/:
     get:
       operationId: api_v2_assets_counts_list
       description: |
@@ -1075,7 +1299,7 @@ paths:
         schema:
           type: integer
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -1114,7 +1338,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/data/:
+  /api/v2/assets/{uid_asset}/data/:
     get:
       operationId: api_v2_assets_data_list
       description: |+
@@ -1189,18 +1413,18 @@ paths:
         description: Number of results to return per page.
         schema:
           type: integer
-      - in: path
-        name: parent_lookup_asset
-        schema:
-          type: string
-        description: UID of the parent asset
-        required: true
       - name: start
         required: false
         in: query
         description: The initial index from which to return the results.
         schema:
           type: integer
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent asset
+        required: true
       tags:
       - Survey data
       security:
@@ -1227,237 +1451,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/:
-    get:
-      operationId: api_v2_assets_data_attachments_list
-      description: |
-        ## Get an asset's attachment using xpath
-
-        * `parent_lookup_data` can be the primary key of the submission or its `uuid`.
-        Please note that using the `uuid` may match **several** submissions, only
-        the first match will be returned.
-
-        Use the `xpath` property to retrieve an attachment.
-
-        ```curl
-        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/451/attachment/?xpath=Upload_a_file
-        ```
-
-        ### Get an MP3 file from an audio or video file
-        Convert audio and video files. Only conversions to MP3 is supported for this feature
-
-        ```curl
-        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/451/attachment/?xpath=Upload_a_file&format=mp3
-        ```
-      parameters:
-      - in: query
-        name: format
-        schema:
-          type: string
-          enum:
-          - mp3
-      - in: path
-        name: parent_lookup_asset
-        schema:
-          type: string
-        description: UID of the parent asset
-        required: true
-      - in: path
-        name: parent_lookup_data
-        schema:
-          type: string
-        description: UID of the parent data
-        required: true
-      - in: query
-        name: xpath
-        schema:
-          type: string
-        required: true
-      tags:
-      - Survey data
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '200':
-          description: Will return a content type with the type of the attachment
-            as well as the attachment itself.
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                BadRequest:
-                  value:
-                    detail:
-                      field_name:
-                      - Error message
-                  summary: Bad request
-          description: ''
-  /api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/{id}/:
-    get:
-      operationId: attachment_retrieve
-      description: |
-        ## Get an asset's attachment using the ID
-
-        * `parent_lookup_data` can be the primary key of the submission or its `uuid`.
-        Please note that using the `uuid` may match **several** submissions, only
-        the first match will be returned.
-
-        * `id` of attachment can be the primary key of the attachment or its `uid`.
-
-        Both examples works:
-        ```curl
-        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/451/attachment/1/
-        ```
-        Or, using the `UID`:
-        ```curl
-        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/451/attachment/attwYwGxdtQPSqgmHk6wS6E6/
-        ```
-
-        ### Get an MP3 file from an audio or video file
-        Convert audio and video files. Only conversions to MP3 is supported for this feature
-
-        ```curl
-        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/451/attachment/1/?format=mp3
-        ```
-      parameters:
-      - in: query
-        name: format
-        schema:
-          type: string
-          enum:
-          - mp3
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: ID of the attachment
-        required: true
-      - in: path
-        name: parent_lookup_asset
-        schema:
-          type: string
-        description: UID of the parent asset
-        required: true
-      - in: path
-        name: parent_lookup_data
-        schema:
-          type: string
-        description: UID of the parent data
-        required: true
-      tags:
-      - Survey data
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '200':
-          description: Will return a content type with the type of the attachment
-            as well as the attachment itself.
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                BadRequest:
-                  value:
-                    detail:
-                      field_name:
-                      - Error message
-                  summary: Bad request
-          description: ''
-  /api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/{id}/{suffix}/:
-    get:
-      operationId: attachment_thumbnail
-      description: |
-        ## Get a specific size of the user's attachment (Only for images)
-
-        Available formats:
-        - `small`
-        - `medium`
-        - `large`
-
-        `id` of attachment can be the primary key of the attachment or its `uid`.
-
-        Both examples works:
-        ```curl
-        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/451/attachment/1/small/
-        ```
-        Or, using the `UID`:
-        ```curl
-        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/451/attachment/attwYwGxdtQPSqgmHk6wS6E6/medium/
-        ```
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: ID of the attachment
-        required: true
-      - in: path
-        name: parent_lookup_asset
-        schema:
-          type: string
-        description: UID of the parent asset
-        required: true
-      - in: path
-        name: parent_lookup_data
-        schema:
-          type: string
-        description: UID of the parent data
-        required: true
-      - in: path
-        name: suffix
-        schema:
-          type: string
-          pattern: ^(original|large|medium|small)$
-        required: true
-      tags:
-      - Survey data
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '200':
-          description: Will return a content type with the type of the attachment
-            as well as the attachment itself in the demanded format.
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
-  /api/v2/assets/{parent_lookup_asset}/data/{id}/:
+  /api/v2/assets/{uid_asset}/data/{id}/:
     get:
       operationId: api_v2_assets_data_retrieve
       description: |
@@ -1505,7 +1499,7 @@ paths:
         description: ID of the data
         required: true
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -1548,7 +1542,7 @@ paths:
         description: ID of the data
         required: true
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -1572,7 +1566,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/data/{id}/duplicate/:
+  /api/v2/assets/{uid_asset}/data/{id}/duplicate/:
     post:
       operationId: api_v2_assets_data_duplicate_create
       description: |
@@ -1586,7 +1580,7 @@ paths:
         description: ID of the data
         required: true
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -1620,7 +1614,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/data/{id}/edit/:
+  /api/v2/assets/{uid_asset}/data/{id}/edit/:
     get:
       operationId: api_v2_assets_data_edit_retrieve
       description: |
@@ -1641,7 +1635,7 @@ paths:
         description: ID of the data
         required: true
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -1680,7 +1674,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/edit/:
+  /api/v2/assets/{uid_asset}/data/{id}/enketo/edit/:
     get:
       operationId: api_v2_assets_data_enketo_edit_retrieve
       description: |
@@ -1701,7 +1695,7 @@ paths:
         description: ID of the data
         required: true
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -1740,7 +1734,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/edit/:
+  /api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/edit/:
     get:
       operationId: api_v2_assets_data_enketo_redirect_edit_retrieve
       description: |
@@ -1761,7 +1755,7 @@ paths:
         description: ID of the data
         required: true
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -1800,7 +1794,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/view/:
+  /api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/view/:
     get:
       operationId: api_v2_assets_data_enketo_redirect_view_retrieve
       description: |
@@ -1819,7 +1813,7 @@ paths:
         description: ID of the data
         required: true
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -1858,7 +1852,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/view/:
+  /api/v2/assets/{uid_asset}/data/{id}/enketo/view/:
     get:
       operationId: api_v2_assets_data_enketo_view_retrieve
       description: |
@@ -1877,7 +1871,7 @@ paths:
         description: ID of the data
         required: true
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -1916,7 +1910,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/data/{id}/validation_status/:
+  /api/v2/assets/{uid_asset}/data/{id}/validation_status/:
     get:
       operationId: api_v2_assets_data_validation_status_retrieve
       description: |
@@ -1930,7 +1924,7 @@ paths:
         description: ID of the data
         required: true
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -1976,7 +1970,7 @@ paths:
         description: ID of the data
         required: true
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -2021,7 +2015,7 @@ paths:
         description: ID of the data
         required: true
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -2045,7 +2039,237 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/data/bulk/:
+  /api/v2/assets/{uid_asset}/data/{uid_data}/attachments/:
+    get:
+      operationId: api_v2_assets_data_attachments_list
+      description: |
+        ## Get an asset's attachment using xpath
+
+        * `parent_lookup_data` can be the primary key of the submission or its `uuid`.
+        Please note that using the `uuid` may match **several** submissions, only
+        the first match will be returned.
+
+        Use the `xpath` property to retrieve an attachment.
+
+        ```curl
+        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/451/attachment/?xpath=Upload_a_file
+        ```
+
+        ### Get an MP3 file from an audio or video file
+        Convert audio and video files. Only conversions to MP3 is supported for this feature
+
+        ```curl
+        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/451/attachment/?xpath=Upload_a_file&format=mp3
+        ```
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - mp3
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent asset
+        required: true
+      - in: path
+        name: uid_data
+        schema:
+          type: string
+        description: UID of the parent data
+        required: true
+      - in: query
+        name: xpath
+        schema:
+          type: string
+        required: true
+      tags:
+      - Survey data
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          description: Will return a content type with the type of the attachment
+            as well as the attachment itself.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
+  /api/v2/assets/{uid_asset}/data/{uid_data}/attachments/{id}/:
+    get:
+      operationId: attachment_retrieve
+      description: |
+        ## Get an asset's attachment using the ID
+
+        * `parent_lookup_data` can be the primary key of the submission or its `uuid`.
+        Please note that using the `uuid` may match **several** submissions, only
+        the first match will be returned.
+
+        * `id` of attachment can be the primary key of the attachment or its `uid`.
+
+        Both examples works:
+        ```curl
+        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/451/attachment/1/
+        ```
+        Or, using the `UID`:
+        ```curl
+        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/451/attachment/attwYwGxdtQPSqgmHk6wS6E6/
+        ```
+
+        ### Get an MP3 file from an audio or video file
+        Convert audio and video files. Only conversions to MP3 is supported for this feature
+
+        ```curl
+        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/451/attachment/1/?format=mp3
+        ```
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - mp3
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: ID of the attachment
+        required: true
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent asset
+        required: true
+      - in: path
+        name: uid_data
+        schema:
+          type: string
+        description: UID of the parent data
+        required: true
+      tags:
+      - Survey data
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          description: Will return a content type with the type of the attachment
+            as well as the attachment itself.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
+  /api/v2/assets/{uid_asset}/data/{uid_data}/attachments/{id}/{suffix}/:
+    get:
+      operationId: attachment_thumbnail
+      description: |
+        ## Get a specific size of the user's attachment (Only for images)
+
+        Available formats:
+        - `small`
+        - `medium`
+        - `large`
+
+        `id` of attachment can be the primary key of the attachment or its `uid`.
+
+        Both examples works:
+        ```curl
+        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/451/attachment/1/small/
+        ```
+        Or, using the `UID`:
+        ```curl
+        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/451/attachment/attwYwGxdtQPSqgmHk6wS6E6/medium/
+        ```
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: ID of the attachment
+        required: true
+      - in: path
+        name: suffix
+        schema:
+          type: string
+          pattern: ^(original|large|medium|small)$
+        required: true
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent asset
+        required: true
+      - in: path
+        name: uid_data
+        schema:
+          type: string
+        description: UID of the parent data
+        required: true
+      tags:
+      - Survey data
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          description: Will return a content type with the type of the attachment
+            as well as the attachment itself in the demanded format.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /api/v2/assets/{uid_asset}/data/bulk/:
     patch:
       operationId: api_v2_assets_data_bulk_partial_update
       description: |
@@ -2066,7 +2290,7 @@ paths:
         *"group_1/sub_group_1/.../sub_group_n/question_1": "new value"*
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -2133,7 +2357,7 @@ paths:
         ### !! Due to limitations with DRF-Spectacular current version not fully supporting AOS 3.1, DELETE actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint. !!
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -2157,7 +2381,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/data/validation_statuses/:
+  /api/v2/assets/{uid_asset}/data/validation_statuses/:
     patch:
       operationId: api_v2_assets_data_validation_statuses_partial_update
       description: |
@@ -2178,7 +2402,7 @@ paths:
         >        }
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -2250,7 +2474,7 @@ paths:
         ### !! Due to limitations with DRF-Spectacular current version not fully supporting AOS 3.1, DELETE actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint. !!
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -2274,7 +2498,172 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/export-settings/:
+  /api/v2/assets/{uid_asset}/deployment/:
+    get:
+      operationId: api_v2_assets_deployment_retrieve
+      description: |
+        ## Retrieve the existing deployment (if any)
+      parameters:
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        required: true
+      tags:
+      - Manage projects and library content
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentResponse'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+    post:
+      operationId: api_v2_assets_deployment_create
+      description: |
+        ## (Re)Deploy a form
+
+        Deploy a new form or re-deploy an existing one.
+      parameters:
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        required: true
+      tags:
+      - Manage projects and library content
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeploymentCreateRequest'
+        required: true
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentResponse'
+          description: null
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
+    patch:
+      operationId: api_v2_assets_deployment_partial_update
+      description: |
+        ## (Un)Archive the existing deployment.
+
+        Update the `active` field of the existing deployment.
+
+        To overwrite the entire deployment (including the form contents), use a PUT request.
+      parameters:
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        required: true
+      tags:
+      - Manage projects and library content
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDeploymentPatchRequest'
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeploymentResponse'
+          description: null
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
+  /api/v2/assets/{uid_asset}/export-settings/:
     get:
       operationId: api_v2_assets_export_settings_list
       description: |
@@ -2295,10 +2684,16 @@ paths:
         schema:
           type: integer
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
+        required: true
+      - in: path
+        name: uid_export_setting
+        schema:
+          type: string
+        description: UID of the export setting
         required: true
       tags:
       - Survey data
@@ -2368,10 +2763,16 @@ paths:
         * `both`: Includes the format of `summary` _and_ `details` in the export
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
+        required: true
+      - in: path
+        name: uid_export_setting
+        schema:
+          type: string
+        description: UID of the export setting
         required: true
       tags:
       - Survey data
@@ -2415,7 +2816,7 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/export-settings/{uid}/:
+  /api/v2/assets/{uid_asset}/export-settings/{uid_export_setting}/:
     get:
       operationId: api_v2_assets_export_settings_retrieve
       description: |
@@ -2424,16 +2825,22 @@ paths:
         <sup>*</sup> _Required permissions: `view_submissions` (View submissions)_
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid
+        schema:
+          type: string
+        description: UID of the export-settings
+        required: true
+      - in: path
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
         required: true
       - in: path
-        name: uid
+        name: uid_export_setting
         schema:
           type: string
-        description: UID of the export-settings
+        description: UID of the export setting
         required: true
       tags:
       - Survey data
@@ -2466,16 +2873,22 @@ paths:
         <sup>*</sup> _Required permissions: `manage_asset` (Manage project)_
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid
+        schema:
+          type: string
+        description: UID of the export-settings
+        required: true
+      - in: path
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
         required: true
       - in: path
-        name: uid
+        name: uid_export_setting
         schema:
           type: string
-        description: UID of the export-settings
+        description: UID of the export setting
         required: true
       tags:
       - Survey data
@@ -2527,16 +2940,22 @@ paths:
 
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid
+        schema:
+          type: string
+        description: UID of the export-settings
+        required: true
+      - in: path
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
         required: true
       - in: path
-        name: uid
+        name: uid_export_setting
         schema:
           type: string
-        description: UID of the export-settings
+        description: UID of the export setting
         required: true
       tags:
       - Survey data
@@ -2557,7 +2976,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/export-settings/{uid}/data/:
+  /api/v2/assets/{uid_asset}/export-settings/{uid_export_setting}/data/:
     get:
       operationId: api_v2_assets_export_settings_data_retrieve
       description: |
@@ -2578,16 +2997,22 @@ paths:
           - xlsx
         required: true
       - in: path
-        name: parent_lookup_asset
+        name: uid
+        schema:
+          type: string
+        description: UID of the export-settings
+        required: true
+      - in: path
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
         required: true
       - in: path
-        name: uid
+        name: uid_export_setting
         schema:
           type: string
-        description: UID of the export-settings
+        description: UID of the export setting
         required: true
       tags:
       - Survey data
@@ -2622,7 +3047,7 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/exports/:
+  /api/v2/assets/{uid_asset}/exports/:
     get:
       operationId: api_v2_assets_exports_list
       description: |
@@ -2659,10 +3084,16 @@ paths:
         schema:
           type: string
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
+        required: true
+      - in: path
+        name: uid_export
+        schema:
+          type: string
+        description: UID of the export
         required: true
       tags:
       - Survey data
@@ -2735,10 +3166,16 @@ paths:
                 * An empty JSON object (no filtering)
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
+        required: true
+      - in: path
+        name: uid_export
+        schema:
+          type: string
+        description: UID of the export
         required: true
       tags:
       - Survey data
@@ -2793,23 +3230,29 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/exports/{uid}/:
+  /api/v2/assets/{uid_asset}/exports/{uid_export}/:
     get:
       operationId: api_v2_assets_exports_retrieve
       description: |
         ## Retrieves current export task
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid
+        schema:
+          type: string
+        description: UID of the export task
+        required: true
+      - in: path
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
         required: true
       - in: path
-        name: uid
+        name: uid_export
         schema:
           type: string
-        description: UID of the export task
+        description: UID of the export
         required: true
       tags:
       - Survey data
@@ -2851,16 +3294,22 @@ paths:
         ## Deletes current export task
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid
+        schema:
+          type: string
+        description: UID of the export task
+        required: true
+      - in: path
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
         required: true
       - in: path
-        name: uid
+        name: uid_export
         schema:
           type: string
-        description: UID of the export task
+        description: UID of the export
         required: true
       tags:
       - Survey data
@@ -2892,7 +3341,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/files/:
+  /api/v2/assets/{uid_asset}/files/:
     get:
       operationId: api_v2_assets_files_list
       description: |
@@ -2916,7 +3365,7 @@ paths:
         schema:
           type: integer
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -2974,7 +3423,7 @@ paths:
         **Files with `form_media` type must have unique `filename` per asset**
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -3048,20 +3497,20 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/files/{uid}/:
+  /api/v2/assets/{uid_asset}/files/{uid_file}/:
     get:
       operationId: api_v2_assets_files_retrieve
       description: |
         ## Retrieve a file from current asset
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
         required: true
       - in: path
-        name: uid
+        name: uid_file
         schema:
           type: string
         required: true
@@ -3094,13 +3543,13 @@ paths:
         ## Delete a file from current asset
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
         required: true
       - in: path
-        name: uid
+        name: uid_file
         schema:
           type: string
         required: true
@@ -3123,20 +3572,20 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/files/{uid}/content/:
+  /api/v2/assets/{uid_asset}/files/{uid_file}/content/:
     get:
       operationId: api_v2_assets_files_content_retrieve
       description: |
         ## Download the asset file
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
         required: true
       - in: path
-        name: uid
+        name: uid_file
         schema:
           type: string
         required: true
@@ -3160,7 +3609,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/history/:
+  /api/v2/assets/{uid_asset}/history/:
     get:
       operationId: api_v2_assets_history_list
       description: |
@@ -3321,16 +3770,16 @@ paths:
         description: The initial index from which to return the results.
         schema:
           type: integer
-      - in: path
-        name: parent_lookup_asset
-        schema:
-          type: string
-        description: UID of the parent assets
-        required: true
       - in: query
         name: q
         schema:
           type: string
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent assets
+        required: true
       tags:
       - Logging
       security:
@@ -3365,14 +3814,14 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/history/actions/:
+  /api/v2/assets/{uid_asset}/history/actions/:
     get:
       operationId: api_v2_assets_history_actions_retrieve
       description: |
         ## Retrieve distinct actions performed on the project.
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent assets
@@ -3411,7 +3860,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/history/export/:
+  /api/v2/assets/{uid_asset}/history/export/:
     post:
       operationId: api_v2_assets_history_export_create
       description: |
@@ -3420,7 +3869,7 @@ paths:
         Exports the project's history and sends it by email to the requesting user.
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent assets
@@ -3459,7 +3908,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/hooks/:
+  /api/v2/assets/{uid_asset}/hooks/:
     get:
       operationId: api_v2_assets_hooks_list
       description: |
@@ -3480,10 +3929,16 @@ paths:
         schema:
           type: integer
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent assets
+        required: true
+      - in: path
+        name: uid_hook
+        schema:
+          type: string
+        description: UID of the hook
         required: true
       tags:
       - Survey data - Rest Services
@@ -3544,10 +3999,16 @@ paths:
         >         "payload_template": '{"fields": %SUBMISSION%}'
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent assets
+        required: true
+      - in: path
+        name: uid_hook
+        schema:
+          type: string
+        description: UID of the hook
         required: true
       tags:
       - Survey data - Rest Services
@@ -3597,239 +4058,26 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/:
-    get:
-      operationId: api_v2_assets_hooks_logs_list
-      description: |
-        ## List logs of an external services endpoints accessible to requesting user
-
-        Where:
-        * `asset_uid` - is the unique identifier of a specific asset
-        * `hook_uid` - is the unique identifier of a specific external service
-        * `uid` - is the unique identifier of a specific log
-
-        Use the `status` query parameter to filter logs by numeric status:
-        * `status=0`: hook has failed after exhausting all retries
-        * `status=1`: hook is still pending
-        * `status=2`: hook has succeeded
-
-        Use the `start` and `end` query parameters to filter logs by date range, providing ISO-8601 date strings (e.g. '2022-01-14', '2022-01-21 06:51:04', '2022-01-21T06:51:08.144004+02:00').
-        Note that `start` is inclusive, while `end` is exclusive.
-        Time zone is assumed to be UTC. If provided, it needs to be in '+00:00' format ('Z' is not supported). Watch out for url encoding for the '+' character (%2B).
-      parameters:
-      - in: query
-        name: end
-        schema:
-          type: string
-          format: date-time
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
-      - in: path
-        name: parent_lookup_asset
-        schema:
-          type: string
-        description: UID of the parent assets
-        required: true
-      - in: path
-        name: parent_lookup_hook
-        schema:
-          type: string
-        description: UID of the parent hook
-        required: true
-      - in: query
-        name: start
-        schema:
-          type: string
-          format: date-time
-      - in: query
-        name: status
-        schema:
-          type: integer
-          enum:
-          - 0
-          - 1
-          - 2
-        description: |-
-          * `0` - Failed
-          * `1` - Pending
-          * `2` - Success
-      tags:
-      - Survey data - Rest Services
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PaginatedHookLogList'
-          description: null
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                AccessDenied:
-                  value:
-                    detail: You do not have permission to perform this action.
-                  summary: Access Denied
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
-  /api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/:
-    get:
-      operationId: api_v2_assets_hooks_logs_retrieve
-      description: |
-        ## Retrieve an external service endpoint log
-      parameters:
-      - in: path
-        name: parent_lookup_asset
-        schema:
-          type: string
-        description: UID of the parent assets
-        required: true
-      - in: path
-        name: parent_lookup_hook
-        schema:
-          type: string
-        description: UID of the parent hook
-        required: true
-      - in: path
-        name: uid
-        schema:
-          type: string
-        required: true
-      tags:
-      - Survey data - Rest Services
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HookLog'
-          description: null
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                AccessDenied:
-                  value:
-                    detail: You do not have permission to perform this action.
-                  summary: Access Denied
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
-  /api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/retry/:
-    patch:
-      operationId: api_v2_assets_hooks_logs_retry_partial_update
-      description: |
-        ## Retry a failed submission attempt
-      parameters:
-      - in: path
-        name: parent_lookup_asset
-        schema:
-          type: string
-        description: UID of the parent assets
-        required: true
-      - in: path
-        name: parent_lookup_hook
-        schema:
-          type: string
-        description: UID of the parent hook
-        required: true
-      - in: path
-        name: uid
-        schema:
-          type: string
-        required: true
-      tags:
-      - Survey data - Rest Services
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedHookLog'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedHookLog'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedHookLog'
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LogsRetryResponse'
-          description: null
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                AccessDenied:
-                  value:
-                    detail: You do not have permission to perform this action.
-                  summary: Access Denied
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
-  /api/v2/assets/{parent_lookup_asset}/hooks/{uid}/:
+  /api/v2/assets/{uid_asset}/hooks/{uid_hook}/:
     get:
       operationId: api_v2_assets_hooks_retrieve
       description: |
         ## Retrieve an external service
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid
+        schema:
+          type: string
+        description: UID of the hook
+        required: true
+      - in: path
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent assets
         required: true
       - in: path
-        name: uid
+        name: uid_hook
         schema:
           type: string
         description: UID of the hook
@@ -3863,13 +4111,19 @@ paths:
         ## Update an external service.
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid
+        schema:
+          type: string
+        description: UID of the hook
+        required: true
+      - in: path
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent assets
         required: true
       - in: path
-        name: uid
+        name: uid_hook
         schema:
           type: string
         description: UID of the hook
@@ -3927,13 +4181,19 @@ paths:
         ## Delete an external service.
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid
+        schema:
+          type: string
+        description: UID of the hook
+        required: true
+      - in: path
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent assets
         required: true
       - in: path
-        name: uid
+        name: uid_hook
         schema:
           type: string
         description: UID of the hook
@@ -3957,7 +4217,226 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/hooks/{uid}/retry/:
+  /api/v2/assets/{uid_asset}/hooks/{uid_hook}/logs/:
+    get:
+      operationId: api_v2_assets_hooks_logs_list
+      description: |
+        ## List logs of an external services endpoints accessible to requesting user
+
+        Where:
+        * `asset_uid` - is the unique identifier of a specific asset
+        * `hook_uid` - is the unique identifier of a specific external service
+        * `uid` - is the unique identifier of a specific log
+
+        Use the `status` query parameter to filter logs by numeric status:
+        * `status=0`: hook has failed after exhausting all retries
+        * `status=1`: hook is still pending
+        * `status=2`: hook has succeeded
+
+        Use the `start` and `end` query parameters to filter logs by date range, providing ISO-8601 date strings (e.g. '2022-01-14', '2022-01-21 06:51:04', '2022-01-21T06:51:08.144004+02:00').
+        Note that `start` is inclusive, while `end` is exclusive.
+        Time zone is assumed to be UTC. If provided, it needs to be in '+00:00' format ('Z' is not supported). Watch out for url encoding for the '+' character (%2B).
+      parameters:
+      - in: query
+        name: end
+        schema:
+          type: string
+          format: date-time
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: start
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: status
+        schema:
+          type: integer
+          enum:
+          - 0
+          - 1
+          - 2
+        description: |-
+          * `0` - Failed
+          * `1` - Pending
+          * `2` - Success
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent assets
+        required: true
+      - in: path
+        name: uid_hook
+        schema:
+          type: string
+        description: UID of the parent hook
+        required: true
+      tags:
+      - Survey data - Rest Services
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedHookLogList'
+          description: null
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                AccessDenied:
+                  value:
+                    detail: You do not have permission to perform this action.
+                  summary: Access Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /api/v2/assets/{uid_asset}/hooks/{uid_hook}/logs/{uid_log}/:
+    get:
+      operationId: api_v2_assets_hooks_logs_retrieve
+      description: |
+        ## Retrieve an external service endpoint log
+      parameters:
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent assets
+        required: true
+      - in: path
+        name: uid_hook
+        schema:
+          type: string
+        description: UID of the parent hook
+        required: true
+      - in: path
+        name: uid_log
+        schema:
+          type: string
+        required: true
+      tags:
+      - Survey data - Rest Services
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HookLog'
+          description: null
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                AccessDenied:
+                  value:
+                    detail: You do not have permission to perform this action.
+                  summary: Access Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /api/v2/assets/{uid_asset}/hooks/{uid_hook}/logs/{uid_log}/retry/:
+    patch:
+      operationId: api_v2_assets_hooks_logs_retry_partial_update
+      description: |
+        ## Retry a failed submission attempt
+      parameters:
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent assets
+        required: true
+      - in: path
+        name: uid_hook
+        schema:
+          type: string
+        description: UID of the parent hook
+        required: true
+      - in: path
+        name: uid_log
+        schema:
+          type: string
+        required: true
+      tags:
+      - Survey data - Rest Services
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedHookLog'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedHookLog'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedHookLog'
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogsRetryResponse'
+          description: null
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                AccessDenied:
+                  value:
+                    detail: You do not have permission to perform this action.
+                  summary: Access Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /api/v2/assets/{uid_asset}/hooks/{uid_hook}/retry/:
     patch:
       operationId: api_v2_assets_hooks_retry_partial_update
       description: |
@@ -3968,13 +4447,19 @@ paths:
         It returns all logs `uid`s that are being retried.
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid
+        schema:
+          type: string
+        description: UID of the hook
+        required: true
+      - in: path
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent assets
         required: true
       - in: path
-        name: uid
+        name: uid_hook
         schema:
           type: string
         description: UID of the hook
@@ -4002,7 +4487,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/paired-data/:
+  /api/v2/assets/{uid_asset}/paired-data/:
     get:
       operationId: api_v2_assets_paired_data_list
       description: |
@@ -4025,7 +4510,7 @@ paths:
         schema:
           type: integer
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -4065,7 +4550,7 @@ paths:
         * `filename`: Must be unique among all asset files. Only accepts letters, numbers and '-'.
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -4118,7 +4603,7 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/paired-data/{paired_data_uid}/:
+  /api/v2/assets/{uid_asset}/paired-data/{paired_data_uid}/:
     get:
       operationId: api_v2_assets_paired_data_retrieve
       description: |
@@ -4131,7 +4616,7 @@ paths:
         description: UID of the paired data
         required: true
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -4173,7 +4658,7 @@ paths:
         description: UID of the paired data
         required: true
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -4231,7 +4716,7 @@ paths:
         description: UID of the paired data
         required: true
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -4255,7 +4740,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/paired-data/{paired_data_uid}/external/:
+  /api/v2/assets/{uid_asset}/paired-data/{paired_data_uid}/external/:
     get:
       operationId: api_v2_assets_paired_data_external_retrieve
       description: |
@@ -4272,7 +4757,7 @@ paths:
         description: UID of the paired data
         required: true
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
@@ -4300,17 +4785,23 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/permission-assignments/:
+  /api/v2/assets/{uid_asset}/permission-assignments/:
     get:
       operationId: api_v2_assets_permission_assignments_list
       description: |
         ## List permission assignments
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
+        required: true
+      - in: path
+        name: uid_permission_assignment
+        schema:
+          type: string
+        description: UID of the permission assignment
         required: true
       tags:
       - Manage permissions
@@ -4359,10 +4850,16 @@ paths:
           - Implied permissions will be also assigned. (e.g. `change_asset` will add `view_asset` too)
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
+        required: true
+      - in: path
+        name: uid_permission_assignment
+        schema:
+          type: string
+        description: UID of the permission assignment
         required: true
       tags:
       - Manage permissions
@@ -4433,23 +4930,29 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/:
+  /api/v2/assets/{uid_asset}/permission-assignments/{uid_permission_assignment}/:
     get:
       operationId: api_v2_assets_permission_assignments_retrieve
       description: |
         ## Retrieve assignments
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid
+        schema:
+          type: string
+        description: UID of the permission
+        required: true
+      - in: path
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
         required: true
       - in: path
-        name: uid
+        name: uid_permission_assignment
         schema:
           type: string
-        description: UID of the permission
+        description: UID of the permission assignment
         required: true
       tags:
       - Manage permissions
@@ -4491,16 +4994,22 @@ paths:
         ## Remove a permission assignment
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid
+        schema:
+          type: string
+        description: UID of the permission
+        required: true
+      - in: path
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
         required: true
       - in: path
-        name: uid
+        name: uid_permission_assignment
         schema:
           type: string
-        description: UID of the permission
+        description: UID of the permission assignment
         required: true
       tags:
       - Manage permissions
@@ -4532,23 +5041,29 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/delete-all/:
+  /api/v2/assets/{uid_asset}/permission-assignments/{uid_permission_assignment}/delete-all/:
     delete:
       operationId: api_v2_assets_permission_assignments_delete_all_destroy
       description: |
         ## Remove all permission assignments
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid
+        schema:
+          type: string
+        description: UID of the permission
+        required: true
+      - in: path
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
         required: true
       - in: path
-        name: uid
+        name: uid_permission_assignment
         schema:
           type: string
-        description: UID of the permission
+        description: UID of the permission assignment
         required: true
       tags:
       - Manage permissions
@@ -4580,7 +5095,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/permission-assignments/bulk/:
+  /api/v2/assets/{uid_asset}/permission-assignments/bulk/:
     post:
       operationId: api_v2_assets_permission_assignments_bulk_create
       description: |
@@ -4589,10 +5104,16 @@ paths:
         * Can put both regular and partial permission in the payload
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
+        required: true
+      - in: path
+        name: uid_permission_assignment
+        schema:
+          type: string
+        description: UID of the permission assignment
         required: true
       tags:
       - Manage permissions
@@ -4651,7 +5172,7 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/permission-assignments/clone/:
+  /api/v2/assets/{uid_asset}/permission-assignments/clone/:
     patch:
       operationId: api_v2_assets_permission_assignments_clone_partial_update
       description: |
@@ -4660,10 +5181,16 @@ paths:
         Where `clone_from` is the source uid.
       parameters:
       - in: path
-        name: parent_lookup_asset
+        name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
+        required: true
+      - in: path
+        name: uid_permission_assignment
+        schema:
+          type: string
+        description: UID of the permission assignment
         required: true
       tags:
       - Manage permissions
@@ -4719,467 +5246,7 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/versions/:
-    get:
-      operationId: api_v2_assets_versions_list
-      description: |
-        ## List the versions of forms
-      parameters:
-      - name: limit
-        required: false
-        in: query
-        description: Number of results to return per page.
-        schema:
-          type: integer
-      - name: offset
-        required: false
-        in: query
-        description: The initial index from which to return the results.
-        schema:
-          type: integer
-      - in: path
-        name: parent_lookup_asset
-        schema:
-          type: string
-        description: UID of the parent asset
-        required: true
-      tags:
-      - Manage projects and library content
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PaginatedVersionListResponseList'
-          description: null
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
-  /api/v2/assets/{parent_lookup_asset}/versions/{uid}/:
-    get:
-      operationId: api_v2_assets_versions_retrieve
-      description: |
-        ## Retrieve asset versions
-
-        Returns the details of an asset version
-      parameters:
-      - in: path
-        name: parent_lookup_asset
-        schema:
-          type: string
-        description: UID of the parent asset
-        required: true
-      - in: path
-        name: uid
-        schema:
-          type: string
-        required: true
-      tags:
-      - Manage projects and library content
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/VersionRetrieveResponse'
-          description: null
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
-  /api/v2/assets/{uid}/:
-    get:
-      operationId: api_v2_assets_retrieve
-      description: |
-        ## Get a user's current asset
-      parameters:
-      - in: query
-        name: format
-        schema:
-          type: string
-          enum:
-          - json
-          - ssjson
-          - xls
-          - xml
-      - in: path
-        name: uid
-        schema:
-          type: string
-        required: true
-      tags:
-      - Manage projects and library content
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Asset'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Asset'
-            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
-              schema:
-                $ref: '#/components/schemas/Asset'
-          description: null
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
-    patch:
-      operationId: api_v2_assets_partial_update
-      description: |
-        ## Update or connect a user's asset
-
-        Updates a project or connect project's data from this project to other projects
-
-        When `Data sharing`:
-
-        `fields`: Optional. List of questions whose responses will be shared. If
-        missing or empty, all responses will be shared. Questions must be
-        identified by full group path separated by slashes, e.g.
-        `group/subgroup/question_name`.
-      parameters:
-      - in: path
-        name: uid
-        schema:
-          type: string
-        required: true
-      tags:
-      - Manage projects and library content
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedAssetPatchRequest'
-            examples:
-              UpdatingAnAsset:
-                value:
-                  content: string
-                  name: string
-                summary: Updating an asset
-              DataSharingOfTheProject:
-                value:
-                  enabled: true
-                  fields:
-                  - string
-                summary: Data sharing of the project
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Asset'
-          description: null
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                NotAuthenticated:
-                  value:
-                    detail: Authentication credentials were not provided.
-                  summary: Not authenticated
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                BadRequest:
-                  value:
-                    detail:
-                      field_name:
-                      - Error message
-                  summary: Bad request
-          description: ''
-    delete:
-      operationId: api_v2_assets_destroy
-      description: |
-        ## Delete a user's asset
-      parameters:
-      - in: path
-        name: uid
-        schema:
-          type: string
-        required: true
-      tags:
-      - Manage projects and library content
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '204':
-          description: No response body
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                NotAuthenticated:
-                  value:
-                    detail: Authentication credentials were not provided.
-                  summary: Not authenticated
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
-  /api/v2/assets/{uid}/content/:
-    get:
-      operationId: api_v2_assets_content_retrieve
-      description: |
-        ## Return the content of a user's asset.
-      parameters:
-      - in: path
-        name: uid
-        schema:
-          type: string
-        required: true
-      tags:
-      - Form content
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContentResponse'
-          description: null
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
-  /api/v2/assets/{uid}/deployment/:
-    get:
-      operationId: api_v2_assets_deployment_retrieve
-      description: |
-        ## Retrieve the existing deployment (if any)
-      parameters:
-      - in: path
-        name: uid
-        schema:
-          type: string
-        required: true
-      tags:
-      - Manage projects and library content
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeploymentResponse'
-          description: null
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
-    post:
-      operationId: api_v2_assets_deployment_create
-      description: |
-        ## (Re)Deploy a form
-
-        Deploy a new form or re-deploy an existing one.
-      parameters:
-      - in: path
-        name: uid
-        schema:
-          type: string
-        required: true
-      tags:
-      - Manage projects and library content
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeploymentCreateRequest'
-        required: true
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeploymentResponse'
-          description: null
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                NotAuthenticated:
-                  value:
-                    detail: Authentication credentials were not provided.
-                  summary: Not authenticated
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                BadRequest:
-                  value:
-                    detail:
-                      field_name:
-                      - Error message
-                  summary: Bad request
-          description: ''
-    patch:
-      operationId: api_v2_assets_deployment_partial_update
-      description: |
-        ## (Un)Archive the existing deployment.
-
-        Update the `active` field of the existing deployment.
-
-        To overwrite the entire deployment (including the form contents), use a PUT request.
-      parameters:
-      - in: path
-        name: uid
-        schema:
-          type: string
-        required: true
-      tags:
-      - Manage projects and library content
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedDeploymentPatchRequest'
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeploymentResponse'
-          description: null
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                NotAuthenticated:
-                  value:
-                    detail: Authentication credentials were not provided.
-                  summary: Not authenticated
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                BadRequest:
-                  value:
-                    detail:
-                      field_name:
-                      - Error message
-                  summary: Bad request
-          description: ''
-  /api/v2/assets/{uid}/reports/:
+  /api/v2/assets/{uid_asset}/reports/:
     get:
       operationId: api_v2_assets_reports_retrieve
       description: |
@@ -5190,7 +5257,7 @@ paths:
         The endpoint will return a **404 NOT FOUND** error if the asset is not deployed and will only return the data for the most recently deployed version.
       parameters:
       - in: path
-        name: uid
+        name: uid_asset
         schema:
           type: string
         required: true
@@ -5217,14 +5284,14 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{uid}/table_view/:
+  /api/v2/assets/{uid_asset}/table_view/:
     get:
       operationId: api_v2_assets_table_view_retrieve
       description: |
         ## Return plain HTML of survey in tabular format
       parameters:
       - in: path
-        name: uid
+        name: uid_asset
         schema:
           type: string
         required: true
@@ -5256,14 +5323,14 @@ paths:
           description: ''
         '404':
           description: No response body
-  /api/v2/assets/{uid}/valid_content/:
+  /api/v2/assets/{uid_asset}/valid_content/:
     get:
       operationId: api_v2_assets_valid_content_retrieve
       description: |
         ## Return valid content for user's asset
       parameters:
       - in: path
-        name: uid
+        name: uid_asset
         schema:
           type: string
         required: true
@@ -5290,7 +5357,96 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{uid}/xform/:
+  /api/v2/assets/{uid_asset}/versions/:
+    get:
+      operationId: api_v2_assets_versions_list
+      description: |
+        ## List the versions of forms
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent asset
+        required: true
+      tags:
+      - Manage projects and library content
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedVersionListResponseList'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /api/v2/assets/{uid_asset}/versions/{uid_version}/:
+    get:
+      operationId: api_v2_assets_versions_retrieve
+      description: |
+        ## Retrieve asset versions
+
+        Returns the details of an asset version
+      parameters:
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent asset
+        required: true
+      - in: path
+        name: uid_version
+        schema:
+          type: string
+        required: true
+      tags:
+      - Manage projects and library content
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionRetrieveResponse'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /api/v2/assets/{uid_asset}/xform/:
     get:
       operationId: api_v2_assets_xform_retrieve
       description: |
@@ -5299,7 +5455,7 @@ paths:
         It is useful for debugging pyxform transformations
       parameters:
       - in: path
-        name: uid
+        name: uid_asset
         schema:
           type: string
         required: true
@@ -5362,14 +5518,14 @@ paths:
           description: ''
         '404':
           description: No response body
-  /api/v2/assets/{uid}/xls/:
+  /api/v2/assets/{uid_asset}/xls/:
     get:
       operationId: api_v2_assets_xls_retrieve
       description: |
         ## Return plain HTML of survey in tabular format
       parameters:
       - in: path
-        name: uid
+        name: uid_asset
         schema:
           type: string
         required: true
@@ -5712,14 +5868,14 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/imports/{uid}/:
+  /api/v2/imports/{uid_import}/:
     get:
       operationId: api_v2_imports_retrieve
       description: |
         ## Retrieve imported files
       parameters:
       - in: path
-        name: uid
+        name: uid_import
         schema:
           type: string
         required: true
@@ -7095,20 +7251,20 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/project-ownership/invites/{parent_lookup_invite_uid}/transfers/{uid}/:
+  /api/v2/project-ownership/invites/{uid_invite_uid}/transfers/{uid_transfer}/:
     get:
       operationId: api_v2_project_ownership_invites_transfers_retrieve
       description: |
         ## Retrieve transfer details
       parameters:
       - in: path
-        name: parent_lookup_invite_uid
+        name: uid_invite_uid
         schema:
           type: string
         description: UID of the parent invite
         required: true
       - in: path
-        name: uid
+        name: uid_transfer
         schema:
           type: string
         required: true
@@ -7157,7 +7313,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/project-ownership/invites/{uid}/:
+  /api/v2/project-ownership/invites/{uid_invite}/:
     get:
       operationId: api_v2_project_ownership_invites_retrieve
       description: |
@@ -7166,7 +7322,7 @@ paths:
         It can be useful to monitor the invite status while the transfer is being processed
       parameters:
       - in: path
-        name: uid
+        name: uid_invite
         schema:
           type: string
         required: true
@@ -7222,7 +7378,7 @@ paths:
 
       parameters:
       - in: path
-        name: uid
+        name: uid_invite
         schema:
           type: string
         required: true
@@ -7284,7 +7440,7 @@ paths:
         ## Delete invite
       parameters:
       - in: path
-        name: uid
+        name: uid_invite
         schema:
           type: string
         required: true
@@ -7359,14 +7515,14 @@ paths:
                     detail: You do not have permission to perform this action.
                   summary: Access Denied
           description: ''
-  /api/v2/project-views/{uid}/:
+  /api/v2/project-views/{uid_project_view}/:
     get:
       operationId: api_v2_project_views_retrieve
       description: |
         ## Retrieve project view of a shared project to current user
       parameters:
       - in: path
-        name: uid
+        name: uid_project_view
         schema:
           type: string
         required: true
@@ -7404,7 +7560,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/project-views/{uid}/{obj_type}/export/:
+  /api/v2/project-views/{uid_project_view}/{obj_type}/export/:
     get:
       operationId: api_v2_project_views_export_retrieve
       description: |+
@@ -7420,7 +7576,7 @@ paths:
           pattern: ^(assets|users)$
         required: true
       - in: path
-        name: uid
+        name: uid_project_view
         schema:
           type: string
         required: true
@@ -7496,7 +7652,7 @@ paths:
           pattern: ^(assets|users)$
         required: true
       - in: path
-        name: uid
+        name: uid_project_view
         schema:
           type: string
         required: true
@@ -7558,7 +7714,7 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/project-views/{uid}/assets/:
+  /api/v2/project-views/{uid_project_view}/assets/:
     get:
       operationId: api_v2_project_views_assets_retrieve
       description: |
@@ -7575,7 +7731,7 @@ paths:
           type: integer
         description: Paginate results with offset parameter
       - in: path
-        name: uid
+        name: uid_project_view
         schema:
           type: string
         required: true
@@ -7626,7 +7782,7 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/project-views/{uid}/users/:
+  /api/v2/project-views/{uid_project_view}/users/:
     get:
       operationId: api_v2_project_views_users_retrieve
       description: |
@@ -7643,7 +7799,7 @@ paths:
           type: integer
         description: Paginate results with offset parameter
       - in: path
-        name: uid
+        name: uid_project_view
         schema:
           type: string
         required: true
@@ -8430,7 +8586,7 @@ paths:
                     detail: Authentication credentials were not provided.
                   summary: Not authenticated
           description: ''
-  /me/social-accounts/{provider}/{uid}/:
+  /me/social-accounts/{provider}/{uid_social_account}/:
     get:
       operationId: me_social_accounts_retrieve
       description: |
@@ -8442,7 +8598,7 @@ paths:
           type: string
         required: true
       - in: path
-        name: uid
+        name: uid_social_account
         schema:
           type: string
           pattern: ^[-\w]+$
@@ -8492,7 +8648,7 @@ paths:
           type: string
         required: true
       - in: path
-        name: uid
+        name: uid_social_account
         schema:
           type: string
           pattern: ^[-\w]+$
