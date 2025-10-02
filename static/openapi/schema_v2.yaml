@@ -10155,7 +10155,7 @@ components:
         result:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080user/export/NEW PROJECT - all versions
+          example: https://kf.kobotoolbox.orguser/export/NEW PROJECT - all versions
             - False - 2025-01-01-01-01.csv
         data:
           type: object
