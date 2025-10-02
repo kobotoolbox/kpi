@@ -445,111 +445,6 @@ export const useAssetsPermissionAssignmentsDestroy = <
   return useMutation(mutationOptions)
 }
 /**
- * ## Remove all permission assignments
-
- */
-export type assetsPermissionAssignmentsDeleteAllDestroyResponse204 = {
-  data: void
-  status: 204
-}
-
-export type assetsPermissionAssignmentsDeleteAllDestroyResponse403 = {
-  data: ErrorDetail
-  status: 403
-}
-
-export type assetsPermissionAssignmentsDeleteAllDestroyResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
-export type assetsPermissionAssignmentsDeleteAllDestroyResponseComposite =
-  | assetsPermissionAssignmentsDeleteAllDestroyResponse204
-  | assetsPermissionAssignmentsDeleteAllDestroyResponse403
-  | assetsPermissionAssignmentsDeleteAllDestroyResponse404
-
-export type assetsPermissionAssignmentsDeleteAllDestroyResponse =
-  assetsPermissionAssignmentsDeleteAllDestroyResponseComposite & {
-    headers: Headers
-  }
-
-export const getAssetsPermissionAssignmentsDeleteAllDestroyUrl = (parentLookupAsset: string, uid: string) => {
-  return `/api/v2/assets/${parentLookupAsset}/permission-assignments/${uid}/delete-all/`
-}
-
-export const assetsPermissionAssignmentsDeleteAllDestroy = async (
-  parentLookupAsset: string,
-  uid: string,
-  options?: RequestInit,
-): Promise<assetsPermissionAssignmentsDeleteAllDestroyResponse> => {
-  return fetchWithAuth<assetsPermissionAssignmentsDeleteAllDestroyResponse>(
-    getAssetsPermissionAssignmentsDeleteAllDestroyUrl(parentLookupAsset, uid),
-    {
-      ...options,
-      method: 'DELETE',
-    },
-  )
-}
-
-export const getAssetsPermissionAssignmentsDeleteAllDestroyMutationOptions = <
-  TError = ErrorDetail | ErrorObject,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof assetsPermissionAssignmentsDeleteAllDestroy>>,
-    TError,
-    { parentLookupAsset: string; uid: string },
-    TContext
-  >
-  request?: SecondParameter<typeof fetchWithAuth>
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof assetsPermissionAssignmentsDeleteAllDestroy>>,
-  TError,
-  { parentLookupAsset: string; uid: string },
-  TContext
-> => {
-  const mutationKey = ['assetsPermissionAssignmentsDeleteAllDestroy']
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined }
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof assetsPermissionAssignmentsDeleteAllDestroy>>,
-    { parentLookupAsset: string; uid: string }
-  > = (props) => {
-    const { parentLookupAsset, uid } = props ?? {}
-
-    return assetsPermissionAssignmentsDeleteAllDestroy(parentLookupAsset, uid, requestOptions)
-  }
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type AssetsPermissionAssignmentsDeleteAllDestroyMutationResult = NonNullable<
-  Awaited<ReturnType<typeof assetsPermissionAssignmentsDeleteAllDestroy>>
->
-
-export type AssetsPermissionAssignmentsDeleteAllDestroyMutationError = ErrorDetail | ErrorObject
-
-export const useAssetsPermissionAssignmentsDeleteAllDestroy = <
-  TError = ErrorDetail | ErrorObject,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof assetsPermissionAssignmentsDeleteAllDestroy>>,
-    TError,
-    { parentLookupAsset: string; uid: string },
-    TContext
-  >
-  request?: SecondParameter<typeof fetchWithAuth>
-}) => {
-  const mutationOptions = getAssetsPermissionAssignmentsDeleteAllDestroyMutationOptions(options)
-
-  return useMutation(mutationOptions)
-}
-/**
  * ## Assign multiple permissions at once
 
 * Can put both regular and partial permission in the payload
@@ -654,6 +549,122 @@ export const useAssetsPermissionAssignmentsBulkCreate = <
   request?: SecondParameter<typeof fetchWithAuth>
 }) => {
   const mutationOptions = getAssetsPermissionAssignmentsBulkCreateMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}
+/**
+ * ## Remove all permission assignments
+
+⚠️ **Warning**
+This endpoint currently supports deleting **only the user whose username is provided as a parameter**.
+Deletion of other accounts is not yet supported.
+
+**Payload**
+```json
+{
+   "username": "bob"
+}
+```
+
+_Due to limitations with DRF-Spectacular current version, `DELETE` actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint._
+
+ */
+export type assetsPermissionAssignmentsBulkDestroyResponse204 = {
+  data: void
+  status: 204
+}
+
+export type assetsPermissionAssignmentsBulkDestroyResponse400 = {
+  data: ErrorObject
+  status: 400
+}
+
+export type assetsPermissionAssignmentsBulkDestroyResponse403 = {
+  data: ErrorDetail
+  status: 403
+}
+
+export type assetsPermissionAssignmentsBulkDestroyResponseComposite =
+  | assetsPermissionAssignmentsBulkDestroyResponse204
+  | assetsPermissionAssignmentsBulkDestroyResponse400
+  | assetsPermissionAssignmentsBulkDestroyResponse403
+
+export type assetsPermissionAssignmentsBulkDestroyResponse = assetsPermissionAssignmentsBulkDestroyResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsPermissionAssignmentsBulkDestroyUrl = (parentLookupAsset: string) => {
+  return `/api/v2/assets/${parentLookupAsset}/permission-assignments/bulk/`
+}
+
+export const assetsPermissionAssignmentsBulkDestroy = async (
+  parentLookupAsset: string,
+  options?: RequestInit,
+): Promise<assetsPermissionAssignmentsBulkDestroyResponse> => {
+  return fetchWithAuth<assetsPermissionAssignmentsBulkDestroyResponse>(
+    getAssetsPermissionAssignmentsBulkDestroyUrl(parentLookupAsset),
+    {
+      ...options,
+      method: 'DELETE',
+    },
+  )
+}
+
+export const getAssetsPermissionAssignmentsBulkDestroyMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>,
+    TError,
+    { parentLookupAsset: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>,
+  TError,
+  { parentLookupAsset: string },
+  TContext
+> => {
+  const mutationKey = ['assetsPermissionAssignmentsBulkDestroy']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>,
+    { parentLookupAsset: string }
+  > = (props) => {
+    const { parentLookupAsset } = props ?? {}
+
+    return assetsPermissionAssignmentsBulkDestroy(parentLookupAsset, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AssetsPermissionAssignmentsBulkDestroyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>
+>
+
+export type AssetsPermissionAssignmentsBulkDestroyMutationError = ErrorObject | ErrorDetail
+
+export const useAssetsPermissionAssignmentsBulkDestroy = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>,
+    TError,
+    { parentLookupAsset: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsPermissionAssignmentsBulkDestroyMutationOptions(options)
 
   return useMutation(mutationOptions)
 }
