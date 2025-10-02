@@ -72,3 +72,20 @@ class V2APIEndpointEnumerator(EndpointEnumerator):
 
 class V2APISchemaGenerator(SchemaGenerator):
     endpoint_inspector_cls = V2APIEndpointEnumerator
+
+
+def ignore_basic_html_renderer(endpoints):
+    """
+    Strip BasicHTMLRenderer from the list of renderers
+    before schema generation.
+    """
+
+    new_endpoints = []
+    for path, path_regex, method, callback in endpoints:
+        if hasattr(callback, 'cls'):
+            renderers = getattr(callback.cls, 'renderer_classes', [])
+            callback.cls.renderer_classes = tuple(
+                r for r in renderers if r.__name__ != 'BasicHTMLRenderer'
+            )
+        new_endpoints.append((path, path_regex, method, callback))
+    return new_endpoints

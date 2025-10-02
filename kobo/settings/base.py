@@ -992,8 +992,9 @@ REST_FRAMEWORK = {
         'kpi.authentication.OAuth2Authentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
-        'kpi.renderers.BasicHTMLRenderer',
         'rest_framework.renderers.JSONRenderer',
+        # "BasicHTMLRenderer" must always after JSONRenderer
+        'kpi.renderers.BasicHTMLRenderer',
     ],
     'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIAutoVersioning',
     # Cannot be placed in kpi.exceptions.py because of circular imports
@@ -1031,6 +1032,9 @@ SPECTACULAR_SETTINGS = {
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
         'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
     },
+    'PREPROCESSING_HOOKS': [
+        'kpi.utils.spectacular_processing.ignore_basic_html_renderer',
+    ],
     'TAGS': [
         {
             'name': 'Manage projects and library content',

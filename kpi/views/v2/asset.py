@@ -42,7 +42,7 @@ from kpi.permissions import (
     ReportPermission,
     get_perm_name,
 )
-from kpi.renderers import SSJsonRenderer, XFormRenderer, XlsRenderer, BasicHTMLRenderer
+from kpi.renderers import BasicHTMLRenderer, SSJsonRenderer, XFormRenderer, XlsRenderer
 from kpi.schema_extensions.v2.assets.schema import (
     ASSET_CLONE_FROM_SCHEMA,
     ASSET_CONTENT_SCHEMA,
@@ -668,8 +668,8 @@ class AssetViewSet(
     def get_renderers(self):
         if self.action == 'retrieve':
             return [
-                BasicHTMLRenderer(),
                 JSONRenderer(),
+                BasicHTMLRenderer(),
                 SSJsonRenderer(),
                 XFormRenderer(),
                 XlsRenderer(),

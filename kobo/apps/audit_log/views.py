@@ -369,7 +369,10 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
     # the schema, even if the viewset doesn’t override the renderers or return content
     # that would need them. Without this, it falls back to the default DRF settings,
     # which may not reflect the actual behavior of the viewset.
-    renderer_classes = (BasicHTMLRenderer, JSONRenderer,)
+    renderer_classes = (
+        JSONRenderer,
+        BasicHTMLRenderer,
+    )
 
     def create_task(self, request, get_all_logs):
 

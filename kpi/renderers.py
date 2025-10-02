@@ -4,25 +4,19 @@ import re
 from collections.abc import Callable
 from io import StringIO
 
-import json
-import re
-from django.core.serializers.json import DjangoJSONEncoder
-from django.template.loader import get_template
-from django.template import Engine, Context
-from rest_framework import renderers
-
-
-import formpack
 from dict2xml import dict2xml
 from django.core.serializers.json import DjangoJSONEncoder
+from django.template.loader import get_template
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers, status
 from rest_framework.exceptions import ErrorDetail, ParseError
 from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
+import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
 from kpi.utils.xml import add_xml_declaration
+
 
 class BasicHTMLRenderer(renderers.BaseRenderer):
     media_type = 'text/html'
@@ -32,27 +26,25 @@ class BasicHTMLRenderer(renderers.BaseRenderer):
 
     PARAM_REGEXES = [
         # (?P<uid>[^/.]+) -> {uid}
-        (re.compile(r"\(\?P<(?P<name>\w+)>(?:[^)]+)\)"), r"{\g<name>}"),
+        (re.compile(r'\(\?P<(?P<name>\w+)>(?:[^)]+)\)'), r'{\g<name>}'),
         # <converter:name> or <name> -> {name}
-        (re.compile(r"<(?:\w+:)?(?P<name>\w+)>"), r"{\g<name>}"),
+        (re.compile(r'<(?:\w+:)?(?P<name>\w+)>'), r'{\g<name>}'),
     ]
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
         request = renderer_context.get('request') if renderer_context else None
         resolver_match = getattr(request, 'resolver_match', None)
+        url_pattern_clean = None
 
-        raw_route = self._extract_raw_route(resolver_match)
-        match_clean = self._clean_route(raw_route)
+        if resolver_match:
+            url_pattern_clean = self._clean_route(resolver_match.route)
 
         try:
             pretty = json.dumps(data, indent=2, cls=DjangoJSONEncoder)
         except:
             pretty = str(data)
 
-        context = {
-            'pretty': pretty,
-            'match': match_clean or ''
-        }
+        context = {'pretty': pretty, 'q_param': url_pattern_clean or ''}
 
         tpl = get_template(self.template_name)
         return tpl.render(context)
@@ -63,17 +55,14 @@ class BasicHTMLRenderer(renderers.BaseRenderer):
             return None
         s = raw.strip()
         # strip leading ^ and trailing $
-        s = s.lstrip("^").rstrip("$")
-
+        s = s.lstrip('^').rstrip('$')
         # Replace named groups and path converters by {name}
         for rx, repl in cls.PARAM_REGEXES:
             s = rx.sub(repl, s)
-
         # Unescape slashes if a regex had them escaped
-        s = s.replace(r"\/", "/")
-
+        s = s.replace(r'\/', '/')
         # Normalize multiple slashes (just in case)
-        s = re.sub(r"/{2,}", "/", s)
+        s = re.sub(r'/{2,}', '/', s)
 
         return s
 
@@ -81,7 +70,7 @@ class BasicHTMLRenderer(renderers.BaseRenderer):
     def _extract_raw_route(resolver) -> str | None:
         """
         Try to get the raw route/regex from ResolverMatch across Django versions.
-        Priority: route -> pattern.route -> pattern.regex.pattern -> regex.pattern
+
         """
 
         if not resolver:
