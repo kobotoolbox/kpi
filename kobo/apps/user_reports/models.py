@@ -1,5 +1,13 @@
+import uuid
+
 from django.db import models
 from django.utils import timezone
+
+
+class BillingAndUsageSnapshotStatus(models.TextChoices):
+    RUNNING = 'running'
+    COMPLETED = 'completed'
+    ABORTED = 'aborted'
 
 
 class BillingAndUsageSnapshot(models.Model):
@@ -37,6 +45,29 @@ class BillingAndUsageSnapshot(models.Model):
 
     def __str__(self):
         return f'BillingAndUsageSnapshot(org={self.organization_id})'
+
+
+class BillingAndUsageSnapshotRun(models.Model):
+    """
+    Tracks the status and progress of billing and usage snapshot runs
+    """
+    id = models.BigAutoField(primary_key=True)
+    run_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    status = models.CharField(
+        max_length=32,
+        choices=BillingAndUsageSnapshotStatus.choices,
+        default=BillingAndUsageSnapshotStatus.RUNNING
+    )
+    started_at = models.DateTimeField(default=timezone.now)
+    last_heartbeat_at = models.DateTimeField(default=timezone.now)
+    last_processed_org_id = models.CharField(null=True, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    details = models.JSONField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'billing_and_usage_snapshot_run'
+        managed = False
+        ordering = ['-started_at']
 
 
 class UserReports(models.Model):

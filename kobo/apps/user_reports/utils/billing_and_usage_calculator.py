@@ -42,9 +42,7 @@ class BillingAndUsageCalculator:
         return result
 
     def get_effective_user_id(self, organization: Organization) -> int:
-        if effective_user := organization.owner_user_object():
-            return effective_user.pk
-        return
+        return organization.owner.organization_user.user.pk
 
     def _get_submission_usage_batch(self, user_ids, date_ranges_by_user):
         if not user_ids:

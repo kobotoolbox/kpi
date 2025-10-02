@@ -40,6 +40,32 @@ DROP_BILLING_AND_USAGE_SNAPSHOT_INDEXES_SQL = """
     DROP INDEX IF EXISTS idx_bau_last_run;
     """
 
+CREATE_SNAPSHOT_RUN_TABLE_SQL = """
+    CREATE TABLE IF NOT EXISTS billing_and_usage_snapshot_run (
+        id BIGSERIAL PRIMARY KEY,
+        run_id UUID NOT NULL UNIQUE,
+        status VARCHAR(32) NOT NULL DEFAULT 'running',
+        started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        last_heartbeat_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        last_processed_org_id VARCHAR NULL,
+        expires_at TIMESTAMPTZ NULL,
+        details JSONB NULL
+    );
+"""
+
+DROP_SNAPSHOT_RUN_TABLE_SQL = """
+    DROP TABLE IF EXISTS billing_and_usage_snapshot_run CASCADE;
+"""
+
+CREATE_SNAPSHOT_RUN_INDEXES_SQL = """
+    CREATE INDEX IF NOT EXISTS idx_bau_run_status_expires
+        ON billing_and_usage_snapshot_run (status, expires_at);
+"""
+
+DROP_SNAPSHOT_RUN_INDEXES_SQL = """
+    DROP INDEX IF EXISTS idx_bau_run_status_expires;
+"""
+
 CREATE_MV_SQL = """
     CREATE MATERIALIZED VIEW user_reports_mv AS
     WITH user_nlp_usage AS (
@@ -408,6 +434,14 @@ class Migration(migrations.Migration):
             migrations.RunSQL(
                 sql=CREATE_BILLING_AND_USAGE_SNAPSHOT_INDEXES_SQL,
                 reverse_sql=DROP_BILLING_AND_USAGE_SNAPSHOT_INDEXES_SQL,
+            ),
+            migrations.RunSQL(
+                sql=CREATE_SNAPSHOT_RUN_TABLE_SQL,
+                reverse_sql=DROP_SNAPSHOT_RUN_TABLE_SQL,
+            ),
+            migrations.RunSQL(
+                sql=CREATE_SNAPSHOT_RUN_INDEXES_SQL,
+                reverse_sql=DROP_SNAPSHOT_RUN_INDEXES_SQL,
             ),
             migrations.RunSQL(
                 sql=CREATE_MV_SQL,
