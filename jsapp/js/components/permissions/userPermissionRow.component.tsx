@@ -11,7 +11,6 @@ import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { escapeHtml } from '#/utils'
-import { permissionsActions } from '../../actions/permissions'
 import permConfig from './permConfig'
 import { PERMISSIONS_CODENAMES } from './permConstants'
 import type { AssignablePermsMap } from './sharingForm.component'
@@ -44,8 +43,20 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
     }
   }
 
+  private unlisteners: Function[] = []
+
   componentDidMount() {
     assetStore.listen(this.onAssetChange, this)
+    this.unlisteners.push(
+      actions.permissions.removeAssetPermission.completed.listen(this.onRemoveAssetPermissionCompleted.bind(this)),
+      actions.permissions.removeAssetPermission.failed.listen(this.onRemoveAssetPermissionFailed.bind(this)),
+    )
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {
+      clb()
+    })
   }
 
   onAssetChange() {
@@ -70,17 +81,24 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
 
   removeAllPermissions() {
     this.setState({ isBeingDeleted: true })
-    const userAssetPermUrl = this.props.permissions.find(
-      (perm) => perm.permission === permConfig.getPermissionByCodename('view_asset')?.url,
-    )
+
+    console.log('xxx removeAllPermissions', this.props.permissions)
+
+    // TOOD: we should use different endpoint when it's ready
+    actions.permissions.removeAssetPermission(this.props.asset.uid, this.props.permissions[0].url, true)
+  }
+
+  onRemoveAssetPermissionCompleted() {
     const isCurrentUser = this.props.username === sessionStore.currentAccount.username
-    actions.permissions.removeAssetPermission(this.props.asset.uid, userAssetPermUrl?.url, true)
-    permissionsActions.removeAssetPermission.completed.listen(() => {
+    if (isCurrentUser) {
       // If the user deletes their own permissions, they will be routed to the form landing page
-      if (isCurrentUser) {
-        router?.navigate(ROUTES.FORMS)
-      }
-    })
+      router?.navigate(ROUTES.FORMS)
+    }
+    this.setState({ isBeingDeleted: false })
+  }
+
+  onRemoveAssetPermissionFailed() {
+    this.setState({ isBeingDeleted: false })
   }
 
   onPermissionsEditorSubmitEnd(isSuccess: boolean) {

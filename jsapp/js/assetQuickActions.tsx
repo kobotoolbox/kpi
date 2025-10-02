@@ -362,6 +362,7 @@ export function cloneAssetAsSurvey(sourceUid: string, sourceName: string) {
   })
 }
 
+// TODO: we should use different upcoming endpoint here
 export function removeAssetSharing(uid: string) {
   /**
    * Extends `removeAllPermissions` from `userPermissionRow.component.tsx`:
