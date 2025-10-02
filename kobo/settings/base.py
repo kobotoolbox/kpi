@@ -993,7 +993,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
-        # "BasicHTMLRenderer" must always after JSONRenderer
+        # "BasicHTMLRenderer" must always come after JSONRenderer
         'kpi.renderers.BasicHTMLRenderer',
     ],
     'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIAutoVersioning',
@@ -1032,8 +1032,9 @@ SPECTACULAR_SETTINGS = {
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
         'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
     },
-    # We only want to blacklist BasicHTMLRenderer 🤦
-    # List all the renderers that are used by documentated API
+    # We only want to blacklist BasicHTMLRenderer, but nothing like RENDERER_WHITELIST
+    # exists 🤦
+    # List all the renderers that are used by documented API
     'RENDERER_WHITELIST': [
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.StaticHTMLRenderer',

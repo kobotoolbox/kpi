@@ -25,10 +25,8 @@
 
     <!-- Scripts -->
     <!-- Make Django's internationalization functionality available in client code. -->
-    {% block main_scripts %}
-      <script src="{% url 'javascript-catalog' %}"></script>
-      <script src="{% static 'js/global_t.js' %}"></script>
-    {% endblock %}
+    <script src="{% url 'javascript-catalog' %}"></script>
+    <script src="{% static 'js/global_t.js' %}"></script>
     {% block head_scripts %}{% endblock %}
 
     <!-- Stylesheets -->
