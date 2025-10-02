@@ -13,7 +13,7 @@ export default organizationMock
 
 const organizationReponse = (organizationId: string): OrganizationResponse => ({
   id: organizationId,
-  url: 'http://kf.kobo.local/api/v2/organizations/orgaziUixYLNArojSY6MYnxA/',
+  url: `http://kf.kobo.local/api/v2/organizations/${organizationId}/`,
   name: 'super_admin’s organization',
   website: '',
   organization_type: 'none',
