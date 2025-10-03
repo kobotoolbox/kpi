@@ -1061,7 +1061,7 @@ SPECTACULAR_SETTINGS = {
         'kobo.apps.openrosa.libs.renderers.renderers.XLSXRenderer',
         'kobo.apps.openrosa.libs.renderers.renderers.CSVRenderer',
         'kobo.apps.openrosa.libs.renderers.renderers.RawXMLRenderer',
-        'kobo.apps.openrosa.libs.renderers.renderers.TemplateXMLRenderer'
+        'kobo.apps.openrosa.libs.renderers.renderers.TemplateXMLRenderer',
     ],
     'TAGS': [
         {

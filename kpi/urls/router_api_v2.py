@@ -219,16 +219,12 @@ enketo_url_aliases = [
     ),
     path(
         'assets/<parent_lookup_asset>/data/<pk>/enketo/redirect/edit/',
-        DataViewSet.as_view(
-            {'get': 'enketo_edit'}, renderer_classes=[JSONRenderer]
-        ),
+        DataViewSet.as_view({'get': 'enketo_edit'}, renderer_classes=[JSONRenderer]),
         name='submission-enketo-edit-redirect',
     ),
     path(
         'assets/<parent_lookup_asset>/data/<pk>/enketo/redirect/view/',
-        DataViewSet.as_view(
-            {'get': 'enketo_view'}, renderer_classes=[JSONRenderer]
-        ),
+        DataViewSet.as_view({'get': 'enketo_view'}, renderer_classes=[JSONRenderer]),
         name='submission-enketo-view-redirect',
     ),
 ]
