@@ -2474,6 +2474,29 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
                     )
                     break
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(USAGE_LIMIT_ENFORCEMENT=True)
+    @mock.patch(
+        'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances'  # noqa: E501
+    )
+    def test_bulk_update_submissions_ignores_limit_enforcement(self, mock_usage):
+        mock_balances = {
+            UsageType.STORAGE_BYTES: {
+                'exceeded': True,
+            },
+            UsageType.SUBMISSION: {
+                'exceeded': True,
+            },
+        }
+        mock_usage.return_value = mock_balances
+        response = self.client.patch(
+            self.submission_url, data=self.submitted_payload, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        self._check_bulk_update(response)
+
     @pytest.mark.skip(
         reason=(
             'Useless with the current implementation of'

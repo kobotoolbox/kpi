@@ -1207,6 +1207,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             media_files=media_files,
             uuid=submission_uuid,
             request=kwargs.get('request'),
+            check_usage_limits=False,
         )
 
     @property
