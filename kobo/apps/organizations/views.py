@@ -381,6 +381,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     serializer_class = OrganizationUserSerializer
     permission_classes = [OrganizationNestedHasOrgRolePermission]
     http_method_names = ['get', 'patch', 'delete']
+    parent_lookup_field = 'uid_organization'
     lookup_field = 'user__username'
 
     def paginate_queryset(self, queryset):
@@ -598,6 +599,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     serializer_class = OrgMembershipInviteSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     lookup_field = 'guid'
+    parent_lookup_field = 'uid_organization'
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
