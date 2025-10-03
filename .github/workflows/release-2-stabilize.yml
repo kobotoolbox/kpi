@@ -10,7 +10,6 @@ jobs:
 
 
   changes:
-    if: ${{ startsWith(github.ref, 'refs/heads/release/') }}
     runs-on: ubuntu-24.04
     permissions: { pull-requests: read }
     steps:
