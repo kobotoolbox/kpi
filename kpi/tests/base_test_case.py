@@ -49,13 +49,17 @@ class BaseTestCase(APITestCase):
 
     def url_to_obj(self, url):
         uid = self._url_to_uid(url)
-        if uid.startswith('a'):
+        lookup_field = 'uid'
+        if '/users/' in url:
+            klass = User
+            lookup_field = 'username'
+        elif '/assets/' in url:
             klass = Asset
-        elif uid.startswith('p'):
+        elif '/permissions/' in url:
             klass = ObjectPermission
         else:
             raise NotImplementedError()
-        obj = klass.objects.get(uid=uid)
+        obj = klass.objects.get(**{lookup_field:uid})
         return obj
 
     @staticmethod
