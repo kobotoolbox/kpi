@@ -1,5 +1,8 @@
 import type React from 'react'
-import { getOrganizationsRetrieveQueryKey, useOrganizationsRetrieve } from '#/api/react-query/organizations'
+import {
+  getOrganizationsRetrieveQueryKey,
+  useOrganizationsRetrieve,
+} from '#/api/react-query/user-team-organization-usage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { useSession } from '#/stores/useSession'
 
