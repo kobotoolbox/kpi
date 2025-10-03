@@ -16,7 +16,7 @@ class AssetFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:organizations-assets',
-            id='orgzeph7Ub8tVmJ82JBbH96n',
+            uid_organization='orgzeph7Ub8tVmJ82JBbH96n',
         )
 
 
@@ -26,7 +26,7 @@ class AssetUsageFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:organizations-asset-usage',
-            id='orgzeph7Ub8tVmJ82JBbH96n',
+            uid_organization='orgzeph7Ub8tVmJ82JBbH96n',
         )
 
 
@@ -50,7 +50,7 @@ class MembersFieldExtensions(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:organization-members-list',
-            organization_id='orgzeph7Ub8tVmJ82JBbH96n',
+            uid_organization='orgzeph7Ub8tVmJ82JBbH96n',
         )
 
 
@@ -74,7 +74,7 @@ class ServiceUsageFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:organizations-service-usage',
-            id='orgzeph7Ub8tVmJ82JBbH96n',
+            uid_organization='orgzeph7Ub8tVmJ82JBbH96n',
         )
 
 
@@ -105,5 +105,5 @@ class UrlFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:organizations-detail',
-            id='orgzeph7Ub8tVmJ82JBbH96n',
+            uid_organization='orgzeph7Ub8tVmJ82JBbH96n',
         )

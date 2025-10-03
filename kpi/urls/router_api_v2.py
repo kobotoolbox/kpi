@@ -171,15 +171,34 @@ router_api_v2.register(r'imports', ImportTaskViewSet)
 router_api_v2.register(r'organizations',
                        OrganizationViewSet, basename='organizations',)
 router_api_v2.register(
-    r'organizations/(?P<organization_id>[^/.]+)/members',
+    r'organizations/(?P<uid_organization>[^/.]+)/members',
     OrganizationMemberViewSet,
     basename='organization-members',
 )
 router_api_v2.register(
-    r'organizations/(?P<organization_id>[^/.]+)/invites',
+    r'organizations/(?P<uid_organization>[^/.]+)/invites',
     OrgMembershipInviteViewSet,
     basename='organization-invites',
 )
+# organization_routes = router_api_v2.register(
+#     r'organizations',
+#     OrganizationViewSet,
+#     basename='organizations',
+# )
+
+# organization_routes.register(
+#     r'members',
+#     OrganizationMemberViewSet,
+#     basename='organization-members',
+#     parents_query_lookups=['organization'],
+# )
+
+# organization_routes.register(
+#     r'invites',
+#     OrgMembershipInviteViewSet,
+#     basename='organization-invites',
+#     parents_query_lookups=['organization'],
+# )
 
 router_api_v2.register(r'permissions', PermissionViewSet)
 router_api_v2.register(r'project-views', ProjectViewViewSet)

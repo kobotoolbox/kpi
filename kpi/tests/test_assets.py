@@ -936,7 +936,7 @@ class TestAssetExcludedFromProjectsListFlag(BaseOrganizationAssetApiTestCase):
         )
         self.org_assets_list_url = lambda org_id: reverse(
             self._get_endpoint('organizations-assets'),
-            kwargs={'id': org_id}
+            kwargs={'uid_organization': org_id}
         )
 
     def _add_user_to_organization(self, user, organization):

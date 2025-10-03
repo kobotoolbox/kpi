@@ -58,7 +58,7 @@ class DataUrlCSVFieldExtensions(OpenApiSerializerFieldExtension):
         return build_url_type(
             'api_v2:asset-export-settings-detail-format',
             uid_asset='a3C9wWefqZVkChNLKqqXVZ',
-            uid_export='esMxJfzPhnWn6r2c3EKkuaV',
+            uid_export_setting='esMxJfzPhnWn6r2c3EKkuaV',
             format='csv',
         )
 
@@ -70,7 +70,7 @@ class DataUrlXLSXFieldExtensions(OpenApiSerializerFieldExtension):
         return build_url_type(
             'api_v2:asset-export-settings-detail-format',
             uid_asset='a3C9wWefqZVkChNLKqqXVZ',
-            uid_export='esMxJfzPhnWn6r2c3EKkuaV',
+            uid_export_setting='esMxJfzPhnWn6r2c3EKkuaV',
             format='xlsx',
         )
 
@@ -118,5 +118,5 @@ class UrlFieldFieldExtension(OpenApiSerializerFieldExtension):
         return build_url_type(
             'api_v2:asset-export-settings-detail',
             uid_asset='a3C9wWefqZVkChNLKqqXVZ',
-            uid_export='esMxJfzPhnWn6r2c3EKkuaV',
+            uid_export_setting='esMxJfzPhnWn6r2c3EKkuaV',
         )

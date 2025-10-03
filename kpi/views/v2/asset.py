@@ -756,7 +756,7 @@ class AssetViewSet(
             # 5) Get organization…
             if organization := getattr(self.request, 'organization', None):
                 # …from request.
-                # e.g.: /api/v2/organizations/<organization_id>/assets/`
+                # e.g.: /api/v2/organizations/<uid_organization>/assets/`
                 context_['organization'] = organization
             else:
                 # …per asset
