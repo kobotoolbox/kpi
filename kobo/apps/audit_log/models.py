@@ -2,6 +2,7 @@ import copy
 
 import jsonschema
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import models
 from django.db.models import Case, Count, F, Min, Q, Value, When
@@ -13,6 +14,7 @@ from kobo.apps.audit_log.audit_log_metadata_schemas import (
     PROJECT_HISTORY_LOG_METADATA_SCHEMA,
 )
 from kobo.apps.audit_log.utils import SubmissionUpdate
+from kobo.apps.data_collectors.authentication import DataCollectorUser
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
@@ -620,7 +622,9 @@ class ProjectHistoryLog(AuditLog):
         instances: dict[int:SubmissionUpdate] = getattr(request, 'instances', {})
         logs = []
         url_name = request.resolver_match.url_name
-        user = get_database_user(request.user)
+        is_data_collector = isinstance(request.user, DataCollectorUser)
+        request_user = request.user if not is_data_collector else AnonymousUser()
+        user = get_database_user(request_user)
         for instance in instances.values():
             if instance.action == 'add':
                 action = AuditAction.ADD_SUBMISSION
@@ -641,6 +645,10 @@ class ProjectHistoryLog(AuditLog):
             }
             if 'validation-status' in url_name:
                 metadata['submission']['status'] = instance.status
+            if is_data_collector:
+                metadata['submission']['data_collector_uid'] = request.user.uid
+                metadata['submission']['data_collector_name'] = request.user.name
+
 
             logs.append(
                 ProjectHistoryLog(
