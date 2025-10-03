@@ -9,14 +9,15 @@ import type { MemberListResponseInvite } from './memberListResponseInvite'
 import type { MemberRoleEnum } from './memberRoleEnum'
 
 export interface MemberListResponse {
+  role: MemberRoleEnum
   url: string
   user: string
   user__username: string
   user__email: string
   user__extra_details__name: string
-  role: MemberRoleEnum
   user__has_mfa_enabled: boolean
   date_joined: string
   user__is_active: boolean
+  /** @nullable */
   invite: MemberListResponseInvite
 }
