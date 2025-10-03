@@ -69,7 +69,7 @@ const LimitNotifications = ({ pageCanShowModal = false, accountPage = false }: L
 
   // We only want to display exceeded limit notifications for submissions and storage
   // in the modal
-  const modalLimits = serviceUsageData.data.limitExceedList.filter((limit) =>
+  const modalLimits = serviceUsageData.data.limitExceedList.filter((limit: UsageLimitTypes) =>
     [UsageLimitTypes.STORAGE, UsageLimitTypes.SUBMISSION].includes(limit),
   )
 
