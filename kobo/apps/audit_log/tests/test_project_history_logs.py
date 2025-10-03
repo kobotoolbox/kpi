@@ -743,7 +743,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 'api_v2:paired-data-detail',
                 kwargs={
                     'uid_asset': self.asset.uid,
-                    'paired_data_uid': paired_data.paired_data_uid,
+                    'uid_paired_data': paired_data.paired_data_uid,
                 },
             ),
             request_data=None,
@@ -776,7 +776,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 'api_v2:paired-data-detail',
                 kwargs={
                     'uid_asset': self.asset.uid,
-                    'paired_data_uid': paired_data.paired_data_uid,
+                    'uid_paired_data': paired_data.paired_data_uid,
                 },
             ),
             request_data={'fields': ['q2']},

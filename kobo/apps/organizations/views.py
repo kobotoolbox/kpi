@@ -199,6 +199,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
     lookup_field = 'id'
+    lookup_url_kwarg = 'uid_organization'
     permission_classes = [HasOrgRolePermission]
     http_method_names = ['get', 'patch']
 
@@ -286,11 +287,11 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     tags=['User / team / organization / usage'],
     parameters=[
         OpenApiParameter(
-            name='organization_id',
+            name='uid_organization',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
-            description='ID of the organization',
+            description='UID of the organization',
         )
     ],
 )
@@ -385,7 +386,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     def paginate_queryset(self, queryset):
         page = super().paginate_queryset(queryset)
         members_user_ids = []
-        organization_id = self.kwargs['organization_id']
+        organization_id = self.kwargs['uid_organization']
 
         for obj in page:
             if obj.model_type != '0_organization_user':
@@ -400,7 +401,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         return page
 
     def get_queryset(self):
-        organization_id = self.kwargs['organization_id']
+        organization_id = self.kwargs['uid_organization']
 
         # Subquery to check if the user has an active MFA method
         mfa_subquery = MfaMethod.objects.filter(
@@ -480,11 +481,11 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     tags=['User / team / organization / usage'],
     parameters=[
         OpenApiParameter(
-            name='organization_id',
+            name='uid_organization',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
-            description='ID of the organization asset',
+            description='UID of the organization asset',
         )
     ],
 )
@@ -610,7 +611,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get_queryset(self):
-        organization_id = self.kwargs['organization_id']
+        organization_id = self.kwargs['uid_organization']
 
         query_filter = {'organization_id': organization_id}
         base_queryset = OrganizationInvitation.objects.select_related(

@@ -36,6 +36,6 @@ class TransferUrlFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:project-ownership-transfer-detail',
-            uid_invite_uid='poi52fGkwDjQeZkUxcaou39q',
+            uid_invite='poi52fGkwDjQeZkUxcaou39q',
             uid_transfer='pot54pTqM5qwKdZ4wnNdiwDY',
         )

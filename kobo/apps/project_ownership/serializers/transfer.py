@@ -67,7 +67,7 @@ class TransferListSerializer(serializers.ModelSerializer):
         return reverse(
             'project-ownership-transfer-detail',
             kwargs={
-                'uid_invite_uid': transfer.invite.uid,
+                'uid_invite': transfer.invite.uid,
                 'uid_transfer': transfer.uid,
             },
             request=self.context.get('request', None),

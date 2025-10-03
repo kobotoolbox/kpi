@@ -49,7 +49,7 @@ class OrganizationApiTestCase(BaseTestCase):
 
         self.url_detail = reverse(
             self._get_endpoint('organizations-detail'),
-            kwargs={'id': self.organization.id},
+            kwargs={'uid_organization': self.organization.id},
         )
 
     def test_anonymous_user(self):
@@ -100,7 +100,7 @@ class OrganizationApiTestCase(BaseTestCase):
         self._insert_data()
         url_service_usage = reverse(
             self._get_endpoint('organizations-service-usage'),
-            kwargs={'id': self.organization.id},
+            kwargs={'uid_organization': self.organization.id},
         )
         now = timezone.now()
         mock_cache_last_updated.return_value = now - timedelta(seconds=3)
@@ -217,7 +217,7 @@ class OrganizationDetailAPITestCase(BaseTestCase):
 
         url = reverse(
             self._get_endpoint('organizations-asset-usage'),
-            kwargs={'id': self.organization.id}
+            kwargs={'uid_organization': self.organization.id}
         )
         response = self.client.get(url)
         assert response.status_code == expected_status_code
@@ -236,7 +236,7 @@ class OrganizationDetailAPITestCase(BaseTestCase):
 
         url = reverse(
             self._get_endpoint('organizations-detail'),
-            kwargs={'id': self.organization.id},
+            kwargs={'uid_organization': self.organization.id},
         )
         response = self.client.post(url, data)
 
@@ -291,7 +291,7 @@ class BaseOrganizationAssetApiTestCase(BaseAssetTestCase):
         self.client.force_login(self.someuser)
         self.org_assets_list_url = reverse(
             self._get_endpoint('organizations-assets'),
-            kwargs={'id': self.organization.id},
+            kwargs={'uid_organization': self.organization.id},
         )
 
     def _create_asset_by_alice(self):

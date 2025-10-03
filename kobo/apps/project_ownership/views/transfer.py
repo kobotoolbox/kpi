@@ -17,7 +17,7 @@ from ..serializers import TransferDetailSerializer
     tags=['Manage projects and library content'],
     parameters=[
         OpenApiParameter(
-            name='uid_invite_uid',
+            name='uid_invite',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
