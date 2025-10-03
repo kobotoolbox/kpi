@@ -1335,8 +1335,8 @@ CELERY_BEAT_SCHEDULE = {
     },
     # Schedule every 30 minutes
     'refresh-user-report-snapshot': {
-        'task': 'kpi.tasks.refresh_user_report_snapshots',
-        'schedule': crontab(minute='*/15'),
+        'task': 'kobo.apps.user_reports.tasks.refresh_user_report_snapshots',
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every day at midnight UTC
