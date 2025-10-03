@@ -649,7 +649,6 @@ class ProjectHistoryLog(AuditLog):
                 metadata['submission']['data_collector_uid'] = request.user.uid
                 metadata['submission']['data_collector_name'] = request.user.name
 
-
             logs.append(
                 ProjectHistoryLog(
                     user=user,
