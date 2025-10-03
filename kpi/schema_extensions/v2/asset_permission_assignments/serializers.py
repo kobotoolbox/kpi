@@ -27,6 +27,13 @@ PermissionAssignmentBulkRequest = inline_serializer_class(
     },
 )
 
+PermissionAssignmentBulkDeleteRequest = inline_serializer_class(
+    name='PermissionAssignmentBulkRequest',
+    fields={
+        'username': serializers.CharField(),
+    },
+)
+
 PermissionAssignmentCloneRequest = inline_serializer_class(
     name='PermissionAssignmentCloneRequest',
     fields={'clone_from': serializers.CharField()},
