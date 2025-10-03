@@ -11025,6 +11025,8 @@ components:
     MemberListResponse:
       type: object
       properties:
+        role:
+          $ref: '#/components/schemas/MemberRoleEnum'
         url:
           type: string
           format: uri
@@ -11040,8 +11042,6 @@ components:
           format: email
         user__extra_details__name:
           type: string
-        role:
-          $ref: '#/components/schemas/MemberRoleEnum'
         user__has_mfa_enabled:
           type: boolean
         date_joined:
@@ -11050,60 +11050,9 @@ components:
         user__is_active:
           type: boolean
         invite:
-          type: object
-          properties:
-            url:
-              type: string
-              format: uri
-              example: https://kf.kobotoolbox.org/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/
-            invited_by:
-              type: string
-              format: uri
-              example: https://kf.kobotoolbox.org/api/v2/users/bob/
-            status:
-              enum:
-              - accepted
-              - cancelled
-              - declined
-              - expired
-              - pending
-              - resent
-              type: string
-              description: |-
-                * `accepted` - Accepted
-                * `cancelled` - Cancelled
-                * `declined` - Declined
-                * `expired` - Expired
-                * `pending` - Pending
-                * `resent` - Resent
-            invitee_role:
-              enum:
-              - admin
-              - member
-              - owner
-              type: string
-              description: |-
-                * `admin` - admin
-                * `member` - member
-                * `owner` - owner
-            organization_name:
-              type: string
-            created:
-              type: string
-              format: date-time
-            modified:
-              type: string
-              format: date-time
-            invitee:
-              type: string
-          required:
-          - created
-          - invited_by
-          - invitee_role
-          - modified
-          - organization_name
-          - status
-          - url
+          allOf:
+          - $ref: '#/components/schemas/InviteResponse'
+          nullable: true
       required:
       - date_joined
       - invite
