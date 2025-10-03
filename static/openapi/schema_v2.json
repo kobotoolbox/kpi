@@ -15508,7 +15508,12 @@
                         "type": "boolean"
                     },
                     "invite": {
-                        "$ref": "#/components/schemas/InviteResponse"
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/InviteResponse"
+                            }
+                        ],
+                        "nullable": true
                     }
                 },
                 "required": [

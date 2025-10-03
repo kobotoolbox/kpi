@@ -21,7 +21,7 @@ MemberListResponse = inline_serializer_class(
         'user__has_mfa_enabled': serializers.BooleanField(),
         'date_joined': serializers.DateTimeField(),
         'user__is_active': serializers.BooleanField(),
-        'invite': InviteResponse(),
+        'invite': InviteResponse(allow_null=True),
     },
 )
 
