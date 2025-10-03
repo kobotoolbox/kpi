@@ -53,10 +53,10 @@ class BaseTestCase(APITestCase):
         if '/users/' in url:
             klass = User
             lookup_field = 'username'
+        elif '/permission-assignments/' in url:
+            klass = ObjectPermission
         elif '/assets/' in url:
             klass = Asset
-        elif '/permissions/' in url:
-            klass = ObjectPermission
         else:
             raise NotImplementedError()
         obj = klass.objects.get(**{lookup_field:uid})
