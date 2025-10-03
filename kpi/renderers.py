@@ -44,7 +44,11 @@ class BasicHTMLRenderer(renderers.BaseRenderer):
         except:
             pretty = str(data)
 
-        context = {'pretty': pretty, 'q_param': url_pattern_clean or ''}
+        context = {
+            'pretty': pretty,
+            'q_param': url_pattern_clean or '',
+            'root': resolver_match.url_name == 'api-root',
+        }
 
         tpl = get_template(self.template_name)
         return tpl.render(context)
