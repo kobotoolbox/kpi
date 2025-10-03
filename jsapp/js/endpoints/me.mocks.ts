@@ -5,10 +5,10 @@ import type { AccountResponse } from '#/dataInterface'
 /**
  * Mock API for session endpoint. Use it in Storybook tests in `parameters.msw.handlers[]`.
  */
-const meMock = http.get<never, never, AccountResponse>(endpoints.ME, () => HttpResponse.json(accountResponse))
+const meMock = http.get<never, never, AccountResponse>(endpoints.ME, () => HttpResponse.json(meMockResponse))
 export default meMock
 
-const accountResponse: AccountResponse = {
+export const meMockResponse: AccountResponse = {
   username: 'zefir',
   first_name: '',
   last_name: '',
