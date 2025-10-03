@@ -22,7 +22,7 @@ from kpi.utils.schema_extensions.response import (
 from kpi.versioning import APIV2Versioning
 
 
-@extend_schema(tags=['Me'])
+@extend_schema(tags=['User / team / organization / usage'])
 @extend_schema_view(
     destroy=extend_schema(
         description=read_md('kpi', 'me/delete.md'),

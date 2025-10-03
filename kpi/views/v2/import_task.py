@@ -31,7 +31,7 @@ from kpi.utils.strings import to_str
 
 
 @extend_schema(
-    tags=['Imports'],
+    tags=['Manage projects and library content'],
 )
 @extend_schema_view(
     create=extend_schema(
