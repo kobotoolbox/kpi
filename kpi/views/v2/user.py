@@ -57,11 +57,11 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     Documentation:
     - docs/api/v2/users/list.md
-    - docs/api/v2/organizations/retrieve.md
-    - docs/api/v2/organizations/migrate.md
+    - docs/api/v2/users/retrieve.md
+    - docs/api/v2/users/migrate.md
     """
 
-    queryset = User.objects.all()
+    queryset = User.objects.filter(is_active=True)
     filter_backends = (SearchFilter,)
     serializer_class = UserSerializer
     lookup_field = 'username'
