@@ -35,10 +35,9 @@ from django.utils import timezone as dj_timezone
 from django.utils.encoding import DjangoUnicodeDecodeError, smart_str
 from django.utils.translation import gettext as t
 from modilabs.utils.subprocess_timeout import ProcessTimedOut
-from pyxform.errors import PyXFormError
-from pyxform.xform2json import create_survey_element_from_xml
 from rest_framework.exceptions import NotAuthenticated
 
+from kobo.apps.data_collectors.authentication import DataCollectorUser
 from kobo.apps.openrosa.apps.logger.exceptions import (
     AccountInactiveError,
     ConflictingAttachmentBasenameError,
@@ -92,6 +91,8 @@ from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.usage_calculator import ServiceUsageCalculator
+from pyxform.errors import PyXFormError
+from pyxform.xform2json import create_survey_element_from_xml
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
@@ -122,7 +123,6 @@ def check_submission_permissions(
     if not xform.require_auth:
         # Anonymous submissions are allowed!
         return
-
     if request and request.user.is_anonymous:
         raise NotAuthenticated
 
@@ -969,11 +969,12 @@ def _get_instance(
         instance.xml = xml
         instance.uuid = new_uuid
     else:
-        submitted_by = (
-            get_database_user(request.user)
-            if request and request.user.is_authenticated
-            else None
+        get_user = (
+            request
+            and request.user.is_authenticated
+            and not isinstance(request.user, DataCollectorUser)
         )
+        submitted_by = get_database_user(request.user) if get_user else None
 
         if not date_created_override:
             date_created_override = get_submission_date_from_xml(xml)

@@ -191,6 +191,13 @@ urlpatterns = [
         ),
         name='submissions',
     ),
+    re_path(
+        r'^key/(?P<token>\w+)/submission$',
+        XFormSubmissionApi.as_view(
+            {'post': 'create_data_collector', 'head': 'create_data_collector'}
+        ),
+        name='submissions',
+    ),
     re_path(r'^(?P<username>\w+)/bulk-submission$', bulksubmission),
     re_path(r'^(?P<username>\w+)/bulk-submission-form$', bulksubmission_form),
     re_path(
