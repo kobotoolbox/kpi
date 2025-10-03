@@ -184,10 +184,8 @@ def create_instance(
         date_created_override (datetime, optional): Override for the submission's
                                                     creation date.
         request (Optional[Request]): Request object used for permission checks.
-        check_usage_limits (bool, optional): For testing purposes, bypasses
-                                             checking whether asset owner
-                                             is over allowed submission/storage
-                                             limit.
+        check_usage_limits (bool, optional): Bypasses enforcement of limits for
+                                             submissions/storage.
 
     Returns:
         Instance: The updated or newly created submission instance
