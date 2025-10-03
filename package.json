@@ -169,7 +169,7 @@
     "msw": "^2.10.5",
     "msw-storybook-addon": "^2.0.4",
     "orval": "^7.10.0",
-    "patch-package": "^8.0.0",
+    "patch-package": "^8.0.1",
     "path": "^0.12.7",
     "playwright": "^1.52.0",
     "postcss": "^8.4.49",
