@@ -8092,6 +8092,8 @@ paths:
       operationId: api_v2_users_list
       description: |
         ## List users
+
+        ⚠️ _Only available to superusers_
       parameters:
       - name: limit
         required: false

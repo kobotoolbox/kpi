@@ -11233,7 +11233,7 @@
         "/api/v2/users/": {
             "get": {
                 "operationId": "api_v2_users_list",
-                "description": "## List users\n",
+                "description": "## List users\n\n⚠️ _Only available to superusers_\n",
                 "parameters": [
                     {
                         "name": "limit",
