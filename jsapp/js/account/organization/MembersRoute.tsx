@@ -7,11 +7,12 @@ import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/
 import InviteModal from '#/account/organization/InviteModal'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 import subscriptionStore from '#/account/subscriptionStore'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
 import Avatar from '#/components/common/avatar'
 import Badge from '#/components/common/badge'
-import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore from '#/envStore'
 import { QueryKeys } from '#/query/queryKeys'
 import { formatDate } from '#/utils'
@@ -20,11 +21,11 @@ import MemberActionsDropdown from './MemberActionsDropdown'
 import MemberRoleSelector from './MemberRoleSelector'
 import { type OrganizationMember, type OrganizationMemberListItem, getOrganizationMembers } from './membersQuery'
 import styles from './membersRoute.module.scss'
-import { OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 
 export default function MembersRoute() {
-  const orgQuery = useOrganizationQuery()
-  const orgId = orgQuery.data?.id
+  const [organization] = useOrganizationAssumed()
+  const isUserAdminOrOwner =
+    organization.request_user_role === MemberRoleEnum.owner || organization.request_user_role === MemberRoleEnum.admin
 
   const [opened, { open, close }] = useDisclosure(false)
   const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0])
@@ -35,11 +36,9 @@ export default function MembersRoute() {
   })
 
   const queryResult = useQuery({
-    queryKey: [QueryKeys.organizationMembers, pagination.limit, pagination.offset, orgId],
-    // `orgId!` because it's ensured to be there in `enabled` property :ok:
-    queryFn: () => getOrganizationMembers(pagination.limit, pagination.offset, orgId!),
+    queryKey: [QueryKeys.organizationMembers, pagination.limit, pagination.offset, organization.id],
+    queryFn: () => getOrganizationMembers(pagination.limit, pagination.offset, organization.id),
     placeholderData: keepPreviousData,
-    enabled: !!orgId,
     // We might want to improve this in future, for now let's not retry
     retry: false,
     // The `refetchOnWindowFocus` option is `true` by default, I'm setting it
@@ -55,10 +54,6 @@ export default function MembersRoute() {
     const invite = obj.invite?.status === 'pending' || obj.invite?.status === 'resent' ? obj.invite : null
     const member = invite ? null : ({ ...obj } as OrganizationMember)
     return { invite, member }
-  }
-
-  if (!orgQuery.data) {
-    return <LoadingSpinner />
   }
 
   const columns: Array<UniversalTableColumn<OrganizationMemberListItem>> = [
@@ -109,18 +104,15 @@ export default function MembersRoute() {
       size: 140,
       cellFormatter: (obj: OrganizationMemberListItem) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
-        if (
-          member?.role === OrganizationUserRole.owner ||
-          !['owner', 'admin'].includes(orgQuery.data.request_user_role)
-        ) {
+        if (member?.role === MemberRoleEnum.owner || !isUserAdminOrOwner) {
           // If the member is the Owner or
           // If the user is not an owner or admin, we don't show the selector
           switch (member?.role || invite?.invitee_role) {
-            case OrganizationUserRole.owner:
+            case MemberRoleEnum.owner:
               return t('Owner')
-            case OrganizationUserRole.admin:
+            case MemberRoleEnum.admin:
               return t('Admin')
-            case OrganizationUserRole.member:
+            case MemberRoleEnum.member:
               return t('Member')
             default:
               return t('Unknown')
@@ -131,7 +123,7 @@ export default function MembersRoute() {
             <MemberRoleSelector
               username={invite.invitee}
               role={invite.invitee_role}
-              currentUserRole={orgQuery.data.request_user_role}
+              currentUserRole={organization.request_user_role}
               inviteUrl={invite.url}
             />
           )
@@ -140,7 +132,7 @@ export default function MembersRoute() {
           <MemberRoleSelector
             username={member!.user__username}
             role={member!.role}
-            currentUserRole={orgQuery.data.request_user_role}
+            currentUserRole={organization.request_user_role}
           />
         )
       },
@@ -163,10 +155,7 @@ export default function MembersRoute() {
   ]
 
   // Actions column is only for owner and admins.
-  if (
-    orgQuery.data.request_user_role === OrganizationUserRole.admin ||
-    orgQuery.data.request_user_role === OrganizationUserRole.owner
-  ) {
+  if (isUserAdminOrOwner) {
     columns.push({
       key: 'url',
       label: '',
@@ -175,7 +164,7 @@ export default function MembersRoute() {
       cellFormatter: (obj: OrganizationMemberListItem) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
         // There is no action that can be done on an owner
-        if (member?.role === OrganizationUserRole.owner) {
+        if (member?.role === MemberRoleEnum.owner) {
           return null
         }
 
@@ -186,7 +175,7 @@ export default function MembersRoute() {
             <MemberActionsDropdown
               target={target}
               targetUsername={member?.user__username ?? invite!.invitee}
-              currentUserRole={orgQuery.data.request_user_role}
+              currentUserRole={organization.request_user_role}
             />
           )
         } else if (invite) {
@@ -204,7 +193,7 @@ export default function MembersRoute() {
         <h2 className={styles.headerText}>{t('Members')}</h2>
       </header>
 
-      {!(orgQuery.data.request_user_role === 'member') && (
+      {isUserAdminOrOwner && (
         <Box>
           <Divider />
           <Group w='100%' justify='space-between'>

@@ -6,6 +6,7 @@ import Dropzone from 'react-dropzone'
 import OrgInviteAcceptedBanner from '#/account/organization/invites/OrgInviteAcceptedBanner'
 import OrgInviteModalWrapper from '#/account/organization/invites/OrgInviteModalWrapper'
 import { fetchPostUrl, handleApiFail } from '#/api'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import ProjectOwnershipTransferModalWithBanner from '#/components/permissions/transferProjects/projectOwnershipTransferModalWithBanner'
@@ -14,7 +15,6 @@ import { dropImportXLSForms } from '#/dropzone.utils'
 import ProjectsTable from '#/projects/projectsTable/projectsTable'
 import { useSession } from '#/stores/useSession'
 import { notify, validFileTypes } from '#/utils'
-import { useOrganizationQuery } from '../account/organization/organizationQuery'
 import customViewStore from './customViewStore'
 import projectViewsStore from './projectViews/projectViewsStore'
 import ProjectsFieldsSelector from './projectViews/projectsFieldsSelector'
@@ -53,7 +53,7 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
   const [customView] = useState(customViewStore)
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const session = useSession()
-  const orgQuery = useOrganizationQuery()
+  const [organization] = useOrganizationAssumed()
 
   useEffect(() => {
     customView.setUp(props.viewUid, props.baseUrl, props.defaultVisibleFields, props.includeTypeFilter)
@@ -119,8 +119,8 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
 
         <OrgInviteModalWrapper />
 
-        {session.currentLoggedAccount && orgQuery.data && (
-          <OrgInviteAcceptedBanner username={session.currentLoggedAccount.username} organization={orgQuery.data} />
+        {session.currentLoggedAccount && (
+          <OrgInviteAcceptedBanner username={session.currentLoggedAccount.username} organization={organization} />
         )}
 
         <LimitNotifications pageCanShowModal />

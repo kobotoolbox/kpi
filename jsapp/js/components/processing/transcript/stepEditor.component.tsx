@@ -4,7 +4,7 @@ import clonedeep from 'lodash.clonedeep'
 import Button from '#/components/common/button'
 import bodyStyles from '#/components/processing/processingBody.module.scss'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
-import { hasManagePermissionsToCurrentAsset } from '../analysis/utils'
+import { hasChangeSubPermissionToCurrentAsset } from '../analysis/utils'
 import HeaderLanguageAndDate from './headerLanguageAndDate.component'
 
 export default function StepEditor() {
@@ -45,7 +45,7 @@ export default function StepEditor() {
             size='s'
             label={discardLabel}
             onClick={discardDraft}
-            isDisabled={singleProcessingStore.data.isFetchingData || !hasManagePermissionsToCurrentAsset()}
+            isDisabled={singleProcessingStore.data.isFetchingData || !hasChangeSubPermissionToCurrentAsset()}
           />
 
           <Button
@@ -55,7 +55,7 @@ export default function StepEditor() {
             onClick={saveDraft}
             isPending={singleProcessingStore.data.isFetchingData}
             isDisabled={
-              !singleProcessingStore.hasUnsavedTranscriptDraftValue() || !hasManagePermissionsToCurrentAsset()
+              !singleProcessingStore.hasUnsavedTranscriptDraftValue() || !hasChangeSubPermissionToCurrentAsset()
             }
           />
         </nav>
