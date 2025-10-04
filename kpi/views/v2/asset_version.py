@@ -68,8 +68,8 @@ class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
     ViewSet for managing the versions of the current asset
 
     Available actions:
-    - list           → GET /api/v2/assets/{uid}/versions/
-    - retrieve       → GET /api/v2/assets/{parent_lookup_asset}/versions/{uid}/
+    - list           → GET /api/v2/assets/{uid_asset}/versions/
+    - retrieve       → GET /api/v2/assets/{uid_asset}/versions/{uid_version}/
 
     Documentation:
     - docs/api/v2/versions/list.md

@@ -109,12 +109,12 @@ class ProjectViewViewSet(
      Viewset for managing the shared project of current user
 
     Available actions:
-     - assets        → GET   /api/v2/project-views/{uid}/assets/
-     - export_list   → GET   /api/v2/project-views/{uid}/{obj_type}/export/
-     - export_post   → POST  /api/v2/project-views/{uid}/{obj_type}/export/
+     - assets        → GET   /api/v2/project-views/{uid_project_view}/assets/
+     - export_list   → GET   /api/v2/project-views/{uid_project_view}/{obj_type}/export/
+     - export_post   → POST  /api/v2/project-views/{uid_project_view}/{obj_type}/export/
      - list          → GET   /api/v2/project-views/
-     - retrieve      → GET   /api/v2/project-views/{uid}/
-     - users         → GET   /api/v2/project-views/{uid}/users
+     - retrieve      → GET   /api/v2/project-views/{uid_project_view}/
+     - users         → GET   /api/v2/project-views/{uid_project_view}/users
 
      Documentation:
      - docs/api/v2/project-views/assets.md

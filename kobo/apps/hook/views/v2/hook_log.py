@@ -73,9 +73,9 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     ViewSet for managing the logs of a given service endpoint
 
     Available actions:
-    - list           → GET       /api/v2/asset/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/  # noqa
-    - retrieve       → GET       /api/v2/asset/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/  # noqa
-    - retry          → PATCH     /api/v2/asset/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/retry  # noqa
+    - list           → GET       /api/v2/asset/{uid_asset}/hooks/{uid_hook}/logs/  # noqa
+    - retrieve       → GET       /api/v2/asset/{uid_asset}/hooks/{uid_hook}/logs/{uid_log}/  # noqa
+    - retry          → PATCH     /api/v2/asset/{uid_asset}/hooks/{uid_hook}/logs/{uid_log}/retry  # noqa
 
     Documentation:
     - docs/api/v2/hooks/logs/action.md

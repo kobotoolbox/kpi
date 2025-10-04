@@ -107,10 +107,10 @@ class ExportTaskViewSet(
 
 
      Available actions:
-     - list           → GET /api/v2/assets/{parent_lookup_asset}/exports/
-     - create         → POST /api/v2/assets/{parent_lookup_asset}/exports/
-     - retrieve       → GET /api/v2/assets/{parent_lookup_asset}/exports/{uid}/
-     - delete         → DELETE /api/v2/assets/{parent_lookup_asset}/exports/{uid}/
+     - list           → GET /api/v2/assets/{uid_asset}/exports/
+     - create         → POST /api/v2/assets/{uid_asset}/exports/
+     - retrieve       → GET /api/v2/assets/{uid_asset}/exports/{uid_export}/
+     - delete         → DELETE /api/v2/assets/{uid_asset}/exports/{uid_export}/
 
      Documentation:
      - docs/api/v2/export_tasks/list.md

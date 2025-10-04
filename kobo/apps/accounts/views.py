@@ -108,9 +108,9 @@ class SocialAccountViewSet(
     Viewset for managing current user's socials
 
     Available actions:
-    - destroy        → DELETE   /me/social-accounts/{provider}/{uid}/
+    - destroy        → DELETE   /me/social-accounts/{provider}/{uid_social_account}/
     - list           → GET      /me/social-accounts/
-    - retrieve       → GET      /me/social-accounts/{provider}/{uid}/
+    - retrieve       → GET      /me/social-accounts/{provider}/{uid_social_account}/
 
     Documentation:
     - docs/api/v2/me/social/destroy.md

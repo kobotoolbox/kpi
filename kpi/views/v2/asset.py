@@ -303,15 +303,15 @@ class AssetViewSet(
     Available actions:
     - list           → GET /api/v2/assets/
     - create         → POST /api/v2/assets/
-    - retrieve       → GET /api/v2/assets/{uid}/
-    - patch          → PATCH /api/v2/assets/{uid}/
-    - delete         → DELETE /api/v2/assets/{uid}/
-    - content        → GET /api/v2/assets/{uid}/content/
-    - reports        → GET /api/v2/assets/{uid}/reports/
-    - table_view     → GET /api/v2/assets/{uid}/table_view/
-    - valid_content  → GET /api/v2/assets/{uid}/valid_content/
-    - xform          → GET /api/v2/assets/{uid}/xform/
-    - xls            → GET /api/v2/assets/{uid}/xls/
+    - retrieve       → GET /api/v2/assets/{uid_asset}/
+    - patch          → PATCH /api/v2/assets/{uid_asset}/
+    - delete         → DELETE /api/v2/assets/{uid_asset}/
+    - content        → GET /api/v2/assets/{uid_asset}/content/
+    - reports        → GET /api/v2/assets/{uid_asset}/reports/
+    - table_view     → GET /api/v2/assets/{uid_asset}/table_view/
+    - valid_content  → GET /api/v2/assets/{uid_asset}/valid_content/
+    - xform          → GET /api/v2/assets/{uid_asset}/xform/
+    - xls            → GET /api/v2/assets/{uid_asset}/xls/
     - bulk           → POST /api/v2/assets/bulk/
     - hash           → GET /api/v2/assets/hash/
     - metadata       → GET /api/v2/assets/metadata/
@@ -440,9 +440,9 @@ class AssetViewSet(
         ViewSet for managing the current project's deployment
 
         Available actions:
-        - list           → GET /api/v2/assets/{uid}/deployment/
-        - create         → POST /api/v2/assets/{uid}/deployment/
-        - patch          → PATCH /api/v2/assets/{uid}/deployment/
+        - list           → GET /api/v2/assets/{uid_asset}/deployment/
+        - create         → POST /api/v2/assets/{uid_asset}/deployment/
+        - patch          → PATCH /api/v2/assets/{uid_asset}/deployment/
 
         Documentation:
         - docs/api/v2/deployments/list.md

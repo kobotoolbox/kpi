@@ -115,7 +115,7 @@ class PairedData(OpenRosaManifestInterface,
             f'{URL_NAMESPACE}:paired-data-external',
             kwargs={
                 'uid_asset': self.asset.uid,
-                'paired_data_uid': self.paired_data_uid,
+                'uid_paired_data': self.paired_data_uid,
                 'format': 'xml'
             },
         )

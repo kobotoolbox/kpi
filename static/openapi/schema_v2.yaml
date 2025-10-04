@@ -348,7 +348,7 @@ paths:
             examples:
               UsingAsset:
                 value:
-                  asset: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+                  asset: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
                   details:
                     status: string
                     warnings:
@@ -1622,11 +1622,11 @@ paths:
 
         Note: Some variation of this url exists:
 
-        `/api/v2/assets/{parent_lookup_asset}/data/{id}/edit/`: deprecated, use the next one.
+        `/api/v2/assets/{uid_asset}/data/{id}/edit/`: deprecated, use the next one.
 
-        `/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/edit/`: return the url of the enketo submission (as seen in the response example).
+        `/api/v2/assets/{uid_asset}/data/{id}/enketo/edit/`: return the url of the enketo submission (as seen in the response example).
 
-        `/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.
+        `/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.
       parameters:
       - in: path
         name: id
@@ -1682,11 +1682,11 @@ paths:
 
         Note: Some variation of this url exists:
 
-        `/api/v2/assets/{parent_lookup_asset}/data/{id}/edit/`: deprecated, use the next one.
+        `/api/v2/assets/{uid_asset}/data/{id}/edit/`: deprecated, use the next one.
 
-        `/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/edit/`: return the url of the enketo submission (as seen in the response example).
+        `/api/v2/assets/{uid_asset}/data/{id}/enketo/edit/`: return the url of the enketo submission (as seen in the response example).
 
-        `/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.
+        `/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.
       parameters:
       - in: path
         name: id
@@ -1742,11 +1742,11 @@ paths:
 
         Note: Some variation of this url exists:
 
-        `/api/v2/assets/{parent_lookup_asset}/data/{id}/edit/`: deprecated, use the next one.
+        `/api/v2/assets/{uid_asset}/data/{id}/edit/`: deprecated, use the next one.
 
-        `/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/edit/`: return the url of the enketo submission (as seen in the response example).
+        `/api/v2/assets/{uid_asset}/data/{id}/enketo/edit/`: return the url of the enketo submission (as seen in the response example).
 
-        `/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.
+        `/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.
       parameters:
       - in: path
         name: id
@@ -1802,9 +1802,9 @@ paths:
 
         Note: Some variation of this url exists:
 
-        `/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/view/`: return the url of the enketo submission (as seen in the response example).
+        `/api/v2/assets/{uid_asset}/data/{id}/enketo/view/`: return the url of the enketo submission (as seen in the response example).
 
-        `/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/view/`: redirect to the enketo url submission with a 302 code.
+        `/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/view/`: redirect to the enketo url submission with a 302 code.
       parameters:
       - in: path
         name: id
@@ -1860,9 +1860,9 @@ paths:
 
         Note: Some variation of this url exists:
 
-        `/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/view/`: return the url of the enketo submission (as seen in the response example).
+        `/api/v2/assets/{uid_asset}/data/{id}/enketo/view/`: return the url of the enketo submission (as seen in the response example).
 
-        `/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/view/`: redirect to the enketo url submission with a 302 code.
+        `/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/view/`: redirect to the enketo url submission with a 302 code.
       parameters:
       - in: path
         name: id
@@ -2045,7 +2045,7 @@ paths:
       description: |
         ## Get an asset's attachment using xpath
 
-        * `parent_lookup_data` can be the primary key of the submission or its `uuid`.
+        * `uid_data` can be the primary key of the submission or its `uuid`.
         Please note that using the `uuid` may match **several** submissions, only
         the first match will be returned.
 
@@ -2124,7 +2124,7 @@ paths:
       description: |
         ## Get an asset's attachment using the ID
 
-        * `parent_lookup_data` can be the primary key of the submission or its `uuid`.
+        * `uid_data` can be the primary key of the submission or its `uuid`.
         Please note that using the `uuid` may match **several** submissions, only
         the first match will be returned.
 
@@ -3439,7 +3439,7 @@ paths:
               CreatingAFileWithBinaryContent:
                 value:
                   user: https://kf.kobotoolbox.org/api/v2/users/bob/
-                  asset: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+                  asset: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
                   description: Description of the file
                   file_type: image/png
                   content: <binary>
@@ -3447,7 +3447,7 @@ paths:
               CreatingAFileWithBase64Content:
                 value:
                   user: https://kf.kobotoolbox.org/api/v2/users/bob/
-                  asset: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+                  asset: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
                   description: Description of the file
                   file_type: image/png
                   base64Encoded: SGVsbG8sIFdvcmxkIQ
@@ -3457,7 +3457,7 @@ paths:
               CreatingAFileWithARemoteUrl:
                 value:
                   user: https://kf.kobotoolbox.org/api/v2/users/bob/
-                  asset: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+                  asset: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
                   description: Description of the file
                   file_type: image/png
                   metadata:
@@ -4603,23 +4603,23 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/assets/{uid_asset}/paired-data/{paired_data_uid}/:
+  /api/v2/assets/{uid_asset}/paired-data/{uid_paired_data}/:
     get:
       operationId: api_v2_assets_paired_data_retrieve
       description: |
         ## Retrieve a connection between two projects
       parameters:
       - in: path
-        name: paired_data_uid
-        schema:
-          type: string
-        description: UID of the paired data
-        required: true
-      - in: path
         name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
+        required: true
+      - in: path
+        name: uid_paired_data
+        schema:
+          type: string
+        description: UID of the paired data
         required: true
       tags:
       - Survey data
@@ -4652,16 +4652,16 @@ paths:
         _Notes: `source` cannot be changed_
       parameters:
       - in: path
-        name: paired_data_uid
-        schema:
-          type: string
-        description: UID of the paired data
-        required: true
-      - in: path
         name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
+        required: true
+      - in: path
+        name: uid_paired_data
+        schema:
+          type: string
+        description: UID of the paired data
         required: true
       tags:
       - Survey data
@@ -4710,16 +4710,16 @@ paths:
         ## Remove a connection between two projects
       parameters:
       - in: path
-        name: paired_data_uid
-        schema:
-          type: string
-        description: UID of the paired data
-        required: true
-      - in: path
         name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
+        required: true
+      - in: path
+        name: uid_paired_data
+        schema:
+          type: string
+        description: UID of the paired data
         required: true
       tags:
       - Survey data
@@ -4740,27 +4740,27 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{uid_asset}/paired-data/{paired_data_uid}/external/:
+  /api/v2/assets/{uid_asset}/paired-data/{uid_paired_data}/external/:
     get:
       operationId: api_v2_assets_paired_data_external_retrieve
       description: |
         ## Return an XML which contains data submitted to paired asset
 
         Creates the endpoints
-        - /api/v2/assets/<parent_lookup_asset>/paired-data/<paired_data_uid>/external/
-        - /api/v2/assets/<parent_lookup_asset>/paired-data/<paired_data_uid>/external.xml/
+        - /api/v2/assets/<uid_asset>/paired-data/<uid_paired_data>/external/
+        - /api/v2/assets/<uid_asset>/paired-data/<uid_paired_data>/external.xml/
       parameters:
-      - in: path
-        name: paired_data_uid
-        schema:
-          type: string
-        description: UID of the paired data
-        required: true
       - in: path
         name: uid_asset
         schema:
           type: string
         description: UID of the parent asset
+        required: true
+      - in: path
+        name: uid_paired_data
+        schema:
+          type: string
+        description: UID of the paired data
         required: true
       tags:
       - Survey data
@@ -4877,7 +4877,7 @@ paths:
                     - _submitted_by:
                         $in:
                         - string
-                    url: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/
+                    url: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/
                   permission: https://kf.kobotoolbox.org/api/v2/permissions/change_asset/
                 summary: Create partial permission
               CreatePermission:
@@ -6059,14 +6059,14 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/organizations/{id}/:
+  /api/v2/organizations/{uid_organization}/:
     get:
       operationId: api_v2_organizations_retrieve
       description: |
         ## Retrieve organization's details
       parameters:
       - in: path
-        name: id
+        name: uid_organization
         schema:
           type: string
         description: A unique value identifying this organization.
@@ -6100,7 +6100,7 @@ paths:
         ## Update organization's details
       parameters:
       - in: path
-        name: id
+        name: uid_organization
         schema:
           type: string
         description: A unique value identifying this organization.
@@ -6146,7 +6146,7 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/organizations/{id}/asset_usage/:
+  /api/v2/organizations/{uid_organization}/asset_usage/:
     get:
       operationId: api_v2_organizations_asset_usage_retrieve
       description: |
@@ -6155,7 +6155,7 @@ paths:
         Tracks the total usage of each asset for the user in the given organization
       parameters:
       - in: path
-        name: id
+        name: uid_organization
         schema:
           type: string
         description: A unique value identifying this organization.
@@ -6183,7 +6183,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/organizations/{id}/assets/:
+  /api/v2/organizations/{uid_organization}/assets/:
     get:
       operationId: api_v2_organizations_assets_retrieve
       description: |
@@ -6199,7 +6199,7 @@ paths:
         For more details, please refer to `/api/v2/assets/`.
       parameters:
       - in: path
-        name: id
+        name: uid_organization
         schema:
           type: string
         description: A unique value identifying this organization.
@@ -6227,50 +6227,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/organizations/{id}/service_usage/:
-    get:
-      operationId: api_v2_organizations_service_usage_retrieve
-      description: |
-        ## Organization Usage Tracker
-
-        - Tracks the total usage of different services for each account in an organization
-        - Tracks the submissions and NLP seconds/characters for the current month/year/all time
-        - Tracks the current total storage used
-        - Includes a detailed list of balances relative to a user's usage limits
-        - If no organization is found with the provided ID, returns the usage for the logged-in user
-
-        **This endpoint is cached for an amount of time determined by ENDPOINT_CACHE_DURATION**
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-        description: A unique value identifying this organization.
-        required: true
-      tags:
-      - User / team / organization / usage
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationServiceUsageResponse'
-          description: null
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
-  /api/v2/organizations/{organization_id}/invites/:
+  /api/v2/organizations/{uid_organization}/invites/:
     get:
       operationId: api_v2_organizations_invites_list
       description: |
@@ -6289,10 +6246,10 @@ paths:
         schema:
           type: integer
       - in: path
-        name: organization_id
+        name: uid_organization
         schema:
           type: string
-        description: ID of the organization asset
+        description: UID of the organization asset
         required: true
       tags:
       - User / team / organization / usage
@@ -6327,10 +6284,10 @@ paths:
         (Choices: `member`, `admin`). Default is `member`.
       parameters:
       - in: path
-        name: organization_id
+        name: uid_organization
         schema:
           type: string
-        description: ID of the organization asset
+        description: UID of the organization asset
         required: true
       tags:
       - User / team / organization / usage
@@ -6374,7 +6331,7 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/organizations/{organization_id}/invites/{guid}/:
+  /api/v2/organizations/{uid_organization}/invites/{guid}/:
     get:
       operationId: api_v2_organizations_invites_retrieve
       description: |
@@ -6387,10 +6344,10 @@ paths:
         description: GUID of the invite
         required: true
       - in: path
-        name: organization_id
+        name: uid_organization
         schema:
           type: string
-        description: ID of the organization asset
+        description: UID of the organization asset
         required: true
       tags:
       - User / team / organization / usage
@@ -6431,10 +6388,10 @@ paths:
         description: GUID of the invite
         required: true
       - in: path
-        name: organization_id
+        name: uid_organization
         schema:
           type: string
-        description: ID of the organization asset
+        description: UID of the organization asset
         required: true
       tags:
       - User / team / organization / usage
@@ -6511,10 +6468,10 @@ paths:
         description: GUID of the invite
         required: true
       - in: path
-        name: organization_id
+        name: uid_organization
         schema:
           type: string
-        description: ID of the organization asset
+        description: UID of the organization asset
         required: true
       tags:
       - User / team / organization / usage
@@ -6546,7 +6503,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/organizations/{organization_id}/members/:
+  /api/v2/organizations/{uid_organization}/members/:
     get:
       operationId: api_v2_organizations_members_list
       description: |
@@ -6567,10 +6524,10 @@ paths:
         schema:
           type: integer
       - in: path
-        name: organization_id
+        name: uid_organization
         schema:
           type: string
-        description: ID of the organization
+        description: UID of the organization
         required: true
       tags:
       - User / team / organization / usage
@@ -6595,7 +6552,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/organizations/{organization_id}/members/{user__username}/:
+  /api/v2/organizations/{uid_organization}/members/{user__username}/:
     get:
       operationId: api_v2_organizations_members_retrieve
       description: |
@@ -6604,10 +6561,10 @@ paths:
         Retrieves the details of a specific member within an organization by username.
       parameters:
       - in: path
-        name: organization_id
+        name: uid_organization
         schema:
           type: string
-        description: ID of the organization
+        description: UID of the organization
         required: true
       - in: path
         name: user__username
@@ -6650,10 +6607,10 @@ paths:
         - **member**: Revokes admin privileges, setting the member as a regular user
       parameters:
       - in: path
-        name: organization_id
+        name: uid_organization
         schema:
           type: string
-        description: ID of the organization
+        description: UID of the organization
         required: true
       - in: path
         name: user__username
@@ -6721,10 +6678,10 @@ paths:
         Delete an organization member.
       parameters:
       - in: path
-        name: organization_id
+        name: uid_organization
         schema:
           type: string
-        description: ID of the organization
+        description: UID of the organization
         required: true
       - in: path
         name: user__username
@@ -6751,6 +6708,49 @@ paths:
                     detail: You do not have permission to perform this action.
                   summary: Access Denied
           description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /api/v2/organizations/{uid_organization}/service_usage/:
+    get:
+      operationId: api_v2_organizations_service_usage_retrieve
+      description: |
+        ## Organization Usage Tracker
+
+        - Tracks the total usage of different services for each account in an organization
+        - Tracks the submissions and NLP seconds/characters for the current month/year/all time
+        - Tracks the current total storage used
+        - Includes a detailed list of balances relative to a user's usage limits
+        - If no organization is found with the provided ID, returns the usage for the logged-in user
+
+        **This endpoint is cached for an amount of time determined by ENDPOINT_CACHE_DURATION**
+      parameters:
+      - in: path
+        name: uid_organization
+        schema:
+          type: string
+        description: A unique value identifying this organization.
+        required: true
+      tags:
+      - User / team / organization / usage
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationServiceUsageResponse'
+          description: null
         '404':
           content:
             application/json:
@@ -7251,68 +7251,6 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /api/v2/project-ownership/invites/{uid_invite_uid}/transfers/{uid_transfer}/:
-    get:
-      operationId: api_v2_project_ownership_invites_transfers_retrieve
-      description: |
-        ## Retrieve transfer details
-      parameters:
-      - in: path
-        name: uid_invite_uid
-        schema:
-          type: string
-        description: UID of the parent invite
-        required: true
-      - in: path
-        name: uid_transfer
-        schema:
-          type: string
-        required: true
-      tags:
-      - Manage projects and library content
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TransferListResponse'
-          description: null
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                NotAuthenticated:
-                  value:
-                    detail: Authentication credentials were not provided.
-                  summary: Not authenticated
-          description: ''
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                AccessDenied:
-                  value:
-                    detail: You do not have permission to perform this action.
-                  summary: Access Denied
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
   /api/v2/project-ownership/invites/{uid_invite}/:
     get:
       operationId: api_v2_project_ownership_invites_retrieve
@@ -7452,6 +7390,68 @@ paths:
       responses:
         '204':
           description: No response body
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                AccessDenied:
+                  value:
+                    detail: You do not have permission to perform this action.
+                  summary: Access Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /api/v2/project-ownership/invites/{uid_invite}/transfers/{uid_transfer}/:
+    get:
+      operationId: api_v2_project_ownership_invites_transfers_retrieve
+      description: |
+        ## Retrieve transfer details
+      parameters:
+      - in: path
+        name: uid_invite
+        schema:
+          type: string
+        description: UID of the parent invite
+        required: true
+      - in: path
+        name: uid_transfer
+        schema:
+          type: string
+        required: true
+      tags:
+      - Manage projects and library content
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferListResponse'
+          description: null
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
         '403':
           content:
             application/json:
@@ -8729,7 +8729,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/
           readOnly: true
         owner:
           type: string
@@ -8744,7 +8744,7 @@ components:
         parent:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
           nullable: true
         settings:
           type: object
@@ -8846,7 +8846,7 @@ components:
                   url:
                     type: string
                     format: uri
-                    example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/versions/{uid}/
+                    example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/versions/vBeA23YCYjkGTFvYVHuAyU/
                   content_hash:
                     type: string
                   date_deployed:
@@ -8968,12 +8968,12 @@ components:
         xform_link:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/xform/
+          example: https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/xform/
           readOnly: true
         hooks_link:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/hooks/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/hooks/
           readOnly: true
         tag_string:
           type: string
@@ -8986,7 +8986,7 @@ components:
         xls_link:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/
+          example: https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/
           readOnly: true
         name:
           type: string
@@ -9012,7 +9012,7 @@ components:
         exports:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/exports/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/exports/
           readOnly: true
         export_settings:
           type: array
@@ -9022,7 +9022,7 @@ components:
         data:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/submissions/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/submissions/
           readOnly: true
         children:
           type: object
@@ -9046,7 +9046,7 @@ components:
         paired_data:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/paired-data/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/paired-data/
           readOnly: true
         project_ownership:
           type: object
@@ -9251,7 +9251,7 @@ components:
           asset:
             type: string
             format: uri
-            example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+            example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
           details:
             type: object
             properties:
@@ -9321,7 +9321,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/
         uid:
           type: string
         owner:
@@ -9334,15 +9334,15 @@ components:
         xml:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/
         enketopreviewlink:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid}/preview/
+          example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/preview/
         asset:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
         asset_version_id:
           type: string
         details:
@@ -9403,7 +9403,7 @@ components:
         asset:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
       required:
       - asset
     AssetSubscriptionResponse:
@@ -9412,11 +9412,11 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/asset_subscription/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/asset_subscription/sEMPghTguZsxj4rn4s9dvS/
         asset:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
         uid:
           type: string
       required:
@@ -9447,7 +9447,7 @@ components:
         asset:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
         asset__name:
           type: string
         nlp_usage_current_period:
@@ -9729,7 +9729,7 @@ components:
           asset:
             type: string
             format: uri
-            example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+            example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
           description:
             type: string
           file_type:
@@ -9751,7 +9751,7 @@ components:
           asset:
             type: string
             format: uri
-            example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+            example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
           description:
             type: string
           file_type:
@@ -9781,7 +9781,7 @@ components:
           asset:
             type: string
             format: uri
-            example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+            example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
           description:
             type: string
           file_type:
@@ -9871,19 +9871,19 @@ components:
             download_url:
               type: string
               format: uri
-              example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/1
+              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/1
             download_large_url:
               type: string
               format: uri
-              example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/
+              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/
             download_medium_url:
               type: string
               format: uri
-              example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/
+              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/
             download_small_url:
               type: string
               format: uri
-              example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/data/{parent_lookup_data}/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/
+              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/
             mimetype:
               type: string
             filename:
@@ -10139,7 +10139,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/exports/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/exports/eYeXfo2KjbSzXgWuKsJNPY/
         status:
           type: string
         message:
@@ -10173,7 +10173,7 @@ components:
             source:
               type: string
               format: uri
-              example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+              example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
             group_sep:
               type: string
             multiple_select:
@@ -10255,15 +10255,15 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/export-settings/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/export-settings/esMxJfzPhnWn6r2c3EKkuaV/
         data_url_csv:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/export-settings/{uid}/data.csv
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/export-settings/esMxJfzPhnWn6r2c3EKkuaV/data.csv
         data_url_xlsx:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/export-settings/{uid}/data.xlsx
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/export-settings/esMxJfzPhnWn6r2c3EKkuaV/data.xlsx
         name:
           type: string
         date_modified:
@@ -10337,11 +10337,11 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/files/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/files/afSa8PqnoYe8vJqkrsGz3oN/
         asset:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
         user:
           type: string
           format: uri
@@ -10358,7 +10358,7 @@ components:
         content:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/files/{uid}/content/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/files/afSa8PqnoYe8vJqkrsGz3oN/content/
         metadata:
           type: object
           properties:
@@ -10582,7 +10582,7 @@ components:
         logs_url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/hooks/hZzzeedWxQoFHgibsTCysv/logs/
           readOnly: true
         name:
           type: string
@@ -10620,7 +10620,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
           readOnly: true
       required:
       - asset
@@ -10641,7 +10641,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/hooks/hsw3Ec5vz7Lqg7TrwrxdaS/logs/hl8Ldv5m84SBpU5UB5J7QBD/
           readOnly: true
         uid:
           type: string
@@ -10726,7 +10726,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/imports/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/imports/iYxVZhbZb6poxVpPqrd6eG/
         status:
           type: string
       required:
@@ -10739,7 +10739,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/imports/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/imports/iYxVZhbZb6poxVpPqrd6eG/
         status:
           type: string
         messages:
@@ -11353,7 +11353,7 @@ components:
         members:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/organizations/{id}/members/
+          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/members/
           readOnly: true
         assets:
           type: string
@@ -12357,7 +12357,7 @@ components:
         source:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
         source__name:
           type: string
           readOnly: true
@@ -12370,7 +12370,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/paired-data/pd9CWSKADt4T7h5bMKwhLqq
+          example: https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/paired-data/pd9CWSKADt4T7h5bMKwhLqq
       required:
       - fields
       - filename
@@ -12602,7 +12602,7 @@ components:
         logs_url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/hooks/hZzzeedWxQoFHgibsTCysv/logs/
           readOnly: true
         name:
           type: string
@@ -12640,7 +12640,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
           readOnly: true
     PatchedHookLog:
       type: object
@@ -12648,7 +12648,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/hooks/{parent_lookup_hook}/logs/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/hooks/hsw3Ec5vz7Lqg7TrwrxdaS/logs/hl8Ldv5m84SBpU5UB5J7QBD/
           readOnly: true
         uid:
           type: string
@@ -12733,7 +12733,7 @@ components:
         permission:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/
       required:
       - permission
       - user
@@ -12775,7 +12775,7 @@ components:
                 url:
                   type: string
                   format: uri
-                  example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/
+                  example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/
           permission:
             type: string
             format: uri
@@ -12794,7 +12794,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/
         user:
           type: string
           format: uri
@@ -13036,7 +13036,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/project-ownership/invites/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/
         sender |  recipient:
           type: string
           format: uri
@@ -13057,11 +13057,11 @@ components:
               url:
                 type: string
                 format: uri
-                example: https://kf.kobotoolbox.org/api/v2/project-ownership/invites/{parent_lookup_invite_uid}/transfers/{uid}/
+                example: https://kf.kobotoolbox.org/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/
               asset:
                 type: string
                 format: uri
-                example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+                example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
               status:
                 type: string
               error:
@@ -13082,7 +13082,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/project-views/{uid}/assets/
+          example: https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/assets/
         date_created:
           type: string
           format: date-time
@@ -13095,7 +13095,7 @@ components:
         owner:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/project-views/{uid}/users/
+          example: https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/users/
         owner__username:
           type: string
         owner__email:
@@ -13164,7 +13164,7 @@ components:
               url:
                 type: string
                 format: uri
-                example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+                example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/
         owner_label:
           type: string
       required:
@@ -13222,23 +13222,23 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/project-views/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/
         assets:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/project-views/{uid}/assets/
+          example: https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/assets/
         assets_export:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/project-views/{uid}/assets/export/
+          example: https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/assets/export/
         users:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/project-views/{uid}/users/
+          example: https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/users/
         users_export:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/project-views/{uid}/users/export/
+          example: https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/users/export/
         countries:
           type: array
           items:
@@ -13335,7 +13335,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/reports/
+          example: https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/reports/
         count:
           type: integer
         list:
@@ -13514,7 +13514,7 @@ components:
           items:
             type: string
             format: uri
-            example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+            example: https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/
         parent:
           type: string
           format: uri
@@ -13560,11 +13560,11 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/project-ownership/invites/{parent_lookup_invite_uid}/transfers/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/
         asset:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
         status:
           type: string
         error:
@@ -13698,7 +13698,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/versions/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/versions/vf7pK9SmkJPYZVzr4uypi4/
           readOnly: true
         content_hash:
           type: string
@@ -13726,7 +13726,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{parent_lookup_asset}/versions/{uid}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/versions/vf7pK9SmkJPYZVzr4uypi4/
           readOnly: true
         content_hash:
           type: string

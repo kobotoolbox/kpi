@@ -140,11 +140,11 @@ class AssetFileViewSet(
     ViewSet for managing the current user's assets
 
     Available actions:
-    - list           → GET /api/v2/assets/{parent_lookup_asset}/files/
-    - create         → POST /api/v2/assets/{parent_lookup_asset}/files/
-    - retrieve       → GET /api/v2/assets/{parent_lookup_asset}/files/{uid}/
-    - delete         → DELETE /api/v2/assets/{parent_lookup_asset}/files/{uid}/
-    - content        → GET /api/v2/assets/{parent_lookup_asset}/files/{uid}/content/
+    - list           → GET /api/v2/assets/{uid_asset}/files/
+    - create         → POST /api/v2/assets/{uid_asset}/files/
+    - retrieve       → GET /api/v2/assets/{uid_asset}/files/{uid_file}/
+    - delete         → DELETE /api/v2/assets/{uid_asset}/files/{uid_file}/
+    - content        → GET /api/v2/assets/{uid_asset}/files/{uid_file}/content/
 
     Documentation:
     - docs/api/v2/files/list.md

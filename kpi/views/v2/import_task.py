@@ -67,7 +67,7 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
     Available actions:
     - list           → GET       /api/v2/imports/
     - retrieve       → GET       /api/v2/imports/
-    - create         → CREATE    /api/v2/imports/{uid}/
+    - create         → CREATE    /api/v2/imports/{uid_import}/
 
     Documentation:
     - docs/api/v2/imports/list.md

@@ -145,12 +145,12 @@ class HookViewSet(
 ):
     """
     Available actions:
-    - create        → POST      /api/v2/asset/{parent_lookup_asset}/hooks/
-    - list          → GET       /api/v2/asset/{parent_lookup_asset}/hooks/
-    - delete        → DELETE    /api/v2/asset/{parent_lookup_asset}/hooks/{uid}/
-    - retrieve      → GET       /api/v2/asset/{parent_lookup_asset}/hooks/{uid}/
-    - update        → POST      /api/v2/asset/{parent_lookup_asset}/hooks/{uid}/
-    - retry         → POST      /api/v2/asset/{parent_lookup_asset}/hooks/{uid}/retry/
+    - create        → POST      /api/v2/asset/{uid_asset}/hooks/
+    - list          → GET       /api/v2/asset/{uid_asset}/hooks/
+    - delete        → DELETE    /api/v2/asset/{uid_asset}/hooks/{uid_hook}/
+    - retrieve      → GET       /api/v2/asset/{uid_asset}/hooks/{uid_hook}/
+    - update        → POST      /api/v2/asset/{uid_asset}/hooks/{uid_hook}/
+    - retry         → POST      /api/v2/asset/{uid_asset}/hooks/{uid_hook}/retry/
 
     Documentation:
     - docs/api/v2/hooks/create.md

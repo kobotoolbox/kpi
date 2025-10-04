@@ -181,11 +181,11 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
     Available actions:
     - list              → GET       /api/v2/organizations/
-    - retrieve          → GET       /api/v2/organizations/{id}/
-    - partial_update    → PATCH     /api/v2/organizations/{id}/
-    - asset_usage       → GET       /api/v2/organizations/{id}/asset_usage/
-    - assets            → GET       /api/v2/organizations/{id}/assets/
-    - service_usage     → PATCH     /api/v2/organizations/{id}/service_usage/
+    - retrieve          → GET       /api/v2/organizations/{uid_organization}/
+    - partial_update    → PATCH     /api/v2/organizations/{uid_organization}/
+    - asset_usage       → GET       /api/v2/organizations/{uid_organization}/asset_usage/
+    - assets            → GET       /api/v2/organizations/{uid_organization}/assets/
+    - service_usage     → PATCH     /api/v2/organizations/{uid_organization}/service_usage/
 
     Documentation:
     - docs/api/v2/organizations/org_list.md
@@ -582,11 +582,11 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     Viewset for managing organization invites
 
     Available actions:
-    - create            → CREATE    /api/v2/organization/{parent_lookup_organization}/invites/  # noqa
-    - destroy           → DELETE    /api/v2/organization/{parent_lookup_organization}/invites/{guid}/  # noqa
-    - list              → LIST      /api/v2/organization/{parent_lookup_organization}/invites/  # noqa
-    - retrieve          → RETRIEVE  /api/v2/organization/{parent_lookup_organization}/invites/{guid}/   # noqa
-    - partial_update    → PATCH     /api/v2/organization/{parent_lookup_organization}/invites/{guid}/   # noqa
+    - create            → CREATE    /api/v2/organization/{uid_organization}/invites/  # noqa
+    - destroy           → DELETE    /api/v2/organization/{uid_organization}/invites/{guid}/  # noqa
+    - list              → LIST      /api/v2/organization/{uid_organization}/invites/  # noqa
+    - retrieve          → RETRIEVE  /api/v2/organization/{uid_organization}/invites/{guid}/   # noqa
+    - partial_update    → PATCH     /api/v2/organization/{uid_organization}/invites/{guid}/   # noqa
 
     Documentation:
     - docs/api/v2/invites/create.md

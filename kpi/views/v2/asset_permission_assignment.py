@@ -190,13 +190,13 @@ class AssetPermissionAssignmentViewSet(
     Viewset for managing the assignment permission for current project
 
     Available actions:
-    - bulk            → DELETE /api/v2/assets/{parent_lookup_asset}/permission-assignments/bulk/  # noqa
-    - clone           → PATCH /api/v2/assets/{parent_lookup_asset}/permission-assignments/clone/  # noqa
-    - create          → DELETE /api/v2/assets/{parent_lookup_asset}/permission-assignments/  # noqa
-    - delete          → POST /api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/  # noqa
-    - delete_all      → GET /api/v2/assets/{parent_lookup_asset}/permission-assignments/delete-all/  # noqa
-    - list            → GET /api/v2/assets/{parent_lookup_asset}/permission-assignments/
-    - retrieve        → GET /api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/  # noqa
+    - bulk            → DELETE /api/v2/assets/{uid_asset}/permission-assignments/bulk/  # noqa
+    - clone           → PATCH /api/v2/assets/{uid_asset}/permission-assignments/clone/  # noqa
+    - create          → DELETE /api/v2/assets/{uid_asset}/permission-assignments/  # noqa
+    - delete          → POST /api/v2/assets/{uid_asset}/permission-assignments/{uid_permission_assignment}/  # noqa
+    - delete_all      → GET /api/v2/assets/{uid_asset}/permission-assignments/delete-all/  # noqa
+    - list            → GET /api/v2/assets/{uid_asset}/permission-assignments/
+    - retrieve        → GET /api/v2/assets/{uid_asset}/permission-assignments/{uid_permission_assignment}/  # noqa
 
     Documentation:
     - docs/api/v2/asset_permission_assignments/bulk.md

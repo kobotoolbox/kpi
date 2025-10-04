@@ -222,12 +222,12 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
     Available actions:
     - list          → GET /api/v2/asset_snapshots/
     - create        → POST /api/v2/asset_snapshots/
-    - retrieve      → GET /api/v2/asset_snapshots/{uid}/
-    - patch         → PATCH /api/v2/asset_snapshots/{uid}/
-    - delete        → DELETE /api/v2/asset_snapshots/{uid}/
-    - xform         → GET /api/v2/asset_snapshots/{uid}/xform/
-    - xml_with_disclaimer       → GET /api/v2/asset_snapshots/{uid}/xml_with_disclaimer/
-    - preview       → GET /api/v2/asset_snapshots/{uid}/preview/
+    - retrieve      → GET /api/v2/asset_snapshots/{uid_asset_snapshot}/
+    - patch         → PATCH /api/v2/asset_snapshots/{uid_asset_snapshot}/
+    - delete        → DELETE /api/v2/asset_snapshots/{uid_asset_snapshot}/
+    - xform         → GET /api/v2/asset_snapshots/{uid_asset_snapshot}/xform/
+    - xml_with_disclaimer       → GET /api/v2/asset_snapshots/{uid_asset_snapshot}/xml_with_disclaimer/
+    - preview       → GET /api/v2/asset_snapshots/{uid_asset_snapshot}/preview/
 
     Documentation:
     - docs/api/v2/asset_snapshots/list.md
@@ -242,13 +242,13 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
 
 
     OpenRosa Endpoints Documentation
-    - formlist       → GET /api/v2/asset_snapshots/{uid}/formList
+    - formlist       → GET /api/v2/asset_snapshots/{uid_asset_snapshot}/formList
     - docs/api/v2/openrosa/form_list.md
 
-    - manifest       → GET /api/v2/asset_snapshots/{uid}/manifest
+    - manifest       → GET /api/v2/asset_snapshots/{uid_asset_snapshot}/manifest
     - docs/api/v2/openrosa/manifest.md
 
-    - submission     → GET /api/v2/asset_snapshots/{uid}/submission
+    - submission     → GET /api/v2/asset_snapshots/{uid_asset_snapshot}/submission
     - docs/api/v2/openrosa/submission.md
     """
 

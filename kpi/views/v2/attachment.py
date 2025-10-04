@@ -135,9 +135,9 @@ class AttachmentViewSet(
     ViewSet for managing the current user's asset attachment
 
     Available actions:
-    - list            → GET /api/v2/assets/{uid}/data/{id}/attachments/
-    - retrieve        → GET /api/v2/assets/{uid}/data/{data_id}/attachments/{id}
-    - thumb (suffix)  → GET /api/v2/assets/{uid}/data/{data_id}/attachments/{id}/{suffix}/  # noqa
+    - list            → GET /api/v2/assets/{uid_asset}/data/{uid_data}/attachments/
+    - retrieve        → GET /api/v2/assets/{uid_asset}/data/{uid_data}/attachments/{id}
+    - thumb (suffix)  → GET /api/v2/assets/{uid_asset}/data/{uid_data}/attachments/{id}/{suffix}/  # noqa
 
     Documentation:
     - docs/api/v2/asset_attachments/list.md

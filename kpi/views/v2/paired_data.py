@@ -144,12 +144,12 @@ class PairedDataViewset(
 ):
     """
     Available actions:
-     - create        → POST      /api/v2/asset/{parent_lookup_asset}/paired-data/
-     - delete        → DELETE    /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/
-     - external      → GET       /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/external/  # noqa
-     - list          → GET       /api/v2/asset/{parent_lookup_asset}/paired-data/
-     - retrieve      → GET       /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/
-     - update        → PATCH     /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/
+     - create        → POST      /api/v2/asset/{uid_asset}/paired-data/
+     - delete        → DELETE    /api/v2/asset/{uid_asset}/paired-data/{uid_paired_data}/
+     - external      → GET       /api/v2/asset/{uid_asset}/paired-data/{uid_paired_data}/external/  # noqa
+     - list          → GET       /api/v2/asset/{uid_asset}/paired-data/
+     - retrieve      → GET       /api/v2/asset/{uid_asset}/paired-data/{uid_paired_data}/
+     - update        → PATCH     /api/v2/asset/{uid_asset}/paired-data/{uid_paired_data}/
 
 
      Documentation:
@@ -296,7 +296,7 @@ class PairedDataViewset(
 
     def get_object_override(self):
         obj = self.get_queryset(as_list=False).get(
-            self.kwargs[self.lookup_field]
+            self.kwargs[self.lookup_url_kwarg]
         )
         if not obj:
             raise Http404
