@@ -11,6 +11,10 @@ OPEN_ROSA_ENDPOINTS = [
     '/{username}/submission',
     '/{username}/xformsManifest/{pk}',
     '/{username}/xformsMedia/{pk}/{metadata}',
+    # OpenRosa endpoints for adding submissions as data collector
+    '/key/{token}/formList',
+    '/key/{token}/xformsManifest/{pk}',
+    '/key/{token}/xformsMedia/{pk}/{metadata}',
     # OpenRosa endpoints for editing submissions
     '/api/v2/asset_snapshots/{uid}/formList',
     '/api/v2/asset_snapshots/{uid}/manifest',

@@ -12,6 +12,8 @@ from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from kobo.apps.data_collectors.authentication import DataCollectorTokenAuthentication
+from kobo.apps.data_collectors.models import DataCollector
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.tools import get_media_file_response
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
@@ -52,7 +54,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         # Respect DEFAULT_AUTHENTICATION_CLASSES, but also ensure that the
         # previously hard-coded authentication classes are included first
         authentication_classes = [
-            DigestAuthentication,
+            DigestAuthentication
         ]
         self.authentication_classes = authentication_classes + [
             auth_class
@@ -79,15 +81,26 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         )
 
     def get_renderers(self):
-        if self.action and self.action == 'manifest':
+        if self.action and self.action.startswith('manifest'):
             return [XFormManifestRenderer()]
 
         return super().get_renderers()
 
     def filter_queryset(self, queryset):
         username = self.kwargs.get('username')
-
-        if username is None:
+        token = self.kwargs.get('token')
+        if token:
+            try:
+                collector = DataCollector.objects.get(token=token)
+                collector_group = collector.group
+                if collector_group:
+                    assets = list(collector_group.assets.values_list('uid', flat=True))
+                    queryset = queryset.filter(kpi_asset_uid__in=assets)
+                else:
+                    return XForm.objects.none()
+            except DataCollector.DoesNotExist:
+                return XForm.objects.none()
+        elif username is None:
             # If no username is specified, the request must be authenticated
             if self.request.user.is_anonymous:
                 # raises a permission denied exception, forces authentication
@@ -151,7 +164,10 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         tags=['OpenRosa Form List'],
         operation_id='form_list_anonymous',
     )
-    @action(detail=False, methods=['get'])
+    @action(
+        detail=False,
+        methods=['get'],
+    )
     def form_list_anonymous(self, request, *args, **kwargs):
         """
         Publish the OpenRosa formList via a custom action instead of relying on the
@@ -214,6 +230,38 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         """
         return self.list(request, *args, **kwargs)
 
+    @extend_schema(
+        description=read_md('openrosa', 'formlist/data_collector.md'),
+        responses=open_api_200_ok_response(
+            XFormListSerializer,
+            media_type='application/xml',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+        ),
+        tags=['OpenRosa Form List'],
+        operation_id='form_list_data_collector',
+    )
+    @action(
+        detail=False,
+        methods=['get'],
+        authentication_classes=[DataCollectorTokenAuthentication],
+    )
+    def form_list_dc(self, request, *args, **kwargs):
+        """
+        See form_list_anonymous for why this is a separated method
+
+        ViewSet for managing enketo form list
+
+        Available actions:
+        - form_list (data collector)         → GET /api/v2/key/{token}/formList/
+
+        Documentation:
+        - docs/api/v2/form_list/data_collector.md
+        """
+        return self.list(request, *args, **kwargs)
+
     @extend_schema(tags=['OpenRosa Form List'], exclude=True)
     def list(self, request, *args, **kwargs):
         """
@@ -254,8 +302,32 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         tags=['OpenRosa Form Manifest'],
         operation_id='manifest_anonymous',
     )
-    @action(detail=False, methods=['GET'])
+    @action(
+        detail=False,
+        methods=['GET'],
+    )
     def manifest_anonymous(self, request, *args, **kwargs):
+        return self.manifest(request, *args, **kwargs)
+
+    @extend_schema(
+        description=read_md('openrosa', 'manifest/data_collector.md'),
+        responses=open_api_200_ok_response(
+            OpenRosaFormManifestResponse,
+            media_type='application/xml',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+            error_media_type='application/xml',
+        ),
+        tags=['OpenRosa Form Manifest'],
+        operation_id='manifest_data_collector',
+    )
+    @action(
+        detail=False,
+        methods=['GET'],
+        authentication_classes=[DataCollectorTokenAuthentication],
+    )
+    def manifest_dc(self, request, *args, **kwargs):
         return self.manifest(request, *args, **kwargs)
 
     @extend_schema(
@@ -284,6 +356,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         Available actions:
         - xform_manifest (anonymous)         → GET /{username}/xformManifest/{id}
         - xform_manifest (authenticated)     → GET /xformManifest/{id}
+        - xform_manifest (data collector)     → GET /key/{token}/xformManifest/{id}
 
         Documentation:
         - docs/api/v2/manifest/list.md
@@ -351,10 +424,8 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             xform=xform,
             pk=pk,
         )
-
         if request.method == 'HEAD':
             return self.get_response_for_head_request()
-
         return get_media_file_response(meta_obj, request)
 
     @staticmethod
