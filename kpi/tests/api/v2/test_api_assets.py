@@ -1165,7 +1165,7 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
     def test_report_submissions(self):
         # Prepare the mock data
         report_url = reverse(
-            self._get_endpoint('asset-reports'), kwargs={'uid': self.asset_uid}
+            self._get_endpoint('asset-reports'), kwargs={'uid_asset': self.asset_uid}
         )
         anotheruser = User.objects.get(username='anotheruser')
         self.asset.content = {
@@ -1855,8 +1855,9 @@ class AssetFileTest(AssetFileTestCaseMixin, BaseTestCase):
 class AssetDeploymentTest(BaseAssetDetailTestCase):
 
     def test_asset_deployment(self):
-        deployment_url = reverse(self._get_endpoint('asset-deployment'),
-                                 kwargs={'uid': self.asset_uid})
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': self.asset_uid}
+        )
 
         response1 = self.client.post(deployment_url, {
             'backend': 'mock',
@@ -1908,7 +1909,7 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         asset_uid = asset_response.data.get('uid')
 
         deployment_url = reverse(
-            self._get_endpoint('asset-deployment'), kwargs={'uid': asset_uid}
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': asset_uid}
         )
 
         deploy_response = self.client.post(
@@ -1959,7 +1960,7 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         asset_uid = asset_response.data.get('uid')
 
         deployment_url = reverse(
-            self._get_endpoint('asset-deployment'), kwargs={'uid': asset_uid}
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': asset_uid}
         )
 
         deploy_response = self.client.post(
@@ -2021,7 +2022,7 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         asset = Asset.objects.get(uid=asset_response.data.get('uid'))
 
         deployment_url = reverse(
-            self._get_endpoint('asset-deployment'), kwargs={'uid': asset.uid}
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': asset.uid}
         )
 
         deploy_response = self.client.post(
@@ -2053,8 +2054,9 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         self.asset.refresh_from_db()
         version_id = asset_response.data['version_id']
 
-        deployment_url = reverse(self._get_endpoint('asset-deployment'),
-                                 kwargs={'uid': self.asset_uid})
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': self.asset_uid}
+        )
 
         # We cannot `POST` to redeploy...
         redeploy_response = self.client.post(deployment_url, {
@@ -2129,7 +2131,7 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         # without creating a new `AssetVersion`
         deployment_url = reverse(
             self._get_endpoint('asset-deployment'),
-            kwargs={'uid': self.asset_uid},
+            kwargs={'uid_asset': self.asset_uid},
         )
         before = timezone.now()
         redeploy_response = self.client.patch(
@@ -2162,8 +2164,9 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
     def test_archive_asset(self):
         self.test_asset_deployment()
 
-        deployment_url = reverse(self._get_endpoint('asset-deployment'),
-                                 kwargs={'uid': self.asset_uid})
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': self.asset_uid}
+        )
 
         response1 = self.client.patch(deployment_url, {
             'backend': 'mock',
@@ -2188,9 +2191,9 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         self.asset.refresh_from_db()
         original_date_deployed = self.asset.date_deployed
 
-        deployment_url = reverse(self._get_endpoint('asset-deployment'),
-                                 kwargs={'uid': self.asset_uid})
-
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': self.asset_uid}
+        )
 
         # archive
         response = self.client.patch(deployment_url, {

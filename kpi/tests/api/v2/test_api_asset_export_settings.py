@@ -39,7 +39,7 @@ class AssetExportSettingsApiTest(BaseTestCase):
         self.export_settings_list_url = reverse(
             self._get_endpoint('asset-export-settings-list'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'format':'json'
             },
         )
@@ -67,8 +67,8 @@ class AssetExportSettingsApiTest(BaseTestCase):
         return reverse(
             self._get_endpoint('asset-export-settings-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': uid,
+                'uid_asset': self.asset.uid,
+                'uid_export_setting': uid,
                 'format': 'json',
             },
         )
@@ -95,8 +95,8 @@ class AssetExportSettingsApiTest(BaseTestCase):
             return reverse(
                 self._get_endpoint('asset-export-settings-synchronous-data'),
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
-                    'uid': data['uid'],
+                    'uid_asset': self.asset.uid,
+                    'uid_export_setting': data['uid'],
                 },
                 format=format_,
             )

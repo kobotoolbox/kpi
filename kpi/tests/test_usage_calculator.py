@@ -80,7 +80,7 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
         self.asset = self._create_asset(user)
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
         )
         self._deployment = self.asset.deployment
 

@@ -47,11 +47,11 @@ class BaseOrganizationInviteTestCase(BaseOrganizationAssetApiTestCase):
 
         self.list_url = reverse(
             self._get_endpoint('organization-invites-list'),
-            kwargs={'organization_id': self.organization.id},
+            kwargs={'uid_organization': self.organization.id},
         )
         self.detail_url = lambda guid: reverse(
             self._get_endpoint('organization-invites-detail'),
-            kwargs={'organization_id': self.organization.id, 'guid': guid},
+            kwargs={'uid_organization': self.organization.id, 'guid': guid},
         )
         self.invitation_data = {'invitees': ['bob', 'unregistereduser@example.com']}
 

@@ -291,7 +291,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         url = reverse(
             # this view name is a bit... bulky
             self._get_endpoint('asset-permission-assignment-bulk-assignments'),
-            kwargs={'parent_lookup_asset': self.asset.uid},
+            kwargs={'uid_asset': self.asset.uid},
         )
 
         def get_data_template(username_, codename_):
@@ -427,7 +427,10 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
                 perm_view_asset = obj
         url = reverse(
             self._get_endpoint('asset-permission-assignment-delete-all'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'uid': perm_view_asset.uid},
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'uid_permission_assignment': perm_view_asset.uid,
+            },
         )
         self.client.login(username='someuser', password='someuser')
         self.client.delete(url)
@@ -585,7 +588,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
         bulk_endpoint = reverse(
             self._get_endpoint('asset-permission-assignment-bulk-assignments'),
-            kwargs={'parent_lookup_asset': self.asset.uid},
+            kwargs={'uid_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
         assert response.status_code == status.HTTP_200_OK
@@ -630,7 +633,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
         bulk_endpoint = reverse(
             self._get_endpoint('asset-permission-assignment-bulk-assignments'),
-            kwargs={'parent_lookup_asset': self.asset.uid},
+            kwargs={'uid_asset': self.asset.uid},
         )
         # Perform bulk assignment twice to check permission-difference
         # optimization logic
@@ -677,7 +680,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
         bulk_endpoint = reverse(
             self._get_endpoint('asset-permission-assignment-bulk-assignments'),
-            kwargs={'parent_lookup_asset': self.asset.uid},
+            kwargs={'uid_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
 
@@ -718,7 +721,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
 
         bulk_endpoint = reverse(
             self._get_endpoint('asset-permission-assignment-bulk-assignments'),
-            kwargs={'parent_lookup_asset': self.asset.uid},
+            kwargs={'uid_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
         # Could not assign 'add_submissions' to anonymous user.
@@ -760,7 +763,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
 
         bulk_endpoint = reverse(
             self._get_endpoint('asset-permission-assignment-bulk-assignments'),
-            kwargs={'parent_lookup_asset': self.asset.uid},
+            kwargs={'uid_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
         assert response.status_code == status.HTTP_200_OK
@@ -821,7 +824,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
 
         bulk_endpoint = reverse(
             self._get_endpoint('asset-permission-assignment-bulk-assignments'),
-            kwargs={'parent_lookup_asset': self.asset.uid},
+            kwargs={'uid_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
         assert response.status_code == status.HTTP_200_OK
@@ -892,7 +895,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
 
         bulk_endpoint = reverse(
             self._get_endpoint('asset-permission-assignment-bulk-assignments'),
-            kwargs={'parent_lookup_asset': self.asset.uid},
+            kwargs={'uid_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
         assert response.status_code == status.HTTP_200_OK
@@ -956,7 +959,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
 
         bulk_endpoint = reverse(
             self._get_endpoint('asset-permission-assignment-bulk-assignments'),
-            kwargs={'parent_lookup_asset': self.asset.uid},
+            kwargs={'uid_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
         assert response.status_code == status.HTTP_400_BAD_REQUEST

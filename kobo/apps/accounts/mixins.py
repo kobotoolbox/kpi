@@ -14,12 +14,21 @@ class MultipleFieldLookupMixin:
     `lookup_field = 'pk'`.
     """
 
+    lookup_field_map = {}
+
     def get_object(self):
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)
-        filter = {}
+        filter_kwargs = {}
         for field in self.lookup_fields:
-            filter[field] = self.kwargs[field]
-        obj = get_object_or_404(queryset, **filter)
+            url_kwarg = self.lookup_field_map.get(field, field)
+            try:
+                filter_kwargs[field] = self.kwargs[url_kwarg]
+            except KeyError:
+                raise KeyError(
+                    f"Expected URL kwarg '{url_kwarg}' for field '{field}' "  # noqa
+                    f'was not found in kwargs: {self.kwargs}'
+                )
+        obj = get_object_or_404(queryset, **filter_kwargs)
         self.check_object_permissions(self.request, obj)
         return obj

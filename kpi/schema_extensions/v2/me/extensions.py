@@ -71,7 +71,7 @@ class OrganizationFieldExtension(OpenApiSerializerFieldExtension):
             properties={
                 'url': build_url_type(
                     'api_v2:organizations-detail',
-                    id='orgzeph7Ub8tVmJ82JBbH96n',
+                    uid_organization='orgzeph7Ub8tVmJ82JBbH96n',
                 ),
                 'name': GENERIC_STRING_SCHEMA,
                 'uid': GENERIC_STRING_SCHEMA,

@@ -12,10 +12,12 @@ class UserAssetSubscriptionSerializer(serializers.ModelSerializer):
 
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid',
+        lookup_url_kwarg='uid_asset_subscription',
         view_name='userassetsubscription-detail'
     )
     asset = RelativePrefixHyperlinkedRelatedField(
         lookup_field='uid',
+        lookup_url_kwarg='uid_asset',
         view_name='asset-detail',
         queryset=Asset.objects.none()  # will be set in __init__()
     )

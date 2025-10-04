@@ -303,15 +303,15 @@ class AssetViewSet(
     Available actions:
     - list           → GET /api/v2/assets/
     - create         → POST /api/v2/assets/
-    - retrieve       → GET /api/v2/assets/{uid}/
-    - patch          → PATCH /api/v2/assets/{uid}/
-    - delete         → DELETE /api/v2/assets/{uid}/
-    - content        → GET /api/v2/assets/{uid}/content/
-    - reports        → GET /api/v2/assets/{uid}/reports/
-    - table_view     → GET /api/v2/assets/{uid}/table_view/
-    - valid_content  → GET /api/v2/assets/{uid}/valid_content/
-    - xform          → GET /api/v2/assets/{uid}/xform/
-    - xls            → GET /api/v2/assets/{uid}/xls/
+    - retrieve       → GET /api/v2/assets/{uid_asset}/
+    - patch          → PATCH /api/v2/assets/{uid_asset}/
+    - delete         → DELETE /api/v2/assets/{uid_asset}/
+    - content        → GET /api/v2/assets/{uid_asset}/content/
+    - reports        → GET /api/v2/assets/{uid_asset}/reports/
+    - table_view     → GET /api/v2/assets/{uid_asset}/table_view/
+    - valid_content  → GET /api/v2/assets/{uid_asset}/valid_content/
+    - xform          → GET /api/v2/assets/{uid_asset}/xform/
+    - xls            → GET /api/v2/assets/{uid_asset}/xls/
     - bulk           → POST /api/v2/assets/bulk/
     - hash           → GET /api/v2/assets/hash/
     - metadata       → GET /api/v2/assets/metadata/
@@ -336,6 +336,7 @@ class AssetViewSet(
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Asset.objects.all()
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_asset'
     pagination_class = AssetPagination
     permission_classes = (AssetPermission,)
     ordering_fields = AssetOrderingFilter.DEFAULT_ORDERING_FIELDS + [
@@ -382,11 +383,13 @@ class AssetViewSet(
     @action(detail=True)
     def content(self, request, uid):
         asset = self.get_object()
-        return Response({
-            'kind': 'asset.content',
-            'uid': asset.uid,
-            'data': asset.to_ss_structure(),
-        })
+        return Response(
+            {
+                'kind': 'asset.content',
+                'uid_asset': asset.uid,
+                'data': asset.to_ss_structure(),
+            }
+        )
 
     def create(self, request, *args, **kwargs):
         if CLONE_ARG_NAME in request.data:
@@ -432,14 +435,14 @@ class AssetViewSet(
     @action(detail=True,
             methods=['get', 'post', 'patch'],
             permission_classes=[PostMappedToChangePermission])
-    def deployment(self, request, uid):
+    def deployment(self, request, uid_asset):
         """
         ViewSet for managing the current project's deployment
 
         Available actions:
-        - list           → GET /api/v2/assets/{uid}/deployment/
-        - create         → POST /api/v2/assets/{uid}/deployment/
-        - patch          → PATCH /api/v2/assets/{uid}/deployment/
+        - list           → GET /api/v2/assets/{uid_asset}/deployment/
+        - create         → POST /api/v2/assets/{uid_asset}/deployment/
+        - patch          → PATCH /api/v2/assets/{uid_asset}/deployment/
 
         Documentation:
         - docs/api/v2/deployments/list.md
@@ -560,7 +563,7 @@ class AssetViewSet(
         It relies on `check_object_permissions` to validate access to the object.
         """
         try:
-            asset = Asset.objects.get(uid=self.kwargs['uid'])
+            asset = Asset.objects.get(uid=self.kwargs[self.lookup_url_kwarg])
         except Asset.DoesNotExist:
             raise Http404
 
@@ -576,6 +579,11 @@ class AssetViewSet(
         return asset
 
     def get_queryset(self, *args, **kwargs):
+
+        if self.detail:
+            # For detail views, we must explicitly bypass the NestedViewSetMixin.
+            return super(NestedViewSetMixin, self).get_queryset(*args, **kwargs)
+
         queryset = super().get_queryset(*args, **kwargs)
         if self.action == 'list':
             return queryset.model.optimize_queryset_for_list(queryset)
@@ -748,7 +756,7 @@ class AssetViewSet(
             # 5) Get organization…
             if organization := getattr(self.request, 'organization', None):
                 # …from request.
-                # e.g.: /api/v2/organizations/<organization_id>/assets/`
+                # e.g.: /api/v2/organizations/<uid_organization>/assets/`
                 context_['organization'] = organization
             else:
                 # …per asset
@@ -861,11 +869,13 @@ class AssetViewSet(
     @action(detail=True)
     def valid_content(self, request, uid):
         asset = self.get_object()
-        return Response({
-            'kind': 'asset.valid_content',
-            'uid': asset.uid,
-            'data': to_xlsform_structure(asset.content),
-        })
+        return Response(
+            {
+                'kind': 'asset.valid_content',
+                'uid_asset': asset.uid,
+                'data': to_xlsform_structure(asset.content),
+            }
+        )
 
     @extend_schema(tags=['Form content'])
     @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])

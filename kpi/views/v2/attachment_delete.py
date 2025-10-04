@@ -21,7 +21,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     tags=['Survey data'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -67,8 +67,8 @@ class AttachmentDeleteViewSet(
     ViewSet for managing attachments on the current user's assets
 
     Available actions:
-    - delete      → DELETE /api/v2/assets/{parent_lookup_asset}/attachments/{uid}/
-    - bulk        → DELETE /api/v2/assets/{parent_lookup_asset}/attachments/bulk/
+    - delete      → DELETE /api/v2/assets/{uid_asset}/attachments/{uid_attachment}/
+    - bulk        → DELETE /api/v2/assets/{uid_asset}/attachments/bulk/
 
     Documentation:
     - docs/api/v2/asset_attachments/bulk.md

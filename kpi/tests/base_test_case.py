@@ -33,7 +33,10 @@ class BaseTestCase(APITestCase):
         if isinstance(obj, ObjectPermission):
             return reverse(
                 self._get_endpoint('asset-permission-assignment-detail'),
-                kwargs={'parent_lookup_asset': obj.asset.uid, 'uid': obj.uid},
+                kwargs={
+                    'uid_asset': obj.asset.uid,
+                    'uid_permission_assignment': obj.uid,
+                },
             )
         if isinstance(obj, Permission):
             return reverse(

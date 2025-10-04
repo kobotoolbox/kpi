@@ -22,8 +22,8 @@ class LogsUrlFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:hook-log-list',
-            parent_lookup_asset='a3C9wWefqZVkChNLKqqXVZ',
-            parent_lookup_hook='hZzzeedWxQoFHgibsTCysv',
+            uid_asset='a3C9wWefqZVkChNLKqqXVZ',
+            uid_hook='hZzzeedWxQoFHgibsTCysv',
         )
 
 

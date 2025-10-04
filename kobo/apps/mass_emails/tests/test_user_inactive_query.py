@@ -63,7 +63,7 @@ class InactiveUserTest(BaseTestCase):
         Helper function to update an Asset
         """
         asset_detail_url = reverse(
-            self._get_endpoint('asset-detail'), kwargs={'uid': asset.uid}
+            self._get_endpoint('asset-detail'), kwargs={'uid_asset': asset.uid}
         )
         self.client.force_login(user)
         response = self.client.patch(asset_detail_url, data)

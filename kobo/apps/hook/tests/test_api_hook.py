@@ -33,7 +33,7 @@ class ApiHookTestCase(HookTestCase):
         hook = self._create_hook()
         self.client.logout()
 
-        list_url = reverse('hook-list', kwargs={'parent_lookup_asset': self.asset.uid})
+        list_url = reverse('hook-list', kwargs={'uid_asset': self.asset.uid})
 
         response = self.client.get(list_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -41,8 +41,8 @@ class ApiHookTestCase(HookTestCase):
         detail_url = reverse(
             'hook-detail',
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': hook.uid,
+                'uid_asset': self.asset.uid,
+                'uid_hook': hook.uid,
             },
         )
 
@@ -52,8 +52,8 @@ class ApiHookTestCase(HookTestCase):
         log_list_url = reverse(
             'hook-log-list',
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'parent_lookup_hook': hook.uid,
+                'uid_asset': self.asset.uid,
+                'uid_hook': hook.uid,
             },
         )
 
@@ -66,9 +66,7 @@ class ApiHookTestCase(HookTestCase):
     def test_editor_access(self):
         hook = self._create_hook()
 
-        list_url = reverse('hook-list', kwargs={
-            'parent_lookup_asset': self.asset.uid
-        })
+        list_url = reverse('hook-list', kwargs={'uid_asset': self.asset.uid})
 
         response = self.client.get(list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -91,18 +89,24 @@ class ApiHookTestCase(HookTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(owner_results, response.get('results'))
 
-        detail_url = reverse('hook-detail', kwargs={
-            'parent_lookup_asset': self.asset.uid,
-            'uid': hook.uid,
-        })
+        detail_url = reverse(
+            'hook-detail',
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'uid_hook': hook.uid,
+            },
+        )
 
         response = self.client.get(detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        log_list_url = reverse('hook-log-list', kwargs={
-            'parent_lookup_asset': self.asset.uid,
-            'parent_lookup_hook': hook.uid,
-        })
+        log_list_url = reverse(
+            'hook-log-list',
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'uid_hook': hook.uid,
+            },
+        )
 
         response = self.client.get(log_list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -123,7 +127,7 @@ class ApiHookTestCase(HookTestCase):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
 
-        list_url = reverse('hook-list', kwargs={'parent_lookup_asset': self.asset.uid})
+        list_url = reverse('hook-list', kwargs={'uid_asset': self.asset.uid})
 
         response = self.client.get(list_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -131,8 +135,8 @@ class ApiHookTestCase(HookTestCase):
         detail_url = reverse(
             'hook-detail',
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': hook.uid,
+                'uid_asset': self.asset.uid,
+                'uid_hook': hook.uid,
             },
         )
 
@@ -142,8 +146,8 @@ class ApiHookTestCase(HookTestCase):
         log_list_url = reverse(
             'hook-log-list',
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'parent_lookup_hook': hook.uid,
+                'uid_asset': self.asset.uid,
+                'uid_hook': hook.uid,
             },
         )
 
@@ -168,7 +172,7 @@ class ApiHookTestCase(HookTestCase):
         hook = self._create_hook()
         url = reverse(
             'hook-detail',
-            kwargs={'parent_lookup_asset': self.asset.uid, 'uid': hook.uid},
+            kwargs={'uid_asset': self.asset.uid, 'uid_hook': hook.uid},
         )
         data = {'name': 'some disabled external service', 'active': False}
         response = self.client.patch(url, data, format=SUBMISSION_FORMAT_TYPE_JSON)
@@ -191,9 +195,9 @@ class ApiHookTestCase(HookTestCase):
         retry_url = reverse(
             'hook-log-retry',
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'parent_lookup_hook': self.hook.uid,
-                'uid': first_log_response.get('uid'),
+                'uid_asset': self.asset.uid,
+                'uid_hook': self.hook.uid,
+                'uid_log': first_log_response.get('uid'),
             },
         )
 
@@ -205,9 +209,9 @@ class ApiHookTestCase(HookTestCase):
         detail_url = reverse(
             'hook-log-detail',
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'parent_lookup_hook': self.hook.uid,
-                'uid': first_log_response.get('uid'),
+                'uid_asset': self.asset.uid,
+                'uid_hook': self.hook.uid,
+                'uid_log': first_log_response.get('uid'),
             },
         )
 
@@ -227,9 +231,9 @@ class ApiHookTestCase(HookTestCase):
         retry_url = reverse(
             'hook-log-retry',
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'parent_lookup_hook': self.hook.uid,
-                'uid': first_log_response.get('uid'),
+                'uid_asset': self.asset.uid,
+                'uid_hook': self.hook.uid,
+                'uid_log': first_log_response.get('uid'),
             },
         )
 
@@ -241,9 +245,9 @@ class ApiHookTestCase(HookTestCase):
         detail_url = reverse(
             'hook-log-detail',
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'parent_lookup_hook': self.hook.uid,
-                'uid': first_log_response.get('uid'),
+                'uid_asset': self.asset.uid,
+                'uid_hook': self.hook.uid,
+                'uid_log': first_log_response.get('uid'),
             },
         )
 
@@ -283,10 +287,9 @@ class ApiHookTestCase(HookTestCase):
         self.assertTrue(success)
 
         # Retrieve the corresponding log
-        url = reverse('hook-log-list', kwargs={
-            'parent_lookup_asset': hook.asset.uid,
-            'parent_lookup_hook': hook.uid
-        })
+        url = reverse(
+            'hook-log-list', kwargs={'uid_asset': hook.asset.uid, 'uid_hook': hook.uid}
+        )
 
         response = self.client.get(url)
         first_hooklog_response = response.data.get('results')[0]
@@ -365,10 +368,13 @@ class ApiHookTestCase(HookTestCase):
         self.assertTrue(success)
 
         # Get log for the success hook
-        hook_log_url = reverse('hook-log-list', kwargs={
-            'parent_lookup_asset': hook.asset.uid,
-            'parent_lookup_hook': hook.uid,
-        })
+        hook_log_url = reverse(
+            'hook-log-list',
+            kwargs={
+                'uid_asset': hook.asset.uid,
+                'uid_hook': hook.uid,
+            },
+        )
 
         # There should be a successful log for the success hook
         response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_SUCCESS}', format='json')
@@ -407,10 +413,13 @@ class ApiHookTestCase(HookTestCase):
             service_definition.send()
 
         # Get log for the failing hook
-        hook_log_url = reverse('hook-log-list', kwargs={
-            'parent_lookup_asset': hook.asset.uid,
-            'parent_lookup_hook': hook.uid,
-        })
+        hook_log_url = reverse(
+            'hook-log-list',
+            kwargs={
+                'uid_asset': hook.asset.uid,
+                'uid_hook': hook.uid,
+            },
+        )
 
         # There should be no success log for the failing hook
         response = self.client.get(
@@ -433,10 +442,13 @@ class ApiHookTestCase(HookTestCase):
         )
 
         # Get log for the success hook
-        hook_log_url = reverse('hook-log-list', kwargs={
-            'parent_lookup_asset': hook.asset.uid,
-            'parent_lookup_hook': hook.uid,
-        })
+        hook_log_url = reverse(
+            'hook-log-list',
+            kwargs={
+                'uid_asset': hook.asset.uid,
+                'uid_hook': hook.uid,
+            },
+        )
 
         # Test bad argument
         response = self.client.get(f'{hook_log_url}?status=abc', format='json')
@@ -469,10 +481,13 @@ class ApiHookTestCase(HookTestCase):
         self.assertTrue(success)
 
         # Get log for the failing hook
-        hook_log_url = reverse('hook-log-list', kwargs={
-            'parent_lookup_asset': hook.asset.uid,
-            'parent_lookup_hook': hook.uid,
-        })
+        hook_log_url = reverse(
+            'hook-log-list',
+            kwargs={
+                'uid_asset': hook.asset.uid,
+                'uid_hook': hook.uid,
+            },
+        )
 
         isoformat='%Y-%m-%dT%H:%M:%S'
         five_minutes_ago = several_minutes_from_now(-5).strftime(isoformat)
@@ -514,10 +529,13 @@ class ApiHookTestCase(HookTestCase):
         )
 
         # Get log for the success hook
-        hook_log_url = reverse('hook-log-list', kwargs={
-            'parent_lookup_asset': hook.asset.uid,
-            'parent_lookup_hook': hook.uid,
-        })
+        hook_log_url = reverse(
+            'hook-log-list',
+            kwargs={
+                'uid_asset': hook.asset.uid,
+                'uid_hook': hook.uid,
+            },
+        )
 
         # Test bad argument
         response = self.client.get(f'{hook_log_url}?start=abc', format='json')

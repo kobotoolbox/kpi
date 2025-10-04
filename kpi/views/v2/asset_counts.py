@@ -27,7 +27,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='parent_lookup_asset',
+                name='uid_asset',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -46,7 +46,7 @@ class AssetCountsViewSet(
     ViewSet for managing the current user's asset counts
 
     Available actions:
-    - counts         → GET /api/v2/assets/{parent_lookup_assets}/counts/
+    - counts         → GET /api/v2/assets/{uid_asset}/counts/
 
     Documentation:
     - docs/api/v2/assets/counts.md

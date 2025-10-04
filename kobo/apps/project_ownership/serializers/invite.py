@@ -24,6 +24,7 @@ class InviteSerializer(serializers.ModelSerializer):
 
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid',
+        lookup_url_kwarg='uid_invite',
         view_name='project-ownership-invite-detail',
     )
     sender = serializers.SerializerMethodField()

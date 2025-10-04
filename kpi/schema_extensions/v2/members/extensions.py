@@ -27,7 +27,7 @@ class InviteFieldExtension(OpenApiSerializerFieldExtension):
             properties={
                 'url': build_url_type(
                     'api_v2:organization-invites-detail',
-                    organization_id='orgR6zUBwMHop2mgGygtFd6c',
+                    uid_organization='orgR6zUBwMHop2mgGygtFd6c',
                     guid='f3ba00b2-372b-4283-9d57-adbe7d5b1bf1',
                 ),
                 'invited_by': USER_URL_SCHEMA,
@@ -62,7 +62,7 @@ class MemberUrlFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:organization-members-detail',
-            organization_id='orgR6zUBwMHop2mgGygtFd6c',
+            uid_organization='orgR6zUBwMHop2mgGygtFd6c',
             user__username='bob',
         )
 

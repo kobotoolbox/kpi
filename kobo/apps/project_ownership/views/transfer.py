@@ -17,7 +17,7 @@ from ..serializers import TransferDetailSerializer
     tags=['Manage projects and library content'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_invite_uid',
+            name='uid_invite',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -42,8 +42,8 @@ class TransferViewSet(viewsets.ReadOnlyModelViewSet):
     Viewset for transfers
 
     Available actions:
-    - list           → GET       /api/v2/project-ownership/invites/{parent_lookup_invite_uid}/transfers/  # noqa
-    - retrieve       → GET       /api/v2/project-ownership/invites/{parent_lookup_invite_uid}/transfers/{uid}/  # noqa
+    - list           → GET       /api/v2/project-ownership/invites/{uid_invite}/transfers/  # noqa
+    - retrieve       → GET       /api/v2/project-ownership/invites/{uid_invite}/transfers/{uid_transfer}/  # noqa
 
     Documentation:
     - docs/api/v2/transfers/list.md
@@ -52,6 +52,7 @@ class TransferViewSet(viewsets.ReadOnlyModelViewSet):
 
     model = Transfer
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_transfer'
     permission_classes = (IsAuthenticated,)
     serializer_class = TransferDetailSerializer
 

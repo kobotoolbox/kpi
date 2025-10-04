@@ -72,6 +72,7 @@ class UserAssetSubscriptionViewSet(viewsets.ModelViewSet):
     queryset = UserAssetSubscription.objects.none()
     serializer_class = UserAssetSubscriptionSerializer
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_asset_subscription'
 
     def get_queryset(self):
         user = get_database_user(self.request.user)

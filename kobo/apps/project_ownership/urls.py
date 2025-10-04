@@ -12,7 +12,7 @@ invite_router.register(
     r'transfers',
     TransferViewSet,
     basename='project-ownership-transfer',
-    parents_query_lookups=['invite_uid'],
+    parents_query_lookups=['invite'],
 )
 
 urlpatterns = [

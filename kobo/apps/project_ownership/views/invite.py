@@ -98,6 +98,7 @@ class InviteViewSet(AuditLoggedModelViewSet):
 
     model = Invite
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_invite'
     serializer_class = InviteSerializer
     permission_classes = (IsAuthenticated,)
     filter_backends = (InviteFilter, )

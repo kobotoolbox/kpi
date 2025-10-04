@@ -38,12 +38,12 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
 
         self.list_url = reverse(
             self._get_endpoint('organization-members-list'),
-            kwargs={'organization_id': self.organization.id},
+            kwargs={'uid_organization': self.organization.id},
         )
         self.detail_url = lambda username: reverse(
             self._get_endpoint('organization-members-detail'),
             kwargs={
-                'organization_id': self.organization.id,
+                'uid_organization': self.organization.id,
                 'user__username': username
             },
         )
@@ -61,7 +61,7 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
 
         list_url = reverse(
             self._get_endpoint('organization-invites-list'),
-            kwargs={'organization_id': self.organization.id},
+            kwargs={'uid_organization': self.organization.id},
         )
         self.client.force_login(invited_by)
         self.client.post(list_url, data=invitation_data)
@@ -72,7 +72,7 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         """
         detail_url = reverse(
             self._get_endpoint('organization-invites-detail'),
-            kwargs={'guid': guid, 'organization_id': self.organization.id},
+            kwargs={'guid': guid, 'uid_organization': self.organization.id},
         )
         self.client.force_login(user)
         return self.client.patch(detail_url, data={'status': status})
@@ -231,7 +231,7 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         self.client.force_login(self.bob)
         bob_org_members_list_url = reverse(
             self._get_endpoint('organization-members-list'),
-            kwargs={'organization_id': bob_org.id},
+            kwargs={'uid_organization': bob_org.id},
         )
         response = self.client.get(bob_org_members_list_url)
         # The first member should be bob
@@ -243,7 +243,7 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         self.client.force_login(self.someuser)
         someuser_org_members_list_url = reverse(
             self._get_endpoint('organization-members-list'),
-            kwargs={'organization_id': self.organization.id},
+            kwargs={'uid_organization': self.organization.id},
         )
         response = self.client.get(someuser_org_members_list_url)
 

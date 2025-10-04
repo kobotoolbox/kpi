@@ -244,7 +244,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     tags=['Logging'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -286,9 +286,9 @@ class ProjectHistoryLogViewSet(
     ViewSet for managing the current project's history
 
     Available actions:
-    - action        → GET   /api/v2/asset/{parent_lookup_asset}/history/action/
-    - export        → POST  /api/v2/asset/{parent_lookup_asset}/history/
-    - list          → GET   /api/v2/asset/{parent_lookup_asset}/history/
+    - action        → GET   /api/v2/asset/{uid_asset}/history/action/
+    - export        → POST  /api/v2/asset/{uid_asset}/history/
+    - list          → GET   /api/v2/asset/{uid_asset}/history/
 
     Documentation:
     - docs/api/v2/history/action.md

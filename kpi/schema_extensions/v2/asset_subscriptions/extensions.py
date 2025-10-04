@@ -11,5 +11,5 @@ class AssetSubscriptionURLFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:userassetsubscription-detail',
-            uid='sEMPghTguZsxj4rn4s9dvS',
+            uid_asset_subscription='sEMPghTguZsxj4rn4s9dvS',
         )
