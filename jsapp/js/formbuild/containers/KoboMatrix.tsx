@@ -1,10 +1,12 @@
-import React from 'react'
-
 import alertify from 'alertifyjs'
-import { Map } from 'immutable'
+import { List, Map, type OrderedMap } from 'immutable'
+import orderBy from 'lodash.orderby'
+import React from 'react'
 import autoBind from 'react-autobind'
 import Select from 'react-select'
 import Checkbox from '#/components/common/checkbox'
+import type { AnyRowTypeName } from '#/constants'
+import type { LabelValuePair, SurveyChoice } from '#/dataInterface'
 import { bemComponents } from '#/libs/reactBemComponents'
 import { txtid } from '#/utils'
 import { sluggify } from '../../../xlform/src/model.utils'
@@ -25,8 +27,62 @@ const bem = bemComponents({
   MatrixButton: ['kobomatrix-button', '<button>'],
 })
 
-class KoboMatrix extends React.Component {
-  constructor(props) {
+interface KoboMatrixProps {
+  model: {
+    data: KoboMatrixData
+    kuid: string
+    kobomatrix_list: string
+  }
+}
+
+type KoboMatrixDataRow = Map<string, string> & KoboMatrixDataRowObject
+
+interface KoboMatrixDataRowObject {
+  default: string
+  appearance: string
+  constraint_message: string
+  hint: string
+  $kuid: string
+  name: string
+  guidance_hint: string
+  label: string
+  tags: string
+  $xpath: string
+  type: AnyRowTypeName
+  constraint: string
+  relevant: string
+  $autoname: string
+}
+
+// This is very much linked to `SurveyChoice`, but am not sure if this is 1-1 identical piece of data. For sure `order`
+// is being added internally in `KoboMatrix`.
+type KoboMatrixDataChoice = Map<string, string> &
+  SurveyChoice & {
+    /** `order` ensures that rows are being rendered in the order they were added */
+    order?: number
+  }
+
+/**
+ * Note `choices` contain both matrix rows and options for select_x responses in matrix cells.
+ */
+type KoboMatrixDataChoicesList = OrderedMap<string, KoboMatrixDataChoice>
+
+type KoboMatrixData = Map<string, string | KoboMatrixDataRow | List<string> | KoboMatrixDataChoicesList>
+
+interface KoboMatrixState {
+  data: KoboMatrixData
+  kuid: string
+  kobomatrix_list: string
+  expandedColKuid: false | string
+  expandedRowKuid: false | string
+  typeChoices: Array<LabelValuePair>
+}
+
+class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
+  _listDetails: {}
+  typingTimer?: number
+
+  constructor(props: KoboMatrixProps) {
     super(props)
     this._listDetails = {}
 
@@ -64,11 +120,18 @@ class KoboMatrix extends React.Component {
     localStorage.setItem(`koboMatrix.${kuid}`, JSON.stringify(data.toJS()))
 
     // generate cols/rows for a new matrix
-    if (data.get('cols').size < 1 && data.get('choices').size < 1) {
+    const cols = data.get('cols')
+    const colsSize = typeof cols === 'object' && 'size' in cols ? cols.size : -1
+    const choices = data.get('choices')
+    const choicesSize = typeof choices === 'object' && 'size' in choices ? choices.size : -1
+    if (colsSize < 1 && choicesSize < 1) {
       this.generateDefault()
     }
   }
 
+  /**
+   * Fills up component with initial data, i.e. when user creats new matrix, it already has 2 columns and 1 choice.
+   */
   generateDefault() {
     // TODO: find a better way to do this
     // See: https://github.com/kobotoolbox/kpi/issues/3924
@@ -81,7 +144,10 @@ class KoboMatrix extends React.Component {
     }, 500)
   }
 
-  expandColumn(colKuid) {
+  /**
+   * Opens and closes settings for given column. Only one can be visible at the same time.
+   */
+  toggleColumnSettings(colKuid: string) {
     if (this.state.expandedColKuid === colKuid) {
       this.setState({ expandedColKuid: false })
     } else {
@@ -89,7 +155,10 @@ class KoboMatrix extends React.Component {
     }
   }
 
-  expandRow(rowKuid) {
+  /**
+   * Opens and closes settings for given row. Only one can be visible at the same time.
+   */
+  toggleRowSettings(rowKuid: string) {
     if (this.state.expandedRowKuid === rowKuid) {
       this.setState({ expandedRowKuid: false })
     } else {
@@ -98,21 +167,26 @@ class KoboMatrix extends React.Component {
   }
 
   /**
+   * Generates a unique name
+   *
    * @param {string} val
-   * @param {string} type
-   * @param {string} [ln]
+   * @param {string | false} type
+   * @param {string | null } [ln]
    */
-  autoName(val, type, ln) {
-    var names = []
+  autoName(val: string, type: string | false, ln?: string | null) {
+    var names: string[] = []
     var data = this.state.data
 
+    const cols = data.get('cols') as List<string>
+    const choices = data.get('choices') as unknown as KoboMatrixDataChoicesList
+
     if (type === 'column') {
-      data.get('cols').forEach((ch) => {
+      cols.forEach((ch) => {
         names.push(data.getIn([ch, '$autoname']))
       })
     } else {
-      data.get('choices').forEach((ch) => {
-        if (ch.get('list_name') === ln) {
+      choices.forEach((ch) => {
+        if (ch && ch.get('list_name') === ln) {
           names.push(ch.get('$autovalue'))
         }
       })
@@ -131,37 +205,32 @@ class KoboMatrix extends React.Component {
   }
 
   /**
+   * Handles both label and name changes for rows.
+   *
    * Here we save the input raw value, and it will be fixed either after some
    * short time not typing, or when blur happens.
+   *
    * @param {string} type
    * @param {Event} evt
    */
-  onRowChange(type, evt) {
+  onRowChange(type: string, evt: React.ChangeEvent<HTMLInputElement>) {
     const rowKuid = this.state.expandedRowKuid
     const val = evt.target.value
 
     this.setRow(this.state.expandedRowKuid, type, val)
     clearTimeout(this.typingTimer)
-    this.typingTimer = setTimeout(this.setRow.bind(this, rowKuid, type, val, true), 1500)
+    this.typingTimer = window.setTimeout(this.setRow.bind(this, rowKuid, type, val, true), 1500)
   }
 
   /**
-   * Here we save a cleaned up value.
-   * @param {string} type
-   * @param {Event} evt
-   */
-  onRowBlur(type, evt) {
-    this.setRow(this.state.expandedRowKuid, type, evt.target.value, true)
-    clearTimeout(this.typingTimer)
-  }
-
-  /**
-   * @param {string} rowKuid
+   * Updates or adds row in data
+   *
+   * @param {string} rowKuid - sometimes `false` is being passed. Why? :)
    * @param {string} type
    * @param {string} value
    * @param {boolean} [applyAutoName=false]
    */
-  setRow(rowKuid, type, value, applyAutoName = false) {
+  setRow(rowKuid: string | false, type: string, value: string, applyAutoName = false) {
     var data = this.state.data
     let newValue = value
 
@@ -182,37 +251,44 @@ class KoboMatrix extends React.Component {
   }
 
   /**
+   * Handles both label and name changes for columns - input change.
+   *
    * Here we save the input raw value, and it will be fixed either after some
    * short time not typing, or when blur happens.
+   *
    * @param {string} type
    * @param {Event} evt
    */
-  onColumnChange(type, evt) {
+  onColumnChange(type: string, evt: React.ChangeEvent<HTMLInputElement>) {
     const colKuid = this.state.expandedColKuid
     const val = evt.target.value
 
     this.setColumn(colKuid, type, val)
     clearTimeout(this.typingTimer)
-    this.typingTimer = setTimeout(this.setColumn.bind(this, colKuid, type, val, true), 1500)
+    this.typingTimer = window.setTimeout(this.setColumn.bind(this, colKuid, type, val, true), 1500)
   }
 
   /**
+   * Handles both label and name changes for columns - input blur.
+   *
    * Here we save a cleaned up value.
    * @param {string} type
    * @param {Event} evt
    */
-  onColumnBlur(type, evt) {
+  onColumnBlur(type: string, evt: React.FocusEvent<HTMLInputElement>) {
     this.setColumn(this.state.expandedColKuid, type, evt.target.value, true)
     clearTimeout(this.typingTimer)
   }
 
   /**
-   * @param {string} colKuid
+   * Updates or adds column in data
+   *
+   * @param {string} colKuid - sometimes `false` is being passed. Why? :)
    * @param {string} type
    * @param {string} value
    * @param {boolean} [applyAutoName=false]
    */
-  setColumn(colKuid, type, value, applyAutoName = false) {
+  setColumn(colKuid: string | false, type: string, value: string, applyAutoName = false) {
     let data = this.state.data
     let newValue = value
 
@@ -226,7 +302,10 @@ class KoboMatrix extends React.Component {
     this.toLocalStorage(data)
   }
 
-  requiredChange(isChecked) {
+  /**
+   * Handles required checkbox setting
+   */
+  requiredChange(isChecked: boolean) {
     const colKuid = this.state.expandedColKuid
     var data = this.state.data
     data = data.setIn([colKuid, 'required'], isChecked)
@@ -234,15 +313,22 @@ class KoboMatrix extends React.Component {
     this.toLocalStorage(data)
   }
 
-  colChangeType(e) {
+  /**
+   * Handles changing of column type
+   */
+  colChangeType(e: null | { value: string | null }) {
     const colKuid = this.state.expandedColKuid
     var data = this.state.data
-    const newType = e.value
+    const newType = e?.value || null
     const prevType = data.getIn([colKuid, 'type'])
 
     // warn only if existing column type is one of (Select One, Select Many)
     // and new type is NOT one of (Select One, Select Many)
-    if (['select_one', 'select_many'].includes(prevType) && !['select_one', 'select_many'].includes(newType)) {
+    if (
+      newType !== null &&
+      ['select_one', 'select_many'].includes(prevType) &&
+      !['select_one', 'select_many'].includes(newType)
+    ) {
       const dialog = alertify.dialog('confirm')
       const opts = {
         title: t('Change column type?'),
@@ -262,7 +348,7 @@ class KoboMatrix extends React.Component {
     } else {
       data = data.setIn([colKuid, 'type'], newType)
       const prevListName = data.getIn([colKuid, 'select_from_list_name'])
-      if (['select_one', 'select_many'].includes(newType) && prevListName === undefined) {
+      if (newType !== null && ['select_one', 'select_many'].includes(newType) && prevListName === undefined) {
         const newListId = txtid()
         data = this._addDefaultList(data, newListId)
         data = data.setIn([colKuid, 'select_from_list_name'], newListId)
@@ -272,7 +358,12 @@ class KoboMatrix extends React.Component {
     }
   }
 
-  _addDefaultList(data, newListId) {
+  /**
+   * Generates a list of (2) default choices for `select_x` matrix columns
+   */
+  _addDefaultList(data: KoboMatrixData, newListId: string) {
+    const biggestOrder = this.getChoiceCurrentBiggestOrder()
+
     const choice1kuid = txtid()
     const val1 = this.autoName(t('Option 1'), false, newListId)
 
@@ -282,6 +373,7 @@ class KoboMatrix extends React.Component {
       name: val1,
       $kuid: choice1kuid,
       list_name: newListId,
+      order: biggestOrder + 1,
     })
     data = data.setIn(['choices', choice1kuid], choice1)
 
@@ -293,12 +385,16 @@ class KoboMatrix extends React.Component {
       name: val2,
       $kuid: choice2kuid,
       list_name: newListId,
+      order: biggestOrder + 2,
     })
     data = data.setIn(['choices', choice2kuid], choice2)
     return data
   }
 
-  choiceChange(e) {
+  /**
+   * Handles both label and name changes of a `select_x` option
+   */
+  choiceChange(e: React.ChangeEvent<HTMLInputElement>) {
     const kuid = e.target.getAttribute('data-kuid')
     const type = e.target.getAttribute('data-type')
     var data = this.state.data
@@ -318,41 +414,85 @@ class KoboMatrix extends React.Component {
     this.toLocalStorage(data)
   }
 
-  getCol(colKuid, field) {
+  /**
+   * Finds value of given property of given column
+   */
+  getCol(colKuid: string, field: string) {
     return this.state.data.getIn([colKuid, field])
   }
 
-  getSelectTypeVal(expandedCol) {
+  /**
+   * Finds (response) type value of given column
+   */
+  getSelectTypeVal(expandedCol: string) {
     const typeVal = this.getCol(expandedCol, 'type')
     return this.state.typeChoices.find((option) => option.value === typeVal)
   }
 
-  getChoiceField(kuid, field) {
+  /**
+   * Finds value of given property of given column choice
+   */
+  getChoiceField(kuid: string, field: string) {
     return this.state.data.getIn(['choices', kuid, field])
   }
 
-  getRequiredStatus(colKuid) {
+  /**
+   * Finds required status value of given column
+   */
+  getRequiredStatus(colKuid: string) {
     const val = this.state.data.getIn([colKuid, 'required'])
     return val === true || val === 'true' ? true : false
+  } /**
+   * From all choices (of all lists) finds the biggest `order` number
+   */
+  getChoiceCurrentBiggestOrder() {
+    const currentChoices = this.state.data.get('choices') as KoboMatrixDataChoicesList
+
+    // We need to find what is the biggest order of all existing choices
+    let biggestOrder = 0
+    currentChoices.forEach((ch) => {
+      const chOrder = ch?.get('order')
+      if (chOrder && Number.parseInt(chOrder) > biggestOrder) {
+        biggestOrder = Number.parseInt(chOrder)
+      }
+    })
+
+    return biggestOrder
   }
 
-  newChoiceOption(e) {
+  /**
+   * This handles both:
+   * 1. adding new "row" to KoboMatrix
+   * 2. adding new option to `select_one` or `select_multiple` matrix response
+   */
+  newChoiceOption(e: React.MouseEvent<HTMLElement> | false) {
     let data = this.state.data
     let listName = null
     if (e && e.target) {
-      listName = e.target.getAttribute('data-list-name')
+      const target = e.target as HTMLElement
+      listName = target.getAttribute('data-list-name')
     } else {
       listName = this.state.kobomatrix_list
     }
 
-    const val = this.autoName(t('Row'), false, listName)
+    let label = ''
+    // This means we are adding a row:
+    if (listName === this.state.kobomatrix_list) {
+      label = t('Row')
+      // This means wa are adding a select_x option:
+    } else {
+      label = t('Option')
+    }
+
+    const val = this.autoName(label, false, listName)
     const newRowKuid = txtid()
     const newRow = Map({
-      label: t('Row'),
+      label: label,
       $autovalue: val,
       name: val,
       $kuid: newRowKuid,
       list_name: listName,
+      order: this.getChoiceCurrentBiggestOrder() + 1,
     })
 
     data = data.setIn(['choices', newRowKuid], newRow)
@@ -360,6 +500,9 @@ class KoboMatrix extends React.Component {
     this.toLocalStorage(data)
   }
 
+  /**
+   * Adds new column
+   */
   newColumn() {
     var data = this.state.data
     const newColKuid = txtid()
@@ -380,13 +523,16 @@ class KoboMatrix extends React.Component {
     })
 
     data = data.set(newColKuid, newCol)
-    data = data.update('cols', (list) => list.push(newColKuid))
+    data = data.update('cols', (cols) => (cols as List<string>).push(newColKuid))
 
     this.setState({ data: data })
     this.toLocalStorage(data)
   }
 
-  deleteRow(rowKuid) {
+  /**
+   * Deletes given row with a safety confirmation
+   */
+  deleteRow(rowKuid: string) {
     const dialog = alertify.dialog('confirm')
     const opts = {
       title: t('Delete row?'),
@@ -402,6 +548,9 @@ class KoboMatrix extends React.Component {
     dialog.set(opts).show()
   }
 
+  /**
+   * Deletes given column with a safety confirmation
+   */
   deleteColumn() {
     const colKuid = this.state.expandedColKuid
     var data = this.state.data
@@ -411,7 +560,8 @@ class KoboMatrix extends React.Component {
       message: t('Are you sure you want to delete this column? This action cannot be undone.'),
       labels: { ok: t('Delete'), cancel: t('Cancel') },
       onok: () => {
-        data = data.update('cols', (cols) => cols.filterNot((col) => col === colKuid))
+        // We need to convert this back to List, as `.filterNot` is not returning a `List`. Not sure why this worked previously
+        data = data.update('cols', (cols) => List((cols as List<string>).filterNot((col) => col === colKuid)))
         this.setState({ data: data, expandedColKuid: false })
         this.toLocalStorage(data)
       },
@@ -420,44 +570,68 @@ class KoboMatrix extends React.Component {
     dialog.set(opts).show()
   }
 
-  toLocalStorage(data) {
+  /**
+   * Stores matrix data in local storage. The other function (`koboMatrixParser`) that is using this storage data can be
+   * found in `formBuilderUtils.js` file.
+   *
+   * TODO: describe in more detail what is the purpose of this storage data keeping. This is for sure connected to the
+   * fact that matrix is not official XLSForm type.
+   */
+  toLocalStorage(data: KoboMatrixData) {
     const dataJS = data.toJS()
     localStorage.setItem(`koboMatrix.${this.state.kuid}`, JSON.stringify(dataJS))
   }
 
-  getListDetails(listName) {
-    const list = this.state.data.get('choices')
-    var _list = []
+  /**
+   * Returns JS array of `choices` objects for given list - sorted by `order` and `label`.
+   */
+  getOrderedChoicesListArray(listName: string) {
+    const list = this.state.data.get('choices') as KoboMatrixDataChoicesList
+    var _list: Array<KoboMatrixDataRowObject> = []
 
     list.forEach((item) => {
-      if (item.get('list_name') === listName) {
+      if (item && item.get('list_name') === listName) {
         _list.push(item.toJS())
       }
     })
 
-    return _list
+    return orderBy(_list, ['order', 'label'])
+  }
+
+  /**
+   * Returns immutable instance of all available `choices` (from all lists) sorted by `order` and `label`.
+   */
+  getOrderedChoices() {
+    const choices = this.state.data.get('choices') as KoboMatrixDataChoicesList
+
+    // Sort by label and then by order
+    const immutableSortByOutput = choices.sortBy((ch) => ch?.get('label') ?? '').sortBy((ch) => ch?.get('order') ?? 0)
+
+    return immutableSortByOutput.toArray()
   }
 
   render() {
     const data = this.state.data
-    const cols = data.get('cols')
-    const choices = data.get('choices').toArray()
+    const cols = data.get('cols') as List<string>
+    const orderedChoices = this.getOrderedChoices()
     const expandedCol = this.state.expandedColKuid
     const expandedRow = this.state.expandedRowKuid
 
-    var items = this.getListDetails(this.state.kobomatrix_list)
+    var items = this.getOrderedChoicesListArray(this.state.kobomatrix_list)
 
     return (
       <bem.Matrix>
         <bem.MatrixCols m={'header'}>
           <bem.MatrixCols__col m={'label'} key={'label'} />
           {cols.map((colKuid, n) => {
-            const col = data.get(colKuid)
+            if (!colKuid) return null
+
+            const col = data.get(colKuid) as KoboMatrixDataRow
             return (
               <bem.MatrixCols__col key={n} m={'header'} className={expandedCol === colKuid ? 'active' : ''}>
                 <bem.MatrixCols__colattr m={'label'}>{col.get('label')}</bem.MatrixCols__colattr>
                 <bem.MatrixCols__colattr m={'type'}>{col.get('type')}</bem.MatrixCols__colattr>
-                <i className='k-icon k-icon-settings' onClick={this.expandColumn.bind(this, colKuid)} />
+                <i className='k-icon k-icon-settings' onClick={this.toggleColumnSettings.bind(this, colKuid)} />
               </bem.MatrixCols__col>
             )
           })}
@@ -471,7 +645,7 @@ class KoboMatrix extends React.Component {
                   value={this.getSelectTypeVal(expandedCol)}
                   isClearable={false}
                   options={this.state.typeChoices}
-                  onChange={this.colChangeType}
+                  onChange={this.colChangeType.bind(this)}
                   className='kobo-select'
                   classNamePrefix='kobo-select'
                   menuPlacement='auto'
@@ -503,7 +677,7 @@ class KoboMatrix extends React.Component {
                 <span>{t('Required')}</span>
                 <Checkbox
                   checked={this.getRequiredStatus(expandedCol)}
-                  onChange={this.requiredChange}
+                  onChange={this.requiredChange.bind(this)}
                   className='js-cancel-sort'
                 />
               </label>
@@ -513,7 +687,7 @@ class KoboMatrix extends React.Component {
                     <span>{t('Label')}</span>
                     <span>{t('Data Column Name')}</span>
                   </div>
-                  {choices.map((choice) => {
+                  {orderedChoices.map((choice) => {
                     if (choice.get('list_name') === this.getCol(expandedCol, 'select_from_list_name')) {
                       const ch = choice.get('$kuid')
                       return (
@@ -522,7 +696,7 @@ class KoboMatrix extends React.Component {
                             <input
                               type='text'
                               value={this.getChoiceField(ch, 'label')}
-                              onChange={this.choiceChange}
+                              onChange={this.choiceChange.bind(this)}
                               className='js-cancel-sort'
                               data-type='label'
                               data-kuid={ch}
@@ -533,7 +707,7 @@ class KoboMatrix extends React.Component {
                             <input
                               type='text'
                               value={this.getChoiceField(ch, 'name')}
-                              onChange={this.choiceChange}
+                              onChange={this.choiceChange.bind(this)}
                               className='js-cancel-sort'
                               data-type='name'
                               data-kuid={ch}
@@ -544,12 +718,15 @@ class KoboMatrix extends React.Component {
                           </span>
                         </div>
                       )
+                    } else {
+                      return null
                     }
                   })}
                   <div className='matrix-cols__options--row-foot'>
                     <i
                       className='k-icon k-icon-plus'
-                      onClick={this.newChoiceOption}
+                      title={t('Add new option')}
+                      onClick={this.newChoiceOption.bind(this)}
                       data-list-name={this.getCol(expandedCol, 'select_from_list_name')}
                     />
                   </div>
@@ -569,16 +746,18 @@ class KoboMatrix extends React.Component {
               <bem.MatrixItems__itemrow>
                 <bem.MatrixItems__itemattr m={'label'}>
                   <label>{item.label}</label>
-                  <i className='k-icon k-icon-settings' onClick={this.expandRow.bind(this, item.$kuid)} />
+                  <i className='k-icon k-icon-settings' onClick={this.toggleRowSettings.bind(this, item.$kuid)} />
                 </bem.MatrixItems__itemattr>
                 {cols.map((colKuid) => {
-                  const col = data.get(colKuid)
+                  if (!colKuid) return null
+
+                  const col = data.get(colKuid) as KoboMatrixDataRow
                   const _listName = col.get('select_from_list_name')
                   let _isUnderscores = false
-                  let contents = []
+                  let contents: string[] = []
 
                   if (_listName) {
-                    const list = this.getListDetails(_listName)
+                    const list = this.getOrderedChoicesListArray(_listName)
                     const listStyleChar = '🔘'
                     list.forEach((item) => {
                       contents.push(`${listStyleChar} ${item.label}`)
@@ -634,14 +813,15 @@ class KoboMatrix extends React.Component {
           ))}
           <bem.MatrixItems__item key={'new'} m={'new'}>
             <i
+              title={t('Add new row')}
               className='k-icon k-icon-plus'
-              onClick={this.newChoiceOption}
+              onClick={this.newChoiceOption.bind(this)}
               data-list-name={this.state.kobomatrix_list}
             />
           </bem.MatrixItems__item>
         </bem.MatrixItems>
         <bem.MatrixItemsNewCol>
-          <i className='k-icon k-icon-plus' onClick={this.newColumn} />
+          <i title={t('Add new column')} className='k-icon k-icon-plus' onClick={this.newColumn} />
         </bem.MatrixItemsNewCol>
       </bem.Matrix>
     )
