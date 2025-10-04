@@ -1978,108 +1978,6 @@ export const useProjectOwnershipInvitesCreate = <TError = ErrorObject | ErrorDet
   return useMutation(mutationOptions)
 }
 /**
- * ## Retrieve transfer details
-
- */
-export type projectOwnershipInvitesTransfersRetrieveResponse200 = {
-  data: TransferListResponse
-  status: 200
-}
-
-export type projectOwnershipInvitesTransfersRetrieveResponse401 = {
-  data: ErrorDetail
-  status: 401
-}
-
-export type projectOwnershipInvitesTransfersRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
-export type projectOwnershipInvitesTransfersRetrieveResponseComposite =
-  | projectOwnershipInvitesTransfersRetrieveResponse200
-  | projectOwnershipInvitesTransfersRetrieveResponse401
-  | projectOwnershipInvitesTransfersRetrieveResponse404
-
-export type projectOwnershipInvitesTransfersRetrieveResponse =
-  projectOwnershipInvitesTransfersRetrieveResponseComposite & {
-    headers: Headers
-  }
-
-export const getProjectOwnershipInvitesTransfersRetrieveUrl = (uidInviteUid: string, uidTransfer: string) => {
-  return `/api/v2/project-ownership/invites/${uidInviteUid}/transfers/${uidTransfer}/`
-}
-
-export const projectOwnershipInvitesTransfersRetrieve = async (
-  uidInviteUid: string,
-  uidTransfer: string,
-  options?: RequestInit,
-): Promise<projectOwnershipInvitesTransfersRetrieveResponse> => {
-  return fetchWithAuth<projectOwnershipInvitesTransfersRetrieveResponse>(
-    getProjectOwnershipInvitesTransfersRetrieveUrl(uidInviteUid, uidTransfer),
-    {
-      ...options,
-      method: 'GET',
-    },
-  )
-}
-
-export const getProjectOwnershipInvitesTransfersRetrieveQueryKey = (uidInviteUid: string, uidTransfer: string) => {
-  return ['api', 'v2', 'project-ownership', 'invites', uidInviteUid, 'transfers', uidTransfer] as const
-}
-
-export const getProjectOwnershipInvitesTransfersRetrieveQueryOptions = <
-  TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  uidInviteUid: string,
-  uidTransfer: string,
-  options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
-    request?: SecondParameter<typeof fetchWithAuth>
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
-
-  const queryKey =
-    queryOptions?.queryKey ?? getProjectOwnershipInvitesTransfersRetrieveQueryKey(uidInviteUid, uidTransfer)
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>> = ({ signal }) =>
-    projectOwnershipInvitesTransfersRetrieve(uidInviteUid, uidTransfer, { signal, ...requestOptions })
-
-  return { queryKey, queryFn, enabled: !!(uidInviteUid && uidTransfer), ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
-    TError,
-    TData
-  > & { queryKey: QueryKey }
-}
-
-export type ProjectOwnershipInvitesTransfersRetrieveQueryResult = NonNullable<
-  Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>
->
-export type ProjectOwnershipInvitesTransfersRetrieveQueryError = ErrorDetail | ErrorObject
-
-export function useProjectOwnershipInvitesTransfersRetrieve<
-  TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
-  uidInviteUid: string,
-  uidTransfer: string,
-  options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
-    request?: SecondParameter<typeof fetchWithAuth>
-  },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getProjectOwnershipInvitesTransfersRetrieveQueryOptions(uidInviteUid, uidTransfer, options)
-
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
-
-  query.queryKey = queryOptions.queryKey
-
-  return query
-}
-
-/**
  * ## Invite detail
 
 It can be useful to monitor the invite status while the transfer is being processed
@@ -2390,6 +2288,107 @@ export const useProjectOwnershipInvitesDestroy = <TError = ErrorDetail | ErrorOb
 
   return useMutation(mutationOptions)
 }
+/**
+ * ## Retrieve transfer details
+
+ */
+export type projectOwnershipInvitesTransfersRetrieveResponse200 = {
+  data: TransferListResponse
+  status: 200
+}
+
+export type projectOwnershipInvitesTransfersRetrieveResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type projectOwnershipInvitesTransfersRetrieveResponse404 = {
+  data: ErrorObject
+  status: 404
+}
+
+export type projectOwnershipInvitesTransfersRetrieveResponseComposite =
+  | projectOwnershipInvitesTransfersRetrieveResponse200
+  | projectOwnershipInvitesTransfersRetrieveResponse401
+  | projectOwnershipInvitesTransfersRetrieveResponse404
+
+export type projectOwnershipInvitesTransfersRetrieveResponse =
+  projectOwnershipInvitesTransfersRetrieveResponseComposite & {
+    headers: Headers
+  }
+
+export const getProjectOwnershipInvitesTransfersRetrieveUrl = (uidInvite: string, uidTransfer: string) => {
+  return `/api/v2/project-ownership/invites/${uidInvite}/transfers/${uidTransfer}/`
+}
+
+export const projectOwnershipInvitesTransfersRetrieve = async (
+  uidInvite: string,
+  uidTransfer: string,
+  options?: RequestInit,
+): Promise<projectOwnershipInvitesTransfersRetrieveResponse> => {
+  return fetchWithAuth<projectOwnershipInvitesTransfersRetrieveResponse>(
+    getProjectOwnershipInvitesTransfersRetrieveUrl(uidInvite, uidTransfer),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
+}
+
+export const getProjectOwnershipInvitesTransfersRetrieveQueryKey = (uidInvite: string, uidTransfer: string) => {
+  return ['api', 'v2', 'project-ownership', 'invites', uidInvite, 'transfers', uidTransfer] as const
+}
+
+export const getProjectOwnershipInvitesTransfersRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
+  TError = ErrorDetail | ErrorObject,
+>(
+  uidInvite: string,
+  uidTransfer: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getProjectOwnershipInvitesTransfersRetrieveQueryKey(uidInvite, uidTransfer)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>> = ({ signal }) =>
+    projectOwnershipInvitesTransfersRetrieve(uidInvite, uidTransfer, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidInvite && uidTransfer), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type ProjectOwnershipInvitesTransfersRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>
+>
+export type ProjectOwnershipInvitesTransfersRetrieveQueryError = ErrorDetail | ErrorObject
+
+export function useProjectOwnershipInvitesTransfersRetrieve<
+  TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
+  TError = ErrorDetail | ErrorObject,
+>(
+  uidInvite: string,
+  uidTransfer: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getProjectOwnershipInvitesTransfersRetrieveQueryOptions(uidInvite, uidTransfer, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
 /**
  * ## List current user's assets' tags
 

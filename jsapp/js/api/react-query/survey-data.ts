@@ -775,11 +775,11 @@ export const useAssetsDataDuplicateCreate = <TError = ErrorObject, TContext = un
 
 Note: Some variation of this url exists:
 
-`/api/v2/assets/{parent_lookup_asset}/data/{id}/edit/`: deprecated, use the next one.
+`/api/v2/assets/{uid_asset}/data/{id}/edit/`: deprecated, use the next one.
 
-`/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/edit/`: return the url of the enketo submission (as seen in the response example).
+`/api/v2/assets/{uid_asset}/data/{id}/enketo/edit/`: return the url of the enketo submission (as seen in the response example).
 
-`/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.
+`/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.
 
  */
 export type assetsDataEditRetrieveResponse200 = {
@@ -878,11 +878,11 @@ export function useAssetsDataEditRetrieve<
 
 Note: Some variation of this url exists:
 
-`/api/v2/assets/{parent_lookup_asset}/data/{id}/edit/`: deprecated, use the next one.
+`/api/v2/assets/{uid_asset}/data/{id}/edit/`: deprecated, use the next one.
 
-`/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/edit/`: return the url of the enketo submission (as seen in the response example).
+`/api/v2/assets/{uid_asset}/data/{id}/enketo/edit/`: return the url of the enketo submission (as seen in the response example).
 
-`/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.
+`/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.
 
  */
 export type assetsDataEnketoEditRetrieveResponse200 = {
@@ -983,11 +983,11 @@ export function useAssetsDataEnketoEditRetrieve<
 
 Note: Some variation of this url exists:
 
-`/api/v2/assets/{parent_lookup_asset}/data/{id}/edit/`: deprecated, use the next one.
+`/api/v2/assets/{uid_asset}/data/{id}/edit/`: deprecated, use the next one.
 
-`/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/edit/`: return the url of the enketo submission (as seen in the response example).
+`/api/v2/assets/{uid_asset}/data/{id}/enketo/edit/`: return the url of the enketo submission (as seen in the response example).
 
-`/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.
+`/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.
 
  */
 export type assetsDataEnketoRedirectEditRetrieveResponse200 = {
@@ -1091,9 +1091,9 @@ export function useAssetsDataEnketoRedirectEditRetrieve<
 
 Note: Some variation of this url exists:
 
-`/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/view/`: return the url of the enketo submission (as seen in the response example).
+`/api/v2/assets/{uid_asset}/data/{id}/enketo/view/`: return the url of the enketo submission (as seen in the response example).
 
-`/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/view/`: redirect to the enketo url submission with a 302 code.
+`/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/view/`: redirect to the enketo url submission with a 302 code.
 
  */
 export type assetsDataEnketoRedirectViewRetrieveResponse200 = {
@@ -1197,9 +1197,9 @@ export function useAssetsDataEnketoRedirectViewRetrieve<
 
 Note: Some variation of this url exists:
 
-`/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/view/`: return the url of the enketo submission (as seen in the response example).
+`/api/v2/assets/{uid_asset}/data/{id}/enketo/view/`: return the url of the enketo submission (as seen in the response example).
 
-`/api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/view/`: redirect to the enketo url submission with a 302 code.
+`/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/view/`: redirect to the enketo url submission with a 302 code.
 
  */
 export type assetsDataEnketoViewRetrieveResponse200 = {
@@ -1593,7 +1593,7 @@ export const useAssetsDataValidationStatusDestroy = <TError = ErrorObject, TCont
 /**
  * ## Get an asset's attachment using xpath
 
-* `parent_lookup_data` can be the primary key of the submission or its `uuid`.
+* `uid_data` can be the primary key of the submission or its `uuid`.
 Please note that using the `uuid` may match **several** submissions, only
 the first match will be returned.
 
@@ -1722,7 +1722,7 @@ export function useAssetsDataAttachmentsList<
 /**
  * ## Get an asset's attachment using the ID
 
-* `parent_lookup_data` can be the primary key of the submission or its `uuid`.
+* `uid_data` can be the primary key of the submission or its `uuid`.
 Please note that using the `uuid` may match **several** submissions, only
 the first match will be returned.
 
@@ -4192,23 +4192,23 @@ export type assetsPairedDataRetrieveResponse = assetsPairedDataRetrieveResponseC
   headers: Headers
 }
 
-export const getAssetsPairedDataRetrieveUrl = (uidAsset: string, pairedDataUid: string) => {
-  return `/api/v2/assets/${uidAsset}/paired-data/${pairedDataUid}/`
+export const getAssetsPairedDataRetrieveUrl = (uidAsset: string, uidPairedData: string) => {
+  return `/api/v2/assets/${uidAsset}/paired-data/${uidPairedData}/`
 }
 
 export const assetsPairedDataRetrieve = async (
   uidAsset: string,
-  pairedDataUid: string,
+  uidPairedData: string,
   options?: RequestInit,
 ): Promise<assetsPairedDataRetrieveResponse> => {
-  return fetchWithAuth<assetsPairedDataRetrieveResponse>(getAssetsPairedDataRetrieveUrl(uidAsset, pairedDataUid), {
+  return fetchWithAuth<assetsPairedDataRetrieveResponse>(getAssetsPairedDataRetrieveUrl(uidAsset, uidPairedData), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getAssetsPairedDataRetrieveQueryKey = (uidAsset: string, pairedDataUid: string) => {
-  return ['api', 'v2', 'assets', uidAsset, 'paired-data', pairedDataUid] as const
+export const getAssetsPairedDataRetrieveQueryKey = (uidAsset: string, uidPairedData: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'paired-data', uidPairedData] as const
 }
 
 export const getAssetsPairedDataRetrieveQueryOptions = <
@@ -4216,7 +4216,7 @@ export const getAssetsPairedDataRetrieveQueryOptions = <
   TError = ErrorObject,
 >(
   uidAsset: string,
-  pairedDataUid: string,
+  uidPairedData: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -4224,12 +4224,12 @@ export const getAssetsPairedDataRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetsPairedDataRetrieveQueryKey(uidAsset, pairedDataUid)
+  const queryKey = queryOptions?.queryKey ?? getAssetsPairedDataRetrieveQueryKey(uidAsset, uidPairedData)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>> = ({ signal }) =>
-    assetsPairedDataRetrieve(uidAsset, pairedDataUid, { signal, ...requestOptions })
+    assetsPairedDataRetrieve(uidAsset, uidPairedData, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!(uidAsset && pairedDataUid), ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidPairedData), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsPairedDataRetrieve>>,
     TError,
     TData
@@ -4244,13 +4244,13 @@ export function useAssetsPairedDataRetrieve<
   TError = ErrorObject,
 >(
   uidAsset: string,
-  pairedDataUid: string,
+  uidPairedData: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsPairedDataRetrieveQueryOptions(uidAsset, pairedDataUid, options)
+  const queryOptions = getAssetsPairedDataRetrieveQueryOptions(uidAsset, uidPairedData, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -4283,18 +4283,18 @@ export type assetsPairedDataPartialUpdateResponse = assetsPairedDataPartialUpdat
   headers: Headers
 }
 
-export const getAssetsPairedDataPartialUpdateUrl = (uidAsset: string, pairedDataUid: string) => {
-  return `/api/v2/assets/${uidAsset}/paired-data/${pairedDataUid}/`
+export const getAssetsPairedDataPartialUpdateUrl = (uidAsset: string, uidPairedData: string) => {
+  return `/api/v2/assets/${uidAsset}/paired-data/${uidPairedData}/`
 }
 
 export const assetsPairedDataPartialUpdate = async (
   uidAsset: string,
-  pairedDataUid: string,
+  uidPairedData: string,
   patchedPairedDataPatchPayload: PatchedPairedDataPatchPayload,
   options?: RequestInit,
 ): Promise<assetsPairedDataPartialUpdateResponse> => {
   return fetchWithAuth<assetsPairedDataPartialUpdateResponse>(
-    getAssetsPairedDataPartialUpdateUrl(uidAsset, pairedDataUid),
+    getAssetsPairedDataPartialUpdateUrl(uidAsset, uidPairedData),
     {
       ...options,
       method: 'PATCH',
@@ -4308,14 +4308,14 @@ export const getAssetsPairedDataPartialUpdateMutationOptions = <TError = ErrorOb
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>,
     TError,
-    { uidAsset: string; pairedDataUid: string; data: PatchedPairedDataPatchPayload },
+    { uidAsset: string; uidPairedData: string; data: PatchedPairedDataPatchPayload },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>,
   TError,
-  { uidAsset: string; pairedDataUid: string; data: PatchedPairedDataPatchPayload },
+  { uidAsset: string; uidPairedData: string; data: PatchedPairedDataPatchPayload },
   TContext
 > => {
   const mutationKey = ['assetsPairedDataPartialUpdate']
@@ -4327,11 +4327,11 @@ export const getAssetsPairedDataPartialUpdateMutationOptions = <TError = ErrorOb
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>,
-    { uidAsset: string; pairedDataUid: string; data: PatchedPairedDataPatchPayload }
+    { uidAsset: string; uidPairedData: string; data: PatchedPairedDataPatchPayload }
   > = (props) => {
-    const { uidAsset, pairedDataUid, data } = props ?? {}
+    const { uidAsset, uidPairedData, data } = props ?? {}
 
-    return assetsPairedDataPartialUpdate(uidAsset, pairedDataUid, data, requestOptions)
+    return assetsPairedDataPartialUpdate(uidAsset, uidPairedData, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -4347,7 +4347,7 @@ export const useAssetsPairedDataPartialUpdate = <TError = ErrorObject, TContext 
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPairedDataPartialUpdate>>,
     TError,
-    { uidAsset: string; pairedDataUid: string; data: PatchedPairedDataPatchPayload },
+    { uidAsset: string; uidPairedData: string; data: PatchedPairedDataPatchPayload },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -4378,16 +4378,16 @@ export type assetsPairedDataDestroyResponse = assetsPairedDataDestroyResponseCom
   headers: Headers
 }
 
-export const getAssetsPairedDataDestroyUrl = (uidAsset: string, pairedDataUid: string) => {
-  return `/api/v2/assets/${uidAsset}/paired-data/${pairedDataUid}/`
+export const getAssetsPairedDataDestroyUrl = (uidAsset: string, uidPairedData: string) => {
+  return `/api/v2/assets/${uidAsset}/paired-data/${uidPairedData}/`
 }
 
 export const assetsPairedDataDestroy = async (
   uidAsset: string,
-  pairedDataUid: string,
+  uidPairedData: string,
   options?: RequestInit,
 ): Promise<assetsPairedDataDestroyResponse> => {
-  return fetchWithAuth<assetsPairedDataDestroyResponse>(getAssetsPairedDataDestroyUrl(uidAsset, pairedDataUid), {
+  return fetchWithAuth<assetsPairedDataDestroyResponse>(getAssetsPairedDataDestroyUrl(uidAsset, uidPairedData), {
     ...options,
     method: 'DELETE',
   })
@@ -4397,14 +4397,14 @@ export const getAssetsPairedDataDestroyMutationOptions = <TError = ErrorObject, 
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPairedDataDestroy>>,
     TError,
-    { uidAsset: string; pairedDataUid: string },
+    { uidAsset: string; uidPairedData: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsPairedDataDestroy>>,
   TError,
-  { uidAsset: string; pairedDataUid: string },
+  { uidAsset: string; uidPairedData: string },
   TContext
 > => {
   const mutationKey = ['assetsPairedDataDestroy']
@@ -4416,11 +4416,11 @@ export const getAssetsPairedDataDestroyMutationOptions = <TError = ErrorObject, 
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsPairedDataDestroy>>,
-    { uidAsset: string; pairedDataUid: string }
+    { uidAsset: string; uidPairedData: string }
   > = (props) => {
-    const { uidAsset, pairedDataUid } = props ?? {}
+    const { uidAsset, uidPairedData } = props ?? {}
 
-    return assetsPairedDataDestroy(uidAsset, pairedDataUid, requestOptions)
+    return assetsPairedDataDestroy(uidAsset, uidPairedData, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -4434,7 +4434,7 @@ export const useAssetsPairedDataDestroy = <TError = ErrorObject, TContext = unkn
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPairedDataDestroy>>,
     TError,
-    { uidAsset: string; pairedDataUid: string },
+    { uidAsset: string; uidPairedData: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -4447,8 +4447,8 @@ export const useAssetsPairedDataDestroy = <TError = ErrorObject, TContext = unkn
  * ## Return an XML which contains data submitted to paired asset
 
 Creates the endpoints
-- /api/v2/assets/<parent_lookup_asset>/paired-data/<paired_data_uid>/external/
-- /api/v2/assets/<parent_lookup_asset>/paired-data/<paired_data_uid>/external.xml/
+- /api/v2/assets/<uid_asset>/paired-data/<uid_paired_data>/external/
+- /api/v2/assets/<uid_asset>/paired-data/<uid_paired_data>/external.xml/
 
  */
 export type assetsPairedDataExternalRetrieveResponse200 = {
@@ -4469,17 +4469,17 @@ export type assetsPairedDataExternalRetrieveResponse = assetsPairedDataExternalR
   headers: Headers
 }
 
-export const getAssetsPairedDataExternalRetrieveUrl = (uidAsset: string, pairedDataUid: string) => {
-  return `/api/v2/assets/${uidAsset}/paired-data/${pairedDataUid}/external/`
+export const getAssetsPairedDataExternalRetrieveUrl = (uidAsset: string, uidPairedData: string) => {
+  return `/api/v2/assets/${uidAsset}/paired-data/${uidPairedData}/external/`
 }
 
 export const assetsPairedDataExternalRetrieve = async (
   uidAsset: string,
-  pairedDataUid: string,
+  uidPairedData: string,
   options?: RequestInit,
 ): Promise<assetsPairedDataExternalRetrieveResponse> => {
   return fetchWithAuth<assetsPairedDataExternalRetrieveResponse>(
-    getAssetsPairedDataExternalRetrieveUrl(uidAsset, pairedDataUid),
+    getAssetsPairedDataExternalRetrieveUrl(uidAsset, uidPairedData),
     {
       ...options,
       method: 'GET',
@@ -4487,8 +4487,8 @@ export const assetsPairedDataExternalRetrieve = async (
   )
 }
 
-export const getAssetsPairedDataExternalRetrieveQueryKey = (uidAsset: string, pairedDataUid: string) => {
-  return ['api', 'v2', 'assets', uidAsset, 'paired-data', pairedDataUid, 'external'] as const
+export const getAssetsPairedDataExternalRetrieveQueryKey = (uidAsset: string, uidPairedData: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'paired-data', uidPairedData, 'external'] as const
 }
 
 export const getAssetsPairedDataExternalRetrieveQueryOptions = <
@@ -4496,7 +4496,7 @@ export const getAssetsPairedDataExternalRetrieveQueryOptions = <
   TError = ErrorObject,
 >(
   uidAsset: string,
-  pairedDataUid: string,
+  uidPairedData: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -4504,12 +4504,12 @@ export const getAssetsPairedDataExternalRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetsPairedDataExternalRetrieveQueryKey(uidAsset, pairedDataUid)
+  const queryKey = queryOptions?.queryKey ?? getAssetsPairedDataExternalRetrieveQueryKey(uidAsset, uidPairedData)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>> = ({ signal }) =>
-    assetsPairedDataExternalRetrieve(uidAsset, pairedDataUid, { signal, ...requestOptions })
+    assetsPairedDataExternalRetrieve(uidAsset, uidPairedData, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!(uidAsset && pairedDataUid), ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidPairedData), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>,
     TError,
     TData
@@ -4526,13 +4526,13 @@ export function useAssetsPairedDataExternalRetrieve<
   TError = ErrorObject,
 >(
   uidAsset: string,
-  pairedDataUid: string,
+  uidPairedData: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsPairedDataExternalRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsPairedDataExternalRetrieveQueryOptions(uidAsset, pairedDataUid, options)
+  const queryOptions = getAssetsPairedDataExternalRetrieveQueryOptions(uidAsset, uidPairedData, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
