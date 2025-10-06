@@ -180,25 +180,6 @@ router_api_v2.register(
     OrgMembershipInviteViewSet,
     basename='organization-invites',
 )
-# organization_routes = router_api_v2.register(
-#     r'organizations',
-#     OrganizationViewSet,
-#     basename='organizations',
-# )
-
-# organization_routes.register(
-#     r'members',
-#     OrganizationMemberViewSet,
-#     basename='organization-members',
-#     parents_query_lookups=['organization'],
-# )
-
-# organization_routes.register(
-#     r'invites',
-#     OrgMembershipInviteViewSet,
-#     basename='organization-invites',
-#     parents_query_lookups=['organization'],
-# )
 
 router_api_v2.register(r'permissions', PermissionViewSet)
 router_api_v2.register(r'project-views', ProjectViewViewSet)
