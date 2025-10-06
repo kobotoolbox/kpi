@@ -14,12 +14,11 @@ from kobo.apps.audit_log.models import (
     AuditAction,
     AuditLog,
     AuditType,
-    ProjectHistoryLog
+    ProjectHistoryLog,
 )
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
-
 from kpi.models import Asset
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
@@ -27,12 +26,7 @@ from ..models import TrashStatus
 from ..models.account import AccountTrash
 from ..models.attachment import AttachmentTrash
 from ..models.project import ProjectTrash
-from ..tasks import (
-    empty_account,
-    empty_attachment,
-    empty_project,
-    task_restarter,
-)
+from ..tasks import empty_account, empty_attachment, empty_project, task_restarter
 from ..utils import move_to_trash, put_back, trash_bin_task_failure
 
 
