@@ -112,6 +112,8 @@ export default function EmailSection() {
   const currentAccount = session.currentAccount
   const unverifiedEmail = email.emails.find((userEmail) => !userEmail.verified && !userEmail.primary)
   const isReady = session.isInitialLoadComplete && 'email' in currentAccount
+  const isSSO =
+    session.isInitialLoadComplete && 'social_accounts' in currentAccount && currentAccount.social_accounts.length >= 1
   const userCanChangeEmail = organization.is_mmo ? organization.request_user_role !== MemberRoleEnum.member : true
 
   return (
@@ -132,6 +134,7 @@ export default function EmailSection() {
             placeholder={t('Type new email address')}
             onChange={onTextFieldChange.bind(onTextFieldChange)}
             type='email'
+            disabled={isSSO}
           />
         ) : (
           <div className={styles.emailText}>{email.newEmail}</div>
@@ -178,7 +181,7 @@ export default function EmailSection() {
               handleSubmit()
             }}
           >
-            <Button label='Change' size='m' type='primary' onClick={handleSubmit} />
+            <Button label='Change' size='m' type='primary' onClick={handleSubmit} isDisabled={isSSO} />
           </form>
         </div>
       )}

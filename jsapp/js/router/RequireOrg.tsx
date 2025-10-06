@@ -1,5 +1,8 @@
 import type React from 'react'
-import { getOrganizationsRetrieveQueryKey, useOrganizationsRetrieve } from '#/api/react-query/organizations'
+import {
+  getOrganizationsRetrieveQueryKey,
+  useOrganizationsRetrieve,
+} from '#/api/react-query/user-team-organization-usage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { useSession } from '#/stores/useSession'
 
@@ -17,7 +20,14 @@ export const RequireOrg = ({ children }: { children: React.ReactNode }) => {
     query: {
       staleTime: Number.POSITIVE_INFINITY, // It will refetch on refresh or 404 anyways, no need to fetch proactively.
       queryKey: getOrganizationsRetrieveQueryKey(organizationId!), // Note: see Orval issue https://github.com/orval-labs/orval/issues/2396
-      throwOnError(_error, query) {
+      throwOnError(
+        _error: unknown,
+        query: {
+          state: {
+            data?: { status?: number }
+          }
+        },
+      ) {
         // `organizationId` must exist, unless it's changed (e.g. user added/removed from organization).
         // In such case, refetch `organizationId` to fetch the new organization.
         // DEBT: don't throw toast within `fetchGetUrl`.

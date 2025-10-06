@@ -67,7 +67,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             raise_access_forbidden=False,
             raise_not_found=False,
         ),
-        tags=['Asset Snapshots'],
+        tags=['Form content'],
     ),
     # description for get item
     retrieve=extend_schema(
@@ -77,7 +77,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             validate_payload=False,
             raise_access_forbidden=False,
         ),
-        tags=['Asset Snapshots'],
+        tags=['Form content'],
     ),
     # description for post
     create=extend_schema(
@@ -112,7 +112,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
                 request_only=True,
             ),
         ],
-        tags=['Asset Snapshots'],
+        tags=['Form content'],
     ),
     # description for delete
     destroy=extend_schema(
@@ -121,7 +121,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             validate_payload=False,
             raise_access_forbidden=False,
         ),
-        tags=['Asset Snapshots'],
+        tags=['Form content'],
     ),
     update=extend_schema(
         exclude=True,
@@ -173,7 +173,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             validate_payload=False,
             raise_access_forbidden=False,
         ),
-        tags=['Asset Snapshots'],
+        tags=['Form content'],
     ),
     xform=extend_schema(
         description=read_md('kpi', 'asset_snapshots/xform.md'),
@@ -185,7 +185,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             raise_access_forbidden=False,
             error_media_type='text/html',
         ),
-        tags=['Asset Snapshots'],
+        tags=['Form content'],
     ),
     xml_with_disclaimer=extend_schema(
         description=read_md('kpi', 'asset_snapshots/xml_with_disclaimer.md'),
@@ -195,7 +195,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             validate_payload=False,
             raise_access_forbidden=False,
         ),
-        tags=['Asset Snapshots'],
+        tags=['Form content'],
     ),
 )
 class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet):
