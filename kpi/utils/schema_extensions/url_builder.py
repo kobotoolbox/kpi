@@ -40,7 +40,7 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'asset-version-detail': '/api/v2/assets/{uid_asset}/versions/{uid_version}/',
         'asset-xform': '/api/v2/assets/{uid_asset}/xform/',
         'hook-list': '/api/v2/assets/{uid_asset}/hooks/',
-        'asset-xls': '/api/v2/assets/{uid_asset}/',
+        'asset-xls': '/api/v2/assets/{uid_asset}.xls',
         'asset-export-list': '/api/v2/assets/{uid_asset}/exports/',
         'submission-list': '/api/v2/assets/{uid_asset}/submissions/',
         'paired-data-list': '/api/v2/assets/{uid_asset}/paired-data/',

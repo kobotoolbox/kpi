@@ -526,7 +526,7 @@ class ReportURLFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
-            viewname='api_v2:asset-reports', uid='a5owyo85mHyFazzgsZK45c'
+            viewname='api_v2:asset-reports', uid_asset='a5owyo85mHyFazzgsZK45c'
         )
 
 
@@ -602,11 +602,11 @@ class XFormLinkFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.XFormLinkField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type('api_v2:asset-xform', uid='aBeA23YCYjkGTFvYVHuAyU')
+        return build_url_type('api_v2:asset-xform', uid_asset='aBeA23YCYjkGTFvYVHuAyU')
 
 
 class XLSLinkFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.XLSLinkField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type('api_v2:asset-xls', uid='aBeA23YCYjkGTFvYVHuAyU')
+        return build_url_type('api_v2:asset-xls', uid_asset='aBeA23YCYjkGTFvYVHuAyU')
