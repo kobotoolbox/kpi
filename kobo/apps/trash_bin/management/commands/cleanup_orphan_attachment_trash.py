@@ -31,7 +31,9 @@ class Command(BaseCommand):
         if batch:
             deleted_count += self._process_batch(batch, verbosity)
 
-        self.stdout.write(f'Deleted {deleted_count} orphan AttachmentTrash entries.')
+        self.stdout.write(
+            f'Deleted {deleted_count} orphan AttachmentTrash entries.'
+        )
 
     def _process_batch(self, batch, verbosity):
         """
