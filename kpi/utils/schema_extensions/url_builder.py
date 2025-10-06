@@ -46,7 +46,7 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         'paired-data-list': '/api/v2/assets/{uid_asset}/paired-data/',
         'attachment-detail': '/api/v2/assets/{uid_asset}/data/{uid_data}/attachments/{pk}',  # noqa
         'attachment-thumb': '/api/v2/assets/{uid_asset}/data/{uid_data}/attachments/{pk}/{suffix}/',  # noqa
-        'paired-data-detail': '/api/v2/assets/{uid_asset}/paired-data/{uid_paired_data}',  # noqa
+        'paired-data-detail': '/api/v2/assets/{uid_asset}/paired-data/{uid_paired_data}/',  # noqa
         'project-ownership-transfer-detail': '/api/v2/project-ownership/invites/{uid_invite}/transfers/{uid_transfer}/',  # noqa
         'asset-reports': '/api/v2/assets/{uid_asset}/reports/',
         'asset-export-settings-detail': '/api/v2/assets/{uid_asset}/export-settings/{uid_export_setting}/',  # noqa
