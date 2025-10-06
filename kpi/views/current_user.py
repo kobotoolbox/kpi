@@ -3,7 +3,8 @@ from django.db import transaction
 from django.utils.timezone import now
 from django.utils.translation import gettext as t
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import permissions, status, viewsets
+from rest_framework import permissions, serializers, status, viewsets
+from rest_framework.exceptions import MethodNotAllowed, PermissionDenied
 from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -21,7 +22,7 @@ from kpi.utils.schema_extensions.response import (
 from kpi.versioning import APIV2Versioning
 
 
-@extend_schema(tags=['Me'])
+@extend_schema(tags=['User / team / organization / usage'])
 @extend_schema_view(
     destroy=extend_schema(
         description=read_md('kpi', 'me/delete.md'),
@@ -69,12 +70,19 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         user = self.get_object()
 
+        if not config.ALLOW_SELF_ACCOUNT_DELETION:
+            raise MethodNotAllowed('DELETE')
+
+        organization = user.organization
+        if organization.is_mmo and organization.is_owner(user):
+            raise PermissionDenied(
+                'You cannot delete your own account as a multi-member organization '
+                'owner'
+            )
+
         confirm = request.data.get('confirm')
         if confirm != user.extra_details.uid:
-            return Response(
-                {'detail': t('Invalid confirmation')},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise serializers.ValidationError({'detail': t('Invalid confirmation')})
 
         user = {'pk': user.pk, 'username': user.username}
 

@@ -236,7 +236,7 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         response = self.client.get(bob_org_members_list_url)
         # The first member should be bob
         assert response.data['results'][0]['user__username'] == 'bob'
-        assert response.data['results'][0]['invite'] == {}
+        assert response.data['results'][0]['invite'] is None
 
         # Look at bob's membership detail endpoint in someother's org,
         # someuser's invite should **BE** there
@@ -292,4 +292,4 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         self.organization = self.registered_invitee_user.organization
         response = self.client.get(self.detail_url(self.registered_invitee_user))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['invite'], {})
+        self.assertEqual(response.data['invite'], None)

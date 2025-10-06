@@ -14,6 +14,7 @@ from kobo.apps.organizations.views import (
 )
 from kobo.apps.project_ownership.urls import router as project_ownership_router
 from kobo.apps.project_views.views import ProjectViewViewSet
+from kpi.renderers import BasicHTMLRenderer
 from kpi.views.v2.asset import AssetViewSet
 from kpi.views.v2.asset_counts import AssetCountsViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
@@ -211,7 +212,9 @@ router_api_v2.register(
 enketo_url_aliases = [
     path(
         'assets/<parent_lookup_asset>/data/<pk>/edit/',
-        DataViewSet.as_view({'get': 'enketo_edit'}, renderer_classes=[JSONRenderer]),
+        DataViewSet.as_view(
+            {'get': 'enketo_edit'}, renderer_classes=[JSONRenderer, BasicHTMLRenderer]
+        ),
         name='submission-enketo-edit-legacy',
     ),
     path(

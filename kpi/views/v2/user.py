@@ -20,7 +20,7 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
 
 
 @extend_schema(
-    tags=['Users'],
+    tags=['User / team / organization / usage'],
 )
 @extend_schema_view(
     list=extend_schema(

@@ -2,78 +2,39 @@ openapi: 3.0.3
 info:
   title: KoboToolbox API
   version: 2.0.0 (api_v2)
-  description: Powerful and intuitive data collection tools to make an impact
+  description: |-
+    This page documents all KoboToolbox API endpoints.
+
+    The endpoints are grouped by area of intended use. Each category contains related endpoints, with detailed documentation on usage and configuration. Use this as a reference to quickly find the right endpoint for managing projects, forms, data, permissions, integrations, logs, and organizational resources.
+
+    **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as assets.
 paths:
   /api/v2/access-logs/:
     get:
       operationId: api_v2_access_logs_list
       description: |
-        ## List actions performed by users.
+        ## List all access logs for all users
 
-        <sup>*</sup> _Only available to superusers_
+        ⚠️ _Only available to superusers_
 
-        Results from this endpoint can be filtered by a Boolean query specified in the
-
-        `q` parameter.
+        Submissions will be grouped together by user by hour
 
         **Filterable fields:**
 
-        1. app_label
-
-        2. model_name
-
-        3. action</br>
-          a. Available actions:
-           * create
-           * delete
-           * in-trash
-           * put-back
-           * remove
-           * update
-           * auth
-
-        4. log_type</br>
-        a. Available log types:
-            * access
-            * project-history
-            * data-editing
-            * submission-management
-            * user-management
-            * asset-management
-
-        5. date_created
-
-        6. user_uid
-
-        7. user__*</br>
-        a. user__username</br>
-        b. user__email</br>
-        c. user__is_superuser
-
-        8. metadata__*</br>
-         a. metadata__asset_uid</br>
-         b. metadata__auth_type</br>
-         c. some logs may have additional filterable fields in the metadata
+        - date_created
+        - user_uid
+        - user__username
+        - metadata__source
+        - metadata__auth_type
+        - metadata__ip_address
 
         **Some examples:**
 
-        1. All deleted submissions
-            `api/v2/audit-logs/?q=action:delete`
+        1. All logs from a specific IP address
+            `api/v2/access-logs/?q=metadata__ip_address:"127.0.0.1"`
 
-        2. All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`
-            `api/v2/audit-logs/?q=action:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`
-
-        3. All submissions deleted by a specific user `my_username`
-            `api/v2/audit-logs/?q=action:delete AND user__username:my_username`
-
-        4. All deleted submissions submitted after a specific date
-            `/api/v2/audit-logs/?q=action:delete AND date_created__gte:2022-11-15`
-
-        5. All deleted submissions submitted after a specific date **and time**
-            `/api/v2/audit-logs/?q=action:delete AND date_created__gte:"2022-11-15 20:34"`
-
-        6. All authentications from superusers
-            `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`
+        2. All logs created after Jan 1, 2025
+            `api/v2/access-logs/?q=date_created__gte:"2025-01-01"`
 
         *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces
         (e.g. date and time "2022-11-15 20:34")*
@@ -95,7 +56,7 @@ paths:
         schema:
           type: string
       tags:
-      - Access Logs
+      - Audit logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -104,7 +65,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedAuditLogResponseList'
+                $ref: '#/components/schemas/PaginatedAccessLogResponseList'
           description: null
         '403':
           content:
@@ -117,26 +78,15 @@ paths:
                     detail: You do not have permission to perform this action.
                   summary: Access Denied
           description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
   /api/v2/access-logs/export/:
     get:
       operationId: api_v2_access_logs_export_list
       description: |
         ## List all access logs export tasks for all users
 
-        <sup>*</sup> _Only available to superusers_
+        ⚠️ _Only available to superusers_
       tags:
-      - Access Logs
+      - Audit logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -165,9 +115,9 @@ paths:
       description: |
         ## Create an export task for all users
 
-        <sup>*</sup> _Only available to superusers_
+        ⚠️ _Only available to superusers_
       tags:
-      - Access Logs
+      - Audit logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -204,72 +154,25 @@ paths:
     get:
       operationId: api_v2_access_logs_me_list
       description: |
-        ## List actions performed by users.
+        ## List all access logs for the authenticated user
 
-        <sup>*</sup> _Only available to superusers_
+        Submissions will be grouped together by hour
 
-        Results from this endpoint can be filtered by a Boolean query specified in the
-
-        `q` parameter.
+        Results from this endpoint can be filtered by a boolean query specified in the `q` parameter.
 
         **Filterable fields:**
 
-        1. app_label
-
-        2. model_name
-
-        3. action</br>
-          a. Available actions:
-           * create
-           * delete
-           * in-trash
-           * put-back
-           * remove
-           * update
-           * auth
-
-        4. log_type</br>
-        a. Available log types:
-            * access
-            * project-history
-            * data-editing
-            * submission-management
-            * user-management
-            * asset-management
-
-        5. date_created
-
-        6. user_uid
-
-        7. user__*</br>
-        a. user__username</br>
-        b. user__email</br>
-        c. user__is_superuser
-
-        8. metadata__*</br>
-         a. metadata__asset_uid</br>
-         b. metadata__auth_type</br>
-         c. some logs may have additional filterable fields in the metadata
+        * date_created
+        * metadata__source
+        * metadata__auth_type
+        * metadata__ip_address
 
         **Some examples:**
 
-        1. All deleted submissions
-            `api/v2/audit-logs/?q=action:delete`
-
-        2. All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`
-            `api/v2/audit-logs/?q=action:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`
-
-        3. All submissions deleted by a specific user `my_username`
-            `api/v2/audit-logs/?q=action:delete AND user__username:my_username`
-
-        4. All deleted submissions submitted after a specific date
-            `/api/v2/audit-logs/?q=action:delete AND date_created__gte:2022-11-15`
-
-        5. All deleted submissions submitted after a specific date **and time**
-            `/api/v2/audit-logs/?q=action:delete AND date_created__gte:"2022-11-15 20:34"`
-
-        6. All authentications from superusers
-            `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`
+        * All logs from a specific IP address
+            `api/v2/access-logs/?q=metadata__ip_address:"127.0.0.1"`
+        * All logs created after Jan, 1 2025
+            `api/v2/access-logs/?q=date_created__date__gte:"2025-01-01"`
 
         *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces
         (e.g. date and time "2022-11-15 20:34")*
@@ -291,7 +194,7 @@ paths:
         schema:
           type: string
       tags:
-      - Access Logs
+      - Logging
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -300,29 +203,18 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedAuditLogResponseList'
+                $ref: '#/components/schemas/PaginatedAccessLogResponseList'
           description: null
-        '403':
+        '401':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorDetail'
               examples:
-                AccessDenied:
+                NotAuthenticated:
                   value:
-                    detail: You do not have permission to perform this action.
-                  summary: Access Denied
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
           description: ''
   /api/v2/access-logs/me/export/:
     get:
@@ -330,7 +222,7 @@ paths:
       description: |
         ## List all access logs export tasks for the authenticated user
       tags:
-      - Access Logs
+      - Logging
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -357,9 +249,9 @@ paths:
     post:
       operationId: api_v2_access_logs_me_export_create
       description: |
-        ## Create an export task for authenticated user
+        ## Create an export task for the authenticated user
       tags:
-      - Access Logs
+      - Logging
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -400,7 +292,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Asset Snapshots
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -434,7 +326,7 @@ paths:
 
         …but not both.
       tags:
-      - Asset Snapshots
+      - Form content
       requestBody:
         content:
           application/json:
@@ -526,7 +418,7 @@ paths:
           type: string
         required: true
       tags:
-      - Asset Snapshots
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -573,7 +465,7 @@ paths:
           type: string
         required: true
       tags:
-      - Asset Snapshots
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -616,7 +508,7 @@ paths:
           type: string
         required: true
       tags:
-      - Asset Snapshots
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -648,7 +540,7 @@ paths:
           type: string
         required: true
       tags:
-      - Asset Snapshots
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -677,7 +569,7 @@ paths:
           type: string
         required: true
       tags:
-      - Asset Snapshots
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -718,7 +610,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Asset Subscriptions
+      - Library collections
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -737,7 +629,7 @@ paths:
 
         Create a subscription to a public collection for the user.
       tags:
-      - Asset Subscriptions
+      - Library collections
       requestBody:
         content:
           application/json:
@@ -780,7 +672,7 @@ paths:
           type: string
         required: true
       tags:
-      - Asset Subscriptions
+      - Library collections
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -816,7 +708,7 @@ paths:
           type: string
         required: true
       tags:
-      - Asset Subscriptions
+      - Library collections
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -854,7 +746,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Asset Usage
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -938,7 +830,7 @@ paths:
         schema:
           type: string
       tags:
-      - Assets
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -972,7 +864,7 @@ paths:
 
         When creating a new `block` or `question` asset, settings are not saved either.
       tags:
-      - Assets
+      - Manage projects and library content
       requestBody:
         content:
           application/json:
@@ -1050,7 +942,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Attachments
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1122,7 +1014,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Attachments
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1189,7 +1081,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Assets
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1310,7 +1202,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1382,7 +1274,7 @@ paths:
           type: string
         required: true
       tags:
-      - Attachments
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1467,7 +1359,7 @@ paths:
         description: UID of the parent data
         required: true
       tags:
-      - Attachments
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1546,7 +1438,7 @@ paths:
           pattern: ^(original|large|medium|small)$
         required: true
       tags:
-      - Attachments
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1619,7 +1511,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1662,7 +1554,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1700,7 +1592,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -1755,7 +1647,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1815,7 +1707,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1875,7 +1767,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1933,7 +1825,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1991,7 +1883,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2044,7 +1936,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2090,7 +1982,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -2135,7 +2027,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2180,7 +2072,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -2247,7 +2139,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2292,7 +2184,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -2364,7 +2256,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2409,7 +2301,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Export Settings
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2482,7 +2374,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Export Settings
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -2544,7 +2436,7 @@ paths:
         description: UID of the export-settings
         required: true
       tags:
-      - Export Settings
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2586,7 +2478,7 @@ paths:
         description: UID of the export-settings
         required: true
       tags:
-      - Export Settings
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -2647,7 +2539,7 @@ paths:
         description: UID of the export-settings
         required: true
       tags:
-      - Export Settings
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2698,7 +2590,7 @@ paths:
         description: UID of the export-settings
         required: true
       tags:
-      - Export Settings
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2773,7 +2665,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Exports
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2849,7 +2741,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Exports
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -2920,7 +2812,7 @@ paths:
         description: UID of the export task
         required: true
       tags:
-      - Exports
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2971,7 +2863,7 @@ paths:
         description: UID of the export task
         required: true
       tags:
-      - Exports
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3030,7 +2922,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Files
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3088,7 +2980,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Files
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -3174,7 +3066,7 @@ paths:
           type: string
         required: true
       tags:
-      - Files
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3213,7 +3105,7 @@ paths:
           type: string
         required: true
       tags:
-      - Files
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3249,7 +3141,7 @@ paths:
           type: string
         required: true
       tags:
-      - Files
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3271,31 +3163,24 @@ paths:
   /api/v2/assets/{parent_lookup_asset}/history/:
     get:
       operationId: api_v2_assets_history_list
-      description: |+
+      description: |
         ## List project history logs
 
         Lists all project history logs for a single project.
 
-        <sup>*</sup> _Required permissions: `manage_asset` (Manage project)_
+        ⚠️ _Required permissions: `manage_asset` (Manage project)_
 
-        Results from this endpoint can be filtered by a Boolean query specified in the q parameter.
+        Results from this endpoint can be filtered by a Boolean query specified in the `q` parameter.
 
         ### Filterable fields for all project history logs:
 
-          date_created
-
-          user_uid
-
-          user__*
+          - date_created
+          - user_uid
           - user__username
           - user__email
           - user__is_superuser
-
-          metadata__*
-
           - metadata__source
           - metadata__ip_address
-          - metadata__asset_uid
           - metadata__log_subtype
             - available subtypes: "project", "permission"
 
@@ -3423,7 +3308,6 @@ paths:
           - metadata__settings__description__new
 
         This endpoint can be paginated with 'offset' and 'limit' parameters.
-
       parameters:
       - name: limit
         required: false
@@ -3448,7 +3332,7 @@ paths:
         schema:
           type: string
       tags:
-      - History
+      - Logging
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3485,7 +3369,7 @@ paths:
     get:
       operationId: api_v2_assets_history_actions_retrieve
       description: |
-        ## Retrieve distinct actions performed on the asset.
+        ## Retrieve distinct actions performed on the project.
       parameters:
       - in: path
         name: parent_lookup_asset
@@ -3494,7 +3378,7 @@ paths:
         description: UID of the parent assets
         required: true
       tags:
-      - History
+      - Logging
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3533,7 +3417,7 @@ paths:
       description: |
         ## Export current project's history
 
-        Exports the project's history and sends it to the user via email.
+        Exports the project's history and sends it by email to the requesting user.
       parameters:
       - in: path
         name: parent_lookup_asset
@@ -3542,7 +3426,7 @@ paths:
         description: UID of the parent assets
         required: true
       tags:
-      - History
+      - Logging
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3602,7 +3486,7 @@ paths:
         description: UID of the parent assets
         required: true
       tags:
-      - Rest Services
+      - Survey data - Rest Services
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3666,7 +3550,7 @@ paths:
         description: UID of the parent assets
         required: true
       tags:
-      - Rest Services
+      - Survey data - Rest Services
       requestBody:
         content:
           application/json:
@@ -3774,7 +3658,7 @@ paths:
           * `1` - Pending
           * `2` - Success
       tags:
-      - Rest Services
+      - Survey data - Rest Services
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3831,7 +3715,7 @@ paths:
           type: string
         required: true
       tags:
-      - Rest Services
+      - Survey data - Rest Services
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3888,7 +3772,7 @@ paths:
           type: string
         required: true
       tags:
-      - Rest Services
+      - Survey data - Rest Services
       requestBody:
         content:
           application/json:
@@ -3951,7 +3835,7 @@ paths:
         description: UID of the hook
         required: true
       tags:
-      - Rest Services
+      - Survey data - Rest Services
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3991,7 +3875,7 @@ paths:
         description: UID of the hook
         required: true
       tags:
-      - Rest Services
+      - Survey data - Rest Services
       requestBody:
         content:
           application/json:
@@ -4055,7 +3939,7 @@ paths:
         description: UID of the hook
         required: true
       tags:
-      - Rest Services
+      - Survey data - Rest Services
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4096,7 +3980,7 @@ paths:
         description: UID of the hook
         required: true
       tags:
-      - Rest Services
+      - Survey data - Rest Services
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4147,7 +4031,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Paired Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4187,7 +4071,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Paired Data
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -4253,7 +4137,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Paired Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4295,7 +4179,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Paired Data
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -4353,7 +4237,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Paired Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4394,7 +4278,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Paired Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4429,7 +4313,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Asset Permission Assignments
+      - Manage permissions
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4481,7 +4365,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Asset Permission Assignments
+      - Manage permissions
       requestBody:
         content:
           application/json:
@@ -4568,7 +4452,7 @@ paths:
         description: UID of the permission
         required: true
       tags:
-      - Asset Permission Assignments
+      - Manage permissions
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4619,7 +4503,7 @@ paths:
         description: UID of the permission
         required: true
       tags:
-      - Asset Permission Assignments
+      - Manage permissions
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4667,7 +4551,7 @@ paths:
         description: UID of the permission
         required: true
       tags:
-      - Asset Permission Assignments
+      - Manage permissions
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4711,7 +4595,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Asset Permission Assignments
+      - Manage permissions
       requestBody:
         content:
           application/json:
@@ -4782,7 +4666,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Asset Permission Assignments
+      - Manage permissions
       requestBody:
         content:
           application/json:
@@ -4860,7 +4744,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Versions
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4902,7 +4786,7 @@ paths:
           type: string
         required: true
       tags:
-      - Versions
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4945,7 +4829,7 @@ paths:
           type: string
         required: true
       tags:
-      - Assets
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4993,7 +4877,7 @@ paths:
           type: string
         required: true
       tags:
-      - Assets
+      - Manage projects and library content
       requestBody:
         content:
           application/json:
@@ -5067,7 +4951,7 @@ paths:
           type: string
         required: true
       tags:
-      - Assets
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5108,7 +4992,7 @@ paths:
           type: string
         required: true
       tags:
-      - Assets
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5142,7 +5026,7 @@ paths:
           type: string
         required: true
       tags:
-      - Deployment
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5177,7 +5061,7 @@ paths:
           type: string
         required: true
       tags:
-      - Deployment
+      - Manage projects and library content
       requestBody:
         content:
           application/json:
@@ -5244,7 +5128,7 @@ paths:
           type: string
         required: true
       tags:
-      - Deployment
+      - Manage projects and library content
       requestBody:
         content:
           application/json:
@@ -5311,7 +5195,7 @@ paths:
           type: string
         required: true
       tags:
-      - Assets
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5345,7 +5229,7 @@ paths:
           type: string
         required: true
       tags:
-      - Assets
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5384,7 +5268,7 @@ paths:
           type: string
         required: true
       tags:
-      - Assets
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5420,7 +5304,7 @@ paths:
           type: string
         required: true
       tags:
-      - Assets
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5490,7 +5374,7 @@ paths:
           type: string
         required: true
       tags:
-      - Assets
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5530,7 +5414,7 @@ paths:
         - `unarchive`
         - `undelete` (superusers only)
       tags:
-      - Assets
+      - Manage projects and library content
       requestBody:
         content:
           application/json:
@@ -5578,7 +5462,7 @@ paths:
 
         Useful to detect any changes in assets with only one call to `API`
       tags:
-      - Assets
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5606,7 +5490,7 @@ paths:
       description: |
         ## Get metadata for all authenticated user' assets
       tags:
-      - Assets
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5623,20 +5507,16 @@ paths:
       description: |
         ## List actions performed by users.
 
-        <sup>*</sup> _Only available to superusers_
+        ⚠️ _Only available to superusers_
 
-        Results from this endpoint can be filtered by a Boolean query specified in the
-
-        `q` parameter.
+        Results from this endpoint can be filtered by a Boolean query specified in the `q` parameter.
 
         **Filterable fields:**
 
-        1. app_label
-
-        2. model_name
-
-        3. action</br>
-          a. Available actions:
+        * app_label
+        * model_name
+        * action
+          Available actions:
            * create
            * delete
            * in-trash
@@ -5644,48 +5524,37 @@ paths:
            * remove
            * update
            * auth
-
-        4. log_type</br>
-        a. Available log types:
+        * log_type
+          Available log types:
             * access
             * project-history
             * data-editing
             * submission-management
             * user-management
             * asset-management
+        * date_created
+        * user_uid
+        * user__username
+        * user__email
+        * user__is_superuser
+        * metadata__asset_uid
+        * metadata__auth_type
 
-        5. date_created
-
-        6. user_uid
-
-        7. user__*</br>
-        a. user__username</br>
-        b. user__email</br>
-        c. user__is_superuser
-
-        8. metadata__*</br>
-         a. metadata__asset_uid</br>
-         b. metadata__auth_type</br>
-         c. some logs may have additional filterable fields in the metadata
+        *Notes: Some logs may have additional filterable fields in the metadata*
 
         **Some examples:**
 
-        1. All deleted submissions
+        * All deleted submissions
             `api/v2/audit-logs/?q=action:delete`
-
-        2. All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`
+        * All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`
             `api/v2/audit-logs/?q=action:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`
-
-        3. All submissions deleted by a specific user `my_username`
+        * All submissions deleted by a specific user `my_username`
             `api/v2/audit-logs/?q=action:delete AND user__username:my_username`
-
-        4. All deleted submissions submitted after a specific date
+        * All deleted submissions submitted after a specific date
             `/api/v2/audit-logs/?q=action:delete AND date_created__gte:2022-11-15`
-
-        5. All deleted submissions submitted after a specific date **and time**
+        * All deleted submissions submitted after a specific date **and time**
             `/api/v2/audit-logs/?q=action:delete AND date_created__gte:"2022-11-15 20:34"`
-
-        6. All authentications from superusers
+        * All authentications from superusers
             `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`
 
         *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces
@@ -5708,7 +5577,7 @@ paths:
         schema:
           type: string
       tags:
-      - Audit Logs
+      - Audit logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5760,7 +5629,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Imports
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5790,7 +5659,7 @@ paths:
 
         _**Note**: this endpoint is expecting a multipart/form-data_
       tags:
-      - Imports
+      - Manage projects and library content
       requestBody:
         content:
           multipart/form-data:
@@ -5855,7 +5724,7 @@ paths:
           type: string
         required: true
       tags:
-      - Imports
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5924,7 +5793,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Languages
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5960,7 +5829,7 @@ paths:
           type: string
         required: true
       tags:
-      - Languages
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6012,7 +5881,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Organizations
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6021,7 +5890,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedOrganizationList'
+                $ref: '#/components/schemas/PaginatedOrganizationResponseList'
           description: null
         '404':
           content:
@@ -6047,7 +5916,7 @@ paths:
         description: A unique value identifying this organization.
         required: true
       tags:
-      - Organizations
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6056,7 +5925,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Organization'
+                $ref: '#/components/schemas/OrganizationResponse'
           description: null
         '404':
           content:
@@ -6081,7 +5950,7 @@ paths:
         description: A unique value identifying this organization.
         required: true
       tags:
-      - Organizations
+      - User / team / organization / usage
       requestBody:
         content:
           application/json:
@@ -6095,7 +5964,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Organization'
+                $ref: '#/components/schemas/OrganizationResponse'
           description: null
         '404':
           content:
@@ -6136,7 +6005,7 @@ paths:
         description: A unique value identifying this organization.
         required: true
       tags:
-      - Organizations
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6180,7 +6049,7 @@ paths:
         description: A unique value identifying this organization.
         required: true
       tags:
-      - Organizations
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6223,7 +6092,7 @@ paths:
         description: A unique value identifying this organization.
         required: true
       tags:
-      - Organizations
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6270,7 +6139,7 @@ paths:
         description: ID of the organization asset
         required: true
       tags:
-      - Organization Invites
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6308,7 +6177,7 @@ paths:
         description: ID of the organization asset
         required: true
       tags:
-      - Organization Invites
+      - User / team / organization / usage
       requestBody:
         content:
           application/json:
@@ -6368,7 +6237,7 @@ paths:
         description: ID of the organization asset
         required: true
       tags:
-      - Organization Invites
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6412,7 +6281,7 @@ paths:
         description: ID of the organization asset
         required: true
       tags:
-      - Organization Invites
+      - User / team / organization / usage
       requestBody:
         content:
           application/json:
@@ -6492,7 +6361,7 @@ paths:
         description: ID of the organization asset
         required: true
       tags:
-      - Organization Invites
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6548,7 +6417,7 @@ paths:
         description: ID of the organization
         required: true
       tags:
-      - Organization Members
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6591,7 +6460,7 @@ paths:
         description: Username of the user
         required: true
       tags:
-      - Organization Members
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6637,7 +6506,7 @@ paths:
         description: Username of the user
         required: true
       tags:
-      - Organization Members
+      - User / team / organization / usage
       requestBody:
         content:
           application/json:
@@ -6708,7 +6577,7 @@ paths:
         description: Username of the user
         required: true
       tags:
-      - Organization Members
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6763,7 +6632,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Permissions
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6787,7 +6656,7 @@ paths:
           type: string
         required: true
       tags:
-      - Permissions
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6805,38 +6674,24 @@ paths:
       description: |
         ## List all project history logs for all projects.
 
-        <sup>*</sup> _Only available to superusers_
+        ⚠️_Only available to superusers_
 
         Results from this endpoint can be filtered by a Boolean query
         specified in the `q` parameter.
 
         **Filterable fields for all project history logs:**
 
-        1. date_created
-
-        2. user_uid
-
-        3. user__*
-
-            a. user__username
-
-            b. user__email
-
-            c. user__is_superuser
-
-        4. metadata__*
-
-            b. metadata__source
-
-            c. metadata__ip_address
-
-            d. metadata__asset_uid
-
-            e. metadata__log_subtype
-
+        * date_created
+        * user_uid
+        * user__username
+        * user__email
+        * user__is_superuser
+        * metadata__source
+        * metadata__ip_address
+        * metadata__asset_uid
+        * metadata__log_subtype
             * available subtypes: "project", "permission"
-
-        5. action
+        * action
 
         available actions:
 
@@ -7020,7 +6875,7 @@ paths:
         schema:
           type: string
       tags:
-      - Project History Logs
+      - Audit logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7057,11 +6912,11 @@ paths:
     get:
       operationId: api_v2_project_history_logs_export_retrieve
       description: |
-        ## Export project history logs
+        ## List of Project History Exports
 
-        Export project history logs and send by email to requesting user.
+        ⚠️ _Only available to superusers_
       tags:
-      - Project History Logs
+      - Audit logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7098,8 +6953,12 @@ paths:
       operationId: api_v2_project_history_logs_export_create
       description: |
         ## Create an export of projects history logs
+
+        ⚠️ _Only available to superusers_
+
+        Export project history logs and send it by email to the requesting user.
       tags:
-      - Project History Logs
+      - Audit logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7164,7 +7023,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Project Ownership Invites
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7195,7 +7054,7 @@ paths:
 
 
       tags:
-      - Project Ownership Invites
+      - Manage projects and library content
       requestBody:
         content:
           application/json:
@@ -7254,7 +7113,7 @@ paths:
           type: string
         required: true
       tags:
-      - Transfers
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7312,7 +7171,7 @@ paths:
           type: string
         required: true
       tags:
-      - Project Ownership Invites
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7368,7 +7227,7 @@ paths:
           type: string
         required: true
       tags:
-      - Project Ownership Invites
+      - Manage projects and library content
       requestBody:
         content:
           application/json:
@@ -7430,7 +7289,7 @@ paths:
           type: string
         required: true
       tags:
-      - Project Ownership Invites
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7478,7 +7337,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Project Views
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7512,7 +7371,7 @@ paths:
           type: string
         required: true
       tags:
-      - Project Views
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7566,7 +7425,7 @@ paths:
           type: string
         required: true
       tags:
-      - Project Views
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7642,7 +7501,7 @@ paths:
           type: string
         required: true
       tags:
-      - Project Views
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7721,7 +7580,7 @@ paths:
           type: string
         required: true
       tags:
-      - Project Views
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7789,7 +7648,7 @@ paths:
           type: string
         required: true
       tags:
-      - Project Views
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7835,7 +7694,7 @@ paths:
         Note: this endpoint is not currently used by the frontend to display usage information. </br>
         See `/api/v2/organizations/{organization_id}/service_usage/` for the endpoint we use on the Usage page. </br>
       tags:
-      - Service Usage
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7878,7 +7737,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Tags
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7913,7 +7772,7 @@ paths:
           type: string
         required: true
       tags:
-      - Tags
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7953,7 +7812,7 @@ paths:
       description: |
         ## List the different terms of service
       tags:
-      - Terms of Services
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7989,7 +7848,7 @@ paths:
           type: string
         required: true
       tags:
-      - Terms of Services
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8049,7 +7908,7 @@ paths:
         schema:
           type: string
       tags:
-      - Transcription Services
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8085,7 +7944,7 @@ paths:
           type: string
         required: true
       tags:
-      - Transcription Services
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8146,7 +8005,7 @@ paths:
         schema:
           type: string
       tags:
-      - Translation Services
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8195,7 +8054,7 @@ paths:
           type: string
         required: true
       tags:
-      - Translation Services
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8247,7 +8106,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Users
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8283,7 +8142,7 @@ paths:
             only.
         required: true
       tags:
-      - Users
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8311,7 +8170,7 @@ paths:
       description: |
         ## Retrieve current user profile
       tags:
-      - Me
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8338,7 +8197,7 @@ paths:
       description: |
         ## Update current user infos
       tags:
-      - Me
+      - User / team / organization / usage
       requestBody:
         content:
           application/json:
@@ -8398,7 +8257,7 @@ paths:
 
         ### !! Due to current DRF-Spectacular limitations with AOS 3.1, DELETE operations do not display request or response bodies in this documentation (as payloads are not typically recommended for DELETE). This means direct testing is unavailable. However, example payloads and responses are provided for reference, and HTTP codes/error messages are accurate.  !!
       tags:
-      - Me
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8459,7 +8318,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Me
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8489,7 +8348,7 @@ paths:
         The new email will be unverified and replace existing unverified, non-primary emails.
         New email is not usable until verified.
       tags:
-      - Me
+      - User / team / organization / usage
       requestBody:
         content:
           application/json:
@@ -8549,7 +8408,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Me
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8589,7 +8448,7 @@ paths:
           pattern: ^[-\w]+$
         required: true
       tags:
-      - Me
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8639,7 +8498,7 @@ paths:
           pattern: ^[-\w]+$
         required: true
       tags:
-      - Me
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8670,6 +8529,44 @@ paths:
           description: ''
 components:
   schemas:
+    AccessLogResponse:
+      type: object
+      properties:
+        user:
+          type: string
+          format: uri
+          example: https://kf.kobotoolbox.org/api/v2/users/bob/
+        date_created:
+          type: string
+          format: date-time
+        username:
+          type: string
+        metadata:
+          type: object
+          properties:
+            source:
+              type: string
+            auth_type:
+              type: string
+            ip_address:
+              type: string
+            initial_user_uid:
+              type: string
+            initial_user_username:
+              type: string
+            authorized_app_name:
+              type: string
+        user_uid:
+          type: string
+        count:
+          type: integer
+      required:
+      - count
+      - date_created
+      - metadata
+      - user
+      - user_uid
+      - username
     Asset:
       type: object
       properties:
@@ -11128,6 +11025,8 @@ components:
     MemberListResponse:
       type: object
       properties:
+        role:
+          $ref: '#/components/schemas/MemberRoleEnum'
         url:
           type: string
           format: uri
@@ -11143,8 +11042,6 @@ components:
           format: email
         user__extra_details__name:
           type: string
-        role:
-          $ref: '#/components/schemas/MemberRoleEnum'
         user__has_mfa_enabled:
           type: boolean
         date_joined:
@@ -11153,60 +11050,9 @@ components:
         user__is_active:
           type: boolean
         invite:
-          type: object
-          properties:
-            url:
-              type: string
-              format: uri
-              example: https://kf.kobotoolbox.org/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/
-            invited_by:
-              type: string
-              format: uri
-              example: https://kf.kobotoolbox.org/api/v2/users/bob/
-            status:
-              enum:
-              - accepted
-              - cancelled
-              - declined
-              - expired
-              - pending
-              - resent
-              type: string
-              description: |-
-                * `accepted` - Accepted
-                * `cancelled` - Cancelled
-                * `declined` - Declined
-                * `expired` - Expired
-                * `pending` - Pending
-                * `resent` - Resent
-            invitee_role:
-              enum:
-              - admin
-              - member
-              - owner
-              type: string
-              description: |-
-                * `admin` - admin
-                * `member` - member
-                * `owner` - owner
-            organization_name:
-              type: string
-            created:
-              type: string
-              format: date-time
-            modified:
-              type: string
-              format: date-time
-            invitee:
-              type: string
-          required:
-          - created
-          - invited_by
-          - invitee_role
-          - modified
-          - organization_name
-          - status
-          - url
+          allOf:
+          - $ref: '#/components/schemas/InviteResponse'
+          nullable: true
       required:
       - date_joined
       - invite
@@ -11228,6 +11074,10 @@ components:
         * `admin` - admin
         * `member` - member
         * `owner` - owner
+    NullableServiceUsageBalanceData:
+      oneOf:
+      - $ref: '#/components/schemas/ServiceUsageBalanceData'
+      - type: 'null'
     OpenRosaXFormResponse:
       type: object
       properties:
@@ -11267,7 +11117,53 @@ components:
                       type: string
       required:
       - html
-    Organization:
+    OrganizationAssetUsageResponse:
+      type: object
+      properties:
+        asset:
+          type: string
+          format: uri
+          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets/
+        asset__name:
+          type: string
+        nlp_usage_current_period:
+          type: object
+          properties:
+            total_nlp_asr_seconds:
+              type: integer
+            total_nlp_mt_characters:
+              type: integer
+          required:
+          - total_nlp_asr_seconds
+          - total_nlp_mt_characters
+        nlp_usage_all_time:
+          type: object
+          properties:
+            total_nlp_asr_seconds:
+              type: integer
+            total_nlp_mt_characters:
+              type: integer
+          required:
+          - total_nlp_asr_seconds
+          - total_nlp_mt_characters
+        storage_bytes:
+          type: integer
+        submission_count_current_period:
+          type: integer
+        submission_count_all_time:
+          type: integer
+        deployment_status:
+          type: string
+      required:
+      - asset
+      - asset__name
+      - deployment_status
+      - nlp_usage_all_time
+      - nlp_usage_current_period
+      - storage_bytes
+      - submission_count_all_time
+      - submission_count_current_period
+    OrganizationResponse:
       type: object
       properties:
         id:
@@ -11280,12 +11176,16 @@ components:
           readOnly: true
         name:
           type: string
-          description: The name of the organization
+          readOnly: true
           maxLength: 200
         website:
           type: string
+          readOnly: true
+          maxLength: 255
         organization_type:
-          $ref: '#/components/schemas/OrganizationTypeEnum'
+          allOf:
+          - $ref: '#/components/schemas/OrganizationTypeEnum'
+          readOnly: true
         created:
           type: string
           format: date-time
@@ -11334,55 +11234,11 @@ components:
       - members
       - modified
       - name
+      - organization_type
       - request_user_role
       - service_usage
       - url
-    OrganizationAssetUsageResponse:
-      type: object
-      properties:
-        asset:
-          type: string
-          format: uri
-          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets/
-        asset__name:
-          type: string
-        nlp_usage_current_period:
-          type: object
-          properties:
-            total_nlp_asr_seconds:
-              type: integer
-            total_nlp_mt_characters:
-              type: integer
-          required:
-          - total_nlp_asr_seconds
-          - total_nlp_mt_characters
-        nlp_usage_all_time:
-          type: object
-          properties:
-            total_nlp_asr_seconds:
-              type: integer
-            total_nlp_mt_characters:
-              type: integer
-          required:
-          - total_nlp_asr_seconds
-          - total_nlp_mt_characters
-        storage_bytes:
-          type: integer
-        submission_count_current_period:
-          type: integer
-        submission_count_all_time:
-          type: integer
-        deployment_status:
-          type: string
-      required:
-      - asset
-      - asset__name
-      - deployment_status
-      - nlp_usage_all_time
-      - nlp_usage_current_period
-      - storage_bytes
-      - submission_count_all_time
-      - submission_count_current_period
+      - website
     OrganizationServiceUsageResponse:
       type: object
       properties:
@@ -11411,17 +11267,11 @@ components:
               type: integer
             current_period:
               type: integer
+          required:
+          - all_time
+          - current_period
         balances:
-          type: object
-          properties:
-            submission:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-            storage_bytes:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-            asr_seconds:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-            mt_characters:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
+          $ref: '#/components/schemas/ServiceUsageBalances'
         current_period_start:
           type: string
           format: date-time
@@ -11453,6 +11303,29 @@ components:
         * `educational` - Educational organization
         * `commercial` - A commercial/for-profit company
         * `none` - I am not associated with any organization
+    PaginatedAccessLogResponseList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccessLogResponse'
     PaginatedAssetCountResponseList:
       type: object
       required:
@@ -11916,7 +11789,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/OrganizationAssetUsageResponse'
-    PaginatedOrganizationList:
+    PaginatedOrganizationResponseList:
       type: object
       required:
       - count
@@ -11938,7 +11811,7 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/Organization'
+            $ref: '#/components/schemas/OrganizationResponse'
     PaginatedPairedDataResponseList:
       type: object
       required:
@@ -12611,10 +12484,12 @@ components:
       properties:
         name:
           type: string
+          maxLength: 200
         website:
           type: string
+          maxLength: 255
         organization_type:
-          type: string
+          $ref: '#/components/schemas/OrganizationTypeEnum'
     PatchedPairedDataPatchPayload:
       type: object
       properties:
@@ -13285,12 +13160,28 @@ components:
         balance_percent:
           type: integer
         exceeded:
-          type: integer
+          type: boolean
       required:
       - balance_percent
       - balance_value
       - effective_limit
       - exceeded
+    ServiceUsageBalances:
+      type: object
+      properties:
+        submission:
+          $ref: '#/components/schemas/NullableServiceUsageBalanceData'
+        storage_bytes:
+          $ref: '#/components/schemas/NullableServiceUsageBalanceData'
+        asr_seconds:
+          $ref: '#/components/schemas/NullableServiceUsageBalanceData'
+        mt_characters:
+          $ref: '#/components/schemas/NullableServiceUsageBalanceData'
+      required:
+      - asr_seconds
+      - mt_characters
+      - storage_bytes
+      - submission
     ServiceUsageResponse:
       type: object
       properties:
@@ -13320,16 +13211,7 @@ components:
             current_period:
               type: integer
         balances:
-          type: object
-          properties:
-            submission:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-            storage_bytes:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-            asr_seconds:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
-            mt_characters:
-              $ref: '#/components/schemas/ServiceUsageBalanceData'
+          $ref: '#/components/schemas/ServiceUsageBalances'
         current_period_start:
           type: string
           format: date-time
@@ -13695,3 +13577,27 @@ components:
       in: header
       name: Authorization
       description: 'Token-based authentication. Use the format: `Token <your-token>`'
+tags:
+- name: Manage projects and library content
+  description:
+  - Create, organize, and manage projects, assets (projects/library content), and
+    tags
+- name: Form content
+  description: Export and preview assets (projects/library content) in different formats
+- name: Survey data
+  description: View, edit, validate, export, and report collected data
+- name: Survey data - Rest Services
+  description: Configure and manage webhooks for survey data integrations
+- name: Manage permissions
+  description: Assign, clone, and bulk-manage project and asset (projects/library
+    content) permissions
+- name: Logging
+  description: Project history logs, access logs, Rest Service hook logs
+- name: Library collections
+  description: Subscribe to and manage shared library collections
+- name: Audit logs (superusers)
+  description: View server-wide logs
+- name: User / team / organization / usage
+  description: Manage users, orgs, invites, roles, and usage tracking
+- name: Other
+  description: Languages, available permissions, other

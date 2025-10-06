@@ -10,6 +10,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import { userCan } from '#/components/permissions/utils'
 import { COMMON_QUERIES, DEPLOYMENT_CATEGORIES } from '#/constants'
 import pageState from '#/pageState.store'
+import { recordKeys } from '#/utils'
 import mixins from '../mixins'
 import { searches } from '../searches'
 
@@ -100,7 +101,7 @@ class SidebarFormsList extends Reflux.Component {
           if (s.defaultQueryState === 'loading') {
             return <LoadingSpinner />
           } else if (s.defaultQueryState === 'done') {
-            return Object.keys(DEPLOYMENT_CATEGORIES).map((categoryId) => {
+            return recordKeys(DEPLOYMENT_CATEGORIES).map((categoryId) => {
               let categoryVisible = this.state.selectedCategories[categoryId]
               if (s[activeItems][categoryId].length < 1) {
                 categoryVisible = false
