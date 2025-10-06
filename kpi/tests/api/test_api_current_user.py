@@ -136,7 +136,7 @@ class CurrentUserTestCase(BaseTestCase):
 
     @override_config(ALLOW_SELF_ACCOUNT_DELETION=True)
     def test_cannot_delete_if_account_is_not_empty(self):
-        asset = Asset.objects.create(
+        Asset.objects.create(
             owner=self.user,
             content={},
             name='Empty project',

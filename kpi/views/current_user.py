@@ -87,11 +87,7 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
 
         if user.assets.exclude(asset_type=ASSET_TYPE_EMPTY).count():
             raise serializers.ValidationError(
-                {
-                    'detail': t(
-                        'You still own projects. Delete or transfer them first.'
-                    )
-                }
+                {'detail': t('You still own projects. Delete or transfer them first.')}
             )
 
         user = {'pk': user.pk, 'username': user.username}
