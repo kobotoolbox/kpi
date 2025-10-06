@@ -9,11 +9,7 @@ import type { SubscriptionSchedulePhases } from './subscriptionSchedulePhases'
 import type { SubscriptionScheduleStatusEnum } from './subscriptionScheduleStatusEnum'
 
 export interface SubscriptionSchedule {
-  /**
-   * Configuration for the subscription schedule's phases.
-   * @nullable
-   */
-  phases?: SubscriptionSchedulePhases
+  readonly phases: SubscriptionSchedulePhases
   /** The present status of the subscription schedule. Possible values are `not_started`, `active`, `completed`, `released`, and `canceled`.
 
 * `active` - Active
@@ -21,5 +17,5 @@ export interface SubscriptionSchedule {
 * `completed` - Completed
 * `not_started` - Not started
 * `released` - Released */
-  status: SubscriptionScheduleStatusEnum
+  readonly status: SubscriptionScheduleStatusEnum
 }

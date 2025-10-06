@@ -6,8 +6,4 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-/**
- * Configuration for the subscription schedule's phases.
- * @nullable
- */
-export type SubscriptionSchedulePhases = unknown | null
+export type SubscriptionSchedulePhases = { [key: string]: unknown }
