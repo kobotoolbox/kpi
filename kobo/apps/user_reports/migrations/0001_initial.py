@@ -1,5 +1,3 @@
-import uuid
-
 from django.db import migrations, models
 from django.db.models import Q
 
@@ -14,49 +12,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='BillingAndUsageSnapshot',
-            fields=[
-                (
-                    'id',
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name='ID'
-                    )
-                ),
-                (
-                    'effective_user_id',
-                    models.IntegerField(blank=True, null=True, db_index=True)
-                ),
-                (
-                    'last_snapshot_run_id',
-                    models.UUIDField(blank=True, null=True, db_index=True)
-                ),
-                ('organization_id', models.CharField(max_length=64, unique=True)),
-                ('storage_bytes_total', models.BigIntegerField(default=0)),
-                ('submission_counts_all_time', models.BigIntegerField(default=0)),
-                ('current_period_submissions', models.BigIntegerField(default=0)),
-                ('billing_period_start', models.DateTimeField(blank=True, null=True)),
-                ('billing_period_end', models.DateTimeField(blank=True, null=True)),
-                (
-                    'date_created',
-                    models.DateTimeField(
-                        default=kpi.models.abstract_models._get_default_datetime
-                    ),
-                ),
-                (
-                    'date_modified',
-                    models.DateTimeField(
-                        default=kpi.models.abstract_models._get_default_datetime
-                    ),
-                ),
-            ],
-            options={
-                'db_table': 'billing_and_usage_snapshot',
-            },
-        ),
-        migrations.CreateModel(
             name='BillingAndUsageSnapshotRun',
             fields=[
                 (
@@ -68,19 +23,16 @@ class Migration(migrations.Migration):
                         verbose_name='ID'
                     )
                 ),
-                (
-                    'run_id',
-                    models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
-                ),
+                ('uid', kpi.fields.kpi_uid.KpiUidField(_null=False, uid_prefix='busr')),
                 (
                     'status',
                     models.CharField(
                         choices=[
-                            ('running', 'RUNNING'),
+                            ('in_progress', 'IN_PROGRESS'),
                             ('completed', 'COMPLETED'),
                             ('aborted', 'ABORTED')
                         ],
-                        default='running',
+                        default='in_progress',
                         max_length=32
                     )
                 ),
@@ -105,6 +57,58 @@ class Migration(migrations.Migration):
                 'ordering': ['-date_created'],
             },
         ),
+        migrations.CreateModel(
+            name='BillingAndUsageSnapshot',
+            fields=[
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID'
+                    )
+                ),
+                (
+                    'effective_user_id',
+                    models.IntegerField(blank=True, null=True, db_index=True)
+                ),
+                (
+                    'last_snapshot_run',
+                    models.ForeignKey(
+                        on_delete=models.deletion.CASCADE,
+                        to='user_reports.billingandusagesnapshotrun',
+                    ),
+                ),
+                (
+                    'organization',
+                    models.OneToOneField(
+                        on_delete=models.deletion.CASCADE,
+                        to='organizations.organization',
+                    ),
+                ),
+                ('storage_bytes_total', models.BigIntegerField(default=0)),
+                ('submission_counts_all_time', models.BigIntegerField(default=0)),
+                ('current_period_submissions', models.BigIntegerField(default=0)),
+                ('billing_period_start', models.DateTimeField(blank=True, null=True)),
+                ('billing_period_end', models.DateTimeField(blank=True, null=True)),
+                (
+                    'date_created',
+                    models.DateTimeField(
+                        default=kpi.models.abstract_models._get_default_datetime
+                    ),
+                ),
+                (
+                    'date_modified',
+                    models.DateTimeField(
+                        default=kpi.models.abstract_models._get_default_datetime
+                    ),
+                ),
+            ],
+            options={
+                'db_table': 'billing_and_usage_snapshot',
+            },
+        ),
         migrations.AddIndex(
             model_name='billingandusagesnapshot',
             index=models.Index(fields=['effective_user_id'], name='idx_bau_user'),
@@ -112,13 +116,6 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name='billingandusagesnapshot',
             index=models.Index(fields=['date_created'], name='idx_bau_created'),
-        ),
-        migrations.AddIndex(
-            model_name='billingandusagesnapshot',
-            index=models.Index(
-                fields=['last_snapshot_run_id'],
-                name='idx_bau_last_run'
-            ),
         ),
         # Add index for runs
         migrations.AddIndex(
@@ -132,8 +129,15 @@ class Migration(migrations.Migration):
             model_name='billingandusagesnapshotrun',
             constraint=models.UniqueConstraint(
                 fields=('singleton',),
-                condition=Q(status='running'),
+                condition=Q(status='in_progress'),
                 name='uniq_run_in_progress'
+            ),
+        ),
+        migrations.AddConstraint(
+            model_name='billingandusagesnapshot',
+            constraint=models.UniqueConstraint(
+                fields=('organization',),
+                name='uniq_snapshot_per_org'
             ),
         ),
     ]

@@ -1,17 +1,22 @@
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, QuerySet
 from django.db.models.functions import Coalesce
 
 from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter
 from kobo.apps.organizations.models import Organization
 from kpi.utils.usage_calculator import get_storage_usage_by_user_id
+from ..typing_aliases import OrganizationIterator
 
 
 class BillingAndUsageCalculator:
 
-    def calculate_usage_batch(self, organizations, billing_dates: dict) -> dict:
+    def calculate_usage_batch(
+        self, organizations: OrganizationIterator, billing_dates: dict
+    ) -> dict:
         org_map = {}
         for org in organizations:
-            eff_uid = self.get_effective_user_id(org)
+            if not (eff_uid := self.get_effective_user_id(org)):
+                pass
+
             org_map[org.id] = {
                 'effective_user_id': eff_uid,
                 'billing_dates': billing_dates.get(org.id, {}),
@@ -41,8 +46,11 @@ class BillingAndUsageCalculator:
             }
         return result
 
-    def get_effective_user_id(self, organization: Organization) -> int:
-        return organization.owner_user_object.pk
+    def get_effective_user_id(self, organization: Organization) -> int | None:
+        try:
+            return organization.owner_user_object.pk
+        except AttributeError:
+            return None
 
     def _get_submission_usage_batch(self, user_ids, date_ranges_by_user):
         if not user_ids:

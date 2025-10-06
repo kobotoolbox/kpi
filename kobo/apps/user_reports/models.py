@@ -3,11 +3,12 @@ import uuid
 from django.db import models
 from django.db.models import Q
 
+from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 
 
 class BillingAndUsageSnapshotStatus(models.TextChoices):
-    RUNNING = 'running'
+    IN_PROGRESS = 'in_progress'
     COMPLETED = 'completed'
     ABORTED = 'aborted'
 
@@ -26,21 +27,32 @@ class BillingAndUsageSnapshot(AbstractTimeStampedModel):
        The materialized view then joins against this table efficiently.
     """
 
-    organization_id = models.CharField(max_length=64, unique=True)
+    organization = models.OneToOneField(
+        'organizations.Organization', on_delete=models.CASCADE
+    )
     effective_user_id = models.IntegerField(null=True, blank=True, db_index=True)
     storage_bytes_total = models.BigIntegerField(default=0)
     submission_counts_all_time = models.BigIntegerField(default=0)
     current_period_submissions = models.BigIntegerField(default=0)
     billing_period_start = models.DateTimeField(null=True, blank=True)
     billing_period_end = models.DateTimeField(null=True, blank=True)
-    last_snapshot_run_id = models.UUIDField(null=True, blank=True, db_index=True)
+    last_snapshot_run = models.ForeignKey(
+        'user_reports.BillingAndUsageSnapshotRun',
+        related_name = 'snapshots',
+        on_delete = models.CASCADE,
+    )
 
     class Meta:
         db_table = 'billing_and_usage_snapshot'
         indexes = [
             models.Index(fields=['effective_user_id'], name='idx_bau_user'),
             models.Index(fields=['date_created'], name='idx_bau_created'),
-            models.Index(fields=['last_snapshot_run_id'], name='idx_bau_last_run'),
+        ]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=['organization'], name='uniq_snapshot_per_org'
+            ),
         ]
 
     def __str__(self):
@@ -51,12 +63,11 @@ class BillingAndUsageSnapshotRun(AbstractTimeStampedModel):
     """
     Tracks the status and progress of billing and usage snapshot runs
     """
-    id = models.BigAutoField(primary_key=True)
-    run_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    uid = KpiUidField('busr')
     status = models.CharField(
         max_length=32,
         choices=BillingAndUsageSnapshotStatus.choices,
-        default=BillingAndUsageSnapshotStatus.RUNNING
+        default=BillingAndUsageSnapshotStatus.IN_PROGRESS
     )
     last_processed_org_id = models.CharField(null=True, blank=True)
     details = models.JSONField(null=True, blank=True)
@@ -74,7 +85,7 @@ class BillingAndUsageSnapshotRun(AbstractTimeStampedModel):
         constraints = [
             models.UniqueConstraint(
                 fields=('singleton',),
-                condition=Q(status=BillingAndUsageSnapshotStatus.RUNNING),
+                condition=Q(status=BillingAndUsageSnapshotStatus.IN_PROGRESS),
                 name='uniq_run_in_progress'
             ),
         ]

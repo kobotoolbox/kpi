@@ -17,6 +17,7 @@ from kobo.apps.user_reports.utils.snapshot_refresh_helpers import (
     process_chunk,
 )
 from kobo.celery import celery_app
+from kpi.utils.log import logging
 
 
 @celery_app.task(
@@ -63,34 +64,36 @@ def refresh_user_report_snapshots():
     calc = BillingAndUsageCalculator()
     cache_key = 'billing_and_usage_snapshot:run_lock'
     lock_timeout = settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60
-    with cache.lock(
-        cache_key, timeout=lock_timeout, blocking_timeout=0
-    ) as lock_acquired:
-        if not lock_acquired:
-            return
+    lock = cache.lock(cache_key, timeout=lock_timeout)
+    if not lock.acquire(blocking=False, blocking_timeout=0):
+        logging.error('Task is already running')
+        return
 
-    # Claim existing snapshot run or create a new one
+    # Claim the existing snapshot run or create a new one
     run = get_or_create_run()
-    run_id = run.run_id
-    last_processed_org_id = run.last_processed_org_id
+    last_processed_org_id = run.last_processed_org_id or ''
     try:
-        for chunk_qs in iter_org_chunks_after(last_processed_org_id):
+        while chunk_qs := iter_org_chunks_after(last_processed_org_id):
             billing_map = get_current_billing_period_dates_by_org(chunk_qs)
             usage_map = calc.calculate_usage_batch(chunk_qs, billing_map)
-            last_pk_in_chunk = process_chunk(chunk_qs, usage_map, run_id)
+            last_processed_org_id = process_chunk(chunk_qs, usage_map, run.pk)
 
             # Update the run progress
             BillingAndUsageSnapshotRun.objects.filter(pk=run.pk).update(
-                last_processed_org_id=last_pk_in_chunk,
+                last_processed_org_id=last_processed_org_id,
                 date_modified=timezone.now(),
             )
 
         # All orgs processed: cleanup stale, refresh MV and mark run as completed
-        cleanup_stale_snapshots_and_refresh_mv(run_id)
+        cleanup_stale_snapshots_and_refresh_mv(run.pk)
         BillingAndUsageSnapshotRun.objects.filter(pk=run.pk).update(
             status=BillingAndUsageSnapshotStatus.COMPLETED,
             date_modified=timezone.now(),
         )
+
+        # Release the lock
+        lock.release()
+
     except Exception as ex:
         run = BillingAndUsageSnapshotRun.objects.get(pk=run.pk)
         details = run.details or {}
