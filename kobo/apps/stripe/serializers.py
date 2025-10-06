@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Dict
+from typing import Any, Dict
 
 from django.core.exceptions import ValidationError
 from djstripe.models import (
@@ -163,10 +163,15 @@ class SubscriptionItemSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionScheduleSerializer(serializers.ModelSerializer):
+    phases = serializers.SerializerMethodField()
 
     class Meta:
         model = SubscriptionSchedule
         fields = ('phases', 'status')
+        read_only_fields = ('phases', 'status')
+
+    def get_phases(self, obj) -> Dict[str, Any]:
+        return obj.phases
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
