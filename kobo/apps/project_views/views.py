@@ -35,9 +35,7 @@ from .schema_extensions.v2.serializers import (
 from .serializers import ProjectViewSerializer
 
 
-@extend_schema(
-    tags=['Project Views'],
-)
+@extend_schema(tags=['User / team / organization / usage'])
 @extend_schema_view(
     assets=extend_schema(
         description=read_md('project_views', 'assets.md'),

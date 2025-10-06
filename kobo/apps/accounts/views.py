@@ -17,9 +17,7 @@ from .mixins import MultipleFieldLookupMixin
 from .serializers import EmailAddressSerializer, SocialAccountSerializer
 
 
-@extend_schema(
-    tags=['Me'],
-)
+@extend_schema(tags=['User / team / organization / usage'])
 @extend_schema_view(
     list=extend_schema(
         description=read_md('accounts', 'me/email/list.md'),
@@ -72,7 +70,7 @@ class EmailAddressViewSet(
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@extend_schema(tags=['Me'])
+@extend_schema(tags=['User / team / organization / usage'])
 @extend_schema_view(
     destroy=extend_schema(
         description=read_md('accounts', 'me/social/delete.md'),

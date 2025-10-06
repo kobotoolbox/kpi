@@ -18,7 +18,7 @@ from kpi.utils.schema_extensions.response import (
 
 
 @extend_schema(
-    tags=['Asset Subscriptions'],
+    tags=['Library collections'],
 )
 @extend_schema_view(
     create=extend_schema(

@@ -67,7 +67,7 @@ jobs:
       - openapi
       - pytest
       - npm-test
-    if: ${{ !cancelled() && !failure() && needs.changes.result == 'success' }}
+    if: ${{ !cancelled() && needs.changes.result == 'success' }}
     secrets: inherit
     uses: './.github/workflows/find-releases.yml'
 

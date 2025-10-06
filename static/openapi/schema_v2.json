@@ -3,13 +3,13 @@
     "info": {
         "title": "KoboToolbox API",
         "version": "2.0.0 (api_v2)",
-        "description": "Powerful and intuitive data collection tools to make an impact"
+        "description": "This page documents all KoboToolbox API endpoints.\n\nThe endpoints are grouped by area of intended use. Each category contains related endpoints, with detailed documentation on usage and configuration. Use this as a reference to quickly find the right endpoint for managing projects, forms, data, permissions, integrations, logs, and organizational resources.\n\n**General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as assets."
     },
     "paths": {
         "/api/v2/access-logs/": {
             "get": {
                 "operationId": "api_v2_access_logs_list",
-                "description": "## List actions performed by users.\n\n<sup>*</sup> _Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query specified in the\n\n`q` parameter.\n\n**Filterable fields:**\n\n1. app_label\n\n2. model_name\n\n3. action</br>\n  a. Available actions:\n   * create\n   * delete\n   * in-trash\n   * put-back\n   * remove\n   * update\n   * auth\n\n4. log_type</br>\na. Available log types:\n    * access\n    * project-history\n    * data-editing\n    * submission-management\n    * user-management\n    * asset-management\n\n5. date_created\n\n6. user_uid\n\n7. user__*</br>\na. user__username</br>\nb. user__email</br>\nc. user__is_superuser\n\n8. metadata__*</br>\n a. metadata__asset_uid</br>\n b. metadata__auth_type</br>\n c. some logs may have additional filterable fields in the metadata\n\n**Some examples:**\n\n1. All deleted submissions\n    `api/v2/audit-logs/?q=action:delete`\n\n2. All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`\n    `api/v2/audit-logs/?q=action:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`\n\n3. All submissions deleted by a specific user `my_username`\n    `api/v2/audit-logs/?q=action:delete AND user__username:my_username`\n\n4. All deleted submissions submitted after a specific date\n    `/api/v2/audit-logs/?q=action:delete AND date_created__gte:2022-11-15`\n\n5. All deleted submissions submitted after a specific date **and time**\n    `/api/v2/audit-logs/?q=action:delete AND date_created__gte:\"2022-11-15 20:34\"`\n\n6. All authentications from superusers\n    `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`\n\n*Notes: Do not forget to wrap search terms in double-quotes if they contain spaces\n(e.g. date and time \"2022-11-15 20:34\")*\n",
+                "description": "## List all access logs for all users\n\n⚠️ _Only available to superusers_\n\nSubmissions will be grouped together by user by hour\n\n**Filterable fields:**\n\n- date_created\n- user_uid\n- user__username\n- metadata__source\n- metadata__auth_type\n- metadata__ip_address\n\n**Some examples:**\n\n1. All logs from a specific IP address\n    `api/v2/access-logs/?q=metadata__ip_address:\"127.0.0.1\"`\n\n2. All logs created after Jan 1, 2025\n    `api/v2/access-logs/?q=date_created__gte:\"2025-01-01\"`\n\n*Notes: Do not forget to wrap search terms in double-quotes if they contain spaces\n(e.g. date and time \"2022-11-15 20:34\")*\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -38,7 +38,7 @@
                     }
                 ],
                 "tags": [
-                    "Access Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -53,7 +53,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/PaginatedAuditLogResponseList"
+                                    "$ref": "#/components/schemas/PaginatedAccessLogResponseList"
                                 }
                             }
                         },
@@ -76,24 +76,6 @@
                             }
                         },
                         "description": ""
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
                     }
                 }
             }
@@ -101,9 +83,9 @@
         "/api/v2/access-logs/export/": {
             "get": {
                 "operationId": "api_v2_access_logs_export_list",
-                "description": "## List all access logs export tasks for all users\n\n<sup>*</sup> _Only available to superusers_\n",
+                "description": "## List all access logs export tasks for all users\n\n⚠️ _Only available to superusers_\n",
                 "tags": [
-                    "Access Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -149,9 +131,9 @@
             },
             "post": {
                 "operationId": "api_v2_access_logs_export_create",
-                "description": "## Create an export task for all users\n\n<sup>*</sup> _Only available to superusers_\n",
+                "description": "## Create an export task for all users\n\n⚠️ _Only available to superusers_\n",
                 "tags": [
-                    "Access Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -214,7 +196,7 @@
         "/api/v2/access-logs/me/": {
             "get": {
                 "operationId": "api_v2_access_logs_me_list",
-                "description": "## List actions performed by users.\n\n<sup>*</sup> _Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query specified in the\n\n`q` parameter.\n\n**Filterable fields:**\n\n1. app_label\n\n2. model_name\n\n3. action</br>\n  a. Available actions:\n   * create\n   * delete\n   * in-trash\n   * put-back\n   * remove\n   * update\n   * auth\n\n4. log_type</br>\na. Available log types:\n    * access\n    * project-history\n    * data-editing\n    * submission-management\n    * user-management\n    * asset-management\n\n5. date_created\n\n6. user_uid\n\n7. user__*</br>\na. user__username</br>\nb. user__email</br>\nc. user__is_superuser\n\n8. metadata__*</br>\n a. metadata__asset_uid</br>\n b. metadata__auth_type</br>\n c. some logs may have additional filterable fields in the metadata\n\n**Some examples:**\n\n1. All deleted submissions\n    `api/v2/audit-logs/?q=action:delete`\n\n2. All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`\n    `api/v2/audit-logs/?q=action:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`\n\n3. All submissions deleted by a specific user `my_username`\n    `api/v2/audit-logs/?q=action:delete AND user__username:my_username`\n\n4. All deleted submissions submitted after a specific date\n    `/api/v2/audit-logs/?q=action:delete AND date_created__gte:2022-11-15`\n\n5. All deleted submissions submitted after a specific date **and time**\n    `/api/v2/audit-logs/?q=action:delete AND date_created__gte:\"2022-11-15 20:34\"`\n\n6. All authentications from superusers\n    `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`\n\n*Notes: Do not forget to wrap search terms in double-quotes if they contain spaces\n(e.g. date and time \"2022-11-15 20:34\")*\n",
+                "description": "## List all access logs for the authenticated user\n\nSubmissions will be grouped together by hour\n\nResults from this endpoint can be filtered by a boolean query specified in the `q` parameter.\n\n**Filterable fields:**\n\n* date_created\n* metadata__source\n* metadata__auth_type\n* metadata__ip_address\n\n**Some examples:**\n\n* All logs from a specific IP address\n    `api/v2/access-logs/?q=metadata__ip_address:\"127.0.0.1\"`\n* All logs created after Jan, 1 2025\n    `api/v2/access-logs/?q=date_created__date__gte:\"2025-01-01\"`\n\n*Notes: Do not forget to wrap search terms in double-quotes if they contain spaces\n(e.g. date and time \"2022-11-15 20:34\")*\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -243,7 +225,7 @@
                     }
                 ],
                 "tags": [
-                    "Access Logs"
+                    "Logging"
                 ],
                 "security": [
                     {
@@ -258,42 +240,24 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/PaginatedAuditLogResponseList"
+                                    "$ref": "#/components/schemas/PaginatedAccessLogResponseList"
                                 }
                             }
                         },
                         "description": null
                     },
-                    "403": {
+                    "401": {
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorDetail"
                                 },
                                 "examples": {
-                                    "AccessDenied": {
+                                    "NotAuthenticated": {
                                         "value": {
-                                            "detail": "You do not have permission to perform this action."
+                                            "detail": "Authentication credentials were not provided."
                                         },
-                                        "summary": "Access Denied"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
+                                        "summary": "Not authenticated"
                                     }
                                 }
                             }
@@ -308,7 +272,7 @@
                 "operationId": "api_v2_access_logs_me_export_list",
                 "description": "## List all access logs export tasks for the authenticated user\n",
                 "tags": [
-                    "Access Logs"
+                    "Logging"
                 ],
                 "security": [
                     {
@@ -354,9 +318,9 @@
             },
             "post": {
                 "operationId": "api_v2_access_logs_me_export_create",
-                "description": "## Create an export task for authenticated user\n",
+                "description": "## Create an export task for the authenticated user\n",
                 "tags": [
-                    "Access Logs"
+                    "Logging"
                 ],
                 "security": [
                     {
@@ -423,7 +387,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -468,7 +432,7 @@
                 "operationId": "api_v2_asset_snapshots_create",
                 "description": "## Create an asset snapshot\n\nWhen creating an asset snapshot, you must provide either:\n\n- the asset (as a URI), or\n- the source (as a JSON object representing the asset)\n\n…but not both.\n",
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "requestBody": {
                     "content": {
@@ -616,7 +580,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -694,7 +658,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -762,7 +726,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -812,7 +776,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -854,7 +818,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -921,7 +885,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Subscriptions"
+                    "Library collections"
                 ],
                 "security": [
                     {
@@ -949,7 +913,7 @@
                 "operationId": "api_v2_asset_subscriptions_create",
                 "description": "## Create an asset subscription\n\nCreate a subscription to a public collection for the user.\n",
                 "tags": [
-                    "Asset Subscriptions"
+                    "Library collections"
                 ],
                 "requestBody": {
                     "content": {
@@ -1021,7 +985,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Subscriptions"
+                    "Library collections"
                 ],
                 "security": [
                     {
@@ -1077,7 +1041,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Subscriptions"
+                    "Library collections"
                 ],
                 "security": [
                     {
@@ -1138,7 +1102,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Usage"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -1214,7 +1178,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -1241,7 +1205,7 @@
                 "operationId": "api_v2_assets_create",
                 "description": "## Create or clone an asset\n\nWhen cloning an asset, you must provide:\n\n- the name (as a string),\n- the `clone_from` (the uid representing the asset),\n- the asset_type\n\nWhere `asset_type` must be one of these values:\n\n* block (can be cloned to `block`, `question`, `survey`, `template`)\n* question (can be cloned to `question`, `survey`, `template`)\n* survey (can be cloned to `block`, `question`, `survey`, `template`)\n* template (can be cloned to `survey`, `template`)\n\nSettings are cloned only when type of assets are `survey` or `template`.\nIn that case, `share-metadata` is not preserved.\n\nWhen creating a new `block` or `question` asset, settings are not saved either.\n",
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -1362,7 +1326,7 @@
                     }
                 ],
                 "tags": [
-                    "Attachments"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1435,7 +1399,7 @@
                     }
                 ],
                 "tags": [
-                    "Attachments"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1526,7 +1490,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -1632,7 +1596,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1722,7 +1686,7 @@
                     }
                 ],
                 "tags": [
-                    "Attachments"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1823,7 +1787,7 @@
                     }
                 ],
                 "tags": [
-                    "Attachments"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1923,7 +1887,7 @@
                     }
                 ],
                 "tags": [
-                    "Attachments"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1995,7 +1959,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2065,7 +2029,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2125,7 +2089,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -2202,7 +2166,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2287,7 +2251,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2372,7 +2336,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2457,7 +2421,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2542,7 +2506,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2627,7 +2591,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2692,7 +2656,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -2766,7 +2730,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2817,7 +2781,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -2882,7 +2846,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2933,7 +2897,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -2998,7 +2962,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3067,7 +3031,7 @@
                     }
                 ],
                 "tags": [
-                    "Export Settings"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3123,7 +3087,7 @@
                     }
                 ],
                 "tags": [
-                    "Export Settings"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -3222,7 +3186,7 @@
                     }
                 ],
                 "tags": [
-                    "Export Settings"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3287,7 +3251,7 @@
                     }
                 ],
                 "tags": [
-                    "Export Settings"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -3383,7 +3347,7 @@
                     }
                 ],
                 "tags": [
-                    "Export Settings"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3455,7 +3419,7 @@
                     }
                 ],
                 "tags": [
-                    "Export Settings"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3555,7 +3519,7 @@
                     }
                 ],
                 "tags": [
-                    "Exports"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3629,7 +3593,7 @@
                     }
                 ],
                 "tags": [
-                    "Exports"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -3746,7 +3710,7 @@
                     }
                 ],
                 "tags": [
-                    "Exports"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3829,7 +3793,7 @@
                     }
                 ],
                 "tags": [
-                    "Exports"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3916,7 +3880,7 @@
                     }
                 ],
                 "tags": [
-                    "Files"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3972,7 +3936,7 @@
                     }
                 ],
                 "tags": [
-                    "Files"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -4106,7 +4070,7 @@
                     }
                 ],
                 "tags": [
-                    "Files"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -4170,7 +4134,7 @@
                     }
                 ],
                 "tags": [
-                    "Files"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -4229,7 +4193,7 @@
                     }
                 ],
                 "tags": [
-                    "Files"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -4267,7 +4231,7 @@
         "/api/v2/assets/{parent_lookup_asset}/history/": {
             "get": {
                 "operationId": "api_v2_assets_history_list",
-                "description": "## List project history logs\n\nLists all project history logs for a single project.\n\n<sup>*</sup> _Required permissions: `manage_asset` (Manage project)_\n\nResults from this endpoint can be filtered by a Boolean query specified in the q parameter.\n\n### Filterable fields for all project history logs:\n\n  date_created\n\n  user_uid\n\n  user__*\n  - user__username\n  - user__email\n  - user__is_superuser\n\n  metadata__*\n\n  - metadata__source\n  - metadata__ip_address\n  - metadata__asset_uid\n  - metadata__log_subtype\n    - available subtypes: \"project\", \"permission\"\n\n### action\n\navailable actions:\n  - add-media\n  - add-submission\n  - allow-anonymous-submissions\n  - archive\n  - clone-permissions\n  - connect-project\n  - delete-media\n  - delete-service\n  - delete-submission\n  - deploy\n  - disable-sharing\n  - disallow-anonymous-submissions\n  - disconnect-project\n  - enable-sharing\n  - export\n  - modify-imported-fields\n  - modify-qa-data\n  - modify-service\n  - modify-sharing\n  - modify-submission\n  - modify-user-permissions\n  - redeploy\n   - register-service\n  - replace-form\n  - share-data-publicly\n  - share-form-publicly\n  - transfer\n  - unarchive\n  - unshare-data-publicly\n  - unshare-form-publicly\n  - update-content\n  - update-name\n  - update-settings\n  - update-qa\n\n### Filterable fields by action:\n\n  add-media\n  - metadata__asset-file__uid\n  - metadata__asset-file__filename\n\n  add-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  archive\n  - metadata__latest_version_uid\n\n  clone-permissions\n  - metadata__cloned_from\n\n  connect-project\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  delete-media\n  - metadata__asset-file__uid\n  - metadata__asset-file__filename\n\n  delete-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  delete-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  deploy\n  - metadata__latest_version_uid\n  - metadata__latest_deployed_version_uid\n\n  disconnect-project\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  modify-imported-fields\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  modify-qa-data\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  modify-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  modify-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n  - metadata__submission__status (only present if changed)\n\n  modify-user-permissions\n  - metadata__permissions__username\n\n  redeploy\n  - metadata__latest_version_uid\n  - metadata__latest_deployed_version_uid\n\n  register-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  transfer\n  - metadata__username\n\n  unarchive\n  - metadata__latest_version_uid\n\n  update-name\n  - metadata__name__old\n  - metadata__name__new\n\n  update-settings\n  - metadata__settings__description__old\n  - metadata__settings__description__new\n\nThis endpoint can be paginated with 'offset' and 'limit' parameters.\n\n",
+                "description": "## List project history logs\n\nLists all project history logs for a single project.\n\n⚠️ _Required permissions: `manage_asset` (Manage project)_\n\nResults from this endpoint can be filtered by a Boolean query specified in the `q` parameter.\n\n### Filterable fields for all project history logs:\n\n  - date_created\n  - user_uid\n  - user__username\n  - user__email\n  - user__is_superuser\n  - metadata__source\n  - metadata__ip_address\n  - metadata__log_subtype\n    - available subtypes: \"project\", \"permission\"\n\n### action\n\navailable actions:\n  - add-media\n  - add-submission\n  - allow-anonymous-submissions\n  - archive\n  - clone-permissions\n  - connect-project\n  - delete-media\n  - delete-service\n  - delete-submission\n  - deploy\n  - disable-sharing\n  - disallow-anonymous-submissions\n  - disconnect-project\n  - enable-sharing\n  - export\n  - modify-imported-fields\n  - modify-qa-data\n  - modify-service\n  - modify-sharing\n  - modify-submission\n  - modify-user-permissions\n  - redeploy\n   - register-service\n  - replace-form\n  - share-data-publicly\n  - share-form-publicly\n  - transfer\n  - unarchive\n  - unshare-data-publicly\n  - unshare-form-publicly\n  - update-content\n  - update-name\n  - update-settings\n  - update-qa\n\n### Filterable fields by action:\n\n  add-media\n  - metadata__asset-file__uid\n  - metadata__asset-file__filename\n\n  add-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  archive\n  - metadata__latest_version_uid\n\n  clone-permissions\n  - metadata__cloned_from\n\n  connect-project\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  delete-media\n  - metadata__asset-file__uid\n  - metadata__asset-file__filename\n\n  delete-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  delete-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  deploy\n  - metadata__latest_version_uid\n  - metadata__latest_deployed_version_uid\n\n  disconnect-project\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  modify-imported-fields\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  modify-qa-data\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  modify-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  modify-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n  - metadata__submission__status (only present if changed)\n\n  modify-user-permissions\n  - metadata__permissions__username\n\n  redeploy\n  - metadata__latest_version_uid\n  - metadata__latest_deployed_version_uid\n\n  register-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  transfer\n  - metadata__username\n\n  unarchive\n  - metadata__latest_version_uid\n\n  update-name\n  - metadata__name__old\n  - metadata__name__new\n\n  update-settings\n  - metadata__settings__description__old\n  - metadata__settings__description__new\n\nThis endpoint can be paginated with 'offset' and 'limit' parameters.\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -4305,7 +4269,7 @@
                     }
                 ],
                 "tags": [
-                    "History"
+                    "Logging"
                 ],
                 "security": [
                     {
@@ -4368,7 +4332,7 @@
         "/api/v2/assets/{parent_lookup_asset}/history/actions/": {
             "get": {
                 "operationId": "api_v2_assets_history_actions_retrieve",
-                "description": "## Retrieve distinct actions performed on the asset.\n",
+                "description": "## Retrieve distinct actions performed on the project.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -4381,7 +4345,7 @@
                     }
                 ],
                 "tags": [
-                    "History"
+                    "Logging"
                 ],
                 "security": [
                     {
@@ -4444,7 +4408,7 @@
         "/api/v2/assets/{parent_lookup_asset}/history/export/": {
             "post": {
                 "operationId": "api_v2_assets_history_export_create",
-                "description": "## Export current project's history\n\nExports the project's history and sends it to the user via email.\n",
+                "description": "## Export current project's history\n\nExports the project's history and sends it by email to the requesting user.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -4457,7 +4421,7 @@
                     }
                 ],
                 "tags": [
-                    "History"
+                    "Logging"
                 ],
                 "security": [
                     {
@@ -4551,7 +4515,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "security": [
                     {
@@ -4607,7 +4571,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "requestBody": {
                     "content": {
@@ -4754,7 +4718,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "security": [
                     {
@@ -4847,7 +4811,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "security": [
                     {
@@ -4940,7 +4904,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "requestBody": {
                     "content": {
@@ -5044,7 +5008,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "security": [
                     {
@@ -5109,7 +5073,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "requestBody": {
                     "content": {
@@ -5215,7 +5179,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "security": [
                     {
@@ -5275,7 +5239,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "security": [
                     {
@@ -5351,7 +5315,7 @@
                     }
                 ],
                 "tags": [
-                    "Paired Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -5407,7 +5371,7 @@
                     }
                 ],
                 "tags": [
-                    "Paired Data"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -5516,7 +5480,7 @@
                     }
                 ],
                 "tags": [
-                    "Paired Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -5581,7 +5545,7 @@
                     }
                 ],
                 "tags": [
-                    "Paired Data"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -5677,7 +5641,7 @@
                     }
                 ],
                 "tags": [
-                    "Paired Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -5737,7 +5701,7 @@
                     }
                 ],
                 "tags": [
-                    "Paired Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -5795,7 +5759,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "security": [
                     {
@@ -5872,7 +5836,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "requestBody": {
                     "content": {
@@ -6018,7 +5982,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "security": [
                     {
@@ -6101,7 +6065,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "security": [
                     {
@@ -6179,7 +6143,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "security": [
                     {
@@ -6248,7 +6212,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "requestBody": {
                     "content": {
@@ -6362,7 +6326,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "requestBody": {
                     "content": {
@@ -6490,7 +6454,7 @@
                     }
                 ],
                 "tags": [
-                    "Versions"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -6556,7 +6520,7 @@
                     }
                 ],
                 "tags": [
-                    "Versions"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -6626,7 +6590,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -6691,7 +6655,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -6813,7 +6777,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -6881,7 +6845,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -6938,7 +6902,7 @@
                     }
                 ],
                 "tags": [
-                    "Deployment"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -6993,7 +6957,7 @@
                     }
                 ],
                 "tags": [
-                    "Deployment"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -7098,7 +7062,7 @@
                     }
                 ],
                 "tags": [
-                    "Deployment"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -7204,7 +7168,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -7261,7 +7225,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -7309,7 +7273,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -7366,7 +7330,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -7414,7 +7378,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -7452,7 +7416,7 @@
                 "operationId": "api_v2_assets_bulk_create",
                 "description": "## Perform bulk actions on assets\n\nActions available:\n\n- `archive`\n- `delete`\n- `unarchive`\n- `undelete` (superusers only)\n",
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -7528,7 +7492,7 @@
                 "operationId": "api_v2_assets_hash_retrieve",
                 "description": "## Get a hash of all `version_id`s of all accessible assets by the current user.\n\nUseful to detect any changes in assets with only one call to `API`\n",
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -7575,7 +7539,7 @@
                 "operationId": "api_v2_assets_metadata_retrieve",
                 "description": "## Get metadata for all authenticated user' assets\n",
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -7602,7 +7566,7 @@
         "/api/v2/audit-logs/": {
             "get": {
                 "operationId": "api_v2_audit_logs_list",
-                "description": "## List actions performed by users.\n\n<sup>*</sup> _Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query specified in the\n\n`q` parameter.\n\n**Filterable fields:**\n\n1. app_label\n\n2. model_name\n\n3. action</br>\n  a. Available actions:\n   * create\n   * delete\n   * in-trash\n   * put-back\n   * remove\n   * update\n   * auth\n\n4. log_type</br>\na. Available log types:\n    * access\n    * project-history\n    * data-editing\n    * submission-management\n    * user-management\n    * asset-management\n\n5. date_created\n\n6. user_uid\n\n7. user__*</br>\na. user__username</br>\nb. user__email</br>\nc. user__is_superuser\n\n8. metadata__*</br>\n a. metadata__asset_uid</br>\n b. metadata__auth_type</br>\n c. some logs may have additional filterable fields in the metadata\n\n**Some examples:**\n\n1. All deleted submissions\n    `api/v2/audit-logs/?q=action:delete`\n\n2. All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`\n    `api/v2/audit-logs/?q=action:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`\n\n3. All submissions deleted by a specific user `my_username`\n    `api/v2/audit-logs/?q=action:delete AND user__username:my_username`\n\n4. All deleted submissions submitted after a specific date\n    `/api/v2/audit-logs/?q=action:delete AND date_created__gte:2022-11-15`\n\n5. All deleted submissions submitted after a specific date **and time**\n    `/api/v2/audit-logs/?q=action:delete AND date_created__gte:\"2022-11-15 20:34\"`\n\n6. All authentications from superusers\n    `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`\n\n*Notes: Do not forget to wrap search terms in double-quotes if they contain spaces\n(e.g. date and time \"2022-11-15 20:34\")*\n",
+                "description": "## List actions performed by users.\n\n⚠️ _Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query specified in the `q` parameter.\n\n**Filterable fields:**\n\n* app_label\n* model_name\n* action\n  Available actions:\n   * create\n   * delete\n   * in-trash\n   * put-back\n   * remove\n   * update\n   * auth\n* log_type\n  Available log types:\n    * access\n    * project-history\n    * data-editing\n    * submission-management\n    * user-management\n    * asset-management\n* date_created\n* user_uid\n* user__username\n* user__email\n* user__is_superuser\n* metadata__asset_uid\n* metadata__auth_type\n\n*Notes: Some logs may have additional filterable fields in the metadata*\n\n**Some examples:**\n\n* All deleted submissions\n    `api/v2/audit-logs/?q=action:delete`\n* All deleted submissions of a specific project `aTJ3vi2KRGYj2NytSzBPp7`\n    `api/v2/audit-logs/?q=action:delete AND metadata__asset_uid:aTJ3vi2KRGYj2NytSzBPp7`\n* All submissions deleted by a specific user `my_username`\n    `api/v2/audit-logs/?q=action:delete AND user__username:my_username`\n* All deleted submissions submitted after a specific date\n    `/api/v2/audit-logs/?q=action:delete AND date_created__gte:2022-11-15`\n* All deleted submissions submitted after a specific date **and time**\n    `/api/v2/audit-logs/?q=action:delete AND date_created__gte:\"2022-11-15 20:34\"`\n* All authentications from superusers\n    `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`\n\n*Notes: Do not forget to wrap search terms in double-quotes if they contain spaces\n(e.g. date and time \"2022-11-15 20:34\")*\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -7631,7 +7595,7 @@
                     }
                 ],
                 "tags": [
-                    "Audit Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -7716,7 +7680,7 @@
                     }
                 ],
                 "tags": [
-                    "Imports"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -7762,7 +7726,7 @@
                 "operationId": "api_v2_imports_create",
                 "description": "## Import file\n\n_**Note**: this endpoint is expecting a multipart/form-data_\n",
                 "tags": [
-                    "Imports"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -7870,7 +7834,7 @@
                     }
                 ],
                 "tags": [
-                    "Imports"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -7956,7 +7920,7 @@
                     }
                 ],
                 "tags": [
-                    "Languages"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -8013,7 +7977,7 @@
                     }
                 ],
                 "tags": [
-                    "Languages"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -8098,7 +8062,7 @@
                     }
                 ],
                 "tags": [
-                    "Organizations"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8156,7 +8120,7 @@
                     }
                 ],
                 "tags": [
-                    "Organizations"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8212,7 +8176,7 @@
                     }
                 ],
                 "tags": [
-                    "Organizations"
+                    "User / team / organization / usage"
                 ],
                 "requestBody": {
                     "content": {
@@ -8301,7 +8265,7 @@
                     }
                 ],
                 "tags": [
-                    "Organizations"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8359,7 +8323,7 @@
                     }
                 ],
                 "tags": [
-                    "Organizations"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8417,7 +8381,7 @@
                     }
                 ],
                 "tags": [
-                    "Organizations"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8493,7 +8457,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Invites"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8549,7 +8513,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Invites"
+                    "User / team / organization / usage"
                 ],
                 "requestBody": {
                     "content": {
@@ -8648,7 +8612,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Invites"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8713,7 +8677,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Invites"
+                    "User / team / organization / usage"
                 ],
                 "requestBody": {
                     "content": {
@@ -8841,7 +8805,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Invites"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8928,7 +8892,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Members"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8995,7 +8959,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Members"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -9060,7 +9024,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Members"
+                    "User / team / organization / usage"
                 ],
                 "requestBody": {
                     "content": {
@@ -9174,7 +9138,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Members"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -9252,7 +9216,7 @@
                     }
                 ],
                 "tags": [
-                    "Permissions"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -9292,7 +9256,7 @@
                     }
                 ],
                 "tags": [
-                    "Permissions"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -9320,7 +9284,7 @@
         "/api/v2/project-history-logs/": {
             "get": {
                 "operationId": "api_v2_project_history_logs_list",
-                "description": "## List all project history logs for all projects.\n\n<sup>*</sup> _Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query\nspecified in the `q` parameter.\n\n**Filterable fields for all project history logs:**\n\n1. date_created\n\n2. user_uid\n\n3. user__*\n\n    a. user__username\n\n    b. user__email\n\n    c. user__is_superuser\n\n4. metadata__*\n\n    b. metadata__source\n\n    c. metadata__ip_address\n\n    d. metadata__asset_uid\n\n    e. metadata__log_subtype\n\n    * available subtypes: \"project\", \"permission\"\n\n5. action\n\navailable actions:\n\n>       add-media\n>       add-submission\n>       allow-anonymous-submissions\n>       archive\n>       clone-permissions\n>       connect-project\n>       delete-media\n>       delete-service\n>       delete-submission\n>       deploy\n>       disable-sharing\n>       disallow-anonymous-submissions\n>       disconnect-project\n>       enable-sharing\n>       export\n>       modify-imported-fields\n>       modify-qa-data\n>       modify-service\n>       modify-sharing\n>       modify-submission\n>       modify-user-permissions\n>       redeploy\n>       register-service\n>       replace-form\n>       share-data-publicly\n>       share-form-publicly\n>       transfer\n>       unarchive\n>       unshare-data-publicly\n>       unshare-form-publicly\n>       update-content\n>       update-name\n>       update-settings\n>       update-qa\n\n**Filterable fields by action:**\n\n* add-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* add-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* archive\n\n    a. metadata__latest_version_uid\n\n* clone-permissions\n\n    a. metadata__cloned_from\n\n* connect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* delete-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* delete-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* delete-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* deploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* disconnect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-imported-fields\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-qa-data\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* modify-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* modify-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n    b. metadata__submission__status (only present if changed)\n\n* modify-user-permissions\n\n    a. metadata__permissions__username\n\n* redeploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* register-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* transfer\n\n    a. metadata__username\n\n* unarchive\n\n    a. metadata__latest_version_uid\n\n* update-name\n\n    a. metadata__name__old\n\n    b. metadata__name__new\n\n* update-settings\n\n    a. metadata__settings__description__old\n\n    b. metadata__settings__description__new\n\nThis endpoint can be paginated with 'offset' and 'limit' parameters\n",
+                "description": "## List all project history logs for all projects.\n\n⚠️_Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query\nspecified in the `q` parameter.\n\n**Filterable fields for all project history logs:**\n\n* date_created\n* user_uid\n* user__username\n* user__email\n* user__is_superuser\n* metadata__source\n* metadata__ip_address\n* metadata__asset_uid\n* metadata__log_subtype\n    * available subtypes: \"project\", \"permission\"\n* action\n\navailable actions:\n\n>       add-media\n>       add-submission\n>       allow-anonymous-submissions\n>       archive\n>       clone-permissions\n>       connect-project\n>       delete-media\n>       delete-service\n>       delete-submission\n>       deploy\n>       disable-sharing\n>       disallow-anonymous-submissions\n>       disconnect-project\n>       enable-sharing\n>       export\n>       modify-imported-fields\n>       modify-qa-data\n>       modify-service\n>       modify-sharing\n>       modify-submission\n>       modify-user-permissions\n>       redeploy\n>       register-service\n>       replace-form\n>       share-data-publicly\n>       share-form-publicly\n>       transfer\n>       unarchive\n>       unshare-data-publicly\n>       unshare-form-publicly\n>       update-content\n>       update-name\n>       update-settings\n>       update-qa\n\n**Filterable fields by action:**\n\n* add-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* add-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* archive\n\n    a. metadata__latest_version_uid\n\n* clone-permissions\n\n    a. metadata__cloned_from\n\n* connect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* delete-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* delete-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* delete-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* deploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* disconnect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-imported-fields\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-qa-data\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* modify-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* modify-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n    b. metadata__submission__status (only present if changed)\n\n* modify-user-permissions\n\n    a. metadata__permissions__username\n\n* redeploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* register-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* transfer\n\n    a. metadata__username\n\n* unarchive\n\n    a. metadata__latest_version_uid\n\n* update-name\n\n    a. metadata__name__old\n\n    b. metadata__name__new\n\n* update-settings\n\n    a. metadata__settings__description__old\n\n    b. metadata__settings__description__new\n\nThis endpoint can be paginated with 'offset' and 'limit' parameters\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -9349,7 +9313,7 @@
                     }
                 ],
                 "tags": [
-                    "Project History Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -9412,9 +9376,9 @@
         "/api/v2/project-history-logs/export/": {
             "get": {
                 "operationId": "api_v2_project_history_logs_export_retrieve",
-                "description": "## Export project history logs\n\nExport project history logs and send by email to requesting user.\n",
+                "description": "## List of Project History Exports\n\n⚠️ _Only available to superusers_\n",
                 "tags": [
-                    "Project History Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -9475,9 +9439,9 @@
             },
             "post": {
                 "operationId": "api_v2_project_history_logs_export_create",
-                "description": "## Create an export of projects history logs\n",
+                "description": "## Create an export of projects history logs\n\n⚠️ _Only available to superusers_\n\nExport project history logs and send it by email to the requesting user.\n",
                 "tags": [
-                    "Project History Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -9569,7 +9533,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Ownership Invites"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -9614,7 +9578,7 @@
                 "operationId": "api_v2_project_ownership_invites_create",
                 "description": "## Create (send) an invite\n\nWhere the assets `uid` are given in the payload's list\n\n\n",
                 "tags": [
-                    "Project Ownership Invites"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -9712,7 +9676,7 @@
                     }
                 ],
                 "tags": [
-                    "Transfers"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -9805,7 +9769,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Ownership Invites"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -9878,7 +9842,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Ownership Invites"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -9982,7 +9946,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Ownership Invites"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -10060,7 +10024,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Views"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10117,7 +10081,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Views"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10201,7 +10165,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Views"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10323,7 +10287,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Views"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10454,7 +10418,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Views"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10567,7 +10531,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Views"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10632,7 +10596,7 @@
                 "operationId": "api_v2_service_usage_list",
                 "description": "<span class='label label-warning'>⚠️ Deprecated</span>\n## Track Service Usage\n\nTracks the total usage of different services for the logged-in user. </br>\nTracks the submissions and NLP seconds/characters for the current month/year/all time. </br>\nTracks the current total storage used. </br>\nNote: this endpoint is not currently used by the frontend to display usage information. </br>\nSee `/api/v2/organizations/{organization_id}/service_usage/` for the endpoint we use on the Usage page. </br>\n",
                 "tags": [
-                    "Service Usage"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10702,7 +10666,7 @@
                     }
                 ],
                 "tags": [
-                    "Tags"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -10760,7 +10724,7 @@
                     }
                 ],
                 "tags": [
-                    "Tags"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -10826,7 +10790,7 @@
                 "operationId": "api_v2_terms_of_service_list",
                 "description": "## List the different terms of service\n",
                 "tags": [
-                    "Terms of Services"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -10886,7 +10850,7 @@
                     }
                 ],
                 "tags": [
-                    "Terms of Services"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -10978,7 +10942,7 @@
                     }
                 ],
                 "tags": [
-                    "Transcription Services"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -11035,7 +10999,7 @@
                     }
                 ],
                 "tags": [
-                    "Transcription Services"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -11127,7 +11091,7 @@
                     }
                 ],
                 "tags": [
-                    "Translation Services"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -11206,7 +11170,7 @@
                     }
                 ],
                 "tags": [
-                    "Translation Services"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -11291,7 +11255,7 @@
                     }
                 ],
                 "tags": [
-                    "Users"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11349,7 +11313,7 @@
                     }
                 ],
                 "tags": [
-                    "Users"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11396,7 +11360,7 @@
                 "operationId": "me_retrieve",
                 "description": "## Retrieve current user profile\n",
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11441,7 +11405,7 @@
                 "operationId": "me_partial_update",
                 "description": "## Update current user infos\n",
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "requestBody": {
                     "content": {
@@ -11527,7 +11491,7 @@
                 "operationId": "me_destroy",
                 "description": "## Delete current user\n\n> Payload Example:\n>\n>       {\n>           \"confirm\": \"user__extra_details__uid\",\n>       }\n\n\n### !! Due to current DRF-Spectacular limitations with AOS 3.1, DELETE operations do not display request or response bodies in this documentation (as payloads are not typically recommended for DELETE). This means direct testing is unavailable. However, example payloads and responses are provided for reference, and HTTP codes/error messages are accurate.  !!\n",
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11627,7 +11591,7 @@
                     }
                 ],
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11672,7 +11636,7 @@
                 "operationId": "me_emails_create",
                 "description": "## Set a new email\n\nThe new email will be unverified and replace existing unverified, non-primary emails.\nNew email is not usable until verified.\n",
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "requestBody": {
                     "content": {
@@ -11771,7 +11735,7 @@
                     }
                 ],
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11837,7 +11801,7 @@
                     }
                 ],
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11919,7 +11883,7 @@
                     }
                 ],
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11975,6 +11939,60 @@
     },
     "components": {
         "schemas": {
+            "AccessLogResponse": {
+                "type": "object",
+                "properties": {
+                    "user": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                    },
+                    "date_created": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "username": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "properties": {
+                            "source": {
+                                "type": "string"
+                            },
+                            "auth_type": {
+                                "type": "string"
+                            },
+                            "ip_address": {
+                                "type": "string"
+                            },
+                            "initial_user_uid": {
+                                "type": "string"
+                            },
+                            "initial_user_username": {
+                                "type": "string"
+                            },
+                            "authorized_app_name": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "user_uid": {
+                        "type": "string"
+                    },
+                    "count": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "count",
+                    "date_created",
+                    "metadata",
+                    "user",
+                    "user_uid",
+                    "username"
+                ]
+            },
             "Asset": {
                 "type": "object",
                 "properties": {
@@ -15910,6 +15928,37 @@
                 "type": "string",
                 "description": "* `non-profit` - Non-profit organization\n* `government` - Government institution\n* `educational` - Educational organization\n* `commercial` - A commercial/for-profit company\n* `none` - I am not associated with any organization"
             },
+            "PaginatedAccessLogResponseList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AccessLogResponse"
+                        }
+                    }
+                }
+            },
             "PaginatedAssetCountResponseList": {
                 "type": "object",
                 "required": [
@@ -19088,5 +19137,49 @@
                 "description": "Token-based authentication. Use the format: `Token <your-token>`"
             }
         }
-    }
+    },
+    "tags": [
+        {
+            "name": "Manage projects and library content",
+            "description": [
+                "Create, organize, and manage projects, assets (projects/library content), and tags"
+            ]
+        },
+        {
+            "name": "Form content",
+            "description": "Export and preview assets (projects/library content) in different formats"
+        },
+        {
+            "name": "Survey data",
+            "description": "View, edit, validate, export, and report collected data"
+        },
+        {
+            "name": "Survey data - Rest Services",
+            "description": "Configure and manage webhooks for survey data integrations"
+        },
+        {
+            "name": "Manage permissions",
+            "description": "Assign, clone, and bulk-manage project and asset (projects/library content) permissions"
+        },
+        {
+            "name": "Logging",
+            "description": "Project history logs, access logs, Rest Service hook logs"
+        },
+        {
+            "name": "Library collections",
+            "description": "Subscribe to and manage shared library collections"
+        },
+        {
+            "name": "Audit logs (superusers)",
+            "description": "View server-wide logs"
+        },
+        {
+            "name": "User / team / organization / usage",
+            "description": "Manage users, orgs, invites, roles, and usage tracking"
+        },
+        {
+            "name": "Other",
+            "description": "Languages, available permissions, other"
+        }
+    ]
 }
