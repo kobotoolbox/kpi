@@ -172,7 +172,7 @@ django==4.2.24
     #   drf-spectacular
     #   jsonfield
     #   model-bakery
-django-allauth==65.1.0
+django-allauth==65.11.2
     # via -r dependencies/pip/requirements.in
 django-amazon-ses==4.0.1
     # via -r dependencies/pip/requirements.in
