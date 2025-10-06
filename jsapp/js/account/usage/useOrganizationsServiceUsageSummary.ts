@@ -5,7 +5,7 @@ import {
   getOrganizationsServiceUsageRetrieveQueryKey,
   type organizationsServiceUsageRetrieveResponse,
   useOrganizationsServiceUsageRetrieve,
-} from '#/api/react-query/organizations'
+} from '#/api/react-query/user-team-organization-usage'
 import { USAGE_WARNING_RATIO } from '#/constants'
 import { useSession } from '#/stores/useSession'
 import { convertSecondsToMinutes, formatRelativeTime, recordEntries } from '#/utils'

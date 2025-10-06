@@ -2,7 +2,12 @@ openapi: 3.0.3
 info:
   title: KoboToolbox API
   version: 2.0.0 (api_v2)
-  description: Powerful and intuitive data collection tools to make an impact
+  description: |-
+    This page documents all KoboToolbox API endpoints.
+
+    The endpoints are grouped by area of intended use. Each category contains related endpoints, with detailed documentation on usage and configuration. Use this as a reference to quickly find the right endpoint for managing projects, forms, data, permissions, integrations, logs, and organizational resources.
+
+    **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as assets.
 paths:
   /api/v2/access-logs/:
     get:
@@ -51,7 +56,7 @@ paths:
         schema:
           type: string
       tags:
-      - Access Logs
+      - Audit logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -81,7 +86,7 @@ paths:
 
         ⚠️ _Only available to superusers_
       tags:
-      - Access Logs
+      - Audit logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -112,7 +117,7 @@ paths:
 
         ⚠️ _Only available to superusers_
       tags:
-      - Access Logs
+      - Audit logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -189,7 +194,7 @@ paths:
         schema:
           type: string
       tags:
-      - Access Logs
+      - Logging
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -217,7 +222,7 @@ paths:
       description: |
         ## List all access logs export tasks for the authenticated user
       tags:
-      - Access Logs
+      - Logging
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -246,7 +251,7 @@ paths:
       description: |
         ## Create an export task for the authenticated user
       tags:
-      - Access Logs
+      - Logging
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -287,7 +292,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Asset Snapshots
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -321,7 +326,7 @@ paths:
 
         …but not both.
       tags:
-      - Asset Snapshots
+      - Form content
       requestBody:
         content:
           application/json:
@@ -413,7 +418,7 @@ paths:
           type: string
         required: true
       tags:
-      - Asset Snapshots
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -460,7 +465,7 @@ paths:
           type: string
         required: true
       tags:
-      - Asset Snapshots
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -503,7 +508,7 @@ paths:
           type: string
         required: true
       tags:
-      - Asset Snapshots
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -535,7 +540,7 @@ paths:
           type: string
         required: true
       tags:
-      - Asset Snapshots
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -564,7 +569,7 @@ paths:
           type: string
         required: true
       tags:
-      - Asset Snapshots
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -605,7 +610,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Asset Subscriptions
+      - Library collections
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -624,7 +629,7 @@ paths:
 
         Create a subscription to a public collection for the user.
       tags:
-      - Asset Subscriptions
+      - Library collections
       requestBody:
         content:
           application/json:
@@ -667,7 +672,7 @@ paths:
           type: string
         required: true
       tags:
-      - Asset Subscriptions
+      - Library collections
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -703,7 +708,7 @@ paths:
           type: string
         required: true
       tags:
-      - Asset Subscriptions
+      - Library collections
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -741,7 +746,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Asset Usage
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -825,7 +830,7 @@ paths:
         schema:
           type: string
       tags:
-      - Assets
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -859,7 +864,7 @@ paths:
 
         When creating a new `block` or `question` asset, settings are not saved either.
       tags:
-      - Assets
+      - Manage projects and library content
       requestBody:
         content:
           application/json:
@@ -937,7 +942,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Attachments
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1009,7 +1014,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Attachments
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1076,7 +1081,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Assets
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1197,7 +1202,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1269,7 +1274,7 @@ paths:
           type: string
         required: true
       tags:
-      - Attachments
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1354,7 +1359,7 @@ paths:
         description: UID of the parent data
         required: true
       tags:
-      - Attachments
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1433,7 +1438,7 @@ paths:
           pattern: ^(original|large|medium|small)$
         required: true
       tags:
-      - Attachments
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1506,7 +1511,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1549,7 +1554,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1587,7 +1592,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -1642,7 +1647,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1702,7 +1707,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1762,7 +1767,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1820,7 +1825,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1878,7 +1883,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1931,7 +1936,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1977,7 +1982,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -2022,7 +2027,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2067,7 +2072,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -2134,7 +2139,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2179,7 +2184,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -2251,7 +2256,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2296,7 +2301,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Export Settings
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2369,7 +2374,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Export Settings
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -2431,7 +2436,7 @@ paths:
         description: UID of the export-settings
         required: true
       tags:
-      - Export Settings
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2473,7 +2478,7 @@ paths:
         description: UID of the export-settings
         required: true
       tags:
-      - Export Settings
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -2534,7 +2539,7 @@ paths:
         description: UID of the export-settings
         required: true
       tags:
-      - Export Settings
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2585,7 +2590,7 @@ paths:
         description: UID of the export-settings
         required: true
       tags:
-      - Export Settings
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2660,7 +2665,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Exports
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2736,7 +2741,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Exports
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -2807,7 +2812,7 @@ paths:
         description: UID of the export task
         required: true
       tags:
-      - Exports
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2858,7 +2863,7 @@ paths:
         description: UID of the export task
         required: true
       tags:
-      - Exports
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2917,7 +2922,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Files
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -2975,7 +2980,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Files
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -3061,7 +3066,7 @@ paths:
           type: string
         required: true
       tags:
-      - Files
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3100,7 +3105,7 @@ paths:
           type: string
         required: true
       tags:
-      - Files
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3136,7 +3141,7 @@ paths:
           type: string
         required: true
       tags:
-      - Files
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3327,7 +3332,7 @@ paths:
         schema:
           type: string
       tags:
-      - History
+      - Logging
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3373,7 +3378,7 @@ paths:
         description: UID of the parent assets
         required: true
       tags:
-      - History
+      - Logging
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3421,7 +3426,7 @@ paths:
         description: UID of the parent assets
         required: true
       tags:
-      - History
+      - Logging
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3481,7 +3486,7 @@ paths:
         description: UID of the parent assets
         required: true
       tags:
-      - Rest Services
+      - Survey data - Rest Services
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3545,7 +3550,7 @@ paths:
         description: UID of the parent assets
         required: true
       tags:
-      - Rest Services
+      - Survey data - Rest Services
       requestBody:
         content:
           application/json:
@@ -3653,7 +3658,7 @@ paths:
           * `1` - Pending
           * `2` - Success
       tags:
-      - Rest Services
+      - Survey data - Rest Services
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3710,7 +3715,7 @@ paths:
           type: string
         required: true
       tags:
-      - Rest Services
+      - Survey data - Rest Services
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3767,7 +3772,7 @@ paths:
           type: string
         required: true
       tags:
-      - Rest Services
+      - Survey data - Rest Services
       requestBody:
         content:
           application/json:
@@ -3830,7 +3835,7 @@ paths:
         description: UID of the hook
         required: true
       tags:
-      - Rest Services
+      - Survey data - Rest Services
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3870,7 +3875,7 @@ paths:
         description: UID of the hook
         required: true
       tags:
-      - Rest Services
+      - Survey data - Rest Services
       requestBody:
         content:
           application/json:
@@ -3934,7 +3939,7 @@ paths:
         description: UID of the hook
         required: true
       tags:
-      - Rest Services
+      - Survey data - Rest Services
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -3975,7 +3980,7 @@ paths:
         description: UID of the hook
         required: true
       tags:
-      - Rest Services
+      - Survey data - Rest Services
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4026,7 +4031,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Paired Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4066,7 +4071,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Paired Data
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -4132,7 +4137,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Paired Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4174,7 +4179,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Paired Data
+      - Survey data
       requestBody:
         content:
           application/json:
@@ -4232,7 +4237,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Paired Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4273,7 +4278,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Paired Data
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4308,7 +4313,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Asset Permission Assignments
+      - Manage permissions
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4360,7 +4365,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Asset Permission Assignments
+      - Manage permissions
       requestBody:
         content:
           application/json:
@@ -4447,7 +4452,7 @@ paths:
         description: UID of the permission
         required: true
       tags:
-      - Asset Permission Assignments
+      - Manage permissions
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4498,7 +4503,7 @@ paths:
         description: UID of the permission
         required: true
       tags:
-      - Asset Permission Assignments
+      - Manage permissions
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4546,7 +4551,7 @@ paths:
         description: UID of the permission
         required: true
       tags:
-      - Asset Permission Assignments
+      - Manage permissions
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4590,7 +4595,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Asset Permission Assignments
+      - Manage permissions
       requestBody:
         content:
           application/json:
@@ -4661,7 +4666,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Asset Permission Assignments
+      - Manage permissions
       requestBody:
         content:
           application/json:
@@ -4739,7 +4744,7 @@ paths:
         description: UID of the parent asset
         required: true
       tags:
-      - Versions
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4781,7 +4786,7 @@ paths:
           type: string
         required: true
       tags:
-      - Versions
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4824,7 +4829,7 @@ paths:
           type: string
         required: true
       tags:
-      - Assets
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4872,7 +4877,7 @@ paths:
           type: string
         required: true
       tags:
-      - Assets
+      - Manage projects and library content
       requestBody:
         content:
           application/json:
@@ -4946,7 +4951,7 @@ paths:
           type: string
         required: true
       tags:
-      - Assets
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -4987,7 +4992,7 @@ paths:
           type: string
         required: true
       tags:
-      - Assets
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5021,7 +5026,7 @@ paths:
           type: string
         required: true
       tags:
-      - Deployment
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5056,7 +5061,7 @@ paths:
           type: string
         required: true
       tags:
-      - Deployment
+      - Manage projects and library content
       requestBody:
         content:
           application/json:
@@ -5123,7 +5128,7 @@ paths:
           type: string
         required: true
       tags:
-      - Deployment
+      - Manage projects and library content
       requestBody:
         content:
           application/json:
@@ -5190,7 +5195,7 @@ paths:
           type: string
         required: true
       tags:
-      - Assets
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5224,7 +5229,7 @@ paths:
           type: string
         required: true
       tags:
-      - Assets
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5263,7 +5268,7 @@ paths:
           type: string
         required: true
       tags:
-      - Assets
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5299,7 +5304,7 @@ paths:
           type: string
         required: true
       tags:
-      - Assets
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5369,7 +5374,7 @@ paths:
           type: string
         required: true
       tags:
-      - Assets
+      - Form content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5409,7 +5414,7 @@ paths:
         - `unarchive`
         - `undelete` (superusers only)
       tags:
-      - Assets
+      - Manage projects and library content
       requestBody:
         content:
           application/json:
@@ -5457,7 +5462,7 @@ paths:
 
         Useful to detect any changes in assets with only one call to `API`
       tags:
-      - Assets
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5485,7 +5490,7 @@ paths:
       description: |
         ## Get metadata for all authenticated user' assets
       tags:
-      - Assets
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5572,7 +5577,7 @@ paths:
         schema:
           type: string
       tags:
-      - Audit Logs
+      - Audit logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5624,7 +5629,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Imports
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5654,7 +5659,7 @@ paths:
 
         _**Note**: this endpoint is expecting a multipart/form-data_
       tags:
-      - Imports
+      - Manage projects and library content
       requestBody:
         content:
           multipart/form-data:
@@ -5719,7 +5724,7 @@ paths:
           type: string
         required: true
       tags:
-      - Imports
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5788,7 +5793,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Languages
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5824,7 +5829,7 @@ paths:
           type: string
         required: true
       tags:
-      - Languages
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5876,7 +5881,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Organizations
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5911,7 +5916,7 @@ paths:
         description: A unique value identifying this organization.
         required: true
       tags:
-      - Organizations
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5945,7 +5950,7 @@ paths:
         description: A unique value identifying this organization.
         required: true
       tags:
-      - Organizations
+      - User / team / organization / usage
       requestBody:
         content:
           application/json:
@@ -6000,7 +6005,7 @@ paths:
         description: A unique value identifying this organization.
         required: true
       tags:
-      - Organizations
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6044,7 +6049,7 @@ paths:
         description: A unique value identifying this organization.
         required: true
       tags:
-      - Organizations
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6087,7 +6092,7 @@ paths:
         description: A unique value identifying this organization.
         required: true
       tags:
-      - Organizations
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6134,7 +6139,7 @@ paths:
         description: ID of the organization asset
         required: true
       tags:
-      - Organization Invites
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6172,7 +6177,7 @@ paths:
         description: ID of the organization asset
         required: true
       tags:
-      - Organization Invites
+      - User / team / organization / usage
       requestBody:
         content:
           application/json:
@@ -6232,7 +6237,7 @@ paths:
         description: ID of the organization asset
         required: true
       tags:
-      - Organization Invites
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6276,7 +6281,7 @@ paths:
         description: ID of the organization asset
         required: true
       tags:
-      - Organization Invites
+      - User / team / organization / usage
       requestBody:
         content:
           application/json:
@@ -6356,7 +6361,7 @@ paths:
         description: ID of the organization asset
         required: true
       tags:
-      - Organization Invites
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6412,7 +6417,7 @@ paths:
         description: ID of the organization
         required: true
       tags:
-      - Organization Members
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6455,7 +6460,7 @@ paths:
         description: Username of the user
         required: true
       tags:
-      - Organization Members
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6501,7 +6506,7 @@ paths:
         description: Username of the user
         required: true
       tags:
-      - Organization Members
+      - User / team / organization / usage
       requestBody:
         content:
           application/json:
@@ -6572,7 +6577,7 @@ paths:
         description: Username of the user
         required: true
       tags:
-      - Organization Members
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6627,7 +6632,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Permissions
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6651,7 +6656,7 @@ paths:
           type: string
         required: true
       tags:
-      - Permissions
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6870,7 +6875,7 @@ paths:
         schema:
           type: string
       tags:
-      - Project History Logs
+      - Audit logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6911,7 +6916,7 @@ paths:
 
         ⚠️ _Only available to superusers_
       tags:
-      - Project History Logs
+      - Audit logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6953,7 +6958,7 @@ paths:
 
         Export project history logs and send it by email to the requesting user.
       tags:
-      - Project History Logs
+      - Audit logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7018,7 +7023,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Project Ownership Invites
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7049,7 +7054,7 @@ paths:
 
 
       tags:
-      - Project Ownership Invites
+      - Manage projects and library content
       requestBody:
         content:
           application/json:
@@ -7108,7 +7113,7 @@ paths:
           type: string
         required: true
       tags:
-      - Transfers
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7166,7 +7171,7 @@ paths:
           type: string
         required: true
       tags:
-      - Project Ownership Invites
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7222,7 +7227,7 @@ paths:
           type: string
         required: true
       tags:
-      - Project Ownership Invites
+      - Manage projects and library content
       requestBody:
         content:
           application/json:
@@ -7284,7 +7289,7 @@ paths:
           type: string
         required: true
       tags:
-      - Project Ownership Invites
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7332,7 +7337,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Project Views
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7366,7 +7371,7 @@ paths:
           type: string
         required: true
       tags:
-      - Project Views
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7420,7 +7425,7 @@ paths:
           type: string
         required: true
       tags:
-      - Project Views
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7496,7 +7501,7 @@ paths:
           type: string
         required: true
       tags:
-      - Project Views
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7575,7 +7580,7 @@ paths:
           type: string
         required: true
       tags:
-      - Project Views
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7643,7 +7648,7 @@ paths:
           type: string
         required: true
       tags:
-      - Project Views
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7689,7 +7694,7 @@ paths:
         Note: this endpoint is not currently used by the frontend to display usage information. </br>
         See `/api/v2/organizations/{organization_id}/service_usage/` for the endpoint we use on the Usage page. </br>
       tags:
-      - Service Usage
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7732,7 +7737,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Tags
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7767,7 +7772,7 @@ paths:
           type: string
         required: true
       tags:
-      - Tags
+      - Manage projects and library content
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7807,7 +7812,7 @@ paths:
       description: |
         ## List the different terms of service
       tags:
-      - Terms of Services
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7843,7 +7848,7 @@ paths:
           type: string
         required: true
       tags:
-      - Terms of Services
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7903,7 +7908,7 @@ paths:
         schema:
           type: string
       tags:
-      - Transcription Services
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -7939,7 +7944,7 @@ paths:
           type: string
         required: true
       tags:
-      - Transcription Services
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8000,7 +8005,7 @@ paths:
         schema:
           type: string
       tags:
-      - Translation Services
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8049,7 +8054,7 @@ paths:
           type: string
         required: true
       tags:
-      - Translation Services
+      - Other
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8101,7 +8106,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Users
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8137,7 +8142,7 @@ paths:
             only.
         required: true
       tags:
-      - Users
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8165,7 +8170,7 @@ paths:
       description: |
         ## Retrieve current user profile
       tags:
-      - Me
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8192,7 +8197,7 @@ paths:
       description: |
         ## Update current user infos
       tags:
-      - Me
+      - User / team / organization / usage
       requestBody:
         content:
           application/json:
@@ -8252,7 +8257,7 @@ paths:
 
         ### !! Due to current DRF-Spectacular limitations with AOS 3.1, DELETE operations do not display request or response bodies in this documentation (as payloads are not typically recommended for DELETE). This means direct testing is unavailable. However, example payloads and responses are provided for reference, and HTTP codes/error messages are accurate.  !!
       tags:
-      - Me
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8313,7 +8318,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Me
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8343,7 +8348,7 @@ paths:
         The new email will be unverified and replace existing unverified, non-primary emails.
         New email is not usable until verified.
       tags:
-      - Me
+      - User / team / organization / usage
       requestBody:
         content:
           application/json:
@@ -8403,7 +8408,7 @@ paths:
         schema:
           type: integer
       tags:
-      - Me
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8443,7 +8448,7 @@ paths:
           pattern: ^[-\w]+$
         required: true
       tags:
-      - Me
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -8493,7 +8498,7 @@ paths:
           pattern: ^[-\w]+$
         required: true
       tags:
-      - Me
+      - User / team / organization / usage
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -11020,6 +11025,8 @@ components:
     MemberListResponse:
       type: object
       properties:
+        role:
+          $ref: '#/components/schemas/MemberRoleEnum'
         url:
           type: string
           format: uri
@@ -11035,8 +11042,6 @@ components:
           format: email
         user__extra_details__name:
           type: string
-        role:
-          $ref: '#/components/schemas/MemberRoleEnum'
         user__has_mfa_enabled:
           type: boolean
         date_joined:
@@ -11045,60 +11050,9 @@ components:
         user__is_active:
           type: boolean
         invite:
-          type: object
-          properties:
-            url:
-              type: string
-              format: uri
-              example: https://kf.kobotoolbox.org/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/
-            invited_by:
-              type: string
-              format: uri
-              example: https://kf.kobotoolbox.org/api/v2/users/bob/
-            status:
-              enum:
-              - accepted
-              - cancelled
-              - declined
-              - expired
-              - pending
-              - resent
-              type: string
-              description: |-
-                * `accepted` - Accepted
-                * `cancelled` - Cancelled
-                * `declined` - Declined
-                * `expired` - Expired
-                * `pending` - Pending
-                * `resent` - Resent
-            invitee_role:
-              enum:
-              - admin
-              - member
-              - owner
-              type: string
-              description: |-
-                * `admin` - admin
-                * `member` - member
-                * `owner` - owner
-            organization_name:
-              type: string
-            created:
-              type: string
-              format: date-time
-            modified:
-              type: string
-              format: date-time
-            invitee:
-              type: string
-          required:
-          - created
-          - invited_by
-          - invitee_role
-          - modified
-          - organization_name
-          - status
-          - url
+          allOf:
+          - $ref: '#/components/schemas/InviteResponse'
+          nullable: true
       required:
       - date_joined
       - invite
@@ -13623,3 +13577,27 @@ components:
       in: header
       name: Authorization
       description: 'Token-based authentication. Use the format: `Token <your-token>`'
+tags:
+- name: Manage projects and library content
+  description:
+  - Create, organize, and manage projects, assets (projects/library content), and
+    tags
+- name: Form content
+  description: Export and preview assets (projects/library content) in different formats
+- name: Survey data
+  description: View, edit, validate, export, and report collected data
+- name: Survey data - Rest Services
+  description: Configure and manage webhooks for survey data integrations
+- name: Manage permissions
+  description: Assign, clone, and bulk-manage project and asset (projects/library
+    content) permissions
+- name: Logging
+  description: Project history logs, access logs, Rest Service hook logs
+- name: Library collections
+  description: Subscribe to and manage shared library collections
+- name: Audit logs (superusers)
+  description: View server-wide logs
+- name: User / team / organization / usage
+  description: Manage users, orgs, invites, roles, and usage tracking
+- name: Other
+  description: Languages, available permissions, other

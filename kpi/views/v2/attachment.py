@@ -30,7 +30,7 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
 
 
 @extend_schema(
-    tags=['Attachments'],
+    tags=['Survey data'],
     parameters=[
         OpenApiParameter(
             name='parent_lookup_asset',

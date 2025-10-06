@@ -33,7 +33,7 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
 
 
 @extend_schema(
-    tags=['Paired Data'],
+    tags=['Survey data'],
     parameters=[
         OpenApiParameter(
             name='parent_lookup_asset',

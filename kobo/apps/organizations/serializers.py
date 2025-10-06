@@ -126,7 +126,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         if invite:
             return OrgMembershipInviteSerializer(invite, context=self.context).data
 
-        return {}
+        return None
 
     def to_representation(self, instance):
         """

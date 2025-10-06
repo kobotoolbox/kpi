@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
+from kpi.schema_extensions.v2.invites.serializers import InviteResponse
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
-    InviteField,
     MemberUrlField,
     RoleChoiceField,
     RoleChoicePayloadField,
@@ -17,11 +17,11 @@ MemberListResponse = inline_serializer_class(
         'user__username': serializers.CharField(),
         'user__email': serializers.EmailField(),
         'user__extra_details__name': serializers.CharField(),
-        'role': RoleChoiceField(),
+        'role': RoleChoiceField,
         'user__has_mfa_enabled': serializers.BooleanField(),
         'date_joined': serializers.DateTimeField(),
         'user__is_active': serializers.BooleanField(),
-        'invite': InviteField(required=True),
+        'invite': InviteResponse(allow_null=True),
     },
 )
 

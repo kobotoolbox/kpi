@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import type { OrganizationResponse } from '#/api/models/organizationResponse'
-import { getOrganizationsRetrieveUrl } from '#/api/react-query/organizations'
+import { getOrganizationsRetrieveUrl } from '#/api/react-query/user-team-organization-usage'
 
 /**
  * Mock API for organization endpoint. Use it in Storybook tests in `parameters.msw.handlers[]`.

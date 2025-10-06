@@ -15,7 +15,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 @extend_schema(
-    tags=['Assets'],
+    tags=['Manage projects and library content'],
 )
 @extend_schema_view(
     list=extend_schema(
