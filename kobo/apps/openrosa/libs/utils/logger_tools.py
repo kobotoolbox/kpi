@@ -39,6 +39,7 @@ from pyxform.errors import PyXFormError
 from pyxform.xform2json import create_survey_element_from_xml
 from rest_framework.exceptions import NotAuthenticated
 
+from kobo.apps.data_collectors.authentication import DataCollectorUser
 from kobo.apps.openrosa.apps.logger.exceptions import (
     AccountInactiveError,
     ConflictingAttachmentBasenameError,
@@ -122,7 +123,6 @@ def check_submission_permissions(
     if not xform.require_auth:
         # Anonymous submissions are allowed!
         return
-
     if request and request.user.is_anonymous:
         raise NotAuthenticated
 
@@ -184,10 +184,8 @@ def create_instance(
         date_created_override (datetime, optional): Override for the submission's
                                                     creation date.
         request (Optional[Request]): Request object used for permission checks.
-        check_usage_limits (bool, optional): For testing purposes, bypasses
-                                             checking whether asset owner
-                                             is over allowed submission/storage
-                                             limit.
+        check_usage_limits (bool, optional): Bypasses enforcement of limits for
+                                             submissions/storage.
 
     Returns:
         Instance: The updated or newly created submission instance
@@ -969,11 +967,12 @@ def _get_instance(
         instance.xml = xml
         instance.uuid = new_uuid
     else:
-        submitted_by = (
-            get_database_user(request.user)
-            if request and request.user.is_authenticated
-            else None
+        get_user = (
+            request
+            and request.user.is_authenticated
+            and not isinstance(request.user, DataCollectorUser)
         )
+        submitted_by = get_database_user(request.user) if get_user else None
 
         if not date_created_override:
             date_created_override = get_submission_date_from_xml(xml)
