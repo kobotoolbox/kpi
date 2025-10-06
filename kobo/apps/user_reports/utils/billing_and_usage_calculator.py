@@ -8,7 +8,7 @@ from kpi.utils.usage_calculator import get_storage_usage_by_user_id
 
 class BillingAndUsageCalculator:
 
-    def calculate_usage_batch(self, organizations: list, billing_dates: dict) -> dict:
+    def calculate_usage_batch(self, organizations, billing_dates: dict) -> dict:
         org_map = {}
         for org in organizations:
             eff_uid = self.get_effective_user_id(org)

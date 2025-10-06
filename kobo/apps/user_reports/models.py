@@ -1,7 +1,9 @@
 import uuid
 
 from django.db import models
-from django.utils import timezone
+from django.db.models import Q
+
+from kpi.models.abstract_models import AbstractTimeStampedModel
 
 
 class BillingAndUsageSnapshotStatus(models.TextChoices):
@@ -10,7 +12,7 @@ class BillingAndUsageSnapshotStatus(models.TextChoices):
     ABORTED = 'aborted'
 
 
-class BillingAndUsageSnapshot(models.Model):
+class BillingAndUsageSnapshot(AbstractTimeStampedModel):
     """
     A snapshot table for storing precomputed organization billing and usage data.
 
@@ -31,23 +33,21 @@ class BillingAndUsageSnapshot(models.Model):
     current_period_submissions = models.BigIntegerField(default=0)
     billing_period_start = models.DateTimeField(null=True, blank=True)
     billing_period_end = models.DateTimeField(null=True, blank=True)
-    snapshot_created_at = models.DateTimeField(default=timezone.now)
     last_snapshot_run_id = models.UUIDField(null=True, blank=True, db_index=True)
 
     class Meta:
-        managed = False
         db_table = 'billing_and_usage_snapshot'
         indexes = [
-            models.Index(fields=['effective_user_id']),
-            models.Index(fields=['snapshot_created_at']),
-            models.Index(fields=['last_snapshot_run_id']),
+            models.Index(fields=['effective_user_id'], name='idx_bau_user'),
+            models.Index(fields=['date_created'], name='idx_bau_created'),
+            models.Index(fields=['last_snapshot_run_id'], name='idx_bau_last_run'),
         ]
 
     def __str__(self):
         return f'BillingAndUsageSnapshot(org={self.organization_id})'
 
 
-class BillingAndUsageSnapshotRun(models.Model):
+class BillingAndUsageSnapshotRun(AbstractTimeStampedModel):
     """
     Tracks the status and progress of billing and usage snapshot runs
     """
@@ -58,16 +58,26 @@ class BillingAndUsageSnapshotRun(models.Model):
         choices=BillingAndUsageSnapshotStatus.choices,
         default=BillingAndUsageSnapshotStatus.RUNNING
     )
-    started_at = models.DateTimeField(default=timezone.now)
-    last_heartbeat_at = models.DateTimeField(default=timezone.now)
     last_processed_org_id = models.CharField(null=True, blank=True)
-    expires_at = models.DateTimeField(null=True, blank=True)
     details = models.JSONField(null=True, blank=True)
+    singleton = models.BooleanField(default=True, editable=False)
 
     class Meta:
         db_table = 'billing_and_usage_snapshot_run'
-        managed = False
-        ordering = ['-started_at']
+        ordering = ['-date_created']
+        indexes = [
+            models.Index(
+                fields=['status', 'date_modified'],
+                name='idx_bau_run_status_expires'
+            ),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=('singleton',),
+                condition=Q(status=BillingAndUsageSnapshotStatus.RUNNING),
+                name='uniq_run_in_progress'
+            ),
+        ]
 
 
 class UserReports(models.Model):
