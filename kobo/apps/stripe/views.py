@@ -42,7 +42,7 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from kpi.versioning import APIV2Versioning
 
 
-@extend_schema(tags=['Stripe'])
+@extend_schema(tags=['Other'])
 class OneTimeAddOnViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Lists the one-time add-ons for the authenticated user's organization.
@@ -59,7 +59,7 @@ class OneTimeAddOnViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
-@extend_schema(tags=['Stripe'])
+@extend_schema(tags=['Other'])
 class ChangePlanView(APIView):
     """
     Change an existing subscription to a new price.
@@ -206,7 +206,7 @@ class ChangePlanView(APIView):
         return ChangePlanView.modify_subscription(price, subscription, quantity)
 
 
-@extend_schema(tags=['Stripe'])
+@extend_schema(tags=['Other'])
 class CheckoutLinkView(APIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = CheckoutLinkSerializer
@@ -328,7 +328,7 @@ class CheckoutLinkView(APIView):
         return Response({'url': url})
 
 
-@extend_schema(tags=['Stripe'])
+@extend_schema(tags=['Other'])
 @extend_schema_view(
     post=extend_schema(
         request={'application/json': CustomerPortalSerializer},
@@ -509,7 +509,7 @@ class CustomerPortalView(APIView):
         return response
 
 
-@extend_schema(tags=['Stripe'])
+@extend_schema(tags=['Other'])
 @extend_schema_view(
     list=extend_schema(
         responses=open_api_200_ok_response(
@@ -543,7 +543,7 @@ class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
-@extend_schema(tags=['Stripe'])
+@extend_schema(tags=['Other'])
 @method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='list')
 @method_decorator(only_vary_on('Origin'), name='list')
 class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
