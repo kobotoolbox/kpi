@@ -14,10 +14,12 @@ from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.test.testcases import LiveServerTestCase
 from django.test.utils import override_settings
+from django.urls import reverse
 from django_digest.test import DigestAuth
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
+from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
     TestAbstractViewSet,
@@ -765,6 +767,54 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                         self.assertContains(
                             response, 'Successful submission.', status_code=201
                         )
+
+    def test_submission_data_collector(self):
+        dcg = DataCollectorGroup.objects.create(name='DCG')
+        dcg.assets.add(self.xform.asset)
+        dc = DataCollector.objects.create(name='DC', group=dcg)
+        count = Attachment.objects.count()
+        s = self.surveys[0]
+        media_file = '1335783522563.jpg'
+        path = os.path.join(
+            self.main_directory,
+            'fixtures',
+            'transportation',
+            'instances',
+            s,
+            media_file,
+        )
+        with open(path, 'rb') as f:
+            f = InMemoryUploadedFile(
+                f, 'media_file', media_file, 'image/jpg', os.path.getsize(path), None
+            )
+            submission_path = os.path.join(
+                self.main_directory,
+                'fixtures',
+                'transportation',
+                'instances',
+                s,
+                s + '.xml',
+            )
+            f = InMemoryUploadedFile(
+                f, 'media_file', media_file, 'image/jpg', os.path.getsize(path), None
+            )
+            submission_path = self._add_uuid_to_submission_xml(
+                submission_path, self.xform
+            )
+
+            with open(submission_path) as sf:
+                data = {'xml_submission_file': sf, 'media_file': f}
+                url = reverse('submissions', kwargs={'token': dc.token})
+                response = self.client.post(url, data=data)
+                self.assertContains(response, 'Successful submission', status_code=201)
+                self.assertEqual(count + 1, Attachment.objects.count())
+                self.assertTrue(response.has_header('X-OpenRosa-Version'))
+                self.assertTrue(response.has_header('X-OpenRosa-Accept-Content-Length'))
+                self.assertTrue(response.has_header('Date'))
+                self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
+                self.assertEqual(
+                    response['Location'], f'http://testserver/key/{dc.token}/submission'
+                )
 
 
 class ConcurrentSubmissionTestCase(RequestMixin, LiveServerTestCase):
