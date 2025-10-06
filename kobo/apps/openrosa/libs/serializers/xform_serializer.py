@@ -143,20 +143,25 @@ class XFormListSerializer(serializers.Serializer):
     @check_obj
     def get_url(self, obj):
         kwargs = {'pk': obj.pk}
-        if not self._require_auth:
-            kwargs['username'] = obj.user.username
-
         request = self.context.get('request')
+        token = request.parser_context.get('kwargs', {}).get('token', None)
+        if token:
+            kwargs['token'] = token
+        elif not self._require_auth:
+            kwargs['username'] = obj.user.username
 
         return reverse('download_xform', kwargs=kwargs, request=request)
 
     @extend_schema_field(OpenApiTypes.URI)
     @check_obj
     def get_manifest_url(self, obj):
-        kwargs = {'pk': obj.pk}
-        if not self._require_auth:
-            kwargs['username'] = obj.user.username
         request = self.context.get('request')
+        kwargs = {'pk': obj.pk}
+        token = request.parser_context.get('kwargs', {}).get('token', None)
+        if token:
+            kwargs['token'] = token
+        elif not self._require_auth:
+            kwargs['username'] = obj.user.username
 
         return reverse('manifest-url', kwargs=kwargs, request=request)
 
@@ -184,11 +189,14 @@ class XFormManifestSerializer(serializers.Serializer):
 
     @check_obj
     def get_url(self, obj):
+        request = self.context.get('request')
         kwargs = {'pk': obj.xform.pk, 'metadata': obj.pk}
-        if not self._require_auth:
+        token = request.parser_context.get('kwargs', {}).get('token', None)
+        if token:
+            kwargs['token'] = token
+        elif not self._require_auth:
             kwargs['username'] = obj.xform.user.username
 
-        request = self.context.get('request')
         _, extension = os.path.splitext(obj.filename)
         # if `obj` is a remote url, it is possible it does not have any
         # extensions. Thus, only force format when extension exists.
