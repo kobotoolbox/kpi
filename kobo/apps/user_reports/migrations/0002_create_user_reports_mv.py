@@ -52,7 +52,7 @@ CREATE_MV_SQL = """
             COALESCE(bus.current_period_submissions, 0) as current_period_submissions
         FROM auth_user au
         LEFT JOIN organizations_organizationuser ou ON au.id = ou.user_id
-        LEFT JOIN billing_and_usage_snapshot bus ON ou.organization_id = bus.organization_id
+        LEFT JOIN user_reports_billingandusagesnapshot bus ON ou.organization_id = bus.organization_id
     ),
     nlp_period_agg AS (
         SELECT

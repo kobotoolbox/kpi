@@ -1,5 +1,3 @@
-import uuid
-
 from django.db import models
 from django.db.models import Q
 
@@ -15,7 +13,8 @@ class BillingAndUsageSnapshotStatus(models.TextChoices):
 
 class BillingAndUsageSnapshot(AbstractTimeStampedModel):
     """
-    A snapshot table for storing precomputed organization billing and usage data.
+    A snapshot table for storing precomputed organization billing dates,
+    submission counts, and storage usage data.
 
     Why this table exists:
     1. Maintaining billing period calculations directly inside the materialized view
@@ -23,8 +22,9 @@ class BillingAndUsageSnapshot(AbstractTimeStampedModel):
     2. Usage data such as total submissions, current period submissions, and storage
        resides in the `kobocat` db, while the materialized view lives in the `kpi`
        db. Joining across databases for 1.7M+ users would be inefficient.
-    3. A periodic Celery task precomputes these values and writes them here.
-       The materialized view then joins against this table efficiently.
+    3. A periodic Celery task (`refresh_user_report_snapshots`) precomputes these
+       values and writes them here. The materialized view then joins against this
+       table efficiently.
     """
 
     organization = models.OneToOneField(
@@ -43,7 +43,6 @@ class BillingAndUsageSnapshot(AbstractTimeStampedModel):
     )
 
     class Meta:
-        db_table = 'billing_and_usage_snapshot'
         indexes = [
             models.Index(fields=['effective_user_id'], name='idx_bau_user'),
             models.Index(fields=['date_created'], name='idx_bau_created'),
@@ -61,7 +60,8 @@ class BillingAndUsageSnapshot(AbstractTimeStampedModel):
 
 class BillingAndUsageSnapshotRun(AbstractTimeStampedModel):
     """
-    Tracks the status and progress of billing and usage snapshot runs
+    A snapshot run table to track the progress and status of the
+    `refresh_user_report_snapshots` Celery task.
     """
     uid = KpiUidField('busr')
     status = models.CharField(
@@ -74,7 +74,6 @@ class BillingAndUsageSnapshotRun(AbstractTimeStampedModel):
     singleton = models.BooleanField(default=True, editable=False)
 
     class Meta:
-        db_table = 'billing_and_usage_snapshot_run'
         ordering = ['-date_created']
         indexes = [
             models.Index(

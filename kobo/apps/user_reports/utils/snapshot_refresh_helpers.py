@@ -10,10 +10,7 @@ from kobo.apps.user_reports.models import (
 )
 from ..typing_aliases import OrganizationIterator
 
-#BULK_CREATE_BATCH = 1000
-#BULK_UPDATE_BATCH = 1000
 CHUNK_SIZE = 1000
-# DELETE_BATCH = 1000
 
 
 def cleanup_stale_snapshots_and_refresh_mv(run_id: str):
