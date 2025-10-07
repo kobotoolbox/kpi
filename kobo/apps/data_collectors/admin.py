@@ -1,23 +1,28 @@
 from django import forms
 from django.contrib import admin, messages
+from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 
 from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
-from kobo.apps.kobo_auth.shortcuts import User
-from kpi.constants import PERM_MANAGE_ASSET
+from kpi.constants import ASSET_TYPE_SURVEY, PERM_MANAGE_ASSET
 from kpi.models import Asset
 from kpi.utils.object_permission import get_objects_for_user
 
 
 class DataCollectorGroupAddForm(forms.ModelForm):
     assets = forms.ModelMultipleChoiceField(
-        queryset=Asset.objects.none(),
+        label='Assets',
+        queryset=Asset.objects.none(),  # Will be overridden dynamically
         required=False,
-        widget=forms.CheckboxSelectMultiple,
+        widget=FilteredSelectMultiple('assets', is_stacked=False),
+        help_text=(
+            'Select one or more assets to associate with this data collector group. '
+            'Only assets that are not already linked to another group are available.'
+        ),
     )
-    name = forms.CharField()
-    owner = forms.ModelChoiceField(queryset=User.objects.all())
+    # name = forms.CharField()
+    # owner = forms.ModelChoiceField(queryset=User.objects.all())
 
     class Meta:
         model = DataCollectorGroup
@@ -55,24 +60,36 @@ class DataCollectorGroupAddForm(forms.ModelForm):
 class DataCollectorGroupAdmin(admin.ModelAdmin):
     list_display = ('name', 'owner')
     form = DataCollectorGroupAddForm
+    search_fields = (
+        'owner__username',
+        'name',
+    )
+    autocomplete_fields = ['owner']
 
     def save_model(self, request, obj, form, change):
         assets = form.cleaned_data['assets']
         super().save_model(request, obj, form, change)
         new_asset_uids = list(assets.values_list('uid', flat=True))
+
         # we have to do this manually instead of using obj.assets.set()
         # so we can call save() with adjust_content=False
         for old_asset in obj.assets.all():
             if old_asset.uid not in new_asset_uids:
                 old_asset.data_collector_group = None
                 old_asset.save(
-                    update_fields=['data_collector_group'], adjust_content=False
+                    update_fields=['data_collector_group'],
+                    adjust_content=False,
+                    create_version=False,
                 )
+
+        # link new assets
         for new_asset in assets:
             if new_asset.data_collector_group_id != obj.pk:
                 new_asset.data_collector_group = obj
                 new_asset.save(
-                    update_fields=['data_collector_group'], adjust_content=False
+                    update_fields=['data_collector_group'],
+                    adjust_content=False,
+                    create_version=False,
                 )
 
     def get_form(self, request, obj=..., change=..., **kwargs):
@@ -85,7 +102,8 @@ class DataCollectorGroupAdmin(admin.ModelAdmin):
             owner, perms=[PERM_MANAGE_ASSET], klass=Asset.objects.defer('content')
         )
         available_assets = available_assets.filter(
-            Q(data_collector_group__isnull=True) | Q(data_collector_group=obj)
+            Q(data_collector_group__isnull=True) | Q(data_collector_group=obj),
+            asset_type=ASSET_TYPE_SURVEY,
         )
         form.base_fields['assets'].queryset = available_assets
         return form
@@ -97,6 +115,8 @@ class DataCollectorAdmin(admin.ModelAdmin):
     fields = ['name', 'group', 'token', 'uid']
     readonly_fields = ['uid', 'token']
     actions = ['rotate_token']
+    search_fields = ('group__name', 'name')
+    autocomplete_fields = ['group']
 
     @admin.action(description='Rotate token')
     def rotate_token(self, request, queryset):
