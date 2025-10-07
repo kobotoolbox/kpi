@@ -588,16 +588,16 @@ export type assetsPermissionAssignmentsBulkDestroyResponse = assetsPermissionAss
   headers: Headers
 }
 
-export const getAssetsPermissionAssignmentsBulkDestroyUrl = (parentLookupAsset: string) => {
-  return `/api/v2/assets/${parentLookupAsset}/permission-assignments/bulk/`
+export const getAssetsPermissionAssignmentsBulkDestroyUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/permission-assignments/bulk/`
 }
 
 export const assetsPermissionAssignmentsBulkDestroy = async (
-  parentLookupAsset: string,
+  uidAsset: string,
   options?: RequestInit,
 ): Promise<assetsPermissionAssignmentsBulkDestroyResponse> => {
   return fetchWithAuth<assetsPermissionAssignmentsBulkDestroyResponse>(
-    getAssetsPermissionAssignmentsBulkDestroyUrl(parentLookupAsset),
+    getAssetsPermissionAssignmentsBulkDestroyUrl(uidAsset),
     {
       ...options,
       method: 'DELETE',
@@ -612,14 +612,14 @@ export const getAssetsPermissionAssignmentsBulkDestroyMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>,
     TError,
-    { parentLookupAsset: string },
+    { uidAsset: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>,
   TError,
-  { parentLookupAsset: string },
+  { uidAsset: string },
   TContext
 > => {
   const mutationKey = ['assetsPermissionAssignmentsBulkDestroy']
@@ -631,11 +631,11 @@ export const getAssetsPermissionAssignmentsBulkDestroyMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>,
-    { parentLookupAsset: string }
+    { uidAsset: string }
   > = (props) => {
-    const { parentLookupAsset } = props ?? {}
+    const { uidAsset } = props ?? {}
 
-    return assetsPermissionAssignmentsBulkDestroy(parentLookupAsset, requestOptions)
+    return assetsPermissionAssignmentsBulkDestroy(uidAsset, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -654,7 +654,7 @@ export const useAssetsPermissionAssignmentsBulkDestroy = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPermissionAssignmentsBulkDestroy>>,
     TError,
-    { parentLookupAsset: string },
+    { uidAsset: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>

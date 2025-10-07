@@ -44,7 +44,7 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
             self._get_endpoint('organization-members-detail'),
             kwargs={
                 'uid_organization': self.organization.id,
-                'user__username': username
+                'username': username
             },
         )
 

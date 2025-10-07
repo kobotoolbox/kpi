@@ -43,13 +43,6 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             required=True,
             description='UID of the parent asset',
         ),
-        OpenApiParameter(
-            name='uid_export_setting',
-            type=str,
-            location=OpenApiParameter.PATH,
-            required=True,
-            description='UID of the export setting',
-        ),
     ],
 )
 @extend_schema_view(
@@ -73,7 +66,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
                 location=OpenApiParameter.QUERY,
             ),
             OpenApiParameter(
-                name='uid',
+                name='uid_export_setting',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -95,7 +88,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='uid_export_setting',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -122,7 +115,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='uid_export_setting',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -140,7 +133,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='uid_export_setting',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,

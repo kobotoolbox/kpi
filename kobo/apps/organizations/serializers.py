@@ -98,7 +98,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             'organization-members-detail',
             kwargs={
                 'uid_organization': obj.organization.id,
-                'user__username': obj.user.username
+                'username': obj.user.username
             },
             request=request
         )

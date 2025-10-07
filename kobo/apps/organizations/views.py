@@ -304,7 +304,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ),
         parameters=[
             OpenApiParameter(
-                name='user__username',
+                name='username',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -331,7 +331,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ),
         parameters=[
             OpenApiParameter(
-                name='user__username',
+                name='username',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -348,7 +348,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ),
         parameters=[
             OpenApiParameter(
-                name='user__username',
+                name='username',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -383,6 +383,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'patch', 'delete']
     parent_lookup_field = 'uid_organization'
     lookup_field = 'user__username'
+    lookup_url_kwarg = 'username'
 
     def paginate_queryset(self, queryset):
         page = super().paginate_queryset(queryset)

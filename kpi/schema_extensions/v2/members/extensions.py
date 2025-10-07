@@ -63,7 +63,7 @@ class MemberUrlFieldExtension(OpenApiSerializerFieldExtension):
         return build_url_type(
             'api_v2:organization-members-detail',
             uid_organization='orgR6zUBwMHop2mgGygtFd6c',
-            user__username='bob',
+            username='bob',
         )
 
 

@@ -65,13 +65,6 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             required=True,
             description='UID of the parent asset',
         ),
-        OpenApiParameter(
-            name='uid_permission_assignment',
-            type=str,
-            location=OpenApiParameter.PATH,
-            required=True,
-            description='UID of the permission assignment',
-        ),
     ],
 )
 @extend_schema_view(
@@ -120,7 +113,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='uid_permission_assignment',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -145,7 +138,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='uid_permission_assignment',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,

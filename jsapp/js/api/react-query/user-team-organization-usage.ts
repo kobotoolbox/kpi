@@ -1301,17 +1301,17 @@ export type organizationsMembersRetrieveResponse = organizationsMembersRetrieveR
   headers: Headers
 }
 
-export const getOrganizationsMembersRetrieveUrl = (uidOrganization: string, userUsername: string) => {
-  return `/api/v2/organizations/${uidOrganization}/members/${userUsername}/`
+export const getOrganizationsMembersRetrieveUrl = (uidOrganization: string, username: string) => {
+  return `/api/v2/organizations/${uidOrganization}/members/${username}/`
 }
 
 export const organizationsMembersRetrieve = async (
   uidOrganization: string,
-  userUsername: string,
+  username: string,
   options?: RequestInit,
 ): Promise<organizationsMembersRetrieveResponse> => {
   return fetchWithAuth<organizationsMembersRetrieveResponse>(
-    getOrganizationsMembersRetrieveUrl(uidOrganization, userUsername),
+    getOrganizationsMembersRetrieveUrl(uidOrganization, username),
     {
       ...options,
       method: 'GET',
@@ -1319,8 +1319,8 @@ export const organizationsMembersRetrieve = async (
   )
 }
 
-export const getOrganizationsMembersRetrieveQueryKey = (uidOrganization: string, userUsername: string) => {
-  return ['api', 'v2', 'organizations', uidOrganization, 'members', userUsername] as const
+export const getOrganizationsMembersRetrieveQueryKey = (uidOrganization: string, username: string) => {
+  return ['api', 'v2', 'organizations', uidOrganization, 'members', username] as const
 }
 
 export const getOrganizationsMembersRetrieveQueryOptions = <
@@ -1328,7 +1328,7 @@ export const getOrganizationsMembersRetrieveQueryOptions = <
   TError = ErrorObject,
 >(
   uidOrganization: string,
-  userUsername: string,
+  username: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -1336,12 +1336,12 @@ export const getOrganizationsMembersRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getOrganizationsMembersRetrieveQueryKey(uidOrganization, userUsername)
+  const queryKey = queryOptions?.queryKey ?? getOrganizationsMembersRetrieveQueryKey(uidOrganization, username)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsMembersRetrieve>>> = ({ signal }) =>
-    organizationsMembersRetrieve(uidOrganization, userUsername, { signal, ...requestOptions })
+    organizationsMembersRetrieve(uidOrganization, username, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!(uidOrganization && userUsername), ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!(uidOrganization && username), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof organizationsMembersRetrieve>>,
     TError,
     TData
@@ -1358,13 +1358,13 @@ export function useOrganizationsMembersRetrieve<
   TError = ErrorObject,
 >(
   uidOrganization: string,
-  userUsername: string,
+  username: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getOrganizationsMembersRetrieveQueryOptions(uidOrganization, userUsername, options)
+  const queryOptions = getOrganizationsMembersRetrieveQueryOptions(uidOrganization, username, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -1407,18 +1407,18 @@ export type organizationsMembersPartialUpdateResponse = organizationsMembersPart
   headers: Headers
 }
 
-export const getOrganizationsMembersPartialUpdateUrl = (uidOrganization: string, userUsername: string) => {
-  return `/api/v2/organizations/${uidOrganization}/members/${userUsername}/`
+export const getOrganizationsMembersPartialUpdateUrl = (uidOrganization: string, username: string) => {
+  return `/api/v2/organizations/${uidOrganization}/members/${username}/`
 }
 
 export const organizationsMembersPartialUpdate = async (
   uidOrganization: string,
-  userUsername: string,
+  username: string,
   patchedMemberPatchRequest: PatchedMemberPatchRequest,
   options?: RequestInit,
 ): Promise<organizationsMembersPartialUpdateResponse> => {
   return fetchWithAuth<organizationsMembersPartialUpdateResponse>(
-    getOrganizationsMembersPartialUpdateUrl(uidOrganization, userUsername),
+    getOrganizationsMembersPartialUpdateUrl(uidOrganization, username),
     {
       ...options,
       method: 'PATCH',
@@ -1435,14 +1435,14 @@ export const getOrganizationsMembersPartialUpdateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsMembersPartialUpdate>>,
     TError,
-    { uidOrganization: string; userUsername: string; data: PatchedMemberPatchRequest },
+    { uidOrganization: string; username: string; data: PatchedMemberPatchRequest },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof organizationsMembersPartialUpdate>>,
   TError,
-  { uidOrganization: string; userUsername: string; data: PatchedMemberPatchRequest },
+  { uidOrganization: string; username: string; data: PatchedMemberPatchRequest },
   TContext
 > => {
   const mutationKey = ['organizationsMembersPartialUpdate']
@@ -1454,11 +1454,11 @@ export const getOrganizationsMembersPartialUpdateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof organizationsMembersPartialUpdate>>,
-    { uidOrganization: string; userUsername: string; data: PatchedMemberPatchRequest }
+    { uidOrganization: string; username: string; data: PatchedMemberPatchRequest }
   > = (props) => {
-    const { uidOrganization, userUsername, data } = props ?? {}
+    const { uidOrganization, username, data } = props ?? {}
 
-    return organizationsMembersPartialUpdate(uidOrganization, userUsername, data, requestOptions)
+    return organizationsMembersPartialUpdate(uidOrganization, username, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -1474,7 +1474,7 @@ export const useOrganizationsMembersPartialUpdate = <TError = ErrorObject | Erro
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsMembersPartialUpdate>>,
     TError,
-    { uidOrganization: string; userUsername: string; data: PatchedMemberPatchRequest },
+    { uidOrganization: string; username: string; data: PatchedMemberPatchRequest },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -1513,17 +1513,17 @@ export type organizationsMembersDestroyResponse = organizationsMembersDestroyRes
   headers: Headers
 }
 
-export const getOrganizationsMembersDestroyUrl = (uidOrganization: string, userUsername: string) => {
-  return `/api/v2/organizations/${uidOrganization}/members/${userUsername}/`
+export const getOrganizationsMembersDestroyUrl = (uidOrganization: string, username: string) => {
+  return `/api/v2/organizations/${uidOrganization}/members/${username}/`
 }
 
 export const organizationsMembersDestroy = async (
   uidOrganization: string,
-  userUsername: string,
+  username: string,
   options?: RequestInit,
 ): Promise<organizationsMembersDestroyResponse> => {
   return fetchWithAuth<organizationsMembersDestroyResponse>(
-    getOrganizationsMembersDestroyUrl(uidOrganization, userUsername),
+    getOrganizationsMembersDestroyUrl(uidOrganization, username),
     {
       ...options,
       method: 'DELETE',
@@ -1538,14 +1538,14 @@ export const getOrganizationsMembersDestroyMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsMembersDestroy>>,
     TError,
-    { uidOrganization: string; userUsername: string },
+    { uidOrganization: string; username: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof organizationsMembersDestroy>>,
   TError,
-  { uidOrganization: string; userUsername: string },
+  { uidOrganization: string; username: string },
   TContext
 > => {
   const mutationKey = ['organizationsMembersDestroy']
@@ -1557,11 +1557,11 @@ export const getOrganizationsMembersDestroyMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof organizationsMembersDestroy>>,
-    { uidOrganization: string; userUsername: string }
+    { uidOrganization: string; username: string }
   > = (props) => {
-    const { uidOrganization, userUsername } = props ?? {}
+    const { uidOrganization, username } = props ?? {}
 
-    return organizationsMembersDestroy(uidOrganization, userUsername, requestOptions)
+    return organizationsMembersDestroy(uidOrganization, username, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -1577,7 +1577,7 @@ export const useOrganizationsMembersDestroy = <TError = ErrorDetail | ErrorObjec
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsMembersDestroy>>,
     TError,
-    { uidOrganization: string; userUsername: string },
+    { uidOrganization: string; username: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>

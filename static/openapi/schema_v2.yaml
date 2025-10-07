@@ -2689,12 +2689,6 @@ paths:
           type: string
         description: UID of the parent asset
         required: true
-      - in: path
-        name: uid_export_setting
-        schema:
-          type: string
-        description: UID of the export setting
-        required: true
       tags:
       - Survey data
       security:
@@ -2768,12 +2762,6 @@ paths:
           type: string
         description: UID of the parent asset
         required: true
-      - in: path
-        name: uid_export_setting
-        schema:
-          type: string
-        description: UID of the export setting
-        required: true
       tags:
       - Survey data
       requestBody:
@@ -2825,12 +2813,6 @@ paths:
         <sup>*</sup> _Required permissions: `view_submissions` (View submissions)_
       parameters:
       - in: path
-        name: uid
-        schema:
-          type: string
-        description: UID of the export-settings
-        required: true
-      - in: path
         name: uid_asset
         schema:
           type: string
@@ -2840,7 +2822,7 @@ paths:
         name: uid_export_setting
         schema:
           type: string
-        description: UID of the export setting
+        description: UID of the export-settings
         required: true
       tags:
       - Survey data
@@ -2873,12 +2855,6 @@ paths:
         <sup>*</sup> _Required permissions: `manage_asset` (Manage project)_
       parameters:
       - in: path
-        name: uid
-        schema:
-          type: string
-        description: UID of the export-settings
-        required: true
-      - in: path
         name: uid_asset
         schema:
           type: string
@@ -2888,7 +2864,7 @@ paths:
         name: uid_export_setting
         schema:
           type: string
-        description: UID of the export setting
+        description: UID of the export-settings
         required: true
       tags:
       - Survey data
@@ -2940,12 +2916,6 @@ paths:
 
       parameters:
       - in: path
-        name: uid
-        schema:
-          type: string
-        description: UID of the export-settings
-        required: true
-      - in: path
         name: uid_asset
         schema:
           type: string
@@ -2955,7 +2925,7 @@ paths:
         name: uid_export_setting
         schema:
           type: string
-        description: UID of the export setting
+        description: UID of the export-settings
         required: true
       tags:
       - Survey data
@@ -2997,12 +2967,6 @@ paths:
           - xlsx
         required: true
       - in: path
-        name: uid
-        schema:
-          type: string
-        description: UID of the export-settings
-        required: true
-      - in: path
         name: uid_asset
         schema:
           type: string
@@ -3012,7 +2976,7 @@ paths:
         name: uid_export_setting
         schema:
           type: string
-        description: UID of the export setting
+        description: UID of the export-settings
         required: true
       tags:
       - Survey data
@@ -3088,12 +3052,6 @@ paths:
         schema:
           type: string
         description: UID of the parent asset
-        required: true
-      - in: path
-        name: uid_export
-        schema:
-          type: string
-        description: UID of the export
         required: true
       tags:
       - Survey data
@@ -3171,12 +3129,6 @@ paths:
           type: string
         description: UID of the parent asset
         required: true
-      - in: path
-        name: uid_export
-        schema:
-          type: string
-        description: UID of the export
-        required: true
       tags:
       - Survey data
       requestBody:
@@ -3237,12 +3189,6 @@ paths:
         ## Retrieves current export task
       parameters:
       - in: path
-        name: uid
-        schema:
-          type: string
-        description: UID of the export task
-        required: true
-      - in: path
         name: uid_asset
         schema:
           type: string
@@ -3252,7 +3198,7 @@ paths:
         name: uid_export
         schema:
           type: string
-        description: UID of the export
+        description: UID of the export task
         required: true
       tags:
       - Survey data
@@ -3294,12 +3240,6 @@ paths:
         ## Deletes current export task
       parameters:
       - in: path
-        name: uid
-        schema:
-          type: string
-        description: UID of the export task
-        required: true
-      - in: path
         name: uid_asset
         schema:
           type: string
@@ -3309,7 +3249,7 @@ paths:
         name: uid_export
         schema:
           type: string
-        description: UID of the export
+        description: UID of the export task
         required: true
       tags:
       - Survey data
@@ -3934,12 +3874,6 @@ paths:
           type: string
         description: UID of the parent assets
         required: true
-      - in: path
-        name: uid_hook
-        schema:
-          type: string
-        description: UID of the hook
-        required: true
       tags:
       - Survey data - Rest Services
       security:
@@ -4004,12 +3938,6 @@ paths:
           type: string
         description: UID of the parent assets
         required: true
-      - in: path
-        name: uid_hook
-        schema:
-          type: string
-        description: UID of the hook
-        required: true
       tags:
       - Survey data - Rest Services
       requestBody:
@@ -4065,12 +3993,6 @@ paths:
         ## Retrieve an external service
       parameters:
       - in: path
-        name: uid
-        schema:
-          type: string
-        description: UID of the hook
-        required: true
-      - in: path
         name: uid_asset
         schema:
           type: string
@@ -4110,12 +4032,6 @@ paths:
       description: |
         ## Update an external service.
       parameters:
-      - in: path
-        name: uid
-        schema:
-          type: string
-        description: UID of the hook
-        required: true
       - in: path
         name: uid_asset
         schema:
@@ -4180,12 +4096,6 @@ paths:
       description: |
         ## Delete an external service.
       parameters:
-      - in: path
-        name: uid
-        schema:
-          type: string
-        description: UID of the hook
-        required: true
       - in: path
         name: uid_asset
         schema:
@@ -4446,12 +4356,6 @@ paths:
 
         It returns all logs `uid`s that are being retried.
       parameters:
-      - in: path
-        name: uid
-        schema:
-          type: string
-        description: UID of the hook
-        required: true
       - in: path
         name: uid_asset
         schema:
@@ -4797,12 +4701,6 @@ paths:
           type: string
         description: UID of the parent asset
         required: true
-      - in: path
-        name: uid_permission_assignment
-        schema:
-          type: string
-        description: UID of the permission assignment
-        required: true
       tags:
       - Manage permissions
       security:
@@ -4854,12 +4752,6 @@ paths:
         schema:
           type: string
         description: UID of the parent asset
-        required: true
-      - in: path
-        name: uid_permission_assignment
-        schema:
-          type: string
-        description: UID of the permission assignment
         required: true
       tags:
       - Manage permissions
@@ -4937,12 +4829,6 @@ paths:
         ## Retrieve assignments
       parameters:
       - in: path
-        name: uid
-        schema:
-          type: string
-        description: UID of the permission
-        required: true
-      - in: path
         name: uid_asset
         schema:
           type: string
@@ -4952,7 +4838,7 @@ paths:
         name: uid_permission_assignment
         schema:
           type: string
-        description: UID of the permission assignment
+        description: UID of the permission
         required: true
       tags:
       - Manage permissions
@@ -4994,12 +4880,6 @@ paths:
         ## Remove a permission assignment
       parameters:
       - in: path
-        name: uid
-        schema:
-          type: string
-        description: UID of the permission
-        required: true
-      - in: path
         name: uid_asset
         schema:
           type: string
@@ -5009,7 +4889,7 @@ paths:
         name: uid_permission_assignment
         schema:
           type: string
-        description: UID of the permission assignment
+        description: UID of the permission
         required: true
       tags:
       - Manage permissions
@@ -5041,7 +4921,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/permission-assignments/bulk/:
+  /api/v2/assets/{uid_asset}/permission-assignments/bulk/:
     post:
       operationId: api_v2_assets_permission_assignments_bulk_create
       description: |
@@ -5049,12 +4929,6 @@ paths:
 
         * Can put both regular and partial permission in the payload
       parameters:
-      - in: path
-        name: uid
-        schema:
-          type: string
-        description: UID of the permission
-        required: true
       - in: path
         name: uid_asset
         schema:
@@ -5198,12 +5072,6 @@ paths:
         schema:
           type: string
         description: UID of the parent asset
-        required: true
-      - in: path
-        name: uid_permission_assignment
-        schema:
-          type: string
-        description: UID of the permission assignment
         required: true
       tags:
       - Manage permissions
@@ -6565,7 +6433,7 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/organizations/{uid_organization}/members/{user__username}/:
+  /api/v2/organizations/{uid_organization}/members/{username}/:
     get:
       operationId: api_v2_organizations_members_retrieve
       description: |
@@ -6580,7 +6448,7 @@ paths:
         description: UID of the organization
         required: true
       - in: path
-        name: user__username
+        name: username
         schema:
           type: string
         description: Username of the user
@@ -6626,7 +6494,7 @@ paths:
         description: UID of the organization
         required: true
       - in: path
-        name: user__username
+        name: username
         schema:
           type: string
         description: Username of the user
@@ -6697,7 +6565,7 @@ paths:
         description: UID of the organization
         required: true
       - in: path
-        name: user__username
+        name: username
         schema:
           type: string
         description: Username of the user
@@ -8983,7 +8851,7 @@ components:
         xform_link:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/xform/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/xform/
           readOnly: true
         hooks_link:
           type: string
@@ -9001,7 +8869,7 @@ components:
         xls_link:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU.xls
           readOnly: true
         name:
           type: string
@@ -12385,7 +12253,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/paired-data/pd9CWSKADt4T7h5bMKwhLqq
+          example: https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/paired-data/pd9CWSKADt4T7h5bMKwhLqq/
       required:
       - fields
       - filename
@@ -13350,7 +13218,7 @@ components:
         url:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/reports/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/reports/
         count:
           type: integer
         list:

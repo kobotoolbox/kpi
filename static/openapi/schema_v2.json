@@ -3644,15 +3644,6 @@
                         },
                         "description": "UID of the parent asset",
                         "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "uid_export_setting",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the export setting",
-                        "required": true
                     }
                 ],
                 "tags": [
@@ -3708,15 +3699,6 @@
                             "type": "string"
                         },
                         "description": "UID of the parent asset",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "uid_export_setting",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the export setting",
                         "required": true
                     }
                 ],
@@ -3802,15 +3784,6 @@
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the export-settings",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
                         "name": "uid_asset",
                         "schema": {
                             "type": "string"
@@ -3824,7 +3797,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the export setting",
+                        "description": "UID of the export-settings",
                         "required": true
                     }
                 ],
@@ -3876,15 +3849,6 @@
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the export-settings",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
                         "name": "uid_asset",
                         "schema": {
                             "type": "string"
@@ -3898,7 +3862,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the export setting",
+                        "description": "UID of the export-settings",
                         "required": true
                     }
                 ],
@@ -3981,15 +3945,6 @@
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the export-settings",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
                         "name": "uid_asset",
                         "schema": {
                             "type": "string"
@@ -4003,7 +3958,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the export setting",
+                        "description": "UID of the export-settings",
                         "required": true
                     }
                 ],
@@ -4062,15 +4017,6 @@
                     },
                     {
                         "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the export-settings",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
                         "name": "uid_asset",
                         "schema": {
                             "type": "string"
@@ -4084,7 +4030,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the export setting",
+                        "description": "UID of the export-settings",
                         "required": true
                     }
                 ],
@@ -4186,15 +4132,6 @@
                         },
                         "description": "UID of the parent asset",
                         "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "uid_export",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the export",
-                        "required": true
                     }
                 ],
                 "tags": [
@@ -4268,15 +4205,6 @@
                             "type": "string"
                         },
                         "description": "UID of the parent asset",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "uid_export",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the export",
                         "required": true
                     }
                 ],
@@ -4380,15 +4308,6 @@
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the export task",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
                         "name": "uid_asset",
                         "schema": {
                             "type": "string"
@@ -4402,7 +4321,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the export",
+                        "description": "UID of the export task",
                         "required": true
                     }
                 ],
@@ -4472,15 +4391,6 @@
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the export task",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
                         "name": "uid_asset",
                         "schema": {
                             "type": "string"
@@ -4494,7 +4404,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the export",
+                        "description": "UID of the export task",
                         "required": true
                     }
                 ],
@@ -5218,15 +5128,6 @@
                         },
                         "description": "UID of the parent assets",
                         "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "uid_hook",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the hook",
-                        "required": true
                     }
                 ],
                 "tags": [
@@ -5282,15 +5183,6 @@
                             "type": "string"
                         },
                         "description": "UID of the parent assets",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "uid_hook",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the hook",
                         "required": true
                     }
                 ],
@@ -5386,15 +5278,6 @@
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the hook",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
                         "name": "uid_asset",
                         "schema": {
                             "type": "string"
@@ -5458,15 +5341,6 @@
                 "operationId": "api_v2_assets_hooks_partial_update",
                 "description": "## Update an external service.\n",
                 "parameters": [
-                    {
-                        "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the hook",
-                        "required": true
-                    },
                     {
                         "in": "path",
                         "name": "uid_asset",
@@ -5573,15 +5447,6 @@
                 "operationId": "api_v2_assets_hooks_destroy",
                 "description": "## Delete an external service.\n",
                 "parameters": [
-                    {
-                        "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the hook",
-                        "required": true
-                    },
                     {
                         "in": "path",
                         "name": "uid_asset",
@@ -5970,15 +5835,6 @@
                 "operationId": "api_v2_assets_hooks_retry_partial_update",
                 "description": "## Retries all failed attempts\n\n**This call is asynchronous. Job is sent to Celery to be run in background**\n\nIt returns all logs `uid`s that are being retried.\n",
                 "parameters": [
-                    {
-                        "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the hook",
-                        "required": true
-                    },
                     {
                         "in": "path",
                         "name": "uid_asset",
@@ -6516,15 +6372,6 @@
                         },
                         "description": "UID of the parent asset",
                         "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "uid_permission_assignment",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the permission assignment",
-                        "required": true
                     }
                 ],
                 "tags": [
@@ -6601,15 +6448,6 @@
                             "type": "string"
                         },
                         "description": "UID of the parent asset",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "uid_permission_assignment",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the permission assignment",
                         "required": true
                     }
                 ],
@@ -6742,15 +6580,6 @@
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the permission",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
                         "name": "uid_asset",
                         "schema": {
                             "type": "string"
@@ -6764,7 +6593,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the permission assignment",
+                        "description": "UID of the permission",
                         "required": true
                     }
                 ],
@@ -6834,15 +6663,6 @@
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the permission",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
                         "name": "uid_asset",
                         "schema": {
                             "type": "string"
@@ -6856,7 +6676,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the permission assignment",
+                        "description": "UID of the permission",
                         "required": true
                     }
                 ],
@@ -6914,18 +6734,18 @@
                 }
             }
         },
-        "/api/v2/assets/{parent_lookup_asset}/permission-assignments/bulk/": {
+        "/api/v2/assets/{uid_asset}/permission-assignments/bulk/": {
             "post": {
                 "operationId": "api_v2_assets_permission_assignments_bulk_create",
                 "description": "## Assign multiple permissions at once\n\n* Can put both regular and partial permission in the payload\n",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "parent_lookup_asset",
+                        "name": "uid_asset",
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the permission",
+                        "description": "UID of the parent asset",
                         "required": true
                     }
                 ],
@@ -7033,11 +6853,11 @@
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "parent_lookup_asset",
+                        "name": "uid_asset",
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the permission",
+                        "description": "UID of the parent asset",
                         "required": true
                     }
                 ],
@@ -7117,7 +6937,7 @@
                 }
             }
         },
-        "/api/v2/assets/{parent_lookup_asset}/permission-assignments/clone/": {
+        "/api/v2/assets/{uid_asset}/permission-assignments/clone/": {
             "patch": {
                 "operationId": "api_v2_assets_permission_assignments_clone_partial_update",
                 "description": "## Clone permission assignments from another asset using uid\n\nWhere `clone_from` is the source uid.\n",
@@ -7130,20 +6950,20 @@
                         },
                         "description": "UID of the parent asset",
                         "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "uid_permission_assignment",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the permission assignment",
-                        "required": true
                     }
                 ],
                 "tags": [
                     "Manage permissions"
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedPermissionAssignmentCloneRequest"
+                            }
+                        }
+                    }
+                },
                 "security": [
                     {
                         "BasicAuth": []
@@ -7153,8 +6973,18 @@
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": "No response body"
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/PermissionAssignmentResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "description": null
                     },
                     "403": {
                         "content": {
@@ -7217,7 +7047,7 @@
                 }
             }
         },
-        "/api/v2/assets/{parent_lookup_asset}/versions/": {
+        "/api/v2/assets/{uid_asset}/reports/": {
             "get": {
                 "operationId": "api_v2_assets_reports_retrieve",
                 "description": "## Report of a user's asset\n\nReturns the submission data for all deployments of a survey.\nThis data is grouped by answers, and does not show the data for individual submissions.\nThe endpoint will return a **404 NOT FOUND** error if the asset is not deployed and will only return the data for the most recently deployed version.\n",
@@ -7232,7 +7062,7 @@
                     }
                 ],
                 "tags": [
-                    "Manage projects and library content"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -7281,699 +7111,10 @@
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "parent_lookup_asset",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the parent asset",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "Manage projects and library content"
-                ],
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/VersionRetrieveResponse"
-                                }
-                            }
-                        },
-                        "description": null
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/v2/assets/{uid}/": {
-            "get": {
-                "operationId": "api_v2_assets_retrieve",
-                "description": "## Get a user's current asset\n",
-                "parameters": [
-                    {
-                        "in": "query",
-                        "name": "format",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "json",
-                                "ssjson",
-                                "xls",
-                                "xml"
-                            ]
-                        }
-                    },
-                    {
-                        "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "Manage projects and library content"
-                ],
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Asset"
-                                }
-                            },
-                            "application/xml": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Asset"
-                                }
-                            },
-                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Asset"
-                                }
-                            }
-                        },
-                        "description": null
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            },
-            "patch": {
-                "operationId": "api_v2_assets_partial_update",
-                "description": "## Update or connect a user's asset\n\nUpdates a project or connect project's data from this project to other projects\n\nWhen `Data sharing`:\n\n`fields`: Optional. List of questions whose responses will be shared. If\nmissing or empty, all responses will be shared. Questions must be\nidentified by full group path separated by slashes, e.g.\n`group/subgroup/question_name`.\n",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "Manage projects and library content"
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PatchedAssetPatchRequest"
-                            },
-                            "examples": {
-                                "UpdatingAnAsset": {
-                                    "value": {
-                                        "content": "string",
-                                        "name": "string"
-                                    },
-                                    "summary": "Updating an asset"
-                                },
-                                "DataSharingOfTheProject": {
-                                    "value": {
-                                        "enabled": true,
-                                        "fields": [
-                                            "string"
-                                        ]
-                                    },
-                                    "summary": "Data sharing of the project"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Asset"
-                                }
-                            }
-                        },
-                        "description": null
-                    },
-                    "401": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "NotAuthenticated": {
-                                        "value": {
-                                            "detail": "Authentication credentials were not provided."
-                                        },
-                                        "summary": "Not authenticated"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
-                                },
-                                "examples": {
-                                    "BadRequest": {
-                                        "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
-                                        },
-                                        "summary": "Bad request"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            },
-            "delete": {
-                "operationId": "api_v2_assets_destroy",
-                "description": "## Delete a user's asset\n",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "Manage projects and library content"
-                ],
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No response body"
-                    },
-                    "401": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "NotAuthenticated": {
-                                        "value": {
-                                            "detail": "Authentication credentials were not provided."
-                                        },
-                                        "summary": "Not authenticated"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/v2/assets/{uid}/content/": {
-            "get": {
-                "operationId": "api_v2_assets_content_retrieve",
-                "description": "## Return the content of a user's asset.\n",
-                "parameters": [
-                    {
-                        "in": "path",
                         "name": "uid_asset",
                         "schema": {
                             "type": "string"
                         },
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "Form content"
-                ],
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "text/html": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ContentResponse"
-                                }
-                            }
-                        },
-                        "description": null
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
-                                },
-                                "examples": {
-                                    "TableViewExample": {
-                                        "value": "<!doctype html>\n<html><body><code><pre>#survey\n\n| type    | name       | label      | default   | required   |\n|---------+------------+------------+-----------+------------|\n| start   | start      |            |           |            |\n| end     | end        |            |           |            |\n| text    | Question_1 | Question 1 |           | true       |\n| integer | Question_2 | Question 2 |           | false      |\n</pre></code></body></html>\n",
-                                        "summary": "Expected HTML response"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/v2/assets/{uid}/deployment/": {
-            "get": {
-                "operationId": "api_v2_assets_versions_list",
-                "description": "## List the versions of forms\n",
-                "parameters": [
-                    {
-                        "name": "limit",
-                        "required": false,
-                        "in": "query",
-                        "description": "Number of results to return per page.",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "Manage projects and library content"
-                ],
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/DeploymentResponse"
-                                }
-                            }
-                        },
-                        "description": null
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            },
-            "post": {
-                "operationId": "api_v2_assets_deployment_create",
-                "description": "## (Re)Deploy a form\n\nDeploy a new form or re-deploy an existing one.\n",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "uid_asset",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the parent asset",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "Form content"
-                ],
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/DeploymentResponse"
-                                }
-                            }
-                        },
-                        "description": null
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
-                                },
-                                "examples": {
-                                    "BadRequest": {
-                                        "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
-                                        },
-                                        "summary": "Bad request"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            },
-            "patch": {
-                "operationId": "api_v2_assets_deployment_partial_update",
-                "description": "## (Un)Archive the existing deployment.\n\nUpdate the `active` field of the existing deployment.\n\nTo overwrite the entire deployment (including the form contents), use a PUT request.\n",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "Manage projects and library content"
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PatchedDeploymentPatchRequest"
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/DeploymentResponse"
-                                }
-                            }
-                        },
-                        "description": null
-                    },
-                    "401": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "NotAuthenticated": {
-                                        "value": {
-                                            "detail": "Authentication credentials were not provided."
-                                        },
-                                        "summary": "Not authenticated"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
-                                },
-                                "examples": {
-                                    "BadRequest": {
-                                        "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
-                                        },
-                                        "summary": "Bad request"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/v2/assets/{uid}/reports/": {
-            "get": {
-                "operationId": "api_v2_assets_versions_retrieve",
-                "description": "## Retrieve asset versions\n\nReturns the details of an asset version\n",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "uid_asset",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the parent asset",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "Survey data"
-                ],
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ReportResponse"
-                                }
-                            }
-                        },
-                        "description": null
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/v2/assets/{uid}/table_view/": {
-            "get": {
-                "operationId": "api_v2_assets_table_view_retrieve",
-                "description": "## Return plain HTML of survey in tabular format\n",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the parent asset",
                         "required": true
                     }
                 ],
@@ -8011,14 +7152,14 @@
                 }
             }
         },
-        "/api/v2/assets/{uid}/valid_content/": {
+        "/api/v2/assets/{uid_asset}/valid_content/": {
             "get": {
                 "operationId": "api_v2_assets_valid_content_retrieve",
                 "description": "## Return valid content for user's asset\n",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "uid",
+                        "name": "uid_asset",
                         "schema": {
                             "type": "string"
                         },
@@ -8027,6 +7168,148 @@
                 ],
                 "tags": [
                     "Form content"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AssetValidContentResponse"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorObject"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/assets/{uid_asset}/versions/": {
+            "get": {
+                "operationId": "api_v2_assets_versions_list",
+                "description": "## List the versions of forms\n",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "required": false,
+                        "in": "query",
+                        "description": "Number of results to return per page.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "uid_asset",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the parent asset",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Manage projects and library content"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedVersionListResponseList"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorObject"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/assets/{uid_asset}/versions/{uid_version}/": {
+            "get": {
+                "operationId": "api_v2_assets_versions_retrieve",
+                "description": "## Retrieve asset versions\n\nReturns the details of an asset version\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid_asset",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the parent asset",
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "uid_version",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -9629,7 +8912,7 @@
                 }
             }
         },
-        "/api/v2/organizations/{uid_organization}/members/{user__username}/": {
+        "/api/v2/organizations/{uid_organization}/members/{username}/": {
             "get": {
                 "operationId": "api_v2_organizations_members_retrieve",
                 "description": "## Retrieve Member Details\n\nRetrieves the details of a specific member within an organization by username.\n",
@@ -9645,7 +8928,7 @@
                     },
                     {
                         "in": "path",
-                        "name": "user__username",
+                        "name": "username",
                         "schema": {
                             "type": "string"
                         },
@@ -9710,7 +8993,7 @@
                     },
                     {
                         "in": "path",
-                        "name": "user__username",
+                        "name": "username",
                         "schema": {
                             "type": "string"
                         },
@@ -9824,7 +9107,7 @@
                     },
                     {
                         "in": "path",
-                        "name": "user__username",
+                        "name": "username",
                         "schema": {
                             "type": "string"
                         },
@@ -13095,7 +12378,7 @@
                     "xform_link": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/xform/",
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/xform/",
                         "readOnly": true
                     },
                     "hooks_link": {
@@ -13118,7 +12401,7 @@
                     "xls_link": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/",
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU.xls",
                         "readOnly": true
                     },
                     "name": {
@@ -17831,7 +17114,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/paired-data/pd9CWSKADt4T7h5bMKwhLqq"
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/paired-data/pd9CWSKADt4T7h5bMKwhLqq/"
                     }
                 },
                 "required": [
@@ -19222,7 +18505,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/reports/"
+                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/reports/"
                     },
                     "count": {
                         "type": "integer"
