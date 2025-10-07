@@ -2,8 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { DecoratorFunction } from '@storybook/types'
 import { withRouter } from 'storybook-addon-remix-react-router'
 import assetsMock from '#/endpoints/assets.mocks'
-import environmentMock from '#/endpoints/environment.mocks'
-import meMock, { meMockResponse } from '#/endpoints/me.mocks'
+import { meMockResponse } from '#/endpoints/me.mocks'
 import organizationMock from '#/endpoints/organization.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import RequireAuth from '#/router/requireAuth'
@@ -17,7 +16,7 @@ const meta: Meta<typeof DeleteAccountBanner> = {
   argTypes: {},
   parameters: {
     msw: {
-      handlers: [assetsMock, meMock, environmentMock, organizationMock(meMockResponse.organization!.uid)],
+      handlers: [assetsMock, organizationMock(meMockResponse.organization!.uid)],
     },
     a11y: { test: 'todo' },
   },

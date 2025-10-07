@@ -5,7 +5,7 @@ import type { EnvironmentResponse } from '../envStore'
 /**
  * Mock API for environment config. Use it in Storybook tests in `parameters.msw.handlers[]`.
  */
-const environmentMock = http.get<never, never, EnvironmentResponse>(endpoints.ENVIRONMENT, () =>
+const environmentMock = http.get<never, never, EnvironmentResponse>(`*${endpoints.ENVIRONMENT}`, () =>
   HttpResponse.json(environmentResponse),
 )
 export default environmentMock
