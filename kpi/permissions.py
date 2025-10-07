@@ -285,8 +285,9 @@ class AssetSnapshotPermission(AssetPermission):
     def has_permission(self, request, view):
         self.validate_password(request)
 
-        # Allow POST requests to pass through to the serializer for
-        # object-level checks
+        # Allow anonymous users to send POST requests to preview public forms.
+        # Object-level access control is handled by the serializer, ensuring
+        # that only public forms can be accessed or previewed.
         if request.method == 'POST' and view.action == 'create':
             return True
 

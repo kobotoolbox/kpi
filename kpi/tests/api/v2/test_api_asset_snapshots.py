@@ -2,16 +2,17 @@
 import re
 
 from django.urls import reverse
-from django.contrib.auth.models import AnonymousUser
 from rest_framework import status
 from rest_framework.exceptions import ParseError
 
 from kobo.apps.form_disclaimer.models import FormDisclaimer
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.languages.models.language import Language
+from kpi.constants import PERM_VIEW_ASSET
 from kpi.models.asset import AssetSnapshot
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.strings import to_str
 
 
@@ -246,8 +247,7 @@ class TestAssetSnapshotList(AssetSnapshotBase):
         asset_url = reverse(self._get_endpoint('asset-detail'), args=(asset.uid,))
 
         # Assign 'view' permission on the asset to AnonymousUser
-        anon_user = AnonymousUser()
-        self.add_perm(asset, anon_user, 'view_')
+        asset.assign_perm(get_anonymous_user(), PERM_VIEW_ASSET)
 
         self.client.logout()
 
