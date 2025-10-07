@@ -466,7 +466,7 @@ export type assetsHistoryListResponse = assetsHistoryListResponseComposite & {
   headers: Headers
 }
 
-export const getAssetsHistoryListUrl = (parentLookupAsset: string, params?: AssetsHistoryListParams) => {
+export const getAssetsHistoryListUrl = (uidAsset: string, params?: AssetsHistoryListParams) => {
   const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -478,30 +478,30 @@ export const getAssetsHistoryListUrl = (parentLookupAsset: string, params?: Asse
   const stringifiedParams = normalizedParams.toString()
 
   return stringifiedParams.length > 0
-    ? `/api/v2/assets/${parentLookupAsset}/history/?${stringifiedParams}`
-    : `/api/v2/assets/${parentLookupAsset}/history/`
+    ? `/api/v2/assets/${uidAsset}/history/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/history/`
 }
 
 export const assetsHistoryList = async (
-  parentLookupAsset: string,
+  uidAsset: string,
   params?: AssetsHistoryListParams,
   options?: RequestInit,
 ): Promise<assetsHistoryListResponse> => {
-  return fetchWithAuth<assetsHistoryListResponse>(getAssetsHistoryListUrl(parentLookupAsset, params), {
+  return fetchWithAuth<assetsHistoryListResponse>(getAssetsHistoryListUrl(uidAsset, params), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getAssetsHistoryListQueryKey = (parentLookupAsset: string, params?: AssetsHistoryListParams) => {
-  return ['api', 'v2', 'assets', parentLookupAsset, 'history', ...(params ? [params] : [])] as const
+export const getAssetsHistoryListQueryKey = (uidAsset: string, params?: AssetsHistoryListParams) => {
+  return ['api', 'v2', 'assets', uidAsset, 'history', ...(params ? [params] : [])] as const
 }
 
 export const getAssetsHistoryListQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsHistoryList>>,
   TError = ErrorDetail | ErrorObject,
 >(
-  parentLookupAsset: string,
+  uidAsset: string,
   params?: AssetsHistoryListParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHistoryList>>, TError, TData>
@@ -510,12 +510,12 @@ export const getAssetsHistoryListQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetsHistoryListQueryKey(parentLookupAsset, params)
+  const queryKey = queryOptions?.queryKey ?? getAssetsHistoryListQueryKey(uidAsset, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsHistoryList>>> = ({ signal }) =>
-    assetsHistoryList(parentLookupAsset, params, { signal, ...requestOptions })
+    assetsHistoryList(uidAsset, params, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!parentLookupAsset, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsHistoryList>>,
     TError,
     TData
@@ -529,14 +529,14 @@ export function useAssetsHistoryList<
   TData = Awaited<ReturnType<typeof assetsHistoryList>>,
   TError = ErrorDetail | ErrorObject,
 >(
-  parentLookupAsset: string,
+  uidAsset: string,
   params?: AssetsHistoryListParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHistoryList>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsHistoryListQueryOptions(parentLookupAsset, params, options)
+  const queryOptions = getAssetsHistoryListQueryOptions(uidAsset, params, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -573,29 +573,29 @@ export type assetsHistoryActionsRetrieveResponse = assetsHistoryActionsRetrieveR
   headers: Headers
 }
 
-export const getAssetsHistoryActionsRetrieveUrl = (parentLookupAsset: string) => {
-  return `/api/v2/assets/${parentLookupAsset}/history/actions/`
+export const getAssetsHistoryActionsRetrieveUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/history/actions/`
 }
 
 export const assetsHistoryActionsRetrieve = async (
-  parentLookupAsset: string,
+  uidAsset: string,
   options?: RequestInit,
 ): Promise<assetsHistoryActionsRetrieveResponse> => {
-  return fetchWithAuth<assetsHistoryActionsRetrieveResponse>(getAssetsHistoryActionsRetrieveUrl(parentLookupAsset), {
+  return fetchWithAuth<assetsHistoryActionsRetrieveResponse>(getAssetsHistoryActionsRetrieveUrl(uidAsset), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getAssetsHistoryActionsRetrieveQueryKey = (parentLookupAsset: string) => {
-  return ['api', 'v2', 'assets', parentLookupAsset, 'history', 'actions'] as const
+export const getAssetsHistoryActionsRetrieveQueryKey = (uidAsset: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'history', 'actions'] as const
 }
 
 export const getAssetsHistoryActionsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>,
   TError = ErrorDetail | ErrorObject,
 >(
-  parentLookupAsset: string,
+  uidAsset: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -603,12 +603,12 @@ export const getAssetsHistoryActionsRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetsHistoryActionsRetrieveQueryKey(parentLookupAsset)
+  const queryKey = queryOptions?.queryKey ?? getAssetsHistoryActionsRetrieveQueryKey(uidAsset)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>> = ({ signal }) =>
-    assetsHistoryActionsRetrieve(parentLookupAsset, { signal, ...requestOptions })
+    assetsHistoryActionsRetrieve(uidAsset, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!parentLookupAsset, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>,
     TError,
     TData
@@ -624,13 +624,13 @@ export function useAssetsHistoryActionsRetrieve<
   TData = Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>,
   TError = ErrorDetail | ErrorObject,
 >(
-  parentLookupAsset: string,
+  uidAsset: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsHistoryActionsRetrieveQueryOptions(parentLookupAsset, options)
+  const queryOptions = getAssetsHistoryActionsRetrieveQueryOptions(uidAsset, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -669,15 +669,15 @@ export type assetsHistoryExportCreateResponse = assetsHistoryExportCreateRespons
   headers: Headers
 }
 
-export const getAssetsHistoryExportCreateUrl = (parentLookupAsset: string) => {
-  return `/api/v2/assets/${parentLookupAsset}/history/export/`
+export const getAssetsHistoryExportCreateUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/history/export/`
 }
 
 export const assetsHistoryExportCreate = async (
-  parentLookupAsset: string,
+  uidAsset: string,
   options?: RequestInit,
 ): Promise<assetsHistoryExportCreateResponse> => {
-  return fetchWithAuth<assetsHistoryExportCreateResponse>(getAssetsHistoryExportCreateUrl(parentLookupAsset), {
+  return fetchWithAuth<assetsHistoryExportCreateResponse>(getAssetsHistoryExportCreateUrl(uidAsset), {
     ...options,
     method: 'POST',
   })
@@ -690,14 +690,14 @@ export const getAssetsHistoryExportCreateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHistoryExportCreate>>,
     TError,
-    { parentLookupAsset: string },
+    { uidAsset: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsHistoryExportCreate>>,
   TError,
-  { parentLookupAsset: string },
+  { uidAsset: string },
   TContext
 > => {
   const mutationKey = ['assetsHistoryExportCreate']
@@ -707,13 +707,12 @@ export const getAssetsHistoryExportCreateMutationOptions = <
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined }
 
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof assetsHistoryExportCreate>>,
-    { parentLookupAsset: string }
-  > = (props) => {
-    const { parentLookupAsset } = props ?? {}
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsHistoryExportCreate>>, { uidAsset: string }> = (
+    props,
+  ) => {
+    const { uidAsset } = props ?? {}
 
-    return assetsHistoryExportCreate(parentLookupAsset, requestOptions)
+    return assetsHistoryExportCreate(uidAsset, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -727,7 +726,7 @@ export const useAssetsHistoryExportCreate = <TError = ErrorDetail | ErrorObject,
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHistoryExportCreate>>,
     TError,
-    { parentLookupAsset: string },
+    { uidAsset: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>

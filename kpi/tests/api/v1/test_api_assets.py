@@ -107,7 +107,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
         self.login('someuser', 'someuser')
         asset = self.create_asset(asset_title, json.dumps(content), format='json')
         response = self.client.get(
-            reverse('asset-detail', kwargs={'uid': asset.uid, 'format': 'xml'})
+            reverse('asset-detail', kwargs={'uid_asset': asset.uid, 'format': 'xml'})
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         xml = check_lxml_fromstring(response.content)
@@ -122,7 +122,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
         self.login('someuser', 'someuser')
         asset = self.create_asset(asset_name, json.dumps(content), format='json')
         response = self.client.get(
-            reverse('asset-detail', kwargs={'uid': asset.uid, 'format': 'xml'})
+            reverse('asset-detail', kwargs={'uid_asset': asset.uid, 'format': 'xml'})
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         xml = check_lxml_fromstring(response.content)
@@ -136,7 +136,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
         self.login('someuser', 'someuser')
         asset = self.create_asset('', json.dumps(content), format='json')
         response = self.client.get(
-            reverse('asset-detail', kwargs={'uid': asset.uid, 'format': 'xml'})
+            reverse('asset-detail', kwargs={'uid_asset': asset.uid, 'format': 'xml'})
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         xml = check_lxml_fromstring(response.content)
@@ -165,7 +165,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
             '', json.dumps(example_formbuilder_output), format='json'
         )
         response = self.client.get(
-            reverse('asset-detail', kwargs={'uid': asset.uid, 'format': 'xml'})
+            reverse('asset-detail', kwargs={'uid_asset': asset.uid, 'format': 'xml'})
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         xml = check_lxml_fromstring(response.content)
@@ -321,7 +321,7 @@ class AssetExportTaskTest(BaseTestCase):
 
     def test_owner_can_create_export(self):
         post_url = reverse('submissionexporttask-list')
-        asset_url = reverse('asset-detail', args=[self.asset.uid])
+        asset_url = reverse('asset-detail', kwargs={'uid_asset': self.asset.uid})
         task_data = {
             'source': asset_url,
             'type': 'csv',

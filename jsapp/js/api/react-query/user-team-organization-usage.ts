@@ -325,29 +325,29 @@ export type organizationsRetrieveResponse = organizationsRetrieveResponseComposi
   headers: Headers
 }
 
-export const getOrganizationsRetrieveUrl = (id: string) => {
-  return `/api/v2/organizations/${id}/`
+export const getOrganizationsRetrieveUrl = (uidOrganization: string) => {
+  return `/api/v2/organizations/${uidOrganization}/`
 }
 
 export const organizationsRetrieve = async (
-  id: string,
+  uidOrganization: string,
   options?: RequestInit,
 ): Promise<organizationsRetrieveResponse> => {
-  return fetchWithAuth<organizationsRetrieveResponse>(getOrganizationsRetrieveUrl(id), {
+  return fetchWithAuth<organizationsRetrieveResponse>(getOrganizationsRetrieveUrl(uidOrganization), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getOrganizationsRetrieveQueryKey = (id: string) => {
-  return ['api', 'v2', 'organizations', id] as const
+export const getOrganizationsRetrieveQueryKey = (uidOrganization: string) => {
+  return ['api', 'v2', 'organizations', uidOrganization] as const
 }
 
 export const getOrganizationsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsRetrieve>>,
   TError = ErrorObject,
 >(
-  id: string,
+  uidOrganization: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -355,12 +355,12 @@ export const getOrganizationsRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getOrganizationsRetrieveQueryKey(id)
+  const queryKey = queryOptions?.queryKey ?? getOrganizationsRetrieveQueryKey(uidOrganization)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsRetrieve>>> = ({ signal }) =>
-    organizationsRetrieve(id, { signal, ...requestOptions })
+    organizationsRetrieve(uidOrganization, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidOrganization, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof organizationsRetrieve>>,
     TError,
     TData
@@ -374,13 +374,13 @@ export function useOrganizationsRetrieve<
   TData = Awaited<ReturnType<typeof organizationsRetrieve>>,
   TError = ErrorObject,
 >(
-  id: string,
+  uidOrganization: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getOrganizationsRetrieveQueryOptions(id, options)
+  const queryOptions = getOrganizationsRetrieveQueryOptions(uidOrganization, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -411,16 +411,16 @@ export type organizationsPartialUpdateResponse = organizationsPartialUpdateRespo
   headers: Headers
 }
 
-export const getOrganizationsPartialUpdateUrl = (id: string) => {
-  return `/api/v2/organizations/${id}/`
+export const getOrganizationsPartialUpdateUrl = (uidOrganization: string) => {
+  return `/api/v2/organizations/${uidOrganization}/`
 }
 
 export const organizationsPartialUpdate = async (
-  id: string,
+  uidOrganization: string,
   patchedOrganizationPatchPayload: PatchedOrganizationPatchPayload,
   options?: RequestInit,
 ): Promise<organizationsPartialUpdateResponse> => {
-  return fetchWithAuth<organizationsPartialUpdateResponse>(getOrganizationsPartialUpdateUrl(id), {
+  return fetchWithAuth<organizationsPartialUpdateResponse>(getOrganizationsPartialUpdateUrl(uidOrganization), {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -432,14 +432,14 @@ export const getOrganizationsPartialUpdateMutationOptions = <TError = ErrorObjec
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsPartialUpdate>>,
     TError,
-    { id: string; data: PatchedOrganizationPatchPayload },
+    { uidOrganization: string; data: PatchedOrganizationPatchPayload },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof organizationsPartialUpdate>>,
   TError,
-  { id: string; data: PatchedOrganizationPatchPayload },
+  { uidOrganization: string; data: PatchedOrganizationPatchPayload },
   TContext
 > => {
   const mutationKey = ['organizationsPartialUpdate']
@@ -451,11 +451,11 @@ export const getOrganizationsPartialUpdateMutationOptions = <TError = ErrorObjec
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof organizationsPartialUpdate>>,
-    { id: string; data: PatchedOrganizationPatchPayload }
+    { uidOrganization: string; data: PatchedOrganizationPatchPayload }
   > = (props) => {
-    const { id, data } = props ?? {}
+    const { uidOrganization, data } = props ?? {}
 
-    return organizationsPartialUpdate(id, data, requestOptions)
+    return organizationsPartialUpdate(uidOrganization, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -471,7 +471,7 @@ export const useOrganizationsPartialUpdate = <TError = ErrorObject, TContext = u
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsPartialUpdate>>,
     TError,
-    { id: string; data: PatchedOrganizationPatchPayload },
+    { uidOrganization: string; data: PatchedOrganizationPatchPayload },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -504,29 +504,32 @@ export type organizationsAssetUsageRetrieveResponse = organizationsAssetUsageRet
   headers: Headers
 }
 
-export const getOrganizationsAssetUsageRetrieveUrl = (id: string) => {
-  return `/api/v2/organizations/${id}/asset_usage/`
+export const getOrganizationsAssetUsageRetrieveUrl = (uidOrganization: string) => {
+  return `/api/v2/organizations/${uidOrganization}/asset_usage/`
 }
 
 export const organizationsAssetUsageRetrieve = async (
-  id: string,
+  uidOrganization: string,
   options?: RequestInit,
 ): Promise<organizationsAssetUsageRetrieveResponse> => {
-  return fetchWithAuth<organizationsAssetUsageRetrieveResponse>(getOrganizationsAssetUsageRetrieveUrl(id), {
-    ...options,
-    method: 'GET',
-  })
+  return fetchWithAuth<organizationsAssetUsageRetrieveResponse>(
+    getOrganizationsAssetUsageRetrieveUrl(uidOrganization),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
-export const getOrganizationsAssetUsageRetrieveQueryKey = (id: string) => {
-  return ['api', 'v2', 'organizations', id, 'asset_usage'] as const
+export const getOrganizationsAssetUsageRetrieveQueryKey = (uidOrganization: string) => {
+  return ['api', 'v2', 'organizations', uidOrganization, 'asset_usage'] as const
 }
 
 export const getOrganizationsAssetUsageRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>,
   TError = ErrorObject,
 >(
-  id: string,
+  uidOrganization: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -534,12 +537,12 @@ export const getOrganizationsAssetUsageRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getOrganizationsAssetUsageRetrieveQueryKey(id)
+  const queryKey = queryOptions?.queryKey ?? getOrganizationsAssetUsageRetrieveQueryKey(uidOrganization)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>> = ({ signal }) =>
-    organizationsAssetUsageRetrieve(id, { signal, ...requestOptions })
+    organizationsAssetUsageRetrieve(uidOrganization, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidOrganization, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>,
     TError,
     TData
@@ -555,13 +558,13 @@ export function useOrganizationsAssetUsageRetrieve<
   TData = Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>,
   TError = ErrorObject,
 >(
-  id: string,
+  uidOrganization: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getOrganizationsAssetUsageRetrieveQueryOptions(id, options)
+  const queryOptions = getOrganizationsAssetUsageRetrieveQueryOptions(uidOrganization, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -601,29 +604,29 @@ export type organizationsAssetsRetrieveResponse = organizationsAssetsRetrieveRes
   headers: Headers
 }
 
-export const getOrganizationsAssetsRetrieveUrl = (id: string) => {
-  return `/api/v2/organizations/${id}/assets/`
+export const getOrganizationsAssetsRetrieveUrl = (uidOrganization: string) => {
+  return `/api/v2/organizations/${uidOrganization}/assets/`
 }
 
 export const organizationsAssetsRetrieve = async (
-  id: string,
+  uidOrganization: string,
   options?: RequestInit,
 ): Promise<organizationsAssetsRetrieveResponse> => {
-  return fetchWithAuth<organizationsAssetsRetrieveResponse>(getOrganizationsAssetsRetrieveUrl(id), {
+  return fetchWithAuth<organizationsAssetsRetrieveResponse>(getOrganizationsAssetsRetrieveUrl(uidOrganization), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getOrganizationsAssetsRetrieveQueryKey = (id: string) => {
-  return ['api', 'v2', 'organizations', id, 'assets'] as const
+export const getOrganizationsAssetsRetrieveQueryKey = (uidOrganization: string) => {
+  return ['api', 'v2', 'organizations', uidOrganization, 'assets'] as const
 }
 
 export const getOrganizationsAssetsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsAssetsRetrieve>>,
   TError = ErrorObject,
 >(
-  id: string,
+  uidOrganization: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -631,12 +634,12 @@ export const getOrganizationsAssetsRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getOrganizationsAssetsRetrieveQueryKey(id)
+  const queryKey = queryOptions?.queryKey ?? getOrganizationsAssetsRetrieveQueryKey(uidOrganization)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsAssetsRetrieve>>> = ({ signal }) =>
-    organizationsAssetsRetrieve(id, { signal, ...requestOptions })
+    organizationsAssetsRetrieve(uidOrganization, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidOrganization, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof organizationsAssetsRetrieve>>,
     TError,
     TData
@@ -652,109 +655,13 @@ export function useOrganizationsAssetsRetrieve<
   TData = Awaited<ReturnType<typeof organizationsAssetsRetrieve>>,
   TError = ErrorObject,
 >(
-  id: string,
+  uidOrganization: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getOrganizationsAssetsRetrieveQueryOptions(id, options)
-
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
-
-  query.queryKey = queryOptions.queryKey
-
-  return query
-}
-
-/**
- * ## Organization Usage Tracker
-
-- Tracks the total usage of different services for each account in an organization
-- Tracks the submissions and NLP seconds/characters for the current month/year/all time
-- Tracks the current total storage used
-- Includes a detailed list of balances relative to a user's usage limits
-- If no organization is found with the provided ID, returns the usage for the logged-in user
-
-**This endpoint is cached for an amount of time determined by ENDPOINT_CACHE_DURATION**
-
- */
-export type organizationsServiceUsageRetrieveResponse200 = {
-  data: OrganizationServiceUsageResponse
-  status: 200
-}
-
-export type organizationsServiceUsageRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
-export type organizationsServiceUsageRetrieveResponseComposite =
-  | organizationsServiceUsageRetrieveResponse200
-  | organizationsServiceUsageRetrieveResponse404
-
-export type organizationsServiceUsageRetrieveResponse = organizationsServiceUsageRetrieveResponseComposite & {
-  headers: Headers
-}
-
-export const getOrganizationsServiceUsageRetrieveUrl = (id: string) => {
-  return `/api/v2/organizations/${id}/service_usage/`
-}
-
-export const organizationsServiceUsageRetrieve = async (
-  id: string,
-  options?: RequestInit,
-): Promise<organizationsServiceUsageRetrieveResponse> => {
-  return fetchWithAuth<organizationsServiceUsageRetrieveResponse>(getOrganizationsServiceUsageRetrieveUrl(id), {
-    ...options,
-    method: 'GET',
-  })
-}
-
-export const getOrganizationsServiceUsageRetrieveQueryKey = (id: string) => {
-  return ['api', 'v2', 'organizations', id, 'service_usage'] as const
-}
-
-export const getOrganizationsServiceUsageRetrieveQueryOptions = <
-  TData = Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>,
-  TError = ErrorObject,
->(
-  id: string,
-  options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>, TError, TData>
-    request?: SecondParameter<typeof fetchWithAuth>
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
-
-  const queryKey = queryOptions?.queryKey ?? getOrganizationsServiceUsageRetrieveQueryKey(id)
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>> = ({ signal }) =>
-    organizationsServiceUsageRetrieve(id, { signal, ...requestOptions })
-
-  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>,
-    TError,
-    TData
-  > & { queryKey: QueryKey }
-}
-
-export type OrganizationsServiceUsageRetrieveQueryResult = NonNullable<
-  Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>
->
-export type OrganizationsServiceUsageRetrieveQueryError = ErrorObject
-
-export function useOrganizationsServiceUsageRetrieve<
-  TData = Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>,
-  TError = ErrorObject,
->(
-  id: string,
-  options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>, TError, TData>
-    request?: SecondParameter<typeof fetchWithAuth>
-  },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getOrganizationsServiceUsageRetrieveQueryOptions(id, options)
+  const queryOptions = getOrganizationsAssetsRetrieveQueryOptions(uidOrganization, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -785,7 +692,7 @@ export type organizationsInvitesListResponse = organizationsInvitesListResponseC
   headers: Headers
 }
 
-export const getOrganizationsInvitesListUrl = (organizationId: string, params?: OrganizationsInvitesListParams) => {
+export const getOrganizationsInvitesListUrl = (uidOrganization: string, params?: OrganizationsInvitesListParams) => {
   const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -797,33 +704,33 @@ export const getOrganizationsInvitesListUrl = (organizationId: string, params?: 
   const stringifiedParams = normalizedParams.toString()
 
   return stringifiedParams.length > 0
-    ? `/api/v2/organizations/${organizationId}/invites/?${stringifiedParams}`
-    : `/api/v2/organizations/${organizationId}/invites/`
+    ? `/api/v2/organizations/${uidOrganization}/invites/?${stringifiedParams}`
+    : `/api/v2/organizations/${uidOrganization}/invites/`
 }
 
 export const organizationsInvitesList = async (
-  organizationId: string,
+  uidOrganization: string,
   params?: OrganizationsInvitesListParams,
   options?: RequestInit,
 ): Promise<organizationsInvitesListResponse> => {
-  return fetchWithAuth<organizationsInvitesListResponse>(getOrganizationsInvitesListUrl(organizationId, params), {
+  return fetchWithAuth<organizationsInvitesListResponse>(getOrganizationsInvitesListUrl(uidOrganization, params), {
     ...options,
     method: 'GET',
   })
 }
 
 export const getOrganizationsInvitesListQueryKey = (
-  organizationId: string,
+  uidOrganization: string,
   params?: OrganizationsInvitesListParams,
 ) => {
-  return ['api', 'v2', 'organizations', organizationId, 'invites', ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'organizations', uidOrganization, 'invites', ...(params ? [params] : [])] as const
 }
 
 export const getOrganizationsInvitesListQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsInvitesList>>,
   TError = ErrorObject,
 >(
-  organizationId: string,
+  uidOrganization: string,
   params?: OrganizationsInvitesListParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsInvitesList>>, TError, TData>
@@ -832,12 +739,12 @@ export const getOrganizationsInvitesListQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getOrganizationsInvitesListQueryKey(organizationId, params)
+  const queryKey = queryOptions?.queryKey ?? getOrganizationsInvitesListQueryKey(uidOrganization, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsInvitesList>>> = ({ signal }) =>
-    organizationsInvitesList(organizationId, params, { signal, ...requestOptions })
+    organizationsInvitesList(uidOrganization, params, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!organizationId, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidOrganization, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof organizationsInvitesList>>,
     TError,
     TData
@@ -851,14 +758,14 @@ export function useOrganizationsInvitesList<
   TData = Awaited<ReturnType<typeof organizationsInvitesList>>,
   TError = ErrorObject,
 >(
-  organizationId: string,
+  uidOrganization: string,
   params?: OrganizationsInvitesListParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsInvitesList>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getOrganizationsInvitesListQueryOptions(organizationId, params, options)
+  const queryOptions = getOrganizationsInvitesListQueryOptions(uidOrganization, params, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -893,16 +800,16 @@ export type organizationsInvitesCreateResponse = organizationsInvitesCreateRespo
   headers: Headers
 }
 
-export const getOrganizationsInvitesCreateUrl = (organizationId: string) => {
-  return `/api/v2/organizations/${organizationId}/invites/`
+export const getOrganizationsInvitesCreateUrl = (uidOrganization: string) => {
+  return `/api/v2/organizations/${uidOrganization}/invites/`
 }
 
 export const organizationsInvitesCreate = async (
-  organizationId: string,
+  uidOrganization: string,
   inviteCreatePayload: InviteCreatePayload,
   options?: RequestInit,
 ): Promise<organizationsInvitesCreateResponse> => {
-  return fetchWithAuth<organizationsInvitesCreateResponse>(getOrganizationsInvitesCreateUrl(organizationId), {
+  return fetchWithAuth<organizationsInvitesCreateResponse>(getOrganizationsInvitesCreateUrl(uidOrganization), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -914,14 +821,14 @@ export const getOrganizationsInvitesCreateMutationOptions = <TError = ErrorObjec
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsInvitesCreate>>,
     TError,
-    { organizationId: string; data: InviteCreatePayload },
+    { uidOrganization: string; data: InviteCreatePayload },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof organizationsInvitesCreate>>,
   TError,
-  { organizationId: string; data: InviteCreatePayload },
+  { uidOrganization: string; data: InviteCreatePayload },
   TContext
 > => {
   const mutationKey = ['organizationsInvitesCreate']
@@ -933,11 +840,11 @@ export const getOrganizationsInvitesCreateMutationOptions = <TError = ErrorObjec
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof organizationsInvitesCreate>>,
-    { organizationId: string; data: InviteCreatePayload }
+    { uidOrganization: string; data: InviteCreatePayload }
   > = (props) => {
-    const { organizationId, data } = props ?? {}
+    const { uidOrganization, data } = props ?? {}
 
-    return organizationsInvitesCreate(organizationId, data, requestOptions)
+    return organizationsInvitesCreate(uidOrganization, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -953,7 +860,7 @@ export const useOrganizationsInvitesCreate = <TError = ErrorObject, TContext = u
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsInvitesCreate>>,
     TError,
-    { organizationId: string; data: InviteCreatePayload },
+    { uidOrganization: string; data: InviteCreatePayload },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -984,30 +891,33 @@ export type organizationsInvitesRetrieveResponse = organizationsInvitesRetrieveR
   headers: Headers
 }
 
-export const getOrganizationsInvitesRetrieveUrl = (organizationId: string, guid: string) => {
-  return `/api/v2/organizations/${organizationId}/invites/${guid}/`
+export const getOrganizationsInvitesRetrieveUrl = (uidOrganization: string, guid: string) => {
+  return `/api/v2/organizations/${uidOrganization}/invites/${guid}/`
 }
 
 export const organizationsInvitesRetrieve = async (
-  organizationId: string,
+  uidOrganization: string,
   guid: string,
   options?: RequestInit,
 ): Promise<organizationsInvitesRetrieveResponse> => {
-  return fetchWithAuth<organizationsInvitesRetrieveResponse>(getOrganizationsInvitesRetrieveUrl(organizationId, guid), {
-    ...options,
-    method: 'GET',
-  })
+  return fetchWithAuth<organizationsInvitesRetrieveResponse>(
+    getOrganizationsInvitesRetrieveUrl(uidOrganization, guid),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
 }
 
-export const getOrganizationsInvitesRetrieveQueryKey = (organizationId: string, guid: string) => {
-  return ['api', 'v2', 'organizations', organizationId, 'invites', guid] as const
+export const getOrganizationsInvitesRetrieveQueryKey = (uidOrganization: string, guid: string) => {
+  return ['api', 'v2', 'organizations', uidOrganization, 'invites', guid] as const
 }
 
 export const getOrganizationsInvitesRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsInvitesRetrieve>>,
   TError = ErrorObject,
 >(
-  organizationId: string,
+  uidOrganization: string,
   guid: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsInvitesRetrieve>>, TError, TData>
@@ -1016,12 +926,12 @@ export const getOrganizationsInvitesRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getOrganizationsInvitesRetrieveQueryKey(organizationId, guid)
+  const queryKey = queryOptions?.queryKey ?? getOrganizationsInvitesRetrieveQueryKey(uidOrganization, guid)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsInvitesRetrieve>>> = ({ signal }) =>
-    organizationsInvitesRetrieve(organizationId, guid, { signal, ...requestOptions })
+    organizationsInvitesRetrieve(uidOrganization, guid, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!(organizationId && guid), ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!(uidOrganization && guid), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof organizationsInvitesRetrieve>>,
     TError,
     TData
@@ -1037,14 +947,14 @@ export function useOrganizationsInvitesRetrieve<
   TData = Awaited<ReturnType<typeof organizationsInvitesRetrieve>>,
   TError = ErrorObject,
 >(
-  organizationId: string,
+  uidOrganization: string,
   guid: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsInvitesRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getOrganizationsInvitesRetrieveQueryOptions(organizationId, guid, options)
+  const queryOptions = getOrganizationsInvitesRetrieveQueryOptions(uidOrganization, guid, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -1085,18 +995,18 @@ export type organizationsInvitesPartialUpdateResponse = organizationsInvitesPart
   headers: Headers
 }
 
-export const getOrganizationsInvitesPartialUpdateUrl = (organizationId: string, guid: string) => {
-  return `/api/v2/organizations/${organizationId}/invites/${guid}/`
+export const getOrganizationsInvitesPartialUpdateUrl = (uidOrganization: string, guid: string) => {
+  return `/api/v2/organizations/${uidOrganization}/invites/${guid}/`
 }
 
 export const organizationsInvitesPartialUpdate = async (
-  organizationId: string,
+  uidOrganization: string,
   guid: string,
   patchedInvitePatchPayload: PatchedInvitePatchPayload,
   options?: RequestInit,
 ): Promise<organizationsInvitesPartialUpdateResponse> => {
   return fetchWithAuth<organizationsInvitesPartialUpdateResponse>(
-    getOrganizationsInvitesPartialUpdateUrl(organizationId, guid),
+    getOrganizationsInvitesPartialUpdateUrl(uidOrganization, guid),
     {
       ...options,
       method: 'PATCH',
@@ -1113,14 +1023,14 @@ export const getOrganizationsInvitesPartialUpdateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsInvitesPartialUpdate>>,
     TError,
-    { organizationId: string; guid: string; data: PatchedInvitePatchPayload },
+    { uidOrganization: string; guid: string; data: PatchedInvitePatchPayload },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof organizationsInvitesPartialUpdate>>,
   TError,
-  { organizationId: string; guid: string; data: PatchedInvitePatchPayload },
+  { uidOrganization: string; guid: string; data: PatchedInvitePatchPayload },
   TContext
 > => {
   const mutationKey = ['organizationsInvitesPartialUpdate']
@@ -1132,11 +1042,11 @@ export const getOrganizationsInvitesPartialUpdateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof organizationsInvitesPartialUpdate>>,
-    { organizationId: string; guid: string; data: PatchedInvitePatchPayload }
+    { uidOrganization: string; guid: string; data: PatchedInvitePatchPayload }
   > = (props) => {
-    const { organizationId, guid, data } = props ?? {}
+    const { uidOrganization, guid, data } = props ?? {}
 
-    return organizationsInvitesPartialUpdate(organizationId, guid, data, requestOptions)
+    return organizationsInvitesPartialUpdate(uidOrganization, guid, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -1152,7 +1062,7 @@ export const useOrganizationsInvitesPartialUpdate = <TError = ErrorObject | Erro
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsInvitesPartialUpdate>>,
     TError,
-    { organizationId: string; guid: string; data: PatchedInvitePatchPayload },
+    { uidOrganization: string; guid: string; data: PatchedInvitePatchPayload },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -1191,16 +1101,16 @@ export type organizationsInvitesDestroyResponse = organizationsInvitesDestroyRes
   headers: Headers
 }
 
-export const getOrganizationsInvitesDestroyUrl = (organizationId: string, guid: string) => {
-  return `/api/v2/organizations/${organizationId}/invites/${guid}/`
+export const getOrganizationsInvitesDestroyUrl = (uidOrganization: string, guid: string) => {
+  return `/api/v2/organizations/${uidOrganization}/invites/${guid}/`
 }
 
 export const organizationsInvitesDestroy = async (
-  organizationId: string,
+  uidOrganization: string,
   guid: string,
   options?: RequestInit,
 ): Promise<organizationsInvitesDestroyResponse> => {
-  return fetchWithAuth<organizationsInvitesDestroyResponse>(getOrganizationsInvitesDestroyUrl(organizationId, guid), {
+  return fetchWithAuth<organizationsInvitesDestroyResponse>(getOrganizationsInvitesDestroyUrl(uidOrganization, guid), {
     ...options,
     method: 'DELETE',
   })
@@ -1213,14 +1123,14 @@ export const getOrganizationsInvitesDestroyMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsInvitesDestroy>>,
     TError,
-    { organizationId: string; guid: string },
+    { uidOrganization: string; guid: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof organizationsInvitesDestroy>>,
   TError,
-  { organizationId: string; guid: string },
+  { uidOrganization: string; guid: string },
   TContext
 > => {
   const mutationKey = ['organizationsInvitesDestroy']
@@ -1232,11 +1142,11 @@ export const getOrganizationsInvitesDestroyMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof organizationsInvitesDestroy>>,
-    { organizationId: string; guid: string }
+    { uidOrganization: string; guid: string }
   > = (props) => {
-    const { organizationId, guid } = props ?? {}
+    const { uidOrganization, guid } = props ?? {}
 
-    return organizationsInvitesDestroy(organizationId, guid, requestOptions)
+    return organizationsInvitesDestroy(uidOrganization, guid, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -1252,7 +1162,7 @@ export const useOrganizationsInvitesDestroy = <TError = ErrorDetail | ErrorObjec
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsInvitesDestroy>>,
     TError,
-    { organizationId: string; guid: string },
+    { uidOrganization: string; guid: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -1285,7 +1195,7 @@ export type organizationsMembersListResponse = organizationsMembersListResponseC
   headers: Headers
 }
 
-export const getOrganizationsMembersListUrl = (organizationId: string, params?: OrganizationsMembersListParams) => {
+export const getOrganizationsMembersListUrl = (uidOrganization: string, params?: OrganizationsMembersListParams) => {
   const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -1297,33 +1207,33 @@ export const getOrganizationsMembersListUrl = (organizationId: string, params?: 
   const stringifiedParams = normalizedParams.toString()
 
   return stringifiedParams.length > 0
-    ? `/api/v2/organizations/${organizationId}/members/?${stringifiedParams}`
-    : `/api/v2/organizations/${organizationId}/members/`
+    ? `/api/v2/organizations/${uidOrganization}/members/?${stringifiedParams}`
+    : `/api/v2/organizations/${uidOrganization}/members/`
 }
 
 export const organizationsMembersList = async (
-  organizationId: string,
+  uidOrganization: string,
   params?: OrganizationsMembersListParams,
   options?: RequestInit,
 ): Promise<organizationsMembersListResponse> => {
-  return fetchWithAuth<organizationsMembersListResponse>(getOrganizationsMembersListUrl(organizationId, params), {
+  return fetchWithAuth<organizationsMembersListResponse>(getOrganizationsMembersListUrl(uidOrganization, params), {
     ...options,
     method: 'GET',
   })
 }
 
 export const getOrganizationsMembersListQueryKey = (
-  organizationId: string,
+  uidOrganization: string,
   params?: OrganizationsMembersListParams,
 ) => {
-  return ['api', 'v2', 'organizations', organizationId, 'members', ...(params ? [params] : [])] as const
+  return ['api', 'v2', 'organizations', uidOrganization, 'members', ...(params ? [params] : [])] as const
 }
 
 export const getOrganizationsMembersListQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsMembersList>>,
   TError = ErrorObject,
 >(
-  organizationId: string,
+  uidOrganization: string,
   params?: OrganizationsMembersListParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersList>>, TError, TData>
@@ -1332,12 +1242,12 @@ export const getOrganizationsMembersListQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getOrganizationsMembersListQueryKey(organizationId, params)
+  const queryKey = queryOptions?.queryKey ?? getOrganizationsMembersListQueryKey(uidOrganization, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsMembersList>>> = ({ signal }) =>
-    organizationsMembersList(organizationId, params, { signal, ...requestOptions })
+    organizationsMembersList(uidOrganization, params, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!organizationId, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidOrganization, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof organizationsMembersList>>,
     TError,
     TData
@@ -1351,14 +1261,14 @@ export function useOrganizationsMembersList<
   TData = Awaited<ReturnType<typeof organizationsMembersList>>,
   TError = ErrorObject,
 >(
-  organizationId: string,
+  uidOrganization: string,
   params?: OrganizationsMembersListParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersList>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getOrganizationsMembersListQueryOptions(organizationId, params, options)
+  const queryOptions = getOrganizationsMembersListQueryOptions(uidOrganization, params, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -1391,17 +1301,17 @@ export type organizationsMembersRetrieveResponse = organizationsMembersRetrieveR
   headers: Headers
 }
 
-export const getOrganizationsMembersRetrieveUrl = (organizationId: string, userUsername: string) => {
-  return `/api/v2/organizations/${organizationId}/members/${userUsername}/`
+export const getOrganizationsMembersRetrieveUrl = (uidOrganization: string, username: string) => {
+  return `/api/v2/organizations/${uidOrganization}/members/${username}/`
 }
 
 export const organizationsMembersRetrieve = async (
-  organizationId: string,
-  userUsername: string,
+  uidOrganization: string,
+  username: string,
   options?: RequestInit,
 ): Promise<organizationsMembersRetrieveResponse> => {
   return fetchWithAuth<organizationsMembersRetrieveResponse>(
-    getOrganizationsMembersRetrieveUrl(organizationId, userUsername),
+    getOrganizationsMembersRetrieveUrl(uidOrganization, username),
     {
       ...options,
       method: 'GET',
@@ -1409,16 +1319,16 @@ export const organizationsMembersRetrieve = async (
   )
 }
 
-export const getOrganizationsMembersRetrieveQueryKey = (organizationId: string, userUsername: string) => {
-  return ['api', 'v2', 'organizations', organizationId, 'members', userUsername] as const
+export const getOrganizationsMembersRetrieveQueryKey = (uidOrganization: string, username: string) => {
+  return ['api', 'v2', 'organizations', uidOrganization, 'members', username] as const
 }
 
 export const getOrganizationsMembersRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsMembersRetrieve>>,
   TError = ErrorObject,
 >(
-  organizationId: string,
-  userUsername: string,
+  uidOrganization: string,
+  username: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -1426,12 +1336,12 @@ export const getOrganizationsMembersRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getOrganizationsMembersRetrieveQueryKey(organizationId, userUsername)
+  const queryKey = queryOptions?.queryKey ?? getOrganizationsMembersRetrieveQueryKey(uidOrganization, username)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsMembersRetrieve>>> = ({ signal }) =>
-    organizationsMembersRetrieve(organizationId, userUsername, { signal, ...requestOptions })
+    organizationsMembersRetrieve(uidOrganization, username, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!(organizationId && userUsername), ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!(uidOrganization && username), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof organizationsMembersRetrieve>>,
     TError,
     TData
@@ -1447,14 +1357,14 @@ export function useOrganizationsMembersRetrieve<
   TData = Awaited<ReturnType<typeof organizationsMembersRetrieve>>,
   TError = ErrorObject,
 >(
-  organizationId: string,
-  userUsername: string,
+  uidOrganization: string,
+  username: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsMembersRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getOrganizationsMembersRetrieveQueryOptions(organizationId, userUsername, options)
+  const queryOptions = getOrganizationsMembersRetrieveQueryOptions(uidOrganization, username, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -1497,18 +1407,18 @@ export type organizationsMembersPartialUpdateResponse = organizationsMembersPart
   headers: Headers
 }
 
-export const getOrganizationsMembersPartialUpdateUrl = (organizationId: string, userUsername: string) => {
-  return `/api/v2/organizations/${organizationId}/members/${userUsername}/`
+export const getOrganizationsMembersPartialUpdateUrl = (uidOrganization: string, username: string) => {
+  return `/api/v2/organizations/${uidOrganization}/members/${username}/`
 }
 
 export const organizationsMembersPartialUpdate = async (
-  organizationId: string,
-  userUsername: string,
+  uidOrganization: string,
+  username: string,
   patchedMemberPatchRequest: PatchedMemberPatchRequest,
   options?: RequestInit,
 ): Promise<organizationsMembersPartialUpdateResponse> => {
   return fetchWithAuth<organizationsMembersPartialUpdateResponse>(
-    getOrganizationsMembersPartialUpdateUrl(organizationId, userUsername),
+    getOrganizationsMembersPartialUpdateUrl(uidOrganization, username),
     {
       ...options,
       method: 'PATCH',
@@ -1525,14 +1435,14 @@ export const getOrganizationsMembersPartialUpdateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsMembersPartialUpdate>>,
     TError,
-    { organizationId: string; userUsername: string; data: PatchedMemberPatchRequest },
+    { uidOrganization: string; username: string; data: PatchedMemberPatchRequest },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof organizationsMembersPartialUpdate>>,
   TError,
-  { organizationId: string; userUsername: string; data: PatchedMemberPatchRequest },
+  { uidOrganization: string; username: string; data: PatchedMemberPatchRequest },
   TContext
 > => {
   const mutationKey = ['organizationsMembersPartialUpdate']
@@ -1544,11 +1454,11 @@ export const getOrganizationsMembersPartialUpdateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof organizationsMembersPartialUpdate>>,
-    { organizationId: string; userUsername: string; data: PatchedMemberPatchRequest }
+    { uidOrganization: string; username: string; data: PatchedMemberPatchRequest }
   > = (props) => {
-    const { organizationId, userUsername, data } = props ?? {}
+    const { uidOrganization, username, data } = props ?? {}
 
-    return organizationsMembersPartialUpdate(organizationId, userUsername, data, requestOptions)
+    return organizationsMembersPartialUpdate(uidOrganization, username, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -1564,7 +1474,7 @@ export const useOrganizationsMembersPartialUpdate = <TError = ErrorObject | Erro
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsMembersPartialUpdate>>,
     TError,
-    { organizationId: string; userUsername: string; data: PatchedMemberPatchRequest },
+    { uidOrganization: string; username: string; data: PatchedMemberPatchRequest },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -1603,17 +1513,17 @@ export type organizationsMembersDestroyResponse = organizationsMembersDestroyRes
   headers: Headers
 }
 
-export const getOrganizationsMembersDestroyUrl = (organizationId: string, userUsername: string) => {
-  return `/api/v2/organizations/${organizationId}/members/${userUsername}/`
+export const getOrganizationsMembersDestroyUrl = (uidOrganization: string, username: string) => {
+  return `/api/v2/organizations/${uidOrganization}/members/${username}/`
 }
 
 export const organizationsMembersDestroy = async (
-  organizationId: string,
-  userUsername: string,
+  uidOrganization: string,
+  username: string,
   options?: RequestInit,
 ): Promise<organizationsMembersDestroyResponse> => {
   return fetchWithAuth<organizationsMembersDestroyResponse>(
-    getOrganizationsMembersDestroyUrl(organizationId, userUsername),
+    getOrganizationsMembersDestroyUrl(uidOrganization, username),
     {
       ...options,
       method: 'DELETE',
@@ -1628,14 +1538,14 @@ export const getOrganizationsMembersDestroyMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsMembersDestroy>>,
     TError,
-    { organizationId: string; userUsername: string },
+    { uidOrganization: string; username: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof organizationsMembersDestroy>>,
   TError,
-  { organizationId: string; userUsername: string },
+  { uidOrganization: string; username: string },
   TContext
 > => {
   const mutationKey = ['organizationsMembersDestroy']
@@ -1647,11 +1557,11 @@ export const getOrganizationsMembersDestroyMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof organizationsMembersDestroy>>,
-    { organizationId: string; userUsername: string }
+    { uidOrganization: string; username: string }
   > = (props) => {
-    const { organizationId, userUsername } = props ?? {}
+    const { uidOrganization, username } = props ?? {}
 
-    return organizationsMembersDestroy(organizationId, userUsername, requestOptions)
+    return organizationsMembersDestroy(uidOrganization, username, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -1667,7 +1577,7 @@ export const useOrganizationsMembersDestroy = <TError = ErrorDetail | ErrorObjec
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsMembersDestroy>>,
     TError,
-    { organizationId: string; userUsername: string },
+    { uidOrganization: string; username: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -1676,6 +1586,105 @@ export const useOrganizationsMembersDestroy = <TError = ErrorDetail | ErrorObjec
 
   return useMutation(mutationOptions)
 }
+/**
+ * ## Organization Usage Tracker
+
+- Tracks the total usage of different services for each account in an organization
+- Tracks the submissions and NLP seconds/characters for the current month/year/all time
+- Tracks the current total storage used
+- Includes a detailed list of balances relative to a user's usage limits
+- If no organization is found with the provided ID, returns the usage for the logged-in user
+
+**This endpoint is cached for an amount of time determined by ENDPOINT_CACHE_DURATION**
+
+ */
+export type organizationsServiceUsageRetrieveResponse200 = {
+  data: OrganizationServiceUsageResponse
+  status: 200
+}
+
+export type organizationsServiceUsageRetrieveResponse404 = {
+  data: ErrorObject
+  status: 404
+}
+
+export type organizationsServiceUsageRetrieveResponseComposite =
+  | organizationsServiceUsageRetrieveResponse200
+  | organizationsServiceUsageRetrieveResponse404
+
+export type organizationsServiceUsageRetrieveResponse = organizationsServiceUsageRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getOrganizationsServiceUsageRetrieveUrl = (uidOrganization: string) => {
+  return `/api/v2/organizations/${uidOrganization}/service_usage/`
+}
+
+export const organizationsServiceUsageRetrieve = async (
+  uidOrganization: string,
+  options?: RequestInit,
+): Promise<organizationsServiceUsageRetrieveResponse> => {
+  return fetchWithAuth<organizationsServiceUsageRetrieveResponse>(
+    getOrganizationsServiceUsageRetrieveUrl(uidOrganization),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
+}
+
+export const getOrganizationsServiceUsageRetrieveQueryKey = (uidOrganization: string) => {
+  return ['api', 'v2', 'organizations', uidOrganization, 'service_usage'] as const
+}
+
+export const getOrganizationsServiceUsageRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>,
+  TError = ErrorObject,
+>(
+  uidOrganization: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getOrganizationsServiceUsageRetrieveQueryKey(uidOrganization)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>> = ({ signal }) =>
+    organizationsServiceUsageRetrieve(uidOrganization, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!uidOrganization, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type OrganizationsServiceUsageRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>
+>
+export type OrganizationsServiceUsageRetrieveQueryError = ErrorObject
+
+export function useOrganizationsServiceUsageRetrieve<
+  TData = Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>,
+  TError = ErrorObject,
+>(
+  uidOrganization: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getOrganizationsServiceUsageRetrieveQueryOptions(uidOrganization, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
 /**
  * ## List project views for current user
 
@@ -1795,29 +1804,29 @@ export type projectViewsRetrieveResponse = projectViewsRetrieveResponseComposite
   headers: Headers
 }
 
-export const getProjectViewsRetrieveUrl = (uid: string) => {
-  return `/api/v2/project-views/${uid}/`
+export const getProjectViewsRetrieveUrl = (uidProjectView: string) => {
+  return `/api/v2/project-views/${uidProjectView}/`
 }
 
 export const projectViewsRetrieve = async (
-  uid: string,
+  uidProjectView: string,
   options?: RequestInit,
 ): Promise<projectViewsRetrieveResponse> => {
-  return fetchWithAuth<projectViewsRetrieveResponse>(getProjectViewsRetrieveUrl(uid), {
+  return fetchWithAuth<projectViewsRetrieveResponse>(getProjectViewsRetrieveUrl(uidProjectView), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getProjectViewsRetrieveQueryKey = (uid: string) => {
-  return ['api', 'v2', 'project-views', uid] as const
+export const getProjectViewsRetrieveQueryKey = (uidProjectView: string) => {
+  return ['api', 'v2', 'project-views', uidProjectView] as const
 }
 
 export const getProjectViewsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectViewsRetrieve>>,
   TError = ErrorDetail | ErrorObject,
 >(
-  uid: string,
+  uidProjectView: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -1825,12 +1834,12 @@ export const getProjectViewsRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getProjectViewsRetrieveQueryKey(uid)
+  const queryKey = queryOptions?.queryKey ?? getProjectViewsRetrieveQueryKey(uidProjectView)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsRetrieve>>> = ({ signal }) =>
-    projectViewsRetrieve(uid, { signal, ...requestOptions })
+    projectViewsRetrieve(uidProjectView, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidProjectView, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectViewsRetrieve>>,
     TError,
     TData
@@ -1844,13 +1853,13 @@ export function useProjectViewsRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsRetrieve>>,
   TError = ErrorDetail | ErrorObject,
 >(
-  uid: string,
+  uidProjectView: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getProjectViewsRetrieveQueryOptions(uid, options)
+  const queryOptions = getProjectViewsRetrieveQueryOptions(uidProjectView, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -1890,30 +1899,30 @@ export type projectViewsExportRetrieveResponse = projectViewsExportRetrieveRespo
   headers: Headers
 }
 
-export const getProjectViewsExportRetrieveUrl = (uid: string, objType: string) => {
-  return `/api/v2/project-views/${uid}/${objType}/export/`
+export const getProjectViewsExportRetrieveUrl = (uidProjectView: string, objType: string) => {
+  return `/api/v2/project-views/${uidProjectView}/${objType}/export/`
 }
 
 export const projectViewsExportRetrieve = async (
-  uid: string,
+  uidProjectView: string,
   objType: string,
   options?: RequestInit,
 ): Promise<projectViewsExportRetrieveResponse> => {
-  return fetchWithAuth<projectViewsExportRetrieveResponse>(getProjectViewsExportRetrieveUrl(uid, objType), {
+  return fetchWithAuth<projectViewsExportRetrieveResponse>(getProjectViewsExportRetrieveUrl(uidProjectView, objType), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getProjectViewsExportRetrieveQueryKey = (uid: string, objType: string) => {
-  return ['api', 'v2', 'project-views', uid, objType, 'export'] as const
+export const getProjectViewsExportRetrieveQueryKey = (uidProjectView: string, objType: string) => {
+  return ['api', 'v2', 'project-views', uidProjectView, objType, 'export'] as const
 }
 
 export const getProjectViewsExportRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
   TError = ErrorObject | ErrorDetail,
 >(
-  uid: string,
+  uidProjectView: string,
   objType: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsExportRetrieve>>, TError, TData>
@@ -1922,12 +1931,12 @@ export const getProjectViewsExportRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getProjectViewsExportRetrieveQueryKey(uid, objType)
+  const queryKey = queryOptions?.queryKey ?? getProjectViewsExportRetrieveQueryKey(uidProjectView, objType)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsExportRetrieve>>> = ({ signal }) =>
-    projectViewsExportRetrieve(uid, objType, { signal, ...requestOptions })
+    projectViewsExportRetrieve(uidProjectView, objType, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!(uid && objType), ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!(uidProjectView && objType), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
     TError,
     TData
@@ -1941,14 +1950,14 @@ export function useProjectViewsExportRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsExportRetrieve>>,
   TError = ErrorObject | ErrorDetail,
 >(
-  uid: string,
+  uidProjectView: string,
   objType: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsExportRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getProjectViewsExportRetrieveQueryOptions(uid, objType, options)
+  const queryOptions = getProjectViewsExportRetrieveQueryOptions(uidProjectView, objType, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -1987,16 +1996,16 @@ export type projectViewsExportCreateResponse = projectViewsExportCreateResponseC
   headers: Headers
 }
 
-export const getProjectViewsExportCreateUrl = (uid: string, objType: string) => {
-  return `/api/v2/project-views/${uid}/${objType}/export/`
+export const getProjectViewsExportCreateUrl = (uidProjectView: string, objType: string) => {
+  return `/api/v2/project-views/${uidProjectView}/${objType}/export/`
 }
 
 export const projectViewsExportCreate = async (
-  uid: string,
+  uidProjectView: string,
   objType: string,
   options?: RequestInit,
 ): Promise<projectViewsExportCreateResponse> => {
-  return fetchWithAuth<projectViewsExportCreateResponse>(getProjectViewsExportCreateUrl(uid, objType), {
+  return fetchWithAuth<projectViewsExportCreateResponse>(getProjectViewsExportCreateUrl(uidProjectView, objType), {
     ...options,
     method: 'POST',
   })
@@ -2009,14 +2018,14 @@ export const getProjectViewsExportCreateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof projectViewsExportCreate>>,
     TError,
-    { uid: string; objType: string },
+    { uidProjectView: string; objType: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof projectViewsExportCreate>>,
   TError,
-  { uid: string; objType: string },
+  { uidProjectView: string; objType: string },
   TContext
 > => {
   const mutationKey = ['projectViewsExportCreate']
@@ -2028,11 +2037,11 @@ export const getProjectViewsExportCreateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof projectViewsExportCreate>>,
-    { uid: string; objType: string }
+    { uidProjectView: string; objType: string }
   > = (props) => {
-    const { uid, objType } = props ?? {}
+    const { uidProjectView, objType } = props ?? {}
 
-    return projectViewsExportCreate(uid, objType, requestOptions)
+    return projectViewsExportCreate(uidProjectView, objType, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -2046,7 +2055,7 @@ export const useProjectViewsExportCreate = <TError = ErrorObject | ErrorDetail, 
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof projectViewsExportCreate>>,
     TError,
-    { uid: string; objType: string },
+    { uidProjectView: string; objType: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -2083,7 +2092,7 @@ export type projectViewsAssetsRetrieveResponse = projectViewsAssetsRetrieveRespo
   headers: Headers
 }
 
-export const getProjectViewsAssetsRetrieveUrl = (uid: string, params?: ProjectViewsAssetsRetrieveParams) => {
+export const getProjectViewsAssetsRetrieveUrl = (uidProjectView: string, params?: ProjectViewsAssetsRetrieveParams) => {
   const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -2095,30 +2104,33 @@ export const getProjectViewsAssetsRetrieveUrl = (uid: string, params?: ProjectVi
   const stringifiedParams = normalizedParams.toString()
 
   return stringifiedParams.length > 0
-    ? `/api/v2/project-views/${uid}/assets/?${stringifiedParams}`
-    : `/api/v2/project-views/${uid}/assets/`
+    ? `/api/v2/project-views/${uidProjectView}/assets/?${stringifiedParams}`
+    : `/api/v2/project-views/${uidProjectView}/assets/`
 }
 
 export const projectViewsAssetsRetrieve = async (
-  uid: string,
+  uidProjectView: string,
   params?: ProjectViewsAssetsRetrieveParams,
   options?: RequestInit,
 ): Promise<projectViewsAssetsRetrieveResponse> => {
-  return fetchWithAuth<projectViewsAssetsRetrieveResponse>(getProjectViewsAssetsRetrieveUrl(uid, params), {
+  return fetchWithAuth<projectViewsAssetsRetrieveResponse>(getProjectViewsAssetsRetrieveUrl(uidProjectView, params), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getProjectViewsAssetsRetrieveQueryKey = (uid: string, params?: ProjectViewsAssetsRetrieveParams) => {
-  return ['api', 'v2', 'project-views', uid, 'assets', ...(params ? [params] : [])] as const
+export const getProjectViewsAssetsRetrieveQueryKey = (
+  uidProjectView: string,
+  params?: ProjectViewsAssetsRetrieveParams,
+) => {
+  return ['api', 'v2', 'project-views', uidProjectView, 'assets', ...(params ? [params] : [])] as const
 }
 
 export const getProjectViewsAssetsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
   TError = ErrorObject | ErrorDetail,
 >(
-  uid: string,
+  uidProjectView: string,
   params?: ProjectViewsAssetsRetrieveParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>, TError, TData>
@@ -2127,12 +2139,12 @@ export const getProjectViewsAssetsRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getProjectViewsAssetsRetrieveQueryKey(uid, params)
+  const queryKey = queryOptions?.queryKey ?? getProjectViewsAssetsRetrieveQueryKey(uidProjectView, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>> = ({ signal }) =>
-    projectViewsAssetsRetrieve(uid, params, { signal, ...requestOptions })
+    projectViewsAssetsRetrieve(uidProjectView, params, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidProjectView, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
     TError,
     TData
@@ -2146,14 +2158,14 @@ export function useProjectViewsAssetsRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>,
   TError = ErrorObject | ErrorDetail,
 >(
-  uid: string,
+  uidProjectView: string,
   params?: ProjectViewsAssetsRetrieveParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsAssetsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getProjectViewsAssetsRetrieveQueryOptions(uid, params, options)
+  const queryOptions = getProjectViewsAssetsRetrieveQueryOptions(uidProjectView, params, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -2190,7 +2202,7 @@ export type projectViewsUsersRetrieveResponse = projectViewsUsersRetrieveRespons
   headers: Headers
 }
 
-export const getProjectViewsUsersRetrieveUrl = (uid: string, params?: ProjectViewsUsersRetrieveParams) => {
+export const getProjectViewsUsersRetrieveUrl = (uidProjectView: string, params?: ProjectViewsUsersRetrieveParams) => {
   const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -2202,30 +2214,33 @@ export const getProjectViewsUsersRetrieveUrl = (uid: string, params?: ProjectVie
   const stringifiedParams = normalizedParams.toString()
 
   return stringifiedParams.length > 0
-    ? `/api/v2/project-views/${uid}/users/?${stringifiedParams}`
-    : `/api/v2/project-views/${uid}/users/`
+    ? `/api/v2/project-views/${uidProjectView}/users/?${stringifiedParams}`
+    : `/api/v2/project-views/${uidProjectView}/users/`
 }
 
 export const projectViewsUsersRetrieve = async (
-  uid: string,
+  uidProjectView: string,
   params?: ProjectViewsUsersRetrieveParams,
   options?: RequestInit,
 ): Promise<projectViewsUsersRetrieveResponse> => {
-  return fetchWithAuth<projectViewsUsersRetrieveResponse>(getProjectViewsUsersRetrieveUrl(uid, params), {
+  return fetchWithAuth<projectViewsUsersRetrieveResponse>(getProjectViewsUsersRetrieveUrl(uidProjectView, params), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getProjectViewsUsersRetrieveQueryKey = (uid: string, params?: ProjectViewsUsersRetrieveParams) => {
-  return ['api', 'v2', 'project-views', uid, 'users', ...(params ? [params] : [])] as const
+export const getProjectViewsUsersRetrieveQueryKey = (
+  uidProjectView: string,
+  params?: ProjectViewsUsersRetrieveParams,
+) => {
+  return ['api', 'v2', 'project-views', uidProjectView, 'users', ...(params ? [params] : [])] as const
 }
 
 export const getProjectViewsUsersRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
   TError = ErrorDetail | ErrorObject,
 >(
-  uid: string,
+  uidProjectView: string,
   params?: ProjectViewsUsersRetrieveParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>, TError, TData>
@@ -2234,12 +2249,12 @@ export const getProjectViewsUsersRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getProjectViewsUsersRetrieveQueryKey(uid, params)
+  const queryKey = queryOptions?.queryKey ?? getProjectViewsUsersRetrieveQueryKey(uidProjectView, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>> = ({ signal }) =>
-    projectViewsUsersRetrieve(uid, params, { signal, ...requestOptions })
+    projectViewsUsersRetrieve(uidProjectView, params, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidProjectView, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
     TError,
     TData
@@ -2253,14 +2268,14 @@ export function useProjectViewsUsersRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
   TError = ErrorDetail | ErrorObject,
 >(
-  uid: string,
+  uidProjectView: string,
   params?: ProjectViewsUsersRetrieveParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getProjectViewsUsersRetrieveQueryOptions(uid, params, options)
+  const queryOptions = getProjectViewsUsersRetrieveQueryOptions(uidProjectView, params, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -3052,23 +3067,23 @@ export type meSocialAccountsRetrieveResponse = meSocialAccountsRetrieveResponseC
   headers: Headers
 }
 
-export const getMeSocialAccountsRetrieveUrl = (provider: string, uid: string) => {
-  return `/me/social-accounts/${provider}/${uid}/`
+export const getMeSocialAccountsRetrieveUrl = (provider: string, uidSocialAccount: string) => {
+  return `/me/social-accounts/${provider}/${uidSocialAccount}/`
 }
 
 export const meSocialAccountsRetrieve = async (
   provider: string,
-  uid: string,
+  uidSocialAccount: string,
   options?: RequestInit,
 ): Promise<meSocialAccountsRetrieveResponse> => {
-  return fetchWithAuth<meSocialAccountsRetrieveResponse>(getMeSocialAccountsRetrieveUrl(provider, uid), {
+  return fetchWithAuth<meSocialAccountsRetrieveResponse>(getMeSocialAccountsRetrieveUrl(provider, uidSocialAccount), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getMeSocialAccountsRetrieveQueryKey = (provider: string, uid: string) => {
-  return ['me', 'social-accounts', provider, uid] as const
+export const getMeSocialAccountsRetrieveQueryKey = (provider: string, uidSocialAccount: string) => {
+  return ['me', 'social-accounts', provider, uidSocialAccount] as const
 }
 
 export const getMeSocialAccountsRetrieveQueryOptions = <
@@ -3076,7 +3091,7 @@ export const getMeSocialAccountsRetrieveQueryOptions = <
   TError = ErrorDetail | ErrorObject,
 >(
   provider: string,
-  uid: string,
+  uidSocialAccount: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -3084,12 +3099,12 @@ export const getMeSocialAccountsRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getMeSocialAccountsRetrieveQueryKey(provider, uid)
+  const queryKey = queryOptions?.queryKey ?? getMeSocialAccountsRetrieveQueryKey(provider, uidSocialAccount)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>> = ({ signal }) =>
-    meSocialAccountsRetrieve(provider, uid, { signal, ...requestOptions })
+    meSocialAccountsRetrieve(provider, uidSocialAccount, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!(provider && uid), ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!(provider && uidSocialAccount), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
     TError,
     TData
@@ -3104,13 +3119,13 @@ export function useMeSocialAccountsRetrieve<
   TError = ErrorDetail | ErrorObject,
 >(
   provider: string,
-  uid: string,
+  uidSocialAccount: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getMeSocialAccountsRetrieveQueryOptions(provider, uid, options)
+  const queryOptions = getMeSocialAccountsRetrieveQueryOptions(provider, uidSocialAccount, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -3147,16 +3162,16 @@ export type meSocialAccountsDestroyResponse = meSocialAccountsDestroyResponseCom
   headers: Headers
 }
 
-export const getMeSocialAccountsDestroyUrl = (provider: string, uid: string) => {
-  return `/me/social-accounts/${provider}/${uid}/`
+export const getMeSocialAccountsDestroyUrl = (provider: string, uidSocialAccount: string) => {
+  return `/me/social-accounts/${provider}/${uidSocialAccount}/`
 }
 
 export const meSocialAccountsDestroy = async (
   provider: string,
-  uid: string,
+  uidSocialAccount: string,
   options?: RequestInit,
 ): Promise<meSocialAccountsDestroyResponse> => {
-  return fetchWithAuth<meSocialAccountsDestroyResponse>(getMeSocialAccountsDestroyUrl(provider, uid), {
+  return fetchWithAuth<meSocialAccountsDestroyResponse>(getMeSocialAccountsDestroyUrl(provider, uidSocialAccount), {
     ...options,
     method: 'DELETE',
   })
@@ -3169,14 +3184,14 @@ export const getMeSocialAccountsDestroyMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
     TError,
-    { provider: string; uid: string },
+    { provider: string; uidSocialAccount: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
   TError,
-  { provider: string; uid: string },
+  { provider: string; uidSocialAccount: string },
   TContext
 > => {
   const mutationKey = ['meSocialAccountsDestroy']
@@ -3188,11 +3203,11 @@ export const getMeSocialAccountsDestroyMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
-    { provider: string; uid: string }
+    { provider: string; uidSocialAccount: string }
   > = (props) => {
-    const { provider, uid } = props ?? {}
+    const { provider, uidSocialAccount } = props ?? {}
 
-    return meSocialAccountsDestroy(provider, uid, requestOptions)
+    return meSocialAccountsDestroy(provider, uidSocialAccount, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -3206,7 +3221,7 @@ export const useMeSocialAccountsDestroy = <TError = ErrorDetail | ErrorObject, T
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
     TError,
-    { provider: string; uid: string },
+    { provider: string; uidSocialAccount: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>

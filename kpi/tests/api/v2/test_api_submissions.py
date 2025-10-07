@@ -109,7 +109,7 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.asset.deployment.set_namespace(self.URL_NAMESPACE)
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': self.asset.uid, 'format': 'json'},
         )
         self._deployment = self.asset.deployment
 
@@ -158,12 +158,12 @@ class BulkDeleteSubmissionsApiTests(
         self._add_submissions()
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': self.asset.uid, 'format': 'json'},
         )
         self.submission_bulk_url = reverse(
             self._get_endpoint('submission-bulk'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
             },
         )
 
@@ -527,7 +527,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         asset.deployment.mock_submissions(submissions)
         submission_list_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'parent_lookup_asset': asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': asset.uid, 'format': 'json'},
         )
 
         # Server-wide limit should apply if no limit specified
@@ -725,7 +725,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -742,7 +742,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_uuid'],
             },
         )
@@ -762,7 +762,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -780,7 +780,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -809,7 +809,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -821,7 +821,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -845,7 +845,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': 9999,
             },
         )
@@ -865,7 +865,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -885,7 +885,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -905,7 +905,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -948,7 +948,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -963,7 +963,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -1121,7 +1121,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': asset.uid,
+                'uid_asset': asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -1176,7 +1176,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -1205,21 +1205,21 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         self.submission_url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
         self.submission_url_legacy = reverse(
             self._get_endpoint('submission-enketo-edit-legacy'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
         self.submission_redirect_url = reverse(
             self._get_endpoint('submission-enketo-edit-redirect'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
@@ -1363,7 +1363,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -1375,7 +1375,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -1494,7 +1494,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
             edit_url = reverse(
                 self._get_endpoint('submission-enketo-edit'),
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
+                    'uid_asset': self.asset.uid,
                     'pk': submission['_id'],
                 },
             )
@@ -1596,7 +1596,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         edit_url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -1662,7 +1662,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         edit_url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission_json['_id'],
             },
         )
@@ -1965,14 +1965,14 @@ class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase
         self.submission_view_link_url = reverse(
             self._get_endpoint('submission-enketo-view'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
         self.submission_view_redirect_url = reverse(
             self._get_endpoint('submission-enketo-view-redirect'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
@@ -2081,7 +2081,7 @@ class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase
         url = reverse(
             self._get_endpoint('submission-enketo-view'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -2094,7 +2094,7 @@ class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase
         url = reverse(
             self._get_endpoint('submission-enketo-view'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -2138,7 +2138,7 @@ class SubmissionDuplicateBaseApiTests(BaseSubmissionTestCase):
         self.submission_url = reverse(
             self._get_endpoint('submission-duplicate'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
@@ -2306,7 +2306,7 @@ class SubmissionDuplicateApiTests(
         url = reverse(
             self._get_endpoint('submission-duplicate'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -2318,7 +2318,7 @@ class SubmissionDuplicateApiTests(
         url = reverse(
             self._get_endpoint('submission-duplicate'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -2399,7 +2399,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         self.submission_url = reverse(
             self._get_endpoint('submission-bulk'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
             },
         )
 
@@ -2597,7 +2597,7 @@ class SubmissionValidationStatusApiTests(
         self.validation_status_url = reverse(
             self._get_endpoint('submission-validation-status'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
@@ -2771,7 +2771,7 @@ class SubmissionValidationStatusApiTests(
         url = reverse(
             self._get_endpoint('submission-validation-status'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -2783,7 +2783,7 @@ class SubmissionValidationStatusApiTests(
         url = reverse(
             self._get_endpoint('submission-validation-status'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -2806,11 +2806,11 @@ class SubmissionValidationStatusesApiTests(
         self._add_submissions()
         self.validation_statuses_url = reverse(
             self._get_endpoint('submission-validation-statuses'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': self.asset.uid, 'format': 'json'},
         )
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': self.asset.uid, 'format': 'json'},
         )
 
         self._validate_statuses(empty=True)
@@ -3256,7 +3256,7 @@ class SubmissionGeoJsonApiTests(BaseTestCase):
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
             kwargs={
-                'parent_lookup_asset': a.uid,
+                'uid_asset': a.uid,
             },
         )
 
