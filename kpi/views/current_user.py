@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.trash_bin.utils import move_to_trash
+from kpi.constants import ASSET_TYPE_EMPTY
 from kpi.schema_extensions.v2.me.serializers import (
     CurrentUserDeleteRequest,
     MeListResponse,
@@ -83,6 +84,11 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
         confirm = request.data.get('confirm')
         if confirm != user.extra_details.uid:
             raise serializers.ValidationError({'detail': t('Invalid confirmation')})
+
+        if user.assets.exclude(asset_type=ASSET_TYPE_EMPTY).exists():
+            raise serializers.ValidationError(
+                {'detail': t('You still own projects. Delete or transfer them first.')}
+            )
 
         user = {'pk': user.pk, 'username': user.username}
 

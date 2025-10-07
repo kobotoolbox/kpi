@@ -9,6 +9,8 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.constants import ASSET_TYPE_SURVEY
+from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.utils.gravatar_url import gravatar_url
 
@@ -22,6 +24,7 @@ class CurrentUserTestCase(BaseTestCase):
             is_active=True,
         )
 
+    @override_config(ALLOW_SELF_ACCOUNT_DELETION=True)
     def test_user_deactivation(self):
         # Check user account is as expected
         assert self.user.is_active is True
@@ -127,6 +130,29 @@ class CurrentUserTestCase(BaseTestCase):
         assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
         # Check the db to make sure that no changes were made
+        self.user.refresh_from_db()
+        assert self.user.is_active is True
+        assert self.user.extra_details.date_removal_requested is None
+
+    @override_config(ALLOW_SELF_ACCOUNT_DELETION=True)
+    def test_cannot_delete_if_account_is_not_empty(self):
+        Asset.objects.create(
+            owner=self.user,
+            content={},
+            name='Empty project',
+            asset_type=ASSET_TYPE_SURVEY,
+        )
+
+        # Prepare and send the request
+        self.client.login(username='delete_me', password='delete_me')
+        payload = {
+            'confirm': self.user.extra_details.uid,
+        }
+        response = self.client.delete(self.url, data=payload, format='json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'You still own projects' in str(response.data['detail'])
+
+        # Check the db to make sure the expected changes were made
         self.user.refresh_from_db()
         assert self.user.is_active is True
         assert self.user.extra_details.date_removal_requested is None
