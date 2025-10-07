@@ -6,6 +6,7 @@ from rest_framework.reverse import reverse
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.fields import RelativePrefixHyperlinkedRelatedField, WritableJSONField
 from kpi.models import Asset, AssetSnapshot
+from kpi.utils.object_permission import get_database_user
 
 
 class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
@@ -62,7 +63,7 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         # NB: validated_data is not used when linking to an existing asset
         # without specifying source; in that case, the snapshot owner is the
         # asset's owner, even if a different user makes the request
-        validated_data['owner'] = self.context['request'].user
+        validated_data['owner'] = get_database_user(self.context['request'].user)
 
         if source:
             snapshot = AssetSnapshot.objects.create(**validated_data)
@@ -100,7 +101,7 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
 
     def validate(self, attrs):
 
-        user = self.context['request'].user
+        user = get_database_user(self.context['request'].user)
 
         asset = attrs.get('asset', False)
         source = attrs.get('source', False)
