@@ -2,6 +2,7 @@
 import re
 
 from django.urls import reverse
+from django.contrib.auth.models import AnonymousUser
 from rest_framework import status
 from rest_framework.exceptions import ParseError
 
@@ -238,6 +239,23 @@ class TestAssetSnapshotList(AssetSnapshotBase):
 
         # Check that the error message contains the expected substring
         self.assertIn('_fail', str(context.exception))
+
+    def test_anonymous_can_create_snapshot_when_asset_shared_public(self):
+        self.client.login(username='someuser', password='someuser')
+        asset = self.create_asset('Public asset', self.form_source, format='json')
+        asset_url = reverse(self._get_endpoint('asset-detail'), args=(asset.uid,))
+
+        # Assign 'view' permission on the asset to AnonymousUser
+        anon_user = AnonymousUser()
+        self.add_perm(asset, anon_user, 'view_')
+
+        self.client.logout()
+
+        # Try to create a snapshot as an anonymous user
+        snapshot_list_url = reverse(self._get_endpoint('assetsnapshot-list'))
+        data = {'asset': asset_url}
+        response = self.client.post(snapshot_list_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
 
 class TestAssetSnapshotDetail(AssetSnapshotBase):

@@ -282,6 +282,16 @@ class AssetSnapshotPermission(AssetPermission):
                     'model_name': model_name,
                 }
 
+    def has_permission(self, request, view):
+        self.validate_password(request)
+
+        # Allow POST requests to pass through to the serializer for
+        # object-level checks
+        if request.method == 'POST' and view.action == 'create':
+            return True
+
+        return super().has_permission(request, view)
+
     def has_object_permission(self, request, view, obj):
         if view.action == 'submission' or (
             view.action == 'retrieve' and request.accepted_renderer.format == 'xml'
