@@ -282,6 +282,17 @@ class AssetSnapshotPermission(AssetPermission):
                     'model_name': model_name,
                 }
 
+    def has_permission(self, request, view):
+        self.validate_password(request)
+
+        # Allow anonymous users to send POST requests to preview public forms.
+        # Object-level access control is handled by the serializer, ensuring
+        # that only public forms can be accessed or previewed.
+        if request.method == 'POST' and view.action == 'create':
+            return True
+
+        return super().has_permission(request, view)
+
     def has_object_permission(self, request, view, obj):
         if view.action == 'submission' or (
             view.action == 'retrieve' and request.accepted_renderer.format == 'xml'

@@ -2369,6 +2369,8 @@ export function useServiceUsageList<
 /**
  * ## List users
 
+⚠️ _Only available to superusers_
+
  */
 export type usersListResponse200 = {
   data: PaginatedUserListResponseList

@@ -676,7 +676,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
 
         self.client.force_login(user)
         url = reverse(
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'uid_asset': asset_uid},
         )
         response = self.client.post(url, data=payload)

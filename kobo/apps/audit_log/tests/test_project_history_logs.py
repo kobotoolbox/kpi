@@ -1062,7 +1062,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         ]
         self.client.post(
             path=reverse(
-                'api_v2:asset-permission-assignment-bulk-assignments',
+                'api_v2:asset-permission-assignment-bulk-actions',
                 kwargs={
                     'uid_asset': self.asset.uid,
                 },
@@ -1164,7 +1164,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # /bulk expects assignments to come in a list
         if use_bulk:
             request_data = [request_data]
-        endpoint = 'bulk-assignments' if use_bulk else 'list'
+        endpoint = 'bulk-actions' if use_bulk else 'list'
         self.client.post(
             path=reverse(
                 f'api_v2:asset-permission-assignment-{endpoint}',
@@ -1215,7 +1215,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         }
         if use_bulk:
             request_data = [request_data]
-        endpoint = 'bulk-assignments' if use_bulk else 'list'
+        endpoint = 'bulk-actions' if use_bulk else 'list'
         self.client.post(
             path=reverse(
                 f'api_v2:asset-permission-assignment-{endpoint}',
@@ -1301,7 +1301,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         }
         if use_bulk:
             request_data = [request_data]
-        endpoint = 'bulk-assignments' if use_bulk else 'list'
+        endpoint = 'bulk-actions' if use_bulk else 'list'
         self.client.post(
             path=reverse(
                 f'api_v2:asset-permission-assignment-{endpoint}',
@@ -1441,7 +1441,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         ]
         self.client.post(
             path=reverse(
-                'api_v2:asset-permission-assignment-bulk-assignments',
+                'api_v2:asset-permission-assignment-bulk-actions',
                 kwargs={
                     'uid_asset': self.asset.uid,
                 },
