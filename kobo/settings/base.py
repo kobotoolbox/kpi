@@ -1036,6 +1036,10 @@ SPECTACULAR_SETTINGS = {
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
         'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
         'MemberRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_ENUM',
+        'StripeProductType': 'kpi.schema_extensions.v2.stripe.schema.PRODUCT_TYPE_ENUM',
+        'StripePriceType': 'kpi.schema_extensions.v2.stripe.schema.PRICE_TYPE_ENUM',
+        'StripeIntervalEnum': 'kpi.schema_extensions.v2.stripe.schema.INTERVAL_ENUM',
+        'StripeUsageType': 'kpi.schema_extensions.v2.stripe.schema.USAGE_TYPE_ENUM',
     },
     # We only want to blacklist BasicHTMLRenderer, but nothing like RENDERER_WHITELIST
     # exists 🤦
