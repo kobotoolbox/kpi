@@ -21,8 +21,6 @@ class DataCollectorGroupAddForm(forms.ModelForm):
             'Only assets that are not already linked to another group are available.'
         ),
     )
-    # name = forms.CharField()
-    # owner = forms.ModelChoiceField(queryset=User.objects.all())
 
     class Meta:
         model = DataCollectorGroup
