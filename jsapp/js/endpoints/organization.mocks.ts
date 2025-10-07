@@ -8,10 +8,16 @@ import { getOrganizationsRetrieveUrl } from '#/api/react-query/user-team-organiz
  * This will mock a response to given `organizationId`. Will assume user is the owner, but `is_mmo` is configurable with
  * a parameter.
  */
-const organizationMock = (organizationId: string, isMMO = false) =>
-  http.get<never, never, OrganizationResponse>(getOrganizationsRetrieveUrl(organizationId), () =>
-    HttpResponse.json(organizationReponse(organizationId, isMMO)),
-  )
+const organizationMock = (organizationId: string) =>
+  http.get<never, never, OrganizationResponse>(getOrganizationsRetrieveUrl(organizationId), () => {
+    // In case of `DeleteAccountBanner` component, we want to test the UI with user that owns an MMO organization.
+    const storybookTestId = sessionStorage.getItem('storybookTestId')
+    if (storybookTestId === 'UserOwnsMMO') {
+      return HttpResponse.json(organizationReponse(organizationId, true))
+    }
+
+    return HttpResponse.json(organizationReponse(organizationId, false))
+  })
 export default organizationMock
 
 const organizationReponse = (organizationId: string, isMMO: boolean): OrganizationResponse => ({

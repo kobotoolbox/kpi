@@ -11,18 +11,11 @@ const assetsMock = http.get<PathParams<'limit' | 'offset' | 'q'>, never, Paginat
   (info) => {
     const searchParams = new URL(info.request.url).searchParams
 
-    // HACK START
-    // Hello :) There is a problem when multiple stories are being displayed at once, and those multiple stories are
-    // calling the same (mocked) API. In such case, `msw` is only applying the last defined handler to all the stories.
-    // To go around this limitation, we have an optional prop `storybookTestId` that we've added to the component that
-    // allows differentiating stories. See more at https://github.com/mswjs/msw-storybook-addon/issues/83.
-    //
-    // In case of `DeleteAccountBanner` component below, we want to test the UI with user that has zero assets. To
-    // achieve this, we pinpoint the story by detecting `storybookTestId` in the request url.
-    if (searchParams.get('storybookTestId') === 'UserHasNoAssets') {
+    // In case of `DeleteAccountBanner` component, we want to test the UI with user that has zero assets.
+    const storybookTestId = sessionStorage.getItem('storybookTestId')
+    if (storybookTestId === 'UserHasNoAssets') {
       return HttpResponse.json(assetsResponseEmpty)
     }
-    // HACK END
 
     if (searchParams.get('limit') === '1') {
       return HttpResponse.json(assetsResponseOne)

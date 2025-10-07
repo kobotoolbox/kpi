@@ -6,6 +6,7 @@ import { meMockResponse } from '#/endpoints/me.mocks'
 import organizationMock from '#/endpoints/organization.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import RequireAuth from '#/router/requireAuth'
+import StorybookTestIdSessionDecorator from '../../../.storybook/testIdSessionDecorator'
 import DeleteAccountBanner from './DeleteAccountBanner'
 
 const RequireAuthDecorator: DecoratorFunction = (Story) => <RequireAuth>{Story()}</RequireAuth>
@@ -20,7 +21,7 @@ const meta: Meta<typeof DeleteAccountBanner> = {
     },
     a11y: { test: 'todo' },
   },
-  decorators: [RequireAuthDecorator, withRouter, queryClientDecorator],
+  decorators: [StorybookTestIdSessionDecorator, RequireAuthDecorator, withRouter, queryClientDecorator],
 }
 
 export default meta
@@ -28,8 +29,16 @@ type Story = StoryObj<typeof DeleteAccountBanner>
 
 export const Default: Story = {}
 
+export const UserHasAssets: Story = {}
+
 export const UserHasNoAssets: Story = {
   args: {
     storybookTestId: 'UserHasNoAssets',
+  },
+}
+
+export const UserOwnsMMO: Story = {
+  args: {
+    storybookTestId: 'UserOwnsMMO',
   },
 }
