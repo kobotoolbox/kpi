@@ -101,6 +101,15 @@ class ApiAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_inactive_users_cannot_receive_permissions(self):
+        self._grant_perm_as_logged_in_user('someuser', PERM_MANAGE_ASSET)
+        self.assertTrue(self.asset.has_perm(self.someuser, PERM_MANAGE_ASSET))
+        self.client.login(username='someuser', password='someuser')
+        User.objects.filter(username='anotheruser').update(is_active=False)
+
+        response = self._grant_perm_as_logged_in_user('anotheruser', PERM_VIEW_ASSET)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
     def test_submission_assignments_ignored_for_non_survey_assets(self):
         self.asset.asset_type = ASSET_TYPE_TEMPLATE
         self.asset.save()
@@ -381,6 +390,15 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             [('owner', PERM_VIEW_ASSET), ('owner', PERM_CHANGE_ASSET)]
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_inactive_users_cannot_receive_permissions(self):
+        self._grant_perm_as_logged_in_user('someuser', PERM_MANAGE_ASSET)
+        self.client.login(username='someuser', password='someuser')
+        User.objects.filter(username='anotheruser').update(is_active=False)
+        response = self._assign_perms_as_logged_in_user(
+            [('anotheruser', PERM_VIEW_ASSET)]
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_owner_can_assign_permissions(self):
         permission_list_response = self.client.get(
