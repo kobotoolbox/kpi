@@ -19,6 +19,7 @@ from kobo.apps.organizations.models import (
     OrganizationInvitation,
     OrganizationInviteStatusChoices,
     OrganizationOwner,
+    OrganizationType,
     OrganizationUser,
     create_organization,
 )
@@ -125,7 +126,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         if invite:
             return OrgMembershipInviteSerializer(invite, context=self.context).data
 
-        return {}
+        return None
 
     def to_representation(self, instance):
         """
@@ -259,6 +260,14 @@ class OrganizationSerializer(serializers.ModelSerializer):
             return organization.get_user_role(user)
 
         return ORG_EXTERNAL_ROLE
+
+
+class OrganizationResponseSerializer(OrganizationSerializer):
+    name = serializers.CharField(max_length=200, read_only=True)
+    website = serializers.CharField(max_length=255, read_only=True)
+    organization_type = serializers.ChoiceField(
+        choices=OrganizationType.choices, read_only=True
+    )
 
 
 class OrgMembershipInviteSerializer(serializers.ModelSerializer):

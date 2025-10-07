@@ -3,7 +3,7 @@
     "info": {
         "title": "KoboToolbox API",
         "version": "2.0.0 (api_v2)",
-        "description": "Powerful and intuitive data collection tools to make an impact"
+        "description": "This page documents all KoboToolbox API endpoints.\n\nThe endpoints are grouped by area of intended use. Each category contains related endpoints, with detailed documentation on usage and configuration. Use this as a reference to quickly find the right endpoint for managing projects, forms, data, permissions, integrations, logs, and organizational resources.\n\n**General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as assets."
     },
     "paths": {
         "/api/v2/access-logs/": {
@@ -38,7 +38,7 @@
                     }
                 ],
                 "tags": [
-                    "Access Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -85,7 +85,7 @@
                 "operationId": "api_v2_access_logs_export_list",
                 "description": "## List all access logs export tasks for all users\n\n⚠️ _Only available to superusers_\n",
                 "tags": [
-                    "Access Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -133,7 +133,7 @@
                 "operationId": "api_v2_access_logs_export_create",
                 "description": "## Create an export task for all users\n\n⚠️ _Only available to superusers_\n",
                 "tags": [
-                    "Access Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -225,7 +225,7 @@
                     }
                 ],
                 "tags": [
-                    "Access Logs"
+                    "Logging"
                 ],
                 "security": [
                     {
@@ -272,7 +272,7 @@
                 "operationId": "api_v2_access_logs_me_export_list",
                 "description": "## List all access logs export tasks for the authenticated user\n",
                 "tags": [
-                    "Access Logs"
+                    "Logging"
                 ],
                 "security": [
                     {
@@ -320,7 +320,7 @@
                 "operationId": "api_v2_access_logs_me_export_create",
                 "description": "## Create an export task for the authenticated user\n",
                 "tags": [
-                    "Access Logs"
+                    "Logging"
                 ],
                 "security": [
                     {
@@ -387,7 +387,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -432,7 +432,7 @@
                 "operationId": "api_v2_asset_snapshots_create",
                 "description": "## Create an asset snapshot\n\nWhen creating an asset snapshot, you must provide either:\n\n- the asset (as a URI), or\n- the source (as a JSON object representing the asset)\n\n…but not both.\n",
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "requestBody": {
                     "content": {
@@ -580,7 +580,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -658,7 +658,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -726,7 +726,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -776,7 +776,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -818,7 +818,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Snapshots"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -885,7 +885,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Subscriptions"
+                    "Library collections"
                 ],
                 "security": [
                     {
@@ -913,7 +913,7 @@
                 "operationId": "api_v2_asset_subscriptions_create",
                 "description": "## Create an asset subscription\n\nCreate a subscription to a public collection for the user.\n",
                 "tags": [
-                    "Asset Subscriptions"
+                    "Library collections"
                 ],
                 "requestBody": {
                     "content": {
@@ -985,7 +985,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Subscriptions"
+                    "Library collections"
                 ],
                 "security": [
                     {
@@ -1041,7 +1041,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Subscriptions"
+                    "Library collections"
                 ],
                 "security": [
                     {
@@ -1102,7 +1102,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Usage"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -1178,7 +1178,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -1205,7 +1205,7 @@
                 "operationId": "api_v2_assets_create",
                 "description": "## Create or clone an asset\n\nWhen cloning an asset, you must provide:\n\n- the name (as a string),\n- the `clone_from` (the uid representing the asset),\n- the asset_type\n\nWhere `asset_type` must be one of these values:\n\n* block (can be cloned to `block`, `question`, `survey`, `template`)\n* question (can be cloned to `question`, `survey`, `template`)\n* survey (can be cloned to `block`, `question`, `survey`, `template`)\n* template (can be cloned to `survey`, `template`)\n\nSettings are cloned only when type of assets are `survey` or `template`.\nIn that case, `share-metadata` is not preserved.\n\nWhen creating a new `block` or `question` asset, settings are not saved either.\n",
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -1326,7 +1326,7 @@
                     }
                 ],
                 "tags": [
-                    "Attachments"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1399,7 +1399,7 @@
                     }
                 ],
                 "tags": [
-                    "Attachments"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1490,7 +1490,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -1596,7 +1596,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1686,7 +1686,7 @@
                     }
                 ],
                 "tags": [
-                    "Attachments"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1787,7 +1787,7 @@
                     }
                 ],
                 "tags": [
-                    "Attachments"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1887,7 +1887,7 @@
                     }
                 ],
                 "tags": [
-                    "Attachments"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1959,7 +1959,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2029,7 +2029,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2089,7 +2089,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -2166,7 +2166,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2251,7 +2251,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2336,7 +2336,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2421,7 +2421,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2506,7 +2506,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2591,7 +2591,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2656,7 +2656,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -2730,7 +2730,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2781,7 +2781,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -2833,7 +2833,7 @@
             },
             "delete": {
                 "operationId": "api_v2_assets_data_bulk_destroy",
-                "description": "## Bulk delete submissions\n\n```curl\n  curl -X DELETE https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/bulk/\n```\n\n**Payload**\n```json\n{\n           \"submissions_ids\": [\n               1,\n               2\n           ]\n        }\n```\n* Where: `submissions_ids` (required) is a list of submission root id on the data\nto delete\n\n\n**Response**\n```json\n{\n           \"detail\": \"{number_of_submissions} submissions have been deleted\"\n}\n```\n* Where: `number_of_submissions` is the number of items that was deleted\n\n\n### !! Due to limitations with DRF-Spectacular current version not fully supporting AOS 3.1, DELETE actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint. !!\n",
+                "description": "## Bulk delete submissions\n\n```curl\n  curl -X DELETE https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/bulk/\n```\n\n**Payload**\n```json\n{\n           \"submissions_ids\": [\n               1,\n               2\n           ]\n        }\n```\n* Where: `submissions_ids` (required) is a list of submission root id on the data\nto delete\n\n\n**Response**\n```json\n{\n           \"detail\": \"{number_of_submissions} submissions have been deleted\"\n}\n```\n* Where: `number_of_submissions` is the number of items that was deleted\n\n\n_Due to limitations with DRF-Spectacular current version, `DELETE` actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint._\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -2846,7 +2846,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -2897,7 +2897,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -2949,7 +2949,7 @@
             },
             "delete": {
                 "operationId": "api_v2_assets_data_validation_statuses_destroy",
-                "description": "## Bulk delete submissions status\n\n```curl\n  curl -X DELETE https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/validation_statuses/\n```\n\n**Payload**\n```json\n{\n  \"payload\": {\n    \"submission_ids\": [\n        1,\n        2\n      ],\n    \"validation_status.uid\": \"validation_status\"\n  }\n}\n```\n* Where: \"submissions_ids\" (required) is a list of submission root id on the data\nto delete\n\nThe validation status of the submission can be updated. The `validation_status.uid` should be a `string`, and it must be one of the following values:\n- `validation_status_approved`\n- `validation_status_not_approved`\n- `validation_status_on_hold`\n\n**Response**\n```json\n{\n           \"detail\": \"{number_of_submissions} submissions have been updated\"\n}\n```\n\n### !! Due to limitations with DRF-Spectacular current version not fully supporting AOS 3.1, DELETE actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint. !!\n",
+                "description": "## Bulk delete submissions status\n\n```curl\n  curl -X DELETE https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/validation_statuses/\n```\n\n**Payload**\n```json\n{\n  \"payload\": {\n    \"submission_ids\": [\n        1,\n        2\n      ],\n    \"validation_status.uid\": \"validation_status\"\n  }\n}\n```\n* Where: \"submissions_ids\" (required) is a list of submission root id on the data\nto delete\n\nThe validation status of the submission can be updated. The `validation_status.uid` should be a `string`, and it must be one of the following values:\n- `validation_status_approved`\n- `validation_status_not_approved`\n- `validation_status_on_hold`\n\n**Response**\n```json\n{\n           \"detail\": \"{number_of_submissions} submissions have been updated\"\n}\n```\n\n_Due to limitations with DRF-Spectacular current version, `DELETE` actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint._\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -2962,7 +2962,7 @@
                     }
                 ],
                 "tags": [
-                    "Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3031,7 +3031,7 @@
                     }
                 ],
                 "tags": [
-                    "Export Settings"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3087,7 +3087,7 @@
                     }
                 ],
                 "tags": [
-                    "Export Settings"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -3186,7 +3186,7 @@
                     }
                 ],
                 "tags": [
-                    "Export Settings"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3251,7 +3251,7 @@
                     }
                 ],
                 "tags": [
-                    "Export Settings"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -3347,7 +3347,7 @@
                     }
                 ],
                 "tags": [
-                    "Export Settings"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3419,7 +3419,7 @@
                     }
                 ],
                 "tags": [
-                    "Export Settings"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3519,7 +3519,7 @@
                     }
                 ],
                 "tags": [
-                    "Exports"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3593,7 +3593,7 @@
                     }
                 ],
                 "tags": [
-                    "Exports"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -3710,7 +3710,7 @@
                     }
                 ],
                 "tags": [
-                    "Exports"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3793,7 +3793,7 @@
                     }
                 ],
                 "tags": [
-                    "Exports"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3880,7 +3880,7 @@
                     }
                 ],
                 "tags": [
-                    "Files"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -3936,7 +3936,7 @@
                     }
                 ],
                 "tags": [
-                    "Files"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -4070,7 +4070,7 @@
                     }
                 ],
                 "tags": [
-                    "Files"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -4134,7 +4134,7 @@
                     }
                 ],
                 "tags": [
-                    "Files"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -4193,7 +4193,7 @@
                     }
                 ],
                 "tags": [
-                    "Files"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -4269,7 +4269,7 @@
                     }
                 ],
                 "tags": [
-                    "History"
+                    "Logging"
                 ],
                 "security": [
                     {
@@ -4345,7 +4345,7 @@
                     }
                 ],
                 "tags": [
-                    "History"
+                    "Logging"
                 ],
                 "security": [
                     {
@@ -4421,7 +4421,7 @@
                     }
                 ],
                 "tags": [
-                    "History"
+                    "Logging"
                 ],
                 "security": [
                     {
@@ -4515,7 +4515,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "security": [
                     {
@@ -4571,7 +4571,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "requestBody": {
                     "content": {
@@ -4718,7 +4718,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "security": [
                     {
@@ -4811,7 +4811,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "security": [
                     {
@@ -4904,7 +4904,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "requestBody": {
                     "content": {
@@ -5008,7 +5008,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "security": [
                     {
@@ -5073,7 +5073,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "requestBody": {
                     "content": {
@@ -5179,7 +5179,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "security": [
                     {
@@ -5239,7 +5239,7 @@
                     }
                 ],
                 "tags": [
-                    "Rest Services"
+                    "Survey data - Rest Services"
                 ],
                 "security": [
                     {
@@ -5315,7 +5315,7 @@
                     }
                 ],
                 "tags": [
-                    "Paired Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -5371,7 +5371,7 @@
                     }
                 ],
                 "tags": [
-                    "Paired Data"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -5480,7 +5480,7 @@
                     }
                 ],
                 "tags": [
-                    "Paired Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -5545,7 +5545,7 @@
                     }
                 ],
                 "tags": [
-                    "Paired Data"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
@@ -5641,7 +5641,7 @@
                     }
                 ],
                 "tags": [
-                    "Paired Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -5701,7 +5701,7 @@
                     }
                 ],
                 "tags": [
-                    "Paired Data"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -5759,7 +5759,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "security": [
                     {
@@ -5836,7 +5836,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "requestBody": {
                     "content": {
@@ -5982,7 +5982,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "security": [
                     {
@@ -6065,85 +6065,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
-                ],
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No response body"
-                    },
-                    "403": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "AccessDenied": {
-                                        "value": {
-                                            "detail": "You do not have permission to perform this action."
-                                        },
-                                        "summary": "Access Denied"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/delete-all/": {
-            "delete": {
-                "operationId": "api_v2_assets_permission_assignments_delete_all_destroy",
-                "description": "## Remove all permission assignments\n",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "parent_lookup_asset",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the parent asset",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the permission",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "security": [
                     {
@@ -6212,7 +6134,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "requestBody": {
                     "content": {
@@ -6308,6 +6230,95 @@
                         "description": ""
                     }
                 }
+            },
+            "delete": {
+                "operationId": "api_v2_assets_permission_assignments_bulk_destroy",
+                "description": "## Remove all permission assignments\n\n⚠️ **Warning**\nThis endpoint currently supports deleting **only the user whose username is provided as a parameter**.\nDeletion of other accounts is not yet supported.\n\n**Payload**\n```json\n{\n   \"username\": \"bob\"\n}\n```\n\n_Due to limitations with DRF-Spectacular current version, `DELETE` actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint._\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "parent_lookup_asset",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the parent asset",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Manage permissions"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "AccessDenied": {
+                                        "value": {
+                                            "detail": "You do not have permission to perform this action."
+                                        },
+                                        "summary": "Access Denied"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorObject"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "detail": {
+                                                "field_name": [
+                                                    "Error message"
+                                                ]
+                                            }
+                                        },
+                                        "summary": "Bad request"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
             }
         },
         "/api/v2/assets/{parent_lookup_asset}/permission-assignments/clone/": {
@@ -6326,7 +6337,7 @@
                     }
                 ],
                 "tags": [
-                    "Asset Permission Assignments"
+                    "Manage permissions"
                 ],
                 "requestBody": {
                     "content": {
@@ -6454,7 +6465,7 @@
                     }
                 ],
                 "tags": [
-                    "Versions"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -6520,7 +6531,7 @@
                     }
                 ],
                 "tags": [
-                    "Versions"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -6590,7 +6601,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -6655,7 +6666,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -6777,7 +6788,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -6845,7 +6856,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -6902,7 +6913,7 @@
                     }
                 ],
                 "tags": [
-                    "Deployment"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -6957,7 +6968,7 @@
                     }
                 ],
                 "tags": [
-                    "Deployment"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -7062,7 +7073,7 @@
                     }
                 ],
                 "tags": [
-                    "Deployment"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -7168,7 +7179,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -7225,7 +7236,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -7273,7 +7284,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -7330,7 +7341,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -7378,7 +7389,7 @@
                     }
                 ],
                 "tags": [
-                    "Assets"
+                    "Form content"
                 ],
                 "security": [
                     {
@@ -7416,7 +7427,7 @@
                 "operationId": "api_v2_assets_bulk_create",
                 "description": "## Perform bulk actions on assets\n\nActions available:\n\n- `archive`\n- `delete`\n- `unarchive`\n- `undelete` (superusers only)\n",
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -7492,7 +7503,7 @@
                 "operationId": "api_v2_assets_hash_retrieve",
                 "description": "## Get a hash of all `version_id`s of all accessible assets by the current user.\n\nUseful to detect any changes in assets with only one call to `API`\n",
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -7539,7 +7550,7 @@
                 "operationId": "api_v2_assets_metadata_retrieve",
                 "description": "## Get metadata for all authenticated user' assets\n",
                 "tags": [
-                    "Assets"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -7595,7 +7606,7 @@
                     }
                 ],
                 "tags": [
-                    "Audit Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -7680,7 +7691,7 @@
                     }
                 ],
                 "tags": [
-                    "Imports"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -7726,7 +7737,7 @@
                 "operationId": "api_v2_imports_create",
                 "description": "## Import file\n\n_**Note**: this endpoint is expecting a multipart/form-data_\n",
                 "tags": [
-                    "Imports"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -7834,7 +7845,7 @@
                     }
                 ],
                 "tags": [
-                    "Imports"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -7920,7 +7931,7 @@
                     }
                 ],
                 "tags": [
-                    "Languages"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -7977,7 +7988,7 @@
                     }
                 ],
                 "tags": [
-                    "Languages"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -8062,7 +8073,7 @@
                     }
                 ],
                 "tags": [
-                    "Organizations"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8077,7 +8088,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/PaginatedOrganizationList"
+                                    "$ref": "#/components/schemas/PaginatedOrganizationResponseList"
                                 }
                             }
                         },
@@ -8120,7 +8131,7 @@
                     }
                 ],
                 "tags": [
-                    "Organizations"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8135,7 +8146,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Organization"
+                                    "$ref": "#/components/schemas/OrganizationResponse"
                                 }
                             }
                         },
@@ -8176,7 +8187,7 @@
                     }
                 ],
                 "tags": [
-                    "Organizations"
+                    "User / team / organization / usage"
                 ],
                 "requestBody": {
                     "content": {
@@ -8200,7 +8211,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Organization"
+                                    "$ref": "#/components/schemas/OrganizationResponse"
                                 }
                             }
                         },
@@ -8265,7 +8276,7 @@
                     }
                 ],
                 "tags": [
-                    "Organizations"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8323,7 +8334,7 @@
                     }
                 ],
                 "tags": [
-                    "Organizations"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8381,7 +8392,7 @@
                     }
                 ],
                 "tags": [
-                    "Organizations"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8457,7 +8468,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Invites"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8513,7 +8524,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Invites"
+                    "User / team / organization / usage"
                 ],
                 "requestBody": {
                     "content": {
@@ -8612,7 +8623,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Invites"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8677,7 +8688,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Invites"
+                    "User / team / organization / usage"
                 ],
                 "requestBody": {
                     "content": {
@@ -8805,7 +8816,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Invites"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8892,7 +8903,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Members"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -8959,7 +8970,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Members"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -9024,7 +9035,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Members"
+                    "User / team / organization / usage"
                 ],
                 "requestBody": {
                     "content": {
@@ -9138,7 +9149,7 @@
                     }
                 ],
                 "tags": [
-                    "Organization Members"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -9216,7 +9227,7 @@
                     }
                 ],
                 "tags": [
-                    "Permissions"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -9256,7 +9267,7 @@
                     }
                 ],
                 "tags": [
-                    "Permissions"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -9313,7 +9324,7 @@
                     }
                 ],
                 "tags": [
-                    "Project History Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -9378,7 +9389,7 @@
                 "operationId": "api_v2_project_history_logs_export_retrieve",
                 "description": "## List of Project History Exports\n\n⚠️ _Only available to superusers_\n",
                 "tags": [
-                    "Project History Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -9441,7 +9452,7 @@
                 "operationId": "api_v2_project_history_logs_export_create",
                 "description": "## Create an export of projects history logs\n\n⚠️ _Only available to superusers_\n\nExport project history logs and send it by email to the requesting user.\n",
                 "tags": [
-                    "Project History Logs"
+                    "Audit logs (superusers)"
                 ],
                 "security": [
                     {
@@ -9533,7 +9544,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Ownership Invites"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -9578,7 +9589,7 @@
                 "operationId": "api_v2_project_ownership_invites_create",
                 "description": "## Create (send) an invite\n\nWhere the assets `uid` are given in the payload's list\n\n\n",
                 "tags": [
-                    "Project Ownership Invites"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -9676,7 +9687,7 @@
                     }
                 ],
                 "tags": [
-                    "Transfers"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -9769,7 +9780,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Ownership Invites"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -9842,7 +9853,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Ownership Invites"
+                    "Manage projects and library content"
                 ],
                 "requestBody": {
                     "content": {
@@ -9946,7 +9957,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Ownership Invites"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -10024,7 +10035,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Views"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10081,7 +10092,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Views"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10165,7 +10176,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Views"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10287,7 +10298,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Views"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10418,7 +10429,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Views"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10531,7 +10542,7 @@
                     }
                 ],
                 "tags": [
-                    "Project Views"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10596,7 +10607,7 @@
                 "operationId": "api_v2_service_usage_list",
                 "description": "<span class='label label-warning'>⚠️ Deprecated</span>\n## Track Service Usage\n\nTracks the total usage of different services for the logged-in user. </br>\nTracks the submissions and NLP seconds/characters for the current month/year/all time. </br>\nTracks the current total storage used. </br>\nNote: this endpoint is not currently used by the frontend to display usage information. </br>\nSee `/api/v2/organizations/{organization_id}/service_usage/` for the endpoint we use on the Usage page. </br>\n",
                 "tags": [
-                    "Service Usage"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -10641,6 +10652,404 @@
                 }
             }
         },
+        "/api/v2/stripe/addons/": {
+            "get": {
+                "operationId": "api_v2_stripe_addons_list",
+                "description": "Lists the one-time add-ons for the authenticated user's organization.",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "required": false,
+                        "in": "query",
+                        "description": "Number of results to return per page.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Other"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedOneTimeAddOnList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/stripe/addons/{id}/": {
+            "get": {
+                "operationId": "api_v2_stripe_addons_retrieve",
+                "description": "Lists the one-time add-ons for the authenticated user's organization.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "A unique value identifying this plan add-on.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Other"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OneTimeAddOn"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/stripe/change-plan": {
+            "get": {
+                "operationId": "api_v2_stripe_change_plan_retrieve",
+                "description": "Change an existing subscription to a new price.\n\nThis will immediately change their subscription to the new plan if upgrading, prorating the charge.\nIf the user is downgrading to a lower price, it will schedule the change at the end of the current billing period.\n\n<pre class=\"prettyprint\">\n<b>GET</b> /api/v2/stripe/change-plan/?subscription_id=<code>{subscription_id}</code>&price_id=<code>{price_id}</code>\n</pre>\n\n> Example\n>\n>       curl -X GET https://[kpi]/api/v2/stripe/change-plan/\n\n> **Payload**\n>\n>        {\n>           \"price_id\": \"price_A34cds8fmske3tf\",\n>           \"subscription_id\": \"sub_s9aNFrd2fsmld4gz\",\n>           \"quantity\": 100000\n>        }\n\nwhere:\n\n* \"price_id\" (required) is the Stripe Price ID for the plan the user is changing to.\n* \"quantity\" is the quantity for the new subscription price (default: 1).\n* \"subscription_id\" (required) is a Stripe Subscription ID for the subscription being changed.",
+                "tags": [
+                    "Other"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ChangePlan"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/stripe/checkout-link": {
+            "post": {
+                "operationId": "api_v2_stripe_checkout_link_create",
+                "tags": [
+                    "Other"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CheckoutLink"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CheckoutLink"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CheckoutLink"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CheckoutLink"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/stripe/customer-portal": {
+            "post": {
+                "operationId": "api_v2_stripe_customer_portal_create",
+                "tags": [
+                    "Other"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CustomerPortal"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CustomerPortalPostResponse"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotAuthenticated": {
+                                        "value": {
+                                            "detail": "Authentication credentials were not provided."
+                                        },
+                                        "summary": "Not authenticated"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorObject"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "detail": {
+                                                "field_name": [
+                                                    "Error message"
+                                                ]
+                                            }
+                                        },
+                                        "summary": "Bad request"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/stripe/products/": {
+            "get": {
+                "operationId": "api_v2_stripe_products_list",
+                "description": "Returns Product and Price Lists, sorted from the product with the lowest price to highest\n<strong>This endpoint is cached for an amount of time determined by ENDPOINT_CACHE_DURATION</strong>\n\n<pre class=\"prettyprint\">\n<b>GET</b> /api/v2/stripe/products/\n</pre>\n\n> Example\n>\n>       curl -X GET https://[kpi]/api/v2/stripe/products/\n\n> Response\n>\n>       HTTP 200 Ok\n>        {\n>           \"count\": ...\n>           \"next\": ...\n>           \"previous\": ...\n>           \"results\": [\n>               {\n>                   \"id\": string,\n>                   \"name\": string,\n>                   \"type\": string,\n>                   \"prices\": [\n>                       {\n>                           \"id\": string,\n>                           \"nickname\": string,\n>                           \"currency\": string,\n>                           \"type\": string,\n>                           \"recurring\": {\n>                               \"aggregate_usage\": string ('sum', 'last_during_period`, `last_ever`, `max`)\n>                               \"interval\": string ('month', 'year', 'week', 'day')\n>                               \"interval_count\": int,\n>                               \"usage_type\": string ('metered', 'licensed')\n>                           },\n>                           \"unit_amount\": int (cents),\n>                           \"human_readable_price\": string,\n>                           \"metadata\": {},\n>                           \"active\": bool,\n>                           \"product\": string,\n>                           \"transform_quantity\": null | {'round': 'up'|'down', 'divide_by': int}\n>                       },\n>                       ...\n>                   ],\n>                   \"metadata\": {},\n>               },\n>               ...\n>           ]\n>        }\n>\n\n### Note: unit_amount is price in cents (assuming currency is USD/AUD/CAD/etc.)\n\n## Current Endpoint",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "required": false,
+                        "in": "query",
+                        "description": "Number of results to return per page.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Other"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedProductList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/stripe/subscriptions/": {
+            "get": {
+                "operationId": "api_v2_stripe_subscriptions_list",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "required": false,
+                        "in": "query",
+                        "description": "Number of results to return per page.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Other"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedSubscriptionList"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotAuthenticated": {
+                                        "value": {
+                                            "detail": "Authentication credentials were not provided."
+                                        },
+                                        "summary": "Not authenticated"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/stripe/subscriptions/{id}/": {
+            "get": {
+                "operationId": "api_v2_stripe_subscriptions_retrieve",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Other"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Subscription"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v2/tags/": {
             "get": {
                 "operationId": "api_v2_tags_list",
@@ -10666,7 +11075,7 @@
                     }
                 ],
                 "tags": [
-                    "Tags"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -10724,7 +11133,7 @@
                     }
                 ],
                 "tags": [
-                    "Tags"
+                    "Manage projects and library content"
                 ],
                 "security": [
                     {
@@ -10790,7 +11199,7 @@
                 "operationId": "api_v2_terms_of_service_list",
                 "description": "## List the different terms of service\n",
                 "tags": [
-                    "Terms of Services"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -10850,7 +11259,7 @@
                     }
                 ],
                 "tags": [
-                    "Terms of Services"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -10942,7 +11351,7 @@
                     }
                 ],
                 "tags": [
-                    "Transcription Services"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -10999,7 +11408,7 @@
                     }
                 ],
                 "tags": [
-                    "Transcription Services"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -11091,7 +11500,7 @@
                     }
                 ],
                 "tags": [
-                    "Translation Services"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -11170,7 +11579,7 @@
                     }
                 ],
                 "tags": [
-                    "Translation Services"
+                    "Other"
                 ],
                 "security": [
                     {
@@ -11233,7 +11642,7 @@
         "/api/v2/users/": {
             "get": {
                 "operationId": "api_v2_users_list",
-                "description": "## List users\n",
+                "description": "## List users\n\n⚠️ _Only available to superusers_\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -11255,7 +11664,7 @@
                     }
                 ],
                 "tags": [
-                    "Users"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11313,7 +11722,7 @@
                     }
                 ],
                 "tags": [
-                    "Users"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11360,7 +11769,7 @@
                 "operationId": "me_retrieve",
                 "description": "## Retrieve current user profile\n",
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11405,7 +11814,7 @@
                 "operationId": "me_partial_update",
                 "description": "## Update current user infos\n",
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "requestBody": {
                     "content": {
@@ -11491,7 +11900,7 @@
                 "operationId": "me_destroy",
                 "description": "## Delete current user\n\n> Payload Example:\n>\n>       {\n>           \"confirm\": \"user__extra_details__uid\",\n>       }\n\n\n### !! Due to current DRF-Spectacular limitations with AOS 3.1, DELETE operations do not display request or response bodies in this documentation (as payloads are not typically recommended for DELETE). This means direct testing is unavailable. However, example payloads and responses are provided for reference, and HTTP codes/error messages are accurate.  !!\n",
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11591,7 +12000,7 @@
                     }
                 ],
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11636,7 +12045,7 @@
                 "operationId": "me_emails_create",
                 "description": "## Set a new email\n\nThe new email will be unverified and replace existing unverified, non-primary emails.\nNew email is not usable until verified.\n",
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "requestBody": {
                     "content": {
@@ -11735,7 +12144,7 @@
                     }
                 ],
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11801,7 +12210,7 @@
                     }
                 ],
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -11883,7 +12292,7 @@
                     }
                 ],
                 "tags": [
-                    "Me"
+                    "User / team / organization / usage"
                 ],
                 "security": [
                     {
@@ -13393,6 +13802,98 @@
                 "type": "string",
                 "description": "* `no_auth` - no_auth\n* `basic_auth` - basic_auth"
             },
+            "BaseProduct": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "The product's name, meant to be displayable to the customer. Applicable to both `service` and `good` types.",
+                        "maxLength": 5000
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "A description of this object."
+                    },
+                    "type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/StripeProductType"
+                            }
+                        ],
+                        "description": "The type of the product. The product is either of type `good`, which is eligible for use with Orders and SKUs, or `service`, which is eligible for use with Subscriptions and Plans.\n\n* `good` - Good\n* `service` - Service"
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "id",
+                    "metadata",
+                    "name",
+                    "type"
+                ]
+            },
+            "BlankEnum": {
+                "enum": [
+                    ""
+                ]
+            },
+            "ChangePlan": {
+                "type": "object",
+                "properties": {
+                    "price_id": {
+                        "type": "string"
+                    },
+                    "subscription_id": {
+                        "type": "string"
+                    },
+                    "quantity": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "default": 1
+                    }
+                },
+                "required": [
+                    "price_id",
+                    "subscription_id"
+                ]
+            },
+            "CheckoutLink": {
+                "type": "object",
+                "properties": {
+                    "price_id": {
+                        "type": "string"
+                    },
+                    "organization_id": {
+                        "type": "string"
+                    },
+                    "quantity": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "default": 1
+                    }
+                },
+                "required": [
+                    "price_id"
+                ]
+            },
+            "CollectionMethodEnum": {
+                "enum": [
+                    "charge_automatically",
+                    "send_invoice"
+                ],
+                "type": "string",
+                "description": "* `charge_automatically` - Charge automatically\n* `send_invoice` - Send invoice"
+            },
             "ContentResponse": {
                 "type": "object",
                 "properties": {
@@ -13539,6 +14040,36 @@
                             "user"
                         ]
                     }
+                ]
+            },
+            "CustomerPortal": {
+                "type": "object",
+                "properties": {
+                    "organization_id": {
+                        "type": "string"
+                    },
+                    "price_id": {
+                        "type": "string"
+                    },
+                    "quantity": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "default": 1
+                    }
+                },
+                "required": [
+                    "organization_id"
+                ]
+            },
+            "CustomerPortalPostResponse": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "url"
                 ]
             },
             "DataBulkDelete": {
@@ -15474,6 +16005,9 @@
             "MemberListResponse": {
                 "type": "object",
                 "properties": {
+                    "role": {
+                        "$ref": "#/components/schemas/MemberRoleEnum"
+                    },
                     "url": {
                         "type": "string",
                         "format": "uri",
@@ -15494,9 +16028,6 @@
                     "user__extra_details__name": {
                         "type": "string"
                     },
-                    "role": {
-                        "$ref": "#/components/schemas/MemberRoleEnum"
-                    },
                     "user__has_mfa_enabled": {
                         "type": "boolean"
                     },
@@ -15508,63 +16039,12 @@
                         "type": "boolean"
                     },
                     "invite": {
-                        "type": "object",
-                        "properties": {
-                            "url": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/"
-                            },
-                            "invited_by": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
-                            },
-                            "status": {
-                                "enum": [
-                                    "accepted",
-                                    "cancelled",
-                                    "declined",
-                                    "expired",
-                                    "pending",
-                                    "resent"
-                                ],
-                                "type": "string",
-                                "description": "* `accepted` - Accepted\n* `cancelled` - Cancelled\n* `declined` - Declined\n* `expired` - Expired\n* `pending` - Pending\n* `resent` - Resent"
-                            },
-                            "invitee_role": {
-                                "enum": [
-                                    "admin",
-                                    "member",
-                                    "owner"
-                                ],
-                                "type": "string",
-                                "description": "* `admin` - admin\n* `member` - member\n* `owner` - owner"
-                            },
-                            "organization_name": {
-                                "type": "string"
-                            },
-                            "created": {
-                                "type": "string",
-                                "format": "date-time"
-                            },
-                            "modified": {
-                                "type": "string",
-                                "format": "date-time"
-                            },
-                            "invitee": {
-                                "type": "string"
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/InviteResponse"
                             }
-                        },
-                        "required": [
-                            "created",
-                            "invited_by",
-                            "invitee_role",
-                            "modified",
-                            "organization_name",
-                            "status",
-                            "url"
-                        ]
+                        ],
+                        "nullable": true
                     }
                 },
                 "required": [
@@ -15588,6 +16068,60 @@
                 ],
                 "type": "string",
                 "description": "* `admin` - admin\n* `member` - member\n* `owner` - owner"
+            },
+            "NullableServiceUsageBalanceData": {
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/ServiceUsageBalanceData"
+                    },
+                    {
+                        "type": "null"
+                    }
+                ]
+            },
+            "OneTimeAddOn": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "maxLength": 27
+                    },
+                    "created": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The time when the add-on purchased."
+                    },
+                    "is_available": {
+                        "type": "boolean",
+                        "readOnly": true
+                    },
+                    "usage_limits": {
+                        "description": "The historical usage limits when the add-on was purchased.\n        Possible keys:\n        \"submission_limit\", \"asr_seconds_limit\", and/or \"mt_characters_limit\""
+                    },
+                    "total_usage_limits": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "description": "The total usage limits for this add-on, based on the usage_limits for a single\nadd-on.",
+                        "readOnly": true
+                    },
+                    "limits_remaining": {
+                        "description": "The amount of each of the add-on's individual limits left to use."
+                    },
+                    "organization": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "product": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "required": [
+                    "created",
+                    "id",
+                    "is_available",
+                    "total_usage_limits"
+                ]
             },
             "OpenRosaXFormResponse": {
                 "type": "object",
@@ -15650,96 +16184,6 @@
                 },
                 "required": [
                     "html"
-                ]
-            },
-            "Organization": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "readOnly": true
-                    },
-                    "url": {
-                        "type": "string",
-                        "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/",
-                        "readOnly": true
-                    },
-                    "name": {
-                        "type": "string",
-                        "description": "The name of the organization",
-                        "maxLength": 200
-                    },
-                    "website": {
-                        "type": "string"
-                    },
-                    "organization_type": {
-                        "$ref": "#/components/schemas/OrganizationTypeEnum"
-                    },
-                    "created": {
-                        "type": "string",
-                        "format": "date-time",
-                        "readOnly": true
-                    },
-                    "modified": {
-                        "type": "string",
-                        "format": "date-time",
-                        "readOnly": true
-                    },
-                    "is_owner": {
-                        "type": "boolean",
-                        "readOnly": true
-                    },
-                    "is_mmo": {
-                        "type": "boolean",
-                        "readOnly": true
-                    },
-                    "request_user_role": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/MemberRoleEnum"
-                            }
-                        ],
-                        "readOnly": true
-                    },
-                    "members": {
-                        "type": "string",
-                        "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/{id}/members/",
-                        "readOnly": true
-                    },
-                    "assets": {
-                        "type": "string",
-                        "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets/",
-                        "readOnly": true
-                    },
-                    "service_usage": {
-                        "type": "string",
-                        "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/service_usage/",
-                        "readOnly": true
-                    },
-                    "asset_usage": {
-                        "type": "string",
-                        "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets_usage/",
-                        "readOnly": true
-                    }
-                },
-                "required": [
-                    "asset_usage",
-                    "assets",
-                    "created",
-                    "id",
-                    "is_mmo",
-                    "is_owner",
-                    "members",
-                    "modified",
-                    "name",
-                    "request_user_role",
-                    "service_usage",
-                    "url"
                 ]
             },
             "OrganizationAssetUsageResponse": {
@@ -15807,6 +16251,105 @@
                     "submission_count_current_period"
                 ]
             },
+            "OrganizationResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "url": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "readOnly": true,
+                        "maxLength": 200
+                    },
+                    "website": {
+                        "type": "string",
+                        "readOnly": true,
+                        "maxLength": 255
+                    },
+                    "organization_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/OrganizationTypeEnum"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "created": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "modified": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "is_owner": {
+                        "type": "boolean",
+                        "readOnly": true
+                    },
+                    "is_mmo": {
+                        "type": "boolean",
+                        "readOnly": true
+                    },
+                    "request_user_role": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/MemberRoleEnum"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "members": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/{id}/members/",
+                        "readOnly": true
+                    },
+                    "assets": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets/",
+                        "readOnly": true
+                    },
+                    "service_usage": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/service_usage/",
+                        "readOnly": true
+                    },
+                    "asset_usage": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets_usage/",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "asset_usage",
+                    "assets",
+                    "created",
+                    "id",
+                    "is_mmo",
+                    "is_owner",
+                    "members",
+                    "modified",
+                    "name",
+                    "organization_type",
+                    "request_user_role",
+                    "service_usage",
+                    "url",
+                    "website"
+                ]
+            },
             "OrganizationServiceUsageResponse": {
                 "type": "object",
                 "properties": {
@@ -15852,21 +16395,7 @@
                         ]
                     },
                     "balances": {
-                        "type": "object",
-                        "properties": {
-                            "submission": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
-                            },
-                            "storage_bytes": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
-                            },
-                            "asr_seconds": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
-                            },
-                            "mt_characters": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
-                            }
-                        }
+                        "$ref": "#/components/schemas/ServiceUsageBalances"
                     },
                     "current_period_start": {
                         "type": "string",
@@ -16536,6 +17065,37 @@
                     }
                 }
             },
+            "PaginatedOneTimeAddOnList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OneTimeAddOn"
+                        }
+                    }
+                }
+            },
             "PaginatedOrganizationAssetUsageResponseList": {
                 "type": "object",
                 "required": [
@@ -16567,7 +17127,7 @@
                     }
                 }
             },
-            "PaginatedOrganizationList": {
+            "PaginatedOrganizationResponseList": {
                 "type": "object",
                 "required": [
                     "count",
@@ -16593,7 +17153,7 @@
                     "results": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/Organization"
+                            "$ref": "#/components/schemas/OrganizationResponse"
                         }
                     }
                 }
@@ -16656,6 +17216,37 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/PermissionResponse"
+                        }
+                    }
+                }
+            },
+            "PaginatedProductList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Product"
                         }
                     }
                 }
@@ -16842,6 +17433,37 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/SocialAccount"
+                        }
+                    }
+                }
+            },
+            "PaginatedSubscriptionList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Subscription"
                         }
                     }
                 }
@@ -17538,13 +18160,15 @@
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string"
+                        "type": "string",
+                        "maxLength": 200
                     },
                     "website": {
-                        "type": "string"
+                        "type": "string",
+                        "maxLength": 255
                     },
                     "organization_type": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/OrganizationTypeEnum"
                     }
                 }
             },
@@ -17733,6 +18357,196 @@
                     "implied",
                     "name",
                     "url"
+                ]
+            },
+            "Price": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "nickname": {
+                        "type": "string",
+                        "description": "A brief description of the plan, hidden from customers.",
+                        "maxLength": 250
+                    },
+                    "currency": {
+                        "type": "string",
+                        "description": "Three-letter ISO currency code",
+                        "maxLength": 3
+                    },
+                    "type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/StripePriceType"
+                            }
+                        ],
+                        "description": "Whether the price is for a one-time purchase or a recurring (subscription) purchase.\n\n* `one_time` - One-time\n* `recurring` - Recurring"
+                    },
+                    "recurring": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Recurring"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "unit_amount": {
+                        "type": "integer",
+                        "maximum": 9223372036854775807,
+                        "minimum": -9223372036854775808,
+                        "format": "int64",
+                        "nullable": true,
+                        "description": "The unit amount in cents to be charged, represented as a whole integer if possible. Null if a sub-cent precision is required."
+                    },
+                    "human_readable_price": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "metadata": {
+                        "nullable": true,
+                        "description": "A set of key/value pairs that you can attach to an object. It can be useful for storing additional information about an object in a structured format."
+                    },
+                    "active": {
+                        "type": "boolean",
+                        "description": "Whether the price can be used for new purchases."
+                    },
+                    "product": {
+                        "type": "string",
+                        "description": "The product this price is associated with."
+                    },
+                    "transform_quantity": {
+                        "nullable": true,
+                        "description": "Apply a transformation to the reported usage or set quantity before computing the amount billed. Cannot be combined with `tiers`."
+                    }
+                },
+                "required": [
+                    "active",
+                    "currency",
+                    "human_readable_price",
+                    "id",
+                    "product",
+                    "recurring",
+                    "type"
+                ]
+            },
+            "PriceWithProduct": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "nickname": {
+                        "type": "string",
+                        "description": "A brief description of the plan, hidden from customers.",
+                        "maxLength": 250
+                    },
+                    "currency": {
+                        "type": "string",
+                        "description": "Three-letter ISO currency code",
+                        "maxLength": 3
+                    },
+                    "type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/StripePriceType"
+                            }
+                        ],
+                        "description": "Whether the price is for a one-time purchase or a recurring (subscription) purchase.\n\n* `one_time` - One-time\n* `recurring` - Recurring"
+                    },
+                    "recurring": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Recurring"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "unit_amount": {
+                        "type": "integer",
+                        "maximum": 9223372036854775807,
+                        "minimum": -9223372036854775808,
+                        "format": "int64",
+                        "nullable": true,
+                        "description": "The unit amount in cents to be charged, represented as a whole integer if possible. Null if a sub-cent precision is required."
+                    },
+                    "human_readable_price": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "metadata": {
+                        "nullable": true,
+                        "description": "A set of key/value pairs that you can attach to an object. It can be useful for storing additional information about an object in a structured format."
+                    },
+                    "active": {
+                        "type": "boolean",
+                        "description": "Whether the price can be used for new purchases."
+                    },
+                    "product": {
+                        "$ref": "#/components/schemas/BaseProduct"
+                    },
+                    "transform_quantity": {
+                        "nullable": true,
+                        "description": "Apply a transformation to the reported usage or set quantity before computing the amount billed. Cannot be combined with `tiers`."
+                    }
+                },
+                "required": [
+                    "active",
+                    "currency",
+                    "human_readable_price",
+                    "id",
+                    "product",
+                    "recurring",
+                    "type"
+                ]
+            },
+            "Product": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "The product's name, meant to be displayable to the customer. Applicable to both `service` and `good` types.",
+                        "maxLength": 5000
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "A description of this object."
+                    },
+                    "type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/StripeProductType"
+                            }
+                        ],
+                        "description": "The type of the product. The product is either of type `good`, which is eligible for use with Orders and SKUs, or `service`, which is eligible for use with Subscriptions and Plans.\n\n* `good` - Good\n* `service` - Service"
+                    },
+                    "prices": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Price"
+                        }
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "id",
+                    "metadata",
+                    "name",
+                    "prices",
+                    "type"
                 ]
             },
             "ProjectHistoryLogResponse": {
@@ -18437,6 +19251,38 @@
                     "username"
                 ]
             },
+            "ProrationBehaviorEnum": {
+                "enum": [
+                    "always_invoice",
+                    "create_prorations",
+                    "none"
+                ],
+                "type": "string",
+                "description": "* `always_invoice` - Always invoice\n* `create_prorations` - Create prorations\n* `none` - None"
+            },
+            "Recurring": {
+                "type": "object",
+                "properties": {
+                    "interval": {
+                        "$ref": "#/components/schemas/StripeIntervalEnum"
+                    },
+                    "interval_count": {
+                        "type": "integer"
+                    },
+                    "meter": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "usage_type": {
+                        "$ref": "#/components/schemas/StripeUsageType"
+                    }
+                },
+                "required": [
+                    "interval",
+                    "interval_count",
+                    "usage_type"
+                ]
+            },
             "ReportResponse": {
                 "type": "object",
                 "properties": {
@@ -18510,7 +19356,7 @@
                         "type": "integer"
                     },
                     "exceeded": {
-                        "type": "integer"
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -18518,6 +19364,29 @@
                     "balance_value",
                     "effective_limit",
                     "exceeded"
+                ]
+            },
+            "ServiceUsageBalances": {
+                "type": "object",
+                "properties": {
+                    "submission": {
+                        "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
+                    },
+                    "storage_bytes": {
+                        "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
+                    },
+                    "asr_seconds": {
+                        "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
+                    },
+                    "mt_characters": {
+                        "$ref": "#/components/schemas/NullableServiceUsageBalanceData"
+                    }
+                },
+                "required": [
+                    "asr_seconds",
+                    "mt_characters",
+                    "storage_bytes",
+                    "submission"
                 ]
             },
             "ServiceUsageResponse": {
@@ -18561,21 +19430,7 @@
                         }
                     },
                     "balances": {
-                        "type": "object",
-                        "properties": {
-                            "submission": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
-                            },
-                            "storage_bytes": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
-                            },
-                            "asr_seconds": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
-                            },
-                            "mt_characters": {
-                                "$ref": "#/components/schemas/ServiceUsageBalanceData"
-                            }
-                        }
+                        "$ref": "#/components/schemas/ServiceUsageBalances"
                     },
                     "current_period_start": {
                         "type": "string",
@@ -18640,6 +19495,349 @@
                     "uid",
                     "username"
                 ]
+            },
+            "StripeIntervalEnum": {
+                "enum": [
+                    "day",
+                    "week",
+                    "month",
+                    "year"
+                ],
+                "type": "string",
+                "description": "* `day` - Day\n* `week` - Week\n* `month` - Month\n* `year` - Year"
+            },
+            "StripePriceType": {
+                "enum": [
+                    "one_time",
+                    "recurring"
+                ],
+                "type": "string",
+                "description": "* `one_time` - One-time\n* `recurring` - Recurring"
+            },
+            "StripeProductType": {
+                "enum": [
+                    "good",
+                    "service"
+                ],
+                "type": "string",
+                "description": "* `good` - Good\n* `service` - Service"
+            },
+            "StripeUsageType": {
+                "enum": [
+                    "metered",
+                    "licensed"
+                ],
+                "type": "string",
+                "description": "* `metered` - Metered\n* `licensed` - Licensed"
+            },
+            "Subscription": {
+                "type": "object",
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SubscriptionItem"
+                        }
+                    },
+                    "schedule": {
+                        "$ref": "#/components/schemas/SubscriptionSchedule"
+                    },
+                    "application_fee_percent": {
+                        "type": "string",
+                        "format": "decimal",
+                        "pattern": "^-?\\d{0,3}(?:\\.\\d{0,2})?$",
+                        "nullable": true
+                    },
+                    "djstripe_created": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "djstripe_updated": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "id": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "livemode": {
+                        "type": "boolean",
+                        "nullable": true,
+                        "description": "Null here indicates that the livemode status is unknown or was previously unrecorded. Otherwise, this field indicates whether this record comes from Stripe test mode or live mode operation."
+                    },
+                    "created": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "description": "The datetime this object was created in stripe."
+                    },
+                    "metadata": {
+                        "nullable": true,
+                        "description": "A set of key/value pairs that you can attach to an object. It can be useful for storing additional information about an object in a structured format."
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "A description of this object."
+                    },
+                    "billing_cycle_anchor": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "description": "Determines the date of the first full invoice, and, for plans with `month` or `year` intervals, the day of the month for subsequent invoices."
+                    },
+                    "billing_thresholds": {
+                        "nullable": true,
+                        "description": "Define thresholds at which an invoice will be sent, and the subscription advanced to a new billing period."
+                    },
+                    "cancel_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "description": "A date in the future at which the subscription will automatically get canceled."
+                    },
+                    "cancel_at_period_end": {
+                        "type": "boolean",
+                        "description": "If the subscription has been canceled with the ``at_period_end`` flag set to true, ``cancel_at_period_end`` on the subscription will be true. You can use this attribute to determine whether a subscription that has a status of active is scheduled to be canceled at the end of the current period."
+                    },
+                    "canceled_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "description": "If the subscription has been canceled, the date of that cancellation. If the subscription was canceled with ``cancel_at_period_end``, canceled_at will still reflect the date of the initial cancellation request, not the end of the subscription period when the subscription is automatically moved to a canceled state."
+                    },
+                    "collection_method": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/CollectionMethodEnum"
+                            }
+                        ],
+                        "description": "Either `charge_automatically`, or `send_invoice`. When charging automatically, Stripe will attempt to pay this subscription at the end of the cycle using the default source attached to the customer. When sending an invoice, Stripe will email your customer an invoice with payment instructions.\n\n* `charge_automatically` - Charge automatically\n* `send_invoice` - Send invoice"
+                    },
+                    "current_period_end": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "End of the current period for which the subscription has been invoiced. At the end of this period, a new invoice will be created."
+                    },
+                    "current_period_start": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Start of the current period for which the subscription has been invoiced."
+                    },
+                    "days_until_due": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": -2147483648,
+                        "nullable": true,
+                        "description": "Number of days a customer has to pay invoices generated by this subscription. This value will be `null` for subscriptions where `billing=charge_automatically`."
+                    },
+                    "discount": {
+                        "nullable": true,
+                        "description": "Describes the current discount applied to this subscription, if there is one. When billing, a discount applied to a subscription overrides a discount applied on a customer-wide basis."
+                    },
+                    "ended_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "description": "If the subscription has ended (either because it was canceled or because the customer was switched to a subscription to a new plan), the date the subscription ended."
+                    },
+                    "next_pending_invoice_item_invoice": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "description": "Specifies the approximate timestamp on which any pending invoice items will be billed according to the schedule provided at pending_invoice_item_interval."
+                    },
+                    "pause_collection": {
+                        "nullable": true,
+                        "description": "If specified, payment collection for this subscription will be paused."
+                    },
+                    "pending_invoice_item_interval": {
+                        "nullable": true,
+                        "description": "Specifies an interval for how often to bill for any pending invoice items. It is analogous to calling Create an invoice for the given subscription at the specified interval."
+                    },
+                    "pending_update": {
+                        "nullable": true,
+                        "description": "If specified, pending updates that will be applied to the subscription once the latest_invoice has been paid."
+                    },
+                    "proration_behavior": {
+                        "description": "Determines how to handle prorations when the billing cycle changes (e.g., when switching plans, resetting billing_cycle_anchor=now, or starting a trial), or if an item’s quantity changes\n\n* `always_invoice` - Always invoice\n* `create_prorations` - Create prorations\n* `none` - None",
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/ProrationBehaviorEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "proration_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "description": "If set, the proration will be calculated as though the subscription was updated at the given time. This can be used to apply exactly the same proration that was previewed with upcoming invoice endpoint. It can also be used to implement custom proration logic, such as prorating by day instead of by second, by providing the time that you wish to use for proration calculations"
+                    },
+                    "quantity": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": -2147483648,
+                        "nullable": true,
+                        "description": "The quantity applied to this subscription. This value will be `null` for multi-plan subscriptions"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "description": "Date when the subscription was first created. The date might differ from the created date due to backdating."
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SubscriptionStatusEnum"
+                            }
+                        ],
+                        "description": "The status of this subscription.\n\n* `active` - Active\n* `canceled` - Canceled\n* `incomplete` - Incomplete\n* `incomplete_expired` - Incomplete Expired\n* `past_due` - Past due\n* `trialing` - Trialing\n* `unpaid` - Unpaid"
+                    },
+                    "trial_end": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "description": "If the subscription has a trial, the end of that trial."
+                    },
+                    "trial_start": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "description": "If the subscription has a trial, the beginning of that trial."
+                    },
+                    "djstripe_owner_account": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The Stripe Account this object belongs to."
+                    },
+                    "customer": {
+                        "type": "string",
+                        "description": "The customer associated with this subscription."
+                    },
+                    "default_payment_method": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The default payment method for the subscription. It must belong to the customer associated with the subscription. If not set, invoices will use the default payment method in the customer's invoice settings."
+                    },
+                    "default_source": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The default payment source for the subscription. It must belong to the customer associated with the subscription and be in a chargeable state. If not set, defaults to the customer's default source."
+                    },
+                    "latest_invoice": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "The most recent invoice this subscription has generated."
+                    },
+                    "pending_setup_intent": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "We can use this SetupIntent to collect user authentication when creating a subscription without immediate payment or updating a subscription's payment method, allowing you to optimize for off-session payments."
+                    },
+                    "plan": {
+                        "type": "integer",
+                        "title": "ID",
+                        "nullable": true,
+                        "description": "The plan associated with this subscription. This value will be `null` for multi-plan subscriptions"
+                    },
+                    "default_tax_rates": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "title": "ID"
+                        },
+                        "description": "The tax rates that will apply to any subscription item that does not have tax_rates set. Invoices created will have their default_tax_rates populated from the subscription."
+                    }
+                },
+                "required": [
+                    "application_fee_percent",
+                    "collection_method",
+                    "current_period_end",
+                    "current_period_start",
+                    "customer",
+                    "djstripe_created",
+                    "djstripe_updated",
+                    "id",
+                    "items",
+                    "schedule",
+                    "status"
+                ]
+            },
+            "SubscriptionItem": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "price": {
+                        "$ref": "#/components/schemas/PriceWithProduct"
+                    },
+                    "quantity": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0,
+                        "nullable": true,
+                        "description": "The quantity of the plan to which the customer should be subscribed."
+                    }
+                },
+                "required": [
+                    "id",
+                    "price"
+                ]
+            },
+            "SubscriptionSchedule": {
+                "type": "object",
+                "properties": {
+                    "phases": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "readOnly": true
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SubscriptionScheduleStatusEnum"
+                            }
+                        ],
+                        "readOnly": true,
+                        "description": "The present status of the subscription schedule. Possible values are `not_started`, `active`, `completed`, `released`, and `canceled`.\n\n* `active` - Active\n* `canceled` - Canceled\n* `completed` - Completed\n* `not_started` - Not started\n* `released` - Released"
+                    }
+                },
+                "required": [
+                    "phases",
+                    "status"
+                ]
+            },
+            "SubscriptionScheduleStatusEnum": {
+                "enum": [
+                    "active",
+                    "canceled",
+                    "completed",
+                    "not_started",
+                    "released"
+                ],
+                "type": "string",
+                "description": "* `active` - Active\n* `canceled` - Canceled\n* `completed` - Completed\n* `not_started` - Not started\n* `released` - Released"
+            },
+            "SubscriptionStatusEnum": {
+                "enum": [
+                    "active",
+                    "canceled",
+                    "incomplete",
+                    "incomplete_expired",
+                    "past_due",
+                    "trialing",
+                    "unpaid"
+                ],
+                "type": "string",
+                "description": "* `active` - Active\n* `canceled` - Canceled\n* `incomplete` - Incomplete\n* `incomplete_expired` - Incomplete Expired\n* `past_due` - Past due\n* `trialing` - Trialing\n* `unpaid` - Unpaid"
             },
             "TagListResponse": {
                 "type": "object",
@@ -19084,5 +20282,49 @@
                 "description": "Token-based authentication. Use the format: `Token <your-token>`"
             }
         }
-    }
+    },
+    "tags": [
+        {
+            "name": "Manage projects and library content",
+            "description": [
+                "Create, organize, and manage projects, assets (projects/library content), and tags"
+            ]
+        },
+        {
+            "name": "Form content",
+            "description": "Export and preview assets (projects/library content) in different formats"
+        },
+        {
+            "name": "Survey data",
+            "description": "View, edit, validate, export, and report collected data"
+        },
+        {
+            "name": "Survey data - Rest Services",
+            "description": "Configure and manage webhooks for survey data integrations"
+        },
+        {
+            "name": "Manage permissions",
+            "description": "Assign, clone, and bulk-manage project and asset (projects/library content) permissions"
+        },
+        {
+            "name": "Logging",
+            "description": "Project history logs, access logs, Rest Service hook logs"
+        },
+        {
+            "name": "Library collections",
+            "description": "Subscribe to and manage shared library collections"
+        },
+        {
+            "name": "Audit logs (superusers)",
+            "description": "View server-wide logs"
+        },
+        {
+            "name": "User / team / organization / usage",
+            "description": "Manage users, orgs, invites, roles, and usage tracking"
+        },
+        {
+            "name": "Other",
+            "description": "Languages, available permissions, other"
+        }
+    ]
 }

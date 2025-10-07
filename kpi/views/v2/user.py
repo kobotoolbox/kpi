@@ -20,7 +20,7 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
 
 
 @extend_schema(
-    tags=['Users'],
+    tags=['User / team / organization / usage'],
 )
 @extend_schema_view(
     list=extend_schema(
@@ -57,11 +57,11 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     Documentation:
     - docs/api/v2/users/list.md
-    - docs/api/v2/organizations/retrieve.md
-    - docs/api/v2/organizations/migrate.md
+    - docs/api/v2/users/retrieve.md
+    - docs/api/v2/users/migrate.md
     """
 
-    queryset = User.objects.all()
+    queryset = User.objects.filter(is_active=True)
     filter_backends = (SearchFilter,)
     serializer_class = UserSerializer
     lookup_field = 'username'

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 
 import { UsageLimitTypes } from '#/account/stripe.types'
-import { useServiceUsageQuery } from '#/account/usage/useServiceUsageQuery'
+import { useOrganizationsServiceUsageSummary } from '#/account/usage/useOrganizationsServiceUsageSummary'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import TextBox from '#/components/common/textBox'
@@ -44,14 +44,14 @@ export default function TransferProjects(props: TransferProjectsProps) {
     submitPending: false,
   })
 
-  const { data: serviceUsageData } = useServiceUsageQuery()
+  const { data: serviceUsageData } = useOrganizationsServiceUsageSummary()
 
   const isTransferBlocked = useMemo(
     () =>
       envStore.data.usage_limit_enforcement &&
-      (!serviceUsageData ||
-        serviceUsageData.limitExceedList.includes(UsageLimitTypes.STORAGE) ||
-        serviceUsageData.limitExceedList.includes(UsageLimitTypes.SUBMISSION)),
+      (serviceUsageData?.status !== 200 ||
+        serviceUsageData.data.limitExceedList.includes(UsageLimitTypes.STORAGE) ||
+        serviceUsageData.data.limitExceedList.includes(UsageLimitTypes.SUBMISSION)),
     [serviceUsageData],
   )
 

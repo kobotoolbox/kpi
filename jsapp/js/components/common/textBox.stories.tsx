@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { IconNames } from '#/k-icons'
+import { recordKeys } from '#/utils'
 import TextBox from './textBox'
 import type { TextBoxSize, TextBoxType } from './textBox'
 
@@ -24,12 +25,12 @@ const meta: Meta<typeof TextBox> = {
     },
     startIcon: {
       description: 'Appears inside the input, on the beginning.',
-      options: Object.keys(IconNames),
+      options: recordKeys(IconNames),
       control: 'select',
     },
     endIcon: {
       description: 'Appears inside the input, on the end. Is replaced by "alert" icon if there are any errors.',
-      options: Object.keys(IconNames),
+      options: recordKeys(IconNames),
       control: 'select',
     },
     value: { control: 'text' },

@@ -24,6 +24,7 @@ interface CheckboxProps {
   label?: React.ReactNode
   /** Only needed if checkbox is in submittable form. */
   name?: string
+  className?: string
 }
 
 /** A checkbox generic component. */
@@ -56,7 +57,7 @@ class Checkbox extends React.Component<CheckboxProps, {}> {
     }
 
     return (
-      <bem.Checkbox m={wrapperModifiers}>
+      <bem.Checkbox m={wrapperModifiers} className={this.props.className}>
         {/*
          * The wrapper element is `<label>` to make everything inside of it
          * clickable, so we don't need `id`s.

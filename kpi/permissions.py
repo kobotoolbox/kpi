@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated as DRFIsAuthenticated
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_METADATA_ASSET,
+    PERM_CHANGE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
@@ -122,6 +123,13 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
         return True
 
 
+def user_can_modify_advanced_features(asset, user, request):
+    if list(request.data.keys()) != ['advanced_features']:
+        return False
+    if asset.has_perm(user, PERM_CHANGE_SUBMISSIONS):
+        return True
+
+
 class AssetPermission(
     ValidationPasswordPermissionMixin, permissions.DjangoObjectPermissions
 ):
@@ -148,8 +156,9 @@ class AssetPermission(
         method = request._request.method
         if (
             method == 'PATCH'
-            and user_has_project_view_asset_perm(
-                obj, user, PERM_CHANGE_METADATA_ASSET
+            and (
+                user_has_project_view_asset_perm(obj, user, PERM_CHANGE_METADATA_ASSET)
+                or user_can_modify_advanced_features(obj, user, request)
             )
         ) or (
             method == 'GET'
@@ -281,6 +290,17 @@ class AssetSnapshotPermission(AssetPermission):
                     'app_label': app_label,
                     'model_name': model_name,
                 }
+
+    def has_permission(self, request, view):
+        self.validate_password(request)
+
+        # Allow anonymous users to send POST requests to preview public forms.
+        # Object-level access control is handled by the serializer, ensuring
+        # that only public forms can be accessed or previewed.
+        if request.method == 'POST' and view.action == 'create':
+            return True
+
+        return super().has_permission(request, view)
 
     def has_object_permission(self, request, view, obj):
         if view.action == 'submission' or (

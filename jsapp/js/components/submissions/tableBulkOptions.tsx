@@ -22,7 +22,7 @@ import { MODAL_TYPES } from '#/constants'
 import type { AssetResponse, BulkSubmissionsRequest, SubmissionResponse } from '#/dataInterface'
 import pageState from '#/pageState.store'
 import PopoverMenu from '#/popoverMenu'
-import { renderCheckbox } from '#/utils'
+import { recordKeys, renderCheckbox } from '#/utils'
 import { buildFilterQuery } from './tableUtils'
 
 interface TableBulkOptionsProps {
@@ -84,7 +84,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
       }
       selectedCount = this.props.totalRowsCount
     } else {
-      requestObj.submission_ids = Object.keys(this.props.selectedRows)
+      requestObj.submission_ids = recordKeys(this.props.selectedRows)
       requestObj['validation_status.uid'] = newStatus as ValidationStatusName
       selectedCount = requestObj.submission_ids.length
     }
@@ -124,7 +124,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
       }
       selectedCount = this.props.totalRowsCount
     } else {
-      requestObj.submission_ids = Object.keys(this.props.selectedRows)
+      requestObj.submission_ids = recordKeys(this.props.selectedRows)
       selectedCount = requestObj.submission_ids.length
     }
     let msg
@@ -175,7 +175,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
       asset: this.props.asset,
       data: this.props.data,
       totalSubmissions: this.props.totalRowsCount,
-      selectedSubmissions: Object.keys(this.props.selectedRows),
+      selectedSubmissions: recordKeys(this.props.selectedRows),
     })
   }
 
@@ -183,7 +183,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
   getSelectedSubmissionsWithAttachments() {
     return this.props.data.filter(
       (submission) =>
-        Object.keys(this.props.selectedRows).includes(submission._id.toString()) &&
+        recordKeys(this.props.selectedRows).includes(submission._id.toString()) &&
         submission._attachments.filter((attachment) => !attachment.is_deleted).length > 0,
     )
   }
@@ -194,7 +194,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
   }
 
   render() {
-    let selectedCount = Object.keys(this.props.selectedRows).length
+    let selectedCount = recordKeys(this.props.selectedRows).length
     if (this.props.selectedAllPages) {
       selectedCount = this.props.totalRowsCount
     }
@@ -202,7 +202,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
 
     const maxPageRes = Math.min(this.props.pageSize, this.props.data.length)
     const isSelectAllAvailable =
-      Object.keys(this.props.selectedRows).length === maxPageRes && this.props.totalRowsCount > this.props.pageSize
+      recordKeys(this.props.selectedRows).length === maxPageRes && this.props.totalRowsCount > this.props.pageSize
 
     return (
       <bem.TableMeta__bulkOptions>
@@ -223,7 +223,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
           />
         )}
 
-        {Object.keys(this.props.selectedRows).length > 0 && (
+        {recordKeys(this.props.selectedRows).length > 0 && (
           <PopoverMenu
             type='bulkUpdate-menu'
             triggerLabel={<Button type='secondary' size='s' label={t('Change status')} endIcon='angle-down' />}
@@ -238,7 +238,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
           </PopoverMenu>
         )}
 
-        {Object.keys(this.props.selectedRows).length > 0 &&
+        {recordKeys(this.props.selectedRows).length > 0 &&
           this.props.asset.deployment__active &&
           (userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
             userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)) && (
@@ -253,7 +253,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
             />
           )}
 
-        {Object.keys(this.props.selectedRows).length > 0 &&
+        {recordKeys(this.props.selectedRows).length > 0 &&
           (userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
             userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset)) && (
             <Button
@@ -266,7 +266,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
             />
           )}
 
-        {Object.keys(this.props.selectedRows).length > 0 &&
+        {recordKeys(this.props.selectedRows).length > 0 &&
           (userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
             userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)) &&
           this.getSelectedSubmissionsWithAttachments().length > 0 && (
