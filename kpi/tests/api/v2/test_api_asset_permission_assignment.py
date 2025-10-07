@@ -1,8 +1,8 @@
 from copy import deepcopy
 
+from ddt import data, ddt, unpack
 from django.contrib.auth.models import Permission
 from django.urls import reverse
-from ddt import data, ddt, unpack
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -469,22 +469,59 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
 
     @data(
         # Anonymous cannot delete permissions at all
-        ('anonymous', 'anotheruser', [], status.HTTP_404_NOT_FOUND,),
+        (
+            'anonymous',
+            'anotheruser',
+            [],
+            status.HTTP_404_NOT_FOUND,
+        ),
         # Cannot delete permissions if no username is specified in payload
-        ('someuser', None, [PERM_MANAGE_ASSET], status.HTTP_400_BAD_REQUEST,),
+        (
+            'someuser',
+            None,
+            [PERM_MANAGE_ASSET],
+            status.HTTP_400_BAD_REQUEST,
+        ),
         # User can remove others if they manage the asset
-        ('someuser', 'anotheruser', [PERM_MANAGE_ASSET], status.HTTP_204_NO_CONTENT,),
+        (
+            'someuser',
+            'anotheruser',
+            [PERM_MANAGE_ASSET],
+            status.HTTP_204_NO_CONTENT,
+        ),
         # User can remove themselves
-        ('anotheruser', 'anotheruser', [PERM_VIEW_ASSET, PERM_ADD_SUBMISSIONS], status.HTTP_204_NO_CONTENT,),
+        (
+            'anotheruser',
+            'anotheruser',
+            [PERM_VIEW_ASSET, PERM_ADD_SUBMISSIONS],
+            status.HTTP_204_NO_CONTENT,
+        ),
         # User cannot remove others if they do not manage the asset
-        ('anotheruser', 'someuser', [PERM_VIEW_ASSET], status.HTTP_403_FORBIDDEN,),
+        (
+            'anotheruser',
+            'someuser',
+            [PERM_VIEW_ASSET],
+            status.HTTP_403_FORBIDDEN,
+        ),
         # Owner cannot remove themselves
-        ('owner', 'owner', [], status.HTTP_409_CONFLICT,),
+        (
+            'owner',
+            'owner',
+            [],
+            status.HTTP_409_CONFLICT,
+        ),
         # Owner can remove others
-        ('owner', 'anotheruser', [], status.HTTP_204_NO_CONTENT,),
+        (
+            'owner',
+            'anotheruser',
+            [],
+            status.HTTP_204_NO_CONTENT,
+        ),
     )
     @unpack
-    def test_remove_all_permissions(self, request_username, username, perms, expected_status_code):
+    def test_remove_all_permissions(
+        self, request_username, username, perms, expected_status_code
+    ):
 
         self.client.logout()
 
