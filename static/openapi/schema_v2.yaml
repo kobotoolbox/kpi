@@ -2130,7 +2130,7 @@ paths:
         * Where: `number_of_submissions` is the number of items that was deleted
 
 
-        ### !! Due to limitations with DRF-Spectacular current version not fully supporting AOS 3.1, DELETE actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint. !!
+        _Due to limitations with DRF-Spectacular current version, `DELETE` actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint._
       parameters:
       - in: path
         name: parent_lookup_asset
@@ -2247,7 +2247,7 @@ paths:
         }
         ```
 
-        ### !! Due to limitations with DRF-Spectacular current version not fully supporting AOS 3.1, DELETE actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint. !!
+        _Due to limitations with DRF-Spectacular current version, `DELETE` actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint._
       parameters:
       - in: path
         name: parent_lookup_asset
@@ -4532,54 +4532,6 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/delete-all/:
-    delete:
-      operationId: api_v2_assets_permission_assignments_delete_all_destroy
-      description: |
-        ## Remove all permission assignments
-      parameters:
-      - in: path
-        name: parent_lookup_asset
-        schema:
-          type: string
-        description: UID of the parent asset
-        required: true
-      - in: path
-        name: uid
-        schema:
-          type: string
-        description: UID of the permission
-        required: true
-      tags:
-      - Manage permissions
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '204':
-          description: No response body
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                AccessDenied:
-                  value:
-                    detail: You do not have permission to perform this action.
-                  summary: Access Denied
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
   /api/v2/assets/{parent_lookup_asset}/permission-assignments/bulk/:
     post:
       operationId: api_v2_assets_permission_assignments_bulk_create
@@ -4616,6 +4568,73 @@ paths:
                 items:
                   $ref: '#/components/schemas/PermissionAssignmentResponse'
           description: null
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                AccessDenied:
+                  value:
+                    detail: You do not have permission to perform this action.
+                  summary: Access Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
+    delete:
+      operationId: api_v2_assets_permission_assignments_bulk_destroy
+      description: |
+        ## Remove all permission assignments
+
+        ⚠️ **Warning**
+        This endpoint currently supports deleting **only the user whose username is provided as a parameter**.
+        Deletion of other accounts is not yet supported.
+
+        **Payload**
+        ```json
+        {
+           "username": "bob"
+        }
+        ```
+
+        _Due to limitations with DRF-Spectacular current version, `DELETE` actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint._
+      parameters:
+      - in: path
+        name: parent_lookup_asset
+        schema:
+          type: string
+        description: UID of the parent asset
+        required: true
+      tags:
+      - Manage permissions
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '204':
+          description: No response body
         '403':
           content:
             application/json:
@@ -8402,6 +8421,8 @@ paths:
       operationId: api_v2_users_list
       description: |
         ## List users
+
+        ⚠️ _Only available to superusers_
       parameters:
       - name: limit
         required: false

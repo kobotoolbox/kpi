@@ -392,7 +392,7 @@ class ProjectHistoryLog(AuditLog):
             'asset-export-list': cls._create_from_export_request,
             'submissionexporttask-list': cls._create_from_v1_export,
             'asset-bulk': cls._create_from_bulk_request,
-            'asset-permission-assignment-bulk-assignments': cls._create_from_permissions_request,  # noqa
+            'asset-permission-assignment-bulk-actions': cls._create_from_permissions_request,  # noqa
             'asset-permission-assignment-detail': cls._create_from_permissions_request,
             'asset-permission-assignment-list': cls._create_from_permissions_request,
             'asset-permission-assignment-clone': cls._create_from_clone_permission_request,  # noqa

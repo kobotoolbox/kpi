@@ -1,8 +1,8 @@
-# coding: utf-8
 from copy import deepcopy
 
 from django.contrib.auth.models import Permission
 from django.urls import reverse
+from ddt import data, ddt, unpack
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -30,11 +30,11 @@ class BaseApiAssetPermissionTestCase(PermissionAssignmentTestCaseMixin, KpiTestC
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
-        self.admin = User.objects.get(username='adminuser')
+        self.owner = User.objects.create_user(username='owner', password='owner')
         self.someuser = User.objects.get(username='someuser')
         self.anotheruser = User.objects.get(username='anotheruser')
 
-        self.client.login(username='adminuser', password='pass')
+        self.client.login(username='owner', password='owner')
         self.asset = self.create_asset('An asset to be shared')
 
     def _grant_perm_as_logged_in_user(self, username, codename):
@@ -59,7 +59,7 @@ class BaseApiAssetPermissionTestCase(PermissionAssignmentTestCaseMixin, KpiTestC
 
 class ApiAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
     def test_owner_can_give_permissions(self):
-        # Current user is `self.admin`
+        # Current user is `self.owner`
         response = self._grant_perm_as_logged_in_user(
             'someuser', PERM_VIEW_ASSET
         )
@@ -101,6 +101,15 @@ class ApiAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_inactive_users_cannot_receive_permissions(self):
+        self._grant_perm_as_logged_in_user('someuser', PERM_MANAGE_ASSET)
+        self.assertTrue(self.asset.has_perm(self.someuser, PERM_MANAGE_ASSET))
+        self.client.login(username='someuser', password='someuser')
+        User.objects.filter(username='anotheruser').update(is_active=False)
+
+        response = self._grant_perm_as_logged_in_user('anotheruser', PERM_VIEW_ASSET)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
     def test_submission_assignments_ignored_for_non_survey_assets(self):
         self.asset.asset_type = ASSET_TYPE_TEMPLATE
         self.asset.save()
@@ -140,11 +149,11 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
         results = permission_list_response.data
 
         # `anotheruser` must see only permissions assigned to themselves, the
-        # owner (`self.admin`) and the anonymous user. Permissions assigned to
+        # owner (`self.owner`) and the anonymous user. Permissions assigned to
         # `someuser` must not appear
         assignable_perms = self.asset.get_assignable_permissions()
         expected_perms = []
-        for user in [self.admin, self.anotheruser, get_anonymous_user()]:
+        for user in [self.owner, self.anotheruser, get_anonymous_user()]:
             user_perms = self.asset.get_perms(user)
             expected_perms.extend(
                 (user.username, perm)
@@ -248,7 +257,7 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
         assignable_perms = self.asset.get_assignable_permissions()
         expected_perms = []
         for user in [
-            self.admin,
+            self.owner,
             self.someuser,
             # Permissions assigned to self.anotheruser must not appear
             get_anonymous_user(),
@@ -285,16 +294,16 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
         self.assertEqual(
             permission_list_response.status_code, status.HTTP_200_OK
         )
-        admin = self.admin
-        admin_perms = self.asset.get_perms(admin)
+        owner = self.owner
+        owner_perms = self.asset.get_perms(owner)
         anon = get_anonymous_user()
         anon_perms = self.asset.get_perms(anon)
         assignable_perms = self.asset.get_assignable_permissions()
         results = permission_list_response.data
 
-        # Get admin permissions.
+        # Get owner's permissions.
         expected_perms = []
-        for user, perms in [(anon, anon_perms), (admin, admin_perms)]:
+        for user, perms in [(anon, anon_perms), (owner, owner_perms)]:
             for perm in perms:
                 if perm in assignable_perms:
                     expected_perms.append((user.username, perm))
@@ -317,7 +326,7 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
         )
         self.assertEqual(expected_perms, obj_perms)
 
-
+@ddt
 class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
     def _assign_perms_as_logged_in_user(self, assignments):
         """
@@ -326,7 +335,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         """
         url = reverse(
             # this view name is a bit... bulky
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
 
@@ -378,9 +387,18 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         self._grant_perm_as_logged_in_user('someuser', PERM_MANAGE_ASSET)
         self.client.login(username='someuser', password='someuser')
         response = self._assign_perms_as_logged_in_user(
-            [('adminuser', PERM_VIEW_ASSET), ('adminuser', PERM_CHANGE_ASSET)]
+            [('owner', PERM_VIEW_ASSET), ('owner', PERM_CHANGE_ASSET)]
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_inactive_users_cannot_receive_permissions(self):
+        self._grant_perm_as_logged_in_user('someuser', PERM_MANAGE_ASSET)
+        self.client.login(username='someuser', password='someuser')
+        User.objects.filter(username='anotheruser').update(is_active=False)
+        response = self._assign_perms_as_logged_in_user(
+            [('anotheruser', PERM_VIEW_ASSET)]
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_owner_can_assign_permissions(self):
         permission_list_response = self.client.get(
@@ -417,14 +435,14 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             ),
             sorted(
                 [
-                    ('adminuser', PERM_VIEW_ASSET),
-                    ('adminuser', PERM_CHANGE_ASSET),
-                    ('adminuser', PERM_MANAGE_ASSET),
-                    ('adminuser', PERM_ADD_SUBMISSIONS),
-                    ('adminuser', PERM_DELETE_SUBMISSIONS),
-                    ('adminuser', PERM_VIEW_SUBMISSIONS),
-                    ('adminuser', PERM_CHANGE_SUBMISSIONS),
-                    ('adminuser', PERM_VALIDATE_SUBMISSIONS),
+                    ('owner', PERM_VIEW_ASSET),
+                    ('owner', PERM_CHANGE_ASSET),
+                    ('owner', PERM_MANAGE_ASSET),
+                    ('owner', PERM_ADD_SUBMISSIONS),
+                    ('owner', PERM_DELETE_SUBMISSIONS),
+                    ('owner', PERM_VIEW_SUBMISSIONS),
+                    ('owner', PERM_CHANGE_SUBMISSIONS),
+                    ('owner', PERM_VALIDATE_SUBMISSIONS),
                     ('someuser', PERM_VIEW_ASSET),
                     ('anotheruser', PERM_VIEW_ASSET),
                     ('anotheruser', PERM_CHANGE_ASSET),
@@ -449,26 +467,50 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(self.asset.has_perm(self.someuser, PERM_CHANGE_ASSET))
 
-    def test_remove_all_permissions(self):
-        response = self._assign_perms_as_logged_in_user(
-            [
-                ('someuser', PERM_MANAGE_ASSET),
-            ]
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        all_obj_perms = self.asset.permissions.all()
-        perm_view_asset = None
-        for obj in all_obj_perms:
-            if obj.permission.codename == PERM_VIEW_ASSET:
-                perm_view_asset = obj
+    @data(
+        # Anonymous cannot delete permissions at all
+        ('anonymous', 'anotheruser', [], status.HTTP_404_NOT_FOUND,),
+        # Cannot delete permissions if no username is specified in payload
+        ('someuser', None, [PERM_MANAGE_ASSET], status.HTTP_400_BAD_REQUEST,),
+        # User can remove others if they manage the asset
+        ('someuser', 'anotheruser', [PERM_MANAGE_ASSET], status.HTTP_204_NO_CONTENT,),
+        # User can remove themselves
+        ('anotheruser', 'anotheruser', [PERM_VIEW_ASSET, PERM_ADD_SUBMISSIONS], status.HTTP_204_NO_CONTENT,),
+        # User cannot remove others if they do not manage the asset
+        ('anotheruser', 'someuser', [PERM_VIEW_ASSET], status.HTTP_403_FORBIDDEN,),
+        # Owner cannot remove themselves
+        ('owner', 'owner', [], status.HTTP_409_CONFLICT,),
+        # Owner can remove others
+        ('owner', 'anotheruser', [], status.HTTP_204_NO_CONTENT,),
+    )
+    @unpack
+    def test_remove_all_permissions(self, request_username, username, perms, expected_status_code):
+
+        self.client.logout()
+
+        if username:
+            dest_user = User.objects.get(username=username)
+            self.asset.assign_perm(dest_user, PERM_VIEW_ASSET)
+
+        if request_username != 'anonymous':
+            request_user = User.objects.get(username=request_username)
+            for perm in perms:
+                self.asset.assign_perm(request_user, perm)
+
+            self.client.force_login(request_user)
+
+        payload = {'username': username}
+
         url = reverse(
-            self._get_endpoint('asset-permission-assignment-delete-all'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'uid': perm_view_asset.uid},
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
+            kwargs={'parent_lookup_asset': self.asset.uid},
         )
-        self.client.login(username='someuser', password='someuser')
-        self.client.delete(url)
-        remaining_perms = self.asset.permissions.filter(user__username='someuser')
-        assert len(remaining_perms) == 0
+        response = self.client.delete(url, data=payload, format='json')
+        assert response.status_code == expected_status_code
+
+        if expected_status_code == status.HTTP_204_NO_CONTENT:
+            remaining_perms = self.asset.permissions.filter(user__username=username)
+            assert len(remaining_perms) == 0
 
     def test_viewers_cannot_give_permissions(self):
         self.asset.assign_perm(self.someuser, PERM_VIEW_ASSET)
@@ -620,7 +662,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             assignments
         )
         bulk_endpoint = reverse(
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
@@ -665,7 +707,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             assignments
         )
         bulk_endpoint = reverse(
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
         # Perform bulk assignment twice to check permission-difference
@@ -712,7 +754,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             good_assignments
         )
         bulk_endpoint = reverse(
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
@@ -753,7 +795,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
 
         bulk_endpoint = reverse(
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
@@ -795,7 +837,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
 
         bulk_endpoint = reverse(
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
@@ -856,7 +898,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
 
         bulk_endpoint = reverse(
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
@@ -927,7 +969,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
 
         bulk_endpoint = reverse(
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
@@ -991,7 +1033,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
 
         bulk_endpoint = reverse(
-            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
             kwargs={'parent_lookup_asset': self.asset.uid},
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
