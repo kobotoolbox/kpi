@@ -5,22 +5,15 @@ import { getOrganizationsRetrieveUrl } from '#/api/react-query/user-team-organiz
 /**
  * Mock API for organization endpoint. Use it in Storybook tests in `parameters.msw.handlers[]`.
  *
- * This will mock a response to given `organizationId`. Will assume user is the owner, and `is_mmo` is "configurable"
- * with `storybookTestId` HACK solution.
+ * Property `id` required, because it's used to generate the URL and populate other response fields that depend on it.
  */
-const organizationMock = (organizationId: string) =>
-  http.get<never, never, OrganizationResponse>(getOrganizationsRetrieveUrl(organizationId), () => {
-    // In case of `DeleteAccountBanner` component, we want to test the UI with user that owns an MMO organization.
-    const storybookTestId = sessionStorage.getItem('storybookTestId')
-    if (storybookTestId === 'UserOwnsMMO') {
-      return HttpResponse.json(organizationReponse(organizationId, true))
-    }
-
-    return HttpResponse.json(organizationReponse(organizationId, false))
+const organizationMock = (override: Partial<OrganizationResponse> & Pick<OrganizationResponse, 'id'>) =>
+  http.get<never, never, OrganizationResponse>(getOrganizationsRetrieveUrl(override.id), () => {
+    return HttpResponse.json({...organizationReponse(override.id), ...override})
   })
 export default organizationMock
 
-const organizationReponse = (organizationId: string, isMMO: boolean): OrganizationResponse => ({
+const organizationReponse = (organizationId: string): OrganizationResponse => ({
   id: organizationId,
   url: `http://kf.kobo.local/api/v2/organizations/${organizationId}/`,
   name: 'mocked organization',
@@ -29,7 +22,7 @@ const organizationReponse = (organizationId: string, isMMO: boolean): Organizati
   created: '2025-06-10T10:11:40.822688Z',
   modified: '2025-08-04T12:10:49.395459Z',
   is_owner: true,
-  is_mmo: isMMO,
+  is_mmo: false,
   request_user_role: 'owner',
   members: `http://kf.kobo.local/api/v2/organizations/${organizationId}/members/`,
   assets: `http://kf.kobo.local/api/v2/organizations/${organizationId}/assets/`,
