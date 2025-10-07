@@ -16,7 +16,6 @@ const StorybookTestIdSessionDecorator: DecoratorFunction = (Story, context) => {
     } else {
       sessionStorage.removeItem('storybookTestId')
     }
-    // No cleanup needed for sessionStorage
   }, [context.args.storybookTestId])
   return <Story />
 }
