@@ -5,8 +5,8 @@ import { getOrganizationsRetrieveUrl } from '#/api/react-query/user-team-organiz
 /**
  * Mock API for organization endpoint. Use it in Storybook tests in `parameters.msw.handlers[]`.
  *
- * This will mock a response to given `organizationId`. Will assume user is the owner, but `is_mmo` is configurable with
- * a parameter.
+ * This will mock a response to given `organizationId`. Will assume user is the owner, and `is_mmo` is "configurable"
+ * with `storybookTestId` HACK solution.
  */
 const organizationMock = (organizationId: string) =>
   http.get<never, never, OrganizationResponse>(getOrganizationsRetrieveUrl(organizationId), () => {
