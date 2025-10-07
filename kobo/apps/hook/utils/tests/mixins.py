@@ -99,8 +99,8 @@ class HookTestCaseMixin:
         url = reverse(
             'hook-log-list',
             kwargs={
-                'parent_lookup_asset': self.hook.asset.uid,
-                'parent_lookup_hook': self.hook.uid,
+                'uid_asset': self.hook.asset.uid,
+                'uid_hook': self.hook.uid,
             },
         )
 

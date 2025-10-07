@@ -612,9 +612,7 @@ class ApiProjectHistoryLogsTestCase(BaseTestCase, ProjectHistoryLogTestCaseMixin
     def setUp(self):
         super().setUp()
         self.asset = Asset.objects.get(pk=1)
-        self.url = reverse(
-            'api_v2:history-list', kwargs={'parent_lookup_asset': self.asset.uid}
-        )
+        self.url = reverse('api_v2:history-list', kwargs={'uid_asset': self.asset.uid})
         self.user = User.objects.get(username='someuser')
         self.asset.assign_perm(user_obj=self.user, perm=PERM_MANAGE_ASSET)
         self.default_metadata = {
@@ -762,7 +760,6 @@ class ApiAllProjectHistoryLogsTestCase(
         )
         self.assertEqual(
             response.data['results'][1]['metadata']['asset_uid'], asset1.uid
-
         )
 
     def test_export_creates_task_for_all_assets(self):

@@ -170,7 +170,7 @@ def resolve_url_to_asset(item_path):
         # again after removing the prefix
         match = resolve(remove_string_prefix(item_path, settings.KPI_PREFIX))
 
-    uid = match.kwargs.get('uid')
+    uid = match.kwargs.get('uid_asset')
     return Asset.objects.get(uid=uid)
 
 class DjangoModelABCMetaclass(type(models.Model), type(ABC)):

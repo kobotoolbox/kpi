@@ -169,7 +169,7 @@ class AssetViewSet(AssetViewSetV2):
         detail=True,
         methods=['PATCH'],
     )
-    def permissions(self, request, uid):
+    def permissions(self, request, uid_asset):
         target_asset = self.get_object()
         source_asset = get_object_or_404(
             Asset, uid=request.data.get(CLONE_ARG_NAME)

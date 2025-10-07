@@ -57,7 +57,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     tags=['Manage permissions'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -111,7 +111,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='uid_permission_assignment',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -136,7 +136,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='uid_permission_assignment',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -158,13 +158,13 @@ class AssetPermissionAssignmentViewSet(
     Viewset for managing the assignment permission for current project
 
     Available actions:
-    - bulk            → DELETE /api/v2/assets/{parent_lookup_asset}/permission-assignments/bulk/  # noqa
-    - bulk            → POST /api/v2/assets/{parent_lookup_asset}/permission-assignments/bulk/  # noqa
-    - clone           → PATCH /api/v2/assets/{parent_lookup_asset}/permission-assignments/clone/  # noqa
-    - create          → DELETE /api/v2/assets/{parent_lookup_asset}/permission-assignments/  # noqa
-    - delete          → POST /api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/  # noqa
-    - list            → GET /api/v2/assets/{parent_lookup_asset}/permission-assignments/
-    - retrieve        → GET /api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/  # noqa
+    - bulk            → DELETE /api/v2/assets/{uid_asset}/permission-assignments/bulk/  # noqa
+    - bulk            → POST /api/v2/assets/{uid_asset}/permission-assignments/bulk/  # noqa
+    - clone           → PATCH /api/v2/assets/{uid_asset}/permission-assignments/clone/  # noqa
+    - create          → DELETE /api/v2/assets/{uid_asset}/permission-assignments/  # noqa
+    - delete          → POST /api/v2/assets/{uid_asset}/permission-assignments/{uid_permission_assignment}/  # noqa
+    - list            → GET /api/v2/assets/{uid_asset}/permission-assignments/
+    - retrieve        → GET /api/v2/assets/{uid_asset}/permission-assignments/{uid_permission_assignment}/  # noqa
 
     Documentation:
     - docs/api/v2/asset_permission_assignments/bulk_delete.md
@@ -179,6 +179,7 @@ class AssetPermissionAssignmentViewSet(
 
     model = ObjectPermission
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_permission_assignment'
     serializer_class = AssetPermissionAssignmentSerializer
     permission_classes = (AssetPermissionAssignmentPermission,)
     pagination_class = None

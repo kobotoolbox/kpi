@@ -11,7 +11,6 @@ from kpi.schema_extensions.v2.generic.schema import (
     USER_URL_SCHEMA,
 )
 from kpi.utils.schema_extensions.url_builder import build_url_type
-
 from .schema import ROLE_CHOICES_PAYLOAD_ENUM
 
 
@@ -21,8 +20,8 @@ class MemberUrlFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:organization-members-detail',
-            organization_id='orgR6zUBwMHop2mgGygtFd6c',
-            user__username='bob',
+            uid_organization='orgR6zUBwMHop2mgGygtFd6c',
+            username='bob',
         )
 
 

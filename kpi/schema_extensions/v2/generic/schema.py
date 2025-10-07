@@ -11,7 +11,9 @@ from kpi.utils.schema_extensions.url_builder import build_url_type
 Generic schemas to avoid redundancy
 """
 
-ASSET_URL_SCHEMA = build_url_type('api_v2:asset-detail', uid='a3C9wWefqZVkChNLKqqXVZ')
+ASSET_URL_SCHEMA = build_url_type(
+    'api_v2:asset-detail', uid_asset='a3C9wWefqZVkChNLKqqXVZ'
+)
 
 BALANCE_FIELDS_SCHEMA = build_object_type(
     properties={

@@ -72,7 +72,7 @@ class AssetSnapshotURLFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:assetsnapshot-detail',
-            uid='sEMPghTguZsxj4rn4s9dvS',
+            uid_asset_snapshot='sEMPghTguZsxj4rn4s9dvS',
         )
 
 
@@ -89,7 +89,7 @@ class AssetSnapshotURLPreviewFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:assetsnapshot-preview',
-            uid='sEMPghTguZsxj4rn4s9dvS',
+            uid_asset_snapshot='sEMPghTguZsxj4rn4s9dvS',
         )
 
 
@@ -99,5 +99,5 @@ class AssetSnapshotURLXMLFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:assetsnapshot-detail',
-            uid='sEMPghTguZsxj4rn4s9dvS',
+            uid_asset_snapshot='sEMPghTguZsxj4rn4s9dvS',
         )
