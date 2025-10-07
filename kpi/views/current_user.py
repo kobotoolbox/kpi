@@ -85,7 +85,7 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
         if confirm != user.extra_details.uid:
             raise serializers.ValidationError({'detail': t('Invalid confirmation')})
 
-        if user.assets.exclude(asset_type=ASSET_TYPE_EMPTY).count():
+        if user.assets.exclude(asset_type=ASSET_TYPE_EMPTY).exists():
             raise serializers.ValidationError(
                 {'detail': t('You still own projects. Delete or transfer them first.')}
             )
