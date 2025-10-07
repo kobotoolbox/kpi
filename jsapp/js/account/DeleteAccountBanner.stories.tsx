@@ -17,7 +17,7 @@ const meta: Meta<typeof DeleteAccountBanner> = {
   argTypes: {},
   parameters: {
     msw: {
-      handlers: [assetsMock, organizationMock(meMockResponse.organization!.uid)],
+      handlers: [meMockResponse, assetsMock, organizationMock(meMockResponse.organization!.uid)],
     },
     a11y: { test: 'todo' },
   },
