@@ -417,7 +417,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 
         # Annotate with the role based on organization ownership and admin status
         queryset = (
-            OrganizationUser.objects.filter(organization_id=organization_id)
+            OrganizationUser.objects.filter(
+                organization_id=organization_id, user__is_active=True
+            )
             .select_related('user__extra_details')
             .annotate(
                 role=Case(

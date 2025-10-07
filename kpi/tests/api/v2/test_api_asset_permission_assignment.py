@@ -169,6 +169,42 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
 
         self.assertEqual(expected_perms, obj_perms)
 
+    def test_inactive_users_are_not_in_the_list(self):
+        self.asset.assign_perm(self.someuser, PERM_MANAGE_ASSET)
+
+        self.client.login(username='someuser', password='someuser')
+        response = self.client.get(
+            self.get_asset_perm_assignment_list_url(self.asset), format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        results = response.data
+
+        usernames = set()
+        for assignment in results:
+            user = self.url_to_obj(assignment.get('user'))
+            usernames.add(user.username)
+
+        assert 'anotheruser' in usernames
+
+
+        # Make user inactive
+        User.objects.filter(username='anotheruser').update(is_active=False)
+
+        response = self.client.get(
+            self.get_asset_perm_assignment_list_url(self.asset), format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        results = response.data
+
+        usernames = set()
+        for assignment in results:
+            user = self.url_to_obj(assignment.get('user'))
+            usernames.add(user.username)
+
+        # anotheruser should not appear anymore
+        assert 'anotheruser' not in usernames
+
+
     def test_managers_see_all_assignments(self):
         manager = User(username='businessfish')
         manager.set_password('manage this!')

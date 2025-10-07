@@ -133,6 +133,25 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
                         result['user__username'], ['someuser', 'anotheruser', 'alice']
                     )
 
+    def test_inactive_user_do_not_show_up_members_list(self):
+
+        self.client.force_login(self.someuser)
+        response = self.client.get(self.list_url)
+
+        assert response.data['count'] == 3
+        usernames = [m['user__username'] for m in response.data['results']]
+        assert 'alice' in usernames
+
+        # Deactivate alice
+        self.alice.is_active = False
+        self.alice.save()
+
+        # Retry, alice should not be there anymore
+        response = self.client.get(self.list_url)
+        assert response.data['count'] == 2
+        usernames = [m['user__username'] for m in response.data['results']]
+        assert 'alice' not in usernames
+
     @data(
         ('owner', status.HTTP_200_OK),
         ('admin', status.HTTP_200_OK),
