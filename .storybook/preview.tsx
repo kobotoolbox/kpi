@@ -12,16 +12,7 @@ import meMock from '#/endpoints/me.mocks'
 import { themeKobo } from '../jsapp/js/theme'
 
 // Imported with `as` to avoid having confusing `initialize` (i.e. what does it initialize?)
-const worker = mswAddon.initialize(
-  {
-    serviceWorker: {
-      options: {
-        updateViaCache: 'none',
-      },
-    },
-  },
-  [meMock, environmentMock],
-)
+const worker = mswAddon.initialize({}, [meMock, environmentMock])
 
 const channel = addons.getChannel()
 
