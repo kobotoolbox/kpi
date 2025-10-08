@@ -22,7 +22,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.base import File
 from django.core.mail import mail_admins
-from django.db import IntegrityError, connection, transaction
+from django.db import IntegrityError, connections, transaction
 from django.db.models import Q
 from django.http import (
     Http404,
@@ -369,7 +369,7 @@ def get_instance_lock(submission_uuid: str, xform_id: int) -> bool:
 
     try:
         with kc_transaction_atomic():
-            cur = connection.cursor()
+            cur = connections[settings.OPENROSA_DB_ALIAS].cursor()
             cur.execute('SELECT pg_try_advisory_lock(%s::bigint);', (int_lock,))
             acquired = cur.fetchone()[0]
             yield acquired
@@ -786,15 +786,11 @@ def save_attachments(
     media_files: Generator[File],
 ) -> tuple[int, bool]:
     """
-    Return a tuple of two lists.
-    - The former is new attachments
-    - The latter is the replaced/soft-deleted attachments
-
-    `defer_counting=False` will set a Python-only attribute of the same name on
-    any *new* `Attachment` instances created. This will prevent
-    `update_xform_attachment_storage_bytes()` and friends from doing anything,
-    which avoids locking any rows in `logger_xform` or `main_userprofile`.
+    Return a tuple.
+    - The former is the total bytes of new attachments
+    - The latter is the boolean value of whether there are new attachments
     """
+
     new_attachments = []
     total_bytes = 0
     has_new_attachments = False

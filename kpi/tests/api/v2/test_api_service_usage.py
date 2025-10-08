@@ -2,6 +2,7 @@ from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.models import Asset
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
@@ -61,17 +62,19 @@ class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
     )
     def test_service_usages_with_projects_in_trash_bin(self):
         self.test_multiple_forms()
-        # Simulate trash bin
-        for asset in self.anotheruser.assets.all():
-            asset.pending_delete = True
-            asset.save(
-                update_fields=['pending_delete'],
-                create_version=False,
-                adjust_content=False,
-            )
-            if asset.has_deployment:
-                asset.deployment.xform.pending_delete = True
-                asset.deployment.xform.save(update_fields=['pending_delete'])
+        move_to_trash(
+            request_author=self.anotheruser,
+            objects_list=[
+                {
+                    'pk': asset.pk,
+                    'asset_uid': asset.uid,
+                    'asset_name': asset.name,
+                }
+                for asset in self.anotheruser.assets.all()
+            ],
+            grace_period=1,
+            trash_type='asset',
+        )
 
         # Retry endpoint
         url = reverse(self._get_endpoint('service-usage-list'))
