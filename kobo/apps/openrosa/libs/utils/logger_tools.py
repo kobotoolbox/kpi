@@ -325,7 +325,7 @@ def create_instance(
                 instance,
                 instance.xform.user_id,
                 attachment_storage_bytes=total_bytes,
-                num_of_submissions=1 if defer_counting else 0,
+                increase_num_of_submissions=defer_counting,
             )
 
             if settings.STRIPE_ENABLED:

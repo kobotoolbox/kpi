@@ -2,7 +2,7 @@ from django.db.models import F
 
 from kpi.deployment_backends.kc_access.utils import conditional_kc_transaction_atomic
 from ...main.models import UserProfile
-from ..models import XForm, Instance
+from ..models import Instance, XForm
 
 
 def delete_null_user_daily_counters(apps, *args):
@@ -61,11 +61,12 @@ def update_storage_counters(xform_id: int, user_id: int, total_bytes: int):
             attachment_storage_bytes=F('attachment_storage_bytes') + total_bytes
         )
 
+
 def update_user_counters(
     instance: Instance,
     user_id: int,
     attachment_storage_bytes: int = 0,
-    num_of_submissions: int = 0,
+    increase_num_of_submissions: bool = False,
 ):
     """
     Update submission and attachment counters for the XForm and its related user profile.
@@ -76,10 +77,8 @@ def update_user_counters(
     """
 
     fields_to_update = {}
-    if num_of_submissions:
-        fields_to_update['num_of_submissions'] = (
-            F('num_of_submissions') + num_of_submissions
-        )
+    if increase_num_of_submissions:
+        fields_to_update['num_of_submissions'] = F('num_of_submissions') + 1
         fields_to_update['last_submission_time'] = instance.date_created
 
     if attachment_storage_bytes:
@@ -97,7 +96,9 @@ def update_user_counters(
         # Update related UserProfile counters.
         # If no rows were affected, the profile does not exist yet.
         # Create it first, then re-run the update query.
-        if not UserProfile.objects.filter(user_id=user_id).update(**fields_to_update):
+        if fields_to_update and not UserProfile.objects.filter(user_id=user_id).update(
+            **fields_to_update
+        ):
             # This only triggers an extra query once per missing profile.
             # It avoids the redundant SELECT we previously used for every
             # new submission.
