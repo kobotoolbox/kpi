@@ -22,7 +22,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.base import File
 from django.core.mail import mail_admins
-from django.db import IntegrityError, connection, transaction
+from django.db import IntegrityError, connections, transaction
 from django.db.models import Q
 from django.http import (
     Http404,
@@ -64,9 +64,8 @@ from kobo.apps.openrosa.apps.logger.models.xform import XLSFormError
 from kobo.apps.openrosa.apps.logger.signals import (
     update_xform_daily_counter,
     update_xform_monthly_counter,
-    update_xform_submission_count,
 )
-from kobo.apps.openrosa.apps.logger.utils.counters import update_storage_counters
+from kobo.apps.openrosa.apps.logger.utils.counters import update_user_counters
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     XFormInstanceParser,
     clean_and_parse_xml,
@@ -256,10 +255,10 @@ def create_instance(
             else:
                 # Update Mongo via the related ParsedInstance
                 existing_instance.parsed_instance.save(asynchronous=False)
-                update_storage_counters(
-                    xform.pk,
-                    xform.user_id,
-                    total_bytes,
+                update_user_counters(
+                    existing_instance,
+                    existing_instance.xform.user_id,
+                    attachment_storage_bytes=total_bytes,
                 )
                 return existing_instance
         else:
@@ -295,13 +294,17 @@ def create_instance(
             if not created:
                 pi.save(asynchronous=False)
 
-            # Now that the slow tasks are complete, and we are (hopefully!) close to the
-            # end of the transaction, update the counters
-            update_storage_counters(
-                instance.xform_id, instance.xform.user_id, total_bytes
-            )
-
-            if getattr(instance, 'defer_counting', False):
+            # Now that the heavy tasks are done and we’re (hopefully) nearing the end
+            # of the transaction, update the counters.
+            #
+            # Keep the UserProfile update as the final step to ensure it happens
+            # right before the transaction is committed.
+            #
+            # Context: the UPDATE statement holds a row-level lock until the transaction
+            # completes. When users submit large volumes of data, multiple concurrent
+            # requests may try to update the same UserProfile, forcing them to wait
+            # until the lock is released.
+            if defer_counting := getattr(instance, 'defer_counting', False):
                 # Remove the Python-only attribute
                 del instance.defer_counting
 
@@ -317,12 +320,13 @@ def create_instance(
                     created=True,
                     xform=instance.xform,
                 )
-                update_xform_submission_count(
-                    sender=Instance,
-                    instance=instance,
-                    created=True,
-                    xform=instance.xform,
-                )
+
+            update_user_counters(
+                instance,
+                instance.xform.user_id,
+                attachment_storage_bytes=total_bytes,
+                increase_num_of_submissions=defer_counting,
+            )
 
             if settings.STRIPE_ENABLED:
                 from kobo.apps.stripe.utils.limit_enforcement import (
@@ -372,7 +376,7 @@ def get_instance_lock(submission_uuid: str, xform_id: int) -> bool:
 
     try:
         with kc_transaction_atomic():
-            cur = connection.cursor()
+            cur = connections[settings.OPENROSA_DB_ALIAS].cursor()
             cur.execute('SELECT pg_try_advisory_lock(%s::bigint);', (int_lock,))
             acquired = cur.fetchone()[0]
             yield acquired
@@ -787,17 +791,13 @@ def safe_create_instance(
 def save_attachments(
     instance: Instance,
     media_files: Generator[File],
-) -> tuple[list[Attachment], list[Attachment]]:
+) -> tuple[int, bool]:
     """
-    Return a tuple of two lists.
-    - The former is new attachments
-    - The latter is the replaced/soft-deleted attachments
+    Return a tuple.
+    - The former is the total bytes of new attachments
+    - The latter is the boolean value of whether there are new attachments
+    """
 
-    `defer_counting=False` will set a Python-only attribute of the same name on
-    any *new* `Attachment` instances created. This will prevent
-    `update_xform_attachment_storage_bytes()` and friends from doing anything,
-    which avoids locking any rows in `logger_xform` or `main_userprofile`.
-    """
     new_attachments = []
     total_bytes = 0
     has_new_attachments = False
