@@ -168,9 +168,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 request.META.update(auth(request.META, response))
                 response = self.view(request, username=self.user.username)
                 patched.assert_any_call(self.user, UsageType.SUBMISSION)
-                patched.assert_any_call(
-                    self.user, UsageType.STORAGE_BYTES, disable_cache=True
-                )
+                patched.assert_any_call(self.user, UsageType.STORAGE_BYTES)
                 self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
 
             mock_balances = {
@@ -192,9 +190,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 request.META.update(auth(request.META, response))
                 response = self.view(request, username=self.user.username)
                 patched.assert_any_call(self.user, UsageType.SUBMISSION)
-                patched.assert_any_call(
-                    self.user, UsageType.STORAGE_BYTES, disable_cache=True
-                )
+                patched.assert_any_call(self.user, UsageType.STORAGE_BYTES)
                 self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
 
     @pytest.mark.skipif(

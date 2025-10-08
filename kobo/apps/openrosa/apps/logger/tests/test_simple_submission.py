@@ -149,6 +149,4 @@ class TestSimpleSubmission(TestCase):
         ) as patched:
             self._submit_simple_yes()
             patched.assert_any_call(self.user, UsageType.SUBMISSION)
-            patched.assert_any_call(
-                self.user, UsageType.STORAGE_BYTES, disable_cache=False
-            )
+            patched.assert_any_call(self.user, UsageType.STORAGE_BYTES)

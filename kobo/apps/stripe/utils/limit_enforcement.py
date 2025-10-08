@@ -25,13 +25,12 @@ def check_exceeded_limit(user, usage_type: UsageType, **kwargs):
         return
 
     ExceededLimitCounter = kwargs['exceeded_limit_counter_model']
-    disable_cache = kwargs.get('disable_cache', True)
 
     # We disable usage calculator cache so we can get the most recent
     # usage when this function is called after submissions or NLP
     # actions
-    calculator = ServiceUsageCalculator(user, disable_cache=disable_cache)
-    balances = calculator.get_usage_balances() # submission, storage
+    calculator = ServiceUsageCalculator(user, disable_cache=True)
+    balances = calculator.get_usage_balances()
 
     balance = balances[usage_type]
     if balance and balance['exceeded']:

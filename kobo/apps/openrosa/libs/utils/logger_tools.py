@@ -218,11 +218,7 @@ def create_instance(
             balance = balances[usage_type]
             if balance and balance['exceeded']:
                 check_exceeded_limit(xform.user, UsageType.SUBMISSION)
-                # Set `disable_cache=True` to avoid recalculating usage,
-                # since submission usage was just computed above.
-                check_exceeded_limit(
-                    xform.user, UsageType.STORAGE_BYTES, disable_cache=False
-                )
+                check_exceeded_limit(xform.user, UsageType.STORAGE_BYTES)
                 raise ExceededUsageLimitError()
 
     # get root uuid
@@ -331,11 +327,7 @@ def create_instance(
 
             if settings.STRIPE_ENABLED:
                 check_exceeded_limit(xform.user, UsageType.SUBMISSION)
-                # Set `disable_cache=True` to avoid recalculating usage,
-                # since submission usage was just computed above.
-                check_exceeded_limit(
-                    xform.user, UsageType.STORAGE_BYTES, disable_cache=False
-                )
+                check_exceeded_limit(xform.user, UsageType.STORAGE_BYTES)
 
             return instance
 
