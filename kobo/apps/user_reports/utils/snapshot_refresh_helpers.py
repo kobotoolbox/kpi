@@ -1,4 +1,4 @@
-from django.db import transaction, connection
+from django.db import connection
 from django.db.models import Q
 from django.db.models.query import QuerySet
 

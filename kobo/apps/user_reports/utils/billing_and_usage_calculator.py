@@ -1,4 +1,4 @@
-from django.db.models import Q, Sum, QuerySet
+from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 
 from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter

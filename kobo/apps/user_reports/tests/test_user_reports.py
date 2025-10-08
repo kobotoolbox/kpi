@@ -86,8 +86,8 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             response.json(),
             {
                 'details': 'The data source for user reports is missing. '
-                'Please run 0002_create_user_reports_mv to create the materialized '
-                'view: user_reports_mv.',
+                'Please run 0002_create_user_reports_mv to create the '
+                'materialized view: user_reports_mv.',
             },
         )
 

@@ -38,8 +38,8 @@ class BillingAndUsageSnapshot(AbstractTimeStampedModel):
     billing_period_end = models.DateTimeField(null=True, blank=True)
     last_snapshot_run = models.ForeignKey(
         'user_reports.BillingAndUsageSnapshotRun',
-        related_name = 'snapshots',
-        on_delete = models.CASCADE,
+        related_name='snapshots',
+        on_delete=models.CASCADE,
     )
 
     class Meta:
@@ -63,11 +63,12 @@ class BillingAndUsageSnapshotRun(AbstractTimeStampedModel):
     A snapshot run table to track the progress and status of the
     `refresh_user_report_snapshots` Celery task.
     """
+
     uid = KpiUidField('busr')
     status = models.CharField(
         max_length=32,
         choices=BillingAndUsageSnapshotStatus.choices,
-        default=BillingAndUsageSnapshotStatus.IN_PROGRESS
+        default=BillingAndUsageSnapshotStatus.IN_PROGRESS,
     )
     last_processed_org_id = models.CharField(null=True, blank=True)
     details = models.JSONField(null=True, blank=True)
@@ -77,15 +78,14 @@ class BillingAndUsageSnapshotRun(AbstractTimeStampedModel):
         ordering = ['-date_created']
         indexes = [
             models.Index(
-                fields=['status', 'date_modified'],
-                name='idx_bau_run_status_expires'
+                fields=['status', 'date_modified'], name='idx_bau_run_status_expires'
             ),
         ]
         constraints = [
             models.UniqueConstraint(
                 fields=('singleton',),
                 condition=Q(status=BillingAndUsageSnapshotStatus.IN_PROGRESS),
-                name='uniq_run_in_progress'
+                name='uniq_run_in_progress',
             ),
         ]
 
