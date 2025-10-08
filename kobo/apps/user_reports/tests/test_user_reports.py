@@ -41,7 +41,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
 
         # Manually refresh the materialized view
         with connection.cursor() as cursor:
-            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_mv;')
+            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_userreportsmv;')
 
     def test_list_view_requires_authentication(self):
         self.client.logout()
@@ -77,7 +77,9 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
     def test_endpoint_returns_error_when_mv_is_missing(self):
         # Drop the materialized view before the test
         with connection.cursor() as cursor:
-            cursor.execute('DROP MATERIALIZED VIEW IF EXISTS user_reports_mv CASCADE;')
+            cursor.execute(
+                'DROP MATERIALIZED VIEW IF EXISTS user_reports_userreportsmv CASCADE;'
+            )
 
         response = self.client.get(self.url)
 
@@ -87,7 +89,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             {
                 'details': 'The data source for user reports is missing. '
                 'Please run 0002_create_user_reports_mv to create the '
-                'materialized view: user_reports_mv.',
+                'materialized view: user_reports_userreportsmv.',
             },
         )
 
@@ -140,7 +142,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
 
         # Refresh the materialized view to sync with the snapshot
         with connection.cursor() as cursor:
-            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_mv;')
+            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_userreportsmv;')
 
         someuser_data = self._get_someuser_data()
 
@@ -233,7 +235,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             return_value=mock_limits,
         ):
             with connection.cursor() as cursor:
-                cursor.execute('REFRESH MATERIALIZED VIEW user_reports_mv;')
+                cursor.execute('REFRESH MATERIALIZED VIEW user_reports_userreportsmv;')
 
             someuser_data = self._get_someuser_data()
             self.assertTrue(someuser_data['account_restricted'])
@@ -252,7 +254,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
         with connection.cursor() as cursor:
-            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_mv;')
+            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_userreportsmv;')
 
         # Verify `accepted_tos` has been set to True
         response = self.client.get(self.url)

@@ -127,4 +127,4 @@ class UserReports(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'user_reports_mv'
+        db_table = 'user_reports_userreportsmv'

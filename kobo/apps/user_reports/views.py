@@ -71,12 +71,12 @@ class UserReportsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         try:
             return super().list(request, *args, **kwargs)
         except ProgrammingError as e:
-            if 'relation "user_reports_mv" does not exist' in str(e):  # noqa
+            if 'relation "user_reports_userreportsmv" does not exist' in str(e):  # noqa
                 return Response(
                     {
                         'details': 'The data source for user reports is missing. '
                         'Please run 0002_create_user_reports_mv to create the '
-                        'materialized view: user_reports_mv.',
+                        'materialized view: user_reports_userreportsmv.',
                     },
                     status=status.HTTP_503_SERVICE_UNAVAILABLE,
                 )

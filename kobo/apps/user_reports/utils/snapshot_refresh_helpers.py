@@ -29,7 +29,9 @@ def cleanup_stale_snapshots_and_refresh_mv(run_id: str):
 
     # Refresh materialized view
     with connection.cursor() as cursor:
-        cursor.execute('REFRESH MATERIALIZED VIEW CONCURRENTLY user_reports_mv;')
+        cursor.execute(
+            'REFRESH MATERIALIZED VIEW CONCURRENTLY user_reports_userreportsmv;'
+        )
 
 
 def get_or_create_run():
