@@ -793,15 +793,11 @@ def save_attachments(
     media_files: Generator[File],
 ) -> tuple[int, bool]:
     """
-    Return a tuple of two lists.
-    - The former is new attachments
-    - The latter is the replaced/soft-deleted attachments
-
-    `defer_counting=False` will set a Python-only attribute of the same name on
-    any *new* `Attachment` instances created. This will prevent
-    `update_xform_attachment_storage_bytes()` and friends from doing anything,
-    which avoids locking any rows in `logger_xform` or `main_userprofile`.
+    Return a tuple.
+    - The former is the total bytes of new attachments
+    - The latter is the boolean value of whether there are new attachments
     """
+
     new_attachments = []
     total_bytes = 0
     has_new_attachments = False
