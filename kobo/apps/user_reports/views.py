@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from kobo.apps.audit_log.permissions import SuperUserPermission
 from kobo.apps.user_reports.models import UserReports
 from kobo.apps.user_reports.seralizers import UserReportsSerializer
+from kobo.apps.user_reports.utils.filters import UserReportsFilter
 from kpi.paginators import LimitOffsetPagination
 from kpi.permissions import IsAuthenticated
 from kpi.schema_extensions.v2.user_reports.serializers import UserReportsListResponse
@@ -43,6 +44,7 @@ class UserReportsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     pagination_class = LimitOffsetPagination
     permission_classes = (IsAuthenticated, SuperUserPermission)
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_class = UserReportsFilter
 
     ordering_fields = [
         'username',
@@ -50,7 +52,7 @@ class UserReportsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         'date_joined',
         'last_login',
         'storage_bytes_total',
-        'submission_counts_current_month',
+        'current_period_submissions',
         'submission_counts_all_time',
         'nlp_usage_asr_seconds_total',
         'nlp_usage_mt_characters_total',
@@ -58,7 +60,6 @@ class UserReportsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         'deployed_asset_count',
     ]
     ordering = ['username']
-    search_fields = ['username', 'email', 'first_name', 'last_name']
 
     def list(self, request, *args, **kwargs):
         if not settings.STRIPE_ENABLED:

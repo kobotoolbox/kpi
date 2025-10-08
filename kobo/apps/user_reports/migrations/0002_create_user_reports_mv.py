@@ -264,7 +264,7 @@ CREATE_MV_SQL = """
                 )
             ) FILTER (WHERE sub.id IS NOT NULL),
             '[]'::jsonb
-        )::text AS subscriptions
+        ) AS subscriptions
     FROM auth_user au
     LEFT JOIN organizations_organizationuser ou ON au.id = ou.user_id
     LEFT JOIN organizations_organization org ON ou.organization_id = org.id
