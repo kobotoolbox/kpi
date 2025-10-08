@@ -23,7 +23,7 @@ jobs:
       id: week
       run: |
         set -xe
-        if (( $(date +%V) % 4 == 1 )); then
+        if (( $(date +%V) % 4 == 2 )); then
           echo "is_release_week=true" >> $GITHUB_OUTPUT
           echo $GITHUB_OUTPUT
         else
@@ -116,22 +116,23 @@ jobs:
 
   notify-prev:
     needs:
+      - version
       - delete-prev-branch
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
-      topic: "${{ needs.create-current-branch.outputs.prev_minor }} release"
+      topic: "${{ needs.version.outputs.prev_minor }} release"
       content: ":skip_forward: release branch deleted, because it wasn't released. Please continue in the next release."
 
 
   notify-current:
     needs:
-      - create-current-branch
+      - version
       - changelog
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
-      topic: "${{ needs.create-current-branch.outputs.current_minor }} release"
+      topic: "${{ needs.version.outputs.current_minor }} release"
       content: ":seedling: release branch created."
 
 
@@ -148,5 +149,5 @@ jobs:
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
-      topic: "${{ needs.create-current-branch.outputs.current_minor }} release"
+      topic: "${{ needs.version.outputs.current_minor }} release"
       content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) something went wrong."

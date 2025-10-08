@@ -1,19 +1,20 @@
 import React from 'react'
 
 import cx from 'classnames'
-import { ORGANIZATION_TYPES, type OrganizationTypeName } from '#/account/organization/organizationQuery'
+import Select from '#/components/common/Select'
 import { addRequiredToLabel } from '#/textUtils'
-import Select from '../components/common/Select'
+import { recordValues } from '#/utils'
 import Checkbox from '../components/common/checkbox'
 import TextBox from '../components/common/textBox'
 import envStore from '../envStore'
 import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from './account.constants'
 import styles from './accountFieldsEditor.module.scss'
+import { ORGANIZATION_TYPES } from './organization/OrganizationSettingsRoute'
 
-const ORGANIZATION_TYPE_SELECT_OPTIONS = Object.keys(ORGANIZATION_TYPES).map((typeName) => {
+const ORGANIZATION_TYPE_SELECT_OPTIONS = recordValues(ORGANIZATION_TYPES).map(({ name, label }) => {
   return {
-    value: typeName,
-    label: ORGANIZATION_TYPES[typeName as OrganizationTypeName].label,
+    value: name,
+    label: label,
   }
 })
 
@@ -220,7 +221,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 name='gender'
                 clearable={!isFieldRequired('gender')}
                 value={props.values.gender}
-                onChange={(value: string | null) => onAnyFieldChange('gender', value || '')}
+                onChange={(value) => onAnyFieldChange('gender', value || '')}
                 data={GENDER_SELECT_OPTIONS}
                 error={props.errors?.gender}
               />
@@ -247,7 +248,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 name='country'
                 clearable={!isFieldRequired('country')}
                 value={props.values.country}
-                onChange={(value: string | null) => onAnyFieldChange('country', value || '')}
+                onChange={(value) => onAnyFieldChange('country', value || '')}
                 data={envStore.data.country_choices}
                 error={props.errors?.country}
               />
@@ -280,7 +281,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 name='sector'
                 clearable={!isFieldRequired('sector')}
                 value={props.values.sector}
-                onChange={(value: string | null) => onAnyFieldChange('sector', value || '')}
+                onChange={(value) => onAnyFieldChange('sector', value || '')}
                 data={envStore.data.sector_choices}
                 error={props.errors?.sector}
               />
@@ -299,7 +300,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 name='organization_type'
                 clearable={!isFieldRequired('organization_type')}
                 value={props.values.organization_type}
-                onChange={(value: string | null) => onAnyFieldChange('organization_type', value || '')}
+                onChange={(value) => onAnyFieldChange('organization_type', value || '')}
                 data={ORGANIZATION_TYPE_SELECT_OPTIONS}
                 error={props.errors?.organization_type}
               />

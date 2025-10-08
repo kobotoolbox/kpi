@@ -12,9 +12,9 @@ class HookLogURLFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:hook-log-detail',
-            parent_lookup_asset='aTPPUDScaFZkvBzd8FyK4Q',
-            parent_lookup_hook='hsw3Ec5vz7Lqg7TrwrxdaS',
-            uid='hl8Ldv5m84SBpU5UB5J7QBD',
+            uid_asset='aTPPUDScaFZkvBzd8FyK4Q',
+            uid_hook='hsw3Ec5vz7Lqg7TrwrxdaS',
+            uid_log='hl8Ldv5m84SBpU5UB5J7QBD',
         )
 
 

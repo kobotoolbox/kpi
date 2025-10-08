@@ -654,6 +654,10 @@ CONSTANCE_CONFIG = {
         'List (one per line) users who will be sent test emails when using the \n'
         '"test_users" query for MassEmailConfigs',
     ),
+    'ALLOW_SELF_ACCOUNT_DELETION': (
+        True,
+        'Allow users to delete their own account.',
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -783,6 +787,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'PROJECT_TRASH_GRACE_PERIOD',
         'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD',
         'AUTO_DELETE_ATTACHMENTS',
+        'ALLOW_SELF_ACCOUNT_DELETION',
     ),
     'Regular maintenance settings': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
@@ -993,24 +998,37 @@ REST_FRAMEWORK = {
         'kpi.authentication.OAuth2Authentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
-       'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.JSONRenderer',
+        # "BasicHTMLRenderer" must always come after JSONRenderer
+        'kpi.renderers.BasicHTMLRenderer',
     ],
     'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIAutoVersioning',
     # Cannot be placed in kpi.exceptions.py because of circular imports
     'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'DEFAULT_CONTENT_NEGOTIATION_CLASS': 'kpi.negotiation.DefaultContentNegotiation',
+    'DEFAULT_PARENT_LOOKUP_KWARG_NAME_PREFIX': 'uid_',
 }
 
 # Settings for the API documentation using drf-spectacular
 SPECTACULAR_SETTINGS = {
     'TITLE': 'KoboToolbox API',
-    'DESCRIPTION': 'Powerful and intuitive data collection tools to make an impact',
+    'DESCRIPTION': (
+        'This page documents all KoboToolbox API endpoints.\n\n'
+        'The endpoints are grouped by area of intended use. Each category contains '
+        'related endpoints, with detailed documentation on usage and configuration. '
+        'Use this as a reference to quickly find the right endpoint for managing '
+        'projects, forms, data, permissions, integrations, logs, and organizational '
+        'resources.\n\n'
+        '**General note**: All projects (whether deployed or draft), as well as all '
+        'library content (questions, blocks, templates, and collections) in the '
+        'user-facing application are represented in the API as assets.'
+    ),
     'VERSION': '2.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'SWAGGER_UI_FAVICON_HREF': '/static/favicon.png',
     'SWAGGER_UI_SETTINGS': {
         'filter': True,
+        'docExpansion': None,  # collapse all by default
     },
     'AUTHENTICATION_WHITELIST': [
         'kpi.authentication.BasicAuthentication',
@@ -1020,7 +1038,88 @@ SPECTACULAR_SETTINGS = {
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
         'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
         'MemberRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_ENUM',
+        'StripeProductType': 'kpi.schema_extensions.v2.stripe.schema.PRODUCT_TYPE_ENUM',
+        'StripePriceType': 'kpi.schema_extensions.v2.stripe.schema.PRICE_TYPE_ENUM',
+        'StripeIntervalEnum': 'kpi.schema_extensions.v2.stripe.schema.INTERVAL_ENUM',
+        'StripeUsageType': 'kpi.schema_extensions.v2.stripe.schema.USAGE_TYPE_ENUM',
     },
+    # We only want to blacklist BasicHTMLRenderer, but nothing like RENDERER_WHITELIST
+    # exists 🤦
+    # List all the renderers that are used by documented API
+    'RENDERER_WHITELIST': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.StaticHTMLRenderer',
+        'kpi.renderers.MediaFileRenderer',
+        'kpi.renderers.MP3ConversionRenderer',
+        'kpi.renderers.OpenRosaRenderer',
+        'kpi.renderers.OpenRosaFormListRenderer',
+        'kpi.renderers.OpenRosaManifestRenderer',
+        'kpi.renderers.SSJsonRenderer',
+        'kpi.renderers.SubmissionGeoJsonRenderer',
+        'kpi.renderers.DoNothingRenderer',
+        'kpi.renderers.SubmissionXLSXRenderer',
+        'kpi.renderers.SubmissionCSVRenderer',
+        'kpi.renderers.SubmissionXMLRenderer',
+        'kpi.renderers.XMLRenderer',
+        'kpi.renderers.XFormRenderer',
+        'kpi.renderers.XlsRenderer',
+        'kobo.apps.openrosa.libs.renderers.renderers.XLSRenderer',
+        'kobo.apps.openrosa.libs.renderers.renderers.XLSXRenderer',
+        'kobo.apps.openrosa.libs.renderers.renderers.CSVRenderer',
+        'kobo.apps.openrosa.libs.renderers.renderers.RawXMLRenderer',
+        'kobo.apps.openrosa.libs.renderers.renderers.TemplateXMLRenderer',
+    ],
+    'TAGS': [
+        {
+            'name': 'Manage projects and library content',
+            'description': (
+                'Create, organize, and manage projects, assets '
+                '(projects/library content), and tags',
+            ),
+        },
+        {
+            'name': 'Form content',
+            'description': (
+                'Export and preview assets (projects/library content) in different '
+                'formats'
+            ),
+        },
+        {
+            'name': 'Survey data',
+            'description': 'View, edit, validate, export, and report collected data',
+        },
+        {
+            'name': 'Survey data - Rest Services',
+            'description': 'Configure and manage webhooks for survey data integrations',
+        },
+        {
+            'name': 'Manage permissions',
+            'description': (
+                'Assign, clone, and bulk-manage project and asset '
+                '(projects/library content) permissions'
+            ),
+        },
+        {
+            'name': 'Logging',
+            'description': 'Project history logs, access logs, Rest Service hook logs',
+        },
+        {
+            'name': 'Library collections',
+            'description': 'Subscribe to and manage shared library collections',
+        },
+        {
+            'name': 'Audit logs (superusers)',
+            'description': 'View server-wide logs',
+        },
+        {
+            'name': 'User / team / organization / usage',
+            'description': 'Manage users, orgs, invites, roles, and usage tracking',
+        },
+        {
+            'name': 'Other',
+            'description': 'Languages, available permissions, other',
+        },
+    ],
 }
 
 OPENROSA_REST_FRAMEWORK = {

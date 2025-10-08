@@ -151,7 +151,7 @@ class SubmissionDeleteTestCaseMixin:
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -196,7 +196,7 @@ class SubmissionEditTestCaseMixin:
         submission_edit_link_url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
@@ -351,7 +351,7 @@ class SubmissionViewTestCaseMixin:
         submission_view_link_url = reverse(
             self._get_endpoint('submission-enketo-view'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
@@ -371,14 +371,14 @@ class PermissionAssignmentTestCaseMixin:
     def get_asset_perm_assignment_list_url(self, asset):
         return reverse(
             self._get_endpoint('asset-permission-assignment-list'),
-            kwargs={'parent_lookup_asset': asset.uid},
+            kwargs={'uid_asset': asset.uid},
         )
 
     def get_urls_for_asset_perm_assignment_objs(self, perm_assignments, asset):
         return [
             self.absolute_reverse(
                 self._get_endpoint('asset-permission-assignment-detail'),
-                kwargs={'uid': uid, 'parent_lookup_asset': asset.uid},
+                kwargs={'uid_permission_assignment': uid, 'uid_asset': asset.uid},
             )
             for uid in perm_assignments.values_list('uid', flat=True)
         ]

@@ -1,8 +1,10 @@
+from botocore.exceptions import ClientError
 from ddt import data, ddt
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.test import TestCase
 
+from kobo.apps.storage_backends.s3boto3 import S3Boto3Storage
 from kpi.models.asset import Asset
 from kpi.models.asset_file import AssetFile
 
@@ -52,8 +54,14 @@ class ExtendedFileFieldTestCase(TestCase):
         try:
             # delete the actual stored file to force a file not found error
             default_storage.delete(path)
+
+            ErrorClass = (
+                ClientError
+                if isinstance(default_storage, S3Boto3Storage)
+                else FileNotFoundError
+            )
             if reraise_errors:
-                with self.assertRaises(FileNotFoundError):
+                with self.assertRaises(ErrorClass):
                     asset_file.content.move('__pytest_moved', reraise_errors=True)
             else:
                 assert not asset_file.content.move('__pytest_moved')

@@ -14,14 +14,10 @@ from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.organizations.utils import get_real_owner
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
-from kpi.exceptions import (
-    InvalidXFormException,
-    MissingXFormException,
-)
+from kpi.exceptions import InvalidXFormException, MissingXFormException
 from kpi.fields import KpiUidField
-from kpi.models import Asset, ObjectPermission
+from kpi.models import Asset, AssetUserPartialPermission, ObjectPermission
 from kpi.models.abstract_models import AbstractTimeStampedModel
-
 from ..exceptions import TransferAlreadyProcessedException
 from ..tasks import async_task, send_email_to_admins
 from ..utils import get_target_folder
@@ -198,6 +194,10 @@ class Transfer(AbstractTimeStampedModel):
 
         # Delete existing new owner's permissions on the project if any
         self.asset.permissions.filter(user=new_owner).delete()
+        # Delete every partial permission related to new owner just in case
+        AssetUserPartialPermission.objects.filter(
+            user=new_owner, asset=self.asset
+        ).delete()
         old_owner = self.asset.owner
         self.asset.owner = new_owner
 

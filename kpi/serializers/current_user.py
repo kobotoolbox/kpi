@@ -125,7 +125,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         return {
             'url': reverse(
                 'organizations-detail',
-                kwargs={'id': user.organization.id},
+                kwargs={'uid_organization': user.organization.id},
                 request=request,
             ),
             'name': user.organization.name,

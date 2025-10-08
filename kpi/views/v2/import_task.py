@@ -31,7 +31,7 @@ from kpi.utils.strings import to_str
 
 
 @extend_schema(
-    tags=['Imports'],
+    tags=['Manage projects and library content'],
 )
 @extend_schema_view(
     create=extend_schema(
@@ -67,7 +67,7 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
     Available actions:
     - list           → GET       /api/v2/imports/
     - retrieve       → GET       /api/v2/imports/
-    - create         → CREATE    /api/v2/imports/{uid}/
+    - create         → CREATE    /api/v2/imports/{uid_import}/
 
     Documentation:
     - docs/api/v2/imports/list.md
@@ -77,6 +77,7 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ImportTask.objects.all()
     serializer_class = ImportTaskSerializer
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_import'
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -120,10 +121,10 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
         import_in_background.delay(import_task_uid=import_task.uid)
         return Response(
             {
-                'uid': import_task.uid,
+                'uid_import': import_task.uid,
                 'url': reverse(
                     'api_v2:importtask-detail',
-                    kwargs={'uid': import_task.uid},
+                    kwargs={'uid_import': import_task.uid},
                     request=request,
                 ),
                 'status': ImportExportStatusChoices.PROCESSING,

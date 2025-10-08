@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 
-import { useOrganizationQuery } from '#/account/organization/organizationQuery'
 import { endpoints } from '#/api.endpoints'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { ROOT_URL } from '#/constants'
 import {
@@ -17,15 +17,13 @@ import UniversalProjectsRoute from './universalProjectsRoute'
  * (`#/organization/projects`).
  */
 export default function MyOrgProjectsRoute() {
-  const orgQuery = useOrganizationQuery()
+  const [organization] = useOrganizationAssumed()
   const [apiUrl, setApiUrl] = useState<string | null>(null)
 
   // We need to load organization data to build the api url.
   useEffect(() => {
-    if (orgQuery.data) {
-      setApiUrl(endpoints.ORG_ASSETS_URL.replace(':organization_id', orgQuery.data.id))
-    }
-  }, [orgQuery.data])
+    setApiUrl(endpoints.ORG_ASSETS_URL.replace(':organization_id', organization.id))
+  }, [organization.id])
 
   // Display spinner until everything is ready to go forward.
   if (!apiUrl) {

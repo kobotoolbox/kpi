@@ -440,4 +440,5 @@ const environmentResponse: EnvironmentResponse = {
   stripe_public_key: 'pk_test_qliDXQRyVGPWmsYR69tB1NPx00ndTrJfVM',
   terms_of_service__sitewidemessage__exists: false,
   open_rosa_server: 'http://kc.kobo.local',
+  allow_self_account_deletion: true,
 }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
-import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/button'
 import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
@@ -22,9 +23,8 @@ function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>) {
  */
 export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
   const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false)
-  const orgQuery = useOrganizationQuery()
-  const canBulkDelete =
-    userCanDeleteAssets(props.assets) || orgQuery.data?.request_user_role === OrganizationUserRole.admin
+  const [organization] = useOrganizationAssumed()
+  const canBulkDelete = userCanDeleteAssets(props.assets) || organization.request_user_role === MemberRoleEnum.admin
 
   let tooltipForDelete = t('Delete projects')
   if (canBulkDelete) {
