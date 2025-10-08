@@ -9,7 +9,7 @@ import { getOrganizationsRetrieveUrl } from '#/api/react-query/user-team-organiz
  */
 const organizationMock = (override: Partial<OrganizationResponse> & Pick<OrganizationResponse, 'id'>) =>
   http.get<never, never, OrganizationResponse>(getOrganizationsRetrieveUrl(override.id), () => {
-    return HttpResponse.json({...organizationReponse(override.id), ...override})
+    return HttpResponse.json({ ...organizationReponse(override.id), ...override })
   })
 export default organizationMock
 

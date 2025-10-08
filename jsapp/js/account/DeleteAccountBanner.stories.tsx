@@ -18,9 +18,9 @@ const meta: Meta<typeof DeleteAccountBanner> = {
     msw: {
       handlers: {
         me: meMockResponse,
-        org: organizationMock({id: meMockResponse.organization!.uid}),
+        org: organizationMock({ id: meMockResponse.organization!.uid }),
         assets: assetsMock(),
-      }
+      },
     },
     a11y: { test: 'todo' },
   },
@@ -38,7 +38,7 @@ export const UserHasNoAssets: Story = {
   parameters: {
     msw: {
       handlers: {
-        assets: assetsMock({count: 0})
+        assets: assetsMock({ count: 0 }),
       },
     },
   },
@@ -48,7 +48,7 @@ export const UserOwnsMMO: Story = {
   parameters: {
     msw: {
       handlers: {
-        org: organizationMock({id: meMockResponse.organization!.uid, is_mmo: true}),
+        org: organizationMock({ id: meMockResponse.organization!.uid, is_mmo: true }),
       },
     },
   },

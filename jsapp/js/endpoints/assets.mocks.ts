@@ -9,19 +9,20 @@ import type { AssetResponse, PaginatedResponse } from '#/dataInterface'
  * If override contains `count` but omits results, default response results will be sliced accocrdingly.
  * Note that default response contains only 2 results.
  */
-const assetsMock = (override?: Partial<PaginatedResponse<AssetResponse>>) => http.get<PathParams<'limit' | 'offset' | 'q'>, never, PaginatedResponse<AssetResponse>>(
-  endpoints.ASSETS_URL,
-  (info) => {
-    const searchParams = new URL(info.request.url).searchParams
-    const limit = searchParams.get('limit') !== null ? Number(searchParams.get('limit')) : undefined
+const assetsMock = (override?: Partial<PaginatedResponse<AssetResponse>>) =>
+  http.get<PathParams<'limit' | 'offset' | 'q'>, never, PaginatedResponse<AssetResponse>>(
+    endpoints.ASSETS_URL,
+    (info) => {
+      const searchParams = new URL(info.request.url).searchParams
+      const limit = searchParams.get('limit') !== null ? Number(searchParams.get('limit')) : undefined
 
-    return HttpResponse.json({
-      ...defaultMockResponse,
-      ...override,
-      results: (override?.results ?? defaultMockResponse.results).slice(0, limit ?? override?.count ?? undefined)
-  })
-  },
-)
+      return HttpResponse.json({
+        ...defaultMockResponse,
+        ...override,
+        results: (override?.results ?? defaultMockResponse.results).slice(0, limit ?? override?.count ?? undefined),
+      })
+    },
+  )
 export default assetsMock
 
 // TODO: this should probably return more than 2, but I don't need more right now.
