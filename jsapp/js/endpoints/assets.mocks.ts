@@ -4,7 +4,7 @@ import { AssetTypeName, QuestionTypeName } from '#/constants'
 import type { AssetResponse, PaginatedResponse } from '#/dataInterface'
 
 /**
- * Mock API for assets list. Use it in Storybook tests in `parameters.msw.handlers[]`.
+ * Mock API for assets list. Use it in Storybook tests in `parameters.msw.handlers.assets`.
  *
  * If override contains `count` but omits results, default response results will be sliced accocrdingly.
  * Note that default response contains only 2 results.

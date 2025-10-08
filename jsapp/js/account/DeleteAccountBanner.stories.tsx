@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { DecoratorFunction } from '@storybook/types'
 import { withRouter } from 'storybook-addon-remix-react-router'
 import assetsMock from '#/endpoints/assets.mocks'
-import { meMockResponse } from '#/endpoints/me.mocks'
 import organizationMock from '#/endpoints/organization.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import RequireAuth from '#/router/requireAuth'
@@ -17,7 +16,7 @@ const meta: Meta<typeof DeleteAccountBanner> = {
   parameters: {
     msw: {
       handlers: {
-        org: organizationMock({ id: meMockResponse.organization!.uid }),
+        organization: organizationMock(),
         assets: assetsMock(),
       },
     },
@@ -47,7 +46,7 @@ export const UserOwnsMMO: Story = {
   parameters: {
     msw: {
       handlers: {
-        org: organizationMock({ id: meMockResponse.organization!.uid, is_mmo: true }),
+        organization: organizationMock({ is_mmo: true }),
       },
     },
   },

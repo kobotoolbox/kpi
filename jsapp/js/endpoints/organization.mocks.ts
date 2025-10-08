@@ -1,16 +1,20 @@
 import { http, HttpResponse } from 'msw'
 import type { OrganizationResponse } from '#/api/models/organizationResponse'
 import { getOrganizationsRetrieveUrl } from '#/api/react-query/user-team-organization-usage'
+import { meMockResponse } from './me.mocks'
 
 /**
- * Mock API for organization endpoint. Use it in Storybook tests in `parameters.msw.handlers[]`.
+ * Mock API for organization endpoint. Use it in Storybook tests in `parameters.msw.handlers.organization`.
  *
- * Property `id` required, because it's used to generate the URL and populate other response fields that depend on it.
+ * Property `id` is used to generate the URL and populate other response fields that depend on it.
+ * Default value is `meMockResponse.organization!.uid`.
  */
-const organizationMock = (override: Partial<OrganizationResponse> & Pick<OrganizationResponse, 'id'>) =>
-  http.get<never, never, OrganizationResponse>(getOrganizationsRetrieveUrl(override.id), () => {
-    return HttpResponse.json({ ...organizationReponse(override.id), ...override })
+const organizationMock = (override?: Partial<OrganizationResponse>) => {
+  const id = override?.id ?? meMockResponse.organization!.uid
+  http.get<never, never, OrganizationResponse>(getOrganizationsRetrieveUrl(id), () => {
+    return HttpResponse.json({ ...organizationReponse(id), ...override })
   })
+}
 export default organizationMock
 
 const organizationReponse = (organizationId: string): OrganizationResponse => ({
