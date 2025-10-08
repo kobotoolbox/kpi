@@ -75,7 +75,7 @@ class Migration(migrations.Migration):
     atomic = False
 
     dependencies = [
-        ("user_reports", "0002_create_user_reports_mv"),
+        ('user_reports', '0002_create_user_reports_mv'),
     ]
 
     operations = [
