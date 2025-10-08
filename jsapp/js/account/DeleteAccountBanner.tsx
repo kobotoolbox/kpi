@@ -12,12 +12,7 @@ import { useSession } from '#/stores/useSession'
 import styles from './DeleteAccountBanner.module.scss'
 import DeleteAccountModal from './DeleteAccountModal'
 
-interface DeleteAccountBannerProps {
-  /** Internal property used in stories file. */
-  storybookTestId?: string
-}
-
-export default function DeleteAccountBanner(props: DeleteAccountBannerProps) {
+export default function DeleteAccountBanner() {
   const [isModalOpened, { open, close }] = useDisclosure(false)
   const navigate = useNavigate()
   const session = useSession()
@@ -28,10 +23,7 @@ export default function DeleteAccountBanner(props: DeleteAccountBannerProps) {
   useEffect(() => {
     const username = session.currentLoggedAccount.username
     // We are fetching all user assets, but we are only interested in wheter user has at least one asset
-    let singleAssetEndpoint = endpoints.ASSETS_URL + `?q=(owner__username:${username})&limit=1`
-    if (props.storybookTestId) {
-      singleAssetEndpoint += `&storybookTestId=${props.storybookTestId}`
-    }
+    const singleAssetEndpoint = endpoints.ASSETS_URL + `?q=(owner__username:${username})&limit=1`
     fetchGet<PaginatedResponse<AssetResponse>>(singleAssetEndpoint).then((data: PaginatedResponse<AssetResponse>) => {
       setIsAccountWithoutAssets(data.count === 0)
     })

@@ -2,8 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { DecoratorFunction } from '@storybook/types'
 import { withRouter } from 'storybook-addon-remix-react-router'
 import assetsMock from '#/endpoints/assets.mocks'
-import environmentMock from '#/endpoints/environment.mocks'
-import meMock, { meMockResponse } from '#/endpoints/me.mocks'
 import organizationMock from '#/endpoints/organization.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import RequireAuth from '#/router/requireAuth'
@@ -17,7 +15,10 @@ const meta: Meta<typeof DeleteAccountBanner> = {
   argTypes: {},
   parameters: {
     msw: {
-      handlers: [assetsMock, meMock, environmentMock, organizationMock(meMockResponse.organization!.uid)],
+      handlers: {
+        organization: organizationMock(),
+        assets: assetsMock(),
+      },
     },
     a11y: { test: 'todo' },
   },
@@ -29,8 +30,24 @@ type Story = StoryObj<typeof DeleteAccountBanner>
 
 export const Default: Story = {}
 
+export const UserHasAssets: Story = {}
+
 export const UserHasNoAssets: Story = {
-  args: {
-    storybookTestId: 'UserHasNoAssets',
+  parameters: {
+    msw: {
+      handlers: {
+        assets: assetsMock({ count: 0 }),
+      },
+    },
+  },
+}
+
+export const UserOwnsMMO: Story = {
+  parameters: {
+    msw: {
+      handlers: {
+        organization: organizationMock({ is_mmo: true }),
+      },
+    },
   },
 }
