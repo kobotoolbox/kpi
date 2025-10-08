@@ -75,7 +75,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             # USAGE_LIMIT_ENFORCEMENT variable. But we use caching
             # so should find a way to keep that out of this count
             if settings.STRIPE_ENABLED:
-                expected_queries = FuzzyInt(79, 86)
+                expected_queries = FuzzyInt(76, 86)
             with self.assertNumQueries(expected_queries):
                 self.view(request)
 
@@ -160,7 +160,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             }
             mock_usage.return_value = mock_balances
             with patch(
-                'kobo.apps.stripe.utils.limit_enforcement.check_exceeded_limit',
+                'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limit',
                 return_value=None,
             ) as patched:
                 request = self.factory.post('/submission', data, format='json')
@@ -168,7 +168,9 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 request.META.update(auth(request.META, response))
                 response = self.view(request, username=self.user.username)
                 patched.assert_any_call(self.user, UsageType.SUBMISSION)
-                patched.assert_any_call(self.user, UsageType.STORAGE_BYTES)
+                patched.assert_any_call(
+                    self.user, UsageType.STORAGE_BYTES, disable_cache=True
+                )
                 self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
 
             mock_balances = {
@@ -179,7 +181,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             }
             mock_usage.return_value = mock_balances
             with patch(
-                'kobo.apps.stripe.utils.limit_enforcement.check_exceeded_limit',
+                'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limit',
                 return_value=None,
             ) as patched:
                 request = self.factory.post('/submission', data, format='json')
@@ -190,7 +192,9 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 request.META.update(auth(request.META, response))
                 response = self.view(request, username=self.user.username)
                 patched.assert_any_call(self.user, UsageType.SUBMISSION)
-                patched.assert_any_call(self.user, UsageType.STORAGE_BYTES)
+                patched.assert_any_call(
+                    self.user, UsageType.STORAGE_BYTES, disable_cache=True
+                )
                 self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
 
     @pytest.mark.skipif(

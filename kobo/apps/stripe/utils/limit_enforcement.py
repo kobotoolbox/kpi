@@ -31,7 +31,7 @@ def check_exceeded_limit(user, usage_type: UsageType, **kwargs):
     # usage when this function is called after submissions or NLP
     # actions
     calculator = ServiceUsageCalculator(user, disable_cache=disable_cache)
-    balances = calculator.get_usage_balances()
+    balances = calculator.get_usage_balances() # submission, storage
 
     balance = balances[usage_type]
     if balance and balance['exceeded']:
