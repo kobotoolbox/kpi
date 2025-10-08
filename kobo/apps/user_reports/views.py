@@ -9,7 +9,6 @@ from rest_framework.response import Response
 from kobo.apps.audit_log.permissions import SuperUserPermission
 from kobo.apps.user_reports.models import UserReports
 from kobo.apps.user_reports.seralizers import UserReportsSerializer
-from kobo.apps.user_reports.utils.filters import UserReportsFilter
 from kpi.paginators import LimitOffsetPagination
 from kpi.permissions import IsAuthenticated
 from kpi.schema_extensions.v2.user_reports.serializers import UserReportsListResponse
@@ -44,7 +43,6 @@ class UserReportsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     pagination_class = LimitOffsetPagination
     permission_classes = (IsAuthenticated, SuperUserPermission)
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
-    filterset_class = UserReportsFilter
 
     ordering_fields = [
         'username',

@@ -261,39 +261,6 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         results = response.data['results']
         self.assertTrue(results[0]['accepted_tos'])
 
-    def test_filter_by_email_icontains(self):
-        response = self.client.get(self.url, {'email': 'some@user'})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 1)
-        self.assertEqual(response.data['results'][0]['email'], 'some@user.com')
-
-    def test_filter_by_username_icontains(self):
-        response = self.client.get(self.url, {'username': 'some'})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 1)
-        self.assertEqual(response.data['results'][0]['username'], 'someuser')
-
-    def test_filter_by_submission_counts_range(self):
-        billing_and_usage_snapshot = BillingAndUsageSnapshot.objects.get(
-            organization_id=self.someuser.organization.id
-        )
-        billing_and_usage_snapshot.submission_counts_all_time = 50
-        billing_and_usage_snapshot.save()
-
-        with connection.cursor() as cursor:
-            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_mv;')
-
-        # Test filter for submissions > 40
-        response = self.client.get(self.url, {'submission_counts_all_time_min': 40})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['count'], 1)
-        self.assertEqual(response.data['results'][0]['username'], 'someuser')
-
-        # Test filter for submissions < 40
-        response = self.client.get(self.url, {'submission_counts_all_time_max': 40})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertGreater(response.data['count'], 0)
-
     def test_ordering_by_date_joined(self):
         response = self.client.get(self.url, {'ordering': 'date_joined'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
