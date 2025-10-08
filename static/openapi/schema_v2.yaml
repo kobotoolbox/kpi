@@ -56,7 +56,7 @@ paths:
         schema:
           type: string
       tags:
-      - Audit logs (superusers)
+      - Server logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -86,7 +86,7 @@ paths:
 
         ⚠️ _Only available to superusers_
       tags:
-      - Audit logs (superusers)
+      - Server logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -117,7 +117,7 @@ paths:
 
         ⚠️ _Only available to superusers_
       tags:
-      - Audit logs (superusers)
+      - Server logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -5614,7 +5614,7 @@ paths:
         schema:
           type: string
       tags:
-      - Audit logs (superusers)
+      - Server logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6912,7 +6912,7 @@ paths:
         schema:
           type: string
       tags:
-      - Audit logs (superusers)
+      - Server logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6953,7 +6953,7 @@ paths:
 
         ⚠️ _Only available to superusers_
       tags:
-      - Audit logs (superusers)
+      - Server logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -6995,7 +6995,7 @@ paths:
 
         Export project history logs and send it by email to the requesting user.
       tags:
-      - Audit logs (superusers)
+      - Server logs (superusers)
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -15245,7 +15245,7 @@ tags:
   description: Project history logs, access logs, Rest Service hook logs
 - name: Library collections
   description: Subscribe to and manage shared library collections
-- name: Audit logs (superusers)
+- name: Server logs (superusers)
   description: View server-wide logs
 - name: User / team / organization / usage
   description: Manage users, orgs, invites, roles, and usage tracking

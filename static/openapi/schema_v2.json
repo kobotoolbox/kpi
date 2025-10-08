@@ -38,7 +38,7 @@
                     }
                 ],
                 "tags": [
-                    "Audit logs (superusers)"
+                    "Server logs (superusers)"
                 ],
                 "security": [
                     {
@@ -85,7 +85,7 @@
                 "operationId": "api_v2_access_logs_export_list",
                 "description": "## List all access logs export tasks for all users\n\n⚠️ _Only available to superusers_\n",
                 "tags": [
-                    "Audit logs (superusers)"
+                    "Server logs (superusers)"
                 ],
                 "security": [
                     {
@@ -133,7 +133,7 @@
                 "operationId": "api_v2_access_logs_export_create",
                 "description": "## Create an export task for all users\n\n⚠️ _Only available to superusers_\n",
                 "tags": [
-                    "Audit logs (superusers)"
+                    "Server logs (superusers)"
                 ],
                 "security": [
                     {
@@ -7631,7 +7631,7 @@
                     }
                 ],
                 "tags": [
-                    "Audit logs (superusers)"
+                    "Server logs (superusers)"
                 ],
                 "security": [
                     {
@@ -9349,7 +9349,7 @@
                     }
                 ],
                 "tags": [
-                    "Audit logs (superusers)"
+                    "Server logs (superusers)"
                 ],
                 "security": [
                     {
@@ -9414,7 +9414,7 @@
                 "operationId": "api_v2_project_history_logs_export_retrieve",
                 "description": "## List of Project History Exports\n\n⚠️ _Only available to superusers_\n",
                 "tags": [
-                    "Audit logs (superusers)"
+                    "Server logs (superusers)"
                 ],
                 "security": [
                     {
@@ -9477,7 +9477,7 @@
                 "operationId": "api_v2_project_history_logs_export_create",
                 "description": "## Create an export of projects history logs\n\n⚠️ _Only available to superusers_\n\nExport project history logs and send it by email to the requesting user.\n",
                 "tags": [
-                    "Audit logs (superusers)"
+                    "Server logs (superusers)"
                 ],
                 "security": [
                     {
@@ -21188,7 +21188,7 @@
             "description": "Subscribe to and manage shared library collections"
         },
         {
-            "name": "Audit logs (superusers)",
+            "name": "Server logs (superusers)",
             "description": "View server-wide logs"
         },
         {

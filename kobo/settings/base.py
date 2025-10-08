@@ -1108,7 +1108,7 @@ SPECTACULAR_SETTINGS = {
             'description': 'Subscribe to and manage shared library collections',
         },
         {
-            'name': 'Audit logs (superusers)',
+            'name': 'Server logs (superusers)',
             'description': 'View server-wide logs',
         },
         {

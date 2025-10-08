@@ -18,7 +18,7 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
 
 
 @extend_schema(
-    tags=['User Reports'],
+    tags=['Server logs (superusers)'],
 )
 @extend_schema_view(
     list=extend_schema(
@@ -77,7 +77,7 @@ class UserReportsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
                 return Response(
                     {
                         'details': 'The data source for user reports is missing. '
-                        'Please run migration 0070 to create the materialized '
+                        'Please run 0002_create_user_reports_mv to create the materialized '
                         'view: user_reports_mv.',
                     },
                     status=status.HTTP_503_SERVICE_UNAVAILABLE,
