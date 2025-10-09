@@ -18,6 +18,7 @@ interface EmailState {
   newEmail: string
   refreshedEmail: boolean
   refreshedEmailDate: string
+  fieldErrors: string[]
 }
 
 export default function EmailSection() {
@@ -35,6 +36,7 @@ export default function EmailSection() {
     newEmail: initialEmail,
     refreshedEmail: false,
     refreshedEmailDate: '',
+    fieldErrors: [],
   })
 
   useEffect(() => {
@@ -47,15 +49,28 @@ export default function EmailSection() {
   }, [])
 
   function setNewUserEmail(newEmail: string) {
+    // Clear errors before making an API call
+    setEmail({
+      ...email,
+      fieldErrors: [],
+    })
+
     setUserEmail(newEmail).then(
-      () => {
-        getUserEmails().then((data) => {
+      (response) => {
+        if ('primary' in response) {
+          getUserEmails().then((data) => {
+            setEmail({
+              ...email,
+              emails: data.results,
+              newEmail: '',
+            })
+          })
+        } else {
           setEmail({
             ...email,
-            emails: data.results,
-            newEmail: '',
+            fieldErrors: response.email,
           })
-        })
+        }
       },
       () => {
         /* Avoid crashing app when 500 error happens */
@@ -181,7 +196,11 @@ export default function EmailSection() {
               handleSubmit()
             }}
           >
-            <Button label='Change' size='m' type='primary' onClick={handleSubmit} isDisabled={isSSO} />
+            <div>
+              <label>{email.fieldErrors}</label>
+
+              <Button label='Change' size='m' type='primary' onClick={handleSubmit} isDisabled={isSSO} />
+            </div>
           </form>
         </div>
       )}
