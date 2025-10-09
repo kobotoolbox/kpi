@@ -1,23 +1,25 @@
 import { useState } from 'react'
 
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData } from '@tanstack/react-query'
 import prettyBytes from 'pretty-bytes'
 import { Link } from 'react-router-dom'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import { useOrganizationQuery } from '#/account/organization/organizationQuery'
-import type { AssetWithUsage } from '#/account/usage/assetUsage.api'
-import { getOrgAssetUsage } from '#/account/usage/assetUsage.api'
+import {
+  getOrganizationsAssetUsageRetrieveQueryKey,
+  useOrganizationsAssetUsageRetrieve,
+} from '#/api/react-query/organizations'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import type { ProjectFieldDefinition } from '#/projects/projectViews/constants'
 import type { ProjectsTableOrder } from '#/projects/projectsTable/projectsTable'
 import SortableProjectColumnHeader from '#/projects/projectsTable/sortableProjectColumnHeader'
-import { QueryKeys } from '#/query/queryKeys'
 import { ROUTES } from '#/router/routerConstants'
 import { convertSecondsToMinutes } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
+import {OrganizationAssetUsageResponse} from '#/api/models/organizationAssetUsageResponse'
 
 const ProjectBreakdown = () => {
   const [showIntervalBanner, setShowIntervalBanner] = useState(true)
@@ -29,10 +31,12 @@ const ProjectBreakdown = () => {
   })
   const [order, setOrder] = useState({})
 
-  const queryResult = useQuery({
-    queryKey: [QueryKeys.assetUsage, pagination.limit, pagination.offset, orgQuery.data, orgQuery.data?.id, order],
-    queryFn: () => getOrgAssetUsage(pagination.limit, pagination.offset, orgQuery.data ? orgQuery.data.id : '', order),
-    placeholderData: keepPreviousData,
+  // TODO: wait for schema fixes
+  const queryResult = useOrganizationsAssetUsageRetrieve(orgQuery.data?.id!, {
+    query: {
+      placeholderData: keepPreviousData,
+      queryKey: getOrganizationsAssetUsageRetrieveQueryKey(orgQuery.data?.id!),
+    },
   })
 
   const usageName: ProjectFieldDefinition = {
@@ -60,13 +64,13 @@ const ProjectBreakdown = () => {
 
   function getUsageNameLabel() {
     if (queryResult.data) {
-      return t('##count## Projects').replace('##count##', queryResult.data.data.count.toString())
+      return t('##count## Projects').replace('##count##', '')// FIXME: `count` doens't exist, seems related to the error type mismatch stuff queryResult.data.data.count.toString())
     } else {
       return t('Projects')
     }
   }
 
-  const columns: Array<UniversalTableColumn<AssetWithUsage>> = [
+  const columns: Array<UniversalTableColumn<OrganizationAssetUsageResponse>> = [
     {
       key: 'asset_name',
       label: (
@@ -79,7 +83,7 @@ const ProjectBreakdown = () => {
         />
       ),
       size: 100,
-      cellFormatter: (data: AssetWithUsage) => {
+      cellFormatter: (data: OrganizationAssetUsageResponse) => {
         const assetParts = data.asset.split('/')
         const uid = assetParts[assetParts.length - 2]
 
@@ -94,32 +98,32 @@ const ProjectBreakdown = () => {
       key: 'submissions_all',
       label: t('Submissions (Total)'),
       size: 100,
-      cellFormatter: (data: AssetWithUsage) => data.submission_count_all_time,
+      cellFormatter: (data: OrganizationAssetUsageResponse) => data.submission_count_all_time,
     },
     {
       key: 'submissions_current',
       label: t('Submissions'),
       size: 100,
-      cellFormatter: (data: AssetWithUsage) => data.submission_count_current_period,
+      cellFormatter: (data: OrganizationAssetUsageResponse) => data.submission_count_current_period,
     },
     {
       key: 'storage',
       label: t('Storage'),
       size: 100,
-      cellFormatter: (data: AssetWithUsage) => prettyBytes(data.storage_bytes),
+      cellFormatter: (data: OrganizationAssetUsageResponse) => prettyBytes(data.storage_bytes),
     },
     {
       key: 'transcript_minutes',
       label: t('Transcript minutes'),
       size: 100,
-      cellFormatter: (data: AssetWithUsage) =>
+      cellFormatter: (data: OrganizationAssetUsageResponse) =>
         convertSecondsToMinutes(data.nlp_usage_current_period.total_nlp_asr_seconds).toLocaleString(),
     },
     {
       key: 'translation_characters',
       label: t('Translation characters'),
       size: 100,
-      cellFormatter: (data: AssetWithUsage) =>
+      cellFormatter: (data: OrganizationAssetUsageResponse) =>
         convertSecondsToMinutes(data.nlp_usage_current_period.total_nlp_mt_characters).toLocaleString(),
     },
     {
@@ -134,7 +138,7 @@ const ProjectBreakdown = () => {
         />
       ),
       size: 100,
-      cellFormatter: (data: AssetWithUsage) => <AssetStatusBadge deploymentStatus={data.deployment_status} />,
+      cellFormatter: (data: OrganizationAssetUsageResponse) => <AssetStatusBadge deploymentStatus={data.deployment_status} />,
     },
   ]
 
@@ -153,7 +157,7 @@ const ProjectBreakdown = () => {
           <Button size='s' type='text' startIcon='close' onClick={dismissIntervalBanner} />
         </div>
       )}
-      <UniversalTable<AssetWithUsage>
+      <UniversalTable<OrganizationAssetUsageResponse>
         pagination={pagination}
         setPagination={setPagination}
         queryResult={queryResult}
