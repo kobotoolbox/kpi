@@ -11,7 +11,7 @@ import { meMockResponse } from './me.mocks'
  */
 const organizationMock = (override?: Partial<OrganizationResponse>) => {
   const id = override?.id ?? meMockResponse.organization!.uid
-  http.get<never, never, OrganizationResponse>(getOrganizationsRetrieveUrl(id), () => {
+  return http.get<never, never, OrganizationResponse>(getOrganizationsRetrieveUrl(id), () => {
     return HttpResponse.json({ ...organizationReponse(id), ...override })
   })
 }
