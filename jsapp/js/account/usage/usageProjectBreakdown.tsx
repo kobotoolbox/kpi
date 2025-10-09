@@ -5,6 +5,8 @@ import prettyBytes from 'pretty-bytes'
 import { Link } from 'react-router-dom'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import { useOrganizationQuery } from '#/account/organization/organizationQuery'
+import type { ErrorDetail } from '#/api/models/errorDetail'
+import type { OrganizationAssetUsageResponse } from '#/api/models/organizationAssetUsageResponse'
 import {
   getOrganizationsAssetUsageRetrieveQueryKey,
   useOrganizationsAssetUsageRetrieve,
@@ -19,7 +21,6 @@ import { ROUTES } from '#/router/routerConstants'
 import { convertSecondsToMinutes } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
-import {OrganizationAssetUsageResponse} from '#/api/models/organizationAssetUsageResponse'
 
 const ProjectBreakdown = () => {
   const [showIntervalBanner, setShowIntervalBanner] = useState(true)
@@ -64,7 +65,7 @@ const ProjectBreakdown = () => {
 
   function getUsageNameLabel() {
     if (queryResult.data) {
-      return t('##count## Projects').replace('##count##', '')// FIXME: `count` doens't exist, seems related to the error type mismatch stuff queryResult.data.data.count.toString())
+      return t('##count## Projects').replace('##count##', '') // FIXME: `count` doens't exist, seems related to the error type mismatch stuff queryResult.data.data.count.toString())
     } else {
       return t('Projects')
     }
@@ -138,7 +139,9 @@ const ProjectBreakdown = () => {
         />
       ),
       size: 100,
-      cellFormatter: (data: OrganizationAssetUsageResponse) => <AssetStatusBadge deploymentStatus={data.deployment_status} />,
+      cellFormatter: (data: OrganizationAssetUsageResponse) => (
+        <AssetStatusBadge deploymentStatus={data.deployment_status} />
+      ),
     },
   ]
 
@@ -157,7 +160,7 @@ const ProjectBreakdown = () => {
           <Button size='s' type='text' startIcon='close' onClick={dismissIntervalBanner} />
         </div>
       )}
-      <UniversalTable<OrganizationAssetUsageResponse>
+      <UniversalTable<OrganizationAssetUsageResponse, ErrorDetail>
         pagination={pagination}
         setPagination={setPagination}
         queryResult={queryResult}
