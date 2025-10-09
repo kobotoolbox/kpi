@@ -75,7 +75,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             # USAGE_LIMIT_ENFORCEMENT variable. But we use caching
             # so should find a way to keep that out of this count
             if settings.STRIPE_ENABLED:
-                expected_queries = FuzzyInt(80, 87)
+                expected_queries = FuzzyInt(76, 87)
             with self.assertNumQueries(expected_queries):
                 self.view(request)
 
@@ -160,7 +160,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             }
             mock_usage.return_value = mock_balances
             with patch(
-                'kobo.apps.stripe.utils.limit_enforcement.check_exceeded_limit',
+                'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limit',
                 return_value=None,
             ) as patched:
                 request = self.factory.post('/submission', data, format='json')
@@ -179,7 +179,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             }
             mock_usage.return_value = mock_balances
             with patch(
-                'kobo.apps.stripe.utils.limit_enforcement.check_exceeded_limit',
+                'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limit',
                 return_value=None,
             ) as patched:
                 request = self.factory.post('/submission', data, format='json')

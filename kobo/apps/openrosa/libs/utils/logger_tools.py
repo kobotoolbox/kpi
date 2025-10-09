@@ -65,6 +65,7 @@ from kobo.apps.openrosa.apps.logger.signals import (
     update_xform_daily_counter,
     update_xform_monthly_counter,
 )
+from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limit
 from kobo.apps.openrosa.apps.logger.utils.counters import update_user_counters
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     XFormInstanceParser,
@@ -216,10 +217,6 @@ def create_instance(
         for usage_type in [UsageType.STORAGE_BYTES, UsageType.SUBMISSION]:
             balance = balances[usage_type]
             if balance and balance['exceeded']:
-                from kobo.apps.stripe.utils.limit_enforcement import (
-                    check_exceeded_limit,
-                )
-
                 check_exceeded_limit(xform.user, UsageType.SUBMISSION)
                 check_exceeded_limit(xform.user, UsageType.STORAGE_BYTES)
                 raise ExceededUsageLimitError()
@@ -329,10 +326,6 @@ def create_instance(
             )
 
             if settings.STRIPE_ENABLED:
-                from kobo.apps.stripe.utils.limit_enforcement import (
-                    check_exceeded_limit,
-                )
-
                 check_exceeded_limit(xform.user, UsageType.SUBMISSION)
                 check_exceeded_limit(xform.user, UsageType.STORAGE_BYTES)
 
