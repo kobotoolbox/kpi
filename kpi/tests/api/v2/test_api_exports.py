@@ -38,7 +38,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         export_task.data = {
             'source': reverse(
                 self._get_endpoint('asset-detail'),
-                kwargs={'uid': uid},
+                kwargs={'uid_asset': uid},
             ),
             'type': _type,
         }
@@ -82,7 +82,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         self.client.login(username='someuser', password='someuser')
         list_url = reverse(
             self._get_endpoint('asset-export-list'),
-            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
         )
         response = self.client.get(list_url)
         assert response.status_code == status.HTTP_200_OK
@@ -102,7 +102,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         self.client.logout()
         list_url = reverse(
             self._get_endpoint('asset-export-list'),
-            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
         )
         response = self.client.get(list_url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -116,7 +116,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         self.client.logout()
         list_url = reverse(
             self._get_endpoint('asset-export-list'),
-            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
         )
         response = self.client.get(list_url)
         assert response.status_code == status.HTTP_200_OK
@@ -134,7 +134,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         self._create_export_task(_type='xls', user=anon)
         list_url = reverse(
             self._get_endpoint('asset-export-list'),
-            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
         )
         response = self.client.get(list_url)
         assert response.status_code == status.HTTP_200_OK
@@ -155,7 +155,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         self.client.login(username='anotheruser', password='anotheruser')
         list_url = reverse(
             self._get_endpoint('asset-export-list'),
-            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
         )
         response = self.client.get(list_url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -168,11 +168,11 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         }
         exports_list_url = reverse(
             self._get_endpoint('asset-export-list'),
-            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
         )
         export_settings_list_url = reverse(
             self._get_endpoint('asset-export-settings-list'),
-            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
         )
         response = self.client.get(exports_list_url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -194,7 +194,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         self.client.login(username='someuser', password='someuser')
         list_url = reverse(
             self._get_endpoint('asset-export-list'),
-            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
         )
         response = self.client.get(f'{list_url}?q=data__type:csv')
         assert response.status_code == status.HTTP_200_OK
@@ -211,7 +211,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         self.client.login(username='someuser', password='someuser')
         list_url = reverse(
             self._get_endpoint('asset-export-list'),
-            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
         )
         response = self.client.get(f'{list_url}?ordering=-date_created')
         assert response.status_code == status.HTTP_200_OK
@@ -231,7 +231,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         self.client.login(username='someuser', password='someuser')
         list_url = reverse(
             self._get_endpoint('asset-export-list'),
-            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
         )
         data = {
             'type': 'csv',
@@ -248,7 +248,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         self.client.login(username='someuser', password='someuser')
         list_url = reverse(
             self._get_endpoint('asset-export-list'),
-            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
         )
         data = {
             'type': 'xls',
@@ -268,7 +268,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         self.client.login(username='someuser', password='someuser')
         list_url = reverse(
             self._get_endpoint('asset-export-list'),
-            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
         )
         data = {
             'type': 'csv',
@@ -293,8 +293,8 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
             self._get_endpoint('asset-export-detail'),
             kwargs={
                 'format': 'json',
-                'parent_lookup_asset': self.asset.uid,
-                'uid': export_task.uid,
+                'uid_asset': self.asset.uid,
+                'uid_export': export_task.uid,
             },
         )
         response = self.client.get(detail_url)
@@ -311,8 +311,8 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
             self._get_endpoint('asset-export-detail'),
             kwargs={
                 'format': 'json',
-                'parent_lookup_asset': self.asset.uid,
-                'uid': export_task.uid,
+                'uid_asset': self.asset.uid,
+                'uid_export': export_task.uid,
             },
         )
         response = self.client.delete(detail_url)
@@ -323,8 +323,8 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         synchronous_exports_url = reverse(
             self._get_endpoint('asset-export-settings-synchronous-data'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': es.uid,
+                'uid_asset': self.asset.uid,
+                'uid_export_setting': es.uid,
                 'format': 'csv',
             },
         )
@@ -357,8 +357,8 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         synchronous_exports_url = reverse(
             self._get_endpoint('asset-export-settings-synchronous-data'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': es.uid,
+                'uid_asset': self.asset.uid,
+                'uid_export_setting': es.uid,
                 'format': 'csv',
             },
         )
@@ -395,8 +395,8 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         synchronous_exports_url = reverse(
             self._get_endpoint('asset-export-settings-synchronous-data'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': es.uid,
+                'uid_asset': self.asset.uid,
+                'uid_export_setting': es.uid,
                 'format': 'csv',
             },
         )
@@ -410,7 +410,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
 
         exports_list_url = reverse(
             self._get_endpoint('asset-export-list'),
-            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
         )
         with immediate_on_commit():
             exports_list_response = self.client.post(
@@ -437,8 +437,8 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         synchronous_exports_url = reverse(
             self._get_endpoint('asset-export-settings-synchronous-data'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': es.uid,
+                'uid_asset': self.asset.uid,
+                'uid_export_setting': es.uid,
                 'format': 'csv',
             },
         )
@@ -451,8 +451,8 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         synchronous_exports_url = reverse(
             self._get_endpoint('asset-export-settings-synchronous-data'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': es.uid,
+                'uid_asset': self.asset.uid,
+                'uid_export_setting': es.uid,
                 'format': 'csv',
             },
         )
@@ -469,8 +469,8 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         synchronous_exports_url = reverse(
             self._get_endpoint('asset-export-settings-synchronous-data'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': es.uid,
+                'uid_asset': self.asset.uid,
+                'uid_export_setting': es.uid,
                 'format': 'csv',
             },
         )
@@ -492,8 +492,8 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         synchronous_exports_url = reverse(
             self._get_endpoint('asset-export-settings-synchronous-data'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': es.uid,
+                'uid_asset': self.asset.uid,
+                'uid_export_setting': es.uid,
                 'format': 'csv',
             },
         )
@@ -517,8 +517,8 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         synchronous_exports_url = reverse(
             self._get_endpoint('asset-export-settings-synchronous-data'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': es.uid,
+                'uid_asset': self.asset.uid,
+                'uid_export_setting': es.uid,
                 'format': 'csv',
             },
         )
@@ -539,7 +539,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         self.client.login(username='someuser', password='someuser')
         list_url = reverse(
             self._get_endpoint('asset-export-list'),
-            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
         )
         data = {
             'type': 'xls',

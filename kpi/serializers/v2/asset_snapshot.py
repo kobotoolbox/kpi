@@ -11,8 +11,10 @@ from kpi.utils.object_permission import get_database_user
 
 class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
     url = HyperlinkedIdentityField(
-         lookup_field='uid',
-         view_name='assetsnapshot-detail')
+        lookup_field='uid',
+        lookup_url_kwarg='uid_asset_snapshot',
+        view_name='assetsnapshot-detail',
+    )
     uid = serializers.ReadOnlyField()
     xml = serializers.SerializerMethodField()
     enketopreviewlink = serializers.SerializerMethodField()
@@ -21,6 +23,7 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         queryset=Asset.objects.all(),
         view_name='asset-detail',
         lookup_field='uid',
+        lookup_url_kwarg='uid_asset',
         required=False,
         allow_null=True,
         style={'base_template': 'input.html'}  # Render as a simple text box
@@ -79,7 +82,7 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
     def get_enketopreviewlink(self, obj):
         return reverse(
             viewname='assetsnapshot-preview',
-            kwargs={'uid': obj.uid},
+            kwargs={'uid_asset_snapshot': obj.uid},
             request=self.context.get('request', None)
         )
 
@@ -95,7 +98,7 @@ class AssetSnapshotSerializer(serializers.HyperlinkedModelSerializer):
         return reverse(
             viewname='assetsnapshot-detail',
             format='xml',
-            kwargs={'uid': obj.uid},
+            kwargs={'uid_asset_snapshot': obj.uid},
             request=self.context.get('request', None)
         )
 

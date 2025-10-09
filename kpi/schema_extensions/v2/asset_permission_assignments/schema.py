@@ -21,8 +21,8 @@ PERMISSION_URL_SCHEMA = build_url_type(
 
 ASSET_PERMISSION_ASSIGNMENT_URL_SCHEMA = build_url_type(
     'api_v2:asset-permission-assignment-detail',
-    parent_lookup_asset='a3C9wWefqZVkChNLKqqXVZ',
-    uid='pGaXCTDAbdZKLXoXAXd3M4',
+    uid_asset='a3C9wWefqZVkChNLKqqXVZ',
+    uid_permission_assignment='pGaXCTDAbdZKLXoXAXd3M4',
 )
 
 ASSET_PARTIAL_PERMISSION_ASSIGNMENT_SCHEMA = build_array_type(

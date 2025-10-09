@@ -312,300 +312,6 @@ export const useAssetsCreate = <TError = ErrorObject | ErrorDetail, TContext = u
   return useMutation(mutationOptions)
 }
 /**
- * ## Count the daily amount of submission
-
-Returns up to the last 31 days of daily counts and total counts of submissions to a survey.
-
-
-Use the `days` query to get the daily counts from the last x amount of days.
-Default amount is 30 days
-
-
-```shell
-curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/counts/?days=7
-```
-
- */
-export type assetsCountsListResponse200 = {
-  data: PaginatedAssetCountResponseList
-  status: 200
-}
-
-export type assetsCountsListResponse401 = {
-  data: ErrorDetail
-  status: 401
-}
-
-export type assetsCountsListResponseComposite = assetsCountsListResponse200 | assetsCountsListResponse401
-
-export type assetsCountsListResponse = assetsCountsListResponseComposite & {
-  headers: Headers
-}
-
-export const getAssetsCountsListUrl = (parentLookupAsset: string, params?: AssetsCountsListParams) => {
-  const normalizedParams = new URLSearchParams()
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
-    }
-  })
-
-  const stringifiedParams = normalizedParams.toString()
-
-  return stringifiedParams.length > 0
-    ? `/api/v2/assets/${parentLookupAsset}/counts/?${stringifiedParams}`
-    : `/api/v2/assets/${parentLookupAsset}/counts/`
-}
-
-export const assetsCountsList = async (
-  parentLookupAsset: string,
-  params?: AssetsCountsListParams,
-  options?: RequestInit,
-): Promise<assetsCountsListResponse> => {
-  return fetchWithAuth<assetsCountsListResponse>(getAssetsCountsListUrl(parentLookupAsset, params), {
-    ...options,
-    method: 'GET',
-  })
-}
-
-export const getAssetsCountsListQueryKey = (parentLookupAsset: string, params?: AssetsCountsListParams) => {
-  return ['api', 'v2', 'assets', parentLookupAsset, 'counts', ...(params ? [params] : [])] as const
-}
-
-export const getAssetsCountsListQueryOptions = <
-  TData = Awaited<ReturnType<typeof assetsCountsList>>,
-  TError = ErrorDetail,
->(
-  parentLookupAsset: string,
-  params?: AssetsCountsListParams,
-  options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsCountsList>>, TError, TData>
-    request?: SecondParameter<typeof fetchWithAuth>
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
-
-  const queryKey = queryOptions?.queryKey ?? getAssetsCountsListQueryKey(parentLookupAsset, params)
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsCountsList>>> = ({ signal }) =>
-    assetsCountsList(parentLookupAsset, params, { signal, ...requestOptions })
-
-  return { queryKey, queryFn, enabled: !!parentLookupAsset, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof assetsCountsList>>,
-    TError,
-    TData
-  > & { queryKey: QueryKey }
-}
-
-export type AssetsCountsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsCountsList>>>
-export type AssetsCountsListQueryError = ErrorDetail
-
-export function useAssetsCountsList<TData = Awaited<ReturnType<typeof assetsCountsList>>, TError = ErrorDetail>(
-  parentLookupAsset: string,
-  params?: AssetsCountsListParams,
-  options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsCountsList>>, TError, TData>
-    request?: SecondParameter<typeof fetchWithAuth>
-  },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsCountsListQueryOptions(parentLookupAsset, params, options)
-
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
-
-  query.queryKey = queryOptions.queryKey
-
-  return query
-}
-
-/**
- * ## List the versions of forms
-
- */
-export type assetsVersionsListResponse200 = {
-  data: PaginatedVersionListResponseList
-  status: 200
-}
-
-export type assetsVersionsListResponse404 = {
-  data: ErrorDetail
-  status: 404
-}
-
-export type assetsVersionsListResponseComposite = assetsVersionsListResponse200 | assetsVersionsListResponse404
-
-export type assetsVersionsListResponse = assetsVersionsListResponseComposite & {
-  headers: Headers
-}
-
-export const getAssetsVersionsListUrl = (parentLookupAsset: string, params?: AssetsVersionsListParams) => {
-  const normalizedParams = new URLSearchParams()
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : value.toString())
-    }
-  })
-
-  const stringifiedParams = normalizedParams.toString()
-
-  return stringifiedParams.length > 0
-    ? `/api/v2/assets/${parentLookupAsset}/versions/?${stringifiedParams}`
-    : `/api/v2/assets/${parentLookupAsset}/versions/`
-}
-
-export const assetsVersionsList = async (
-  parentLookupAsset: string,
-  params?: AssetsVersionsListParams,
-  options?: RequestInit,
-): Promise<assetsVersionsListResponse> => {
-  return fetchWithAuth<assetsVersionsListResponse>(getAssetsVersionsListUrl(parentLookupAsset, params), {
-    ...options,
-    method: 'GET',
-  })
-}
-
-export const getAssetsVersionsListQueryKey = (parentLookupAsset: string, params?: AssetsVersionsListParams) => {
-  return ['api', 'v2', 'assets', parentLookupAsset, 'versions', ...(params ? [params] : [])] as const
-}
-
-export const getAssetsVersionsListQueryOptions = <
-  TData = Awaited<ReturnType<typeof assetsVersionsList>>,
-  TError = ErrorDetail,
->(
-  parentLookupAsset: string,
-  params?: AssetsVersionsListParams,
-  options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsList>>, TError, TData>
-    request?: SecondParameter<typeof fetchWithAuth>
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
-
-  const queryKey = queryOptions?.queryKey ?? getAssetsVersionsListQueryKey(parentLookupAsset, params)
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsVersionsList>>> = ({ signal }) =>
-    assetsVersionsList(parentLookupAsset, params, { signal, ...requestOptions })
-
-  return { queryKey, queryFn, enabled: !!parentLookupAsset, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof assetsVersionsList>>,
-    TError,
-    TData
-  > & { queryKey: QueryKey }
-}
-
-export type AssetsVersionsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsVersionsList>>>
-export type AssetsVersionsListQueryError = ErrorDetail
-
-export function useAssetsVersionsList<TData = Awaited<ReturnType<typeof assetsVersionsList>>, TError = ErrorDetail>(
-  parentLookupAsset: string,
-  params?: AssetsVersionsListParams,
-  options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsList>>, TError, TData>
-    request?: SecondParameter<typeof fetchWithAuth>
-  },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsVersionsListQueryOptions(parentLookupAsset, params, options)
-
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
-
-  query.queryKey = queryOptions.queryKey
-
-  return query
-}
-
-/**
- * ## Retrieve asset versions
-
-Returns the details of an asset version
-
- */
-export type assetsVersionsRetrieveResponse200 = {
-  data: VersionRetrieveResponse
-  status: 200
-}
-
-export type assetsVersionsRetrieveResponse404 = {
-  data: ErrorDetail
-  status: 404
-}
-
-export type assetsVersionsRetrieveResponseComposite =
-  | assetsVersionsRetrieveResponse200
-  | assetsVersionsRetrieveResponse404
-
-export type assetsVersionsRetrieveResponse = assetsVersionsRetrieveResponseComposite & {
-  headers: Headers
-}
-
-export const getAssetsVersionsRetrieveUrl = (parentLookupAsset: string, uid: string) => {
-  return `/api/v2/assets/${parentLookupAsset}/versions/${uid}/`
-}
-
-export const assetsVersionsRetrieve = async (
-  parentLookupAsset: string,
-  uid: string,
-  options?: RequestInit,
-): Promise<assetsVersionsRetrieveResponse> => {
-  return fetchWithAuth<assetsVersionsRetrieveResponse>(getAssetsVersionsRetrieveUrl(parentLookupAsset, uid), {
-    ...options,
-    method: 'GET',
-  })
-}
-
-export const getAssetsVersionsRetrieveQueryKey = (parentLookupAsset: string, uid: string) => {
-  return ['api', 'v2', 'assets', parentLookupAsset, 'versions', uid] as const
-}
-
-export const getAssetsVersionsRetrieveQueryOptions = <
-  TData = Awaited<ReturnType<typeof assetsVersionsRetrieve>>,
-  TError = ErrorDetail,
->(
-  parentLookupAsset: string,
-  uid: string,
-  options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsRetrieve>>, TError, TData>
-    request?: SecondParameter<typeof fetchWithAuth>
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
-
-  const queryKey = queryOptions?.queryKey ?? getAssetsVersionsRetrieveQueryKey(parentLookupAsset, uid)
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsVersionsRetrieve>>> = ({ signal }) =>
-    assetsVersionsRetrieve(parentLookupAsset, uid, { signal, ...requestOptions })
-
-  return { queryKey, queryFn, enabled: !!(parentLookupAsset && uid), ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof assetsVersionsRetrieve>>,
-    TError,
-    TData
-  > & { queryKey: QueryKey }
-}
-
-export type AssetsVersionsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsVersionsRetrieve>>>
-export type AssetsVersionsRetrieveQueryError = ErrorDetail
-
-export function useAssetsVersionsRetrieve<
-  TData = Awaited<ReturnType<typeof assetsVersionsRetrieve>>,
-  TError = ErrorDetail,
->(
-  parentLookupAsset: string,
-  uid: string,
-  options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsRetrieve>>, TError, TData>
-    request?: SecondParameter<typeof fetchWithAuth>
-  },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsVersionsRetrieveQueryOptions(parentLookupAsset, uid, options)
-
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
-
-  query.queryKey = queryOptions.queryKey
-
-  return query
-}
-
-/**
  * ## Get a user's current asset
 
  */
@@ -625,7 +331,7 @@ export type assetsRetrieveResponse = assetsRetrieveResponseComposite & {
   headers: Headers
 }
 
-export const getAssetsRetrieveUrl = (uid: string, params?: AssetsRetrieveParams) => {
+export const getAssetsRetrieveUrl = (uidAsset: string, params?: AssetsRetrieveParams) => {
   const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -636,26 +342,28 @@ export const getAssetsRetrieveUrl = (uid: string, params?: AssetsRetrieveParams)
 
   const stringifiedParams = normalizedParams.toString()
 
-  return stringifiedParams.length > 0 ? `/api/v2/assets/${uid}/?${stringifiedParams}` : `/api/v2/assets/${uid}/`
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${uidAsset}/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/`
 }
 
 export const assetsRetrieve = async (
-  uid: string,
+  uidAsset: string,
   params?: AssetsRetrieveParams,
   options?: RequestInit,
 ): Promise<assetsRetrieveResponse> => {
-  return fetchWithAuth<assetsRetrieveResponse>(getAssetsRetrieveUrl(uid, params), {
+  return fetchWithAuth<assetsRetrieveResponse>(getAssetsRetrieveUrl(uidAsset, params), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getAssetsRetrieveQueryKey = (uid: string, params?: AssetsRetrieveParams) => {
-  return ['api', 'v2', 'assets', uid, ...(params ? [params] : [])] as const
+export const getAssetsRetrieveQueryKey = (uidAsset: string, params?: AssetsRetrieveParams) => {
+  return ['api', 'v2', 'assets', uidAsset, ...(params ? [params] : [])] as const
 }
 
 export const getAssetsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof assetsRetrieve>>, TError = ErrorDetail>(
-  uid: string,
+  uidAsset: string,
   params?: AssetsRetrieveParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsRetrieve>>, TError, TData>
@@ -664,12 +372,12 @@ export const getAssetsRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof 
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetsRetrieveQueryKey(uid, params)
+  const queryKey = queryOptions?.queryKey ?? getAssetsRetrieveQueryKey(uidAsset, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsRetrieve>>> = ({ signal }) =>
-    assetsRetrieve(uid, params, { signal, ...requestOptions })
+    assetsRetrieve(uidAsset, params, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsRetrieve>>,
     TError,
     TData
@@ -680,14 +388,14 @@ export type AssetsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof as
 export type AssetsRetrieveQueryError = ErrorDetail
 
 export function useAssetsRetrieve<TData = Awaited<ReturnType<typeof assetsRetrieve>>, TError = ErrorDetail>(
-  uid: string,
+  uidAsset: string,
   params?: AssetsRetrieveParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsRetrieveQueryOptions(uid, params, options)
+  const queryOptions = getAssetsRetrieveQueryOptions(uidAsset, params, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -733,16 +441,16 @@ export type assetsPartialUpdateResponse = assetsPartialUpdateResponseComposite &
   headers: Headers
 }
 
-export const getAssetsPartialUpdateUrl = (uid: string) => {
-  return `/api/v2/assets/${uid}/`
+export const getAssetsPartialUpdateUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/`
 }
 
 export const assetsPartialUpdate = async (
-  uid: string,
+  uidAsset: string,
   patchedAssetPatchRequest: PatchedAssetPatchRequest,
   options?: RequestInit,
 ): Promise<assetsPartialUpdateResponse> => {
-  return fetchWithAuth<assetsPartialUpdateResponse>(getAssetsPartialUpdateUrl(uid), {
+  return fetchWithAuth<assetsPartialUpdateResponse>(getAssetsPartialUpdateUrl(uidAsset), {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -757,14 +465,14 @@ export const getAssetsPartialUpdateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPartialUpdate>>,
     TError,
-    { uid: string; data: PatchedAssetPatchRequest },
+    { uidAsset: string; data: PatchedAssetPatchRequest },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsPartialUpdate>>,
   TError,
-  { uid: string; data: PatchedAssetPatchRequest },
+  { uidAsset: string; data: PatchedAssetPatchRequest },
   TContext
 > => {
   const mutationKey = ['assetsPartialUpdate']
@@ -776,11 +484,11 @@ export const getAssetsPartialUpdateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsPartialUpdate>>,
-    { uid: string; data: PatchedAssetPatchRequest }
+    { uidAsset: string; data: PatchedAssetPatchRequest }
   > = (props) => {
-    const { uid, data } = props ?? {}
+    const { uidAsset, data } = props ?? {}
 
-    return assetsPartialUpdate(uid, data, requestOptions)
+    return assetsPartialUpdate(uidAsset, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -794,7 +502,7 @@ export const useAssetsPartialUpdate = <TError = ErrorObject | ErrorDetail, TCont
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsPartialUpdate>>,
     TError,
-    { uid: string; data: PatchedAssetPatchRequest },
+    { uidAsset: string; data: PatchedAssetPatchRequest },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -823,21 +531,21 @@ export type assetsDestroyResponse = assetsDestroyResponseComposite & {
   headers: Headers
 }
 
-export const getAssetsDestroyUrl = (uid: string) => {
-  return `/api/v2/assets/${uid}/`
+export const getAssetsDestroyUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/`
 }
 
-export const assetsDestroy = async (uid: string, options?: RequestInit): Promise<assetsDestroyResponse> => {
-  return fetchWithAuth<assetsDestroyResponse>(getAssetsDestroyUrl(uid), {
+export const assetsDestroy = async (uidAsset: string, options?: RequestInit): Promise<assetsDestroyResponse> => {
+  return fetchWithAuth<assetsDestroyResponse>(getAssetsDestroyUrl(uidAsset), {
     ...options,
     method: 'DELETE',
   })
 }
 
 export const getAssetsDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<Awaited<ReturnType<typeof assetsDestroy>>, TError, { uid: string }, TContext>
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof assetsDestroy>>, TError, { uidAsset: string }, TContext>
   request?: SecondParameter<typeof fetchWithAuth>
-}): UseMutationOptions<Awaited<ReturnType<typeof assetsDestroy>>, TError, { uid: string }, TContext> => {
+}): UseMutationOptions<Awaited<ReturnType<typeof assetsDestroy>>, TError, { uidAsset: string }, TContext> => {
   const mutationKey = ['assetsDestroy']
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
@@ -845,10 +553,10 @@ export const getAssetsDestroyMutationOptions = <TError = ErrorDetail, TContext =
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined }
 
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsDestroy>>, { uid: string }> = (props) => {
-    const { uid } = props ?? {}
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof assetsDestroy>>, { uidAsset: string }> = (props) => {
+    const { uidAsset } = props ?? {}
 
-    return assetsDestroy(uid, requestOptions)
+    return assetsDestroy(uidAsset, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -859,13 +567,120 @@ export type AssetsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof 
 export type AssetsDestroyMutationError = ErrorDetail
 
 export const useAssetsDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<Awaited<ReturnType<typeof assetsDestroy>>, TError, { uid: string }, TContext>
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof assetsDestroy>>, TError, { uidAsset: string }, TContext>
   request?: SecondParameter<typeof fetchWithAuth>
 }) => {
   const mutationOptions = getAssetsDestroyMutationOptions(options)
 
   return useMutation(mutationOptions)
 }
+/**
+ * ## Count the daily amount of submission
+
+Returns up to the last 31 days of daily counts and total counts of submissions to a survey.
+
+
+Use the `days` query to get the daily counts from the last x amount of days.
+Default amount is 30 days
+
+
+```shell
+curl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/counts/?days=7
+```
+
+ */
+export type assetsCountsListResponse200 = {
+  data: PaginatedAssetCountResponseList
+  status: 200
+}
+
+export type assetsCountsListResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type assetsCountsListResponseComposite = assetsCountsListResponse200 | assetsCountsListResponse401
+
+export type assetsCountsListResponse = assetsCountsListResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsCountsListUrl = (uidAsset: string, params?: AssetsCountsListParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${uidAsset}/counts/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/counts/`
+}
+
+export const assetsCountsList = async (
+  uidAsset: string,
+  params?: AssetsCountsListParams,
+  options?: RequestInit,
+): Promise<assetsCountsListResponse> => {
+  return fetchWithAuth<assetsCountsListResponse>(getAssetsCountsListUrl(uidAsset, params), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getAssetsCountsListQueryKey = (uidAsset: string, params?: AssetsCountsListParams) => {
+  return ['api', 'v2', 'assets', uidAsset, 'counts', ...(params ? [params] : [])] as const
+}
+
+export const getAssetsCountsListQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsCountsList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  params?: AssetsCountsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsCountsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsCountsListQueryKey(uidAsset, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsCountsList>>> = ({ signal }) =>
+    assetsCountsList(uidAsset, params, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsCountsList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsCountsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsCountsList>>>
+export type AssetsCountsListQueryError = ErrorDetail
+
+export function useAssetsCountsList<TData = Awaited<ReturnType<typeof assetsCountsList>>, TError = ErrorDetail>(
+  uidAsset: string,
+  params?: AssetsCountsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsCountsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsCountsListQueryOptions(uidAsset, params, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
 /**
  * ## Retrieve the existing deployment (if any)
 
@@ -888,29 +703,29 @@ export type assetsDeploymentRetrieveResponse = assetsDeploymentRetrieveResponseC
   headers: Headers
 }
 
-export const getAssetsDeploymentRetrieveUrl = (uid: string) => {
-  return `/api/v2/assets/${uid}/deployment/`
+export const getAssetsDeploymentRetrieveUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/deployment/`
 }
 
 export const assetsDeploymentRetrieve = async (
-  uid: string,
+  uidAsset: string,
   options?: RequestInit,
 ): Promise<assetsDeploymentRetrieveResponse> => {
-  return fetchWithAuth<assetsDeploymentRetrieveResponse>(getAssetsDeploymentRetrieveUrl(uid), {
+  return fetchWithAuth<assetsDeploymentRetrieveResponse>(getAssetsDeploymentRetrieveUrl(uidAsset), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getAssetsDeploymentRetrieveQueryKey = (uid: string) => {
-  return ['api', 'v2', 'assets', uid, 'deployment'] as const
+export const getAssetsDeploymentRetrieveQueryKey = (uidAsset: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'deployment'] as const
 }
 
 export const getAssetsDeploymentRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsDeploymentRetrieve>>,
   TError = ErrorDetail,
 >(
-  uid: string,
+  uidAsset: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDeploymentRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -918,12 +733,12 @@ export const getAssetsDeploymentRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetsDeploymentRetrieveQueryKey(uid)
+  const queryKey = queryOptions?.queryKey ?? getAssetsDeploymentRetrieveQueryKey(uidAsset)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDeploymentRetrieve>>> = ({ signal }) =>
-    assetsDeploymentRetrieve(uid, { signal, ...requestOptions })
+    assetsDeploymentRetrieve(uidAsset, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsDeploymentRetrieve>>,
     TError,
     TData
@@ -937,13 +752,13 @@ export function useAssetsDeploymentRetrieve<
   TData = Awaited<ReturnType<typeof assetsDeploymentRetrieve>>,
   TError = ErrorDetail,
 >(
-  uid: string,
+  uidAsset: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDeploymentRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsDeploymentRetrieveQueryOptions(uid, options)
+  const queryOptions = getAssetsDeploymentRetrieveQueryOptions(uidAsset, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -982,16 +797,16 @@ export type assetsDeploymentCreateResponse = assetsDeploymentCreateResponseCompo
   headers: Headers
 }
 
-export const getAssetsDeploymentCreateUrl = (uid: string) => {
-  return `/api/v2/assets/${uid}/deployment/`
+export const getAssetsDeploymentCreateUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/deployment/`
 }
 
 export const assetsDeploymentCreate = async (
-  uid: string,
+  uidAsset: string,
   deploymentCreateRequest: DeploymentCreateRequest,
   options?: RequestInit,
 ): Promise<assetsDeploymentCreateResponse> => {
-  return fetchWithAuth<assetsDeploymentCreateResponse>(getAssetsDeploymentCreateUrl(uid), {
+  return fetchWithAuth<assetsDeploymentCreateResponse>(getAssetsDeploymentCreateUrl(uidAsset), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -1006,14 +821,14 @@ export const getAssetsDeploymentCreateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDeploymentCreate>>,
     TError,
-    { uid: string; data: DeploymentCreateRequest },
+    { uidAsset: string; data: DeploymentCreateRequest },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsDeploymentCreate>>,
   TError,
-  { uid: string; data: DeploymentCreateRequest },
+  { uidAsset: string; data: DeploymentCreateRequest },
   TContext
 > => {
   const mutationKey = ['assetsDeploymentCreate']
@@ -1025,11 +840,11 @@ export const getAssetsDeploymentCreateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsDeploymentCreate>>,
-    { uid: string; data: DeploymentCreateRequest }
+    { uidAsset: string; data: DeploymentCreateRequest }
   > = (props) => {
-    const { uid, data } = props ?? {}
+    const { uidAsset, data } = props ?? {}
 
-    return assetsDeploymentCreate(uid, data, requestOptions)
+    return assetsDeploymentCreate(uidAsset, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -1043,7 +858,7 @@ export const useAssetsDeploymentCreate = <TError = ErrorObject | ErrorDetail, TC
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDeploymentCreate>>,
     TError,
-    { uid: string; data: DeploymentCreateRequest },
+    { uidAsset: string; data: DeploymentCreateRequest },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -1084,16 +899,16 @@ export type assetsDeploymentPartialUpdateResponse = assetsDeploymentPartialUpdat
   headers: Headers
 }
 
-export const getAssetsDeploymentPartialUpdateUrl = (uid: string) => {
-  return `/api/v2/assets/${uid}/deployment/`
+export const getAssetsDeploymentPartialUpdateUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/deployment/`
 }
 
 export const assetsDeploymentPartialUpdate = async (
-  uid: string,
+  uidAsset: string,
   patchedDeploymentPatchRequest: PatchedDeploymentPatchRequest,
   options?: RequestInit,
 ): Promise<assetsDeploymentPartialUpdateResponse> => {
-  return fetchWithAuth<assetsDeploymentPartialUpdateResponse>(getAssetsDeploymentPartialUpdateUrl(uid), {
+  return fetchWithAuth<assetsDeploymentPartialUpdateResponse>(getAssetsDeploymentPartialUpdateUrl(uidAsset), {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -1108,14 +923,14 @@ export const getAssetsDeploymentPartialUpdateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDeploymentPartialUpdate>>,
     TError,
-    { uid: string; data: PatchedDeploymentPatchRequest },
+    { uidAsset: string; data: PatchedDeploymentPatchRequest },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsDeploymentPartialUpdate>>,
   TError,
-  { uid: string; data: PatchedDeploymentPatchRequest },
+  { uidAsset: string; data: PatchedDeploymentPatchRequest },
   TContext
 > => {
   const mutationKey = ['assetsDeploymentPartialUpdate']
@@ -1127,11 +942,11 @@ export const getAssetsDeploymentPartialUpdateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsDeploymentPartialUpdate>>,
-    { uid: string; data: PatchedDeploymentPatchRequest }
+    { uidAsset: string; data: PatchedDeploymentPatchRequest }
   > = (props) => {
-    const { uid, data } = props ?? {}
+    const { uidAsset, data } = props ?? {}
 
-    return assetsDeploymentPartialUpdate(uid, data, requestOptions)
+    return assetsDeploymentPartialUpdate(uidAsset, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -1147,7 +962,7 @@ export const useAssetsDeploymentPartialUpdate = <TError = ErrorObject | ErrorDet
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDeploymentPartialUpdate>>,
     TError,
-    { uid: string; data: PatchedDeploymentPatchRequest },
+    { uidAsset: string; data: PatchedDeploymentPatchRequest },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -1156,6 +971,193 @@ export const useAssetsDeploymentPartialUpdate = <TError = ErrorObject | ErrorDet
 
   return useMutation(mutationOptions)
 }
+/**
+ * ## List the versions of forms
+
+ */
+export type assetsVersionsListResponse200 = {
+  data: PaginatedVersionListResponseList
+  status: 200
+}
+
+export type assetsVersionsListResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type assetsVersionsListResponseComposite = assetsVersionsListResponse200 | assetsVersionsListResponse404
+
+export type assetsVersionsListResponse = assetsVersionsListResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsVersionsListUrl = (uidAsset: string, params?: AssetsVersionsListParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/v2/assets/${uidAsset}/versions/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/versions/`
+}
+
+export const assetsVersionsList = async (
+  uidAsset: string,
+  params?: AssetsVersionsListParams,
+  options?: RequestInit,
+): Promise<assetsVersionsListResponse> => {
+  return fetchWithAuth<assetsVersionsListResponse>(getAssetsVersionsListUrl(uidAsset, params), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getAssetsVersionsListQueryKey = (uidAsset: string, params?: AssetsVersionsListParams) => {
+  return ['api', 'v2', 'assets', uidAsset, 'versions', ...(params ? [params] : [])] as const
+}
+
+export const getAssetsVersionsListQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsVersionsList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  params?: AssetsVersionsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsVersionsListQueryKey(uidAsset, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsVersionsList>>> = ({ signal }) =>
+    assetsVersionsList(uidAsset, params, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsVersionsList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsVersionsListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsVersionsList>>>
+export type AssetsVersionsListQueryError = ErrorDetail
+
+export function useAssetsVersionsList<TData = Awaited<ReturnType<typeof assetsVersionsList>>, TError = ErrorDetail>(
+  uidAsset: string,
+  params?: AssetsVersionsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsVersionsListQueryOptions(uidAsset, params, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## Retrieve asset versions
+
+Returns the details of an asset version
+
+ */
+export type assetsVersionsRetrieveResponse200 = {
+  data: VersionRetrieveResponse
+  status: 200
+}
+
+export type assetsVersionsRetrieveResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type assetsVersionsRetrieveResponseComposite =
+  | assetsVersionsRetrieveResponse200
+  | assetsVersionsRetrieveResponse404
+
+export type assetsVersionsRetrieveResponse = assetsVersionsRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsVersionsRetrieveUrl = (uidAsset: string, uidVersion: string) => {
+  return `/api/v2/assets/${uidAsset}/versions/${uidVersion}/`
+}
+
+export const assetsVersionsRetrieve = async (
+  uidAsset: string,
+  uidVersion: string,
+  options?: RequestInit,
+): Promise<assetsVersionsRetrieveResponse> => {
+  return fetchWithAuth<assetsVersionsRetrieveResponse>(getAssetsVersionsRetrieveUrl(uidAsset, uidVersion), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getAssetsVersionsRetrieveQueryKey = (uidAsset: string, uidVersion: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'versions', uidVersion] as const
+}
+
+export const getAssetsVersionsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsVersionsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidVersion: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsVersionsRetrieveQueryKey(uidAsset, uidVersion)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsVersionsRetrieve>>> = ({ signal }) =>
+    assetsVersionsRetrieve(uidAsset, uidVersion, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidVersion), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsVersionsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsVersionsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsVersionsRetrieve>>>
+export type AssetsVersionsRetrieveQueryError = ErrorDetail
+
+export function useAssetsVersionsRetrieve<
+  TData = Awaited<ReturnType<typeof assetsVersionsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidVersion: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsVersionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsVersionsRetrieveQueryOptions(uidAsset, uidVersion, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
 /**
  * ## This route will render the XForm into syntax-highlighted HTML.
 
@@ -1178,26 +1180,29 @@ export type assetsXformRetrieveResponse = assetsXformRetrieveResponseComposite &
   headers: Headers
 }
 
-export const getAssetsXformRetrieveUrl = (uid: string) => {
-  return `/api/v2/assets/${uid}/xform/`
+export const getAssetsXformRetrieveUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/xform/`
 }
 
-export const assetsXformRetrieve = async (uid: string, options?: RequestInit): Promise<assetsXformRetrieveResponse> => {
-  return fetchWithAuth<assetsXformRetrieveResponse>(getAssetsXformRetrieveUrl(uid), {
+export const assetsXformRetrieve = async (
+  uidAsset: string,
+  options?: RequestInit,
+): Promise<assetsXformRetrieveResponse> => {
+  return fetchWithAuth<assetsXformRetrieveResponse>(getAssetsXformRetrieveUrl(uidAsset), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getAssetsXformRetrieveQueryKey = (uid: string) => {
-  return ['api', 'v2', 'assets', uid, 'xform'] as const
+export const getAssetsXformRetrieveQueryKey = (uidAsset: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'xform'] as const
 }
 
 export const getAssetsXformRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsXformRetrieve>>,
   TError = void,
 >(
-  uid: string,
+  uidAsset: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsXformRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -1205,12 +1210,12 @@ export const getAssetsXformRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetsXformRetrieveQueryKey(uid)
+  const queryKey = queryOptions?.queryKey ?? getAssetsXformRetrieveQueryKey(uidAsset)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsXformRetrieve>>> = ({ signal }) =>
-    assetsXformRetrieve(uid, { signal, ...requestOptions })
+    assetsXformRetrieve(uidAsset, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsXformRetrieve>>,
     TError,
     TData
@@ -1221,13 +1226,13 @@ export type AssetsXformRetrieveQueryResult = NonNullable<Awaited<ReturnType<type
 export type AssetsXformRetrieveQueryError = void
 
 export function useAssetsXformRetrieve<TData = Awaited<ReturnType<typeof assetsXformRetrieve>>, TError = void>(
-  uid: string,
+  uidAsset: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsXformRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsXformRetrieveQueryOptions(uid, options)
+  const queryOptions = getAssetsXformRetrieveQueryOptions(uidAsset, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -1672,26 +1677,26 @@ export type importsRetrieveResponse = importsRetrieveResponseComposite & {
   headers: Headers
 }
 
-export const getImportsRetrieveUrl = (uid: string) => {
-  return `/api/v2/imports/${uid}/`
+export const getImportsRetrieveUrl = (uidImport: string) => {
+  return `/api/v2/imports/${uidImport}/`
 }
 
-export const importsRetrieve = async (uid: string, options?: RequestInit): Promise<importsRetrieveResponse> => {
-  return fetchWithAuth<importsRetrieveResponse>(getImportsRetrieveUrl(uid), {
+export const importsRetrieve = async (uidImport: string, options?: RequestInit): Promise<importsRetrieveResponse> => {
+  return fetchWithAuth<importsRetrieveResponse>(getImportsRetrieveUrl(uidImport), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getImportsRetrieveQueryKey = (uid: string) => {
-  return ['api', 'v2', 'imports', uid] as const
+export const getImportsRetrieveQueryKey = (uidImport: string) => {
+  return ['api', 'v2', 'imports', uidImport] as const
 }
 
 export const getImportsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof importsRetrieve>>,
   TError = ErrorDetail,
 >(
-  uid: string,
+  uidImport: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof importsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -1699,12 +1704,12 @@ export const getImportsRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getImportsRetrieveQueryKey(uid)
+  const queryKey = queryOptions?.queryKey ?? getImportsRetrieveQueryKey(uidImport)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof importsRetrieve>>> = ({ signal }) =>
-    importsRetrieve(uid, { signal, ...requestOptions })
+    importsRetrieve(uidImport, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidImport, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof importsRetrieve>>,
     TError,
     TData
@@ -1715,13 +1720,13 @@ export type ImportsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof i
 export type ImportsRetrieveQueryError = ErrorDetail
 
 export function useImportsRetrieve<TData = Awaited<ReturnType<typeof importsRetrieve>>, TError = ErrorDetail>(
-  uid: string,
+  uidImport: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof importsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getImportsRetrieveQueryOptions(uid, options)
+  const queryOptions = getImportsRetrieveQueryOptions(uidImport, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -1943,102 +1948,6 @@ export const useProjectOwnershipInvitesCreate = <TError = ErrorObject | ErrorDet
   return useMutation(mutationOptions)
 }
 /**
- * ## Retrieve transfer details
-
- */
-export type projectOwnershipInvitesTransfersRetrieveResponse200 = {
-  data: TransferListResponse
-  status: 200
-}
-
-export type projectOwnershipInvitesTransfersRetrieveResponse401 = {
-  data: ErrorDetail
-  status: 401
-}
-
-export type projectOwnershipInvitesTransfersRetrieveResponseComposite =
-  | projectOwnershipInvitesTransfersRetrieveResponse200
-  | projectOwnershipInvitesTransfersRetrieveResponse401
-
-export type projectOwnershipInvitesTransfersRetrieveResponse =
-  projectOwnershipInvitesTransfersRetrieveResponseComposite & {
-    headers: Headers
-  }
-
-export const getProjectOwnershipInvitesTransfersRetrieveUrl = (parentLookupInviteUid: string, uid: string) => {
-  return `/api/v2/project-ownership/invites/${parentLookupInviteUid}/transfers/${uid}/`
-}
-
-export const projectOwnershipInvitesTransfersRetrieve = async (
-  parentLookupInviteUid: string,
-  uid: string,
-  options?: RequestInit,
-): Promise<projectOwnershipInvitesTransfersRetrieveResponse> => {
-  return fetchWithAuth<projectOwnershipInvitesTransfersRetrieveResponse>(
-    getProjectOwnershipInvitesTransfersRetrieveUrl(parentLookupInviteUid, uid),
-    {
-      ...options,
-      method: 'GET',
-    },
-  )
-}
-
-export const getProjectOwnershipInvitesTransfersRetrieveQueryKey = (parentLookupInviteUid: string, uid: string) => {
-  return ['api', 'v2', 'project-ownership', 'invites', parentLookupInviteUid, 'transfers', uid] as const
-}
-
-export const getProjectOwnershipInvitesTransfersRetrieveQueryOptions = <
-  TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
-  TError = ErrorDetail,
->(
-  parentLookupInviteUid: string,
-  uid: string,
-  options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
-    request?: SecondParameter<typeof fetchWithAuth>
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
-
-  const queryKey =
-    queryOptions?.queryKey ?? getProjectOwnershipInvitesTransfersRetrieveQueryKey(parentLookupInviteUid, uid)
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>> = ({ signal }) =>
-    projectOwnershipInvitesTransfersRetrieve(parentLookupInviteUid, uid, { signal, ...requestOptions })
-
-  return { queryKey, queryFn, enabled: !!(parentLookupInviteUid && uid), ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
-    TError,
-    TData
-  > & { queryKey: QueryKey }
-}
-
-export type ProjectOwnershipInvitesTransfersRetrieveQueryResult = NonNullable<
-  Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>
->
-export type ProjectOwnershipInvitesTransfersRetrieveQueryError = ErrorDetail
-
-export function useProjectOwnershipInvitesTransfersRetrieve<
-  TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
-  TError = ErrorDetail,
->(
-  parentLookupInviteUid: string,
-  uid: string,
-  options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
-    request?: SecondParameter<typeof fetchWithAuth>
-  },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getProjectOwnershipInvitesTransfersRetrieveQueryOptions(parentLookupInviteUid, uid, options)
-
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
-
-  query.queryKey = queryOptions.queryKey
-
-  return query
-}
-
-/**
  * ## Invite detail
 
 It can be useful to monitor the invite status while the transfer is being processed
@@ -2062,29 +1971,29 @@ export type projectOwnershipInvitesRetrieveResponse = projectOwnershipInvitesRet
   headers: Headers
 }
 
-export const getProjectOwnershipInvitesRetrieveUrl = (uid: string) => {
-  return `/api/v2/project-ownership/invites/${uid}/`
+export const getProjectOwnershipInvitesRetrieveUrl = (uidInvite: string) => {
+  return `/api/v2/project-ownership/invites/${uidInvite}/`
 }
 
 export const projectOwnershipInvitesRetrieve = async (
-  uid: string,
+  uidInvite: string,
   options?: RequestInit,
 ): Promise<projectOwnershipInvitesRetrieveResponse> => {
-  return fetchWithAuth<projectOwnershipInvitesRetrieveResponse>(getProjectOwnershipInvitesRetrieveUrl(uid), {
+  return fetchWithAuth<projectOwnershipInvitesRetrieveResponse>(getProjectOwnershipInvitesRetrieveUrl(uidInvite), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getProjectOwnershipInvitesRetrieveQueryKey = (uid: string) => {
-  return ['api', 'v2', 'project-ownership', 'invites', uid] as const
+export const getProjectOwnershipInvitesRetrieveQueryKey = (uidInvite: string) => {
+  return ['api', 'v2', 'project-ownership', 'invites', uidInvite] as const
 }
 
 export const getProjectOwnershipInvitesRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>,
   TError = ErrorDetail,
 >(
-  uid: string,
+  uidInvite: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -2092,12 +2001,12 @@ export const getProjectOwnershipInvitesRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getProjectOwnershipInvitesRetrieveQueryKey(uid)
+  const queryKey = queryOptions?.queryKey ?? getProjectOwnershipInvitesRetrieveQueryKey(uidInvite)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>> = ({ signal }) =>
-    projectOwnershipInvitesRetrieve(uid, { signal, ...requestOptions })
+    projectOwnershipInvitesRetrieve(uidInvite, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!uid, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidInvite, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>,
     TError,
     TData
@@ -2113,13 +2022,13 @@ export function useProjectOwnershipInvitesRetrieve<
   TData = Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>,
   TError = ErrorDetail,
 >(
-  uid: string,
+  uidInvite: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getProjectOwnershipInvitesRetrieveQueryOptions(uid, options)
+  const queryOptions = getProjectOwnershipInvitesRetrieveQueryOptions(uidInvite, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -2168,21 +2077,24 @@ export type projectOwnershipInvitesPartialUpdateResponse = projectOwnershipInvit
   headers: Headers
 }
 
-export const getProjectOwnershipInvitesPartialUpdateUrl = (uid: string) => {
-  return `/api/v2/project-ownership/invites/${uid}/`
+export const getProjectOwnershipInvitesPartialUpdateUrl = (uidInvite: string) => {
+  return `/api/v2/project-ownership/invites/${uidInvite}/`
 }
 
 export const projectOwnershipInvitesPartialUpdate = async (
-  uid: string,
+  uidInvite: string,
   patchedInviteUpdatePayload: PatchedInviteUpdatePayload,
   options?: RequestInit,
 ): Promise<projectOwnershipInvitesPartialUpdateResponse> => {
-  return fetchWithAuth<projectOwnershipInvitesPartialUpdateResponse>(getProjectOwnershipInvitesPartialUpdateUrl(uid), {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(patchedInviteUpdatePayload),
-  })
+  return fetchWithAuth<projectOwnershipInvitesPartialUpdateResponse>(
+    getProjectOwnershipInvitesPartialUpdateUrl(uidInvite),
+    {
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(patchedInviteUpdatePayload),
+    },
+  )
 }
 
 export const getProjectOwnershipInvitesPartialUpdateMutationOptions = <
@@ -2192,14 +2104,14 @@ export const getProjectOwnershipInvitesPartialUpdateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof projectOwnershipInvitesPartialUpdate>>,
     TError,
-    { uid: string; data: PatchedInviteUpdatePayload },
+    { uidInvite: string; data: PatchedInviteUpdatePayload },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof projectOwnershipInvitesPartialUpdate>>,
   TError,
-  { uid: string; data: PatchedInviteUpdatePayload },
+  { uidInvite: string; data: PatchedInviteUpdatePayload },
   TContext
 > => {
   const mutationKey = ['projectOwnershipInvitesPartialUpdate']
@@ -2211,11 +2123,11 @@ export const getProjectOwnershipInvitesPartialUpdateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof projectOwnershipInvitesPartialUpdate>>,
-    { uid: string; data: PatchedInviteUpdatePayload }
+    { uidInvite: string; data: PatchedInviteUpdatePayload }
   > = (props) => {
-    const { uid, data } = props ?? {}
+    const { uidInvite, data } = props ?? {}
 
-    return projectOwnershipInvitesPartialUpdate(uid, data, requestOptions)
+    return projectOwnershipInvitesPartialUpdate(uidInvite, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -2234,7 +2146,7 @@ export const useProjectOwnershipInvitesPartialUpdate = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof projectOwnershipInvitesPartialUpdate>>,
     TError,
-    { uid: string; data: PatchedInviteUpdatePayload },
+    { uidInvite: string; data: PatchedInviteUpdatePayload },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -2265,15 +2177,15 @@ export type projectOwnershipInvitesDestroyResponse = projectOwnershipInvitesDest
   headers: Headers
 }
 
-export const getProjectOwnershipInvitesDestroyUrl = (uid: string) => {
-  return `/api/v2/project-ownership/invites/${uid}/`
+export const getProjectOwnershipInvitesDestroyUrl = (uidInvite: string) => {
+  return `/api/v2/project-ownership/invites/${uidInvite}/`
 }
 
 export const projectOwnershipInvitesDestroy = async (
-  uid: string,
+  uidInvite: string,
   options?: RequestInit,
 ): Promise<projectOwnershipInvitesDestroyResponse> => {
-  return fetchWithAuth<projectOwnershipInvitesDestroyResponse>(getProjectOwnershipInvitesDestroyUrl(uid), {
+  return fetchWithAuth<projectOwnershipInvitesDestroyResponse>(getProjectOwnershipInvitesDestroyUrl(uidInvite), {
     ...options,
     method: 'DELETE',
   })
@@ -2283,14 +2195,14 @@ export const getProjectOwnershipInvitesDestroyMutationOptions = <TError = ErrorD
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof projectOwnershipInvitesDestroy>>,
     TError,
-    { uid: string },
+    { uidInvite: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof projectOwnershipInvitesDestroy>>,
   TError,
-  { uid: string },
+  { uidInvite: string },
   TContext
 > => {
   const mutationKey = ['projectOwnershipInvitesDestroy']
@@ -2300,12 +2212,13 @@ export const getProjectOwnershipInvitesDestroyMutationOptions = <TError = ErrorD
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined }
 
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof projectOwnershipInvitesDestroy>>, { uid: string }> = (
-    props,
-  ) => {
-    const { uid } = props ?? {}
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof projectOwnershipInvitesDestroy>>,
+    { uidInvite: string }
+  > = (props) => {
+    const { uidInvite } = props ?? {}
 
-    return projectOwnershipInvitesDestroy(uid, requestOptions)
+    return projectOwnershipInvitesDestroy(uidInvite, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -2321,7 +2234,7 @@ export const useProjectOwnershipInvitesDestroy = <TError = ErrorDetail, TContext
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof projectOwnershipInvitesDestroy>>,
     TError,
-    { uid: string },
+    { uidInvite: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -2330,6 +2243,101 @@ export const useProjectOwnershipInvitesDestroy = <TError = ErrorDetail, TContext
 
   return useMutation(mutationOptions)
 }
+/**
+ * ## Retrieve transfer details
+
+ */
+export type projectOwnershipInvitesTransfersRetrieveResponse200 = {
+  data: TransferListResponse
+  status: 200
+}
+
+export type projectOwnershipInvitesTransfersRetrieveResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type projectOwnershipInvitesTransfersRetrieveResponseComposite =
+  | projectOwnershipInvitesTransfersRetrieveResponse200
+  | projectOwnershipInvitesTransfersRetrieveResponse401
+
+export type projectOwnershipInvitesTransfersRetrieveResponse =
+  projectOwnershipInvitesTransfersRetrieveResponseComposite & {
+    headers: Headers
+  }
+
+export const getProjectOwnershipInvitesTransfersRetrieveUrl = (uidInvite: string, uidTransfer: string) => {
+  return `/api/v2/project-ownership/invites/${uidInvite}/transfers/${uidTransfer}/`
+}
+
+export const projectOwnershipInvitesTransfersRetrieve = async (
+  uidInvite: string,
+  uidTransfer: string,
+  options?: RequestInit,
+): Promise<projectOwnershipInvitesTransfersRetrieveResponse> => {
+  return fetchWithAuth<projectOwnershipInvitesTransfersRetrieveResponse>(
+    getProjectOwnershipInvitesTransfersRetrieveUrl(uidInvite, uidTransfer),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
+}
+
+export const getProjectOwnershipInvitesTransfersRetrieveQueryKey = (uidInvite: string, uidTransfer: string) => {
+  return ['api', 'v2', 'project-ownership', 'invites', uidInvite, 'transfers', uidTransfer] as const
+}
+
+export const getProjectOwnershipInvitesTransfersRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidInvite: string,
+  uidTransfer: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getProjectOwnershipInvitesTransfersRetrieveQueryKey(uidInvite, uidTransfer)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>> = ({ signal }) =>
+    projectOwnershipInvitesTransfersRetrieve(uidInvite, uidTransfer, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidInvite && uidTransfer), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type ProjectOwnershipInvitesTransfersRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>
+>
+export type ProjectOwnershipInvitesTransfersRetrieveQueryError = ErrorDetail
+
+export function useProjectOwnershipInvitesTransfersRetrieve<
+  TData = Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidInvite: string,
+  uidTransfer: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectOwnershipInvitesTransfersRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getProjectOwnershipInvitesTransfersRetrieveQueryOptions(uidInvite, uidTransfer, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
 /**
  * ## List current user's assets' tags
 

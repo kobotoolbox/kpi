@@ -19,7 +19,7 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         cache.clear()
         self.url = reverse(
             self._get_endpoint('organizations-service-usage'),
-            kwargs={'id': self.organization.id}
+            kwargs={'uid_organization': self.organization.id}
         )
 
     @classmethod

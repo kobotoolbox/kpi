@@ -49,7 +49,7 @@ class OrganizationApiTestCase(BaseTestCase):
 
         self.url_detail = reverse(
             self._get_endpoint('organizations-detail'),
-            kwargs={'id': self.organization.id},
+            kwargs={'uid_organization': self.organization.id},
         )
 
     def test_anonymous_user(self):
@@ -100,7 +100,7 @@ class OrganizationApiTestCase(BaseTestCase):
         self._insert_data()
         url_service_usage = reverse(
             self._get_endpoint('organizations-service-usage'),
-            kwargs={'id': self.organization.id},
+            kwargs={'uid_organization': self.organization.id},
         )
         now = timezone.now()
         mock_cache_last_updated.return_value = now - timedelta(seconds=3)
@@ -217,7 +217,7 @@ class OrganizationDetailAPITestCase(BaseTestCase):
 
         url = reverse(
             self._get_endpoint('organizations-asset-usage'),
-            kwargs={'id': self.organization.id}
+            kwargs={'uid_organization': self.organization.id}
         )
         response = self.client.get(url)
         assert response.status_code == expected_status_code
@@ -236,7 +236,7 @@ class OrganizationDetailAPITestCase(BaseTestCase):
 
         url = reverse(
             self._get_endpoint('organizations-detail'),
-            kwargs={'id': self.organization.id},
+            kwargs={'uid_organization': self.organization.id},
         )
         response = self.client.post(url, data)
 
@@ -291,7 +291,7 @@ class BaseOrganizationAssetApiTestCase(BaseAssetTestCase):
         self.client.force_login(self.someuser)
         self.org_assets_list_url = reverse(
             self._get_endpoint('organizations-assets'),
-            kwargs={'id': self.organization.id},
+            kwargs={'uid_organization': self.organization.id},
         )
 
     def _create_asset_by_alice(self):
@@ -317,7 +317,8 @@ class BaseOrganizationAssetApiTestCase(BaseAssetTestCase):
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data['owner__username'] == self.someuser.username
         assert_detail_url = reverse(
-            self._get_endpoint('asset-detail'), kwargs={'uid': response.data['uid']}
+            self._get_endpoint('asset-detail'),
+            kwargs={'uid_asset': response.data['uid']},
         )
         response = self.client.get(assert_detail_url)
 
@@ -348,7 +349,8 @@ class BaseOrganizationAssetApiTestCase(BaseAssetTestCase):
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data['owner__username'] == self.bob.username
         assert_detail_url = reverse(
-            self._get_endpoint('asset-detail'), kwargs={'uid': response.data['uid']}
+            self._get_endpoint('asset-detail'),
+            kwargs={'uid_asset': response.data['uid']},
         )
         response = self.client.get(assert_detail_url)
         assert response.status_code == status.HTTP_200_OK
@@ -386,18 +388,18 @@ class BaseOrganizationAdminsDataApiTestCase(BaseOrganizationAssetApiTestCase):
         self.asset.deployment.mock_submissions([self.submission])
         self.data_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid},
+            kwargs={'uid_asset': self.asset.uid},
         )
         self.submission_url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid},
+            kwargs={'uid_asset': self.asset.uid},
         )
         self.client.force_login(self.anotheruser)
 
@@ -519,7 +521,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
         asset_uid = response.data['uid']
         user = User.objects.get(username=username)
         assert_detail_url = reverse(
-            self._get_endpoint('asset-detail'), kwargs={'uid': asset_uid}
+            self._get_endpoint('asset-detail'), kwargs={'uid_asset': asset_uid}
         )
 
         self.client.force_login(user)
@@ -552,7 +554,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
         asset_uid = response.data['uid']
         user = User.objects.get(username=username)
         assert_detail_url = reverse(
-            self._get_endpoint('asset-detail'), kwargs={'uid': asset_uid}
+            self._get_endpoint('asset-detail'), kwargs={'uid_asset': asset_uid}
         )
         data = {'name': 'Week-end breakfast'}
 
@@ -588,7 +590,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
             self._get_endpoint('asset-detail'),
             # Use JSON format to prevent HtmlRenderer from returning a 200 status
             # instead of 204.
-            kwargs={'uid': asset_uid, 'format': 'json'},
+            kwargs={'uid_asset': asset_uid, 'format': 'json'},
         )
 
         self.client.force_login(user)
@@ -629,7 +631,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
         asset_uid = response.data['uid']
         user = User.objects.get(username=username)
         assert_detail_url = reverse(
-            self._get_endpoint('asset-deployment'), kwargs={'uid': asset_uid}
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': asset_uid}
         )
         data = {'active': is_active}
 
@@ -675,7 +677,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
         self.client.force_login(user)
         url = reverse(
             self._get_endpoint('asset-permission-assignment-bulk-actions'),
-            kwargs={'parent_lookup_asset': asset_uid},
+            kwargs={'uid_asset': asset_uid},
         )
         response = self.client.post(url, data=payload)
         response.status_code == expected_status_code
@@ -706,7 +708,7 @@ class OrganizationAdminsDataApiTestCase(
         self.submission_bulk_url = reverse(
             self._get_endpoint('submission-bulk'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
             },
         )
         self._delete_submissions()
@@ -806,7 +808,7 @@ class OrganizationAdminsRestServiceApiTestCase(
         hook = self._create_hook()
         list_url = reverse(
             self._get_endpoint('hook-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid},
+            kwargs={'uid_asset': self.asset.uid},
         )
 
         response = self.client.get(list_url)
@@ -817,8 +819,8 @@ class OrganizationAdminsRestServiceApiTestCase(
         detail_url = reverse(
             'hook-detail',
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': hook.uid,
+                'uid_asset': self.asset.uid,
+                'uid_hook': hook.uid,
             },
         )
 
@@ -830,7 +832,7 @@ class OrganizationAdminsRestServiceApiTestCase(
         hook = self._create_hook()
         detail_url = reverse(
             self._get_endpoint('hook-detail'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'uid': hook.uid},
+            kwargs={'uid_asset': self.asset.uid, 'uid_hook': hook.uid},
         )
         response = self.client.delete(detail_url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -839,7 +841,7 @@ class OrganizationAdminsRestServiceApiTestCase(
         hook = self._create_hook()
         detail_url = reverse(
             self._get_endpoint('hook-detail'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'uid': hook.uid},
+            kwargs={'uid_asset': self.asset.uid, 'uid_hook': hook.uid},
         )
         data = {'name': 'some disabled external service', 'active': False}
         response = self.client.patch(detail_url, data)
@@ -869,13 +871,13 @@ class OrganizationAdminsValidationStatusApiTestCase(
         self.validation_status_url = reverse(
             self._get_endpoint('submission-validation-status'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
         self.validation_statuses_url = reverse(
             self._get_endpoint('submission-validation-statuses'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': self.asset.uid, 'format': 'json'},
         )
 
     def test_can_access_validation_status(self):
