@@ -222,6 +222,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 clearable={!isFieldRequired('gender')}
                 value={props.values.gender}
                 onChange={(value) => onAnyFieldChange('gender', value || '')}
+                onClear={() => onAnyFieldChange('gender', '')}
                 data={GENDER_SELECT_OPTIONS}
                 error={props.errors?.gender}
               />
@@ -249,6 +250,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 clearable={!isFieldRequired('country')}
                 value={props.values.country}
                 onChange={(value) => onAnyFieldChange('country', value || '')}
+                onClear={() => onAnyFieldChange('country', '')}
                 data={envStore.data.country_choices}
                 error={props.errors?.country}
               />
@@ -282,6 +284,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 clearable={!isFieldRequired('sector')}
                 value={props.values.sector}
                 onChange={(value) => onAnyFieldChange('sector', value || '')}
+                onClear={() => onAnyFieldChange('sector', '')}
                 data={envStore.data.sector_choices}
                 error={props.errors?.sector}
               />
@@ -301,6 +304,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 clearable={!isFieldRequired('organization_type')}
                 value={props.values.organization_type}
                 onChange={(value) => onAnyFieldChange('organization_type', value || '')}
+                onClear={() => onAnyFieldChange('organization_type', '')}
                 data={ORGANIZATION_TYPE_SELECT_OPTIONS}
                 error={props.errors?.organization_type}
               />
