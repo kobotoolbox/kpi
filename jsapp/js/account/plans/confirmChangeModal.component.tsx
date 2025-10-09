@@ -17,7 +17,6 @@ import styles from './confirmChangeModal.module.scss'
 export interface ConfirmChangeProps {
   newPrice: Price | null
   products: Product[] | null
-  quantity?: number
   currentSubscription: SubscriptionInfo | null
 }
 
@@ -37,11 +36,10 @@ const ConfirmChangeModal = ({
   currentSubscription,
   onRequestClose,
   setIsBusy,
-  quantity = 1,
 }: ConfirmChangeModalProps) => {
   const [isLoading, setIsLoading] = useState(false)
   const [pendingChange, setPendingChange] = useState(false)
-  const displayPrice = useDisplayPrice(newPrice, quantity)
+  const displayPrice = useDisplayPrice(newPrice)
 
   const shouldShow = useMemo(() => !!(currentSubscription && newPrice), [newPrice, currentSubscription])
 
@@ -106,7 +104,7 @@ const ConfirmChangeModal = ({
     }
     setIsLoading(true)
     setPendingChange(true)
-    changeSubscription(newPrice.id, currentSubscription.id, quantity)
+    changeSubscription(newPrice.id, currentSubscription.id)
       .then((data) => {
         processChangePlanResponse(data)
         setPendingChange(false)
