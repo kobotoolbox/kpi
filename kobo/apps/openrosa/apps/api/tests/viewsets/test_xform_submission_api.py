@@ -12,6 +12,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.test.client import Client
 from django.test.testcases import LiveServerTestCase
 from django.test.utils import override_settings
 from django.urls import reverse
@@ -70,7 +71,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             request = self.factory.post('/submission', data, format='json')
             auth = DigestAuth('bob', 'bobbob')
             request.META.update(auth(request.META, response))
-            expected_queries = FuzzyInt(43, 47)
+            expected_queries = FuzzyInt(42, 47)
             # In stripe-enabled environments usage limit enforcement
             # requires additional queries
             # TODO: Constance adds three extra queries when checking
@@ -164,7 +165,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             }
             mock_usage.return_value = mock_balances
             with patch(
-                'kobo.apps.stripe.utils.limit_enforcement.check_exceeded_limit',
+                'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limit',
                 return_value=None,
             ) as patched:
                 request = self.factory.post('/submission', data, format='json')
@@ -183,7 +184,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             }
             mock_usage.return_value = mock_balances
             with patch(
-                'kobo.apps.stripe.utils.limit_enforcement.check_exceeded_limit',
+                'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limit',
                 return_value=None,
             ) as patched:
                 request = self.factory.post('/submission', data, format='json')
@@ -248,6 +249,56 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 request.META.update(auth(request.META, response))
                 response = self.view(request, username=self.user.username)
                 self.assertEqual(response.status_code, status.HTTP_402_PAYMENT_REQUIRED)
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(USAGE_LIMIT_ENFORCEMENT=False)
+    def test_service_calculator_call_once_per_submission(self):
+        """
+        Ensure we don't call the ServiceUsageCalculator more than once per request
+        """
+
+        self.xform.require_auth = False
+        self.xform.save(update_fields=['require_auth'])
+        client = Client()
+        client.login(username='bob', password='bobbob')
+
+        s = self.surveys[0]
+        media_file = '1335783522563.jpg'
+        path = os.path.join(
+            self.main_directory,
+            'fixtures',
+            'transportation',
+            'instances',
+            s,
+            media_file,
+        )
+        with open(path, 'rb') as f:
+            f = InMemoryUploadedFile(
+                f,
+                'media_file',
+                media_file,
+                'image/jpg',
+                os.path.getsize(path),
+                None,
+            )
+            submission_path = os.path.join(
+                self.main_directory,
+                'fixtures',
+                'transportation',
+                'instances',
+                s,
+                s + '.xml',
+            )
+            with patch(
+                'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances'  # noqa
+            ) as patched_balances:
+                with open(submission_path) as sf:
+                    data = {'xml_submission_file': sf, 'media_file': f}
+                    response = client.post('/bob/submission', data)
+                    assert response.status_code == status.HTTP_201_CREATED
+                    patched_balances.assert_called_once()
 
     def test_post_submission_anonymous(self):
 
