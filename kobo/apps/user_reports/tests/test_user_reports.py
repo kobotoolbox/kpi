@@ -313,7 +313,7 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
 
         # Manually refresh the materialized view
         with connection.cursor() as cursor:
-            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_mv;')
+            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_userreportsmv;')
 
     def _get_results(self, params=None):
         params = params or {}
@@ -323,7 +323,7 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
 
     def _refresh_mv(self):
         with connection.cursor() as cursor:
-            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_mv;')
+            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_userreportsmv;')
 
     def test_username_prefix_filter(self):
         res = self._get_results({'username': 'some'})

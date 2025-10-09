@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import migrations
 
 CREATE_PG_TRGM = 'CREATE EXTENSION IF NOT EXISTS pg_trgm;'
@@ -6,7 +7,7 @@ DROP_PG_TRGM = 'DROP EXTENSION IF EXISTS pg_trgm;'
 # Btree functional indexes for fast case-insensitive prefix (istartswith) searches
 CREATE_IDX_EMAIL_LOWER = """
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_email_lower_textpat
-ON user_reports_mv (lower(email) text_pattern_ops);
+ON user_reports_userreportsmv (lower(email) text_pattern_ops);
 """
 DROP_IDX_EMAIL_LOWER = """
 DROP INDEX IF EXISTS idx_user_reports_email_lower_textpat;
@@ -14,7 +15,7 @@ DROP INDEX IF EXISTS idx_user_reports_email_lower_textpat;
 
 CREATE_IDX_USERNAME_LOWER = """
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_username_lower_textpat
-ON user_reports_mv (lower(username) text_pattern_ops);
+ON user_reports_userreportsmv (lower(username) text_pattern_ops);
 """
 DROP_IDX_USERNAME_LOWER = """
 DROP INDEX IF EXISTS idx_user_reports_username_lower_textpat;
@@ -23,7 +24,7 @@ DROP INDEX IF EXISTS idx_user_reports_username_lower_textpat;
 # GIN index for JSONB subscriptions column
 CREATE_IDX_SUBSCRIPTIONS_GIN = """
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_subscriptions_gin
-ON user_reports_mv USING gin (subscriptions);
+ON user_reports_userreportsmv USING gin (subscriptions);
 """
 DROP_IDX_SUBSCRIPTIONS_GIN = """
 DROP INDEX IF EXISTS idx_user_reports_subscriptions_gin;
@@ -32,7 +33,7 @@ DROP INDEX IF EXISTS idx_user_reports_subscriptions_gin;
 # Numeric / ordering indexes
 CREATE_IDX_SUBMISSIONS_ALL_TIME = """
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_submission_all_time
-ON user_reports_mv (submission_counts_all_time);
+ON user_reports_userreportsmv (submission_counts_all_time);
 """
 DROP_IDX_SUBMISSIONS_ALL_TIME = """
 DROP INDEX IF EXISTS idx_user_reports_submission_all_time;
@@ -40,7 +41,7 @@ DROP INDEX IF EXISTS idx_user_reports_submission_all_time;
 
 CREATE_IDX_CURRENT_PERIOD_SUB = """
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_current_period_submissions
-ON user_reports_mv (current_period_submissions);
+ON user_reports_userreportsmv (current_period_submissions);
 """
 DROP_IDX_CURRENT_PERIOD_SUB = """
 DROP INDEX IF EXISTS idx_user_reports_current_period_submissions;
@@ -48,7 +49,7 @@ DROP INDEX IF EXISTS idx_user_reports_current_period_submissions;
 
 CREATE_IDX_STORAGE_BYTES = """
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_storage_bytes
-ON user_reports_mv (storage_bytes_total);
+ON user_reports_userreportsmv (storage_bytes_total);
 """
 DROP_IDX_STORAGE_BYTES = """
 DROP INDEX IF EXISTS idx_user_reports_storage_bytes;
@@ -56,7 +57,7 @@ DROP INDEX IF EXISTS idx_user_reports_storage_bytes;
 
 CREATE_IDX_DATE_JOINED = """
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_date_joined
-ON user_reports_mv (date_joined);
+ON user_reports_userreportsmv (date_joined);
 """
 DROP_IDX_DATE_JOINED = """
 DROP INDEX IF EXISTS idx_user_reports_date_joined;
@@ -64,11 +65,66 @@ DROP INDEX IF EXISTS idx_user_reports_date_joined;
 
 CREATE_IDX_LAST_LOGIN = """
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_last_login
-ON user_reports_mv (last_login);
+ON user_reports_userreportsmv (last_login);
 """
 DROP_IDX_LAST_LOGIN = """
 DROP INDEX IF EXISTS idx_user_reports_last_login;
 """
+
+
+def manually_create_indexes_instructions(apps, schema_editor):
+    print(
+        """
+        ⚠️ ATTENTION ⚠️
+        Run the SQL queries below in PostgreSQL directly to create the indexes:
+
+        {CREATE_PG_TRGM}
+
+        {CREATE_IDX_EMAIL_LOWER}
+
+        {CREATE_IDX_USERNAME_LOWER}
+
+        {CREATE_IDX_SUBSCRIPTIONS_GIN}
+
+        {CREATE_IDX_SUBMISSIONS_ALL_TIME}
+
+        {CREATE_IDX_CURRENT_PERIOD_SUB}
+
+        {CREATE_IDX_STORAGE_BYTES}
+
+        {CREATE_IDX_DATE_JOINED}
+
+        {CREATE_IDX_LAST_LOGIN}
+
+        """
+    )
+
+
+def manually_drop_indexes_instructions(apps, schema_editor):
+    print(
+        """
+        ⚠️ ATTENTION ⚠️
+        Run the SQL queries below in PostgreSQL directly to drop the indexes:
+
+        {DROP_IDX_LAST_LOGIN}
+
+        {DROP_IDX_DATE_JOINED}
+
+        {DROP_IDX_STORAGE_BYTES}
+
+        {DROP_IDX_CURRENT_PERIOD_SUB}
+
+        {DROP_IDX_SUBMISSIONS_ALL_TIME}
+
+        {DROP_IDX_SUBSCRIPTIONS_GIN}
+
+        {DROP_IDX_USERNAME_LOWER}
+
+        {DROP_IDX_EMAIL_LOWER}
+
+        {DROP_PG_TRGM}
+        """
+    )
 
 
 class Migration(migrations.Migration):
@@ -78,7 +134,15 @@ class Migration(migrations.Migration):
         ('user_reports', '0002_create_user_reports_mv'),
     ]
 
-    operations = [
+    if settings.SKIP_HEAVY_MIGRATIONS or not settings.STRIPE_ENABLED:
+        operations = [
+            migrations.RunPython(
+                manually_create_indexes_instructions,
+                manually_drop_indexes_instructions
+            )
+        ]
+    else:
+        operations = [
         migrations.RunSQL(
             sql=CREATE_PG_TRGM,
             reverse_sql=DROP_PG_TRGM

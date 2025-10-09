@@ -5,7 +5,7 @@ from kobo.apps.user_reports.models import UserReports
 
 class UserReportsFilter(filters.FilterSet):
     """
-    Filter for the `/user-reports` endpoint (materialized view `user_reports_mv`)
+    Filter for the `/user-reports` endpoint
 
     Examples of usage:
     - Filter by username (case-insensitive, starts with):
