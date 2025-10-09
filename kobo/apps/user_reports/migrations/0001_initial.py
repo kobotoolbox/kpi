@@ -212,7 +212,7 @@ class Migration(migrations.Migration):
                     ],
                     options={
                         'managed': False,
-                        'db_table': 'user_reports_mv',
+                        'db_table': 'user_reports_userreportsmv',
                     },
                 ),
             ],

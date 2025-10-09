@@ -58,7 +58,7 @@ def refresh_user_report_snapshots():
            - On the next run, task resumes from where it stopped.
         5. After all organizations processed:
            - Delete stale snapshot rows (not updated in this run).
-           - Refresh the `user_reports_mv` materialized view concurrently.
+           - Refresh the `user_reports_userreportsmv` materialized view concurrently.
            - Mark the run as 'completed'.
     """
     calc = BillingAndUsageCalculator()

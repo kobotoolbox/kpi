@@ -1,9 +1,11 @@
+# flake8: noqa: E501
+
 from django.conf import settings
 from django.db import migrations
 
 
 CREATE_MV_SQL = """
-    CREATE MATERIALIZED VIEW user_reports_mv AS
+    CREATE MATERIALIZED VIEW user_reports_userreportsmv AS
     WITH user_nlp_usage AS (
         SELECT
             nuc.user_id,
@@ -309,11 +311,11 @@ CREATE_MV_SQL = """
     """
 
 DROP_MV_SQL = """
-    DROP MATERIALIZED VIEW IF EXISTS user_reports_mv;
+    DROP MATERIALIZED VIEW IF EXISTS user_reports_userreportsmv;
     """
 
 CREATE_INDEX_SQL = """
-    CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_mv_id ON user_reports_mv (id);
+    CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_mv_id ON user_reports_userreportsmv (id);
     """
 DROP_INDEX_SQL = """
     DROP INDEX IF EXISTS idx_user_reports_mv_id;
@@ -329,7 +331,7 @@ def manually_create_mv_instructions(apps, schema_editor):
         {CREATE_MV_SQL}
 
         Once the materialized view is created, you may need to refresh it periodically with:
-        REFRESH MATERIALIZED VIEW CONCURRENTLY user_reports_mv;
+        REFRESH MATERIALIZED VIEW CONCURRENTLY user_reports_userreportsmv;
         """
     )
 

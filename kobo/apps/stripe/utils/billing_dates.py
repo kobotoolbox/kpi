@@ -3,7 +3,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
-from django.db.models import F, Max, Q, Window, QuerySet
+from django.db.models import F, Max, Q, Window
 from django.utils import timezone
 
 from kobo.apps.organizations.models import Organization
