@@ -34,8 +34,8 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     OpenRosaResponseNotAllowed,
     OpenRosaTemporarilyUnavailable,
 )
-from kpi.constants import PERM_ADD_SUBMISSIONS
 from kobo.apps.organizations.constants import UsageType
+from kpi.constants import PERM_ADD_SUBMISSIONS
 from kpi.utils.fuzzy_int import FuzzyInt
 
 
@@ -76,7 +76,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             # USAGE_LIMIT_ENFORCEMENT variable. But we use caching
             # so should find a way to keep that out of this count
             if settings.STRIPE_ENABLED:
-                expected_queries = FuzzyInt(76, 87)
+                expected_queries = FuzzyInt(62, 73)
             with self.assertNumQueries(expected_queries):
                 self.view(request)
 
@@ -248,6 +248,9 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
 
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_settings(
+        CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}}
     )
     @override_config(USAGE_LIMIT_ENFORCEMENT=False)
     def test_service_calculator_call_once_per_submission(self):
