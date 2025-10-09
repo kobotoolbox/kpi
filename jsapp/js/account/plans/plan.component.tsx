@@ -308,8 +308,7 @@ export default function Plan(props: PlanProps) {
       if (subscriptions && subscriptions.length > 0) {
         return subscriptions.some(
           (subscription: SubscriptionInfo) =>
-            subscription.items[0].price.id === product.price.id &&
-            hasManageableStatus(subscription)
+            subscription.items[0].price.id === product.price.id && hasManageableStatus(subscription),
         )
       }
       return false

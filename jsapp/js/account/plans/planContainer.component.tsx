@@ -137,19 +137,9 @@ export const PlanContainer = ({
     return renderFeaturesList(items, featureTitle)
   }
 
-  const asrMinutes =
-    Number.parseInt(product.metadata?.asr_seconds_limit || '0') ||
-    Number.parseInt(product.price.metadata?.asr_seconds_limit || '0')
-
-  const mtCharacters =
-    Number.parseInt(product.metadata?.mt_characters_limit || '0') ||
-    Number.parseInt(product.price.metadata?.mt_characters_limit || '0')
-
   return (
     <>
-      {isSubscribedProduct(product) ? (
-        <div className={styles.currentPlan}>{t('Your plan')}</div>
-      ) : null}
+      {isSubscribedProduct(product) ? <div className={styles.currentPlan}>{t('Your plan')}</div> : null}
       <div
         className={classnames({
           [styles.planContainerWithBadge]: isSubscribedProduct(product),
