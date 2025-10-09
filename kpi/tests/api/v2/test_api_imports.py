@@ -1007,9 +1007,7 @@ class AssetImportTaskTest(BaseTestCase):
 
         asset_uid = detail_response.data['messages']['updated'][0]['uid']
         asset_response = self.client.get(
-            reverse(
-                self._get_endpoint('asset-detail'), kwargs={'uid': asset_uid}
-            )
+            reverse(self._get_endpoint('asset-detail'), kwargs={'uid_asset': asset_uid})
         )
         expected_name = 'A project with a new line'
         assert asset_response.data['name'] == expected_name
@@ -1030,12 +1028,12 @@ class AssetImportTaskTest(BaseTestCase):
             'url': mock_xls_url,
             'name': 'I was imported via URL!',
             'destination': reverse(
-                'api_v2:asset-detail', kwargs={'uid': self.asset.uid}
+                'api_v2:asset-detail', kwargs={'uid_asset': self.asset.uid}
             ),
         }
         post_url = reverse(self._get_endpoint('importtask-list'))
         response = self.client.post(post_url, task_data)
-        task = ImportTask.objects.get(uid=response.data['uid'])
+        task = ImportTask.objects.get(uid=response.data['uid_import'])
         audit_logs = task.messages['audit_logs']
         self.assertEqual(len(audit_logs), 1)
         audit_log_info = audit_logs[0]
@@ -1061,12 +1059,12 @@ class AssetImportTaskTest(BaseTestCase):
             'base64Encoded': 'base64:{}'.format(to_str(encoded_xls)),
             'name': 'I was imported via base64-encoded XLS!',
             'destination': reverse(
-                'api_v2:asset-detail', kwargs={'uid': self.asset.uid}
+                'api_v2:asset-detail', kwargs={'uid_asset': self.asset.uid}
             ),
         }
         post_url = reverse(self._get_endpoint('importtask-list'))
         response = self.client.post(post_url, task_data)
-        task = ImportTask.objects.get(uid=response.data['uid'])
+        task = ImportTask.objects.get(uid=response.data['uid_import'])
         audit_logs = task.messages['audit_logs']
         self.assertEqual(len(audit_logs), 1)
         audit_log_info = audit_logs[0]

@@ -9,8 +9,23 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as assets.
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import { useQuery } from '@tanstack/react-query'
-import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import type {
+  MutationFunction,
+  QueryFunction,
+  QueryKey,
+  UseMutationOptions,
+  UseQueryOptions,
+  UseQueryResult,
+} from '@tanstack/react-query'
+
+import type { ChangePlan } from '../models/changePlan'
+
+import type { CheckoutLink } from '../models/checkoutLink'
+
+import type { CustomerPortal } from '../models/customerPortal'
+
+import type { CustomerPortalPostResponse } from '../models/customerPortalPostResponse'
 
 import type { ErrorDetail } from '../models/errorDetail'
 
@@ -20,9 +35,17 @@ import type { Language } from '../models/language'
 
 import type { LanguagesListParams } from '../models/languagesListParams'
 
+import type { OneTimeAddOn } from '../models/oneTimeAddOn'
+
 import type { PaginatedLanguageListList } from '../models/paginatedLanguageListList'
 
+import type { PaginatedOneTimeAddOnList } from '../models/paginatedOneTimeAddOnList'
+
 import type { PaginatedPermissionResponseList } from '../models/paginatedPermissionResponseList'
+
+import type { PaginatedProductList } from '../models/paginatedProductList'
+
+import type { PaginatedSubscriptionList } from '../models/paginatedSubscriptionList'
 
 import type { PaginatedTranscriptionServiceList } from '../models/paginatedTranscriptionServiceList'
 
@@ -31,6 +54,14 @@ import type { PaginatedTranslationServiceList } from '../models/paginatedTransla
 import type { PermissionResponse } from '../models/permissionResponse'
 
 import type { PermissionsListParams } from '../models/permissionsListParams'
+
+import type { StripeAddonsListParams } from '../models/stripeAddonsListParams'
+
+import type { StripeProductsListParams } from '../models/stripeProductsListParams'
+
+import type { StripeSubscriptionsListParams } from '../models/stripeSubscriptionsListParams'
+
+import type { Subscription } from '../models/subscription'
 
 import type { TermsOfServiceResponse } from '../models/termsOfServiceResponse'
 
@@ -388,6 +419,737 @@ export function usePermissionsRetrieve<TData = Awaited<ReturnType<typeof permiss
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getPermissionsRetrieveQueryOptions(codename, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * Lists the one-time add-ons for the authenticated user's organization.
+ */
+export type stripeAddonsListResponse200 = {
+  data: PaginatedOneTimeAddOnList
+  status: 200
+}
+
+export type stripeAddonsListResponseComposite = stripeAddonsListResponse200
+
+export type stripeAddonsListResponse = stripeAddonsListResponseComposite & {
+  headers: Headers
+}
+
+export const getStripeAddonsListUrl = (params?: StripeAddonsListParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0 ? `/api/v2/stripe/addons/?${stringifiedParams}` : `/api/v2/stripe/addons/`
+}
+
+export const stripeAddonsList = async (
+  params?: StripeAddonsListParams,
+  options?: RequestInit,
+): Promise<stripeAddonsListResponse> => {
+  return fetchWithAuth<stripeAddonsListResponse>(getStripeAddonsListUrl(params), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getStripeAddonsListQueryKey = (params?: StripeAddonsListParams) => {
+  return ['api', 'v2', 'stripe', 'addons', ...(params ? [params] : [])] as const
+}
+
+export const getStripeAddonsListQueryOptions = <TData = Awaited<ReturnType<typeof stripeAddonsList>>, TError = unknown>(
+  params?: StripeAddonsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeAddonsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getStripeAddonsListQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeAddonsList>>> = ({ signal }) =>
+    stripeAddonsList(params, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof stripeAddonsList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type StripeAddonsListQueryResult = NonNullable<Awaited<ReturnType<typeof stripeAddonsList>>>
+export type StripeAddonsListQueryError = unknown
+
+export function useStripeAddonsList<TData = Awaited<ReturnType<typeof stripeAddonsList>>, TError = unknown>(
+  params?: StripeAddonsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeAddonsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getStripeAddonsListQueryOptions(params, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * Lists the one-time add-ons for the authenticated user's organization.
+ */
+export type stripeAddonsRetrieveResponse200 = {
+  data: OneTimeAddOn
+  status: 200
+}
+
+export type stripeAddonsRetrieveResponseComposite = stripeAddonsRetrieveResponse200
+
+export type stripeAddonsRetrieveResponse = stripeAddonsRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getStripeAddonsRetrieveUrl = (id: string) => {
+  return `/api/v2/stripe/addons/${id}/`
+}
+
+export const stripeAddonsRetrieve = async (
+  id: string,
+  options?: RequestInit,
+): Promise<stripeAddonsRetrieveResponse> => {
+  return fetchWithAuth<stripeAddonsRetrieveResponse>(getStripeAddonsRetrieveUrl(id), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getStripeAddonsRetrieveQueryKey = (id: string) => {
+  return ['api', 'v2', 'stripe', 'addons', id] as const
+}
+
+export const getStripeAddonsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof stripeAddonsRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeAddonsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getStripeAddonsRetrieveQueryKey(id)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeAddonsRetrieve>>> = ({ signal }) =>
+    stripeAddonsRetrieve(id, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof stripeAddonsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type StripeAddonsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof stripeAddonsRetrieve>>>
+export type StripeAddonsRetrieveQueryError = unknown
+
+export function useStripeAddonsRetrieve<TData = Awaited<ReturnType<typeof stripeAddonsRetrieve>>, TError = unknown>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeAddonsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getStripeAddonsRetrieveQueryOptions(id, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * Change an existing subscription to a new price.
+
+This will immediately change their subscription to the new plan if upgrading, prorating the charge.
+If the user is downgrading to a lower price, it will schedule the change at the end of the current billing period.
+
+<pre class="prettyprint">
+<b>GET</b> /api/v2/stripe/change-plan/?subscription_id=<code>{subscription_id}</code>&price_id=<code>{price_id}</code>
+</pre>
+
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/stripe/change-plan/
+
+> **Payload**
+>
+>        {
+>           "price_id": "price_A34cds8fmske3tf",
+>           "subscription_id": "sub_s9aNFrd2fsmld4gz",
+>           "quantity": 100000
+>        }
+
+where:
+
+* "price_id" (required) is the Stripe Price ID for the plan the user is changing to.
+* "quantity" is the quantity for the new subscription price (default: 1).
+* "subscription_id" (required) is a Stripe Subscription ID for the subscription being changed.
+ */
+export type stripeChangePlanRetrieveResponse200 = {
+  data: ChangePlan
+  status: 200
+}
+
+export type stripeChangePlanRetrieveResponseComposite = stripeChangePlanRetrieveResponse200
+
+export type stripeChangePlanRetrieveResponse = stripeChangePlanRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getStripeChangePlanRetrieveUrl = () => {
+  return `/api/v2/stripe/change-plan`
+}
+
+export const stripeChangePlanRetrieve = async (options?: RequestInit): Promise<stripeChangePlanRetrieveResponse> => {
+  return fetchWithAuth<stripeChangePlanRetrieveResponse>(getStripeChangePlanRetrieveUrl(), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getStripeChangePlanRetrieveQueryKey = () => {
+  return ['api', 'v2', 'stripe', 'change-plan'] as const
+}
+
+export const getStripeChangePlanRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof stripeChangePlanRetrieve>>,
+  TError = unknown,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof stripeChangePlanRetrieve>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getStripeChangePlanRetrieveQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeChangePlanRetrieve>>> = ({ signal }) =>
+    stripeChangePlanRetrieve({ signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof stripeChangePlanRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type StripeChangePlanRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof stripeChangePlanRetrieve>>>
+export type StripeChangePlanRetrieveQueryError = unknown
+
+export function useStripeChangePlanRetrieve<
+  TData = Awaited<ReturnType<typeof stripeChangePlanRetrieve>>,
+  TError = unknown,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof stripeChangePlanRetrieve>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getStripeChangePlanRetrieveQueryOptions(options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+export type stripeCheckoutLinkCreateResponse200 = {
+  data: CheckoutLink
+  status: 200
+}
+
+export type stripeCheckoutLinkCreateResponseComposite = stripeCheckoutLinkCreateResponse200
+
+export type stripeCheckoutLinkCreateResponse = stripeCheckoutLinkCreateResponseComposite & {
+  headers: Headers
+}
+
+export const getStripeCheckoutLinkCreateUrl = () => {
+  return `/api/v2/stripe/checkout-link`
+}
+
+export const stripeCheckoutLinkCreate = async (
+  checkoutLink: CheckoutLink,
+  options?: RequestInit,
+): Promise<stripeCheckoutLinkCreateResponse> => {
+  return fetchWithAuth<stripeCheckoutLinkCreateResponse>(getStripeCheckoutLinkCreateUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(checkoutLink),
+  })
+}
+
+export const getStripeCheckoutLinkCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof stripeCheckoutLinkCreate>>,
+    TError,
+    { data: CheckoutLink },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof stripeCheckoutLinkCreate>>,
+  TError,
+  { data: CheckoutLink },
+  TContext
+> => {
+  const mutationKey = ['stripeCheckoutLinkCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof stripeCheckoutLinkCreate>>, { data: CheckoutLink }> = (
+    props,
+  ) => {
+    const { data } = props ?? {}
+
+    return stripeCheckoutLinkCreate(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type StripeCheckoutLinkCreateMutationResult = NonNullable<Awaited<ReturnType<typeof stripeCheckoutLinkCreate>>>
+export type StripeCheckoutLinkCreateMutationBody = CheckoutLink
+export type StripeCheckoutLinkCreateMutationError = unknown
+
+export const useStripeCheckoutLinkCreate = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof stripeCheckoutLinkCreate>>,
+    TError,
+    { data: CheckoutLink },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getStripeCheckoutLinkCreateMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}
+export type stripeCustomerPortalCreateResponse200 = {
+  data: CustomerPortalPostResponse
+  status: 200
+}
+
+export type stripeCustomerPortalCreateResponse400 = {
+  data: ErrorObject
+  status: 400
+}
+
+export type stripeCustomerPortalCreateResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type stripeCustomerPortalCreateResponseComposite =
+  | stripeCustomerPortalCreateResponse200
+  | stripeCustomerPortalCreateResponse400
+  | stripeCustomerPortalCreateResponse401
+
+export type stripeCustomerPortalCreateResponse = stripeCustomerPortalCreateResponseComposite & {
+  headers: Headers
+}
+
+export const getStripeCustomerPortalCreateUrl = () => {
+  return `/api/v2/stripe/customer-portal`
+}
+
+export const stripeCustomerPortalCreate = async (
+  customerPortal: CustomerPortal,
+  options?: RequestInit,
+): Promise<stripeCustomerPortalCreateResponse> => {
+  return fetchWithAuth<stripeCustomerPortalCreateResponse>(getStripeCustomerPortalCreateUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(customerPortal),
+  })
+}
+
+export const getStripeCustomerPortalCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof stripeCustomerPortalCreate>>,
+    TError,
+    { data: CustomerPortal },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof stripeCustomerPortalCreate>>,
+  TError,
+  { data: CustomerPortal },
+  TContext
+> => {
+  const mutationKey = ['stripeCustomerPortalCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof stripeCustomerPortalCreate>>,
+    { data: CustomerPortal }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return stripeCustomerPortalCreate(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type StripeCustomerPortalCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof stripeCustomerPortalCreate>>
+>
+export type StripeCustomerPortalCreateMutationBody = CustomerPortal
+export type StripeCustomerPortalCreateMutationError = ErrorObject | ErrorDetail
+
+export const useStripeCustomerPortalCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof stripeCustomerPortalCreate>>,
+    TError,
+    { data: CustomerPortal },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getStripeCustomerPortalCreateMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}
+/**
+ * Returns Product and Price Lists, sorted from the product with the lowest price to highest
+<strong>This endpoint is cached for an amount of time determined by ENDPOINT_CACHE_DURATION</strong>
+
+<pre class="prettyprint">
+<b>GET</b> /api/v2/stripe/products/
+</pre>
+
+> Example
+>
+>       curl -X GET https://[kpi]/api/v2/stripe/products/
+
+> Response
+>
+>       HTTP 200 Ok
+>        {
+>           "count": ...
+>           "next": ...
+>           "previous": ...
+>           "results": [
+>               {
+>                   "id": string,
+>                   "name": string,
+>                   "type": string,
+>                   "prices": [
+>                       {
+>                           "id": string,
+>                           "nickname": string,
+>                           "currency": string,
+>                           "type": string,
+>                           "recurring": {
+>                               "aggregate_usage": string ('sum', 'last_during_period`, `last_ever`, `max`)
+>                               "interval": string ('month', 'year', 'week', 'day')
+>                               "interval_count": int,
+>                               "usage_type": string ('metered', 'licensed')
+>                           },
+>                           "unit_amount": int (cents),
+>                           "human_readable_price": string,
+>                           "metadata": {},
+>                           "active": bool,
+>                           "product": string,
+>                           "transform_quantity": null | {'round': 'up'|'down', 'divide_by': int}
+>                       },
+>                       ...
+>                   ],
+>                   "metadata": {},
+>               },
+>               ...
+>           ]
+>        }
+>
+
+### Note: unit_amount is price in cents (assuming currency is USD/AUD/CAD/etc.)
+
+## Current Endpoint
+ */
+export type stripeProductsListResponse200 = {
+  data: PaginatedProductList
+  status: 200
+}
+
+export type stripeProductsListResponseComposite = stripeProductsListResponse200
+
+export type stripeProductsListResponse = stripeProductsListResponseComposite & {
+  headers: Headers
+}
+
+export const getStripeProductsListUrl = (params?: StripeProductsListParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0 ? `/api/v2/stripe/products/?${stringifiedParams}` : `/api/v2/stripe/products/`
+}
+
+export const stripeProductsList = async (
+  params?: StripeProductsListParams,
+  options?: RequestInit,
+): Promise<stripeProductsListResponse> => {
+  return fetchWithAuth<stripeProductsListResponse>(getStripeProductsListUrl(params), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getStripeProductsListQueryKey = (params?: StripeProductsListParams) => {
+  return ['api', 'v2', 'stripe', 'products', ...(params ? [params] : [])] as const
+}
+
+export const getStripeProductsListQueryOptions = <
+  TData = Awaited<ReturnType<typeof stripeProductsList>>,
+  TError = unknown,
+>(
+  params?: StripeProductsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeProductsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getStripeProductsListQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeProductsList>>> = ({ signal }) =>
+    stripeProductsList(params, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof stripeProductsList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type StripeProductsListQueryResult = NonNullable<Awaited<ReturnType<typeof stripeProductsList>>>
+export type StripeProductsListQueryError = unknown
+
+export function useStripeProductsList<TData = Awaited<ReturnType<typeof stripeProductsList>>, TError = unknown>(
+  params?: StripeProductsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeProductsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getStripeProductsListQueryOptions(params, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+export type stripeSubscriptionsListResponse200 = {
+  data: PaginatedSubscriptionList
+  status: 200
+}
+
+export type stripeSubscriptionsListResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type stripeSubscriptionsListResponseComposite =
+  | stripeSubscriptionsListResponse200
+  | stripeSubscriptionsListResponse401
+
+export type stripeSubscriptionsListResponse = stripeSubscriptionsListResponseComposite & {
+  headers: Headers
+}
+
+export const getStripeSubscriptionsListUrl = (params?: StripeSubscriptionsListParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/v2/stripe/subscriptions/?${stringifiedParams}`
+    : `/api/v2/stripe/subscriptions/`
+}
+
+export const stripeSubscriptionsList = async (
+  params?: StripeSubscriptionsListParams,
+  options?: RequestInit,
+): Promise<stripeSubscriptionsListResponse> => {
+  return fetchWithAuth<stripeSubscriptionsListResponse>(getStripeSubscriptionsListUrl(params), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getStripeSubscriptionsListQueryKey = (params?: StripeSubscriptionsListParams) => {
+  return ['api', 'v2', 'stripe', 'subscriptions', ...(params ? [params] : [])] as const
+}
+
+export const getStripeSubscriptionsListQueryOptions = <
+  TData = Awaited<ReturnType<typeof stripeSubscriptionsList>>,
+  TError = ErrorDetail,
+>(
+  params?: StripeSubscriptionsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeSubscriptionsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getStripeSubscriptionsListQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeSubscriptionsList>>> = ({ signal }) =>
+    stripeSubscriptionsList(params, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof stripeSubscriptionsList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type StripeSubscriptionsListQueryResult = NonNullable<Awaited<ReturnType<typeof stripeSubscriptionsList>>>
+export type StripeSubscriptionsListQueryError = ErrorDetail
+
+export function useStripeSubscriptionsList<
+  TData = Awaited<ReturnType<typeof stripeSubscriptionsList>>,
+  TError = ErrorDetail,
+>(
+  params?: StripeSubscriptionsListParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeSubscriptionsList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getStripeSubscriptionsListQueryOptions(params, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+export type stripeSubscriptionsRetrieveResponse200 = {
+  data: Subscription
+  status: 200
+}
+
+export type stripeSubscriptionsRetrieveResponseComposite = stripeSubscriptionsRetrieveResponse200
+
+export type stripeSubscriptionsRetrieveResponse = stripeSubscriptionsRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getStripeSubscriptionsRetrieveUrl = (id: string) => {
+  return `/api/v2/stripe/subscriptions/${id}/`
+}
+
+export const stripeSubscriptionsRetrieve = async (
+  id: string,
+  options?: RequestInit,
+): Promise<stripeSubscriptionsRetrieveResponse> => {
+  return fetchWithAuth<stripeSubscriptionsRetrieveResponse>(getStripeSubscriptionsRetrieveUrl(id), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getStripeSubscriptionsRetrieveQueryKey = (id: string) => {
+  return ['api', 'v2', 'stripe', 'subscriptions', id] as const
+}
+
+export const getStripeSubscriptionsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getStripeSubscriptionsRetrieveQueryKey(id)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>> = ({ signal }) =>
+    stripeSubscriptionsRetrieve(id, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type StripeSubscriptionsRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>
+>
+export type StripeSubscriptionsRetrieveQueryError = unknown
+
+export function useStripeSubscriptionsRetrieve<
+  TData = Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeSubscriptionsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getStripeSubscriptionsRetrieveQueryOptions(id, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 

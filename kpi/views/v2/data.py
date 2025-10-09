@@ -80,7 +80,7 @@ from kpi.utils.xml import (
     tags=['Survey data'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -163,20 +163,20 @@ class DataViewSet(
     Available actions:
     - bulk                  → DELETE /api/v2/assets/
     - bulk                  → PATCH /api/v2/asset_usage/
-    - delete                → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}
-    - duplicate             → POST /api/v2/asset_usage/{parent_lookup_asset}/data/duplicate  # noqa
-    - list                  → GET /api/v2/asset_usage/{parent_lookup_asset}/data
-    - retrieve              → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}
-    - validation_status     → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
-    - validation_status     → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
-    - validation_status     → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_status  # noqa
-    - validation_statuses   → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
-    - validation_statuses   → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{id}/validation_statuses  # noqa
-    - enketo_edit           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/edit/
-    - enketo_edit           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/edit/
-    - enketo_edit           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/edit/
-    - enketo_view           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/view/
-    - enketo_view           → GET /api/v2/assets/{parent_lookup_asset}/data/{id}/enketo/redirect/view/
+    - delete                → DELETE /api/v2/asset_usage/{uid_asset}/data/{id}
+    - duplicate             → POST /api/v2/asset_usage/{uid_asset}/data/duplicate  # noqa
+    - list                  → GET /api/v2/asset_usage/{uid_asset}/data
+    - retrieve              → GET /api/v2/asset_usage/{uid_asset}/data/{id}
+    - validation_status     → GET /api/v2/asset_usage/{uid_asset}/data/{id}/validation_status  # noqa
+    - validation_status     → DELETE /api/v2/asset_usage/{uid_asset}/data/{id}/validation_status  # noqa
+    - validation_status     → PATCH /api/v2/asset_usage/{uid_asset}/data/{id}/validation_status  # noqa
+    - validation_statuses   → DELETE /api/v2/asset_usage/{uid_asset}/data/{id}/validation_statuses  # noqa
+    - validation_statuses   → PATCH /api/v2/asset_usage/{uid_asset}/data/{id}/validation_statuses  # noqa
+    - enketo_edit           → GET /api/v2/assets/{uid_asset}/data/{id}/edit/
+    - enketo_edit           → GET /api/v2/assets/{uid_asset}/data/{id}/enketo/edit/
+    - enketo_edit           → GET /api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/edit/
+    - enketo_view           → GET /api/v2/assets/{uid_asset}/data/{id}/enketo/view/
+    - enketo_view           → GET /api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/view/
 
     Documentation:
     - docs/api/v2/data/bulk_delete.md
@@ -788,7 +788,7 @@ class DataViewSet(
         data = {
             'server_url': reverse(
                 viewname='assetsnapshot-detail',
-                kwargs={'uid': snapshot.uid},
+                kwargs={'uid_asset_snapshot': snapshot.uid},
                 request=request,
             ),
             'instance': xml_tostring(submission_xml_root),

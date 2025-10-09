@@ -248,7 +248,7 @@ def get_user_permission_assignments_queryset(affected_object, user):
     # Don't Prefetch `content_object`.
     # See `AssetPermissionAssignmentSerializer.to_representation()`
     queryset = (
-        affected_object.permissions.filter(deny=False)
+        affected_object.permissions.filter(deny=False, user__is_active=True)
         .select_related('permission', 'user')
         .order_by('user__username', 'permission__codename')
         .all()

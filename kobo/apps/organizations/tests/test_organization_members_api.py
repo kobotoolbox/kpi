@@ -38,13 +38,13 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
 
         self.list_url = reverse(
             self._get_endpoint('organization-members-list'),
-            kwargs={'organization_id': self.organization.id},
+            kwargs={'uid_organization': self.organization.id},
         )
         self.detail_url = lambda username: reverse(
             self._get_endpoint('organization-members-detail'),
             kwargs={
-                'organization_id': self.organization.id,
-                'user__username': username
+                'uid_organization': self.organization.id,
+                'username': username
             },
         )
 
@@ -61,7 +61,7 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
 
         list_url = reverse(
             self._get_endpoint('organization-invites-list'),
-            kwargs={'organization_id': self.organization.id},
+            kwargs={'uid_organization': self.organization.id},
         )
         self.client.force_login(invited_by)
         self.client.post(list_url, data=invitation_data)
@@ -72,7 +72,7 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         """
         detail_url = reverse(
             self._get_endpoint('organization-invites-detail'),
-            kwargs={'guid': guid, 'organization_id': self.organization.id},
+            kwargs={'guid': guid, 'uid_organization': self.organization.id},
         )
         self.client.force_login(user)
         return self.client.patch(detail_url, data={'status': status})
@@ -132,6 +132,25 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
                     self.assertIn(
                         result['user__username'], ['someuser', 'anotheruser', 'alice']
                     )
+
+    def test_inactive_user_do_not_show_up_members_list(self):
+
+        self.client.force_login(self.someuser)
+        response = self.client.get(self.list_url)
+
+        assert response.data['count'] == 3
+        usernames = [m['user__username'] for m in response.data['results']]
+        assert 'alice' in usernames
+
+        # Deactivate alice
+        self.alice.is_active = False
+        self.alice.save()
+
+        # Retry, alice should not be there anymore
+        response = self.client.get(self.list_url)
+        assert response.data['count'] == 2
+        usernames = [m['user__username'] for m in response.data['results']]
+        assert 'alice' not in usernames
 
     @data(
         ('owner', status.HTTP_200_OK),
@@ -231,7 +250,7 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         self.client.force_login(self.bob)
         bob_org_members_list_url = reverse(
             self._get_endpoint('organization-members-list'),
-            kwargs={'organization_id': bob_org.id},
+            kwargs={'uid_organization': bob_org.id},
         )
         response = self.client.get(bob_org_members_list_url)
         # The first member should be bob
@@ -243,7 +262,7 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         self.client.force_login(self.someuser)
         someuser_org_members_list_url = reverse(
             self._get_endpoint('organization-members-list'),
-            kwargs={'organization_id': self.organization.id},
+            kwargs={'uid_organization': self.organization.id},
         )
         response = self.client.get(someuser_org_members_list_url)
 

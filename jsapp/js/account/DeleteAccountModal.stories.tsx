@@ -1,7 +1,6 @@
 import { Button, Center, type ModalProps } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { useArgs } from 'storybook/internal/preview-api'
-import meMock from '#/endpoints/me.mocks'
 import DeleteAccountModal from './DeleteAccountModal'
 
 const RenderModal = ({ ...args }: ModalProps) => {
@@ -29,9 +28,6 @@ const meta: Meta<typeof DeleteAccountModal> = {
     opened: false,
   },
   parameters: {
-    msw: {
-      handlers: [meMock],
-    },
     a11y: { test: 'todo' },
   },
 }

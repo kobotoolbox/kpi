@@ -208,7 +208,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             )
         return reverse(
             'asset-detail',
-            kwargs={'uid': self._get_asset.uid},
+            kwargs={'uid_asset': self._get_asset.uid},
             request=self._get_request,
         )
 

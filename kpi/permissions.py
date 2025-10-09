@@ -291,6 +291,17 @@ class AssetSnapshotPermission(AssetPermission):
                     'model_name': model_name,
                 }
 
+    def has_permission(self, request, view):
+        self.validate_password(request)
+
+        # Allow anonymous users to send POST requests to preview public forms.
+        # Object-level access control is handled by the serializer, ensuring
+        # that only public forms can be accessed or previewed.
+        if request.method == 'POST' and view.action == 'create':
+            return True
+
+        return super().has_permission(request, view)
+
     def has_object_permission(self, request, view, obj):
         if view.action == 'submission' or (
             view.action == 'retrieve' and request.accepted_renderer.format == 'xml'
@@ -477,7 +488,7 @@ class EditSubmissionPermission(EditLinkSubmissionPermission):
         try:
             return super().has_permission(request, view)
         except Http404:
-            uid = request.parser_context['kwargs']['uid']
+            uid = request.parser_context['kwargs']['uid_asset_snapshot']
             # Is this a real 404 (object does not exist)? If so, raise it
             if not AssetSnapshot.objects.filter(uid=uid).exists():
                 raise
