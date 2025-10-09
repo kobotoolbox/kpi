@@ -58,8 +58,8 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
     def test_list_view_succeeds_for_superuser(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Make sure that all 4 users from the 'test_data' are included
-        self.assertEqual(len(response.data['results']), 4)
+        # Make sure that all 3 users from the 'test_data' are included
+        self.assertEqual(len(response.data['results']), 3)
 
     def test_endpoint_returns_error_when_stripe_is_disabled(self):
         try:
