@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
+import { Group, Text } from '@mantine/core'
 import cx from 'classnames'
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
@@ -7,6 +8,7 @@ import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import TextBox from '#/components/common/textBox'
+import type { FailResponse } from '#/dataInterface'
 import sessionStore from '#/stores/session'
 import { formatTime, notify } from '#/utils'
 import { deleteUnverifiedUserEmails, getUserEmails, setUserEmail } from './emailSection.api'
@@ -66,14 +68,25 @@ export default function EmailSection() {
             })
           })
         } else {
+          // If there is no primary email in response, we display an error
+          // TODO: is this even possible to happen?
           setEmail({
             ...email,
-            fieldErrors: response.email,
+            fieldErrors: ['Invalid API response'],
           })
         }
       },
-      () => {
-        /* Avoid crashing app when 500 error happens */
+      (err: FailResponse) => {
+        let errMessages: string[] = []
+        if (err.responseJSON?.email && typeof err.responseJSON.email === 'string') {
+          errMessages.push(err.responseJSON.email)
+        } else if (Array.isArray(err.responseJSON?.email)) {
+          errMessages = err.responseJSON.email
+        }
+        setEmail({
+          ...email,
+          fieldErrors: errMessages,
+        })
       },
     )
   }
@@ -196,11 +209,11 @@ export default function EmailSection() {
               handleSubmit()
             }}
           >
-            <div>
-              <label>{email.fieldErrors}</label>
+            <Group gap='sm'>
+              <Text color='red'>{email.fieldErrors}</Text>
 
               <Button label='Change' size='m' type='primary' onClick={handleSubmit} isDisabled={isSSO} />
-            </div>
+            </Group>
           </form>
         </div>
       )}

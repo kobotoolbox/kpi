@@ -1,14 +1,10 @@
 import { fetchDelete, fetchGet, fetchPost } from '#/api'
-import type { PaginatedResponse } from '#/dataInterface'
+import type { FailResponse, PaginatedResponse } from '#/dataInterface'
 
 export interface EmailResponse {
   primary: boolean
   email: string
   verified: boolean
-}
-
-interface EmailError {
-  email: string[]
 }
 
 const LIST_URL = '/me/emails/'
@@ -18,7 +14,7 @@ export async function getUserEmails() {
 }
 
 export async function setUserEmail(newEmail: string) {
-  return fetchPost<EmailResponse | EmailError>(LIST_URL, { email: newEmail })
+  return fetchPost<EmailResponse | FailResponse>(LIST_URL, { email: newEmail })
 }
 
 /** Removes all unverified/non-primary emails (there should only be one anyway)*/
