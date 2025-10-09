@@ -27,11 +27,7 @@ def cleanup_stale_snapshots_and_refresh_mv(run_id: str):
             break
         BillingAndUsageSnapshot.objects.filter(pk__in=stale_ids).delete()
 
-    # Refresh materialized view
-    with connection.cursor() as cursor:
-        cursor.execute(
-            'REFRESH MATERIALIZED VIEW CONCURRENTLY user_reports_userreportsmv;'
-        )
+    refresh_user_reports_materialized_view()
 
 
 def get_or_create_run():
@@ -101,3 +97,14 @@ def process_chunk(
         )
 
     return last_org_id
+
+
+def refresh_user_reports_materialized_view(concurrently=True):
+    """
+    Refreshes the user reports materialized view (optionally concurrently)
+    """
+    concurrent_keyword = ' CONCURRENTLY' if concurrently else ''
+    sql = f'REFRESH MATERIALIZED VIEW{concurrent_keyword} user_reports_userreportsmv;'
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql)

@@ -10,6 +10,9 @@ from rest_framework import status
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.user_reports.models import BillingAndUsageSnapshot
+from kobo.apps.user_reports.utils.snapshot_refresh_helpers import (
+    refresh_user_reports_materialized_view,
+)
 from kpi.tests.base_test_case import BaseTestCase
 
 
@@ -39,9 +42,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
 
         baker.make(BillingAndUsageSnapshot, organization_id=organization.id)
 
-        # Manually refresh the materialized view
-        with connection.cursor() as cursor:
-            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_userreportsmv;')
+        refresh_user_reports_materialized_view(concurrently=False)
 
     def test_list_view_requires_authentication(self):
         self.client.logout()
@@ -141,8 +142,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         mock_get_limits.return_value = mock_limits
 
         # Refresh the materialized view to sync with the snapshot
-        with connection.cursor() as cursor:
-            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_userreportsmv;')
+        refresh_user_reports_materialized_view(concurrently=False)
 
         someuser_data = self._get_someuser_data()
 
@@ -234,8 +234,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             'kobo.apps.user_reports.seralizers.get_organizations_effective_limits',
             return_value=mock_limits,
         ):
-            with connection.cursor() as cursor:
-                cursor.execute('REFRESH MATERIALIZED VIEW user_reports_userreportsmv;')
+            refresh_user_reports_materialized_view(concurrently=False)
 
             someuser_data = self._get_someuser_data()
             self.assertTrue(someuser_data['account_restricted'])
@@ -253,8 +252,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         response = self.client.post(tos_url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
-        with connection.cursor() as cursor:
-            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_userreportsmv;')
+        refresh_user_reports_materialized_view(concurrently=False)
 
         # Verify `accepted_tos` has been set to True
         response = self.client.get(self.url)
