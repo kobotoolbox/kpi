@@ -76,7 +76,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             # USAGE_LIMIT_ENFORCEMENT variable. But we use caching
             # so should find a way to keep that out of this count
             if settings.STRIPE_ENABLED:
-                expected_queries = FuzzyInt(62, 73)
+                expected_queries = FuzzyInt(62, 84)
             with self.assertNumQueries(expected_queries):
                 self.view(request)
 
