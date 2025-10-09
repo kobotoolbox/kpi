@@ -5,7 +5,6 @@ import prettyBytes from 'pretty-bytes'
 import { Link } from 'react-router-dom'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import { useOrganizationQuery } from '#/account/organization/organizationQuery'
-import type { ErrorDetail } from '#/api/models/errorDetail'
 import type { OrganizationAssetUsageResponse } from '#/api/models/organizationAssetUsageResponse'
 import {
   getOrganizationsAssetUsageRetrieveQueryKey,
@@ -160,7 +159,7 @@ const ProjectBreakdown = () => {
           <Button size='s' type='text' startIcon='close' onClick={dismissIntervalBanner} />
         </div>
       )}
-      <UniversalTable<OrganizationAssetUsageResponse, ErrorDetail>
+      <UniversalTable<OrganizationAssetUsageResponse>
         pagination={pagination}
         setPagination={setPagination}
         queryResult={queryResult}
