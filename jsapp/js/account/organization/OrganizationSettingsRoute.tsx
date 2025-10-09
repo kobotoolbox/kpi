@@ -70,7 +70,7 @@ export default function OrganizationSettingsRoute() {
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault()
-    patchOrganization.mutateAsync({ id: organization.id, data: { name, website } })
+    patchOrganization.mutateAsync({ uidOrganization: organization.id, data: { name, website } })
   }
 
   function handleChangeName(newName: string) {

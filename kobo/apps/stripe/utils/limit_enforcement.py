@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
+from django_request_cache import cache_for_request
 
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.stripe.utils.import_management import requires_stripe
@@ -27,15 +28,10 @@ def check_exceeded_limit(user, usage_type: UsageType, **kwargs):
         return
 
     ExceededLimitCounter = kwargs['exceeded_limit_counter_model']
-
-    # We disable usage calculator cache so we can get the most recent
-    # usage when this function is called after submissions or NLP
-    # actions
-    calculator = ServiceUsageCalculator(user, disable_cache=True)
-    balances = calculator.get_usage_balances()
-
+    balances = _get_usage_balances(user)
     balance = balances[usage_type]
     counter = None
+
     if balance and balance['exceeded']:
         counter, created = ExceededLimitCounter.objects.get_or_create(
             user=user,
@@ -64,3 +60,20 @@ def update_or_remove_limit_counter(counter, **kwargs):
         delta = timezone.now() - counter.date_modified
         counter.days += delta.days
         counter.save()
+
+
+@cache_for_request
+def _get_usage_balances(user: 'kobo_auth.User') -> dict:
+    """
+    Cache the result of `get_usage_balances` for the duration of the request.
+
+    This avoids redundant recalculations when `check_exceeded_limit` is called
+    multiple times within the same request for different usage types.
+
+    Since ServiceUsageCalculator caching is disabled to ensure the most up-to-date
+    values after submissions or NLP actions, the first call already computes all usage
+    types, so subsequent calls can safely reuse the cached result.
+    """
+
+    calculator = ServiceUsageCalculator(user, disable_cache=True)
+    return calculator.get_usage_balances()

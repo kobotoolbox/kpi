@@ -692,7 +692,7 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         # anotheruser is the owner and should see the project
         url = reverse(
             self._get_endpoint('asset-detail'),
-            kwargs={'uid': asset_someuser.uid},
+            kwargs={'uid_asset': asset_someuser.uid},
         )
         self.client.login(username='anotheruser', password='anotheruser')
         response = self.client.get(url)

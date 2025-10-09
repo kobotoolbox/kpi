@@ -256,7 +256,7 @@ class CurrentUserTestCase(BaseTestCase):
             'organization': {
                 'url': reverse(
                     'api_v2:organizations-detail',
-                    kwargs={'id': self.user.organization.id},
+                    kwargs={'uid_organization': self.user.organization.id},
                     request=request,
                 ),
                 'name': self.user.organization.name,

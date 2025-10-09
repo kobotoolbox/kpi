@@ -49,7 +49,7 @@ class OrganizationNestedHasOrgRolePermission(HasOrgRolePermission):
 
         try:
             organization = Organization.objects.get(
-                id=view.kwargs.get('organization_id')
+                id=view.kwargs.get(view.parent_lookup_field)
             )
         except Organization.DoesNotExist:
             raise Http404
@@ -77,7 +77,7 @@ class OrgMembershipInvitePermission(ValidationPasswordPermissionMixin, IsAuthent
         if not super().has_permission(request=request, view=view):
             return False
 
-        organization_id = view.kwargs.get('organization_id')
+        organization_id = view.kwargs.get(view.parent_lookup_field)
         try:
             organization = Organization.objects.get(id=organization_id)
         except Organization.DoesNotExist:

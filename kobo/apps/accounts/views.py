@@ -108,9 +108,9 @@ class SocialAccountViewSet(
     Viewset for managing current user's socials
 
     Available actions:
-    - destroy        → DELETE   /me/social-accounts/{provider}/{uid}/
+    - destroy        → DELETE   /me/social-accounts/{provider}/{uid_social_account}/
     - list           → GET      /me/social-accounts/
-    - retrieve       → GET      /me/social-accounts/{provider}/{uid}/
+    - retrieve       → GET      /me/social-accounts/{provider}/{uid_social_account}/
 
     Documentation:
     - docs/api/v2/me/social/destroy.md
@@ -118,8 +118,9 @@ class SocialAccountViewSet(
     - docs/api/v2/me/social/retrieve.md
     """
 
-    lookup_value_regex = r'(?P<provider>[^/.]+)/(?P<uid>[-\w]+)'
+    lookup_value_regex = r'(?P<provider>[^/.]+)/(?P<uid_social_account>[-\w]+)'
     lookup_fields = ['provider', 'uid']
+    lookup_field_map = {'uid': 'uid_social_account'}
     queryset = SocialAccount.objects.all()
     serializer_class = SocialAccountSerializer
     permission_classes = (IsAuthenticated,)

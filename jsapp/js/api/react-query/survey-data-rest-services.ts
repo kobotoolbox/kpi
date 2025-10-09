@@ -86,7 +86,7 @@ export type assetsHooksListResponse = assetsHooksListResponseComposite & {
   headers: Headers
 }
 
-export const getAssetsHooksListUrl = (parentLookupAsset: string, params?: AssetsHooksListParams) => {
+export const getAssetsHooksListUrl = (uidAsset: string, params?: AssetsHooksListParams) => {
   const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -98,30 +98,30 @@ export const getAssetsHooksListUrl = (parentLookupAsset: string, params?: Assets
   const stringifiedParams = normalizedParams.toString()
 
   return stringifiedParams.length > 0
-    ? `/api/v2/assets/${parentLookupAsset}/hooks/?${stringifiedParams}`
-    : `/api/v2/assets/${parentLookupAsset}/hooks/`
+    ? `/api/v2/assets/${uidAsset}/hooks/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/hooks/`
 }
 
 export const assetsHooksList = async (
-  parentLookupAsset: string,
+  uidAsset: string,
   params?: AssetsHooksListParams,
   options?: RequestInit,
 ): Promise<assetsHooksListResponse> => {
-  return fetchWithAuth<assetsHooksListResponse>(getAssetsHooksListUrl(parentLookupAsset, params), {
+  return fetchWithAuth<assetsHooksListResponse>(getAssetsHooksListUrl(uidAsset, params), {
     ...options,
     method: 'GET',
   })
 }
 
-export const getAssetsHooksListQueryKey = (parentLookupAsset: string, params?: AssetsHooksListParams) => {
-  return ['api', 'v2', 'assets', parentLookupAsset, 'hooks', ...(params ? [params] : [])] as const
+export const getAssetsHooksListQueryKey = (uidAsset: string, params?: AssetsHooksListParams) => {
+  return ['api', 'v2', 'assets', uidAsset, 'hooks', ...(params ? [params] : [])] as const
 }
 
 export const getAssetsHooksListQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsHooksList>>,
   TError = ErrorDetail,
 >(
-  parentLookupAsset: string,
+  uidAsset: string,
   params?: AssetsHooksListParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHooksList>>, TError, TData>
@@ -130,12 +130,12 @@ export const getAssetsHooksListQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetsHooksListQueryKey(parentLookupAsset, params)
+  const queryKey = queryOptions?.queryKey ?? getAssetsHooksListQueryKey(uidAsset, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsHooksList>>> = ({ signal }) =>
-    assetsHooksList(parentLookupAsset, params, { signal, ...requestOptions })
+    assetsHooksList(uidAsset, params, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!parentLookupAsset, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsHooksList>>,
     TError,
     TData
@@ -146,14 +146,14 @@ export type AssetsHooksListQueryResult = NonNullable<Awaited<ReturnType<typeof a
 export type AssetsHooksListQueryError = ErrorDetail
 
 export function useAssetsHooksList<TData = Awaited<ReturnType<typeof assetsHooksList>>, TError = ErrorDetail>(
-  parentLookupAsset: string,
+  uidAsset: string,
   params?: AssetsHooksListParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHooksList>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsHooksListQueryOptions(parentLookupAsset, params, options)
+  const queryOptions = getAssetsHooksListQueryOptions(uidAsset, params, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -220,16 +220,16 @@ export type assetsHooksCreateResponse = assetsHooksCreateResponseComposite & {
   headers: Headers
 }
 
-export const getAssetsHooksCreateUrl = (parentLookupAsset: string) => {
-  return `/api/v2/assets/${parentLookupAsset}/hooks/`
+export const getAssetsHooksCreateUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/hooks/`
 }
 
 export const assetsHooksCreate = async (
-  parentLookupAsset: string,
+  uidAsset: string,
   hook: NonReadonly<Hook>,
   options?: RequestInit,
 ): Promise<assetsHooksCreateResponse> => {
-  return fetchWithAuth<assetsHooksCreateResponse>(getAssetsHooksCreateUrl(parentLookupAsset), {
+  return fetchWithAuth<assetsHooksCreateResponse>(getAssetsHooksCreateUrl(uidAsset), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -241,14 +241,14 @@ export const getAssetsHooksCreateMutationOptions = <TError = ErrorObject | Error
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksCreate>>,
     TError,
-    { parentLookupAsset: string; data: NonReadonly<Hook> },
+    { uidAsset: string; data: NonReadonly<Hook> },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsHooksCreate>>,
   TError,
-  { parentLookupAsset: string; data: NonReadonly<Hook> },
+  { uidAsset: string; data: NonReadonly<Hook> },
   TContext
 > => {
   const mutationKey = ['assetsHooksCreate']
@@ -260,11 +260,11 @@ export const getAssetsHooksCreateMutationOptions = <TError = ErrorObject | Error
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsHooksCreate>>,
-    { parentLookupAsset: string; data: NonReadonly<Hook> }
+    { uidAsset: string; data: NonReadonly<Hook> }
   > = (props) => {
-    const { parentLookupAsset, data } = props ?? {}
+    const { uidAsset, data } = props ?? {}
 
-    return assetsHooksCreate(parentLookupAsset, data, requestOptions)
+    return assetsHooksCreate(uidAsset, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -278,12 +278,280 @@ export const useAssetsHooksCreate = <TError = ErrorObject | ErrorDetail, TContex
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksCreate>>,
     TError,
-    { parentLookupAsset: string; data: NonReadonly<Hook> },
+    { uidAsset: string; data: NonReadonly<Hook> },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }) => {
   const mutationOptions = getAssetsHooksCreateMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}
+/**
+ * ## Retrieve an external service
+
+ */
+export type assetsHooksRetrieveResponse200 = {
+  data: Hook
+  status: 200
+}
+
+export type assetsHooksRetrieveResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type assetsHooksRetrieveResponseComposite = assetsHooksRetrieveResponse200 | assetsHooksRetrieveResponse404
+
+export type assetsHooksRetrieveResponse = assetsHooksRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsHooksRetrieveUrl = (uidAsset: string, uidHook: string) => {
+  return `/api/v2/assets/${uidAsset}/hooks/${uidHook}/`
+}
+
+export const assetsHooksRetrieve = async (
+  uidAsset: string,
+  uidHook: string,
+  options?: RequestInit,
+): Promise<assetsHooksRetrieveResponse> => {
+  return fetchWithAuth<assetsHooksRetrieveResponse>(getAssetsHooksRetrieveUrl(uidAsset, uidHook), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getAssetsHooksRetrieveQueryKey = (uidAsset: string, uidHook: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'hooks', uidHook] as const
+}
+
+export const getAssetsHooksRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsHooksRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidHook: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsHooksRetrieveQueryKey(uidAsset, uidHook)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsHooksRetrieve>>> = ({ signal }) =>
+    assetsHooksRetrieve(uidAsset, uidHook, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidHook), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsHooksRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsHooksRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHooksRetrieve>>>
+export type AssetsHooksRetrieveQueryError = ErrorDetail
+
+export function useAssetsHooksRetrieve<TData = Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError = ErrorDetail>(
+  uidAsset: string,
+  uidHook: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsHooksRetrieveQueryOptions(uidAsset, uidHook, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## Update an external service.
+
+ */
+export type assetsHooksPartialUpdateResponse200 = {
+  data: Hook
+  status: 200
+}
+
+export type assetsHooksPartialUpdateResponse400 = {
+  data: ErrorObject
+  status: 400
+}
+
+export type assetsHooksPartialUpdateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type assetsHooksPartialUpdateResponseComposite =
+  | assetsHooksPartialUpdateResponse200
+  | assetsHooksPartialUpdateResponse400
+  | assetsHooksPartialUpdateResponse404
+
+export type assetsHooksPartialUpdateResponse = assetsHooksPartialUpdateResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsHooksPartialUpdateUrl = (uidAsset: string, uidHook: string) => {
+  return `/api/v2/assets/${uidAsset}/hooks/${uidHook}/`
+}
+
+export const assetsHooksPartialUpdate = async (
+  uidAsset: string,
+  uidHook: string,
+  patchedHook: NonReadonly<PatchedHook>,
+  options?: RequestInit,
+): Promise<assetsHooksPartialUpdateResponse> => {
+  return fetchWithAuth<assetsHooksPartialUpdateResponse>(getAssetsHooksPartialUpdateUrl(uidAsset, uidHook), {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(patchedHook),
+  })
+}
+
+export const getAssetsHooksPartialUpdateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsHooksPartialUpdate>>,
+    TError,
+    { uidAsset: string; uidHook: string; data: NonReadonly<PatchedHook> },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsHooksPartialUpdate>>,
+  TError,
+  { uidAsset: string; uidHook: string; data: NonReadonly<PatchedHook> },
+  TContext
+> => {
+  const mutationKey = ['assetsHooksPartialUpdate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsHooksPartialUpdate>>,
+    { uidAsset: string; uidHook: string; data: NonReadonly<PatchedHook> }
+  > = (props) => {
+    const { uidAsset, uidHook, data } = props ?? {}
+
+    return assetsHooksPartialUpdate(uidAsset, uidHook, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AssetsHooksPartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHooksPartialUpdate>>>
+export type AssetsHooksPartialUpdateMutationBody = NonReadonly<PatchedHook>
+export type AssetsHooksPartialUpdateMutationError = ErrorObject | ErrorDetail
+
+export const useAssetsHooksPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsHooksPartialUpdate>>,
+    TError,
+    { uidAsset: string; uidHook: string; data: NonReadonly<PatchedHook> },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsHooksPartialUpdateMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}
+/**
+ * ## Delete an external service.
+
+ */
+export type assetsHooksDestroyResponse204 = {
+  data: void
+  status: 204
+}
+
+export type assetsHooksDestroyResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type assetsHooksDestroyResponseComposite = assetsHooksDestroyResponse204 | assetsHooksDestroyResponse404
+
+export type assetsHooksDestroyResponse = assetsHooksDestroyResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsHooksDestroyUrl = (uidAsset: string, uidHook: string) => {
+  return `/api/v2/assets/${uidAsset}/hooks/${uidHook}/`
+}
+
+export const assetsHooksDestroy = async (
+  uidAsset: string,
+  uidHook: string,
+  options?: RequestInit,
+): Promise<assetsHooksDestroyResponse> => {
+  return fetchWithAuth<assetsHooksDestroyResponse>(getAssetsHooksDestroyUrl(uidAsset, uidHook), {
+    ...options,
+    method: 'DELETE',
+  })
+}
+
+export const getAssetsHooksDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsHooksDestroy>>,
+    TError,
+    { uidAsset: string; uidHook: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsHooksDestroy>>,
+  TError,
+  { uidAsset: string; uidHook: string },
+  TContext
+> => {
+  const mutationKey = ['assetsHooksDestroy']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsHooksDestroy>>,
+    { uidAsset: string; uidHook: string }
+  > = (props) => {
+    const { uidAsset, uidHook } = props ?? {}
+
+    return assetsHooksDestroy(uidAsset, uidHook, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AssetsHooksDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHooksDestroy>>>
+
+export type AssetsHooksDestroyMutationError = ErrorDetail
+
+export const useAssetsHooksDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsHooksDestroy>>,
+    TError,
+    { uidAsset: string; uidHook: string },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsHooksDestroyMutationOptions(options)
 
   return useMutation(mutationOptions)
 }
@@ -321,11 +589,7 @@ export type assetsHooksLogsListResponse = assetsHooksLogsListResponseComposite &
   headers: Headers
 }
 
-export const getAssetsHooksLogsListUrl = (
-  parentLookupAsset: string,
-  parentLookupHook: string,
-  params?: AssetsHooksLogsListParams,
-) => {
+export const getAssetsHooksLogsListUrl = (uidAsset: string, uidHook: string, params?: AssetsHooksLogsListParams) => {
   const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -337,48 +601,36 @@ export const getAssetsHooksLogsListUrl = (
   const stringifiedParams = normalizedParams.toString()
 
   return stringifiedParams.length > 0
-    ? `/api/v2/assets/${parentLookupAsset}/hooks/${parentLookupHook}/logs/?${stringifiedParams}`
-    : `/api/v2/assets/${parentLookupAsset}/hooks/${parentLookupHook}/logs/`
+    ? `/api/v2/assets/${uidAsset}/hooks/${uidHook}/logs/?${stringifiedParams}`
+    : `/api/v2/assets/${uidAsset}/hooks/${uidHook}/logs/`
 }
 
 export const assetsHooksLogsList = async (
-  parentLookupAsset: string,
-  parentLookupHook: string,
+  uidAsset: string,
+  uidHook: string,
   params?: AssetsHooksLogsListParams,
   options?: RequestInit,
 ): Promise<assetsHooksLogsListResponse> => {
-  return fetchWithAuth<assetsHooksLogsListResponse>(
-    getAssetsHooksLogsListUrl(parentLookupAsset, parentLookupHook, params),
-    {
-      ...options,
-      method: 'GET',
-    },
-  )
+  return fetchWithAuth<assetsHooksLogsListResponse>(getAssetsHooksLogsListUrl(uidAsset, uidHook, params), {
+    ...options,
+    method: 'GET',
+  })
 }
 
 export const getAssetsHooksLogsListQueryKey = (
-  parentLookupAsset: string,
-  parentLookupHook: string,
+  uidAsset: string,
+  uidHook: string,
   params?: AssetsHooksLogsListParams,
 ) => {
-  return [
-    'api',
-    'v2',
-    'assets',
-    parentLookupAsset,
-    'hooks',
-    parentLookupHook,
-    'logs',
-    ...(params ? [params] : []),
-  ] as const
+  return ['api', 'v2', 'assets', uidAsset, 'hooks', uidHook, 'logs', ...(params ? [params] : [])] as const
 }
 
 export const getAssetsHooksLogsListQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsHooksLogsList>>,
   TError = ErrorDetail,
 >(
-  parentLookupAsset: string,
-  parentLookupHook: string,
+  uidAsset: string,
+  uidHook: string,
   params?: AssetsHooksLogsListParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsList>>, TError, TData>
@@ -387,12 +639,12 @@ export const getAssetsHooksLogsListQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getAssetsHooksLogsListQueryKey(parentLookupAsset, parentLookupHook, params)
+  const queryKey = queryOptions?.queryKey ?? getAssetsHooksLogsListQueryKey(uidAsset, uidHook, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsHooksLogsList>>> = ({ signal }) =>
-    assetsHooksLogsList(parentLookupAsset, parentLookupHook, params, { signal, ...requestOptions })
+    assetsHooksLogsList(uidAsset, uidHook, params, { signal, ...requestOptions })
 
-  return { queryKey, queryFn, enabled: !!(parentLookupAsset && parentLookupHook), ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidHook), ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof assetsHooksLogsList>>,
     TError,
     TData
@@ -403,15 +655,15 @@ export type AssetsHooksLogsListQueryResult = NonNullable<Awaited<ReturnType<type
 export type AssetsHooksLogsListQueryError = ErrorDetail
 
 export function useAssetsHooksLogsList<TData = Awaited<ReturnType<typeof assetsHooksLogsList>>, TError = ErrorDetail>(
-  parentLookupAsset: string,
-  parentLookupHook: string,
+  uidAsset: string,
+  uidHook: string,
   params?: AssetsHooksLogsListParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsList>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsHooksLogsListQueryOptions(parentLookupAsset, parentLookupHook, params, options)
+  const queryOptions = getAssetsHooksLogsListQueryOptions(uidAsset, uidHook, params, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -442,40 +694,33 @@ export type assetsHooksLogsRetrieveResponse = assetsHooksLogsRetrieveResponseCom
   headers: Headers
 }
 
-export const getAssetsHooksLogsRetrieveUrl = (parentLookupAsset: string, parentLookupHook: string, uid: string) => {
-  return `/api/v2/assets/${parentLookupAsset}/hooks/${parentLookupHook}/logs/${uid}/`
+export const getAssetsHooksLogsRetrieveUrl = (uidAsset: string, uidHook: string, uidLog: string) => {
+  return `/api/v2/assets/${uidAsset}/hooks/${uidHook}/logs/${uidLog}/`
 }
 
 export const assetsHooksLogsRetrieve = async (
-  parentLookupAsset: string,
-  parentLookupHook: string,
-  uid: string,
+  uidAsset: string,
+  uidHook: string,
+  uidLog: string,
   options?: RequestInit,
 ): Promise<assetsHooksLogsRetrieveResponse> => {
-  return fetchWithAuth<assetsHooksLogsRetrieveResponse>(
-    getAssetsHooksLogsRetrieveUrl(parentLookupAsset, parentLookupHook, uid),
-    {
-      ...options,
-      method: 'GET',
-    },
-  )
+  return fetchWithAuth<assetsHooksLogsRetrieveResponse>(getAssetsHooksLogsRetrieveUrl(uidAsset, uidHook, uidLog), {
+    ...options,
+    method: 'GET',
+  })
 }
 
-export const getAssetsHooksLogsRetrieveQueryKey = (
-  parentLookupAsset: string,
-  parentLookupHook: string,
-  uid: string,
-) => {
-  return ['api', 'v2', 'assets', parentLookupAsset, 'hooks', parentLookupHook, 'logs', uid] as const
+export const getAssetsHooksLogsRetrieveQueryKey = (uidAsset: string, uidHook: string, uidLog: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'hooks', uidHook, 'logs', uidLog] as const
 }
 
 export const getAssetsHooksLogsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>,
   TError = ErrorDetail,
 >(
-  parentLookupAsset: string,
-  parentLookupHook: string,
-  uid: string,
+  uidAsset: string,
+  uidHook: string,
+  uidLog: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -483,18 +728,16 @@ export const getAssetsHooksLogsRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey =
-    queryOptions?.queryKey ?? getAssetsHooksLogsRetrieveQueryKey(parentLookupAsset, parentLookupHook, uid)
+  const queryKey = queryOptions?.queryKey ?? getAssetsHooksLogsRetrieveQueryKey(uidAsset, uidHook, uidLog)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>> = ({ signal }) =>
-    assetsHooksLogsRetrieve(parentLookupAsset, parentLookupHook, uid, { signal, ...requestOptions })
+    assetsHooksLogsRetrieve(uidAsset, uidHook, uidLog, { signal, ...requestOptions })
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!(parentLookupAsset && parentLookupHook && uid),
-    ...queryOptions,
-  } as UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>, TError, TData> & { queryKey: QueryKey }
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidHook && uidLog), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
 }
 
 export type AssetsHooksLogsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>>
@@ -504,15 +747,15 @@ export function useAssetsHooksLogsRetrieve<
   TData = Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>,
   TError = ErrorDetail,
 >(
-  parentLookupAsset: string,
-  parentLookupHook: string,
-  uid: string,
+  uidAsset: string,
+  uidHook: string,
+  uidLog: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHooksLogsRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsHooksLogsRetrieveQueryOptions(parentLookupAsset, parentLookupHook, uid, options)
+  const queryOptions = getAssetsHooksLogsRetrieveQueryOptions(uidAsset, uidHook, uidLog, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -543,23 +786,19 @@ export type assetsHooksLogsRetryPartialUpdateResponse = assetsHooksLogsRetryPart
   headers: Headers
 }
 
-export const getAssetsHooksLogsRetryPartialUpdateUrl = (
-  parentLookupAsset: string,
-  parentLookupHook: string,
-  uid: string,
-) => {
-  return `/api/v2/assets/${parentLookupAsset}/hooks/${parentLookupHook}/logs/${uid}/retry/`
+export const getAssetsHooksLogsRetryPartialUpdateUrl = (uidAsset: string, uidHook: string, uidLog: string) => {
+  return `/api/v2/assets/${uidAsset}/hooks/${uidHook}/logs/${uidLog}/retry/`
 }
 
 export const assetsHooksLogsRetryPartialUpdate = async (
-  parentLookupAsset: string,
-  parentLookupHook: string,
-  uid: string,
+  uidAsset: string,
+  uidHook: string,
+  uidLog: string,
   patchedHookLog: NonReadonly<PatchedHookLog>,
   options?: RequestInit,
 ): Promise<assetsHooksLogsRetryPartialUpdateResponse> => {
   return fetchWithAuth<assetsHooksLogsRetryPartialUpdateResponse>(
-    getAssetsHooksLogsRetryPartialUpdateUrl(parentLookupAsset, parentLookupHook, uid),
+    getAssetsHooksLogsRetryPartialUpdateUrl(uidAsset, uidHook, uidLog),
     {
       ...options,
       method: 'PATCH',
@@ -576,14 +815,14 @@ export const getAssetsHooksLogsRetryPartialUpdateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksLogsRetryPartialUpdate>>,
     TError,
-    { parentLookupAsset: string; parentLookupHook: string; uid: string; data: NonReadonly<PatchedHookLog> },
+    { uidAsset: string; uidHook: string; uidLog: string; data: NonReadonly<PatchedHookLog> },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsHooksLogsRetryPartialUpdate>>,
   TError,
-  { parentLookupAsset: string; parentLookupHook: string; uid: string; data: NonReadonly<PatchedHookLog> },
+  { uidAsset: string; uidHook: string; uidLog: string; data: NonReadonly<PatchedHookLog> },
   TContext
 > => {
   const mutationKey = ['assetsHooksLogsRetryPartialUpdate']
@@ -595,11 +834,11 @@ export const getAssetsHooksLogsRetryPartialUpdateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsHooksLogsRetryPartialUpdate>>,
-    { parentLookupAsset: string; parentLookupHook: string; uid: string; data: NonReadonly<PatchedHookLog> }
+    { uidAsset: string; uidHook: string; uidLog: string; data: NonReadonly<PatchedHookLog> }
   > = (props) => {
-    const { parentLookupAsset, parentLookupHook, uid, data } = props ?? {}
+    const { uidAsset, uidHook, uidLog, data } = props ?? {}
 
-    return assetsHooksLogsRetryPartialUpdate(parentLookupAsset, parentLookupHook, uid, data, requestOptions)
+    return assetsHooksLogsRetryPartialUpdate(uidAsset, uidHook, uidLog, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -615,280 +854,12 @@ export const useAssetsHooksLogsRetryPartialUpdate = <TError = ErrorDetail, TCont
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksLogsRetryPartialUpdate>>,
     TError,
-    { parentLookupAsset: string; parentLookupHook: string; uid: string; data: NonReadonly<PatchedHookLog> },
+    { uidAsset: string; uidHook: string; uidLog: string; data: NonReadonly<PatchedHookLog> },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }) => {
   const mutationOptions = getAssetsHooksLogsRetryPartialUpdateMutationOptions(options)
-
-  return useMutation(mutationOptions)
-}
-/**
- * ## Retrieve an external service
-
- */
-export type assetsHooksRetrieveResponse200 = {
-  data: Hook
-  status: 200
-}
-
-export type assetsHooksRetrieveResponse404 = {
-  data: ErrorDetail
-  status: 404
-}
-
-export type assetsHooksRetrieveResponseComposite = assetsHooksRetrieveResponse200 | assetsHooksRetrieveResponse404
-
-export type assetsHooksRetrieveResponse = assetsHooksRetrieveResponseComposite & {
-  headers: Headers
-}
-
-export const getAssetsHooksRetrieveUrl = (parentLookupAsset: string, uid: string) => {
-  return `/api/v2/assets/${parentLookupAsset}/hooks/${uid}/`
-}
-
-export const assetsHooksRetrieve = async (
-  parentLookupAsset: string,
-  uid: string,
-  options?: RequestInit,
-): Promise<assetsHooksRetrieveResponse> => {
-  return fetchWithAuth<assetsHooksRetrieveResponse>(getAssetsHooksRetrieveUrl(parentLookupAsset, uid), {
-    ...options,
-    method: 'GET',
-  })
-}
-
-export const getAssetsHooksRetrieveQueryKey = (parentLookupAsset: string, uid: string) => {
-  return ['api', 'v2', 'assets', parentLookupAsset, 'hooks', uid] as const
-}
-
-export const getAssetsHooksRetrieveQueryOptions = <
-  TData = Awaited<ReturnType<typeof assetsHooksRetrieve>>,
-  TError = ErrorDetail,
->(
-  parentLookupAsset: string,
-  uid: string,
-  options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError, TData>
-    request?: SecondParameter<typeof fetchWithAuth>
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
-
-  const queryKey = queryOptions?.queryKey ?? getAssetsHooksRetrieveQueryKey(parentLookupAsset, uid)
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsHooksRetrieve>>> = ({ signal }) =>
-    assetsHooksRetrieve(parentLookupAsset, uid, { signal, ...requestOptions })
-
-  return { queryKey, queryFn, enabled: !!(parentLookupAsset && uid), ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof assetsHooksRetrieve>>,
-    TError,
-    TData
-  > & { queryKey: QueryKey }
-}
-
-export type AssetsHooksRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHooksRetrieve>>>
-export type AssetsHooksRetrieveQueryError = ErrorDetail
-
-export function useAssetsHooksRetrieve<TData = Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError = ErrorDetail>(
-  parentLookupAsset: string,
-  uid: string,
-  options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsHooksRetrieve>>, TError, TData>
-    request?: SecondParameter<typeof fetchWithAuth>
-  },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsHooksRetrieveQueryOptions(parentLookupAsset, uid, options)
-
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
-
-  query.queryKey = queryOptions.queryKey
-
-  return query
-}
-
-/**
- * ## Update an external service.
-
- */
-export type assetsHooksPartialUpdateResponse200 = {
-  data: Hook
-  status: 200
-}
-
-export type assetsHooksPartialUpdateResponse400 = {
-  data: ErrorObject
-  status: 400
-}
-
-export type assetsHooksPartialUpdateResponse404 = {
-  data: ErrorDetail
-  status: 404
-}
-
-export type assetsHooksPartialUpdateResponseComposite =
-  | assetsHooksPartialUpdateResponse200
-  | assetsHooksPartialUpdateResponse400
-  | assetsHooksPartialUpdateResponse404
-
-export type assetsHooksPartialUpdateResponse = assetsHooksPartialUpdateResponseComposite & {
-  headers: Headers
-}
-
-export const getAssetsHooksPartialUpdateUrl = (parentLookupAsset: string, uid: string) => {
-  return `/api/v2/assets/${parentLookupAsset}/hooks/${uid}/`
-}
-
-export const assetsHooksPartialUpdate = async (
-  parentLookupAsset: string,
-  uid: string,
-  patchedHook: NonReadonly<PatchedHook>,
-  options?: RequestInit,
-): Promise<assetsHooksPartialUpdateResponse> => {
-  return fetchWithAuth<assetsHooksPartialUpdateResponse>(getAssetsHooksPartialUpdateUrl(parentLookupAsset, uid), {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(patchedHook),
-  })
-}
-
-export const getAssetsHooksPartialUpdateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof assetsHooksPartialUpdate>>,
-    TError,
-    { parentLookupAsset: string; uid: string; data: NonReadonly<PatchedHook> },
-    TContext
-  >
-  request?: SecondParameter<typeof fetchWithAuth>
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof assetsHooksPartialUpdate>>,
-  TError,
-  { parentLookupAsset: string; uid: string; data: NonReadonly<PatchedHook> },
-  TContext
-> => {
-  const mutationKey = ['assetsHooksPartialUpdate']
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined }
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof assetsHooksPartialUpdate>>,
-    { parentLookupAsset: string; uid: string; data: NonReadonly<PatchedHook> }
-  > = (props) => {
-    const { parentLookupAsset, uid, data } = props ?? {}
-
-    return assetsHooksPartialUpdate(parentLookupAsset, uid, data, requestOptions)
-  }
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type AssetsHooksPartialUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHooksPartialUpdate>>>
-export type AssetsHooksPartialUpdateMutationBody = NonReadonly<PatchedHook>
-export type AssetsHooksPartialUpdateMutationError = ErrorObject | ErrorDetail
-
-export const useAssetsHooksPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof assetsHooksPartialUpdate>>,
-    TError,
-    { parentLookupAsset: string; uid: string; data: NonReadonly<PatchedHook> },
-    TContext
-  >
-  request?: SecondParameter<typeof fetchWithAuth>
-}) => {
-  const mutationOptions = getAssetsHooksPartialUpdateMutationOptions(options)
-
-  return useMutation(mutationOptions)
-}
-/**
- * ## Delete an external service.
-
- */
-export type assetsHooksDestroyResponse204 = {
-  data: void
-  status: 204
-}
-
-export type assetsHooksDestroyResponse404 = {
-  data: ErrorDetail
-  status: 404
-}
-
-export type assetsHooksDestroyResponseComposite = assetsHooksDestroyResponse204 | assetsHooksDestroyResponse404
-
-export type assetsHooksDestroyResponse = assetsHooksDestroyResponseComposite & {
-  headers: Headers
-}
-
-export const getAssetsHooksDestroyUrl = (parentLookupAsset: string, uid: string) => {
-  return `/api/v2/assets/${parentLookupAsset}/hooks/${uid}/`
-}
-
-export const assetsHooksDestroy = async (
-  parentLookupAsset: string,
-  uid: string,
-  options?: RequestInit,
-): Promise<assetsHooksDestroyResponse> => {
-  return fetchWithAuth<assetsHooksDestroyResponse>(getAssetsHooksDestroyUrl(parentLookupAsset, uid), {
-    ...options,
-    method: 'DELETE',
-  })
-}
-
-export const getAssetsHooksDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof assetsHooksDestroy>>,
-    TError,
-    { parentLookupAsset: string; uid: string },
-    TContext
-  >
-  request?: SecondParameter<typeof fetchWithAuth>
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof assetsHooksDestroy>>,
-  TError,
-  { parentLookupAsset: string; uid: string },
-  TContext
-> => {
-  const mutationKey = ['assetsHooksDestroy']
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined }
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof assetsHooksDestroy>>,
-    { parentLookupAsset: string; uid: string }
-  > = (props) => {
-    const { parentLookupAsset, uid } = props ?? {}
-
-    return assetsHooksDestroy(parentLookupAsset, uid, requestOptions)
-  }
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type AssetsHooksDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHooksDestroy>>>
-
-export type AssetsHooksDestroyMutationError = ErrorDetail
-
-export const useAssetsHooksDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof assetsHooksDestroy>>,
-    TError,
-    { parentLookupAsset: string; uid: string },
-    TContext
-  >
-  request?: SecondParameter<typeof fetchWithAuth>
-}) => {
-  const mutationOptions = getAssetsHooksDestroyMutationOptions(options)
 
   return useMutation(mutationOptions)
 }
@@ -918,36 +889,33 @@ export type assetsHooksRetryPartialUpdateResponse = assetsHooksRetryPartialUpdat
   headers: Headers
 }
 
-export const getAssetsHooksRetryPartialUpdateUrl = (parentLookupAsset: string, uid: string) => {
-  return `/api/v2/assets/${parentLookupAsset}/hooks/${uid}/retry/`
+export const getAssetsHooksRetryPartialUpdateUrl = (uidAsset: string, uidHook: string) => {
+  return `/api/v2/assets/${uidAsset}/hooks/${uidHook}/retry/`
 }
 
 export const assetsHooksRetryPartialUpdate = async (
-  parentLookupAsset: string,
-  uid: string,
+  uidAsset: string,
+  uidHook: string,
   options?: RequestInit,
 ): Promise<assetsHooksRetryPartialUpdateResponse> => {
-  return fetchWithAuth<assetsHooksRetryPartialUpdateResponse>(
-    getAssetsHooksRetryPartialUpdateUrl(parentLookupAsset, uid),
-    {
-      ...options,
-      method: 'PATCH',
-    },
-  )
+  return fetchWithAuth<assetsHooksRetryPartialUpdateResponse>(getAssetsHooksRetryPartialUpdateUrl(uidAsset, uidHook), {
+    ...options,
+    method: 'PATCH',
+  })
 }
 
 export const getAssetsHooksRetryPartialUpdateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksRetryPartialUpdate>>,
     TError,
-    { parentLookupAsset: string; uid: string },
+    { uidAsset: string; uidHook: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsHooksRetryPartialUpdate>>,
   TError,
-  { parentLookupAsset: string; uid: string },
+  { uidAsset: string; uidHook: string },
   TContext
 > => {
   const mutationKey = ['assetsHooksRetryPartialUpdate']
@@ -959,11 +927,11 @@ export const getAssetsHooksRetryPartialUpdateMutationOptions = <TError = ErrorDe
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsHooksRetryPartialUpdate>>,
-    { parentLookupAsset: string; uid: string }
+    { uidAsset: string; uidHook: string }
   > = (props) => {
-    const { parentLookupAsset, uid } = props ?? {}
+    const { uidAsset, uidHook } = props ?? {}
 
-    return assetsHooksRetryPartialUpdate(parentLookupAsset, uid, requestOptions)
+    return assetsHooksRetryPartialUpdate(uidAsset, uidHook, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -979,7 +947,7 @@ export const useAssetsHooksRetryPartialUpdate = <TError = ErrorDetail, TContext 
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHooksRetryPartialUpdate>>,
     TError,
-    { parentLookupAsset: string; uid: string },
+    { uidAsset: string; uidHook: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
