@@ -391,7 +391,10 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
         # Additionally, validate that at least one subscription object contains
         # the id as a string
         found_str_id = any(
-            any(str(s.get('id')) == str(self.subscription.id) for s in r.get('subscriptions', []))
+            any(
+                str(s.get('id')) == str(self.subscription.id)
+                for s in r.get('subscriptions', [])
+            )
             for r in resp['results']
         )
         self.assertTrue(found_str_id)
