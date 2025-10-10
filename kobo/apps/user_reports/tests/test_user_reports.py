@@ -154,7 +154,6 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(
             service_usage['total_nlp_usage']['asr_seconds_current_period'], 0
         )
-        print("\n\n ----------->>>>", service_usage)
         self.assertEqual(service_usage['total_nlp_usage']['asr_seconds_all_time'], 0)
         self.assertEqual(
             service_usage['total_nlp_usage']['mt_characters_current_period'], 0
