@@ -18,7 +18,7 @@ class UserReportsSerializer(serializers.ModelSerializer):
     extra_details__uid = serializers.CharField(
         source='extra_details_uid', read_only=True
     )
-    current_service_usage = serializers.SerializerMethodField()
+    service_usage = serializers.SerializerMethodField()
     account_restricted = serializers.SerializerMethodField()
 
     class Meta:
@@ -43,29 +43,19 @@ class UserReportsSerializer(serializers.ModelSerializer):
             'organizations',
             'metadata',
             'subscriptions',
-            'current_service_usage',
+            'service_usage',
             'account_restricted',
             'asset_count',
             'deployed_asset_count',
         ]
 
     def get_account_restricted(self, obj) -> bool:
-        service_usage = self.get_current_service_usage(obj)
+        service_usage = obj.service_usage
         balances = service_usage.get('balances', {})
         return any(balance and balance.get('exceeded') for balance in balances.values())
 
-    def get_current_service_usage(self, obj) -> dict[str, Any]:
-        total_nlp_usage = {
-            'asr_seconds_current_period': obj.current_period_asr,
-            'mt_characters_current_period': obj.current_period_mt,
-            'asr_seconds_all_time': obj.nlp_usage_asr_seconds_total,
-            'mt_characters_all_time': obj.nlp_usage_mt_characters_total,
-        }
-
-        total_submission_count = {
-            'current_period': obj.current_period_submissions,
-            'all_time': obj.submission_counts_all_time,
-        }
+    def get_service_usage(self, obj) -> dict[str, Any]:
+        su = obj.service_usage
 
         # Calculate usage balances (this is the only runtime calculation needed)
         balances = self._calculate_usage_balances(obj)
@@ -78,15 +68,11 @@ class UserReportsSerializer(serializers.ModelSerializer):
         if obj.current_period_end:
             current_period_end = obj.current_period_end.isoformat()
 
-        return {
-            'total_nlp_usage': total_nlp_usage,
-            'total_storage_bytes': obj.storage_bytes_total,
-            'total_submission_count': total_submission_count,
-            'balances': balances,
-            'current_period_start': current_period_start,
-            'current_period_end': current_period_end,
-            'last_updated': timezone.now().isoformat(),
-        }
+        su['balances'] = balances
+        su['current_period_start'] = current_period_start
+        su['current_period_end'] = current_period_end
+        su['last_updated'] = timezone.now().isoformat()
+        return su
 
     def _calculate_usage_balances(self, obj) -> dict[str, Any]:
         """
@@ -105,18 +91,18 @@ class UserReportsSerializer(serializers.ModelSerializer):
         return {
             'submission': calculate_usage_balance(
                 limit=org_limits.get(f'{UsageType.SUBMISSION}_limit', float('inf')),
-                usage=obj.current_period_submissions,
+                usage=obj.total_submission_count_current_period,
             ),
             'storage_bytes': calculate_usage_balance(
                 limit=org_limits.get(f'{UsageType.STORAGE_BYTES}_limit', float('inf')),
-                usage=obj.storage_bytes_total,
+                usage=obj.total_storage_bytes,
             ),
             'asr_seconds': calculate_usage_balance(
                 limit=org_limits.get(f'{UsageType.ASR_SECONDS}_limit', float('inf')),
-                usage=obj.current_period_asr,
+                usage=obj.total_nlp_usage_asr_seconds_current_period,
             ),
             'mt_characters': calculate_usage_balance(
                 limit=org_limits.get(f'{UsageType.MT_CHARACTERS}_limit', float('inf')),
-                usage=obj.current_period_mt,
+                usage=obj.total_nlp_usage_mt_characters_current_period,
             ),
         }

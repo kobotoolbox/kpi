@@ -49,9 +49,9 @@ CREATE_MV_SQL = """
             bus.billing_period_start AS current_period_start,
             bus.billing_period_end   AS current_period_end,
             bus.organization_id,
-            COALESCE(bus.storage_bytes_total, 0) as storage_bytes_total,
-            COALESCE(bus.submission_counts_all_time, 0) as submission_counts_all_time,
-            COALESCE(bus.current_period_submissions, 0) as current_period_submissions
+            COALESCE(bus.total_storage_bytes, 0) as total_storage_bytes,
+            COALESCE(bus.total_submission_count_all_time, 0) as total_submission_count_all_time,
+            COALESCE(bus.total_submission_count_current_period, 0) as total_submission_count_current_period
         FROM auth_user au
         LEFT JOIN organizations_organizationuser ou ON au.id = ou.user_id
         LEFT JOIN user_reports_billingandusagesnapshot bus ON ou.organization_id = bus.organization_id
@@ -62,11 +62,11 @@ CREATE_MV_SQL = """
             SUM(
                 CASE WHEN nuc.date >= ubp.current_period_start AND nuc.date <= ubp.current_period_end
                      THEN nuc.total_asr_seconds ELSE 0 END
-            ) AS current_period_asr,
+            ) AS total_nlp_usage_asr_seconds_current_period,
             SUM(
                 CASE WHEN nuc.date >= ubp.current_period_start AND nuc.date <= ubp.current_period_end
                      THEN nuc.total_mt_characters ELSE 0 END
-            ) AS current_period_mt
+            ) AS total_nlp_usage_mt_characters_current_period
         FROM trackers_nlpusagecounter nuc
         JOIN user_billing_periods ubp ON nuc.user_id = ubp.user_id
         GROUP BY nuc.user_id
@@ -77,8 +77,8 @@ CREATE_MV_SQL = """
             ubp.current_period_start,
             ubp.current_period_end,
             ubp.organization_id,
-            COALESCE(na.current_period_asr, 0) AS current_period_asr,
-            COALESCE(na.current_period_mt, 0) AS current_period_mt
+            COALESCE(na.total_nlp_usage_asr_seconds_current_period, 0) AS total_nlp_usage_asr_seconds_current_period,
+            COALESCE(na.total_nlp_usage_mt_characters_current_period, 0) AS total_nlp_usage_mt_characters_current_period
         FROM user_billing_periods ubp
         LEFT JOIN nlp_period_agg na ON ubp.user_id = na.user_id
     )
@@ -124,43 +124,56 @@ CREATE_MV_SQL = """
         ) AS accepted_tos,
         COALESCE(
             jsonb_agg(
-                json_build_object(
+                jsonb_build_object(
                     'id', sa.id,
                     'provider', sa.provider,
                     'uid', sa.uid
                 )
             ) FILTER (WHERE sa.id IS NOT NULL),
             '[]'::jsonb
-        )::text AS social_accounts,
+        ) AS social_accounts,
         CASE
-            WHEN org.id IS NOT NULL THEN json_build_object(
+            WHEN org.id IS NOT NULL THEN jsonb_build_object(
                 'organization_name', org.name,
                 'organization_uid', org.id::text,
                 'role', ur.user_role
-            )::text
+            )
             ELSE NULL
         END AS organizations,
-        ued.data::text AS metadata,
-        COALESCE(unl.total_asr_seconds, 0) AS nlp_usage_asr_seconds_total,
-        COALESCE(unl.total_mt_characters, 0) AS nlp_usage_mt_characters_total,
+        ued.data::jsonb AS metadata,
+        COALESCE(unl.total_asr_seconds, 0) AS total_nlp_usage_asr_seconds_all_time,
+        COALESCE(unl.total_mt_characters, 0) AS total_nlp_usage_mt_characters_all_time,
         COALESCE(ua.total_assets, 0) AS asset_count,
         COALESCE(ua.deployed_assets, 0) AS deployed_asset_count,
-        COALESCE(ucpu.current_period_asr, 0) AS current_period_asr,
-        COALESCE(ucpu.current_period_mt, 0) AS current_period_mt,
+        COALESCE(ucpu.total_nlp_usage_asr_seconds_current_period, 0) AS total_nlp_usage_asr_seconds_current_period,
+        COALESCE(ucpu.total_nlp_usage_mt_characters_current_period, 0) AS total_nlp_usage_mt_characters_current_period,
         ucpu.current_period_start,
         ucpu.current_period_end,
         ucpu.organization_id,
-        ubau.storage_bytes_total,
-        ubau.submission_counts_all_time,
-        ubau.current_period_submissions,
+        ubau.total_storage_bytes,
+        ubau.total_submission_count_all_time,
+        ubau.total_submission_count_current_period,
+        jsonb_build_object(
+            'total_nlp_usage', jsonb_build_object(
+                'asr_seconds_current_period', COALESCE(ucpu.total_nlp_usage_asr_seconds_current_period, 0),
+                'mt_characters_current_period', COALESCE(ucpu.total_nlp_usage_mt_characters_current_period, 0),
+                'asr_seconds_all_time', COALESCE(unl.total_asr_seconds, 0),
+                'mt_characters_all_time', COALESCE(unl.total_mt_characters, 0)
+            ),
+            'total_storage_bytes', COALESCE(ubau.total_storage_bytes, 0),
+            'total_submission_count', jsonb_build_object(
+                'current_period', COALESCE(ubau.total_submission_count_current_period, 0),
+                'all_time', COALESCE(ubau.total_submission_count_all_time, 0)
+            )
+        )::jsonb AS service_usage,
         COALESCE(
             jsonb_agg(
-                json_build_object(
+                jsonb_build_object(
                     'items', (
                         SELECT jsonb_agg(
-                            json_build_object(
+                            jsonb_build_object(
                                 'id', si.id,
-                                'price', json_build_object(
+                                'price', jsonb_build_object(
                                     'id', pr.id,
                                     'nickname', pr.nickname,
                                     'currency', pr.currency,
@@ -180,7 +193,7 @@ CREATE_MV_SQL = """
                                     END,
                                     'metadata', pr.metadata,
                                     'active', pr.active,
-                                    'product', json_build_object(
+                                    'product', jsonb_build_object(
                                         'id', prod.id,
                                         'name', prod.name,
                                         'description', prod.description,
@@ -279,6 +292,7 @@ CREATE_MV_SQL = """
     LEFT JOIN user_role_map ur ON ur.user_id = au.id
     LEFT JOIN user_current_period_usage ucpu ON au.id = ucpu.user_id
     LEFT JOIN user_billing_periods ubau ON au.id = ubau.user_id
+    WHERE au.id != <ANONYMOUS_ID_VALUE>
     GROUP BY
         au.id,
         au.username,
@@ -302,12 +316,12 @@ CREATE_MV_SQL = """
         ur.user_role,
         ucpu.current_period_start,
         ucpu.current_period_end,
-        ucpu.current_period_asr,
-        ucpu.current_period_mt,
+        ucpu.total_nlp_usage_asr_seconds_current_period,
+        ucpu.total_nlp_usage_mt_characters_current_period,
         ucpu.organization_id,
-        ubau.storage_bytes_total,
-        ubau.submission_counts_all_time,
-        ubau.current_period_submissions;
+        ubau.total_storage_bytes,
+        ubau.total_submission_count_all_time,
+        ubau.total_submission_count_current_period;
     """
 
 DROP_MV_SQL = """
@@ -365,9 +379,13 @@ class Migration(migrations.Migration):
             )
         ]
     else:
+        CREATE_MV_SQL_FORMATTED = CREATE_MV_SQL.replace(
+            '<ANONYMOUS_ID_VALUE>',
+            str(settings.ANONYMOUS_USER_ID)
+        )
         operations = [
             migrations.RunSQL(
-                sql=CREATE_MV_SQL,
+                sql=CREATE_MV_SQL_FORMATTED,
                 reverse_sql=DROP_MV_SQL,
             ),
             migrations.RunSQL(

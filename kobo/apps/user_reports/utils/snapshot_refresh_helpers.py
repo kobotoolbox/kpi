@@ -27,11 +27,7 @@ def cleanup_stale_snapshots_and_refresh_mv(run_id: str):
             break
         BillingAndUsageSnapshot.objects.filter(pk__in=stale_ids).delete()
 
-    # Refresh materialized view
-    with connection.cursor() as cursor:
-        cursor.execute(
-            'REFRESH MATERIALIZED VIEW CONCURRENTLY user_reports_userreportsmv;'
-        )
+    refresh_user_reports_materialized_view()
 
 
 def get_or_create_run():
@@ -76,9 +72,11 @@ def process_chunk(
         objs.append(BillingAndUsageSnapshot(
             organization_id=org_id,
             effective_user_id=d.get('effective_user_id'),
-            storage_bytes_total=d.get('storage_bytes_total', 0),
-            submission_counts_all_time=d.get('submission_counts_all_time', 0),
-            current_period_submissions=d.get('current_period_submissions', 0),
+            total_storage_bytes=d.get('total_storage_bytes', 0),
+            total_submission_count_all_time=d.get('total_submission_count_all_time', 0),
+            total_submission_count_current_period=d.get(
+                'total_submission_count_current_period', 0
+            ),
             billing_period_start=d.get('billing_period_start'),
             billing_period_end=d.get('billing_period_end'),
             last_snapshot_run_id=run_id,
@@ -90,9 +88,9 @@ def process_chunk(
             update_conflicts=True,
             update_fields=[
                 'effective_user_id',
-                'storage_bytes_total',
-                'submission_counts_all_time',
-                'current_period_submissions',
+                'total_storage_bytes',
+                'total_submission_count_all_time',
+                'total_submission_count_current_period',
                 'billing_period_start',
                 'billing_period_end',
                 'last_snapshot_run_id',
@@ -101,3 +99,14 @@ def process_chunk(
         )
 
     return last_org_id
+
+
+def refresh_user_reports_materialized_view(concurrently=True):
+    """
+    Refreshes the user reports materialized view (optionally concurrently)
+    """
+    concurrent_keyword = ' CONCURRENTLY' if concurrently else ''
+    sql = f'REFRESH MATERIALIZED VIEW{concurrent_keyword} user_reports_userreportsmv;'
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql)

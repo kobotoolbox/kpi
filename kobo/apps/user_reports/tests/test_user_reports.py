@@ -10,6 +10,9 @@ from rest_framework import status
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.user_reports.models import BillingAndUsageSnapshot
+from kobo.apps.user_reports.utils.snapshot_refresh_helpers import (
+    refresh_user_reports_materialized_view,
+)
 from kpi.tests.base_test_case import BaseTestCase
 
 
@@ -39,9 +42,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
 
         baker.make(BillingAndUsageSnapshot, organization_id=organization.id)
 
-        # Manually refresh the materialized view
-        with connection.cursor() as cursor:
-            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_userreportsmv;')
+        refresh_user_reports_materialized_view(concurrently=False)
 
     def test_list_view_requires_authentication(self):
         self.client.logout()
@@ -57,8 +58,8 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
     def test_list_view_succeeds_for_superuser(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Make sure that all 4 users from the 'test_data' are included
-        self.assertEqual(len(response.data['results']), 4)
+        # Make sure that all 3 users from the 'test_data' are included
+        self.assertEqual(len(response.data['results']), 3)
 
     def test_endpoint_returns_error_when_stripe_is_disabled(self):
         try:
@@ -117,16 +118,16 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         )
 
     @patch('kobo.apps.user_reports.seralizers.get_organizations_effective_limits')
-    def test_current_service_usage_data_is_correctly_returned(self, mock_get_limits):
+    def test_service_usage_data_is_correctly_returned(self, mock_get_limits):
         # Update a BillingAndUsageSnapshot with specific usage data
         billing_and_usage_snapshot = BillingAndUsageSnapshot.objects.get(
             organization_id=self.someuser.organization.id
         )
-        billing_and_usage_snapshot.current_period_submissions = 15
-        billing_and_usage_snapshot.submission_counts_all_time = 150
-        billing_and_usage_snapshot.current_period_asr = 120
-        billing_and_usage_snapshot.nlp_usage_asr_seconds_total = 240
-        billing_and_usage_snapshot.storage_bytes_total = 200000000
+        billing_and_usage_snapshot.total_submission_count_current_period = 15
+        billing_and_usage_snapshot.total_submission_count_all_time = 150
+        billing_and_usage_snapshot.total_nlp_usage_asr_seconds_current_period = 120
+        billing_and_usage_snapshot.total_nlp_usage_asr_seconds_all_time = 240
+        billing_and_usage_snapshot.total_storage_bytes = 200000000
         billing_and_usage_snapshot.save()
 
         # Mock `get_organizations_effective_limits` to return test limits.
@@ -141,12 +142,11 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         mock_get_limits.return_value = mock_limits
 
         # Refresh the materialized view to sync with the snapshot
-        with connection.cursor() as cursor:
-            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_userreportsmv;')
+        refresh_user_reports_materialized_view(concurrently=False)
 
         someuser_data = self._get_someuser_data()
 
-        service_usage = someuser_data['current_service_usage']
+        service_usage = someuser_data['service_usage']
         # Assert total usage counts from the snapshot
         self.assertEqual(service_usage['total_submission_count']['current_period'], 15)
         self.assertEqual(service_usage['total_submission_count']['all_time'], 150)
@@ -154,6 +154,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(
             service_usage['total_nlp_usage']['asr_seconds_current_period'], 0
         )
+        print("\n\n ----------->>>>", service_usage)
         self.assertEqual(service_usage['total_nlp_usage']['asr_seconds_all_time'], 0)
         self.assertEqual(
             service_usage['total_nlp_usage']['mt_characters_current_period'], 0
@@ -222,7 +223,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         billing_and_usage_snapshot = BillingAndUsageSnapshot.objects.get(
             organization_id=self.someuser.organization.id
         )
-        billing_and_usage_snapshot.current_period_submissions = 10
+        billing_and_usage_snapshot.total_submission_count_current_period = 10
         billing_and_usage_snapshot.save()
 
         # Mock the `get_organizations_effective_limits` function
@@ -234,8 +235,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             'kobo.apps.user_reports.seralizers.get_organizations_effective_limits',
             return_value=mock_limits,
         ):
-            with connection.cursor() as cursor:
-                cursor.execute('REFRESH MATERIALIZED VIEW user_reports_userreportsmv;')
+            refresh_user_reports_materialized_view(concurrently=False)
 
             someuser_data = self._get_someuser_data()
             self.assertTrue(someuser_data['account_restricted'])
@@ -253,8 +253,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         response = self.client.post(tos_url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
-        with connection.cursor() as cursor:
-            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_userreportsmv;')
+        refresh_user_reports_materialized_view(concurrently=False)
 
         # Verify `accepted_tos` has been set to True
         response = self.client.get(self.url)

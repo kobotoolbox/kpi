@@ -100,6 +100,9 @@ const AccountSettings = () => {
       })
   }
 
+  /**
+   * Handles all fields available in the `AccountFieldsEditor`. To remove field value you have to pass empty string.
+   */
   const onFieldChange = (fieldName: string, value: string | boolean) => {
     setFormFields({
       ...formFields,

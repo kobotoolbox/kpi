@@ -34,11 +34,11 @@ class BillingAndUsageCalculator:
             uid = info['effective_user_id']
             result[org_id] = {
                 'effective_user_id': uid,
-                'storage_bytes_total': storage_map.get(uid, 0),
-                'submission_counts_all_time': submission_map.get(uid, {}).get(
+                'total_storage_bytes': storage_map.get(uid, 0),
+                'total_submission_count_all_time': submission_map.get(uid, {}).get(
                     'all_time', 0
                 ),
-                'current_period_submissions': submission_map.get(uid, {}).get(
+                'total_submission_count_current_period': submission_map.get(uid, {}).get(
                     'current_period', 0
                 ),
                 'billing_period_start': info['billing_dates'].get('start'),

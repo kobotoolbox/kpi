@@ -66,7 +66,7 @@ def refresh_user_report_snapshots():
     lock_timeout = settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60
     lock = cache.lock(cache_key, timeout=lock_timeout)
     if not lock.acquire(blocking=False, blocking_timeout=0):
-        logging.error('Task is already running')
+        logging.info('Nothing to do, task is already running!')
         return
 
     # Claim the existing snapshot run or create a new one
