@@ -7,6 +7,9 @@ from kobo.apps.data_collectors.utils import (
     rename_data_collector_enketo_links,
     set_data_collector_enketo_links,
 )
+from kpi.constants import PERM_MANAGE_ASSET
+from kpi.models import Asset
+from kpi.utils.object_permission import post_remove_perm
 
 
 @receiver(post_save, sender=DataCollector)
@@ -34,3 +37,19 @@ def update_enketo_links(sender, instance, **kwargs):
 @receiver(pre_delete, sender=DataCollector)
 def remove_enketo_links_on_delete(sender, instance, **kwargs):
     remove_data_collector_enketo_links(instance.token)
+
+
+@receiver(post_remove_perm, sender=Asset)
+def remove_enketo_links(sender, instance, user, codename, **kwargs):
+    if codename != PERM_MANAGE_ASSET:
+        return
+    group = instance.data_collector_group
+    if group is not None:
+        # we have to do this manually instead of using obj.assets.remove()
+        # so we can call save() with adjust_content=False
+        instance.data_collector_group = None
+        instance.save(
+            update_fields=['data_collector_group'],
+            adjust_content=False,
+            create_version=False,
+        )

@@ -4,6 +4,7 @@ from django.test import TestCase
 
 from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.constants import PERM_MANAGE_ASSET
 from kpi.models import Asset
 
 
@@ -98,3 +99,26 @@ class TestDataCollector(TestCase):
         data_collector_0.save()
         patched_remove.assert_called_once_with(old_token)
         patched_set.assert_called_once_with('new_token', [asset.uid])
+
+    def test_remove_owner_permission_removes_assets(self):
+        self.data_collector_group.assets.clear()
+        someuser = User.objects.get(username='someuser')
+        anotheruser = User.objects.get(username='anotheruser')
+        asset = Asset.objects.filter(owner=someuser).first()
+
+        # Give anotheruser manage_asset permission so they can assign the asset
+        # to a DCG
+        asset.assign_perm(anotheruser, PERM_MANAGE_ASSET)
+        another_group = DataCollectorGroup.objects.create(
+            name='DCG_2', owner=anotheruser
+        )
+        asset.data_collector_group = another_group
+        asset.save()
+        asset.deploy(backend='mock')
+        data_collector = DataCollector.objects.create(name='DC', group=another_group)
+        with patch.object(
+            asset.deployment, 'remove_data_collector_enketo_links'
+        ) as patched_remove_links:
+            asset.remove_perm(anotheruser, PERM_MANAGE_ASSET)
+        assert asset.data_collector_group is None
+        patched_remove_links.assert_called_once_with(data_collector.token)
