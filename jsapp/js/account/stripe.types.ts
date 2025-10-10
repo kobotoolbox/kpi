@@ -126,11 +126,6 @@ export interface PriceWithProduct extends Omit<Price, 'product'> {
   product: BaseProduct
 }
 
-export type PriceMetadata = Record<string, string | TransformQuantity | null> & {
-  quantity: string
-  transform_quantity: null | TransformQuantity
-}
-
 export interface TransformQuantity {
   divide_by: number
   round: 'up' | 'down'
@@ -185,7 +180,6 @@ export enum SubscriptionChangeType {
   RENEWAL = 1,
   PRODUCT_CHANGE = 2,
   PRICE_CHANGE = 3,
-  QUANTITY_CHANGE = 4,
   NO_CHANGE = 5,
 }
 
