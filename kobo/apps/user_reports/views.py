@@ -63,7 +63,6 @@ class UserReportsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         'deployed_asset_count',
     ]
     ordering = ['username']
-    search_fields = ['username', 'email', 'first_name', 'last_name']
 
     def list(self, request, *args, **kwargs):
         if not settings.STRIPE_ENABLED:

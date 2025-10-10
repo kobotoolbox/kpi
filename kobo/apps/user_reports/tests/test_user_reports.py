@@ -281,3 +281,120 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         )
         self.assertIsNotNone(someuser_data)
         return someuser_data
+
+
+@pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Requires stripe functionality')
+class UserReportsFilterAndOrderingTestCase(BaseTestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.client.login(username='adminuser', password='pass')
+        self.url = reverse(self._get_endpoint('api_v2:user-reports-list'))
+
+        # Create and add a subscription to someuser
+        from djstripe.enums import BillingScheme
+        from djstripe.models import Customer
+
+        self.someuser = User.objects.get(username='someuser')
+        organization = self.someuser.organization
+        self.customer = baker.make(Customer, subscriber=organization)
+        self.subscription = baker.make(
+            'djstripe.Subscription',
+            customer=self.customer,
+            items__price__livemode=False,
+            items__price__billing_scheme=BillingScheme.per_unit,
+            livemode=False,
+            metadata={'organization_id': str(organization.id)},
+        )
+
+        baker.make(BillingAndUsageSnapshot, organization_id=organization.id)
+
+        # Manually refresh the materialized view
+        with connection.cursor() as cursor:
+            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_userreportsmv;')
+
+    def _get_results(self, params=None):
+        params = params or {}
+        resp = self.client.get(self.url, params)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        return resp.json()
+
+    def _refresh_mv(self):
+        with connection.cursor() as cursor:
+            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_userreportsmv;')
+
+    def test_username_prefix_filter(self):
+        res = self._get_results({'q': 'username__icontains:some'})
+        self.assertEqual(res['count'], 1)
+        self.assertEqual(res['results'][0]['username'], 'someuser')
+
+    def test_email_prefix_filter(self):
+        res = self._get_results({'q': 'email__icontains:some@user'})
+        self.assertEqual(res['count'], 1)
+        self.assertEqual(res['results'][0]['email'], 'some@user.com')
+
+    def test_date_joined_gte_and_lte_filters(self):
+        all_res = self._get_results()
+        res_all = self._get_results({'q': 'date_joined__gte:2012-01-01'})
+        self.assertLessEqual(res_all['count'], all_res['count'])
+
+        res_none = self._get_results({'q': 'date_joined__gte:3020-01-01'})
+        self.assertEqual(res_none['count'], 0)
+
+    def test_storage_bytes_gte_and_lte_filters(self):
+        snap = BillingAndUsageSnapshot.objects.get(
+            organization_id=self.someuser.organization.id
+        )
+        snap.total_storage_bytes = 123456789
+        snap.save()
+        self._refresh_mv()
+
+        resp_gte = self._get_results({'q': 'total_storage_bytes__gte:100000000'})
+        self.assertTrue(any(r['username'] == 'someuser' for r in resp_gte['results']))
+
+        resp_lte = self._get_results({'q': 'total_storage_bytes__lte:200000000'})
+        self.assertTrue(any(r['username'] == 'someuser' for r in resp_lte['results']))
+
+    def test_current_period_submissions_gte_and_lte_filters(self):
+        snap = BillingAndUsageSnapshot.objects.get(
+            organization_id=self.someuser.organization.id
+        )
+        snap.total_submission_count_current_period = 5
+        snap.save()
+        self._refresh_mv()
+
+        resp_gte = self._get_results(
+            {'q': 'total_submission_count_current_period__gte:4'}
+        )
+        self.assertTrue(any(r['username'] == 'someuser' for r in resp_gte['results']))
+
+        resp_lte = self._get_results(
+            {'q': 'total_submission_count_current_period__lte:5'}
+        )
+        self.assertTrue(any(r['username'] == 'someuser' for r in resp_lte['results']))
+
+    def test_subscription_status_and_id_filters(self):
+        self._refresh_mv()
+
+        resp = self._get_results()
+        found = False
+        for r in resp['results']:
+            for s in r.get('subscriptions', []):
+                if s and s.get('id') == self.subscription.id:
+                    found = True
+                    self.assertIn('status', s)
+                    break
+            if found:
+                break
+        self.assertTrue(found)
+
+        # Additionally, validate that at least one subscription object contains
+        # the id as a string
+        found_str_id = any(
+            any(
+                str(s.get('id')) == str(self.subscription.id)
+                for s in r.get('subscriptions', [])
+            )
+            for r in resp['results']
+        )
+        self.assertTrue(found_str_id)
