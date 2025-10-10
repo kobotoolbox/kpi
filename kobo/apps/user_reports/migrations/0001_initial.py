@@ -107,6 +107,10 @@ class Migration(migrations.Migration):
                         default=kpi.models.abstract_models._get_default_datetime
                     ),
                 ),
+                ('submission_limit', models.BigIntegerField(blank=True, null=True)),
+                ('storage_bytes_limit', models.BigIntegerField(blank=True, null=True)),
+                ('asr_seconds_limit', models.BigIntegerField(blank=True, null=True)),
+                ('mt_characters_limit', models.BigIntegerField(blank=True, null=True)),
             ],
         ),
         migrations.AddIndex(

@@ -49,6 +49,10 @@ CREATE_MV_SQL = """
             bus.billing_period_start AS current_period_start,
             bus.billing_period_end   AS current_period_end,
             bus.organization_id,
+            bus.submission_limit,
+            bus.storage_bytes_limit,
+            bus.asr_seconds_limit,
+            bus.mt_characters_limit,
             COALESCE(bus.total_storage_bytes, 0) as total_storage_bytes,
             COALESCE(bus.total_submission_count_all_time, 0) as total_submission_count_all_time,
             COALESCE(bus.total_submission_count_current_period, 0) as total_submission_count_current_period
@@ -150,6 +154,10 @@ CREATE_MV_SQL = """
         ucpu.current_period_start,
         ucpu.current_period_end,
         ucpu.organization_id,
+        ubau.submission_limit,
+        ubau.storage_bytes_limit,
+        ubau.asr_seconds_limit,
+        ubau.mt_characters_limit,
         ubau.total_storage_bytes,
         ubau.total_submission_count_all_time,
         ubau.total_submission_count_current_period,
@@ -164,6 +172,52 @@ CREATE_MV_SQL = """
             'total_submission_count', jsonb_build_object(
                 'current_period', COALESCE(ubau.total_submission_count_current_period, 0),
                 'all_time', COALESCE(ubau.total_submission_count_all_time, 0)
+            ),
+            'balances', jsonb_build_object(
+                'submission',
+                    CASE
+                        WHEN ubau.submission_limit IS NULL OR ubau.submission_limit = 0 THEN NULL
+                        ELSE jsonb_build_object(
+                            'effective_limit', ubau.submission_limit,
+                            'balance_value', (ubau.submission_limit - COALESCE(ubau.total_submission_count_current_period, 0)),
+                            'balance_percent',
+                                ((COALESCE(ubau.total_submission_count_current_period, 0)::numeric * 100) / NULLIF(ubau.submission_limit, 0))::int,
+                            'exceeded', (ubau.submission_limit - COALESCE(ubau.total_submission_count_current_period, 0)) < 0
+                        )
+                    END,
+                'storage_bytes',
+                    CASE
+                        WHEN ubau.storage_bytes_limit IS NULL OR ubau.storage_bytes_limit = 0 THEN NULL
+                        ELSE jsonb_build_object(
+                            'effective_limit', ubau.storage_bytes_limit,
+                            'balance_value', (ubau.storage_bytes_limit - COALESCE(ubau.total_storage_bytes, 0)),
+                            'balance_percent',
+                                ((COALESCE(ubau.total_storage_bytes, 0)::numeric * 100) / NULLIF(ubau.storage_bytes_limit, 0))::int,
+                            'exceeded', (ubau.storage_bytes_limit - COALESCE(ubau.total_storage_bytes, 0)) < 0
+                        )
+                    END,
+                'asr_seconds',
+                    CASE
+                        WHEN ubau.asr_seconds_limit IS NULL OR ubau.asr_seconds_limit = 0 THEN NULL
+                        ELSE jsonb_build_object(
+                            'effective_limit', ubau.asr_seconds_limit,
+                            'balance_value', (ubau.asr_seconds_limit - COALESCE(ucpu.total_nlp_usage_asr_seconds_current_period, 0)),
+                            'balance_percent',
+                                ((COALESCE(ucpu.total_nlp_usage_asr_seconds_current_period, 0)::numeric * 100) / NULLIF(ubau.asr_seconds_limit, 0))::int,
+                            'exceeded', (ubau.asr_seconds_limit - COALESCE(ucpu.total_nlp_usage_asr_seconds_current_period, 0)) < 0
+                        )
+                    END,
+                'mt_characters',
+                    CASE
+                        WHEN ubau.mt_characters_limit IS NULL OR ubau.mt_characters_limit = 0 THEN NULL
+                        ELSE jsonb_build_object(
+                            'effective_limit', ubau.mt_characters_limit,
+                            'balance_value', (ubau.mt_characters_limit - COALESCE(ucpu.total_nlp_usage_mt_characters_current_period, 0)),
+                            'balance_percent',
+                                ((COALESCE(ucpu.total_nlp_usage_mt_characters_current_period, 0)::numeric * 100) / NULLIF(ubau.mt_characters_limit, 0))::int,
+                            'exceeded', (ubau.mt_characters_limit - COALESCE(ucpu.total_nlp_usage_mt_characters_current_period, 0)) < 0
+                        )
+                    END
             )
         )::jsonb AS service_usage,
         COALESCE(
@@ -319,6 +373,10 @@ CREATE_MV_SQL = """
         ucpu.total_nlp_usage_asr_seconds_current_period,
         ucpu.total_nlp_usage_mt_characters_current_period,
         ucpu.organization_id,
+        ubau.submission_limit,
+        ubau.storage_bytes_limit,
+        ubau.asr_seconds_limit,
+        ubau.mt_characters_limit,
         ubau.total_storage_bytes,
         ubau.total_submission_count_all_time,
         ubau.total_submission_count_current_period;
