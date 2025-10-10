@@ -64,6 +64,7 @@ class UserReportsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     ]
     ordering = ['username']
     search_fields = ['username', 'email', 'first_name', 'last_name']
+    skip_distinct = True
 
     def list(self, request, *args, **kwargs):
         if not settings.STRIPE_ENABLED:
