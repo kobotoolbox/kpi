@@ -1,8 +1,13 @@
+from urllib.parse import urlparse
+
 from django import forms
+from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django_redis import get_redis_connection
+from django.utils.safestring import mark_safe
 
 from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kpi.constants import ASSET_TYPE_SURVEY, PERM_MANAGE_ASSET
@@ -110,11 +115,18 @@ class DataCollectorGroupAdmin(admin.ModelAdmin):
 @admin.register(DataCollector)
 class DataCollectorAdmin(admin.ModelAdmin):
     list_display = ('name', 'group', 'token')
-    fields = ['name', 'group', 'token', 'uid']
-    readonly_fields = ['uid', 'token']
+    readonly_fields = ['uid', 'token', 'collect_url', 'enketo_urls']
     actions = ['rotate_token']
     search_fields = ('group__name', 'name')
     autocomplete_fields = ['group']
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'group', 'token', 'uid'),
+        }),
+        ('Collector URLs', {
+            'fields': ('collect_url', 'enketo_urls',),
+        }),
+    )
 
     @admin.action(description='Rotate token')
     def rotate_token(self, request, queryset):
@@ -125,3 +137,37 @@ class DataCollectorAdmin(admin.ModelAdmin):
                 f'Token for {data_collector.name} has been rotated',
                 level=messages.SUCCESS,
             )
+
+    @admin.display(description='KoboCollect')
+    def collect_url(self, obj):
+
+        if not (obj and obj.token):
+            return '-'
+
+        collect_url = f'{settings.KOBOCAT_URL}/key/{obj.token}'
+        return mark_safe(
+            '<a href="{collect_url}" target="_blank">'
+            f'    {collect_url}'
+            '</a>'
+        )
+
+    @admin.display(description='Enketo')
+    def enketo_urls(self, obj):
+        redis_client = get_redis_connection('enketo_redis_main')
+
+        if not (obj and obj.token):
+            return '-'
+
+        parsed_url = urlparse(settings.KOBOCAT_URL)
+
+        items = ''
+        for asset in obj.group.assets.all():
+            enketo_id = redis_client.get(f'or:{parsed_url.netloc}/key/{obj.token},{asset.uid}')
+            enketo_url = f'{settings.ENKETO_URL}/x/{enketo_id.decode()}'
+            items = items + f'<li><a href="{enketo_url}" target="_blank">{enketo_url}</a></li>'
+
+        return mark_safe(
+            '<div>'
+            f'  <ul>{items}</ul>'
+            '</div>'
+        )
