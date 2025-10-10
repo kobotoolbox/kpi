@@ -38,7 +38,9 @@ class BillingAndUsageCalculator:
                 'total_submission_count_all_time': submission_map.get(uid, {}).get(
                     'all_time', 0
                 ),
-                'total_submission_count_current_period': submission_map.get(uid, {}).get(
+                'total_submission_count_current_period': submission_map.get(
+                    uid, {}
+                ).get(
                     'current_period', 0
                 ),
                 'billing_period_start': info['billing_dates'].get('start'),
