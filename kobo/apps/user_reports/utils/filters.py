@@ -41,34 +41,34 @@ class UserReportsFilter(filters.FilterSet):
     last_login_gte = filters.DateTimeFilter(field_name='last_login', lookup_expr='gte')
     last_login_lte = filters.DateTimeFilter(field_name='last_login', lookup_expr='lte')
     total_storage_bytes_gte = filters.NumberFilter(
-        field_name='storage_bytes_total', lookup_expr='gte'
+        field_name='total_storage_bytes', lookup_expr='gte'
     )
     total_storage_bytes_lte = filters.NumberFilter(
-        field_name='storage_bytes_total', lookup_expr='lte'
+        field_name='total_storage_bytes', lookup_expr='lte'
     )
     total_submission_count_all_time_gte = filters.NumberFilter(
-        field_name='submission_counts_all_time', lookup_expr='gte'
+        field_name='total_submission_count_all_time', lookup_expr='gte'
     )
     total_submission_count_all_time_lte = filters.NumberFilter(
-        field_name='submission_counts_all_time', lookup_expr='lte'
+        field_name='total_submission_count_all_time', lookup_expr='lte'
     )
     total_submission_count_current_period_gte = filters.NumberFilter(
-        field_name='current_period_submissions', lookup_expr='gte'
+        field_name='total_submission_count_current_period', lookup_expr='gte'
     )
     total_submission_count_current_period_lte = filters.NumberFilter(
-        field_name='current_period_submissions', lookup_expr='lte'
+        field_name='total_submission_count_current_period', lookup_expr='lte'
     )
     total_nlp_usage_asr_seconds_all_time_gte = filters.NumberFilter(
-        field_name='nlp_usage_asr_seconds_total', lookup_expr='gte'
+        field_name='total_nlp_usage_asr_seconds_all_time', lookup_expr='gte'
     )
     total_nlp_usage_asr_seconds_all_time_lte = filters.NumberFilter(
-        field_name='nlp_usage_asr_seconds_total', lookup_expr='lte'
+        field_name='total_nlp_usage_asr_seconds_all_time', lookup_expr='lte'
     )
     total_nlp_usage_mt_characters_all_time_gte = filters.NumberFilter(
-        field_name='nlp_usage_mt_characters_total', lookup_expr='gte'
+        field_name='total_nlp_usage_mt_characters_all_time', lookup_expr='gte'
     )
     total_nlp_usage_mt_characters_all_time_lte = filters.NumberFilter(
-        field_name='nlp_usage_mt_characters_total', lookup_expr='lte'
+        field_name='total_nlp_usage_mt_characters_all_time', lookup_expr='lte'
     )
     has_subscriptions = filters.BooleanFilter(method='filter_has_subscriptions')
     subscription_status = filters.CharFilter(method='filter_subscription_status')

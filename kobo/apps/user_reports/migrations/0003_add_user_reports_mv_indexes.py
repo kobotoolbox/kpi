@@ -33,7 +33,7 @@ DROP INDEX IF EXISTS idx_user_reports_subscriptions_gin;
 # Numeric / ordering indexes
 CREATE_IDX_SUBMISSIONS_ALL_TIME = """
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_submission_all_time
-ON user_reports_userreportsmv (submission_counts_all_time);
+ON user_reports_userreportsmv (total_submission_count_all_time);
 """
 DROP_IDX_SUBMISSIONS_ALL_TIME = """
 DROP INDEX IF EXISTS idx_user_reports_submission_all_time;
@@ -41,7 +41,7 @@ DROP INDEX IF EXISTS idx_user_reports_submission_all_time;
 
 CREATE_IDX_CURRENT_PERIOD_SUB = """
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_current_period_submissions
-ON user_reports_userreportsmv (current_period_submissions);
+ON user_reports_userreportsmv (total_submission_count_current_period);
 """
 DROP_IDX_CURRENT_PERIOD_SUB = """
 DROP INDEX IF EXISTS idx_user_reports_current_period_submissions;
@@ -49,7 +49,7 @@ DROP INDEX IF EXISTS idx_user_reports_current_period_submissions;
 
 CREATE_IDX_STORAGE_BYTES = """
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_storage_bytes
-ON user_reports_userreportsmv (storage_bytes_total);
+ON user_reports_userreportsmv (total_storage_bytes);
 """
 DROP_IDX_STORAGE_BYTES = """
 DROP INDEX IF EXISTS idx_user_reports_storage_bytes;
