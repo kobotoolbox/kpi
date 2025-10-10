@@ -648,6 +648,12 @@ class ProjectHistoryLog(AuditLog):
             if is_data_collector:
                 metadata['submission']['data_collector_uid'] = request.user.uid
                 metadata['submission']['data_collector_name'] = request.user.name
+                metadata['submission'][
+                    'data_collector_group_uid'
+                ] = request.user.group_uid
+                metadata['submission'][
+                    'data_collector_group_name'
+                ] = request.user.group_name
 
             logs.append(
                 ProjectHistoryLog(
