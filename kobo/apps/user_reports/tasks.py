@@ -3,6 +3,9 @@ from django.core.cache import cache
 from django.utils import timezone
 
 from kobo.apps.stripe.utils.billing_dates import get_current_billing_period_dates_by_org
+from kobo.apps.stripe.utils.subscription_limits import (
+    get_organizations_effective_limits
+)
 from kobo.apps.user_reports.models import (
     BillingAndUsageSnapshotRun,
     BillingAndUsageSnapshotStatus,
@@ -75,8 +78,11 @@ def refresh_user_report_snapshots():
     try:
         while chunk_qs := iter_org_chunks_after(last_processed_org_id):
             billing_map = get_current_billing_period_dates_by_org(chunk_qs)
+            limits_map = get_organizations_effective_limits(chunk_qs, True, True)
             usage_map = calc.calculate_usage_batch(chunk_qs, billing_map)
-            last_processed_org_id = process_chunk(chunk_qs, usage_map, run.pk)
+            last_processed_org_id = process_chunk(
+                chunk_qs, usage_map, limits_map, run.pk
+            )
 
             # Update the run progress
             BillingAndUsageSnapshotRun.objects.filter(pk=run.pk).update(

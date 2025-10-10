@@ -41,6 +41,10 @@ class BillingAndUsageSnapshot(AbstractTimeStampedModel):
         related_name='snapshots',
         on_delete=models.CASCADE,
     )
+    submission_limit = models.BigIntegerField(null=True, blank=True)
+    storage_bytes_limit = models.BigIntegerField(null=True, blank=True)
+    asr_seconds_limit = models.BigIntegerField(null=True, blank=True)
+    mt_characters_limit = models.BigIntegerField(null=True, blank=True)
 
     class Meta:
         indexes = [

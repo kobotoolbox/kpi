@@ -57,9 +57,6 @@ class UserReportsSerializer(serializers.ModelSerializer):
     def get_service_usage(self, obj) -> dict[str, Any]:
         su = obj.service_usage
 
-        # Calculate usage balances (this is the only runtime calculation needed)
-        balances = self._calculate_usage_balances(obj)
-
         # Format billing period dates
         current_period_start = None
         current_period_end = None
@@ -68,7 +65,6 @@ class UserReportsSerializer(serializers.ModelSerializer):
         if obj.current_period_end:
             current_period_end = obj.current_period_end.isoformat()
 
-        su['balances'] = balances
         su['current_period_start'] = current_period_start
         su['current_period_end'] = current_period_end
         su['last_updated'] = timezone.now().isoformat()
