@@ -118,16 +118,16 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         )
 
     @patch('kobo.apps.user_reports.seralizers.get_organizations_effective_limits')
-    def test_current_service_usage_data_is_correctly_returned(self, mock_get_limits):
+    def test_service_usage_data_is_correctly_returned(self, mock_get_limits):
         # Update a BillingAndUsageSnapshot with specific usage data
         billing_and_usage_snapshot = BillingAndUsageSnapshot.objects.get(
             organization_id=self.someuser.organization.id
         )
-        billing_and_usage_snapshot.current_period_submissions = 15
-        billing_and_usage_snapshot.submission_counts_all_time = 150
-        billing_and_usage_snapshot.current_period_asr = 120
-        billing_and_usage_snapshot.nlp_usage_asr_seconds_total = 240
-        billing_and_usage_snapshot.storage_bytes_total = 200000000
+        billing_and_usage_snapshot.total_submission_count_current_period = 15
+        billing_and_usage_snapshot.total_submission_count_all_time = 150
+        billing_and_usage_snapshot.total_nlp_usage_asr_seconds_current_period = 120
+        billing_and_usage_snapshot.total_nlp_usage_asr_seconds_all_time = 240
+        billing_and_usage_snapshot.total_storage_bytes = 200000000
         billing_and_usage_snapshot.save()
 
         # Mock `get_organizations_effective_limits` to return test limits.
@@ -146,7 +146,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
 
         someuser_data = self._get_someuser_data()
 
-        service_usage = someuser_data['current_service_usage']
+        service_usage = someuser_data['service_usage']
         # Assert total usage counts from the snapshot
         self.assertEqual(service_usage['total_submission_count']['current_period'], 15)
         self.assertEqual(service_usage['total_submission_count']['all_time'], 150)
@@ -154,6 +154,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(
             service_usage['total_nlp_usage']['asr_seconds_current_period'], 0
         )
+        print("\n\n ----------->>>>", service_usage)
         self.assertEqual(service_usage['total_nlp_usage']['asr_seconds_all_time'], 0)
         self.assertEqual(
             service_usage['total_nlp_usage']['mt_characters_current_period'], 0
@@ -222,7 +223,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         billing_and_usage_snapshot = BillingAndUsageSnapshot.objects.get(
             organization_id=self.someuser.organization.id
         )
-        billing_and_usage_snapshot.current_period_submissions = 10
+        billing_and_usage_snapshot.total_submission_count_current_period = 10
         billing_and_usage_snapshot.save()
 
         # Mock the `get_organizations_effective_limits` function

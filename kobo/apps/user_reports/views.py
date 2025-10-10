@@ -3,12 +3,13 @@ from django.db import ProgrammingError
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 
 from kobo.apps.audit_log.permissions import SuperUserPermission
 from kobo.apps.user_reports.models import UserReports
 from kobo.apps.user_reports.seralizers import UserReportsSerializer
+from kpi.filters import SearchFilter
 from kpi.paginators import LimitOffsetPagination
 from kpi.permissions import IsAuthenticated
 from kpi.schema_extensions.v2.user_reports.serializers import UserReportsListResponse
@@ -44,16 +45,20 @@ class UserReportsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = (IsAuthenticated, SuperUserPermission)
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
 
+    search_default_field_lookups = [
+        'username__icontains'
+    ]
+
     ordering_fields = [
         'username',
         'email',
         'date_joined',
         'last_login',
-        'storage_bytes_total',
-        'submission_counts_current_month',
-        'submission_counts_all_time',
-        'nlp_usage_asr_seconds_total',
-        'nlp_usage_mt_characters_total',
+        'total_storage_bytes',
+        'total_submission_count_current_period',
+        'total_submission_count_all_time',
+        'total_nlp_usage_asr_seconds_all_time',
+        'total_nlp_usage_mt_characters_all_time',
         'asset_count',
         'deployed_asset_count',
     ]

@@ -31,9 +31,9 @@ class BillingAndUsageSnapshot(AbstractTimeStampedModel):
         'organizations.Organization', on_delete=models.CASCADE
     )
     effective_user_id = models.IntegerField(null=True, blank=True, db_index=True)
-    storage_bytes_total = models.BigIntegerField(default=0)
-    submission_counts_all_time = models.BigIntegerField(default=0)
-    current_period_submissions = models.BigIntegerField(default=0)
+    total_storage_bytes = models.BigIntegerField(default=0)
+    total_submission_count_all_time = models.BigIntegerField(default=0)
+    total_submission_count_current_period = models.BigIntegerField(default=0)
     billing_period_start = models.DateTimeField(null=True, blank=True)
     billing_period_end = models.DateTimeField(null=True, blank=True)
     last_snapshot_run = models.ForeignKey(
@@ -111,18 +111,21 @@ class UserReports(models.Model):
     metadata = models.JSONField(null=True, blank=True)
     subscriptions = models.JSONField(default=list)
 
-    storage_bytes_total = models.BigIntegerField(default=0)
-    submission_counts_all_time = models.BigIntegerField(default=0)
-    nlp_usage_asr_seconds_total = models.BigIntegerField(default=0)
-    nlp_usage_mt_characters_total = models.BigIntegerField(default=0)
+    total_storage_bytes = models.BigIntegerField(default=0)
+    total_submission_count_all_time = models.BigIntegerField(default=0)
+    total_submission_count_current_period = models.BigIntegerField(default=0)
+
+    total_nlp_usage_asr_seconds_all_time = models.BigIntegerField(default=0)
+    total_nlp_usage_mt_characters_all_time = models.BigIntegerField(default=0)
+    total_nlp_usage_asr_seconds_current_period = models.BigIntegerField(default=0)
+    total_nlp_usage_mt_characters_current_period = models.BigIntegerField(default=0)
+
     asset_count = models.IntegerField(default=0)
     deployed_asset_count = models.IntegerField(default=0)
 
     current_period_start = models.DateTimeField(null=True, blank=True)
     current_period_end = models.DateTimeField(null=True, blank=True)
-    current_period_submissions = models.BigIntegerField(default=0)
-    current_period_asr = models.BigIntegerField(default=0)
-    current_period_mt = models.BigIntegerField(default=0)
+    service_usage = models.JSONField(null=True, blank=True)
     organization_id = models.IntegerField(null=True, blank=True)
 
     class Meta:

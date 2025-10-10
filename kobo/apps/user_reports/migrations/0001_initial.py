@@ -87,9 +87,12 @@ class Migration(migrations.Migration):
                         to='organizations.organization',
                     ),
                 ),
-                ('storage_bytes_total', models.BigIntegerField(default=0)),
-                ('submission_counts_all_time', models.BigIntegerField(default=0)),
-                ('current_period_submissions', models.BigIntegerField(default=0)),
+                ('total_storage_bytes', models.BigIntegerField(default=0)),
+                ('total_submission_count_all_time', models.BigIntegerField(default=0)),
+                (
+                    'total_submission_count_current_period',
+                    models.BigIntegerField(default=0)
+                ),
                 ('billing_period_start', models.DateTimeField(blank=True, null=True)),
                 ('billing_period_end', models.DateTimeField(blank=True, null=True)),
                 (
@@ -176,17 +179,17 @@ class Migration(migrations.Migration):
                         ('organizations', models.JSONField(null=True, blank=True)),
                         ('metadata', models.JSONField(null=True, blank=True)),
                         ('subscriptions', models.JSONField(null=True, blank=True)),
-                        ('storage_bytes_total', models.BigIntegerField(default=0)),
+                        ('total_storage_bytes', models.BigIntegerField(default=0)),
                         (
-                            'submission_counts_all_time',
+                            'total_submission_count_all_time',
                             models.BigIntegerField(default=0)
                         ),
                         (
-                            'nlp_usage_asr_seconds_total',
+                            'total_nlp_usage_asr_seconds_all_time',
                             models.BigIntegerField(default=0)
                         ),
                         (
-                            'nlp_usage_mt_characters_total',
+                            'total_nlp_usage_mt_characters_all_time',
                             models.BigIntegerField(default=0)
                         ),
                         ('asset_count', models.IntegerField(default=0)),
@@ -200,14 +203,24 @@ class Migration(migrations.Migration):
                             models.DateTimeField(null=True, blank=True)
                         ),
                         (
-                            'current_period_submissions',
+                            'total_submission_count_current_period',
                             models.BigIntegerField(default=0)
                         ),
-                        ('current_period_asr', models.BigIntegerField(default=0)),
-                        ('current_period_mt', models.BigIntegerField(default=0)),
+                        (
+                            'total_nlp_usage_asr_seconds_current_period',
+                            models.BigIntegerField(default=0)
+                        ),
+                        (
+                            'total_nlp_usage_mt_characters_current_period',
+                            models.BigIntegerField(default=0)
+                        ),
                         (
                             'organization_id',
                             models.IntegerField(null=True, blank=True)
+                        ),
+                        (
+                            'service_usage',
+                            models.JSONField(null=True, blank=True),
                         ),
                     ],
                     options={
