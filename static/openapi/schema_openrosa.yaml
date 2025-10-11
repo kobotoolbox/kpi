@@ -566,7 +566,7 @@ tags:
   description: Project history logs, access logs, Rest Service hook logs
 - name: Library collections
   description: Subscribe to and manage shared library collections
-- name: Audit logs (superusers)
+- name: Server logs (superusers)
   description: View server-wide logs
 - name: User / team / organization / usage
   description: Manage users, orgs, invites, roles, and usage tracking

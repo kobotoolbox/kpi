@@ -10,11 +10,12 @@ from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import BillingDates
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.stripe.utils.import_management import requires_stripe
+from kobo.apps.user_reports.typing_aliases import OrganizationIterator
 
 
 @requires_stripe
 def get_current_billing_period_dates_by_org(
-    orgs: list[Organization] = None, **kwargs
+    orgs: OrganizationIterator = None, **kwargs
 ) -> dict[str, BillingDates]:
 
     now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
