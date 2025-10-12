@@ -41,6 +41,10 @@ class BillingAndUsageSnapshot(AbstractTimeStampedModel):
         related_name='snapshots',
         on_delete=models.CASCADE,
     )
+    submission_limit = models.BigIntegerField(null=True, blank=True)
+    storage_bytes_limit = models.BigIntegerField(null=True, blank=True)
+    asr_seconds_limit = models.BigIntegerField(null=True, blank=True)
+    mt_characters_limit = models.BigIntegerField(null=True, blank=True)
 
     class Meta:
         indexes = [
@@ -107,7 +111,7 @@ class UserReports(models.Model):
     sso_is_active = models.BooleanField()
     accepted_tos = models.BooleanField()
     social_accounts = models.JSONField(default=list)
-    organizations = models.JSONField(null=True, blank=True)
+    organization = models.JSONField(null=True, blank=True)
     metadata = models.JSONField(null=True, blank=True)
     subscriptions = models.JSONField(default=list)
 

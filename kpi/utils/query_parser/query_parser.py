@@ -1,4 +1,3 @@
-# coding: utf-8
 import operator
 import re
 from collections import defaultdict
@@ -56,8 +55,8 @@ class QueryParseActions:
         self.min_search_characters = min_search_characters
         self.has_term_with_sufficient_length = False
 
-    @staticmethod
-    def process_value(field, value):
+    @classmethod
+    def process_value(cls, field, value):
         # If all we're doing when we have a type mismatch with a field
         # is returning an empty set, then we don't need to do type validation.
         # Django compares between field values and string versions just fine.
@@ -79,6 +78,8 @@ class QueryParseActions:
         else:
             if lower_value in ['true', 'false']:
                 return bool(util.strtobool(lower_value))
+
+        value = cls._normalize_numeric_value(value)
 
         return value
 
@@ -258,6 +259,27 @@ class QueryParseActions:
     @staticmethod
     def name(text, a, b, elements):
         return text[a:b]
+
+    @staticmethod
+    def _normalize_numeric_value(value):
+
+        if isinstance(value, (int, float)):
+            return value
+
+        if isinstance(value, str):
+            # Try `int` first
+            try:
+                return int(value)
+            except ValueError:
+                pass
+
+            # Try `float` after
+            try:
+                return float(value)
+            except ValueError:
+                pass
+
+        return value
 
 
 def get_parsed_parameters(parsed_query: Q) -> dict:

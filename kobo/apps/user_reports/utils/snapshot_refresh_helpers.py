@@ -50,7 +50,7 @@ def iter_org_chunks_after(last_processed_org_id: str) -> QuerySet[Organization]:
 
 
 def process_chunk(
-    chunk_qs: OrganizationIterator, usage_map: dict, run_id: int
+    chunk_qs: OrganizationIterator, usage_map: dict, limits_map: dict, run_id: int
 ) -> str | None:
     """
     Apply usage data for a chunk of organizations and persist changes
@@ -68,6 +68,7 @@ def process_chunk(
     for org_id in chunk_qs.values_list('id', flat=True):
         last_org_id = org_id
         d = usage_map.get(org_id, {})
+        org_limits = limits_map.get(org_id, {})
 
         objs.append(BillingAndUsageSnapshot(
             organization_id=org_id,
@@ -80,6 +81,10 @@ def process_chunk(
             billing_period_start=d.get('billing_period_start'),
             billing_period_end=d.get('billing_period_end'),
             last_snapshot_run_id=run_id,
+            submission_limit=org_limits.get('submission_limit'),
+            storage_bytes_limit=org_limits.get('storage_bytes_limit'),
+            asr_seconds_limit=org_limits.get('asr_seconds_limit'),
+            mt_characters_limit=org_limits.get('mt_characters_limit'),
         ))
 
     if objs:
@@ -94,6 +99,10 @@ def process_chunk(
                 'billing_period_start',
                 'billing_period_end',
                 'last_snapshot_run_id',
+                'submission_limit',
+                'storage_bytes_limit',
+                'asr_seconds_limit',
+                'mt_characters_limit',
             ],
             unique_fields=['organization_id'],
         )
