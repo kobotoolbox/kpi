@@ -138,12 +138,12 @@ CREATE_MV_SQL = """
         ) AS social_accounts,
         CASE
             WHEN org.id IS NOT NULL THEN jsonb_build_object(
-                'organization_name', org.name,
-                'organization_uid', org.id::text,
+                'name', org.name,
+                'uid', org.id::text,
                 'role', ur.user_role
             )
             ELSE NULL
-        END AS organizations,
+        END AS organization,
         ued.data::jsonb AS metadata,
         COALESCE(unl.total_asr_seconds, 0) AS total_nlp_usage_asr_seconds_all_time,
         COALESCE(unl.total_mt_characters, 0) AS total_nlp_usage_mt_characters_all_time,

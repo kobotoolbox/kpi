@@ -111,7 +111,7 @@ class UserReports(models.Model):
     sso_is_active = models.BooleanField()
     accepted_tos = models.BooleanField()
     social_accounts = models.JSONField(default=list)
-    organizations = models.JSONField(null=True, blank=True)
+    organization = models.JSONField(null=True, blank=True)
     metadata = models.JSONField(null=True, blank=True)
     subscriptions = models.JSONField(default=list)
 

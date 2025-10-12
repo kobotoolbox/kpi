@@ -40,7 +40,7 @@ class UserReportsSerializer(serializers.ModelSerializer):
             'sso_is_active',
             'accepted_tos',
             'social_accounts',
-            'organizations',
+            'organization',
             'metadata',
             'subscriptions',
             'service_usage',

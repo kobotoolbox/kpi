@@ -260,7 +260,6 @@ class QueryParseActions:
     def name(text, a, b, elements):
         return text[a:b]
 
-
     @staticmethod
     def _normalize_numeric_value(value):
 
