@@ -190,7 +190,13 @@ interface SetAssetPublicCompletedDefinition extends Function {
 }
 
 interface RemoveAssetPermissionDefinition extends Function {
-  (assetUid: string, perm: string | undefined, removeAll: boolean | undefined, isNonOwner: boolean | undefined, username: string | undefined): void
+  (
+    assetUid: string,
+    perm: string | undefined,
+    removeAll: boolean | undefined,
+    isNonOwner: boolean | undefined,
+    username: string | undefined
+  ): void
   completed: RemoveAssetPermissionCompletedDefinition
   failed: GenericFailedDefinition
 }
