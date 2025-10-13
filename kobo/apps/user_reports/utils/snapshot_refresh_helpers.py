@@ -1,3 +1,5 @@
+from math import inf
+
 from django.db import connection
 from django.db.models import Q
 from django.db.models.query import QuerySet
@@ -81,10 +83,10 @@ def process_chunk(
             billing_period_start=d.get('billing_period_start'),
             billing_period_end=d.get('billing_period_end'),
             last_snapshot_run_id=run_id,
-            submission_limit=org_limits.get('submission_limit'),
-            storage_bytes_limit=org_limits.get('storage_bytes_limit'),
-            asr_seconds_limit=org_limits.get('asr_seconds_limit'),
-            mt_characters_limit=org_limits.get('mt_characters_limit'),
+            submission_limit=_normalize_limit(org_limits.get('submission_limit')),
+            storage_bytes_limit=_normalize_limit(org_limits.get('storage_bytes_limit')),
+            asr_seconds_limit=_normalize_limit(org_limits.get('asr_seconds_limit')),
+            mt_characters_limit=_normalize_limit(org_limits.get('mt_characters_limit')),
         ))
 
     if objs:
@@ -119,3 +121,14 @@ def refresh_user_reports_materialized_view(concurrently=True):
 
     with connection.cursor() as cursor:
         cursor.execute(sql)
+
+
+def _normalize_limit(limit: int | float | None) -> int | None:
+    """
+    Normalize limit values for database storage
+    """
+    if limit is None:
+        return None
+    if limit == inf:
+        return None
+    return int(limit)
