@@ -906,6 +906,7 @@ class AssetImportTaskTest(BaseTestCase):
         }
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
+
     @responses.activate
     def test_import_non_xls_url(self):
         """
