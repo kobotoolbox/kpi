@@ -218,13 +218,15 @@ class AssetImportTaskTest(BaseTestCase):
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
 
-    def test_import_non_xls(self):
+    @responses.activate
+    def test_import_non_xls_url(self):
         """
         Make sure the import fails with a meaningful error
         """
-        encoded_xls = base64.b64encode(b'I am not xls')
+        mock_url = 'http://mock.kbtdev.org/bad'
+        responses.get(mock_url, body=b'Not xls')
         task_data = {
-            'base64Encoded': 'base64:{}'.format(to_str(encoded_xls)),
+            'url': mock_url,
             'name': 'I was doomed from the start! (non-XLS)',
         }
         post_url = reverse('importtask-list')
