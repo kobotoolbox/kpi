@@ -220,7 +220,7 @@ jobs:
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
       content: |
-        :working_on_it: `${{ needs.version.outputs.current_branch }}` branch workflows have been completed:
+        :working_on_it: `${{ needs.version.outputs.current_branch }}` branch workflow has been completed:
         - ${{ (
               needs.darker.result == 'failure' || needs.darker.result == 'timed_out' ||
               needs.openapi.result == 'failure' || needs.openapi.result == 'timed_out' ||
