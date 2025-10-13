@@ -21,6 +21,7 @@ jobs:
     # References:
     # - https://stackoverflow.com/questions/73402042/github-action-expressions-split-string
     # - https://unix.stackexchange.com/questions/205022/bash-assigning-the-first-line-of-a-variable-to-a-variable#388712
+    # - multiline output: https://github.com/orgs/community/discussions/106666#discussioncomment-11777759
     - name: Split commit message title
       id: title
       env:
@@ -32,8 +33,11 @@ jobs:
         COMMIT_TITLE=`echo "$MESSAGE" | head -1`
         echo "$COMMIT_TITLE"
         NEW_CONTENT=${CONTENT/\$COMMIT_TITLE/$COMMIT_TITLE}
-        echo "$NEW_CONTENT"
-        echo "CONTENT=$NEW_CONTENT" >> $GITHUB_OUTPUT
+        {
+          echo 'CONTENT<<EOF'
+          echo "${NEW_CONTENT}"
+          echo EOF
+        } >> $GITHUB_OUTPUT
 
     - name: Send a stream message
       uses: zulip/github-actions-zulip/send-message@v1
