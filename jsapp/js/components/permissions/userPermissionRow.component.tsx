@@ -70,11 +70,11 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
 
   removeAllPermissions() {
     this.setState({ isBeingDeleted: true })
-    const userAssetPermUrl = this.props.permissions.find(
-      (perm) => perm.permission === permConfig.getPermissionByCodename('view_asset')?.url,
-    )
+
     const isCurrentUser = this.props.username === sessionStore.currentAccount.username
-    actions.permissions.removeAssetPermission(this.props.asset.uid, userAssetPermUrl?.url, true)
+
+    actions.permissions.removeAssetPermission(this.props.asset.uid, undefined, true, undefined, this.props.username)
+
     permissionsActions.removeAssetPermission.completed.listen(() => {
       // If the user deletes their own permissions, they will be routed to the form landing page
       if (isCurrentUser) {
