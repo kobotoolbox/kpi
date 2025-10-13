@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.utils.safestring import mark_safe
 from django_redis import get_redis_connection
 
+from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
 from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kpi.constants import ASSET_TYPE_SURVEY, PERM_MANAGE_ASSET
 from kpi.models import Asset
@@ -144,7 +145,7 @@ class DataCollectorAdmin(admin.ModelAdmin):
         if not (obj and obj.token):
             return '-'
 
-        collect_url = f'{settings.KOBOCAT_URL}/key/{obj.token}'
+        collect_url = DC_ENKETO_URL_TEMPLATE.format(obj.token)
         return mark_safe(
             '<a href="{collect_url}" target="_blank">'
             f'    {collect_url}'
@@ -163,7 +164,7 @@ class DataCollectorAdmin(admin.ModelAdmin):
         items = ''
         for asset in obj.group.assets.all():
             enketo_id = redis_client.get(
-                f'or:{parsed_url.netloc}/key/{obj.token},{asset.uid}'
+                f'or:{parsed_url.netloc}/collector/{obj.token},{asset.uid}'
             )
             enketo_url = f'{settings.ENKETO_URL}/x/{enketo_id.decode()}'
             items = items + f'• <a href="{enketo_url}" target="_blank">{asset.name} (#{asset.uid})</a><br>'  # noqa

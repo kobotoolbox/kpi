@@ -255,7 +255,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         ViewSet for managing enketo form list
 
         Available actions:
-        - form_list (data collector)         → GET /api/v2/key/{token}/formList/
+        - form_list (data collector)         → GET /api/v2/collector/{token}/formList/
 
         Documentation:
         - docs/api/v2/form_list/data_collector.md
@@ -356,7 +356,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         Available actions:
         - xform_manifest (anonymous)         → GET /{username}/xformManifest/{id}
         - xform_manifest (authenticated)     → GET /xformManifest/{id}
-        - xform_manifest (data collector)     → GET /key/{token}/xformManifest/{id}
+        - xform_manifest (data collector)     → GET /collector/{token}/xformManifest/{id}
 
         Documentation:
         - docs/api/v2/manifest/list.md
