@@ -10,8 +10,28 @@ on:
 jobs:
 
 
-  changes:
+  version:
     if: ${{ startsWith(github.ref, 'refs/heads/release/') }}
+    secrets: inherit
+    uses: './.github/workflows/find-releases.yml'
+
+
+  notify-start:
+    needs:
+      - version
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "${{ needs.version.outputs.current_minor }} release"
+      content: |
+        :catspinq: `${{ needs.version.outputs.current_branch }}` branch workflows are running, please see the next message shortly. The latest commit is:
+        - $COMMIT_TITLE ([diff](${{ github.event.compare }}))
+
+
+  changes:
+    needs:
+      - version
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     permissions: { pull-requests: read }
     steps:
@@ -59,22 +79,15 @@ jobs:
     uses: ./.github/workflows/npm-test.yml
 
 
-  version:
+  changelog:
     needs:
+      - version
       - changes
       - darker
       - biome
       - openapi
       - pytest
       - npm-test
-    if: ${{ !cancelled() && needs.changes.result == 'success' }}
-    secrets: inherit
-    uses: './.github/workflows/find-releases.yml'
-
-
-  changelog:
-    needs:
-      - version
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     env:
@@ -125,7 +138,13 @@ jobs:
   deploy-to-beta:
     needs:
       - version
-    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
+      - changes
+      - darker
+      - biome
+      - openapi
+      - pytest
+      - npm-test
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' && needs.version.outputs.next_branch == 'main' }}
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
@@ -140,6 +159,12 @@ jobs:
     name: Merge forward
     needs:
       - version
+      - changes
+      - darker
+      - biome
+      - openapi
+      - pytest
+      - npm-test
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     steps:
@@ -178,21 +203,7 @@ jobs:
           git push
 
 
-  notify:
-    needs:
-      - version
-      - changelog
-      - deploy-to-beta
-      - merge-forward
-    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
-    uses: './.github/workflows/zulip.yml'
-    secrets: inherit
-    with:
-      topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":working_on_it: Release branch updated, passed CI, deployed to beta, and merged forward. Please update release notes (TODO: automate)"
-
-
-  on-failure:
+  notify-success:
     needs:
       - version
       - darker
@@ -203,9 +214,53 @@ jobs:
       - changelog
       - deploy-to-beta
       - merge-forward
+    if: ${{ !cancelled() && needs.version.result == 'success' }}
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "${{ needs.version.outputs.current_minor }} release"
+      content: |
+        :working_on_it: `${{ needs.version.outputs.current_branch }}` branch workflows have been completed:
+        - ${{ (
+              needs.darker.result == 'failure' || needs.darker.result == 'timed_out' ||
+              needs.openapi.result == 'failure' || needs.openapi.result == 'timed_out' ||
+              needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' )
+            && format(':warning: failed to pass backend automated tests: @*backend* please investigate [run #{1}]({2}/[3}]/actions/runs/{4})!', github.run_number, github.server_url, github.repository, github.run_id)
+            || format(':check: passed backend automated tests ({1} darker, {2} openapi, {3} pytest)', needs.darker.result, needs.openapi.result, needs.pytest.result) }}
+          }}
+        - ${{ (
+              needs.biome.result == 'failure' || needs.biome.result == 'timed_out' ||
+              needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out' )
+            && format(':warning: failed to pass automated tests: @*frontend* please investigate [run #{1}]({2}/[3}]/actions/runs/{4})!', github.run_number, github.server_url, github.repository, github.run_id)
+            || format(':check: passed frontend automated tests ({1} biome, {2} npm-test)', needs.biome.result, needs.npm-test.result) }}
+          }}
+        - ${{ needs.merge-forward.result == 'failure' || needs.merge-forward.result == 'timed_out'
+            && format(':warning: failed to merge forward: @*devs* please investigate [run #{1}]({2}/[3}]/actions/runs/{4}), it likely requires a manual merge to `{5}`!', github.run_number, github.server_url, github.repository, github.run_id, needs.version.outputs.next_branch)
+            || needs.merge-forward.result == 'skipped'
+              && ':skip_forward: merged forward skipped due failed automated tests.'
+              || format(':check: merged forward into `{5}`', needs.version.outputs.next_branch)
+          }}
+        - ${{ needs.changelog.result == 'failure' || needs.changelog.result == 'timed_out'
+            && format(':warning: failed to update changelog: @*devs* please investigate [run #{1}]({2}/[3}]/actions/runs/{4})!', github.run_number, github.server_url, github.repository, github.run_id)
+            || needs.merge-forward.result == 'skipped'
+              && ':skip_forward: changelog update skipped due failed automated tests.'
+              || format(':check: updated [changelog](https://github.com/kobotoolbox/kpi/blob/changelog/{1}/CHANGELOG.md)', needs.version.outputs.current_patch)
+          }}
+        - ${{ needs.deploy-to-beta.result == 'failure' || needs.deploy-to-beta.result == 'timed_out'
+            && format(':warning: failed to queue to deploy to beta: @*devs* please investigate [run #{1}]({2}/[3}]/actions/runs/{4})!', github.run_number, github.server_url, github.repository, github.run_id)
+            || needs.merge-forward.result == 'skipped'
+              && ':skip_forward: deploy to beta skipped due failed automated tests or due not being the latest release.'
+              || format(':check: should have be deployed to [beta](kf.beta.kbtdev.org): @*QA*: release `{1}` is ready for testing!', needs.version.outputs.current_patch)
+          }}
+
+
+  notify-failure:
+    needs:
+      - version
+      - changes
     if: ${{ !cancelled() && failure() }}
     secrets: inherit
     uses: './.github/workflows/zulip.yml'
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":warning: @*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `${{ github.head_ref || github.ref_name }}` at [\"$COMMIT_TITLE\"](${{ github.event.compare }})"
+      content: ":warning: `${{ needs.version.outputs.current_branch }}` branch workflow [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed `${{ github.head_ref || github.ref_name }}`, @*devs* please investigate!"
