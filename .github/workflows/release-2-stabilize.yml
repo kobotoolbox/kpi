@@ -4,18 +4,16 @@ name: 'CD: stabilize'
 on:
   create:
   push:
-    branches: [ 'release/**', 'kalvis/release-notifications' ] # WIP: for testing
+    branches: [ 'release/**' ]
 
 
 jobs:
 
 
   version:
-    if: ${{ startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/heads/kalvis/release-notifications') }} # WIP: for testing
+    if: ${{ startsWith(github.ref, 'refs/heads/release/') }}
     secrets: inherit
     uses: './.github/workflows/find-releases.yml'
-    with:
-      current_branch: 'release/2.025.37' # WIP: for testing
 
 
   notify-start:
@@ -202,7 +200,7 @@ jobs:
           git checkout "$next_branch"
           echo 'TODO: squash migrations, if any'
           git merge --no-ff "$current_branch"
-          # git push # WIP: testing
+          git push
 
 
   notify-success:
