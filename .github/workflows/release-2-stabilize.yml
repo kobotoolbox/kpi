@@ -227,32 +227,32 @@ jobs:
               needs.darker.result == 'failure' || needs.darker.result == 'timed_out' ||
               needs.openapi.result == 'failure' || needs.openapi.result == 'timed_out' ||
               needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' )
-            && format(':warning: failed to pass backend automated tests: @*backend* please investigate [run #{1}]({2}/[3}]/actions/runs/{4})!', github.run_number, github.server_url, github.repository, github.run_id)
-            || format(':check: passed backend automated tests ({1} darker, {2} openapi, {3} pytest)', needs.darker.result, needs.openapi.result, needs.pytest.result) }}
+            && format(':warning: failed to pass backend automated tests: @*backend* please investigate [run #{0}]({1}/[2}]/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
+            || format(':check: passed backend automated tests ({0} darker, {1} openapi, {2} pytest)', needs.darker.result, needs.openapi.result, needs.pytest.result)
           }}
         - ${{ (
               needs.biome.result == 'failure' || needs.biome.result == 'timed_out' ||
               needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out' )
-            && format(':warning: failed to pass automated tests: @*frontend* please investigate [run #{1}]({2}/[3}]/actions/runs/{4})!', github.run_number, github.server_url, github.repository, github.run_id)
-            || format(':check: passed frontend automated tests ({1} biome, {2} npm-test)', needs.biome.result, needs.npm-test.result) }}
+            && format(':warning: failed to pass automated tests: @*frontend* please investigate [run #{0}]({1}/[2}]/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
+            || format(':check: passed frontend automated tests ({0} biome, {1} npm-test)', needs.biome.result, needs.npm-test.result)
           }}
-        - ${{ needs.merge-forward.result == 'failure' || needs.merge-forward.result == 'timed_out'
+        - ${{ (needs.merge-forward.result == 'failure' || needs.merge-forward.result == 'timed_out')
             && format(':warning: failed to merge forward: @*devs* please investigate [run #{1}]({2}/[3}]/actions/runs/{4}), it likely requires a manual merge to `{5}`!', github.run_number, github.server_url, github.repository, github.run_id, needs.version.outputs.next_branch)
             || needs.merge-forward.result == 'skipped'
               && ':skip_forward: merged forward skipped due failed automated tests.'
-              || format(':check: merged forward into `{5}`', needs.version.outputs.next_branch)
+              || format(':check: merged forward into `{0}`', needs.version.outputs.next_branch)
           }}
-        - ${{ needs.changelog.result == 'failure' || needs.changelog.result == 'timed_out'
-            && format(':warning: failed to update changelog: @*devs* please investigate [run #{1}]({2}/[3}]/actions/runs/{4})!', github.run_number, github.server_url, github.repository, github.run_id)
+        - ${{ (needs.changelog.result == 'failure' || needs.changelog.result == 'timed_out')
+            && format(':warning: failed to update changelog: @*devs* please investigate [run #{0}]({1}/[2}]/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
             || needs.merge-forward.result == 'skipped'
               && ':skip_forward: changelog update skipped due failed automated tests.'
-              || format(':check: updated [changelog](https://github.com/kobotoolbox/kpi/blob/changelog/{1}/CHANGELOG.md)', needs.version.outputs.current_patch)
+              || format(':check: updated [changelog](https://github.com/kobotoolbox/kpi/blob/changelog/{0}/CHANGELOG.md)', needs.version.outputs.current_patch)
           }}
-        - ${{ needs.deploy-to-beta.result == 'failure' || needs.deploy-to-beta.result == 'timed_out'
-            && format(':warning: failed to queue to deploy to beta: @*devs* please investigate [run #{1}]({2}/[3}]/actions/runs/{4})!', github.run_number, github.server_url, github.repository, github.run_id)
+        - ${{ (needs.deploy-to-beta.result == 'failure' || needs.deploy-to-beta.result == 'timed_out')
+            && format(':warning: failed to queue to deploy to beta: @*devs* please investigate [run #{0}]({1}/[2}]/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
             || needs.merge-forward.result == 'skipped'
               && ':skip_forward: deploy to beta skipped due failed automated tests or due not being the latest release.'
-              || format(':check: should have be deployed to [beta](kf.beta.kbtdev.org): @*QA*: release `{1}` is ready for testing!', needs.version.outputs.current_patch)
+              || format(':check: should have be deployed to [beta](kf.beta.kbtdev.org): @*QA*: release `{0}` is ready for testing!', needs.version.outputs.current_patch)
           }}
 
 
