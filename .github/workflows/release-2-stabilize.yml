@@ -26,8 +26,8 @@ jobs:
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
       content: |
-        :catspinq: `${{ needs.version.outputs.current_branch }}` branch workflows are running, please see the next message shortly. The latest commit is:
-        - $COMMIT_TITLE ([diff](${{ github.event.compare }}))
+        :catspinq: `${{ needs.version.outputs.current_branch }}` branch workflow is [running #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) for [diff](${{ github.event.compare }}), please see the next message shortly. The latest commit is:
+        - $COMMIT_TITLE
 
 
   changes:
