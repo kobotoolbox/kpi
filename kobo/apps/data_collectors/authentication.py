@@ -53,6 +53,8 @@ class DataCollectorTokenAuthentication(BaseAuthentication):
                 server_user.assets = list(group.assets.values_list('uid', flat=True))
                 server_user.name = collector.name
                 server_user.uid = collector.uid
+                server_user.group_uid = group.uid
+                server_user.group_name = group.name
             return server_user, key
         except DataCollector.DoesNotExist:
             raise AuthenticationFailed('Invalid token.')

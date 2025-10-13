@@ -23,7 +23,7 @@ jobs:
       id: week
       run: |
         set -xe
-        if (( $(date +%V) % 4 == 2 )); then
+        if (( $(date +%V) % 4 == 3 )); then
           echo "is_release_week=true" >> $GITHUB_OUTPUT
           echo $GITHUB_OUTPUT
         else
@@ -132,8 +132,12 @@ jobs:
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
-      topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":seedling: release branch created."
+      topic: "${{ needs.create-current-branch.outputs.current_minor }} release"
+      content: |
+        :seedling: `${{ needs.version.outputs.current_branch }}` branch created! Checklist:
+        - @*QA* & @*product*: the release window is 4 weeks to make a release, otherwise the branch is scrapped and we start over with next release.
+        - @_**Kalvis Kalniņš**: check Linear cycles whether now-past cycle `v${{ needs.version.outputs.current_minor }}` closed today and the upcoming cycle has started.
+        - @*devs*: if you merge a PR or cherry-pick a commit into `${{ needs.version.outputs.current_branch }}` branch, then please manually set issue's cycle to the `v${{ needs.version.outputs.current_minor }}` cycle (Linear automatically sets for next one).
 
 
   on-failure:
