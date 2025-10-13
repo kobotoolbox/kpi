@@ -7,17 +7,17 @@ def drop_fk(apps, schema_editor):
     with conn.cursor() as cur:
         cur.execute(
             """
-        SELECT constraint_name
+        SELECT table_schema, table_name, constraint_name
         FROM information_schema.table_constraints
         WHERE constraint_name LIKE
-        '%%guardian_userobjectpermission_user_id_%%_fk_auth_user_id';
+        '%%guardian_%%_fk_%%';
         """
         )
-        row = cur.fetchone()
-
-        if row:
-            sql = f"ALTER TABLE 'guardian_userobjectpermission' DROP CONSTRAINT '{constraint_name}'"
-            constraint_name = row[0]
+        for constraints in cur.fetchall():
+            schema, table, constraint = constraints
+            sql = (
+                f"ALTER TABLE '{schema}'.'{table}' DROP CONSTRAINT '{constraint_name}'"
+            )
             cur.execute(sql)
 
 
