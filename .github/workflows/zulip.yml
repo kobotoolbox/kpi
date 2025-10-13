@@ -25,7 +25,7 @@ jobs:
     - name: Split commit message title
       id: title
       env:
-        MESSAGE: ${{ github.event.commits[0].message }}
+        MESSAGE: ${{ github.event.head_commit.message }}
         CONTENT: ${{ inputs.content }}
       run: |
         echo "$MESSAGE"
