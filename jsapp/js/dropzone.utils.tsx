@@ -49,7 +49,7 @@ function onImportSingleXLSFormFile(name: string, base64Encoded: string | ArrayBu
           // was created.
           if (timeoutId > 0) {
             dataInterface
-              .getImportDetails({ uid: data.uid })
+              .getImportDetails({ uid: data.uid_import })
               .done((importData: ImportResponse) => {
                 if (importData.status === 'complete') {
                   // Stop interval
@@ -115,7 +115,7 @@ function onImportSingleXLSFormFile(name: string, base64Encoded: string | ArrayBu
         // We have to dig deep for that single asset uid :)
         const firstCreated = importData.messages.created[0]
         if (firstCreated?.uid) {
-          router!.navigate(ROUTES.FORM.replace(':uid', firstCreated.uid))
+          router!.navigate(ROUTES.FORM.replace(':uid_import', firstCreated.uid))
         }
       }
     },

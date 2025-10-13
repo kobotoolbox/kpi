@@ -125,7 +125,7 @@ export interface CreateImportRequest {
 
 export interface ImportResponse {
   /** The uid of the import (not asset!) */
-  uid: string
+  uid_import: string
   url: string
   messages?: {
     updated?: Array<{

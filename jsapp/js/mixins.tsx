@@ -44,7 +44,7 @@ const applyImport = (params: ApplyImportParams) => {
       const doneCheckInterval = setInterval(() => {
         dataInterface
           .getImportDetails({
-            uid: data.uid,
+            uid: data.uid_import,
           })
           .done((importData: ImportResponse) => {
             switch (importData.status) {
@@ -369,7 +369,7 @@ const mixins: MixinsObject = {
           window.setTimeout(() => {
             dataInterface
               .getImportDetails({
-                uid: data.uid,
+                uid: data.uid_import,
               })
               .done((importData: ImportResponse) => {
                 if (importData.status === 'complete') {
