@@ -2,14 +2,20 @@ from unittest.mock import patch
 
 import pytest
 from django.conf import settings
+from django.core.cache import cache
 from django.db import connection
 from django.urls import reverse
+from django.utils import timezone
 from model_bakery import baker
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.organizations.constants import UsageType
+from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.apps.user_reports.models import BillingAndUsageSnapshot
+from kobo.apps.user_reports.tasks import refresh_user_report_snapshots
 from kobo.apps.user_reports.utils.snapshot_refresh_helpers import (
     refresh_user_reports_materialized_view,
 )
@@ -117,34 +123,52 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             self.subscription.metadata['organization_id'],
         )
 
-    @patch('kobo.apps.user_reports.seralizers.get_organizations_effective_limits')
-    def test_service_usage_data_is_correctly_returned(self, mock_get_limits):
-        # Update a BillingAndUsageSnapshot with specific usage data
-        billing_and_usage_snapshot = BillingAndUsageSnapshot.objects.get(
-            organization_id=self.someuser.organization.id
+    def test_service_usage_data_is_correctly_returned(self):
+        """
+        Test that the service usage data is correctly calculated and returned
+        in the user report, including balances based on mocked limits
+        """
+        # Create submission counter entries to simulate usage
+        DailyXFormSubmissionCounter.objects.create(
+            user_id=self.someuser.id,
+            date=timezone.now().date(),
+            counter=15
         )
-        billing_and_usage_snapshot.total_submission_count_current_period = 15
-        billing_and_usage_snapshot.total_submission_count_all_time = 150
-        billing_and_usage_snapshot.total_nlp_usage_asr_seconds_current_period = 120
-        billing_and_usage_snapshot.total_nlp_usage_asr_seconds_all_time = 240
-        billing_and_usage_snapshot.total_storage_bytes = 200000000
-        billing_and_usage_snapshot.save()
+        DailyXFormSubmissionCounter.objects.create(
+            user_id=self.someuser.id,
+            date=timezone.now().date() - timezone.timedelta(days=100),
+            counter=135
+        )
+        NLPUsageCounter.objects.create(
+            user_id=self.someuser.id,
+            date=timezone.now().date(),
+            total_asr_seconds=100
+        )
+        NLPUsageCounter.objects.create(
+            user_id=self.someuser.id,
+            date=timezone.now().date() - timezone.timedelta(days=100),
+            total_asr_seconds=80,
+        )
+        UserProfile.objects.filter(user_id=self.someuser.id).update(
+            attachment_storage_bytes=200000000
+        )
 
         # Mock `get_organizations_effective_limits` to return test limits.
         mock_limits = {
             self.someuser.organization.id: {
-                f'{UsageType.SUBMISSION}_limit': 10,  # Exceeded
-                f'{UsageType.STORAGE_BYTES}_limit': 500000000,  # Not exceeded
-                f'{UsageType.ASR_SECONDS}_limit': 120,  # At the limit
-                f'{UsageType.MT_CHARACTERS}_limit': 5,  # Not used
+                f'{UsageType.SUBMISSION}_limit': 10,
+                f'{UsageType.STORAGE_BYTES}_limit': 500000000,
+                f'{UsageType.ASR_SECONDS}_limit': 120,
+                f'{UsageType.MT_CHARACTERS}_limit': 5,
             }
         }
-        mock_get_limits.return_value = mock_limits
-
-        # Refresh the materialized view to sync with the snapshot
-        refresh_user_reports_materialized_view(concurrently=False)
-
-        someuser_data = self._get_someuser_data()
+        with patch(
+            'kobo.apps.user_reports.tasks.get_organizations_effective_limits',
+            return_value=mock_limits
+        ):
+            cache.clear()
+            refresh_user_report_snapshots()
+            someuser_data = self._get_someuser_data()
 
         service_usage = someuser_data['service_usage']
         # Assert total usage counts from the snapshot
@@ -152,9 +176,9 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(service_usage['total_submission_count']['all_time'], 150)
         self.assertEqual(service_usage['total_storage_bytes'], 200000000)
         self.assertEqual(
-            service_usage['total_nlp_usage']['asr_seconds_current_period'], 0
+            service_usage['total_nlp_usage']['asr_seconds_current_period'], 100
         )
-        self.assertEqual(service_usage['total_nlp_usage']['asr_seconds_all_time'], 0)
+        self.assertEqual(service_usage['total_nlp_usage']['asr_seconds_all_time'], 180)
         self.assertEqual(
             service_usage['total_nlp_usage']['mt_characters_current_period'], 0
         )
@@ -181,8 +205,8 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertIsNotNone(balances['asr_seconds'])
         self.assertFalse(balances['asr_seconds']['exceeded'])
         self.assertEqual(balances['asr_seconds']['effective_limit'], 120)
-        self.assertEqual(balances['asr_seconds']['balance_value'], 120)
-        self.assertEqual(balances['asr_seconds']['balance_percent'], 0)
+        self.assertEqual(balances['asr_seconds']['balance_value'], 20)
+        self.assertEqual(balances['asr_seconds']['balance_percent'], 83)
 
         # MT Characters balance: 0 / 5 = 0, so 0% and not exceeded.
         self.assertIsNotNone(balances['mt_characters'])
@@ -194,13 +218,13 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
     def test_organization_data_is_correctly_returned(self):
         someuser_data = self._get_someuser_data()
 
-        organization_data = someuser_data['organizations']
+        organization_data = someuser_data['organization']
 
         self.assertEqual(
-            organization_data['organization_name'], self.someuser.organization.name
+            organization_data['name'], self.someuser.organization.name
         )
         self.assertEqual(
-            organization_data['organization_uid'], str(self.someuser.organization.id)
+            organization_data['uid'], str(self.someuser.organization.id)
         )
         self.assertEqual(organization_data['role'], 'owner')
 
@@ -218,23 +242,29 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertIsNotNone(someuser_data)
         self.assertFalse(someuser_data['account_restricted'])
 
-        # Update the BillingAndUsageSnapshot to exceed the desired limit
-        billing_and_usage_snapshot = BillingAndUsageSnapshot.objects.get(
-            organization_id=self.someuser.organization.id
+        # Create a submission counter entry to simulate usage
+        DailyXFormSubmissionCounter.objects.create(
+            user_id=self.someuser.id,
+            date=timezone.now().date(),
+            counter=10
         )
-        billing_and_usage_snapshot.total_submission_count_current_period = 10
-        billing_and_usage_snapshot.save()
 
         # Mock the `get_organizations_effective_limits` function
         # to return a predefined limit
         mock_limits = {
-            self.someuser.organization.id: {f'{UsageType.SUBMISSION}_limit': 1}
+            self.someuser.organization.id: {
+                f'{UsageType.SUBMISSION}_limit': 1,
+                f'{UsageType.STORAGE_BYTES}_limit': 500000000,
+                f'{UsageType.ASR_SECONDS}_limit': 120,
+                f'{UsageType.MT_CHARACTERS}_limit': 5,
+            }
         }
         with patch(
-            'kobo.apps.user_reports.seralizers.get_organizations_effective_limits',
-            return_value=mock_limits,
+            'kobo.apps.user_reports.tasks.get_organizations_effective_limits',
+            return_value=mock_limits
         ):
-            refresh_user_reports_materialized_view(concurrently=False)
+            cache.clear()
+            refresh_user_report_snapshots()
 
             someuser_data = self._get_someuser_data()
             self.assertTrue(someuser_data['account_restricted'])
