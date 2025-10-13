@@ -403,28 +403,29 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
         )
         self.assertTrue(any(r['username'] == 'someuser' for r in resp_lte['results']))
 
-    def test_subscription_status_and_id_filters(self):
-        self._refresh_mv()
-
-        resp = self._get_results()
-        found = False
-        for r in resp['results']:
-            for s in r.get('subscriptions', []):
-                if s and s.get('id') == self.subscription.id:
-                    found = True
-                    self.assertIn('status', s)
-                    break
-            if found:
-                break
-        self.assertTrue(found)
-
-        # Additionally, validate that at least one subscription object contains
-        # the id as a string
-        found_str_id = any(
-            any(
-                str(s.get('id')) == str(self.subscription.id)
-                for s in r.get('subscriptions', [])
-            )
-            for r in resp['results']
+    def test_balances_nested_json_filter(self):
+        """
+        Test filtering by nested balances JSON value
+        """
+        DailyXFormSubmissionCounter.objects.create(
+            user_id=self.someuser.id,
+            date=timezone.now().date(),
+            counter=1
         )
-        self.assertTrue(found_str_id)
+
+        with patch(
+            'kobo.apps.user_reports.tasks.get_organizations_effective_limits'
+        ) as mock_limits:
+            mock_limits.return_value = {
+                self.someuser.organization.id: {
+                    f'{UsageType.SUBMISSION}_limit': 5000,
+                    f'{UsageType.STORAGE_BYTES}_limit': 31011593,
+                    f'{UsageType.ASR_SECONDS}_limit': 600,
+                    f'{UsageType.MT_CHARACTERS}_limit': 6000,
+                }
+            }
+            refresh_user_report_snapshots()
+            res = self._get_results(
+                {'q': 'service_usage__balances__submission__balance_value__lte:4999'}
+            )
+            self.assertTrue(any(r['username'] == 'someuser' for r in res['results']))
