@@ -1,9 +1,9 @@
 # coding: utf-8
 import base64
+import unittest
 from io import BytesIO
 
 import responses
-import unittest
 import xlwt
 from django.db import transaction
 from rest_framework import status
@@ -218,12 +218,15 @@ class AssetImportTaskTest(BaseTestCase):
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
 
+    @responses.activate
     def test_import_non_xls_url(self):
         """
         Make sure the import fails with a meaningful error
         """
+        mock_url = 'http://mock.kbtdev.org/bad'
+        responses.get(mock_url, body=b'Not xls')
         task_data = {
-            'url': 'https://www.google.com/',
+            'url': mock_url,
             'name': 'I was doomed from the start! (non-XLS)',
         }
         post_url = reverse('importtask-list')
