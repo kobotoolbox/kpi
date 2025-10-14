@@ -10,7 +10,7 @@ def drop_fk(apps, schema_editor):
         SELECT table_schema, table_name, constraint_name
         FROM information_schema.table_constraints
         WHERE constraint_name LIKE
-        '%%guardian_%%_fk_%%';
+        'guardian_%%_fk_%%';
         """
         )
         for constraints in cur.fetchall():
