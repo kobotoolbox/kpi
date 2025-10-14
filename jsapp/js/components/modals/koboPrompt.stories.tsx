@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { IconNames } from '#/k-icons'
+import { recordKeys } from '#/utils'
 import KoboPrompt from './koboPrompt'
 
 const meta: Meta<typeof KoboPrompt> = {
@@ -7,7 +8,7 @@ const meta: Meta<typeof KoboPrompt> = {
   component: KoboPrompt,
   argTypes: {
     titleIcon: {
-      options: Object.keys(IconNames),
+      options: recordKeys(IconNames),
       control: { type: 'select' },
     },
   },

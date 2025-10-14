@@ -13,7 +13,7 @@ import LanguageForm from '#/components/modalForms/languageForm'
 import { GROUP_TYPES_BEGIN, MODAL_TYPES, QUESTION_TYPES } from '#/constants'
 import pageState from '#/pageState.store'
 import { stores } from '#/stores'
-import { getLangString, notify } from '#/utils'
+import { getLangString, notify, recordKeys } from '#/utils'
 
 const SAVE_BUTTON_TEXT = {
   DEFAULT: t('Save Changes'),
@@ -249,7 +249,7 @@ export class TranslationTable extends React.Component {
   isRowLabelLocked(rowType, rowName) {
     if (rowType === GROUP_TYPES_BEGIN.begin_group) {
       return hasRowRestriction(this.props.asset.content, rowName, LockingRestrictionName.group_label_edit)
-    } else if (Object.keys(QUESTION_TYPES).includes(rowType)) {
+    } else if (recordKeys(QUESTION_TYPES).includes(rowType)) {
       return hasRowRestriction(this.props.asset.content, rowName, LockingRestrictionName.question_label_edit)
     } else {
       return false

@@ -11,7 +11,7 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
 
 
 @extend_schema(
-    tags=['Permissions'],
+    tags=['Other'],
 )
 @extend_schema_view(
     list=extend_schema(

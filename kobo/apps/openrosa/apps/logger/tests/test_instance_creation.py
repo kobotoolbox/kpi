@@ -5,6 +5,7 @@ from django.test import TestCase
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
+from kobo.apps.openrosa.apps.logger.utils.counters import update_user_counters
 from kobo.apps.openrosa.apps.main.models import UserProfile
 
 
@@ -111,3 +112,44 @@ class TestInstanceCreation(TestCase):
         postdata = {'xml_submission_file': xml_file}
         response = self.client.post('/bob/submission', postdata)
         self.assertEqual(response.status_code, 404)
+
+    def test_num_queries_when_updating_user_counters(self):
+        """
+        Only tests the number of queries. Other tests cover expected values.
+        """
+        self.test_data_submission()
+        instance = Instance.objects.get(root_uuid='435f173c688e482486a48661700467gh')
+
+        # Increase attachment storage bytes and the number of submissions
+        with self.assertNumQueries(2):
+            update_user_counters(
+                instance,
+                self.user.pk,
+                attachment_storage_bytes=1,
+                increase_num_of_submissions=True,
+            )
+
+        # Increase only attachment storage bytes
+        with self.assertNumQueries(2):
+            update_user_counters(instance, self.user.pk, attachment_storage_bytes=1)
+
+        # Increase only the number of submissions
+        with self.assertNumQueries(2):
+            update_user_counters(
+                instance,
+                self.user.pk,
+                increase_num_of_submissions=True,
+            )
+
+        # Increase counters with no profile
+        UserProfile.objects.filter(user=self.user).delete()
+        with self.assertNumQueries(53):
+            # UserProfile creation calls a signal to add guardian permissions
+            # FIXME in `main` branch. Guardian does not exist anymore
+            update_user_counters(
+                instance,
+                self.user.pk,
+                attachment_storage_bytes=1,
+                increase_num_of_submissions=True,
+            )
+        assert UserProfile.objects.filter(user=self.user).exists()

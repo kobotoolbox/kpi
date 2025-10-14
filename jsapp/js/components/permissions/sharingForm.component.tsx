@@ -25,6 +25,7 @@ import { stores } from '#/stores'
 import sessionStore from '#/stores/session'
 import { replaceBracketsWithLink } from '#/textUtils'
 import { ANON_USERNAME, ANON_USERNAME_URL } from '#/users/utils'
+import { recordKeys, recordValues } from '#/utils'
 import CopyTeamPermissions from './copyTeamPermissions.component'
 import { parseBackendData, parseUserWithPermsList } from './permParser'
 import type { UserWithPerms } from './permParser'
@@ -93,7 +94,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
   }
 
   onAllAssetsChange() {
-    this.setState({ allAssetsCount: Object.keys(stores.allAssets.byUid).length })
+    this.setState({ allAssetsCount: recordKeys(stores.allAssets.byUid).length })
   }
 
   onAssetPermissionsUpdated(permissionAssignments: PermissionResponse[], owner: string | null = null) {
@@ -114,7 +115,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
   }
 
   onAssetChange(data: AssetStoreData) {
-    const asset = Object.values(data).find((item) => item.uid === this.props.assetUid)
+    const asset = recordValues(data).find((item) => item.uid === this.props.assetUid)
 
     if (!asset) {
       return

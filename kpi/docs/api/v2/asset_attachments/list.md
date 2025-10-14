@@ -1,6 +1,6 @@
 ## Get an asset's attachment using xpath
 
-* `parent_lookup_data` can be the primary key of the submission or its `uuid`.
+* `uid_data` can be the primary key of the submission or its `uuid`.
 Please note that using the `uuid` may match **several** submissions, only
 the first match will be returned.
 

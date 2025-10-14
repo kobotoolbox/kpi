@@ -4,7 +4,7 @@ import { destroyConfirm } from '#/alertify'
 import Button from '#/components/common/button'
 import bodyStyles from '#/components/processing/processingBody.module.scss'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
-import { hasManagePermissionsToCurrentAsset } from '../analysis/utils'
+import { hasChangeSubPermissionToCurrentAsset } from '../analysis/utils'
 import HeaderLanguageAndDate from './headerLanguageAndDate.component'
 
 export default function StepViewer() {
@@ -32,7 +32,7 @@ export default function StepViewer() {
             startIcon='edit'
             onClick={openEditor}
             tooltip={t('Edit')}
-            isDisabled={singleProcessingStore.data.isFetchingData || !hasManagePermissionsToCurrentAsset()}
+            isDisabled={singleProcessingStore.data.isFetchingData || !hasChangeSubPermissionToCurrentAsset()}
           />
 
           <Button
@@ -42,7 +42,7 @@ export default function StepViewer() {
             onClick={deleteTranscript}
             tooltip={t('Delete')}
             isPending={singleProcessingStore.data.isFetchingData}
-            isDisabled={!hasManagePermissionsToCurrentAsset()}
+            isDisabled={!hasChangeSubPermissionToCurrentAsset()}
           />
         </nav>
       </header>

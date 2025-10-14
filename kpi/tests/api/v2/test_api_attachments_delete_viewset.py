@@ -48,7 +48,7 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
         self._create_instances_and_attachments()
         self.bulk_delete_url = reverse(
             self._get_endpoint('asset-attachments-bulk'),
-            kwargs={'parent_lookup_asset': self.asset.uid},
+            kwargs={'uid_asset': self.asset.uid},
         )
 
     def _create_instances_and_attachments(self):
@@ -176,7 +176,7 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
         url = reverse(
             self._get_endpoint('asset-attachments-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.attachment_uid_1,
             },
         )
@@ -191,7 +191,7 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
         url = reverse(
             self._get_endpoint('asset-attachments-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': 'invalid',
             },
         )
@@ -213,7 +213,7 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
         submission_detail_url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.first_instance.pk,
             },
         )
@@ -227,7 +227,7 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
         delete_url = reverse(
             self._get_endpoint('asset-attachments-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.attachment_uid_1,
             },
         )
@@ -255,7 +255,7 @@ class AttachmentDeleteApiTests(BaseAssetTestCase):
         submission_detail_url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.first_instance.pk,
             },
         )

@@ -114,8 +114,8 @@ class PairedData(OpenRosaManifestInterface,
         paired_data_url = reverse(
             f'{URL_NAMESPACE}:paired-data-external',
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'paired_data_uid': self.paired_data_uid,
+                'uid_asset': self.asset.uid,
+                'uid_paired_data': self.paired_data_uid,
                 'format': 'xml'
             },
         )

@@ -4,34 +4,26 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchGet } from '#/api'
 import { endpoints } from '#/api.endpoints'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/ButtonNew'
 import type { AssetResponse, PaginatedResponse } from '#/dataInterface'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
 import { useSession } from '#/stores/useSession'
 import styles from './DeleteAccountBanner.module.scss'
 import DeleteAccountModal from './DeleteAccountModal'
-import { useOrganizationQuery } from './organization/organizationQuery'
 
-interface DeleteAccountBannerProps {
-  /** Internal property used in stories file. */
-  storybookTestId?: string
-}
-
-export default function DeleteAccountBanner(props: DeleteAccountBannerProps) {
+export default function DeleteAccountBanner() {
   const [isModalOpened, { open, close }] = useDisclosure(false)
   const navigate = useNavigate()
   const session = useSession()
-  const orgQuery = useOrganizationQuery()
+  const [organization] = useOrganizationAssumed()
   const [isAccountWithoutAssets, setIsAccountWithoutAssets] = useState<boolean | undefined>(undefined)
-  const isAccountOrganizationOwner = orgQuery.data?.is_mmo && orgQuery.data?.is_owner
+  const isAccountOrganizationOwner = organization.is_mmo && organization.is_owner
 
   useEffect(() => {
     const username = session.currentLoggedAccount.username
     // We are fetching all user assets, but we are only interested in wheter user has at least one asset
-    let singleAssetEndpoint = endpoints.ASSETS_URL + `?q=(owner__username:${username})&limit=1`
-    if (props.storybookTestId) {
-      singleAssetEndpoint += `&storybookTestId=${props.storybookTestId}`
-    }
+    const singleAssetEndpoint = endpoints.ASSETS_URL + `?q=(owner__username:${username})&limit=1`
     fetchGet<PaginatedResponse<AssetResponse>>(singleAssetEndpoint).then((data: PaginatedResponse<AssetResponse>) => {
       setIsAccountWithoutAssets(data.count === 0)
     })
@@ -55,7 +47,11 @@ export default function DeleteAccountBanner(props: DeleteAccountBannerProps) {
     } else if (isAccountWithoutAssets === false) {
       return (
         <Group gap='4px'>
-          <Text>{t('You need to delete all projects owned by your user before you can delete your account.')}</Text>
+          <Text>
+            {t(
+              'You need to delete or transfer ownership of all projects owned by your user before you can delete your account.',
+            )}
+          </Text>
 
           <Button p='0' size='sm' onClick={goToProjectsList} rightIcon='arrow-right' variant='transparent'>
             {t('Go to project list')}

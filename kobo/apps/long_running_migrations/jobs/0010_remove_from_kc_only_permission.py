@@ -12,4 +12,4 @@ def run():
         permission__codename=PERM_FROM_KC_ONLY
     )
     print(f'Deleting {objects.count()} ObjectPermission objects')
-    objects._raw_delete()
+    objects._raw_delete(using=objects.db)

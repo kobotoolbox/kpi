@@ -54,7 +54,7 @@ def repair_file_column_content_and_save(asset, include_versions=True) -> bool:
         # Previous versions of the content may need repair, regardless of
         # whether or not the current content did
         for pk, version_content in (
-            asset.asset_versions.filter(date_modified__gte=BAD_TIME)
+            asset.asset_versions.filter(date_modified__gte=BAD_TIME, deployed=True)
             .select_for_update()
             .values_list('pk', 'version_content')
         ):

@@ -3,6 +3,7 @@ import type { ForwardRefExoticComponent } from 'react'
 import { expect, fn, userEvent, within } from 'storybook/test'
 import { IconNames } from '#/k-icons'
 import type { StoryArgsFromPolymorphic } from '#/storybookUtils'
+import { recordKeys } from '#/utils'
 import ActionIcon, { type ActionIconProps } from './ActionIcon'
 
 const actionIconVariants: Array<ActionIconProps['variant']> = [
@@ -36,7 +37,7 @@ const meta = {
     },
     iconName: {
       description: 'Icon',
-      options: Object.keys(IconNames),
+      options: recordKeys(IconNames),
       control: { type: 'select' },
     },
     disabled: { control: 'boolean' },

@@ -13,6 +13,7 @@ import type { AssetResponse } from '#/dataInterface'
 import { withRouter } from '#/router/legacy'
 import type { WithRouterProps } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
+import { recordKeys } from '#/utils'
 import styles from './singleProcessingHeader.module.scss'
 
 interface SingleProcessingHeaderProps extends WithRouterProps {
@@ -82,7 +83,7 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
     }
 
     if (editIds) {
-      Object.keys(editIds).forEach((xpath) => {
+      recordKeys(editIds).forEach((xpath) => {
         const questionData = findRowByXpath(assetContent, xpath)
         // At this point we want to find out whether the question has at least
         // one editId (i.e. there is at least one transcriptable response to

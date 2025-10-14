@@ -98,7 +98,7 @@ export interface BaseProduct {
   name: string
   description: string
   type: string
-  metadata: { [p: string]: string }
+  metadata: Record<string, string>
 }
 
 export type RecurringInterval = 'year' | 'month'

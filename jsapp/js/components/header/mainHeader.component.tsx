@@ -14,6 +14,7 @@ import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
 import pageState from '#/pageState.store'
+import { RequireOrg } from '#/router/RequireOrg'
 import { router, withRouter } from '#/router/legacy'
 import type { WithRouterProps } from '#/router/legacy'
 import {
@@ -117,7 +118,7 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
       <MainHeaderBase>
         <GitRev />
 
-        {sessionStore.isLoggedIn && (
+        {isLoggedIn && (
           <button className={styles.mobileMenuToggle} onClick={this.toggleFixedDrawer}>
             <Icon name='menu' size='xl' />
           </button>
@@ -152,12 +153,16 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
           </React.Fragment>
         )}
 
-        <div className={styles.accountSection}>
-          <div className={styles.badgeWrapper}>
-            <OrganizationBadge color='dark-gray' />
-          </div>
-          <AccountMenu />
-        </div>
+        {isLoggedIn && (
+          <RequireOrg>
+            <div className={styles.accountSection}>
+              <div className={styles.badgeWrapper}>
+                <OrganizationBadge color='dark-gray' />
+              </div>
+              <AccountMenu />
+            </div>
+          </RequireOrg>
+        )}
 
         {!isLoggedIn && this.renderLoginButton()}
       </MainHeaderBase>

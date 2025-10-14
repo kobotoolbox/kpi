@@ -104,7 +104,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
         submission_detail_url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.instance.pk,
             },
         )

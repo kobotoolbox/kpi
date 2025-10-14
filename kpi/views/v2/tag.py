@@ -16,7 +16,7 @@ from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
 
 
-@extend_schema(tags=['Tags'])
+@extend_schema(tags=['Manage projects and library content'])
 @extend_schema_view(
     list=extend_schema(
         description=read_md('kpi', 'tags/list.md'),

@@ -9,9 +9,7 @@ from ..serializers import TranslationServiceSerializer
 from .base import BaseViewSet
 
 
-@extend_schema(
-    tags=['Translation Services'],
-)
+@extend_schema(tags=['Other'])
 @extend_schema_view(
     list=extend_schema(
         description=read_md('languages', 'translation/list.md'),

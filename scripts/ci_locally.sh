@@ -63,6 +63,8 @@ npx playwright install-deps
 
 echo -e '\n\n### Step: Install JavaScript dependencies'
 npm install
+git diff
+git diff-index --exit-code HEAD # Fail on uncommitted package-lock.json changes
 
 echo -e '\n\n### Step: Run all linters, builds and tests'
 npm run ci

@@ -3,6 +3,7 @@ import React from 'react'
 import bem from '#/bem'
 import { QUESTION_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
+import { recordKeys } from '#/utils'
 import ReportViewItem from './reportViewItem.component'
 import type { ReportsState } from './reports'
 import { getReportRowTranslatedLabel } from './reports.utils'
@@ -66,7 +67,7 @@ export default class ReportContents extends React.Component<ReportContentsProps>
         specifiedReportStyles = defaultRS?.specified?.[rowName]
       }
 
-      if (specifiedReportStyles && Object.keys(specifiedReportStyles).length) {
+      if (specifiedReportStyles && recordKeys(specifiedReportStyles).length) {
         reportData[i].style = specifiedReportStyles
       } else if (customReport?.reportStyle) {
         reportData[i].style = customReport.reportStyle

@@ -1,5 +1,6 @@
 import React from 'react'
 
+import { recordKeys } from '#/utils'
 import languagesStore from './languagesStore'
 import type { LanguageCode } from './languagesStore'
 
@@ -90,7 +91,7 @@ export async function hasTranscriptServicesAvailable(code: LanguageCode): Promis
   try {
     const language = await languagesStore.getLanguage(code)
     if (language) {
-      return Object.keys(language.transcription_services).length >= 1
+      return recordKeys(language.transcription_services).length >= 1
     } else {
       return false
     }
@@ -104,7 +105,7 @@ export async function hasTranslationServicesAvailable(code: LanguageCode): Promi
   try {
     const language = await languagesStore.getLanguage(code)
     if (language) {
-      return Object.keys(language.transcription_services).length >= 1
+      return recordKeys(language.transcription_services).length >= 1
     } else {
       return false
     }

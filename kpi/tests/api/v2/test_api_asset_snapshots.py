@@ -8,9 +8,11 @@ from rest_framework.exceptions import ParseError
 from kobo.apps.form_disclaimer.models import FormDisclaimer
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.languages.models.language import Language
+from kpi.constants import PERM_VIEW_ASSET
 from kpi.models.asset import AssetSnapshot
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.strings import to_str
 
 
@@ -167,7 +169,10 @@ class TestAssetSnapshotList(AssetSnapshotBase):
         snapshot_uid = creation_response.data['uid']
         self.client.login(username='someuser', password='someuser')
         for view_name in VIEW_NAMES_TO_TEST:
-            url = reverse(self._get_endpoint(view_name), args=(snapshot_uid,))
+            url = reverse(
+                self._get_endpoint(view_name),
+                kwargs={'uid_asset_snapshot': snapshot_uid},
+            )
             response = self.client.head(url)
             assert response.status_code == status.HTTP_204_NO_CONTENT
             assert not response.data
@@ -239,6 +244,22 @@ class TestAssetSnapshotList(AssetSnapshotBase):
         # Check that the error message contains the expected substring
         self.assertIn('_fail', str(context.exception))
 
+    def test_anonymous_can_create_snapshot_when_asset_shared_public(self):
+        self.client.login(username='someuser', password='someuser')
+        asset = self.create_asset('Public asset', self.form_source, format='json')
+        asset_url = reverse(self._get_endpoint('asset-detail'), args=(asset.uid,))
+
+        # Assign 'view' permission on the asset to AnonymousUser
+        asset.assign_perm(get_anonymous_user(), PERM_VIEW_ASSET)
+
+        self.client.logout()
+
+        # Try to create a snapshot as an anonymous user
+        snapshot_list_url = reverse(self._get_endpoint('assetsnapshot-list'))
+        data = {'asset': asset_url}
+        response = self.client.post(snapshot_list_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
 
 class TestAssetSnapshotDetail(AssetSnapshotBase):
 
@@ -290,7 +311,7 @@ class TestAssetSnapshotDetail(AssetSnapshotBase):
         )
         snapshot_url = reverse(
             self._get_endpoint('assetsnapshot-xml-with-disclaimer'),
-            kwargs={'uid': response.data['uid'], 'format': 'xml'}
+            kwargs={'uid_asset_snapshot': response.data['uid'], 'format': 'xml'},
         )
         xml_response = self.client.get(snapshot_url)
         self.assertContains(xml_response, 'Global message in English')
@@ -314,7 +335,7 @@ class TestAssetSnapshotDetail(AssetSnapshotBase):
         )
         snapshot_url = reverse(
             self._get_endpoint('assetsnapshot-xml-with-disclaimer'),
-            kwargs={'uid': response.data['uid'], 'format': 'xml'}
+            kwargs={'uid_asset_snapshot': response.data['uid'], 'format': 'xml'},
         )
         xml_response = self.client.get(snapshot_url)
         self.assertContains(xml_response, 'Overridden message in English')
@@ -338,7 +359,7 @@ class TestAssetSnapshotDetail(AssetSnapshotBase):
         )
         snapshot_url = reverse(
             self._get_endpoint('assetsnapshot-xml-with-disclaimer'),
-            kwargs={'uid': response.data['uid'], 'format': 'xml'}
+            kwargs={'uid_asset_snapshot': response.data['uid'], 'format': 'xml'},
         )
         xml_response = self.client.get(snapshot_url)
         self.assertNotContains(xml_response, 'Global message in English')
@@ -362,7 +383,7 @@ class TestAssetSnapshotDetail(AssetSnapshotBase):
         )
         snapshot_url = reverse(
             self._get_endpoint('assetsnapshot-xml-with-disclaimer'),
-            kwargs={'uid': response.data['uid'], 'format': 'xml'}
+            kwargs={'uid_asset_snapshot': response.data['uid'], 'format': 'xml'},
         )
         xml_response = self.client.get(snapshot_url)
         self.assertContains(xml_response, 'Global message in English')
@@ -393,7 +414,7 @@ class TestAssetSnapshotDetail(AssetSnapshotBase):
         )
         snapshot_url = reverse(
             self._get_endpoint('assetsnapshot-xml-with-disclaimer'),
-            kwargs={'uid': response.data['uid'], 'format': 'xml'}
+            kwargs={'uid_asset_snapshot': response.data['uid'], 'format': 'xml'},
         )
         xml_response = self.client.get(snapshot_url)
         self.assertNotContains(xml_response, 'Global message in English')
@@ -420,7 +441,7 @@ class TestAssetSnapshotDetail(AssetSnapshotBase):
         )
         snapshot_url = reverse(
             self._get_endpoint('assetsnapshot-xml-with-disclaimer'),
-            kwargs={'uid': response.data['uid'], 'format': 'xml'}
+            kwargs={'uid_asset_snapshot': response.data['uid'], 'format': 'xml'},
         )
         xml_response = self.client.get(snapshot_url)
         self.assertNotContains(xml_response, 'Global message in English')

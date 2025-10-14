@@ -17,14 +17,14 @@
 
 import { toast } from 'react-hot-toast'
 import Reflux from 'reflux'
-import { notify } from '#/utils'
+import { notify, recordKeys } from '#/utils'
 import { actions } from './actions'
 import { parseTags } from './assetParserUtils'
 
 function changes(orig_obj, new_obj) {
   var out = {},
     any = false
-  Object.keys(new_obj).forEach((key) => {
+  recordKeys(new_obj).forEach((key) => {
     if (orig_obj[key] !== new_obj[key]) {
       out[key] = new_obj[key]
       any = true

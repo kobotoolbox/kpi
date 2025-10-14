@@ -26,6 +26,7 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
         source='asset',
         view_name='asset-detail',
         lookup_field='uid',
+        lookup_url_kwarg='uid_asset',
         queryset=Asset.objects.all(),
         style={'base_template': 'input.html'}  # Render as a simple text box
     )

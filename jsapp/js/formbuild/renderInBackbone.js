@@ -2,6 +2,7 @@ import React from 'react'
 
 import { fromJS } from 'immutable'
 import { createRoot } from 'react-dom/client'
+import { recordKeys } from '#/utils'
 import KoboMatrix from './containers/KoboMatrix'
 
 /*
@@ -15,7 +16,7 @@ class KoboMatrixRow {
     obj2.label = _o.getValue('label')
     var choices = {}
 
-    Object.keys(_o.items).forEach((key) => {
+    recordKeys(_o.items).forEach((key) => {
       if (_o.items[key] && _o.items[key].options) {
         _o.items[key].options.map((item) => {
           const { $kuid } = item.attributes

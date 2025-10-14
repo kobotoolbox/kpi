@@ -16,8 +16,8 @@ BASE64_METADATA_SCHEMA = build_object_type(
 
 FILE_URL_SCHEMA = build_url_type(
     'api_v2:asset-file-detail',
-    parent_lookup_asset='a3C9wWefqZVkChNLKqqXVZ',
-    uid='afSa8PqnoYe8vJqkrsGz3oN',
+    uid_asset='a3C9wWefqZVkChNLKqqXVZ',
+    uid_file='afSa8PqnoYe8vJqkrsGz3oN',
 )
 
 URL_METADATA_SCHEMA = build_object_type(

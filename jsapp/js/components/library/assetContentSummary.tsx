@@ -6,6 +6,7 @@ import bem from '#/bem'
 import Button from '#/components/common/button'
 import { ANY_ROW_TYPE_NAMES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
+import { recordValues } from '#/utils'
 
 interface AssetContentSummaryProps {
   asset: AssetResponse
@@ -50,7 +51,7 @@ export default class AssetContentSummary extends React.Component<AssetContentSum
   }
 
   filterRealQuestions(questions: FlatQuestion[]) {
-    return questions.filter((question) => Object.values(ANY_ROW_TYPE_NAMES).includes(question.type))
+    return questions.filter((question) => recordValues(ANY_ROW_TYPE_NAMES).includes(question.type))
   }
 
   toggleExpanded() {

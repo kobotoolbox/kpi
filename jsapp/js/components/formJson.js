@@ -6,6 +6,7 @@ import Reflux from 'reflux'
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
 import bem from '#/bem'
+import { recordValues } from '#/utils'
 
 export default class FormJson extends React.Component {
   constructor(props) {
@@ -21,7 +22,7 @@ export default class FormJson extends React.Component {
   }
 
   assetStoreTriggered(response) {
-    const { content } = Object.values(response)[0]
+    const { content } = recordValues(response)[0]
     this.setState({ assetContent: content })
   }
 

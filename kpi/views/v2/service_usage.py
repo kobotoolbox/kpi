@@ -10,9 +10,7 @@ from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
 
 
-@extend_schema(
-    tags=['Service Usage'],
-)
+@extend_schema(tags=['User / team / organization / usage'])
 @extend_schema_view(
     list=extend_schema(
         description=read_md('kpi', 'service_usage/list.md'),

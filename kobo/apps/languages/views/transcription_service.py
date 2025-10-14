@@ -10,7 +10,7 @@ from .base import BaseViewSet
 
 
 @extend_schema(
-    tags=['Transcription Services'],
+    tags=['Other'],
 )
 @extend_schema_view(
     list=extend_schema(

@@ -29,10 +29,10 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 @extend_schema(
-    tags=['Rest Services'],
+    tags=['Survey data - Rest Services'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -58,7 +58,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='uid_hook',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -84,7 +84,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='uid_hook',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -102,7 +102,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='uid_hook',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -121,7 +121,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='uid_hook',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -138,12 +138,12 @@ class HookViewSet(
 ):
     """
     Available actions:
-    - create        → POST      /api/v2/asset/{parent_lookup_asset}/hooks/
-    - list          → GET       /api/v2/asset/{parent_lookup_asset}/hooks/
-    - delete        → DELETE    /api/v2/asset/{parent_lookup_asset}/hooks/{uid}/
-    - retrieve      → GET       /api/v2/asset/{parent_lookup_asset}/hooks/{uid}/
-    - update        → POST      /api/v2/asset/{parent_lookup_asset}/hooks/{uid}/
-    - retry         → POST      /api/v2/asset/{parent_lookup_asset}/hooks/{uid}/retry/
+    - create        → POST      /api/v2/asset/{uid_asset}/hooks/
+    - list          → GET       /api/v2/asset/{uid_asset}/hooks/
+    - delete        → DELETE    /api/v2/asset/{uid_asset}/hooks/{uid_hook}/
+    - retrieve      → GET       /api/v2/asset/{uid_asset}/hooks/{uid_hook}/
+    - update        → POST      /api/v2/asset/{uid_asset}/hooks/{uid_hook}/
+    - retry         → POST      /api/v2/asset/{uid_asset}/hooks/{uid_hook}/retry/
 
     Documentation:
     - docs/api/v2/hooks/create.md
@@ -156,6 +156,7 @@ class HookViewSet(
 
     model = Hook
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_hook'
     serializer_class = HookSerializer
     permission_classes = (AssetEditorSubmissionViewerPermission,)
     log_type = AuditType.PROJECT_HISTORY

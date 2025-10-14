@@ -5,7 +5,7 @@ import Button from '#/components/common/button'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import bodyStyles from '#/components/processing/processingBody.module.scss'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
-import { hasManagePermissionsToCurrentAsset } from '../analysis/utils'
+import { hasChangeSubPermissionToCurrentAsset } from '../analysis/utils'
 import HeaderLanguageAndDate from './headerLanguageAndDate.component'
 import styles from './stepSingleViewer.module.scss'
 
@@ -64,7 +64,7 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
               </>
             }
             onClick={addTranslation}
-            isDisabled={singleProcessingStore.data.isFetchingData || !hasManagePermissionsToCurrentAsset()}
+            isDisabled={singleProcessingStore.data.isFetchingData || !hasChangeSubPermissionToCurrentAsset()}
           />
 
           <Button
@@ -73,7 +73,7 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
             startIcon='edit'
             onClick={openEditor}
             tooltip={t('Edit')}
-            isDisabled={singleProcessingStore.data.isFetchingData || !hasManagePermissionsToCurrentAsset()}
+            isDisabled={singleProcessingStore.data.isFetchingData || !hasChangeSubPermissionToCurrentAsset()}
           />
 
           <Button
@@ -83,7 +83,7 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
             onClick={deleteTranslation}
             tooltip={t('Delete')}
             isPending={singleProcessingStore.data.isFetchingData}
-            isDisabled={!hasManagePermissionsToCurrentAsset()}
+            isDisabled={!hasChangeSubPermissionToCurrentAsset()}
           />
         </div>
       </header>

@@ -1,3 +1,6 @@
+from decimal import Decimal
+from typing import Any, Dict
+
 from django.core.exceptions import ValidationError
 from djstripe.models import (
     Price,
@@ -6,9 +9,11 @@ from djstripe.models import (
     SubscriptionItem,
     SubscriptionSchedule,
 )
+from drf_spectacular.utils import OpenApiTypes, extend_schema_field
 from rest_framework import serializers
 
 from kobo.apps.stripe.models import PlanAddOn
+from kpi.schema_extensions.v2.stripe.schema import INTERVAL_ENUM, USAGE_TYPE_ENUM
 
 
 class OneTimeAddOnSerializer(serializers.ModelSerializer):
@@ -27,12 +32,27 @@ class OneTimeAddOnSerializer(serializers.ModelSerializer):
 
 
 class BaseProductSerializer(serializers.ModelSerializer):
+    metadata = serializers.SerializerMethodField()
+
     class Meta:
         model = Product
         fields = ('id', 'name', 'description', 'type', 'metadata')
 
+    def get_metadata(self, obj) -> Dict[str, str]:
+        return obj.metadata
+
+
+class RecurringSerializer(serializers.Serializer):
+    interval = serializers.ChoiceField(choices=INTERVAL_ENUM)
+    interval_count = serializers.IntegerField()
+    meter = serializers.CharField(required=False, allow_null=True)
+    usage_type = serializers.ChoiceField(choices=USAGE_TYPE_ENUM)
+
 
 class BasePriceSerializer(serializers.ModelSerializer):
+    human_readable_price = serializers.SerializerMethodField()
+    recurring = RecurringSerializer(required=True, allow_null=True)
+
     class Meta:
         model = Price
         fields = (
@@ -46,6 +66,10 @@ class BasePriceSerializer(serializers.ModelSerializer):
             'active',
             'metadata',
         )
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_human_readable_price(self, obj):
+        return obj.human_readable_price
 
 
 class PriceIdSerializer(serializers.Serializer):
@@ -103,7 +127,6 @@ class CheckoutLinkSerializer(PriceIdSerializer):
 
 
 class PriceSerializer(BasePriceSerializer):
-
     class Meta(BasePriceSerializer.Meta):
         fields = (
             'id',
@@ -140,15 +163,28 @@ class SubscriptionItemSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionScheduleSerializer(serializers.ModelSerializer):
+    phases = serializers.SerializerMethodField()
 
     class Meta:
         model = SubscriptionSchedule
         fields = ('phases', 'status')
+        read_only_fields = ('phases', 'status')
+
+    def get_phases(self, obj) -> Dict[str, Any]:
+        return obj.phases
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     items = SubscriptionItemSerializer(many=True)
     schedule = SubscriptionScheduleSerializer()
+    application_fee_percent = serializers.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        min_value=Decimal('0'),
+        max_value=Decimal('100'),
+        required=True,
+        allow_null=True,
+    )
 
     class Meta:
         model = Subscription

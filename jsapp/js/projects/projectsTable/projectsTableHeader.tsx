@@ -3,6 +3,7 @@ import React from 'react'
 import cx from 'classnames'
 import { PROJECT_FIELDS } from '#/projects/projectViews/constants'
 import type { ProjectFieldDefinition, ProjectFieldName } from '#/projects/projectViews/constants'
+import { recordValues } from '#/utils'
 import ColumnResizer from './columnResizer'
 import type { ProjectsTableOrder } from './projectsTable'
 import tableStyles from './projectsTable.module.scss'
@@ -49,7 +50,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
         {/* First column is always visible and displays a checkbox. */}
         <div className={rowStyles.cell} data-field='checkbox' />
 
-        {Object.values(PROJECT_FIELDS).map(renderColumn)}
+        {recordValues(PROJECT_FIELDS).map(renderColumn)}
       </div>
     </header>
   )

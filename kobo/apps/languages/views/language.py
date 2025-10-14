@@ -11,7 +11,7 @@ from .base import BaseViewSet
 
 
 @extend_schema(
-    tags=['Languages'],
+    tags=['Other'],
 )
 @extend_schema_view(
     list=extend_schema(

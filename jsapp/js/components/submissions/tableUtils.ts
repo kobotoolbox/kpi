@@ -20,6 +20,7 @@ import {
 } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse, SurveyRow } from '#/dataInterface'
+import { recordKeys, recordValues } from '#/utils'
 
 export function getColumnLabel(
   asset: AssetResponse,
@@ -163,11 +164,11 @@ export function getAllDataColumns(asset: AssetResponse, submissions?: Submission
   const flatPaths = getSurveyFlatPaths(asset.content.survey, false, true)
 
   // add all questions from the survey definition
-  let output = Object.values(flatPaths)
+  let output = recordValues(flatPaths)
 
   if (submissions) {
     // Gather unique columns from all provided submissions and add them to output
-    const dataKeys = Object.keys(submissions.reduce((result, obj) => Object.assign(result, obj), {}))
+    const dataKeys = recordKeys(submissions.reduce((result, obj) => Object.assign(result, obj), {}))
     output = [...new Set([...output, ...dataKeys])]
   }
 
@@ -184,7 +185,7 @@ export function getAllDataColumns(asset: AssetResponse, submissions?: Submission
 
   // exclude notes
   output = output.filter((key) => {
-    const foundPathKey = Object.keys(flatPaths).find((pathKey) => flatPaths[pathKey] === key)
+    const foundPathKey = recordKeys(flatPaths).find((pathKey) => flatPaths[pathKey] === key)
 
     // no path means this definitely is not a note type
     if (!foundPathKey) {
@@ -300,7 +301,7 @@ export function buildFilterQuery(
     }
   })
 
-  if (Object.keys(output.queryObj).length > 0) {
+  if (recordKeys(output.queryObj).length > 0) {
     output.queryString = JSON.stringify(output.queryObj)
   }
 

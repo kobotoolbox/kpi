@@ -1,5 +1,7 @@
+import json
 import os
 
+from django.conf import settings
 from django.templatetags.static import static
 from drf_spectacular.utils import extend_schema
 from drf_spectacular.views import SpectacularSwaggerView
@@ -26,10 +28,11 @@ class ExtendedSwaggerUIView(SpectacularSwaggerView):
 
         response = super().get(request, *args, **kwargs)
         context = response.data
-
         context['data_schema_url'] = context.get('schema_url', '')
-
         context['script_url'] = self._swagger_ui_resource('swagger-ui-init.js')
+        context['data_swagger_ui_settings'] = json.dumps(
+            settings.SPECTACULAR_SETTINGS.get('SWAGGER_UI_SETTINGS', {})
+        )
 
         return Response(
             data=context,

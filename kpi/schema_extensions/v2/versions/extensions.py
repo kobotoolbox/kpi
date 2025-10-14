@@ -78,6 +78,6 @@ class UrlFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:asset-version-detail',
-            parent_lookup_asset='a3C9wWefqZVkChNLKqqXVZ',
-            uid='vf7pK9SmkJPYZVzr4uypi4',
+            uid_asset='a3C9wWefqZVkChNLKqqXVZ',
+            uid_version='vf7pK9SmkJPYZVzr4uypi4',
         )

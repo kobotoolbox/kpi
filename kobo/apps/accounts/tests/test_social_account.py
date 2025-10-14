@@ -25,7 +25,7 @@ class AccountsEmailTestCase(APITestCase):
         account = baker.make('socialaccount.SocialAccount', user=self.user)
         url = reverse(
             'socialaccount-detail',
-            kwargs={'provider': account.provider, 'uid': account.uid},
+            kwargs={'provider': account.provider, 'uid_social_account': account.uid},
         )
         res = self.client.delete(url)
         self.assertEqual(res.status_code, 204)

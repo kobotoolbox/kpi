@@ -50,12 +50,16 @@ class CollectionsTests(BaseTestCase):
         self.assertEqual(response.data['name'], 'my collection')
 
     def test_collection_detail(self):
-        url = reverse(self._get_endpoint('asset-detail'), kwargs={'uid': self.coll.uid})
+        url = reverse(
+            self._get_endpoint('asset-detail'), kwargs={'uid_asset': self.coll.uid}
+        )
         response = self.client.get(url, format='json')
         self.assertEqual(response.data['name'], 'test collection')
 
     def test_collection_delete(self):
-        url = reverse(self._get_endpoint('asset-detail'), kwargs={'uid': self.coll.uid})
+        url = reverse(
+            self._get_endpoint('asset-detail'), kwargs={'uid_asset': self.coll.uid}
+        )
         # DRF will return 200 if JSON format is not specified
         # FIXME: why is `format='json'` as a keyword argument not working?!
         # https://www.django-rest-framework.org/api-guide/testing/#using-the-format-argument
@@ -65,7 +69,9 @@ class CollectionsTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_collection_rename(self):
-        url = reverse(self._get_endpoint('asset-detail'), kwargs={'uid': self.coll.uid})
+        url = reverse(
+            self._get_endpoint('asset-detail'), kwargs={'uid_asset': self.coll.uid}
+        )
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['name'], 'test collection')
@@ -251,7 +257,7 @@ class CollectionsTests(BaseTestCase):
         subscription_url = reverse(self._get_endpoint('userassetsubscription-list'))
         asset_detail_url = self.absolute_reverse(
             self._get_endpoint('asset-detail'),
-            kwargs={'uid': subscribed_collection.uid},
+            kwargs={'uid_asset': subscribed_collection.uid},
         )
         response = self.client.post(subscription_url, data={'asset': asset_detail_url})
         assert response.status_code == status.HTTP_201_CREATED
@@ -259,7 +265,7 @@ class CollectionsTests(BaseTestCase):
         # Subscribe `someuser` to `shared_subscribed_collection`.
         asset_detail_url = self.absolute_reverse(
             self._get_endpoint('asset-detail'),
-            kwargs={'uid': shared_subscribed_collection.uid},
+            kwargs={'uid_asset': shared_subscribed_collection.uid},
         )
         response = self.client.post(subscription_url, data={'asset': asset_detail_url})
         assert response.status_code == status.HTTP_201_CREATED
@@ -310,7 +316,7 @@ class CollectionsTests(BaseTestCase):
         sub_list_url = reverse(self._get_endpoint('userassetsubscription-list'))
         pub_coll_url = reverse(
             self._get_endpoint('asset-detail'),
-            kwargs={'uid': public_collection.uid},
+            kwargs={'uid_asset': public_collection.uid},
         )
 
         # should not see any collections yet
@@ -354,7 +360,7 @@ class CollectionsTests(BaseTestCase):
         subscrbd_coll_url = f'{asset_list_url}?q=parent__uid:{public_collection.uid}'
         pub_coll_url = BaseTestCase.absolute_reverse(
             self._get_endpoint('asset-detail'),
-            kwargs={'uid': public_collection.uid},
+            kwargs={'uid_asset': public_collection.uid},
         )
 
         # should not see any collections yet
@@ -405,7 +411,7 @@ class CollectionsTests(BaseTestCase):
         # delete our subscription
         subscription_url = reverse(
             self._get_endpoint('userassetsubscription-detail'),
-            kwargs={'uid': subscription.uid},
+            kwargs={'uid_asset_subscription': subscription.uid},
         )
         response = self.client.delete(subscription_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -422,7 +428,7 @@ class CollectionsTests(BaseTestCase):
         sub_list_url = reverse(self._get_endpoint('userassetsubscription-list'))
         private_coll_url = reverse(
             self._get_endpoint('asset-detail'),
-            kwargs={'uid': self.coll.uid},
+            kwargs={'uid_asset': self.coll.uid},
         )
 
         # attempt to subscribe to the collection
@@ -517,7 +523,7 @@ class CollectionsTests(BaseTestCase):
 
         some_asset_url = reverse(
             self._get_endpoint('asset-detail'),
-            kwargs={'uid': some_asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': some_asset.uid, 'format': 'json'},
         )
 
         data = {'parent': some_collection_url}

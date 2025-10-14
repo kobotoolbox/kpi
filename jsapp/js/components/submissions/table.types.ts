@@ -11,13 +11,11 @@ export interface TableColumn extends Column<SubmissionResponse> {
   question?: SurveyRow
 }
 
-export interface DataTableSelectedRows {
-  /**
-   * This is a map of `submissionUid`s of selected rows, each pointing towards
-   * "is selected" boolean.
-   */
-  [sid: string]: boolean
-}
+/**
+ * This is a map of `submissionUid`s of selected rows, each pointing towards
+ * "is selected" boolean.
+ */
+export type DataTableSelectedRows = Record<string, boolean>
 
 // These are the missing typings for the `react-table` needed in DataTable
 // component. Most of the things are left undiscovered, as I relied on

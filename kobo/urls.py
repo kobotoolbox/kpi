@@ -42,6 +42,9 @@ urlpatterns = [
             # to ensure these endpoints are explicitly included in this schema.
             api_version='openrosa',
             generator_class=OpenRosaAPISchemaGenerator,
+            custom_settings={
+                'TAGS': [],
+            },
         ),
         name='schema-openrosa',
     ),

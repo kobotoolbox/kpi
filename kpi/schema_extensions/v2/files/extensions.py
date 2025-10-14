@@ -27,8 +27,8 @@ class ContentURlFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:asset-file-content',
-            parent_lookup_asset='a3C9wWefqZVkChNLKqqXVZ',
-            uid='afSa8PqnoYe8vJqkrsGz3oN',
+            uid_asset='a3C9wWefqZVkChNLKqqXVZ',
+            uid_file='afSa8PqnoYe8vJqkrsGz3oN',
         )
 
 

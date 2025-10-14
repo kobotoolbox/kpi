@@ -30,17 +30,17 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
 
 
 @extend_schema(
-    tags=['Attachments'],
+    tags=['Survey data'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
             description='UID of the parent asset',
         ),
         OpenApiParameter(
-            name='parent_lookup_data',
+            name='uid_data',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -135,9 +135,9 @@ class AttachmentViewSet(
     ViewSet for managing the current user's asset attachment
 
     Available actions:
-    - list            → GET /api/v2/assets/{uid}/data/{id}/attachments/
-    - retrieve        → GET /api/v2/assets/{uid}/data/{data_id}/attachments/{id}
-    - thumb (suffix)  → GET /api/v2/assets/{uid}/data/{data_id}/attachments/{id}/{suffix}/  # noqa
+    - list            → GET /api/v2/assets/{uid_asset}/data/{uid_data}/attachments/
+    - retrieve        → GET /api/v2/assets/{uid_asset}/data/{uid_data}/attachments/{id}
+    - thumb (suffix)  → GET /api/v2/assets/{uid_asset}/data/{uid_data}/attachments/{id}/{suffix}/  # noqa
 
     Documentation:
     - docs/api/v2/asset_attachments/list.md
@@ -152,7 +152,7 @@ class AttachmentViewSet(
     def retrieve(self, request, pk, *args, **kwargs):
         # Since endpoint is needed for KobocatDeploymentBackend to overwrite
         # Mongo attachments URL with their primary keys or uid (instead of their XPath)
-        submission_id_or_uuid = kwargs['parent_lookup_data']
+        submission_id_or_uuid = kwargs['uid_data']
         return self._get_response(
             request,
             submission_id_or_uuid,
@@ -171,7 +171,7 @@ class AttachmentViewSet(
         return self.retrieve(request, pk, *args, **kwargs)
 
     def list(self, request, *args, **kwargs):
-        submission_id_or_uuid = kwargs['parent_lookup_data']
+        submission_id_or_uuid = kwargs['uid_data']
         try:
             xpath = request.query_params['xpath']
         except KeyError:

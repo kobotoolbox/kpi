@@ -10,6 +10,7 @@ from kpi.utils.usage_calculator import ServiceUsageCalculator
 class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
     asset = serializers.HyperlinkedIdentityField(
         lookup_field='uid',
+        lookup_url_kwarg='uid_asset',
         view_name='asset-detail',
     )
     asset__name = serializers.ReadOnlyField(source='name')

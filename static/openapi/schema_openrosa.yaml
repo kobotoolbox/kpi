@@ -2,7 +2,12 @@ openapi: 3.0.3
 info:
   title: KoboToolbox API
   version: 2.0.0
-  description: Powerful and intuitive data collection tools to make an impact
+  description: |-
+    This page documents all KoboToolbox API endpoints.
+
+    The endpoints are grouped by area of intended use. Each category contains related endpoints, with detailed documentation on usage and configuration. Use this as a reference to quickly find the right endpoint for managing projects, forms, data, permissions, integrations, logs, and organizational resources.
+
+    **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as assets.
 paths:
   /{username}/formList:
     get:
@@ -177,6 +182,158 @@ paths:
               schema:
                 $ref: '#/components/schemas/XFormList'
           description: null
+  /key/{token}/formList:
+    get:
+      operationId: form_list_data_collector
+      description: |
+        ## Implement part of the OpenRosa Form List API
+
+        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+
+        This endpoint is used for adding submissions as a data collector.
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+          pattern: ^\w+$
+        required: true
+      tags:
+      - OpenRosa Form List
+      security:
+      - TokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/XFormList'
+          description: null
+  /key/{token}/submission:
+    post:
+      operationId: submission_data_collector
+      description: |+
+        ## Implement the OpenRosa Form Submission API
+
+        ⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+
+        This endpoint is used for adding submissions as a data collector.
+
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - xml
+      - in: path
+        name: token
+        schema:
+          type: string
+          pattern: ^\w+$
+        required: true
+      tags:
+      - OpenRosa Form Submission
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OpenRosaPayload'
+        required: true
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaResponse'
+          description: null
+        '401':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '404':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
+  /key/{token}/xformsManifest/{id}:
+    get:
+      operationId: manifest_data_collector
+      description: |
+        ## Implement part of the OpenRosa Manifest API
+
+        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+
+        This endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.
+        This endpoints will also open the form in **creation** mode and is used as an anonymous user.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          pattern: ^[\d+^/]+$
+        required: true
+      - in: path
+        name: token
+        schema:
+          type: string
+          pattern: ^\w+$
+        required: true
+      tags:
+      - OpenRosa Form Manifest
+      security:
+      - TokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaFormManifestResponse'
+          description: null
+        '404':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
   /submission:
     post:
       operationId: submission_authenticated
@@ -391,3 +548,27 @@ components:
       in: header
       name: Authorization
       description: 'Token-based authentication. Use the format: `Token <your-token>`'
+tags:
+- name: Manage projects and library content
+  description:
+  - Create, organize, and manage projects, assets (projects/library content), and
+    tags
+- name: Form content
+  description: Export and preview assets (projects/library content) in different formats
+- name: Survey data
+  description: View, edit, validate, export, and report collected data
+- name: Survey data - Rest Services
+  description: Configure and manage webhooks for survey data integrations
+- name: Manage permissions
+  description: Assign, clone, and bulk-manage project and asset (projects/library
+    content) permissions
+- name: Logging
+  description: Project history logs, access logs, Rest Service hook logs
+- name: Library collections
+  description: Subscribe to and manage shared library collections
+- name: Audit logs (superusers)
+  description: View server-wide logs
+- name: User / team / organization / usage
+  description: Manage users, orgs, invites, roles, and usage tracking
+- name: Other
+  description: Languages, available permissions, other

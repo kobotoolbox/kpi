@@ -4,6 +4,7 @@ import React, { type FC } from 'react'
 import type { Router } from '@remix-run/router'
 import type { Location, NavigateFunction, Params } from 'react-router-dom'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { recordEntries, recordKeys } from '#/utils'
 
 // https://stackoverflow.com/a/70754791/443457
 /**
@@ -12,12 +13,12 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 const getRoutePath = (location: Location, params: Params): string => {
   const { pathname } = location
 
-  if (!Object.keys(params).length) {
+  if (!recordKeys(params).length) {
     return pathname // we don't need to replace anything
   }
 
   let path = pathname
-  Object.entries(params).forEach(([paramName, paramValue]) => {
+  recordEntries(params).forEach(([paramName, paramValue]) => {
     if (paramValue) {
       path = path.replace(paramValue, `:${paramName}`)
     }

@@ -13,6 +13,7 @@ import {
 } from '#/components/processing/analysis/utils'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import type { FailResponse } from '#/dataInterface'
+import { recordKeys } from '#/utils'
 import AnalysisQuestionsContext from '../analysisQuestions.context'
 import type { AdditionalFields, AnalysisQuestionInternal } from '../constants'
 import commonStyles from '../responseForms/common.module.scss'
@@ -87,7 +88,7 @@ export default function AnalysisQuestionEditor(props: AnalysisQuestionEditorProp
       // 2. Check if the amount of provided additional fields is the same as the
       // required amount
       (additionalFields !== undefined &&
-        qaDefinition?.additionalFieldNames?.length !== Object.keys(additionalFields).length) ||
+        qaDefinition?.additionalFieldNames?.length !== recordKeys(additionalFields).length) ||
       // 3. Check if some of the provided fields are empty
       (additionalFields !== undefined &&
         qaDefinition?.additionalFieldNames?.some((fieldName) => additionalFields[fieldName]?.length === 0))

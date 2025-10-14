@@ -30,7 +30,7 @@ class InviteUrlFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
-            'api_v2:project-ownership-invite-detail', uid='poi52fGkwDjQeZkUxcaou39q'
+            'api_v2:project-ownership-invite-detail', uid_invite='poi52fGkwDjQeZkUxcaou39q'
         )
 
 
@@ -62,8 +62,8 @@ class TransferFieldExtension(OpenApiSerializerFieldExtension):
                 properties={
                     'url': build_url_type(
                         'api_v2:project-ownership-transfer-detail',
-                        parent_lookup_invite_uid='poi52fGkwDjQeZkUxcaou39q',
-                        uid='pot54pTqM5qwKdZ4wnNdiwDY',
+                        uid_invite='poi52fGkwDjQeZkUxcaou39q',
+                        uid_transfer='pot54pTqM5qwKdZ4wnNdiwDY',
                     ),
                     'asset': ASSET_URL_SCHEMA,
                     'status': GENERIC_STRING_SCHEMA,

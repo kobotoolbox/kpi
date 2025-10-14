@@ -11,6 +11,7 @@ import TextBox from '#/components/common/textBox'
 import ToggleSwitch from '#/components/common/toggleSwitch'
 import { FUNCTION_TYPE, META_QUESTION_TYPES, QuestionTypeName, SURVEY_DETAIL_ATTRIBUTES } from '#/constants'
 import envStore from '#/envStore'
+import { recordKeys } from '#/utils'
 
 bem.FormBuilderMeta = makeBem(null, 'form-builder-meta')
 bem.FormBuilderMeta__columns = makeBem(bem.FormBuilderMeta, 'columns')
@@ -48,7 +49,7 @@ export default class MetadataEditor extends React.Component {
 
   rebuildState() {
     const newState = { metaProperties: [] }
-    Object.keys(META_QUESTION_TYPES).forEach((metaType) => {
+    recordKeys(META_QUESTION_TYPES).forEach((metaType) => {
       const detail = this.getSurveyDetail(metaType)
       if (detail) {
         newState.metaProperties.push(Object.assign({}, detail.attributes))

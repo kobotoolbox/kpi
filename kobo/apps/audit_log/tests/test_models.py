@@ -473,7 +473,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             )
 
     def test_create_from_related_request_object_created(self):
-        request = self._create_request(asset_uid_key='parent_lookup_asset')
+        request = self._create_request(asset_uid_key='uid_asset')
         # if an object has been created, only `updated_data` will be set
         request.updated_data = {
             'object_id': 1,
@@ -499,7 +499,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         self.assertEqual(log.metadata['asset_uid'], 'a12345')
 
     def test_create_from_related_request_object_deleted(self):
-        request = self._create_request(asset_uid_key='parent_lookup_asset')
+        request = self._create_request(asset_uid_key='uid_asset')
         # if an object has been created, only `initial_data` will be set
         request.initial_data = {
             'object_id': 1,
@@ -523,7 +523,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         self.assertEqual(log.metadata['asset_uid'], 'a12345')
 
     def test_create_from_related_request_object_modified(self):
-        request = self._create_request(asset_uid_key='parent_lookup_asset')
+        request = self._create_request(asset_uid_key='uid_asset')
         # if an object has been modified, both `initial_data`
         # and `updated_data` should be filled
         request.initial_data = {
@@ -555,7 +555,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         self.assertEqual(log.metadata['asset_uid'], 'a12345')
 
     def test_create_from_related_request_no_log_created_if_no_data(self):
-        request = self._create_request(asset_uid_key='parent_lookup_asset')
+        request = self._create_request(asset_uid_key='uid_asset')
         # no `initial_data` or `updated_data` present
         ProjectHistoryLog._related_request_base(
             request,
@@ -661,7 +661,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
     def test_create_from_unexpected_anonymous_permissions(self):
         # Normal anonymous permissions tested elsewhere
         # This test is for if somehow other permissions are assigned
-        request = self._create_request(asset_uid_key='parent_lookup_asset')
+        request = self._create_request(asset_uid_key='uid_asset')
         request.updated_data = {'asset.id': 1, 'asset.owner.username': 'fred'}
         request.permissions_added = {
             # these permissions are not allowed for anonymous users,
@@ -703,7 +703,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
     def test_create_from_deployment_request(
         self, only_active_changed, is_active, has_deployment, expected_log_action
     ):
-        request = self._create_request(asset_uid_key='uid')
+        request = self._create_request(asset_uid_key='uid_asset')
 
         request.initial_data = {
             'id': 1,
@@ -763,7 +763,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
     )
     @unpack
     def test_create_from_detail_request_plumbing(self, field, expected_method):
-        request = self._create_request('uid')
+        request = self._create_request('uid_asset')
         request.initial_data = {
             'id': 1,
             'name': 'name',
@@ -783,7 +783,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         patched.assert_called_once()
 
     def test_unexpected_fields_ignored_in_detail_request(self):
-        request = self._create_request('uid')
+        request = self._create_request('uid_asset')
         request.initial_data = {
             'id': 1,
             'name': 'name',

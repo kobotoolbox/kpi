@@ -17,7 +17,9 @@ class ImportUrlFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.imports.fields.ImportUrlField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type('api_v2:importtask-detail', uid='iYxVZhbZb6poxVpPqrd6eG')
+        return build_url_type(
+            'api_v2:importtask-detail', uid_import='iYxVZhbZb6poxVpPqrd6eG'
+        )
 
 
 class MessagesFieldExtension(OpenApiSerializerFieldExtension):

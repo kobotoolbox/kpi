@@ -5,10 +5,10 @@ import type { AccountResponse } from '#/dataInterface'
 /**
  * Mock API for session endpoint. Use it in Storybook tests in `parameters.msw.handlers[]`.
  */
-const meMock = http.get<never, never, AccountResponse>(endpoints.ME, () => HttpResponse.json(accountResponse))
+const meMock = http.get<never, never, AccountResponse>(endpoints.ME, () => HttpResponse.json(meMockResponse))
 export default meMock
 
-const accountResponse: AccountResponse = {
+export const meMockResponse: AccountResponse = {
   username: 'zefir',
   first_name: '',
   last_name: '',
@@ -34,7 +34,7 @@ const accountResponse: AccountResponse = {
   accepted_tos: false,
   organization: {
     url: 'http://kf.kobo.local/api/v2/organizations/orgWiPMsyx4oNEHXfqGhrbzt/',
-    name: "zefir's MMO organization",
+    name: 'Zefir Inc',
     uid: 'orgWiPMsyx4oNEHXfqGhrbzt',
   },
   extra_details__uid: 'uTcCX9wL5royoPb4mHWcBz',
