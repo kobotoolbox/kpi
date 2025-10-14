@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from drf_spectacular.renderers import OpenApiJsonRenderer, OpenApiYamlRenderer
+from drf_spectacular.settings import patched_settings
 
 from kpi.utils.spectacular_processing import (
     OpenRosaAPISchemaGenerator,
@@ -52,10 +54,21 @@ class Command(BaseCommand):
         if not renderer_class:
             raise CommandError(f'Unsupported format: {output_format}')
 
-        api_version = '' if schema_name == 'openrosa' else schema_name
-        generator = generator_class(api_version=api_version)
-        schema = generator.get_schema(request=None, public=True)
-        rendered = renderer_class().render(schema, renderer_context={})
+        api_version = schema_name
+        overrides = (
+            {
+                'VERSION': '',
+                'TAGS': [],
+                'TITLE': settings.SPECTACULAR_OPENROSA_TITLE,
+                'DESCRIPTION': settings.SPECTACULAR_OPENROSA_DESCRIPTION,
+            }
+            if schema_name == 'openrosa'
+            else None
+        )
+        with patched_settings(overrides):
+            generator = generator_class(api_version=schema_name)
+            schema = generator.get_schema(request=None, public=True)
+            rendered = renderer_class().render(schema, renderer_context={})
 
         if output_file:
             mode = 'wb' if isinstance(rendered, bytes) else 'w'
