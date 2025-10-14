@@ -384,15 +384,6 @@
                         "schema": {
                             "type": "integer"
                         }
-                    },
-                    {
-                        "in": "path",
-                        "name": "uid_asset_snapshot",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the asset snapshot",
-                        "required": true
                     }
                 ],
                 "tags": [
@@ -440,17 +431,6 @@
             "post": {
                 "operationId": "api_v2_asset_snapshots_create",
                 "description": "## Create an asset snapshot\n\nWhen creating an asset snapshot, you must provide either:\n\n- the asset (as a URI), or\n- the source (as a JSON object representing the asset)\n\n…but not both.\n",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "uid_asset_snapshot",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the asset snapshot",
-                        "required": true
-                    }
-                ],
                 "tags": [
                     "Form content"
                 ],

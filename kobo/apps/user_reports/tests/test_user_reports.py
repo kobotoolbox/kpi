@@ -168,6 +168,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         ):
             cache.clear()
             refresh_user_report_snapshots()
+            self.client.login(username='adminuser', password='pass')
             someuser_data = self._get_someuser_data()
 
         service_usage = someuser_data['service_usage']
@@ -266,6 +267,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             cache.clear()
             refresh_user_report_snapshots()
 
+            self.client.login(username='adminuser', password='pass')
             someuser_data = self._get_someuser_data()
             self.assertTrue(someuser_data['account_restricted'])
 
