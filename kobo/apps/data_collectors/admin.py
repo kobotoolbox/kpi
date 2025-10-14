@@ -129,6 +129,7 @@ class DataCollectorAdmin(admin.ModelAdmin):
             'fields': ('collect_url', 'enketo_urls',),
         }),
     )
+    ordering = ['-date_created']
 
     @admin.action(description='Rotate token')
     def rotate_token(self, request, queryset):
