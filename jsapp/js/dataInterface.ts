@@ -1438,10 +1438,13 @@ export const dataInterface: DataInterface = {
     })
   },
 
-  removeAllPermissions(permUrl: string): JQuery.jqXHR<any> {
+  removeAllPermissions(assetUid: string, username: string): JQuery.jqXHR<any> {
     return $ajax({
-      url: `${permUrl}delete-all/`,
+      url: `${ROOT_URL}/api/v2/assets/${assetUid}/permission-assignments/bulk/`,
       method: 'DELETE',
+      data: {
+        username: username,
+      },
     })
   },
 
