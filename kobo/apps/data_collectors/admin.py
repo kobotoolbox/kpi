@@ -30,6 +30,7 @@ class DataCollectorGroupAddForm(forms.ModelForm):
     class Meta:
         model = DataCollectorGroup
         fields = ['owner', 'name', 'assets']
+        ordering = ['-date_created']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -68,6 +69,7 @@ class DataCollectorGroupAdmin(admin.ModelAdmin):
         'name',
     )
     autocomplete_fields = ['owner']
+    ordering = ['-date_created']
 
     def save_model(self, request, obj, form, change):
         assets = form.cleaned_data['assets']
@@ -144,12 +146,7 @@ class DataCollectorAdmin(admin.ModelAdmin):
         if not (obj and obj.token):
             return '-'
 
-        collect_url = f'{settings.KOBOCAT_URL}/key/{obj.token}'
-        return mark_safe(
-            '<a href="{collect_url}" target="_blank">'
-            f'    {collect_url}'
-            '</a>'
-        )
+        return f'{settings.KOBOCAT_URL}/key/{obj.token}'
 
     @admin.display(description='Enketo')
     def enketo_urls(self, obj):
