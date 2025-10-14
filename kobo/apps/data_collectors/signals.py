@@ -1,14 +1,14 @@
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import post_save, pre_delete, post_delete
 from django.dispatch import receiver
 
-from kobo.apps.data_collectors.models import DataCollector
+from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kobo.apps.data_collectors.utils import (
     remove_data_collector_enketo_links,
     rename_data_collector_enketo_links,
     set_data_collector_enketo_links,
 )
 from kpi.constants import PERM_MANAGE_ASSET
-from kpi.models import Asset
+from kpi.models import Asset, ObjectPermission
 from kpi.utils.object_permission import post_remove_perm
 
 
@@ -49,6 +49,23 @@ def remove_enketo_links(sender, instance, user, codename, **kwargs):
         # so we can call save() with adjust_content=False
         instance.data_collector_group = None
         instance.save(
+            update_fields=['data_collector_group'],
+            adjust_content=False,
+            create_version=False,
+        )
+
+@receiver(post_delete, sender=ObjectPermission)
+def remove_enketo_links(sender, instance, *args, **kwargs):
+    if instance.permission.codename != PERM_MANAGE_ASSET:
+        return
+    asset = instance.asset
+    group = asset.data_collector_group
+    if group is not None and group.owner_id == instance.user_id:
+        breakpoint()
+        # we have to do this manually instead of using obj.assets.remove()
+        # so we can call save() with adjust_content=False
+        asset.data_collector_group = None
+        asset.save(
             update_fields=['data_collector_group'],
             adjust_content=False,
             create_version=False,
