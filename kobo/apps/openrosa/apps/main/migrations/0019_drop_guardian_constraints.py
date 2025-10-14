@@ -14,7 +14,7 @@ def drop_fk(apps, schema_editor):
         """
         )
         for constraints in cur.fetchall():
-            schema, table, constraint = constraints
+            schema, table, constraint_name = constraints
             sql = (
                 f"ALTER TABLE '{schema}'.'{table}' DROP CONSTRAINT '{constraint_name}'"
             )
