@@ -7,6 +7,8 @@
 The endpoints are grouped by area of intended use. Each category contains related endpoints, with detailed documentation on usage and configuration. Use this as a reference to quickly find the right endpoint for managing projects, forms, data, permissions, integrations, logs, and organizational resources.
 
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as assets.
+
+Our separate documentation of OpenRosa endpoints for making and editing submissions can be found [here](/api/openrosa/docs/).
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import type { ProjectHistoryLogResponseMetadataSettingsCountryAdded } from './projectHistoryLogResponseMetadataSettingsCountryAdded'
