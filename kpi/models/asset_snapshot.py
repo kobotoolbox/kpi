@@ -106,7 +106,7 @@ class AssetSnapshot(
         return reverse(
             viewname='assetsnapshot-manifest',
             format='xml',
-            kwargs={'uid': self.uid},
+            kwargs={'uid_asset_snapshot': self.uid},
             request=request
         )
 

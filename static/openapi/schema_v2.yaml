@@ -291,12 +291,6 @@ paths:
         description: The initial index from which to return the results.
         schema:
           type: integer
-      - in: path
-        name: uid_asset_snapshot
-        schema:
-          type: string
-        description: UID of the asset snapshot
-        required: true
       tags:
       - Form content
       security:
@@ -331,13 +325,6 @@ paths:
         - the source (as a JSON object representing the asset)
 
         …but not both.
-      parameters:
-      - in: path
-        name: uid_asset_snapshot
-        schema:
-          type: string
-        description: UID of the asset snapshot
-        required: true
       tags:
       - Form content
       requestBody:

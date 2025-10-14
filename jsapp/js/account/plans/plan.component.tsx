@@ -99,7 +99,6 @@ export default function Plan(props: PlanProps) {
     newPrice: null,
     products: [],
     currentSubscription: null,
-    quantity: 1,
   })
   const [visiblePlanTypes, setVisiblePlanTypes] = useState(['default'])
 
@@ -299,7 +298,7 @@ export default function Plan(props: PlanProps) {
   const getSubscribedProduct = useCallback(getSubscriptionsForProductId, [])
 
   const isSubscribedProduct = useCallback(
-    (product: SinglePricedProduct, quantity: number | undefined) => {
+    (product: SinglePricedProduct) => {
       if (!product.price?.unit_amount && !hasActiveSubscription) {
         return true
       }
@@ -309,10 +308,7 @@ export default function Plan(props: PlanProps) {
       if (subscriptions && subscriptions.length > 0) {
         return subscriptions.some(
           (subscription: SubscriptionInfo) =>
-            subscription.items[0].price.id === product.price.id &&
-            hasManageableStatus(subscription) &&
-            quantity !== undefined &&
-            quantity === subscription.quantity,
+            subscription.items[0].price.id === product.price.id && hasManageableStatus(subscription),
         )
       }
       return false
@@ -326,31 +322,30 @@ export default function Plan(props: PlanProps) {
     })
   }
 
-  const buySubscription = (price: Price, quantity = 1) => {
+  const buySubscription = (price: Price) => {
     if (!price.id) return
     if (isDisabled) return
 
     setIsBusy(true)
     if (activeSubscriptions.length) {
-      if (isDowngrade(activeSubscriptions, price, quantity)) {
+      if (isDowngrade(activeSubscriptions, price)) {
         // if the user is downgrading prices, open a confirmation dialog and downgrade from kpi
         // this will downgrade the subscription at the end of the current billing period
         setConfirmModal({
           products: products.products,
           newPrice: price,
           currentSubscription: activeSubscriptions[0],
-          quantity: quantity,
         })
       } else {
         // if the user is upgrading prices, send them to the customer portal
         // this will immediately change their subscription
-        postCustomerPortal(organization.id, price.id, quantity)
+        postCustomerPortal(organization.id, price.id)
           .then(processCheckoutResponse)
           .catch(() => setIsBusy(false))
       }
     } else {
       // just send the user to the checkout page
-      postCheckout(price.id, organization.id, quantity)
+      postCheckout(price.id, organization.id)
         .then(processCheckoutResponse)
         .catch(() => setIsBusy(false))
     }

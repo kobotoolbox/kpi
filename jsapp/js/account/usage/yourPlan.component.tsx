@@ -19,7 +19,6 @@ const BADGE_COLOR_KEYS: { [key in SubscriptionChangeType]: BadgeColor } = {
   [SubscriptionChangeType.CANCELLATION]: 'light-red',
   [SubscriptionChangeType.PRODUCT_CHANGE]: 'light-amber',
   [SubscriptionChangeType.PRICE_CHANGE]: 'light-amber',
-  [SubscriptionChangeType.QUANTITY_CHANGE]: 'light-amber',
   [SubscriptionChangeType.NO_CHANGE]: 'light-blue',
 }
 
@@ -84,11 +83,6 @@ export const YourPlan = () => {
                   {[SubscriptionChangeType.CANCELLATION, SubscriptionChangeType.PRODUCT_CHANGE].includes(
                     subscriptionUpdate.type,
                   ) && t('Ends on ##end_date##').replace('##end_date##', formatDate(subscriptionUpdate.date))}
-                  {subscriptionUpdate.type === SubscriptionChangeType.QUANTITY_CHANGE &&
-                    t('Changing usage limits on ##change_date##').replace(
-                      '##change_date##',
-                      formatDate(subscriptionUpdate.date),
-                    )}
                   {subscriptionUpdate.type === SubscriptionChangeType.PRICE_CHANGE &&
                     t('Switching to monthly on ##change_date##').replace(
                       '##change_date##',
@@ -134,20 +128,6 @@ export const YourPlan = () => {
             '##current_plan##',
             planName,
           )}
-        </div>
-      )}
-      {subscriptionUpdate?.type === SubscriptionChangeType.QUANTITY_CHANGE && (
-        <div className={styles.subscriptionChangeNotice}>
-          {t(
-            'Your ##current_plan## plan will change to include up to ##submission_quantity## submissions/month starting from',
-          )
-            .replace('##current_plan##', planName)
-            .replace(
-              '##submission_quantity##',
-              (subscriptions.planResponse[0].schedule.phases?.[1].items[0].quantity || '').toLocaleString(),
-            )}
-          &nbsp;
-          <time dateTime={subscriptionUpdate.date}>{formatDate(subscriptionUpdate.date)}</time>.
         </div>
       )}
       {subscriptionUpdate?.type === SubscriptionChangeType.PRICE_CHANGE && (

@@ -13,7 +13,6 @@ import {
   type Product,
   SubscriptionChangeType,
   type SubscriptionInfo,
-  type TransformQuantity,
   USAGE_TYPE,
 } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
@@ -135,11 +134,7 @@ export const getSubscriptionChangeDetails = (currentPlan: SubscriptionInfo | nul
         nextProduct = product
         date = convertUnixTimestampToUtc(currentPlan.schedule.phases[0].end_date!)
         if (nextProduct.id === currentPlan.items[0].price.product.id) {
-          if (currentPlan.quantity !== nextPhaseItem.quantity) {
-            type = SubscriptionChangeType.QUANTITY_CHANGE
-          } else {
-            type = SubscriptionChangeType.PRICE_CHANGE
-          }
+          type = SubscriptionChangeType.PRICE_CHANGE
         } else {
           type = SubscriptionChangeType.PRODUCT_CHANGE
         }
@@ -154,38 +149,14 @@ export const getSubscriptionChangeDetails = (currentPlan: SubscriptionInfo | nul
 }
 
 /**
- * Takes a Stripe quantity (representing a total number of submissions included with a plan)
- * and returns the transformed quantity. The total price of the transaction can be
- * found by (transformed quantity x price unit amount).
- * @param baseQuantity - the `quantity` field of the subscription in Stripe (total submission limit)
- * @param transform - the `transform_quantity` field of the price
+ * Tests whether a new price would cost less than the user's current subscription.
  */
-export const getAdjustedQuantityForPrice = (baseQuantity: number, transform: TransformQuantity | null) => {
-  let adjustedQuantity = baseQuantity
-  if (transform?.divide_by) {
-    adjustedQuantity /= transform.divide_by
-  }
-  if (transform?.round === 'up') {
-    adjustedQuantity = Math.ceil(adjustedQuantity)
-  }
-  if (transform?.round === 'down') {
-    adjustedQuantity = Math.floor(adjustedQuantity)
-  }
-  return adjustedQuantity
-}
-
-/**
- * Tests whether a new price/quantity would cost less than the user's current subscription.
- */
-export const isDowngrade = (currentSubscriptions: SubscriptionInfo[], price: Price, newQuantity: number) => {
+export const isDowngrade = (currentSubscriptions: SubscriptionInfo[], newPrice: Price) => {
   if (!currentSubscriptions.length) {
     return false
   }
-  const subscriptionItem = currentSubscriptions[0].items[0]
-  const currentTotalPrice =
-    subscriptionItem.price.unit_amount *
-    getAdjustedQuantityForPrice(subscriptionItem.quantity, subscriptionItem.price.transform_quantity)
-  const newTotalPrice = price.unit_amount * getAdjustedQuantityForPrice(newQuantity, price.transform_quantity)
+  const currentTotalPrice = currentSubscriptions[0].items[0].price.unit_amount
+  const newTotalPrice = newPrice.unit_amount
   return currentTotalPrice > newTotalPrice
 }
 

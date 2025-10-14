@@ -22,7 +22,6 @@ import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import ProjectTopTabs from '#/project/projectTopTabs.component'
 import { RootContextProvider } from '#/rootContextProvider.component'
-import { RequireOrg } from '#/router/RequireOrg'
 import InvalidatedPassword from '#/router/invalidatedPassword.component'
 import { isInvalidatedPasswordRouteBlockerActive, isTOSAgreementRouteBlockerActive } from '#/router/routerUtils'
 import TOSAgreement from '#/router/tosAgreement.component'
@@ -68,19 +67,11 @@ class App extends React.Component {
 
   render() {
     if (isInvalidatedPasswordRouteBlockerActive()) {
-      return (
-        <RequireOrg>
-          <InvalidatedPassword />
-        </RequireOrg>
-      )
+      return <InvalidatedPassword />
     }
 
     if (isTOSAgreementRouteBlockerActive()) {
-      return (
-        <RequireOrg>
-          <TOSAgreement />
-        </RequireOrg>
-      )
+      return <TOSAgreement />
     }
 
     const assetid = routerGetAssetId()

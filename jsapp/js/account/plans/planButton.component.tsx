@@ -5,13 +5,12 @@ import { processCheckoutResponse } from '#/account/stripe.utils'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 
 interface PlanButtonProps {
-  buySubscription: (price: Price, quantity?: number) => void
+  buySubscription: (price: Price) => void
   downgrading: boolean
   isBusy: boolean
   isSubscribedToPlan: boolean
   showManage: boolean
   product: SinglePricedProduct
-  quantity: number
   setIsBusy: (value: boolean) => void
 }
 
@@ -26,7 +25,6 @@ export const PlanButton = ({
   setIsBusy,
   buySubscription,
   showManage,
-  quantity,
   isSubscribedToPlan,
 }: PlanButtonProps) => {
   const [organization] = useOrganizationAssumed()
@@ -37,7 +35,7 @@ export const PlanButton = ({
 
   const manageSubscription = (subscriptionPrice?: Price) => {
     setIsBusy(true)
-    postCustomerPortal(organization.id, subscriptionPrice?.id, quantity)
+    postCustomerPortal(organization.id, subscriptionPrice?.id)
       .then(processCheckoutResponse)
       .catch(() => setIsBusy(false))
   }
@@ -46,7 +44,7 @@ export const PlanButton = ({
     return (
       <BillingButton
         label={t('Upgrade')}
-        onClick={() => buySubscription(product.price, quantity)}
+        onClick={() => buySubscription(product.price)}
         aria-label={`upgrade to ${product.name}`}
         isDisabled={isBusy}
       />
@@ -67,7 +65,7 @@ export const PlanButton = ({
   return (
     <BillingButton
       label={t('Change plan')}
-      onClick={() => buySubscription(product.price, quantity)}
+      onClick={() => buySubscription(product.price)}
       aria-label={`change your subscription to ${product.name}`}
       isDisabled={isBusy}
     />

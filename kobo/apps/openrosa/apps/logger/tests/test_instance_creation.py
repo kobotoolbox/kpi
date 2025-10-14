@@ -143,7 +143,7 @@ class TestInstanceCreation(TestCase):
 
         # Increase counters with no profile
         UserProfile.objects.filter(user=self.user).delete()
-        with self.assertNumQueries(53):
+        with self.assertNumQueries(8):
             # UserProfile creation calls a signal to add guardian permissions
             # FIXME in `main` branch. Guardian does not exist anymore
             update_user_counters(

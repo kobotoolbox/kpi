@@ -78,9 +78,8 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             # USAGE_LIMIT_ENFORCEMENT variable. But we use caching
             # so should find a way to keep that out of this count
             if settings.STRIPE_ENABLED:
-                # Should be 80..87, but because of cache, sometimes goes down to
-                # 65.
-                expected_queries = FuzzyInt(65, 87)
+                # But because of cache, sometimes goes down to 62
+                expected_queries = FuzzyInt(62, 84)
             with self.assertNumQueries(expected_queries):
                 self.view(request)
 
@@ -252,6 +251,9 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
 
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_settings(
+        CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}}
     )
     @override_config(USAGE_LIMIT_ENFORCEMENT=False)
     def test_service_calculator_call_once_per_submission(self):

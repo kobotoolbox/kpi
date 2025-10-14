@@ -61,17 +61,6 @@ from kpi.versioning import OpenRosaAPIVersioning
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
 
-@extend_schema(
-    parameters=[
-        OpenApiParameter(
-            name='uid_asset_snapshot',
-            type=str,
-            location=OpenApiParameter.PATH,
-            required=True,
-            description='UID of the asset snapshot',
-        ),
-    ],
-)
 @extend_schema_view(
     # description for list
     list=extend_schema(
@@ -94,6 +83,15 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             raise_access_forbidden=False,
         ),
         tags=['Form content'],
+        parameters=[
+            OpenApiParameter(
+                name='uid_asset_snapshot',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the asset snapshot',
+            ),
+        ],
     ),
     # description for post
     create=extend_schema(
@@ -138,6 +136,15 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             raise_access_forbidden=False,
         ),
         tags=['Form content'],
+        parameters=[
+            OpenApiParameter(
+                name='uid_asset_snapshot',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the asset snapshot',
+            ),
+        ],
     ),
     update=extend_schema(
         exclude=True,
@@ -190,6 +197,15 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             raise_access_forbidden=False,
         ),
         tags=['Form content'],
+        parameters=[
+            OpenApiParameter(
+                name='uid_asset_snapshot',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the asset snapshot',
+            ),
+        ],
     ),
     xform=extend_schema(
         description=read_md('kpi', 'asset_snapshots/xform.md'),
@@ -202,6 +218,15 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             error_media_type='text/html',
         ),
         tags=['Form content'],
+        parameters=[
+            OpenApiParameter(
+                name='uid_asset_snapshot',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the asset snapshot',
+            ),
+        ],
     ),
     xml_with_disclaimer=extend_schema(
         description=read_md('kpi', 'asset_snapshots/xml_with_disclaimer.md'),
@@ -212,6 +237,15 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             raise_access_forbidden=False,
         ),
         tags=['Form content'],
+        parameters=[
+            OpenApiParameter(
+                name='uid_asset_snapshot',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the asset snapshot',
+            ),
+        ],
     ),
 )
 class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet):
