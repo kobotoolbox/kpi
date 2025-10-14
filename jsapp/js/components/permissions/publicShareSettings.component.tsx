@@ -28,7 +28,7 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
       (perm) => perm.permission === permConfig.getPermissionByCodename(permCodename)?.url,
     )[0]
     if (permission) {
-      actions.permissions.removeAssetPermission(this.props.assetUid, permission.url)
+      actions.permissions.removeAssetPermission(this.props.assetUid, permission.url, undefined, undefined, undefined)
     } else {
       actions.permissions.assignAssetPermission(this.props.assetUid, {
         user: ANON_USERNAME_URL,
