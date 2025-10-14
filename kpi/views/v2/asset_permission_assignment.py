@@ -209,7 +209,6 @@ class AssetPermissionAssignmentViewSet(
         url_path='bulk',
     )
     def bulk_actions(self, request, *args, **kwargs):
-        breakpoint()
         if request.method == 'POST':
             return self.bulk_assignments(request, *args, **kwargs)
         elif request.method == 'DELETE':
@@ -246,7 +245,6 @@ class AssetPermissionAssignmentViewSet(
 
         user = get_database_user(request.user)
         username = request.data.get('username')
-        breakpoint()
 
         if (
             not user.has_perm(PERM_MANAGE_ASSET, self.asset)
@@ -264,14 +262,12 @@ class AssetPermissionAssignmentViewSet(
             )
 
         with transaction.atomic():
-            breakpoint()
             ObjectPermission.objects.filter(
                 asset=self.asset, user__username=username
             ).delete()
             AssetUserPartialPermission.objects.filter(
                 asset=self.asset, user__username=username
             ).delete()
-        breakpoint()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(

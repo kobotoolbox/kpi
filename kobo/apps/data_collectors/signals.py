@@ -1,7 +1,7 @@
-from django.db.models.signals import post_save, pre_delete, post_delete
+from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
 
-from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
+from kobo.apps.data_collectors.models import DataCollector
 from kobo.apps.data_collectors.utils import (
     remove_data_collector_enketo_links,
     rename_data_collector_enketo_links,
@@ -61,7 +61,6 @@ def remove_enketo_links(sender, instance, *args, **kwargs):
     asset = instance.asset
     group = asset.data_collector_group
     if group is not None and group.owner_id == instance.user_id:
-        breakpoint()
         # we have to do this manually instead of using obj.assets.remove()
         # so we can call save() with adjust_content=False
         asset.data_collector_group = None

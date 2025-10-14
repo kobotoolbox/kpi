@@ -1,11 +1,11 @@
 from unittest.mock import patch
 
-from django.test import TestCase
 from django.urls import reverse
 
 from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import PERM_MANAGE_ASSET
+from kpi.deployment_backends.mock_backend import MockDeploymentBackend
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
@@ -143,10 +143,11 @@ class TestDataCollector(BaseTestCase):
         data_collector = DataCollector.objects.create(name='DC', group=another_group)
         self.client.force_login(user=someuser)
         with patch.object(
-            asset.deployment, 'remove_data_collector_enketo_links'
+            MockDeploymentBackend, 'remove_data_collector_enketo_links'
         ) as patched_remove_links:
             url = reverse('api_v2:asset-permission-assignment-bulk-actions',
                           kwargs={'uid_asset': asset.uid})
             self.client.delete(url, data={'username': 'anotheruser'})
+        asset.refresh_from_db()
         assert asset.data_collector_group is None
         patched_remove_links.assert_called_once_with(data_collector.token)
