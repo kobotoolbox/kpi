@@ -115,7 +115,7 @@ function onImportSingleXLSFormFile(name: string, base64Encoded: string | ArrayBu
         // We have to dig deep for that single asset uid :)
         const firstCreated = importData.messages.created[0]
         if (firstCreated?.uid) {
-          router!.navigate(ROUTES.FORM.replace(':uid_import', firstCreated.uid))
+          router!.navigate(ROUTES.FORM.replace(':uid', firstCreated.uid))
         }
       }
     },
