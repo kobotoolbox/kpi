@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import migrations
 
 
-CREATE_MV_SQL = """
+CREATE_MV_SQL = f"""
     CREATE MATERIALIZED VIEW user_reports_userreportsmv AS
     WITH user_nlp_usage AS (
         SELECT
@@ -346,7 +346,7 @@ CREATE_MV_SQL = """
     LEFT JOIN user_role_map ur ON ur.user_id = au.id
     LEFT JOIN user_current_period_usage ucpu ON au.id = ucpu.user_id
     LEFT JOIN user_billing_periods ubau ON au.id = ubau.user_id
-    WHERE au.id != <ANONYMOUS_ID_VALUE>
+    WHERE au.id != {settings.ANONYMOUS_USER_ID}
     GROUP BY
         au.id,
         au.username,
@@ -437,13 +437,9 @@ class Migration(migrations.Migration):
             )
         ]
     else:
-        CREATE_MV_SQL_FORMATTED = CREATE_MV_SQL.replace(
-            '<ANONYMOUS_ID_VALUE>',
-            str(settings.ANONYMOUS_USER_ID)
-        )
         operations = [
             migrations.RunSQL(
-                sql=CREATE_MV_SQL_FORMATTED,
+                sql=CREATE_MV_SQL,
                 reverse_sql=DROP_MV_SQL,
             ),
             migrations.RunSQL(
