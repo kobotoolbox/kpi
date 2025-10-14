@@ -30,7 +30,6 @@ class DataCollectorGroupAddForm(forms.ModelForm):
     class Meta:
         model = DataCollectorGroup
         fields = ['owner', 'name', 'assets']
-        ordering = ['-date_created']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
