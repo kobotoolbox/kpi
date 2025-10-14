@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v5.0.0
+        uses: aws-actions/configure-aws-credentials@v5.1.0
         with:
           aws-access-key-id: ${{ secrets.GHA_ALL_REPOS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.GHA_ALL_REPOS_SECRET_KEY }}
