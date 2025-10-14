@@ -1,4 +1,3 @@
-# coding: utf-8
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
@@ -43,7 +42,7 @@ urlpatterns = [
             api_version='openrosa',
             generator_class=OpenRosaAPISchemaGenerator,
             custom_settings={
-                'TAGS': [],
+                'TAGS': [], 'DESCRIPTION': settings.SPECTACULAR_OPENROSA_DESCRIPTION
             },
         ),
         name='schema-openrosa',
