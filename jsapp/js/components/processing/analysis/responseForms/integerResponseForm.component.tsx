@@ -10,6 +10,7 @@ import {
 } from '#/components/processing/analysis/utils'
 import commonStyles from './common.module.scss'
 import CommonHeader from './commonHeader.component'
+import {NumberInput} from '@mantine/core'
 
 interface IntegerResponseFormProps {
   uuid: string
@@ -70,10 +71,9 @@ export default function IntegerResponseForm(props: IntegerResponseFormProps) {
       <CommonHeader uuid={props.uuid} />
 
       <section className={commonStyles.content}>
-        <TextBox
-          type='number'
+        <NumberInput
           value={response}
-          onChange={onInputChange}
+          onChange={(newResponse) => onInputChange(newResponse.toString())}
           placeholder={t('Type your answer')}
           onBlur={saveResponse}
           disabled={!props.canEdit}
