@@ -1,13 +1,11 @@
 openapi: 3.0.3
 info:
-  title: KoboToolbox API
+  title: KoboToolbox OpenRosa API
   version: openrosa
   description: |-
-    This page documents all KoboToolbox OpenRosa API endpoints.
+    Welcome to the documentation for the KoboToolbox OpenRosa API. Data collection clients, including KoboCollect and web forms, use the API endpoints described here to retrieve surveys and upload submissions.
 
-    The endpoints are grouped by area of intended use. Each category contains related endpoints, with detailed documentation on usage and configuration. Use this as a reference to quickly find the right endpoint for making and editing submissions can be found.
-
-    Our separate documentation of KoboToolbox API endpoints for managing projects and data can be found [here](/api/v2/docs/).
+    Our separate documentation of the primary KoboToolbox API endpoints, used to manage projects and data, can be found [here](/api/v2/docs/).
 paths:
   /{username}/formList:
     get:
