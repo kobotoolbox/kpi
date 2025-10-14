@@ -42,7 +42,9 @@ urlpatterns = [
             api_version='openrosa',
             generator_class=OpenRosaAPISchemaGenerator,
             custom_settings={
-                'TAGS': [], 'DESCRIPTION': settings.SPECTACULAR_OPENROSA_DESCRIPTION
+                'TAGS': [],
+                'TITLE': settings.SPECTACULAR_OPENROSA_TITLE,
+                'DESCRIPTION': settings.SPECTACULAR_OPENROSA_DESCRIPTION
             },
         ),
         name='schema-openrosa',

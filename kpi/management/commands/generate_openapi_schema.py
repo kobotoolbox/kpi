@@ -59,6 +59,7 @@ class Command(BaseCommand):
             {
                 'VERSION': '',
                 'TAGS': [],
+                'TITLE': settings.SPECTACULAR_OPENROSA_TITLE,
                 'DESCRIPTION': settings.SPECTACULAR_OPENROSA_DESCRIPTION,
             }
             if schema_name == 'openrosa'
