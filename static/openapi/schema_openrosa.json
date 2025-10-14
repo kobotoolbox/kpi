@@ -240,6 +240,7 @@
                         "schema": {
                             "type": "string"
                         },
+                        "description": "UID of the asset snapshot",
                         "required": true
                     }
                 ],
@@ -282,6 +283,7 @@
                         "schema": {
                             "type": "string"
                         },
+                        "description": "UID of the asset snapshot",
                         "required": true
                     }
                 ],
@@ -324,6 +326,7 @@
                         "schema": {
                             "type": "string"
                         },
+                        "description": "UID of the asset snapshot",
                         "required": true
                     }
                 ],

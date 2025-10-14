@@ -171,6 +171,7 @@ paths:
         name: uid_asset_snapshot
         schema:
           type: string
+        description: UID of the asset snapshot
         required: true
       tags:
       - OpenRosa Form List
@@ -200,6 +201,7 @@ paths:
         name: uid_asset_snapshot
         schema:
           type: string
+        description: UID of the asset snapshot
         required: true
       tags:
       - OpenRosa Form Manifest
@@ -228,6 +230,7 @@ paths:
         name: uid_asset_snapshot
         schema:
           type: string
+        description: UID of the asset snapshot
         required: true
       tags:
       - OpenRosa Form Submission

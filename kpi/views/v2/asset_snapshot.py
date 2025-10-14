@@ -163,6 +163,15 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             error_media_type='text/html',
         ),
         tags=['OpenRosa Form List'],
+        parameters=[
+            OpenApiParameter(
+                name='uid_asset_snapshot',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the asset snapshot',
+            ),
+        ],
     ),
     manifest=extend_schema(
         description=read_md('kpi', 'openrosa/manifest.md'),
@@ -175,6 +184,15 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             error_media_type='text/html',
         ),
         tags=['OpenRosa Form Manifest'],
+        parameters=[
+            OpenApiParameter(
+                name='uid_asset_snapshot',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the asset snapshot',
+            ),
+        ],
     ),
     submission=extend_schema(
         description=read_md('kpi', 'openrosa/submission.md'),
@@ -187,6 +205,15 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             raise_not_found=False,
         ),
         tags=['OpenRosa Form Submission'],
+        parameters=[
+            OpenApiParameter(
+                name='uid_asset_snapshot',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the asset snapshot',
+            ),
+        ],
     ),
     preview=extend_schema(
         description=read_md('kpi', 'asset_snapshots/preview.md'),
