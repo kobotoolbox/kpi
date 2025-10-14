@@ -356,7 +356,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         Available actions:
         - xform_manifest (anonymous)         → GET /{username}/xformManifest/{id}
         - xform_manifest (authenticated)     → GET /xformManifest/{id}
-        - xform_manifest (data collector)     → GET /collector/{token}/xformManifest/{id}
+        - xform_manifest (data collector)    → GET /collector/{token}/xformManifest/{id}
 
         Documentation:
         - docs/api/v2/manifest/list.md
