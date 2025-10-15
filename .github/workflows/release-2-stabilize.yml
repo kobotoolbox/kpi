@@ -24,7 +24,7 @@ jobs:
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
       content: |
-        :catspinq: `${{ needs.version.outputs.current_branch }}` branch workflow is [running #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) for [diff](${{ github.event.compare }}), please see the next message shortly. The latest commit is:
+        :catspinq: `${{ needs.version.outputs.current_branch }}` branch workflow is [running #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) for [diff](${{ github.event.compare }}), see the next message in 1-40min. Last commit:
         - $COMMIT_TITLE
 
 
@@ -222,7 +222,7 @@ jobs:
             && format(':warning: failed to queue to deploy to beta: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
             || needs.deploy-to-beta.result == 'skipped'
               && ':skip_forward: deploy to beta skipped due failed automated tests or due not being the latest release.'
-              || format(':check: should have been deployed to [beta](kf.beta.kbtdev.org): @*QA*: release `{0}` is ready for testing!', needs.version.outputs.current_patch)
+              || ':check: triggered a deploy to [beta](kf.beta.kbtdev.org), see #**Kobo Dev>deployments to public-beta** for deployment status'
           }}
 
 
