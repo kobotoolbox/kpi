@@ -145,22 +145,11 @@ CREATE_MV_SQL = f"""
             ELSE NULL
         END AS organization,
         ued.data::jsonb AS metadata,
-        COALESCE(unl.total_asr_seconds, 0) AS total_nlp_usage_asr_seconds_all_time,
-        COALESCE(unl.total_mt_characters, 0) AS total_nlp_usage_mt_characters_all_time,
         COALESCE(ua.total_assets, 0) AS asset_count,
         COALESCE(ua.deployed_assets, 0) AS deployed_asset_count,
-        COALESCE(ucpu.total_nlp_usage_asr_seconds_current_period, 0) AS total_nlp_usage_asr_seconds_current_period,
-        COALESCE(ucpu.total_nlp_usage_mt_characters_current_period, 0) AS total_nlp_usage_mt_characters_current_period,
         ucpu.current_period_start,
         ucpu.current_period_end,
         ucpu.organization_id,
-        ubau.submission_limit,
-        ubau.storage_bytes_limit,
-        ubau.asr_seconds_limit,
-        ubau.mt_characters_limit,
-        ubau.total_storage_bytes,
-        ubau.total_submission_count_all_time,
-        ubau.total_submission_count_current_period,
         jsonb_build_object(
             'total_nlp_usage', jsonb_build_object(
                 'asr_seconds_current_period', COALESCE(ucpu.total_nlp_usage_asr_seconds_current_period, 0),
