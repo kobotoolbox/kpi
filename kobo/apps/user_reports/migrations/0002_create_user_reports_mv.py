@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import migrations
 
 
-CREATE_MV_SQL = f"""
+CREATE_MV_BASE_SQL = f"""
     CREATE MATERIALIZED VIEW user_reports_userreportsmv AS
     WITH user_nlp_usage AS (
         SELECT
@@ -87,7 +87,9 @@ CREATE_MV_SQL = f"""
         LEFT JOIN nlp_period_agg na ON ubp.user_id = na.user_id
     )
     SELECT
-        au.id AS id,
+        CONCAT(au.id::text, '-', COALESCE(org.id::text, 'orgnone')) AS id,
+        au.id AS user_id,
+        org.id AS organization_id,
         ued.uid AS extra_details_uid,
         au.username,
         au.first_name,
@@ -149,7 +151,6 @@ CREATE_MV_SQL = f"""
         COALESCE(ua.deployed_assets, 0) AS deployed_asset_count,
         ucpu.current_period_start,
         ucpu.current_period_end,
-        ucpu.organization_id,
         jsonb_build_object(
             'total_nlp_usage', jsonb_build_object(
                 'asr_seconds_current_period', COALESCE(ucpu.total_nlp_usage_asr_seconds_current_period, 0),
@@ -209,6 +210,54 @@ CREATE_MV_SQL = f"""
                     END
             )
         )::jsonb AS service_usage,
+        {{MV_SUBSCRIPTIONS_SELECT}}
+    FROM auth_user au
+    LEFT JOIN organizations_organizationuser ou ON au.id = ou.user_id
+    LEFT JOIN organizations_organization org ON ou.organization_id = org.id
+    {{MV_STRIPE_JOINS}}
+    LEFT JOIN hub_extrauserdetail ued ON au.id = ued.user_id
+    LEFT JOIN socialaccount_socialaccount sa ON au.id = sa.user_id
+    LEFT JOIN user_nlp_usage unl ON au.id = unl.user_id
+    LEFT JOIN user_assets ua ON au.id = ua.user_id
+    LEFT JOIN user_role_map ur ON ur.user_id = au.id
+    LEFT JOIN user_current_period_usage ucpu ON au.id = ucpu.user_id AND ucpu.organization_id = org.id
+    LEFT JOIN user_billing_periods ubau ON au.id = ubau.user_id AND ubau.organization_id = org.id
+    WHERE au.id != {settings.ANONYMOUS_USER_ID}
+    GROUP BY
+        au.id,
+        au.username,
+        au.first_name,
+        au.last_name,
+        au.email,
+        au.is_superuser,
+        au.is_staff,
+        au.is_active,
+        ued.uid,
+        ued.validated_password,
+        ued.data,
+        org.id,
+        org.name,
+        au.date_joined,
+        au.last_login,
+        unl.total_asr_seconds,
+        unl.total_mt_characters,
+        ua.total_assets,
+        ua.deployed_assets,
+        ur.user_role,
+        ucpu.current_period_start,
+        ucpu.current_period_end,
+        ucpu.total_nlp_usage_asr_seconds_current_period,
+        ucpu.total_nlp_usage_mt_characters_current_period,
+        ubau.submission_limit,
+        ubau.storage_bytes_limit,
+        ubau.asr_seconds_limit,
+        ubau.mt_characters_limit,
+        ubau.total_storage_bytes,
+        ubau.total_submission_count_all_time,
+        ubau.total_submission_count_current_period;
+    """
+
+STRIPE_SUBSCRIPTIONS = """
         COALESCE(
             jsonb_agg(
                 jsonb_build_object(
@@ -323,83 +372,65 @@ CREATE_MV_SQL = f"""
             ) FILTER (WHERE sub.id IS NOT NULL),
             '[]'::jsonb
         ) AS subscriptions
-    FROM auth_user au
-    LEFT JOIN organizations_organizationuser ou ON au.id = ou.user_id
-    LEFT JOIN organizations_organization org ON ou.organization_id = org.id
+        """
+
+NO_STRIPE_SUBSCRIPTIONS = """
+    '[]'::jsonb AS subscriptions
+    """
+
+STRIPE_JOINS = """    
     LEFT JOIN djstripe_subscription sub ON sub.metadata->>'organization_id' = org.id::text
     LEFT JOIN djstripe_customer cust ON sub.customer_id = cust.id
-    LEFT JOIN hub_extrauserdetail ued ON au.id = ued.user_id
-    LEFT JOIN socialaccount_socialaccount sa ON au.id = sa.user_id
-    LEFT JOIN user_nlp_usage unl ON au.id = unl.user_id
-    LEFT JOIN user_assets ua ON au.id = ua.user_id
-    LEFT JOIN user_role_map ur ON ur.user_id = au.id
-    LEFT JOIN user_current_period_usage ucpu ON au.id = ucpu.user_id
-    LEFT JOIN user_billing_periods ubau ON au.id = ubau.user_id
-    WHERE au.id != {settings.ANONYMOUS_USER_ID}
-    GROUP BY
-        au.id,
-        au.username,
-        au.first_name,
-        au.last_name,
-        au.email,
-        au.is_superuser,
-        au.is_staff,
-        au.is_active,
-        ued.uid,
-        ued.validated_password,
-        ued.data,
-        org.id,
-        org.name,
-        au.date_joined,
-        au.last_login,
-        unl.total_asr_seconds,
-        unl.total_mt_characters,
-        ua.total_assets,
-        ua.deployed_assets,
-        ur.user_role,
-        ucpu.current_period_start,
-        ucpu.current_period_end,
-        ucpu.total_nlp_usage_asr_seconds_current_period,
-        ucpu.total_nlp_usage_mt_characters_current_period,
-        ucpu.organization_id,
-        ubau.submission_limit,
-        ubau.storage_bytes_limit,
-        ubau.asr_seconds_limit,
-        ubau.mt_characters_limit,
-        ubau.total_storage_bytes,
-        ubau.total_submission_count_all_time,
-        ubau.total_submission_count_current_period;
     """
+
+NO_STRIPE_JOINS = ""
+
+if settings.STRIPE_ENABLED:
+    MV_PARAMS = {
+        'MV_STRIPE_JOINS': STRIPE_JOINS,
+        'MV_SUBSCRIPTIONS_SELECT': STRIPE_SUBSCRIPTIONS,
+    }
+else:
+    MV_PARAMS = {
+        'MV_STRIPE_JOINS': NO_STRIPE_JOINS,
+        'MV_SUBSCRIPTIONS_SELECT': NO_STRIPE_SUBSCRIPTIONS,
+    }
+
+CREATE_MV_SQL = CREATE_MV_BASE_SQL.format(**MV_PARAMS)
 
 DROP_MV_SQL = """
     DROP MATERIALIZED VIEW IF EXISTS user_reports_userreportsmv;
     """
 
-CREATE_INDEX_SQL = """
-    CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_mv_id ON user_reports_userreportsmv (id);
+CREATE_INDEXES_SQL = """
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_user_reports_mv_id ON user_reports_userreportsmv (id);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_user_reports_mv_user_org ON user_reports_userreportsmv (user_id, organization_id);
     """
-DROP_INDEX_SQL = """
+DROP_INDEXES_SQL = """
+    DROP INDEX IF EXISTS idx_user_reports_mv_user_org;
     DROP INDEX IF EXISTS idx_user_reports_mv_id;
     """
 
 
 def manually_create_mv_instructions(apps, schema_editor):
     print(
-        """
+        f"""
         ⚠️ ATTENTION ⚠️
         Run the SQL query below in PostgreSQL directly to create the materialized view:
 
         {CREATE_MV_SQL}
 
-        Once the materialized view is created, you may need to refresh it periodically with:
-        REFRESH MATERIALIZED VIEW CONCURRENTLY user_reports_userreportsmv;
-        """
+        Then run the SQL query below to create the indexes:
+
+        {CREATE_INDEXES_SQL}
+
+        """.replace('CREATE UNIQUE INDEX', 'CREATE UNIQUE INDEX CONCURRENTLY')
     )
 
 
 def manually_drop_mv_instructions(apps, schema_editor):
     print(
-        """
+        f"""
         ⚠️ ATTENTION ⚠️
         Run the SQL query below in PostgreSQL directly:
 
@@ -432,7 +463,7 @@ class Migration(migrations.Migration):
                 reverse_sql=DROP_MV_SQL,
             ),
             migrations.RunSQL(
-                sql=CREATE_INDEX_SQL,
-                reverse_sql=DROP_INDEX_SQL,
+                sql=CREATE_INDEXES_SQL,
+                reverse_sql=DROP_INDEXES_SQL,
             ),
         ]

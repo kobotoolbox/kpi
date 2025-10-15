@@ -95,6 +95,7 @@ class BillingAndUsageSnapshotRun(AbstractTimeStampedModel):
 
 
 class UserReports(models.Model):
+    id = models.CharField(primary_key=True, max_length=80)
     extra_details_uid = models.CharField(null=True, blank=True)
     username = models.CharField()
     first_name = models.CharField()
@@ -121,7 +122,6 @@ class UserReports(models.Model):
     current_period_start = models.DateTimeField(null=True, blank=True)
     current_period_end = models.DateTimeField(null=True, blank=True)
     service_usage = models.JSONField(null=True, blank=True)
-    organization_id = models.IntegerField(null=True, blank=True)
 
     class Meta:
         managed = False
