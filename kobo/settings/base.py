@@ -654,7 +654,7 @@ CONSTANCE_CONFIG = {
         '"test_users" query for MassEmailConfigs',
     ),
     'ALLOW_SELF_ACCOUNT_DELETION': (
-        True,
+        False,
         'Allow users to delete their own account.',
     ),
 }
@@ -1010,9 +1010,11 @@ REST_FRAMEWORK = {
 
 # Settings for the API documentation using drf-spectacular
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'KoboToolbox API',
+    'TITLE': 'KoboToolbox Primary API',
     'DESCRIPTION': (
-        'This page documents all KoboToolbox API endpoints.\n\n'
+        'This page documents all KoboToolbox API endpoints, except for those '
+        'implementing the OpenRosa protocol, which are [documented separately](/api/openrosa/docs/).'  # noqa
+        '\n\n'
         'The endpoints are grouped by area of intended use. Each category contains '
         'related endpoints, with detailed documentation on usage and configuration. '
         'Use this as a reference to quickly find the right endpoint for managing '
@@ -1020,7 +1022,7 @@ SPECTACULAR_SETTINGS = {
         'resources.\n\n'
         '**General note**: All projects (whether deployed or draft), as well as all '
         'library content (questions, blocks, templates, and collections) in the '
-        'user-facing application are represented in the API as assets.'
+        'user-facing application are represented in the API as "assets".'
     ),
     'VERSION': '2.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
@@ -1120,6 +1122,16 @@ SPECTACULAR_SETTINGS = {
         },
     ],
 }
+
+SPECTACULAR_OPENROSA_TITLE = 'KoboToolbox OpenRosa API'
+
+SPECTACULAR_OPENROSA_DESCRIPTION = (
+    'Welcome to the documentation for the KoboToolbox OpenRosa API. Data collection '
+    'clients, including KoboCollect and web forms, use the API endpoints described '
+    'here to retrieve surveys and upload submissions.\n\n'
+    'Our separate documentation of the primary KoboToolbox API endpoints, used to '
+    'manage projects and data, can be found [here](/api/v2/docs/).'
+)
 
 OPENROSA_REST_FRAMEWORK = {
 

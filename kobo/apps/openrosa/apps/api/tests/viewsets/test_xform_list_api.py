@@ -902,7 +902,7 @@ class TestXFormListApiAsDataCollector(TestXFormListApiBase):
             data = {
                 'hash_0': self.xform_without_auth.md5_hash,
                 'hash_1': self.xform.md5_hash,
-                'key': self.data_collector.token,
+                'token': self.data_collector.token,
                 'pk_0': self.xform_without_auth.pk,
                 'pk_1': self.xform.pk,
             }
@@ -937,7 +937,7 @@ class TestXFormListApiAsDataCollector(TestXFormListApiBase):
             data = {
                 'hash': self.xform.md5_hash,
                 'pk': self.xform.pk,
-                'key': self.data_collector.token,
+                'token': self.data_collector.token,
             }
             self.assertEqual(content, form_list_xml % data)
 
@@ -963,7 +963,7 @@ class TestXFormListApiAsDataCollector(TestXFormListApiBase):
             '   <mediaFile>'
             '        <filename>screenshot.png</filename>'
             '        <hash>%(hash)s</hash>'
-            '        <downloadUrl>http://testserver/key/%(key)s/xformsMedia/%(xform)s/%(pk)s.png</downloadUrl>'  # noqa
+            '        <downloadUrl>http://testserver/collector/%(key)s/xformsMedia/%(xform)s/%(pk)s.png</downloadUrl>'  # noqa
             '    </mediaFile>'
             '</manifest>'
         )
