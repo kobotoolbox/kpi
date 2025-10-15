@@ -300,7 +300,6 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         return someuser_data
 
 
-@pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Requires stripe functionality')
 class UserReportsFilterAndOrderingTestCase(BaseTestCase):
     fixtures = ['test_data']
 
@@ -336,10 +335,6 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         return resp.json()
 
-    def _refresh_mv(self):
-        with connection.cursor() as cursor:
-            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_userreportsmv;')
-
     def test_username_prefix_filter(self):
         res = self._get_results({'q': 'username__icontains:some'})
         self.assertEqual(res['count'], 1)
@@ -359,34 +354,38 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
         self.assertEqual(res_none['count'], 0)
 
     def test_storage_bytes_gte_and_lte_filters(self):
-        snap = BillingAndUsageSnapshot.objects.get(
-            organization_id=self.someuser.organization.id
+        # Update someuser's storage to simulate storage usage
+        UserProfile.objects.filter(user_id=self.someuser.id).update(
+            attachment_storage_bytes=123456789
         )
-        snap.total_storage_bytes = 123456789
-        snap.save()
-        self._refresh_mv()
-
-        resp_gte = self._get_results({'q': 'total_storage_bytes__gte:100000000'})
-        self.assertTrue(any(r['username'] == 'someuser' for r in resp_gte['results']))
-
-        resp_lte = self._get_results({'q': 'total_storage_bytes__lte:200000000'})
-        self.assertTrue(any(r['username'] == 'someuser' for r in resp_lte['results']))
-
-    def test_current_period_submissions_gte_and_lte_filters(self):
-        snap = BillingAndUsageSnapshot.objects.get(
-            organization_id=self.someuser.organization.id
-        )
-        snap.total_submission_count_current_period = 5
-        snap.save()
-        self._refresh_mv()
+        refresh_user_report_snapshots()
 
         resp_gte = self._get_results(
-            {'q': 'total_submission_count_current_period__gte:4'}
+            {'q': 'service_usage__total_storage_bytes__gte:100000000'}
         )
         self.assertTrue(any(r['username'] == 'someuser' for r in resp_gte['results']))
 
         resp_lte = self._get_results(
-            {'q': 'total_submission_count_current_period__lte:5'}
+            {'q': 'service_usage__total_storage_bytes__lte:200000000'}
+        )
+        self.assertTrue(any(r['username'] == 'someuser' for r in resp_lte['results']))
+
+    def test_current_period_submissions_gte_and_lte_filters(self):
+        # Create a submission counter entry to simulate usage
+        DailyXFormSubmissionCounter.objects.create(
+            user_id=self.someuser.id,
+            date=timezone.now().date(),
+            counter=5
+        )
+        refresh_user_report_snapshots()
+
+        resp_gte = self._get_results(
+            {'q': 'service_usage__total_submission_count__current_period__gte:4'}
+        )
+        self.assertTrue(any(r['username'] == 'someuser' for r in resp_gte['results']))
+
+        resp_lte = self._get_results(
+            {'q': 'service_usage__total_submission_count__current_period__lte:5'}
         )
         self.assertTrue(any(r['username'] == 'someuser' for r in resp_lte['results']))
 

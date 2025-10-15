@@ -97,7 +97,7 @@ class Migration(migrations.Migration):
         ('user_reports', '0002_create_user_reports_mv'),
     ]
 
-    if settings.SKIP_HEAVY_MIGRATIONS or not settings.STRIPE_ENABLED:
+    if settings.SKIP_HEAVY_MIGRATIONS:
         operations = [
             migrations.RunPython(
                 manually_create_indexes_instructions,
