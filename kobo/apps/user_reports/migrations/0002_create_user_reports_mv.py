@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import migrations
 
 
-CREATE_MV_SQL = """
+CREATE_MV_SQL = f"""
     CREATE MATERIALIZED VIEW user_reports_userreportsmv AS
     WITH user_nlp_usage AS (
         SELECT
@@ -145,22 +145,11 @@ CREATE_MV_SQL = """
             ELSE NULL
         END AS organization,
         ued.data::jsonb AS metadata,
-        COALESCE(unl.total_asr_seconds, 0) AS total_nlp_usage_asr_seconds_all_time,
-        COALESCE(unl.total_mt_characters, 0) AS total_nlp_usage_mt_characters_all_time,
         COALESCE(ua.total_assets, 0) AS asset_count,
         COALESCE(ua.deployed_assets, 0) AS deployed_asset_count,
-        COALESCE(ucpu.total_nlp_usage_asr_seconds_current_period, 0) AS total_nlp_usage_asr_seconds_current_period,
-        COALESCE(ucpu.total_nlp_usage_mt_characters_current_period, 0) AS total_nlp_usage_mt_characters_current_period,
         ucpu.current_period_start,
         ucpu.current_period_end,
         ucpu.organization_id,
-        ubau.submission_limit,
-        ubau.storage_bytes_limit,
-        ubau.asr_seconds_limit,
-        ubau.mt_characters_limit,
-        ubau.total_storage_bytes,
-        ubau.total_submission_count_all_time,
-        ubau.total_submission_count_current_period,
         jsonb_build_object(
             'total_nlp_usage', jsonb_build_object(
                 'asr_seconds_current_period', COALESCE(ucpu.total_nlp_usage_asr_seconds_current_period, 0),
@@ -346,7 +335,7 @@ CREATE_MV_SQL = """
     LEFT JOIN user_role_map ur ON ur.user_id = au.id
     LEFT JOIN user_current_period_usage ucpu ON au.id = ucpu.user_id
     LEFT JOIN user_billing_periods ubau ON au.id = ubau.user_id
-    WHERE au.id != <ANONYMOUS_ID_VALUE>
+    WHERE au.id != {settings.ANONYMOUS_USER_ID}
     GROUP BY
         au.id,
         au.username,
@@ -437,13 +426,9 @@ class Migration(migrations.Migration):
             )
         ]
     else:
-        CREATE_MV_SQL_FORMATTED = CREATE_MV_SQL.replace(
-            '<ANONYMOUS_ID_VALUE>',
-            str(settings.ANONYMOUS_USER_ID)
-        )
         operations = [
             migrations.RunSQL(
-                sql=CREATE_MV_SQL_FORMATTED,
+                sql=CREATE_MV_SQL,
                 reverse_sql=DROP_MV_SQL,
             ),
             migrations.RunSQL(

@@ -115,15 +115,6 @@ class UserReports(models.Model):
     metadata = models.JSONField(null=True, blank=True)
     subscriptions = models.JSONField(default=list)
 
-    total_storage_bytes = models.BigIntegerField(default=0)
-    total_submission_count_all_time = models.BigIntegerField(default=0)
-    total_submission_count_current_period = models.BigIntegerField(default=0)
-
-    total_nlp_usage_asr_seconds_all_time = models.BigIntegerField(default=0)
-    total_nlp_usage_mt_characters_all_time = models.BigIntegerField(default=0)
-    total_nlp_usage_asr_seconds_current_period = models.BigIntegerField(default=0)
-    total_nlp_usage_mt_characters_current_period = models.BigIntegerField(default=0)
-
     asset_count = models.IntegerField(default=0)
     deployed_asset_count = models.IntegerField(default=0)
 
