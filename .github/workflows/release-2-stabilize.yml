@@ -96,6 +96,7 @@ jobs:
       CURRENT_PATCH: ${{ needs.version.outputs.current_patch }}
     steps:
 
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/checkout-with-github-app-token
 
     - name: draft a changelog
@@ -149,6 +150,7 @@ jobs:
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     steps:
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/checkout-with-github-app-token
     - name: Merge
       env:
