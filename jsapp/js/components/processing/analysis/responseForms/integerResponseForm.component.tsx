@@ -1,6 +1,5 @@
+import { NumberInput } from '@mantine/core'
 import React, { useContext, useState } from 'react'
-
-import TextBox from '#/components/common/textBox'
 import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import { AUTO_SAVE_TYPING_DELAY } from '#/components/processing/analysis/constants'
 import {
@@ -10,7 +9,6 @@ import {
 } from '#/components/processing/analysis/utils'
 import commonStyles from './common.module.scss'
 import CommonHeader from './commonHeader.component'
-import {NumberInput} from '@mantine/core'
 
 interface IntegerResponseFormProps {
   uuid: string
