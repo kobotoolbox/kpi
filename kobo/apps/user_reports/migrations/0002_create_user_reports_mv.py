@@ -89,6 +89,7 @@ CREATE_MV_SQL_STRIPE = f"""
     SELECT
         CONCAT(au.id::text, '-', COALESCE(org.id::text, 'orgnone')) AS id,
         au.id AS user_id,
+        org.id AS organization_id,
         ued.uid AS extra_details_uid,
         au.username,
         au.first_name,
@@ -150,7 +151,6 @@ CREATE_MV_SQL_STRIPE = f"""
         COALESCE(ua.deployed_assets, 0) AS deployed_asset_count,
         ucpu.current_period_start,
         ucpu.current_period_end,
-        ucpu.organization_id,
         jsonb_build_object(
             'total_nlp_usage', jsonb_build_object(
                 'asr_seconds_current_period', COALESCE(ucpu.total_nlp_usage_asr_seconds_current_period, 0),
@@ -334,8 +334,8 @@ CREATE_MV_SQL_STRIPE = f"""
     LEFT JOIN user_nlp_usage unl ON au.id = unl.user_id
     LEFT JOIN user_assets ua ON au.id = ua.user_id
     LEFT JOIN user_role_map ur ON ur.user_id = au.id
-    LEFT JOIN user_current_period_usage ucpu ON au.id = ucpu.user_id
-    LEFT JOIN user_billing_periods ubau ON au.id = ubau.user_id
+    LEFT JOIN user_current_period_usage ucpu ON au.id = ucpu.user_id AND ucpu.organization_id = org.id
+    LEFT JOIN user_billing_periods ubau ON au.id = ubau.user_id AND ubau.organization_id = org.id
     WHERE au.id != {settings.ANONYMOUS_USER_ID}
     GROUP BY
         au.id,
@@ -362,7 +362,6 @@ CREATE_MV_SQL_STRIPE = f"""
         ucpu.current_period_end,
         ucpu.total_nlp_usage_asr_seconds_current_period,
         ucpu.total_nlp_usage_mt_characters_current_period,
-        ucpu.organization_id,
         ubau.submission_limit,
         ubau.storage_bytes_limit,
         ubau.asr_seconds_limit,
@@ -457,6 +456,7 @@ CREATE_MV_SQL = f"""
     SELECT
         CONCAT(au.id::text, '-', COALESCE(org.id::text, 'orgnone')) AS id,
         au.id AS user_id,
+        org.id as organization_id,
         ued.uid AS extra_details_uid,
         au.username,
         au.first_name,
@@ -587,8 +587,8 @@ CREATE_MV_SQL = f"""
     LEFT JOIN user_nlp_usage unl ON au.id = unl.user_id
     LEFT JOIN user_assets ua ON au.id = ua.user_id
     LEFT JOIN user_role_map ur ON ur.user_id = au.id
-    LEFT JOIN user_current_period_usage ucpu ON au.id = ucpu.user_id
-    LEFT JOIN user_billing_periods ubau ON au.id = ubau.user_id
+    LEFT JOIN user_current_period_usage ucpu ON au.id = ucpu.user_id AND ucpu.organization_id = org.id
+    LEFT JOIN user_billing_periods ubau ON au.id = ubau.user_id AND ubau.organization_id = org.id
     WHERE au.id != {settings.ANONYMOUS_USER_ID}
     GROUP BY
         au.id,
@@ -615,7 +615,6 @@ CREATE_MV_SQL = f"""
         ucpu.current_period_end,
         ucpu.total_nlp_usage_asr_seconds_current_period,
         ucpu.total_nlp_usage_mt_characters_current_period,
-        ucpu.organization_id,
         ubau.submission_limit,
         ubau.storage_bytes_limit,
         ubau.asr_seconds_limit,
@@ -629,31 +628,35 @@ DROP_MV_SQL = """
     DROP MATERIALIZED VIEW IF EXISTS user_reports_userreportsmv;
     """
 
-CREATE_INDEX_SQL = """
-    CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_mv_id ON user_reports_userreportsmv (id);
+CREATE_INDEXES_SQL = """
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_user_reports_mv_id ON user_reports_userreportsmv (id);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_user_reports_mv_user_org ON user_reports_userreportsmv (user_id, organization_id);
     """
-DROP_INDEX_SQL = """
+DROP_INDEXES_SQL = """
+    DROP INDEX IF EXISTS idx_user_reports_mv_user_org;
     DROP INDEX IF EXISTS idx_user_reports_mv_id;
     """
 
 
 def manually_create_mv_instructions(apps, schema_editor):
     print(
-        """
+        f"""
         ⚠️ ATTENTION ⚠️
         Run the SQL query below in PostgreSQL directly to create the materialized view:
 
         {CREATE_MV_SQL}
 
-        Once the materialized view is created, you may need to refresh it periodically with:
-        REFRESH MATERIALIZED VIEW CONCURRENTLY user_reports_userreportsmv;
-        """
+        Then run the SQL query below to create the indexes:
+
+        {CREATE_INDEXES_SQL}
+
+        """.replace('CREATE UNIQUE INDEX', 'CREATE UNIQUE INDEX CONCURRENTLY')
     )
 
 
 def manually_drop_mv_instructions(apps, schema_editor):
     print(
-        """
+        f"""
         ⚠️ ATTENTION ⚠️
         Run the SQL query below in PostgreSQL directly:
 
@@ -687,7 +690,7 @@ class Migration(migrations.Migration):
                 reverse_sql=DROP_MV_SQL,
             ),
             migrations.RunSQL(
-                sql=CREATE_INDEX_SQL,
-                reverse_sql=DROP_INDEX_SQL,
+                sql=CREATE_INDEXES_SQL,
+                reverse_sql=DROP_INDEXES_SQL,
             ),
         ]

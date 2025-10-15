@@ -156,7 +156,7 @@ class Migration(migrations.Migration):
                     fields=[
                         (
                             'id',
-                            models.BigIntegerField(primary_key=True, serialize=False)
+                            models.CharField(max_length=80, primary_key=True)
                         ),
                         (
                             'extra_details_uid',
@@ -180,7 +180,7 @@ class Migration(migrations.Migration):
                         ('sso_is_active', models.BooleanField()),
                         ('accepted_tos', models.BooleanField()),
                         ('social_accounts', models.JSONField(null=True, blank=True)),
-                        ('organizations', models.JSONField(null=True, blank=True)),
+                        ('organization', models.JSONField(null=True, blank=True)),
                         ('metadata', models.JSONField(null=True, blank=True)),
                         ('subscriptions', models.JSONField(null=True, blank=True)),
                         ('asset_count', models.IntegerField(default=0)),
@@ -192,10 +192,6 @@ class Migration(migrations.Migration):
                         (
                             'current_period_end',
                             models.DateTimeField(null=True, blank=True)
-                        ),
-                        (
-                            'organization_id',
-                            models.IntegerField(null=True, blank=True)
                         ),
                         (
                             'service_usage',
