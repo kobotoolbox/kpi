@@ -6,9 +6,9 @@ import securityStyles from '#/account/security/securityRoute.module.scss'
 import type { AccessLogResponse } from '#/api/models/accessLogResponse'
 import type { ErrorDetail } from '#/api/models/errorDetail'
 import {
-  getAccessLogsListQueryKey,
-  useAccessLogsList,
+  getAccessLogsMeListQueryKey,
   useAccessLogsMeExportCreate,
+  useAccessLogsMeList,
 } from '#/api/react-query/access-logs'
 import Button from '#/components/common/button'
 import ExportToEmailButton from '#/components/exportToEmailButton/exportToEmailButton.component'
@@ -21,9 +21,9 @@ export default function AccessLogsSection() {
     limit: DEFAULT_PAGE_SIZE,
     offset: 0,
   })
-  const queryResult = useAccessLogsList(pagination, {
+  const queryResult = useAccessLogsMeList(pagination, {
     query: {
-      queryKey: getAccessLogsListQueryKey(pagination),
+      queryKey: getAccessLogsMeListQueryKey(pagination),
       placeholderData: keepPreviousData,
     },
   })

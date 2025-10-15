@@ -22,12 +22,17 @@ export interface PaginatedListResponseData<Datum = never> {
 
 export type PaginatedListResponse<Datum = never> =
   | PaginatedListResponse.Ok<Datum>
+  | PaginatedListResponse.Unauthorized
   | PaginatedListResponse.Forbidden
   | PaginatedListResponse.NotFound
 export namespace PaginatedListResponse {
   export interface Ok<Datum = never> {
     data: PaginatedListResponseData<Datum>
     status: 200
+  }
+  export interface Unauthorized {
+    data: unknown
+    status: 401
   }
   export interface Forbidden {
     data: unknown
