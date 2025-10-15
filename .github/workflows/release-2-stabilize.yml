@@ -132,6 +132,10 @@ jobs:
     steps:
 
     - uses: actions/checkout@v4
+    - uses: ./.github/actions/checkout-with-github-app-token
+      with:
+        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
 
     - name: deploy to beta
       run: |
