@@ -67,13 +67,6 @@ class UserReportsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     skip_distinct = True
 
     def list(self, request, *args, **kwargs):
-        if not settings.STRIPE_ENABLED:
-            return Response(
-                {
-                    'details': 'Stripe must be enabled to access this endpoint.',
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
         try:
             return super().list(request, *args, **kwargs)
         except ProgrammingError as e:

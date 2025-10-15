@@ -3,7 +3,6 @@ from django.core.cache import cache
 from django.utils import timezone
 
 from kobo.apps.stripe.utils.billing_dates import get_current_billing_period_dates_by_org
-from kobo.apps.stripe.utils.import_management import requires_stripe
 from kobo.apps.stripe.utils.subscription_limits import (
     get_organizations_effective_limits
 )
@@ -24,7 +23,6 @@ from kobo.celery import celery_app
 from kpi.utils.log import logging
 
 
-@requires_stripe
 @celery_app.task(
     queue='kpi_low_priority_queue',
     soft_time_limit=settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT,
