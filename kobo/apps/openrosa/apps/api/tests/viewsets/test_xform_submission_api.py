@@ -866,7 +866,8 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 self.assertTrue(response.has_header('Date'))
                 self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
                 self.assertEqual(
-                    response['Location'], f'http://testserver/key/{dc.token}/submission'
+                    response['Location'],
+                    f'http://testserver/collector/{dc.token}/submission'
                 )
 
 

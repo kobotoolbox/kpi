@@ -121,7 +121,7 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
         import_in_background.delay(import_task_uid=import_task.uid)
         return Response(
             {
-                'uid_import': import_task.uid,
+                'uid': import_task.uid,
                 'url': reverse(
                     'api_v2:importtask-detail',
                     kwargs={'uid_import': import_task.uid},
