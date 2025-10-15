@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import migrations
 
 
-CREATE_MV_SQL = f"""
+CREATE_MV_SQL_STRIPE = f"""
     CREATE MATERIALIZED VIEW user_reports_userreportsmv AS
     WITH user_nlp_usage AS (
         SELECT
@@ -372,6 +372,259 @@ CREATE_MV_SQL = f"""
         ubau.total_submission_count_current_period;
     """
 
+CREATE_MV_SQL = f"""
+    CREATE MATERIALIZED VIEW user_reports_userreportsmv AS
+    WITH user_nlp_usage AS (
+        SELECT
+            nuc.user_id,
+            COALESCE(SUM(nuc.total_asr_seconds), 0) AS total_asr_seconds,
+            COALESCE(SUM(nuc.total_mt_characters), 0) AS total_mt_characters
+        FROM trackers_nlpusagecounter nuc
+        GROUP BY nuc.user_id
+    ),
+    user_assets AS (
+        SELECT
+            a.owner_id as user_id,
+            COUNT(*) as total_assets,
+            COUNT(*) FILTER (WHERE a._deployment_status = 'deployed') as deployed_assets
+        FROM kpi_asset a
+        WHERE a.pending_delete = false
+        GROUP BY a.owner_id
+    ),
+    user_role_map AS (
+        SELECT
+            au.id AS user_id,
+            CASE
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM organizations_organizationowner o
+                    JOIN organizations_organizationuser ou_owner ON ou_owner.id = o.organization_user_id
+                    WHERE ou_owner.user_id = au.id
+                ) THEN 'owner'
+                WHEN EXISTS (
+                    SELECT 1 FROM organizations_organizationuser ou WHERE ou.user_id = au.id AND ou.is_admin IS TRUE
+                ) THEN 'admin'
+                WHEN EXISTS (
+                    SELECT 1 FROM organizations_organizationuser ou WHERE ou.user_id = au.id
+                ) THEN 'member'
+                ELSE 'external'
+            END AS user_role
+        FROM auth_user au
+    ),
+    user_billing_periods AS (
+        SELECT DISTINCT
+            au.id as user_id,
+            bus.billing_period_start AS current_period_start,
+            bus.billing_period_end   AS current_period_end,
+            bus.organization_id,
+            bus.submission_limit,
+            bus.storage_bytes_limit,
+            bus.asr_seconds_limit,
+            bus.mt_characters_limit,
+            COALESCE(bus.total_storage_bytes, 0) as total_storage_bytes,
+            COALESCE(bus.total_submission_count_all_time, 0) as total_submission_count_all_time,
+            COALESCE(bus.total_submission_count_current_period, 0) as total_submission_count_current_period
+        FROM auth_user au
+        LEFT JOIN organizations_organizationuser ou ON au.id = ou.user_id
+        LEFT JOIN user_reports_billingandusagesnapshot bus ON ou.organization_id = bus.organization_id
+    ),
+    nlp_period_agg AS (
+        SELECT
+            nuc.user_id,
+            SUM(
+                CASE WHEN nuc.date >= ubp.current_period_start AND nuc.date <= ubp.current_period_end
+                     THEN nuc.total_asr_seconds ELSE 0 END
+            ) AS total_nlp_usage_asr_seconds_current_period,
+            SUM(
+                CASE WHEN nuc.date >= ubp.current_period_start AND nuc.date <= ubp.current_period_end
+                     THEN nuc.total_mt_characters ELSE 0 END
+            ) AS total_nlp_usage_mt_characters_current_period
+        FROM trackers_nlpusagecounter nuc
+        JOIN user_billing_periods ubp ON nuc.user_id = ubp.user_id
+        GROUP BY nuc.user_id
+    ),
+    user_current_period_usage AS (
+        SELECT
+            ubp.user_id,
+            ubp.current_period_start,
+            ubp.current_period_end,
+            ubp.organization_id,
+            COALESCE(na.total_nlp_usage_asr_seconds_current_period, 0) AS total_nlp_usage_asr_seconds_current_period,
+            COALESCE(na.total_nlp_usage_mt_characters_current_period, 0) AS total_nlp_usage_mt_characters_current_period
+        FROM user_billing_periods ubp
+        LEFT JOIN nlp_period_agg na ON ubp.user_id = na.user_id
+    )
+    SELECT
+        CONCAT(au.id::text, '-', COALESCE(org.id::text, 'orgnone')) AS id,
+        au.id AS user_id,
+        ued.uid AS extra_details_uid,
+        au.username,
+        au.first_name,
+        au.last_name,
+        au.email,
+        au.is_superuser,
+        au.is_staff,
+        au.is_active,
+        TO_CHAR(au.date_joined AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS date_joined,
+        CASE
+            WHEN au.last_login IS NOT NULL THEN TO_CHAR(au.last_login AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+            ELSE NULL
+        END AS last_login,
+        EXISTS (
+            SELECT 1
+            FROM account_emailaddress aea
+            WHERE aea.user_id = au.id
+            AND aea.primary = true
+            AND aea.verified = true
+        ) AS validated_email,
+        ued.validated_password,
+        EXISTS (
+            SELECT 1
+            FROM trench_mfamethod mfa
+            WHERE mfa.user_id = au.id
+            AND mfa.is_active = true
+        ) AS mfa_is_active,
+        EXISTS (
+            SELECT 1
+            FROM socialaccount_socialaccount sa
+            WHERE sa.user_id = au.id
+        ) AS sso_is_active,
+        EXISTS (
+            SELECT 1
+            FROM hub_extrauserdetail ued_tos
+            WHERE ued_tos.user_id = au.id
+            AND ued_tos.private_data ? 'last_tos_accept_time'
+        ) AS accepted_tos,
+        COALESCE(
+            jsonb_agg(
+                jsonb_build_object(
+                    'id', sa.id,
+                    'provider', sa.provider,
+                    'uid', sa.uid
+                )
+            ) FILTER (WHERE sa.id IS NOT NULL),
+            '[]'::jsonb
+        ) AS social_accounts,
+        CASE
+            WHEN org.id IS NOT NULL THEN jsonb_build_object(
+                'name', org.name,
+                'uid', org.id::text,
+                'role', ur.user_role
+            )
+            ELSE NULL
+        END AS organization,
+        ued.data::jsonb AS metadata,
+        COALESCE(ua.total_assets, 0) AS asset_count,
+        COALESCE(ua.deployed_assets, 0) AS deployed_asset_count,
+        ucpu.current_period_start,
+        ucpu.current_period_end,
+        ucpu.organization_id,
+        jsonb_build_object(
+            'total_nlp_usage', jsonb_build_object(
+                'asr_seconds_current_period', COALESCE(ucpu.total_nlp_usage_asr_seconds_current_period, 0),
+                'mt_characters_current_period', COALESCE(ucpu.total_nlp_usage_mt_characters_current_period, 0),
+                'asr_seconds_all_time', COALESCE(unl.total_asr_seconds, 0),
+                'mt_characters_all_time', COALESCE(unl.total_mt_characters, 0)
+            ),
+            'total_storage_bytes', COALESCE(ubau.total_storage_bytes, 0),
+            'total_submission_count', jsonb_build_object(
+                'current_period', COALESCE(ubau.total_submission_count_current_period, 0),
+                'all_time', COALESCE(ubau.total_submission_count_all_time, 0)
+            ),
+            'balances', jsonb_build_object(
+                'submission',
+                    CASE
+                        WHEN ubau.submission_limit IS NULL OR ubau.submission_limit = 0 THEN NULL
+                        ELSE jsonb_build_object(
+                            'effective_limit', ubau.submission_limit,
+                            'balance_value', (ubau.submission_limit - COALESCE(ubau.total_submission_count_current_period, 0)),
+                            'balance_percent',
+                                ((COALESCE(ubau.total_submission_count_current_period, 0)::numeric * 100) / NULLIF(ubau.submission_limit, 0))::int,
+                            'exceeded', (ubau.submission_limit - COALESCE(ubau.total_submission_count_current_period, 0)) < 0
+                        )
+                    END,
+                'storage_bytes',
+                    CASE
+                        WHEN ubau.storage_bytes_limit IS NULL OR ubau.storage_bytes_limit = 0 THEN NULL
+                        ELSE jsonb_build_object(
+                            'effective_limit', ubau.storage_bytes_limit,
+                            'balance_value', (ubau.storage_bytes_limit - COALESCE(ubau.total_storage_bytes, 0)),
+                            'balance_percent',
+                                ((COALESCE(ubau.total_storage_bytes, 0)::numeric * 100) / NULLIF(ubau.storage_bytes_limit, 0))::int,
+                            'exceeded', (ubau.storage_bytes_limit - COALESCE(ubau.total_storage_bytes, 0)) < 0
+                        )
+                    END,
+                'asr_seconds',
+                    CASE
+                        WHEN ubau.asr_seconds_limit IS NULL OR ubau.asr_seconds_limit = 0 THEN NULL
+                        ELSE jsonb_build_object(
+                            'effective_limit', ubau.asr_seconds_limit,
+                            'balance_value', (ubau.asr_seconds_limit - COALESCE(ucpu.total_nlp_usage_asr_seconds_current_period, 0)),
+                            'balance_percent',
+                                ((COALESCE(ucpu.total_nlp_usage_asr_seconds_current_period, 0)::numeric * 100) / NULLIF(ubau.asr_seconds_limit, 0))::int,
+                            'exceeded', (ubau.asr_seconds_limit - COALESCE(ucpu.total_nlp_usage_asr_seconds_current_period, 0)) < 0
+                        )
+                    END,
+                'mt_characters',
+                    CASE
+                        WHEN ubau.mt_characters_limit IS NULL OR ubau.mt_characters_limit = 0 THEN NULL
+                        ELSE jsonb_build_object(
+                            'effective_limit', ubau.mt_characters_limit,
+                            'balance_value', (ubau.mt_characters_limit - COALESCE(ucpu.total_nlp_usage_mt_characters_current_period, 0)),
+                            'balance_percent',
+                                ((COALESCE(ucpu.total_nlp_usage_mt_characters_current_period, 0)::numeric * 100) / NULLIF(ubau.mt_characters_limit, 0))::int,
+                            'exceeded', (ubau.mt_characters_limit - COALESCE(ucpu.total_nlp_usage_mt_characters_current_period, 0)) < 0
+                        )
+                    END
+            )
+        )::jsonb AS service_usage,
+        '[]'::jsonb AS subscriptions
+    FROM auth_user au
+    LEFT JOIN organizations_organizationuser ou ON au.id = ou.user_id
+    LEFT JOIN organizations_organization org ON ou.organization_id = org.id
+    LEFT JOIN hub_extrauserdetail ued ON au.id = ued.user_id
+    LEFT JOIN socialaccount_socialaccount sa ON au.id = sa.user_id
+    LEFT JOIN user_nlp_usage unl ON au.id = unl.user_id
+    LEFT JOIN user_assets ua ON au.id = ua.user_id
+    LEFT JOIN user_role_map ur ON ur.user_id = au.id
+    LEFT JOIN user_current_period_usage ucpu ON au.id = ucpu.user_id
+    LEFT JOIN user_billing_periods ubau ON au.id = ubau.user_id
+    WHERE au.id != {settings.ANONYMOUS_USER_ID}
+    GROUP BY
+        au.id,
+        au.username,
+        au.first_name,
+        au.last_name,
+        au.email,
+        au.is_superuser,
+        au.is_staff,
+        au.is_active,
+        ued.uid,
+        ued.validated_password,
+        ued.data,
+        org.id,
+        org.name,
+        au.date_joined,
+        au.last_login,
+        unl.total_asr_seconds,
+        unl.total_mt_characters,
+        ua.total_assets,
+        ua.deployed_assets,
+        ur.user_role,
+        ucpu.current_period_start,
+        ucpu.current_period_end,
+        ucpu.total_nlp_usage_asr_seconds_current_period,
+        ucpu.total_nlp_usage_mt_characters_current_period,
+        ucpu.organization_id,
+        ubau.submission_limit,
+        ubau.storage_bytes_limit,
+        ubau.asr_seconds_limit,
+        ubau.mt_characters_limit,
+        ubau.total_storage_bytes,
+        ubau.total_submission_count_all_time,
+        ubau.total_submission_count_current_period;
+    """
+
 DROP_MV_SQL = """
     DROP MATERIALIZED VIEW IF EXISTS user_reports_userreportsmv;
     """
@@ -418,6 +671,7 @@ class Migration(migrations.Migration):
         ('trackers', '0005_remove_year_and_month'),
         ('mfa', '0004_alter_mfamethod_date_created_and_more'),
     ]
+    SQL_TO_RUN = CREATE_MV_SQL_STRIPE if settings.STRIPE_ENABLED else CREATE_MV_SQL
 
     if settings.SKIP_HEAVY_MIGRATIONS:
         operations = [
@@ -429,7 +683,7 @@ class Migration(migrations.Migration):
     else:
         operations = [
             migrations.RunSQL(
-                sql=CREATE_MV_SQL,
+                sql=SQL_TO_RUN,
                 reverse_sql=DROP_MV_SQL,
             ),
             migrations.RunSQL(
