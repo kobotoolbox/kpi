@@ -69,7 +69,7 @@ export default function EmailSection() {
           })
         } else {
           // If there is no primary email in response, we display an error. This can happen for example when user has
-          // been created thrugh Django admin without email address.
+          // been created through Django admin without email address.
           setEmail({
             ...email,
             fieldErrors: ['Primary email missing'],
