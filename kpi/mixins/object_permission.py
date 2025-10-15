@@ -255,10 +255,8 @@ class ObjectPermissionMixin:
         if not stale_already_deleted:
             self.permissions.filter(inherited=True).delete()
         content_type = ContentType.objects.get_for_model(self)
-        if return_instead_of_creating:
-            # Conditionally create this so that Python will raise an exception
-            # if we use it when we're not supposed to
-            objects_to_return = []
+
+        objects_to_return = []
         # The owner gets every assignable permission
         if self.owner_id is not None:
             for perm in Permission.objects.filter(
@@ -276,10 +274,8 @@ class ObjectPermissionMixin:
                 new_permission.inherited = True
                 new_permission.uid = new_permission._meta.get_field(
                     'uid').generate_uid()
-                if return_instead_of_creating:
-                    objects_to_return.append(new_permission)
-                else:
-                    new_permission.save()
+                objects_to_return.append(new_permission)
+
         # Is there anything to inherit?
         if self.parent is not None:
             # Get our parent's effective permissions from the database if they
@@ -320,12 +316,19 @@ class ObjectPermissionMixin:
                 new_permission.inherited = True
                 new_permission.uid = new_permission._meta.get_field(
                     'uid').generate_uid()
-                if return_instead_of_creating:
-                    objects_to_return.append(new_permission)
-                else:
-                    new_permission.save()
+                objects_to_return.append(new_permission)
         if return_instead_of_creating:
+            self.permissions.filter(inherited=True).delete()
             return objects_to_return
+        else:
+            existing_objs = self.permissions.filter(inherited=True)
+            existing = existing_objs.values('permission_id', 'user_id')
+            to_add = [perm for perm in objects_to_return if {'permission_id': perm.permission_id, 'user_id': perm.user_id} not in existing]
+            for perm in objects_to_return:
+                existing_objs = existing_objs.exclude(permission_id=perm.permission_id, user_id=perm.user_id)
+            existing_objs.delete()
+            for perm in to_add:
+                perm.save()
 
     @classmethod
     def get_implied_perms(
