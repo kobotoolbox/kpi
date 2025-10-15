@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.db import ProgrammingError
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, extend_schema_view

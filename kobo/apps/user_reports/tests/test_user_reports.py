@@ -1,7 +1,5 @@
 from unittest.mock import patch
 
-import pytest
-from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
 from django.urls import reverse
