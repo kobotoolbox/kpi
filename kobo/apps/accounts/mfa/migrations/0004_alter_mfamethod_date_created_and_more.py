@@ -7,7 +7,7 @@ import kpi.models.abstract_models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kobo_mfa', '0003_rename_kobo_mfa_method_model'),
+        ('accounts_mfa', '0003_rename_kobo_mfa_method_model'),
     ]
 
     operations = [

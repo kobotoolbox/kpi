@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('kobo_mfa', '0001_initial'),
+        ('accounts_mfa', '0001_initial'),
     ]
 
     operations = [

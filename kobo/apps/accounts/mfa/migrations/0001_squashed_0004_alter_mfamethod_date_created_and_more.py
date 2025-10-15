@@ -9,10 +9,10 @@ import kpi.models.abstract_models
 class Migration(migrations.Migration):
 
     replaces = [
-        ('kobo_mfa', '0001_initial'),
-        ('kobo_mfa', '0002_add_mfa_available_to_user_model'),
-        ('kobo_mfa', '0003_rename_kobo_mfa_method_model'),
-        ('kobo_mfa', '0004_alter_mfamethod_date_created_and_more'),
+        ('accounts_mfa', '0001_initial'),
+        ('accounts_mfa', '0002_add_mfa_available_to_user_model'),
+        ('accounts_mfa', '0003_rename_kobo_mfa_method_model'),
+        ('accounts_mfa', '0004_alter_mfamethod_date_created_and_more'),
     ]
 
     initial = True
