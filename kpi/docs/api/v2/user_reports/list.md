@@ -14,9 +14,6 @@ Supports partial filtering
 - metadata__organization_type
 - metadata__* (other string fields, e.g., name, sector, country...)
 
-Exact match only
-- subscriptions__id
-
 ## Filterable fields by int:
 
 Supports exact matching and range operators (e.g., gte, lte)
@@ -70,6 +67,25 @@ Supports exact matching and range operators (e.g., gte, lte)
 - sso_is_active
 - accepted_tos
 - metadata__newsletter_subscription
-- subscriptions (empty/not empty list)
 - service_usage__balances__*metric*__exceeded (metric: submission, asr_seconds, mt_characters, storage_bytes)
 - account_restricted
+
+## Filterable fields by list:
+
+Subscription filtering:
+
+Has subscriptions
+
+`?q=subscriptions__0__id__isnull:False`
+
+No subscriptions
+
+`?q=subscriptions__0__id__isnull:True`
+
+Subscription id
+
+`?q=subscriptions__icontains:sub_1QwPItAR39rDI89stzLJ040p`
+
+Active subscriptions
+
+`?q=subscriptions[]__status:active`
