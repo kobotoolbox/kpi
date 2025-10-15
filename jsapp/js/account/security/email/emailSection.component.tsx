@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
+import { Group, Text } from '@mantine/core'
 import cx from 'classnames'
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
@@ -7,6 +8,7 @@ import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import TextBox from '#/components/common/textBox'
+import type { FailResponse } from '#/dataInterface'
 import sessionStore from '#/stores/session'
 import { formatTime, notify } from '#/utils'
 import { deleteUnverifiedUserEmails, getUserEmails, setUserEmail } from './emailSection.api'
@@ -18,6 +20,7 @@ interface EmailState {
   newEmail: string
   refreshedEmail: boolean
   refreshedEmailDate: string
+  fieldErrors: string[]
 }
 
 export default function EmailSection() {
@@ -35,6 +38,7 @@ export default function EmailSection() {
     newEmail: initialEmail,
     refreshedEmail: false,
     refreshedEmailDate: '',
+    fieldErrors: [],
   })
 
   useEffect(() => {
@@ -47,18 +51,42 @@ export default function EmailSection() {
   }, [])
 
   function setNewUserEmail(newEmail: string) {
+    // Clear errors before making an API call
+    setEmail({
+      ...email,
+      fieldErrors: [],
+    })
+
     setUserEmail(newEmail).then(
-      () => {
-        getUserEmails().then((data) => {
+      (response) => {
+        if ('primary' in response) {
+          getUserEmails().then((data) => {
+            setEmail({
+              ...email,
+              emails: data.results,
+              newEmail: '',
+            })
+          })
+        } else {
+          // If there is no primary email in response, we display an error. This can happen for example when user has
+          // been created through Django admin without email address.
           setEmail({
             ...email,
-            emails: data.results,
-            newEmail: '',
+            fieldErrors: ['Primary email missing'],
           })
-        })
+        }
       },
-      () => {
-        /* Avoid crashing app when 500 error happens */
+      (err: FailResponse) => {
+        let errMessages: string[] = []
+        if (err.responseJSON?.email && typeof err.responseJSON.email === 'string') {
+          errMessages.push(err.responseJSON.email)
+        } else if (Array.isArray(err.responseJSON?.email)) {
+          errMessages = err.responseJSON.email
+        }
+        setEmail({
+          ...email,
+          fieldErrors: errMessages,
+        })
       },
     )
   }
@@ -181,7 +209,11 @@ export default function EmailSection() {
               handleSubmit()
             }}
           >
-            <Button label='Change' size='m' type='primary' onClick={handleSubmit} isDisabled={isSSO} />
+            <Group gap='sm'>
+              <Text color='red'>{email.fieldErrors}</Text>
+
+              <Button label='Change' size='m' type='primary' onClick={handleSubmit} isDisabled={isSSO} />
+            </Group>
           </form>
         </div>
       )}
