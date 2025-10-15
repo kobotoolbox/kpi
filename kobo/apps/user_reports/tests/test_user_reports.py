@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+import pytest
+from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
 from django.urls import reverse
@@ -27,23 +29,10 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.client.login(username='adminuser', password='pass')
         self.url = reverse(self._get_endpoint('api_v2:user-reports-list'))
 
-        # Create and add a subscription to someuser
-        from djstripe.enums import BillingScheme
-        from djstripe.models import Customer
-
         self.someuser = User.objects.get(username='someuser')
-        organization = self.someuser.organization
-        self.customer = baker.make(Customer, subscriber=organization)
-        self.subscription = baker.make(
-            'djstripe.Subscription',
-            customer=self.customer,
-            items__price__livemode=False,
-            items__price__billing_scheme=BillingScheme.per_unit,
-            livemode=False,
-            metadata={'organization_id': str(organization.id)},
-        )
+        self.organization = self.someuser.organization
 
-        baker.make(BillingAndUsageSnapshot, organization_id=organization.id)
+        baker.make(BillingAndUsageSnapshot, organization_id=self.organization.id)
 
         refresh_user_reports_materialized_view(concurrently=False)
 
@@ -83,7 +72,25 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             },
         )
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_subscription_data_is_correctly_returned(self):
+
+        # Create and add a subscription to someuser
+        from djstripe.enums import BillingScheme
+        from djstripe.models import Customer
+
+        self.customer = baker.make(Customer, subscriber=self.organization)
+        self.subscription = baker.make(
+            'djstripe.Subscription',
+            customer=self.customer,
+            items__price__livemode=False,
+            items__price__billing_scheme=BillingScheme.per_unit,
+            livemode=False,
+            metadata={'organization_id': str(self.organization.id)},
+        )
+        refresh_user_reports_materialized_view(concurrently=False)
         user_with_sub = self._get_someuser_data()
         self.assertEqual(len(user_with_sub['subscriptions']), 1)
         self.assertEqual(user_with_sub['subscriptions'][0]['id'], self.subscription.id)
