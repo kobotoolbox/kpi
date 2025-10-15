@@ -10,6 +10,7 @@ import { ModalThemeKobo } from './Modal'
 import { SelectThemeKobo } from './Select'
 import { TableThemeKobo } from './Table'
 import { TooltipThemeKobo } from './Tooltip'
+import { TagsInputThemeKobo } from './TagsInput'
 
 export const themeKobo = createTheme({
   primaryColor: 'blue',
@@ -117,5 +118,6 @@ export const themeKobo = createTheme({
     Tooltip: TooltipThemeKobo,
     Table: TableThemeKobo,
     Divider: DividerThemeKobo,
+    TagsInput: TagsInputThemeKobo,
   },
 })
