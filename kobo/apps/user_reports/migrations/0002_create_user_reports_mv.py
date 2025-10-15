@@ -418,7 +418,7 @@ class Migration(migrations.Migration):
         ('mfa', '0004_alter_mfamethod_date_created_and_more'),
     ]
 
-    if settings.SKIP_HEAVY_MIGRATIONS or not settings.STRIPE_ENABLED:
+    if settings.SKIP_HEAVY_MIGRATIONS:
         operations = [
             migrations.RunPython(
                 manually_create_mv_instructions,

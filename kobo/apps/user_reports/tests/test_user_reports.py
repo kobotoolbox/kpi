@@ -22,7 +22,6 @@ from kobo.apps.user_reports.utils.snapshot_refresh_helpers import (
 from kpi.tests.base_test_case import BaseTestCase
 
 
-@pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Requires stripe functionality')
 class UserReportsViewSetAPITestCase(BaseTestCase):
     fixtures = ['test_data']
 
@@ -66,20 +65,6 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Make sure that all 3 users from the 'test_data' are included
         self.assertEqual(len(response.data['results']), 3)
-
-    def test_endpoint_returns_error_when_stripe_is_disabled(self):
-        try:
-            settings.STRIPE_ENABLED = False
-            response = self.client.get(self.url)
-
-            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-            self.assertEqual(
-                response.json(),
-                {'details': 'Stripe must be enabled to access this endpoint.'},
-            )
-        finally:
-            # Restore the original setting
-            settings.STRIPE_ENABLED = True
 
     def test_endpoint_returns_error_when_mv_is_missing(self):
         # Drop the materialized view before the test
