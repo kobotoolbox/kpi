@@ -87,7 +87,8 @@ CREATE_MV_SQL = f"""
         LEFT JOIN nlp_period_agg na ON ubp.user_id = na.user_id
     )
     SELECT
-        au.id AS id,
+        CONCAT(au.id::text, '-', COALESCE(org.id::text, 'orgnone')) AS id,
+        au.id AS user_id,
         ued.uid AS extra_details_uid,
         au.username,
         au.first_name,
