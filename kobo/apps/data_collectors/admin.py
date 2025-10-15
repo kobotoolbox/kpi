@@ -69,6 +69,7 @@ class DataCollectorGroupAdmin(admin.ModelAdmin):
         'name',
     )
     autocomplete_fields = ['owner']
+    ordering = ['-date_created']
 
     def save_model(self, request, obj, form, change):
         assets = form.cleaned_data['assets']
@@ -128,6 +129,7 @@ class DataCollectorAdmin(admin.ModelAdmin):
             'fields': ('collect_url', 'enketo_urls',),
         }),
     )
+    ordering = ['-date_created']
 
     @admin.action(description='Rotate token')
     def rotate_token(self, request, queryset):
@@ -145,12 +147,7 @@ class DataCollectorAdmin(admin.ModelAdmin):
         if not (obj and obj.token):
             return '-'
 
-        collect_url = DC_ENKETO_URL_TEMPLATE.format(obj.token)
-        return mark_safe(
-            '<a href="{collect_url}" target="_blank">'
-            f'    {collect_url}'
-            '</a>'
-        )
+        return DC_ENKETO_URL_TEMPLATE.format(obj.token)
 
     @admin.display(description='Enketo')
     def enketo_urls(self, obj):
