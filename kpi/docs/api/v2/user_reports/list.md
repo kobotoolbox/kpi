@@ -12,7 +12,7 @@ Supports partial filtering
 - organization__name
 - organization__role (e.g., admin, member, owner)
 - metadata__organization_type
-- metadata__* (other string fields, e.g., name, sector, country...)
+- `metadata__<field>` (other string fields, e.g., name, sector, country...)
 
 ## Filterable fields by int:
 
@@ -84,7 +84,7 @@ No subscriptions
 
 Subscription id
 
-`?q=subscriptions__icontains:sub_1QwPItAR39rDI89stzLJ040p`
+`?q=subscriptions[]__id:sub_1QwPItAR39rDI89stzLJ040p`
 
 Active subscriptions
 
