@@ -123,7 +123,7 @@ class XFormSubmissionApi(
     Available actions:
     - create        → POST /submission
     - create        → POST /{username}/submission
-    - create        → POST /key/{token}/submission
+    - create        → POST /collector/{token}/submission
 
 
     Documentation:
