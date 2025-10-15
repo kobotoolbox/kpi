@@ -15,6 +15,8 @@ class MfaAvailableToUser(models.Model):
     class Meta:
         verbose_name = 'per-user availability'
         verbose_name_plural = 'per-user availabilities'
+        db_table = 'mfa_mfaavailabletouser'
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -40,6 +42,7 @@ class MfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
     class Meta:
         verbose_name = 'MFA Method'
         verbose_name_plural = 'MFA Methods'
+        db_table = 'mfa_mfamethod'
 
     date_disabled = models.DateTimeField(null=True)
 

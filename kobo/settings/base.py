@@ -105,6 +105,7 @@ INSTALLED_APPS = (
     'allauth.socialaccount.providers.microsoft',
     'allauth.socialaccount.providers.openid_connect',
     'allauth.usersessions',
+    'allauth.mfa',
     'hub.HubAppConfig',
     'import_export',
     'import_export_celery',
@@ -1898,7 +1899,7 @@ add_type('application/geo+json', '.geojson')
 KOBOCAT_MEDIA_URL = f'{KOBOCAT_URL}/media/'
 
 TRENCH_AUTH = {
-    'USER_MFA_MODEL': 'mfa.MfaMethod',
+    'USER_MFA_MODEL': 'kobo_mfa.MfaMethod',
     'USER_ACTIVE_FIELD': 'is_active',
     'BACKUP_CODES_QUANTITY': 5,
     'BACKUP_CODES_LENGTH': 12,  # keep (quantity * length) under 200
