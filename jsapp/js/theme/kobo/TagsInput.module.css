@@ -1,0 +1,15 @@
+.pill {
+  background-color: var(--mantine-color-gray-6);
+  border-radius: var(--mantine-radius-sm);
+  font-size: var(--mantine-font-size-md);
+  color: var(--mantine-color-gray-1);
+}
+
+.input {
+  padding: var(--mantine-spacing-xs);
+}
+
+.input:focus {
+  border-color: red;
+  box-shadow: 0 0 0 2px var(--mantine-color-blue-7);
+}
