@@ -39,6 +39,7 @@ jobs:
     outputs:
       current_branch: ${{ steps.branch.outputs.current_branch }}
     steps:
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/checkout-with-github-app-token
     - name: create next RC branch
       id: branch

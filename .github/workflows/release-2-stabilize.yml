@@ -96,6 +96,7 @@ jobs:
       CURRENT_PATCH: ${{ needs.version.outputs.current_patch }}
     steps:
 
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/checkout-with-github-app-token
 
     - name: draft a changelog
@@ -149,6 +150,7 @@ jobs:
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     steps:
+    - uses: actions/checkout@v4
     - uses: ./.github/actions/checkout-with-github-app-token
     - name: Merge
       env:
@@ -193,7 +195,7 @@ jobs:
             || format(':check: passed frontend automated tests ({0} biome, {1} npm-test)', needs.biome.result, needs.npm-test.result)
           }}
         - ${{ (needs.merge-forward.result == 'failure' || needs.merge-forward.result == 'timed_out')
-            && format(':warning: failed to merge forward: @*devs* please investigate [run #{0}]({1}/{2}]/actions/runs/{3}), it likely requires a manual merge to `{4}`!', github.run_number, github.server_url, github.repository, github.run_id, needs.version.outputs.next_branch)
+            && format(':warning: failed to merge forward: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3}), it likely requires a manual merge to `{4}`!', github.run_number, github.server_url, github.repository, github.run_id, needs.version.outputs.next_branch)
             || needs.merge-forward.result == 'skipped'
               && ':skip_forward: merged forward skipped due failed automated tests.'
               || format(':check: merged forward into `{0}`', needs.version.outputs.next_branch)
