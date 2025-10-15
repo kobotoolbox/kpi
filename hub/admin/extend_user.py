@@ -3,6 +3,7 @@ from __future__ import annotations
 from constance import config
 from django.conf import settings
 from django.contrib import admin, messages
+from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm as DjangoUserChangeForm
 from django.contrib.auth.forms import UserCreationForm as DjangoUserCreationForm
@@ -19,6 +20,7 @@ from kobo.apps.accounts.validators import (
     USERNAME_MAX_LENGTH,
     username_validators,
 )
+from kobo.apps.mass_emails.user_queries import get_inactive_users
 from kobo.apps.openrosa.apps.logger.models import MonthlyXFormSubmissionCounter
 from kobo.apps.organizations.models import OrganizationUser
 from kobo.apps.trash_bin.exceptions import TrashIntegrityError
@@ -113,6 +115,35 @@ class OrgInline(admin.StackedInline):
     active_subscription_status.short_description = 'Active Subscription'
 
 
+class InactiveUsersAsOfFilter(SimpleListFilter):
+    title = 'Inactive since'
+    parameter_name = 'inactive_preset'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('90', 'Inactive ≥ 90 days'),
+            ('180', 'Inactive ≥ 180 days'),
+            ('365', 'Inactive ≥ 365 days'),
+            ('730', 'Inactive ≥ 730 days'),
+        )
+
+    def queryset(self, request, queryset):
+        if not request.user.is_superuser:
+            return queryset
+
+        val = self.value()
+        if not val:
+            return queryset
+
+        try:
+            days = int(val)
+        except (TypeError, ValueError):
+            return queryset
+
+        inactive_qs = get_inactive_users(days)
+        return queryset.filter(pk__in=inactive_qs.values_list('pk', flat=True))
+
+
 class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
     """
     Deleting users used to a two-step process since KPI and KoBoCAT
@@ -145,6 +176,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
     )
     list_filter = (
         UserAdvancedSearchFilter,
+        InactiveUsersAsOfFilter,
         'is_active',
         'is_superuser',
         'date_joined',
