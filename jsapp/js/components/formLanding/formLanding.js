@@ -76,7 +76,7 @@ class FormLanding extends React.Component {
       (perm) => perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url,
     )
     if (this.state.anonymousSubmissions) {
-      actions.permissions.removeAssetPermission(this.props.params.uid, permission.url)
+      actions.permissions.removeAssetPermission(this.props.params.uid, permission.url, undefined, undefined, undefined)
     } else {
       actions.permissions.assignAssetPermission(this.props.params.uid, {
         user: buildUserUrl(ANON_USERNAME),
