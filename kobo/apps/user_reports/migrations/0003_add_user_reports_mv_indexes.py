@@ -30,31 +30,6 @@ DROP_IDX_SUBSCRIPTIONS_GIN = """
 DROP INDEX IF EXISTS idx_user_reports_subscriptions_gin;
 """
 
-# Numeric / ordering indexes
-CREATE_IDX_SUBMISSIONS_ALL_TIME = """
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_submission_all_time
-ON user_reports_userreportsmv (total_submission_count_all_time);
-"""
-DROP_IDX_SUBMISSIONS_ALL_TIME = """
-DROP INDEX IF EXISTS idx_user_reports_submission_all_time;
-"""
-
-CREATE_IDX_CURRENT_PERIOD_SUB = """
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_current_period_submissions
-ON user_reports_userreportsmv (total_submission_count_current_period);
-"""
-DROP_IDX_CURRENT_PERIOD_SUB = """
-DROP INDEX IF EXISTS idx_user_reports_current_period_submissions;
-"""
-
-CREATE_IDX_STORAGE_BYTES = """
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_storage_bytes
-ON user_reports_userreportsmv (total_storage_bytes);
-"""
-DROP_IDX_STORAGE_BYTES = """
-DROP INDEX IF EXISTS idx_user_reports_storage_bytes;
-"""
-
 CREATE_IDX_DATE_JOINED = """
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_date_joined
 ON user_reports_userreportsmv (date_joined);
@@ -86,12 +61,6 @@ def manually_create_indexes_instructions(apps, schema_editor):
 
         {CREATE_IDX_SUBSCRIPTIONS_GIN}
 
-        {CREATE_IDX_SUBMISSIONS_ALL_TIME}
-
-        {CREATE_IDX_CURRENT_PERIOD_SUB}
-
-        {CREATE_IDX_STORAGE_BYTES}
-
         {CREATE_IDX_DATE_JOINED}
 
         {CREATE_IDX_LAST_LOGIN}
@@ -109,12 +78,6 @@ def manually_drop_indexes_instructions(apps, schema_editor):
         {DROP_IDX_LAST_LOGIN}
 
         {DROP_IDX_DATE_JOINED}
-
-        {DROP_IDX_STORAGE_BYTES}
-
-        {DROP_IDX_CURRENT_PERIOD_SUB}
-
-        {DROP_IDX_SUBMISSIONS_ALL_TIME}
 
         {DROP_IDX_SUBSCRIPTIONS_GIN}
 
@@ -158,18 +121,6 @@ class Migration(migrations.Migration):
             migrations.RunSQL(
                 sql=CREATE_IDX_SUBSCRIPTIONS_GIN,
                 reverse_sql=DROP_IDX_SUBSCRIPTIONS_GIN
-            ),
-            migrations.RunSQL(
-                sql=CREATE_IDX_SUBMISSIONS_ALL_TIME,
-                reverse_sql=DROP_IDX_SUBMISSIONS_ALL_TIME
-            ),
-            migrations.RunSQL(
-                sql=CREATE_IDX_CURRENT_PERIOD_SUB,
-                reverse_sql=DROP_IDX_CURRENT_PERIOD_SUB
-            ),
-            migrations.RunSQL(
-                sql=CREATE_IDX_STORAGE_BYTES,
-                reverse_sql=DROP_IDX_STORAGE_BYTES
             ),
             migrations.RunSQL(
                 sql=CREATE_IDX_DATE_JOINED,
