@@ -654,7 +654,7 @@ CONSTANCE_CONFIG = {
         '"test_users" query for MassEmailConfigs',
     ),
     'ALLOW_SELF_ACCOUNT_DELETION': (
-        True,
+        False,
         'Allow users to delete their own account.',
     ),
 }
