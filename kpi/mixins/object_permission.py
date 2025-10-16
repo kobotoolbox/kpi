@@ -319,9 +319,16 @@ class ObjectPermissionMixin:
         else:
             existing_objs = self.permissions.filter(inherited=True)
             existing = existing_objs.values('permission_id', 'user_id')
-            to_add = [perm for perm in objects_to_return if {'permission_id': perm.permission_id, 'user_id': perm.user_id} not in existing]
+            to_add = [
+                perm
+                for perm in objects_to_return
+                if {'permission_id': perm.permission_id, 'user_id': perm.user_id}
+                not in existing
+            ]
             for perm in objects_to_return:
-                existing_objs = existing_objs.exclude(permission_id=perm.permission_id, user_id=perm.user_id)
+                existing_objs = existing_objs.exclude(
+                    permission_id=perm.permission_id, user_id=perm.user_id
+                )
             existing_objs.delete()
             for perm in to_add:
                 perm.save()
