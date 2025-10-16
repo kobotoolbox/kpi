@@ -39,27 +39,13 @@ def remove_enketo_links_on_delete(sender, instance, **kwargs):
     remove_data_collector_enketo_links(instance.token)
 
 
-@receiver(post_remove_perm, sender=Asset)
-def remove_enketo_links(sender, instance, user, codename, **kwargs):
-    if codename != PERM_MANAGE_ASSET:
-        return
-    group = instance.data_collector_group
-    if group is not None:
-        # we have to do this manually instead of using obj.assets.remove()
-        # so we can call save() with adjust_content=False
-        instance.data_collector_group = None
-        instance.save(
-            update_fields=['data_collector_group'],
-            adjust_content=False,
-            create_version=False,
-        )
-
 @receiver(post_delete, sender=ObjectPermission)
-def remove_enketo_links(sender, instance, *args, **kwargs):
+def remove_enketo_links_on_permission_removed(sender, instance, *args, **kwargs):
     if instance.permission.codename != PERM_MANAGE_ASSET:
         return
     asset = instance.asset
     group = asset.data_collector_group
+
     if group is not None and group.owner_id == instance.user_id:
         # we have to do this manually instead of using obj.assets.remove()
         # so we can call save() with adjust_content=False

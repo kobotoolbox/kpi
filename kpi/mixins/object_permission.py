@@ -228,8 +228,6 @@ class ObjectPermissionMixin:
             return
         effective_perms = self._get_effective_perms(include_calculated=False)
         for child in children:
-            # remove stale inherited perms
-            child.permissions.filter(inherited=True).delete()
             # calc the new ones
             child._recalculate_inherited_perms(
                 parent_effective_perms=effective_perms,
@@ -252,8 +250,6 @@ class ObjectPermissionMixin:
         also made explicit as "inherited" permissions.
         """
         # Start with a clean slate
-        if not stale_already_deleted:
-            self.permissions.filter(inherited=True).delete()
         content_type = ContentType.objects.get_for_model(self)
 
         objects_to_return = []
