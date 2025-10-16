@@ -427,12 +427,12 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
 
         # Filter by subscription ID
         res = self._get_results(
-            {'q': f'subscriptions__0__id__icontains:{self.subscription.id}'}
+            {'q': f'subscriptions[]__id:{self.subscription.id}'}
         )
         self.assertTrue(any(r['username'] == 'someuser' for r in res['results']))
 
         # Filter by subscription status
         res = self._get_results(
-            {'q': f'subscriptions__0__status__icontains:{self.subscription.status}'}
+            {'q': f'subscriptions[]__status:{self.subscription.status}'}
         )
         self.assertTrue(any(r['username'] == 'someuser' for r in res['results']))
