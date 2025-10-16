@@ -1,6 +1,5 @@
+import { Textarea } from '@mantine/core'
 import React, { useContext, useState } from 'react'
-
-import TextBox from '#/components/common/textBox'
 import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import { AUTO_SAVE_TYPING_DELAY } from '#/components/processing/analysis/constants'
 import {
@@ -70,10 +69,11 @@ export default function TextResponseForm(props: TextResponseFormProps) {
       <CommonHeader uuid={props.uuid} />
 
       <section className={commonStyles.content}>
-        <TextBox
-          type='text-multiline'
+        <Textarea
+          autosize
+          minRows={2}
           value={response}
-          onChange={onInputChange}
+          onChange={(event) => onInputChange(event.currentTarget.value)}
           placeholder={t('Type your answer')}
           onBlur={saveResponse}
           disabled={!props.canEdit}

@@ -147,6 +147,7 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
     'kobo.apps.long_running_migrations.app.LongRunningMigrationAppConfig',
+    'kobo.apps.user_reports.apps.UserReportsConfig',
     'drf_spectacular',
 )
 
@@ -1109,7 +1110,7 @@ SPECTACULAR_SETTINGS = {
             'description': 'Subscribe to and manage shared library collections',
         },
         {
-            'name': 'Audit logs (superusers)',
+            'name': 'Server logs (superusers)',
             'description': 'View server-wide logs',
         },
         {
@@ -1440,6 +1441,12 @@ CELERY_BEAT_SCHEDULE = {
     # Schedule every 30 minutes
     'attachment-cleanup-for-users-exceeding-limits': {
         'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
+        'schedule': crontab(minute='*/30'),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every 30 minutes
+    'refresh-user-report-snapshot': {
+        'task': 'kobo.apps.user_reports.tasks.refresh_user_report_snapshots',
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
