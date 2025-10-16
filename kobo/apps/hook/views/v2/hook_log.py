@@ -106,7 +106,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
         return queryset
 
     @action(detail=True, methods=['PATCH'])
-    def retry(self, request, uid=None, *args, **kwargs):
+    def retry(self, request, uid_log, *args, **kwargs):
         """
         Retries to send data to external service.
         :param request: rest_framework.request.Request
