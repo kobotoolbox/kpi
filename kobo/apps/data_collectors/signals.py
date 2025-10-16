@@ -8,8 +8,7 @@ from kobo.apps.data_collectors.utils import (
     set_data_collector_enketo_links,
 )
 from kpi.constants import PERM_MANAGE_ASSET
-from kpi.models import Asset, ObjectPermission
-from kpi.utils.object_permission import post_remove_perm
+from kpi.models import ObjectPermission
 
 
 @receiver(post_save, sender=DataCollector)
