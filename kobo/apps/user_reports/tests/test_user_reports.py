@@ -312,27 +312,12 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
         self.client.login(username='adminuser', password='pass')
         self.url = reverse(self._get_endpoint('api_v2:user-reports-list'))
 
-        # Create and add a subscription to someuser
-        from djstripe.enums import BillingScheme
-        from djstripe.models import Customer
-
         self.someuser = User.objects.get(username='someuser')
-        organization = self.someuser.organization
-        self.customer = baker.make(Customer, subscriber=organization)
-        self.subscription = baker.make(
-            'djstripe.Subscription',
-            customer=self.customer,
-            items__price__livemode=False,
-            items__price__billing_scheme=BillingScheme.per_unit,
-            livemode=False,
-            metadata={'organization_id': str(organization.id)},
-        )
+        self.organization = self.someuser.organization
 
-        baker.make(BillingAndUsageSnapshot, organization_id=organization.id)
+        baker.make(BillingAndUsageSnapshot, organization_id=self.organization.id)
 
-        # Manually refresh the materialized view
-        with connection.cursor() as cursor:
-            cursor.execute('REFRESH MATERIALIZED VIEW user_reports_userreportsmv;')
+        refresh_user_reports_materialized_view(concurrently=False)
 
     def _get_results(self, params=None):
         params = params or {}
@@ -420,3 +405,34 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
                 {'q': 'service_usage__balances__submission__balance_value__lte:4999'}
             )
             self.assertTrue(any(r['username'] == 'someuser' for r in res['results']))
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_subscriptions_nested_json_filter(self):
+        # Create and add a subscription to someuser
+        from djstripe.enums import BillingScheme
+        from djstripe.models import Customer
+
+        self.customer = baker.make(Customer, subscriber=self.organization)
+        self.subscription = baker.make(
+            'djstripe.Subscription',
+            customer=self.customer,
+            items__price__livemode=False,
+            items__price__billing_scheme=BillingScheme.per_unit,
+            livemode=False,
+            metadata={'organization_id': str(self.organization.id)},
+        )
+        refresh_user_reports_materialized_view(concurrently=False)
+
+        # Filter by subscription ID
+        res = self._get_results(
+            {'q': f'subscriptions__0__id__icontains:{self.subscription.id}'}
+        )
+        self.assertTrue(any(r['username'] == 'someuser' for r in res['results']))
+
+        # Filter by subscription status
+        res = self._get_results(
+            {'q': f'subscriptions__0__status__icontains:{self.subscription.status}'}
+        )
+        self.assertTrue(any(r['username'] == 'someuser' for r in res['results']))
