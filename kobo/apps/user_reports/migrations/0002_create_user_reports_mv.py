@@ -378,7 +378,7 @@ NO_STRIPE_SUBSCRIPTIONS = """
     '[]'::jsonb AS subscriptions
     """
 
-STRIPE_JOINS = """    
+STRIPE_JOINS = """
     LEFT JOIN djstripe_subscription sub ON sub.metadata->>'organization_id' = org.id::text
     LEFT JOIN djstripe_customer cust ON sub.customer_id = cust.id
     """
@@ -403,12 +403,12 @@ DROP_MV_SQL = """
     """
 
 CREATE_INDEXES_SQL = """
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_user_reports_mv_id ON user_reports_userreportsmv (id);
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_user_reports_mv_user_org ON user_reports_userreportsmv (user_id, organization_id);
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_user_reports_mv_id ON user_reports_userreportsmv (id);
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_user_reports_mv_user_org ON user_reports_userreportsmv (user_id, organization_id);
     """
 DROP_INDEXES_SQL = """
-    DROP INDEX IF EXISTS idx_user_reports_mv_user_org;
-    DROP INDEX IF EXISTS idx_user_reports_mv_id;
+        DROP INDEX IF EXISTS idx_user_reports_mv_user_org;
+        DROP INDEX IF EXISTS idx_user_reports_mv_id;
     """
 
 

@@ -303,3 +303,136 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         )
         self.assertIsNotNone(someuser_data)
         return someuser_data
+
+
+class UserReportsFilterAndOrderingTestCase(BaseTestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.client.login(username='adminuser', password='pass')
+        self.url = reverse(self._get_endpoint('api_v2:user-reports-list'))
+
+        self.someuser = User.objects.get(username='someuser')
+        self.organization = self.someuser.organization
+
+        baker.make(BillingAndUsageSnapshot, organization_id=self.organization.id)
+
+        refresh_user_reports_materialized_view(concurrently=False)
+
+    def _get_results(self, params=None):
+        params = params or {}
+        resp = self.client.get(self.url, params)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        return resp.json()
+
+    def test_username_prefix_filter(self):
+        res = self._get_results({'q': 'username__icontains:some'})
+        self.assertEqual(res['count'], 1)
+        self.assertEqual(res['results'][0]['username'], 'someuser')
+
+    def test_email_prefix_filter(self):
+        res = self._get_results({'q': 'email__icontains:some@user'})
+        self.assertEqual(res['count'], 1)
+        self.assertEqual(res['results'][0]['email'], 'some@user.com')
+
+    def test_date_joined_gte_and_lte_filters(self):
+        all_res = self._get_results()
+        res_all = self._get_results({'q': 'date_joined__gte:2012-01-01'})
+        self.assertLessEqual(res_all['count'], all_res['count'])
+
+        res_none = self._get_results({'q': 'date_joined__gte:3020-01-01'})
+        self.assertEqual(res_none['count'], 0)
+
+    def test_storage_bytes_gte_and_lte_filters(self):
+        # Update someuser's storage to simulate storage usage
+        UserProfile.objects.filter(user_id=self.someuser.id).update(
+            attachment_storage_bytes=123456789
+        )
+        refresh_user_report_snapshots()
+
+        resp_gte = self._get_results(
+            {'q': 'service_usage__total_storage_bytes__gte:100000000'}
+        )
+        self.assertTrue(any(r['username'] == 'someuser' for r in resp_gte['results']))
+
+        resp_lte = self._get_results(
+            {'q': 'service_usage__total_storage_bytes__lte:200000000'}
+        )
+        self.assertTrue(any(r['username'] == 'someuser' for r in resp_lte['results']))
+
+    def test_current_period_submissions_gte_and_lte_filters(self):
+        # Create a submission counter entry to simulate usage
+        DailyXFormSubmissionCounter.objects.create(
+            user_id=self.someuser.id,
+            date=timezone.now().date(),
+            counter=5
+        )
+        refresh_user_report_snapshots()
+
+        resp_gte = self._get_results(
+            {'q': 'service_usage__total_submission_count__current_period__gte:4'}
+        )
+        self.assertTrue(any(r['username'] == 'someuser' for r in resp_gte['results']))
+
+        resp_lte = self._get_results(
+            {'q': 'service_usage__total_submission_count__current_period__lte:5'}
+        )
+        self.assertTrue(any(r['username'] == 'someuser' for r in resp_lte['results']))
+
+    def test_balances_nested_json_filter(self):
+        """
+        Test filtering by nested balances JSON value
+        """
+        DailyXFormSubmissionCounter.objects.create(
+            user_id=self.someuser.id,
+            date=timezone.now().date(),
+            counter=1
+        )
+
+        with patch(
+            'kobo.apps.user_reports.tasks.get_organizations_effective_limits'
+        ) as mock_limits:
+            mock_limits.return_value = {
+                self.someuser.organization.id: {
+                    f'{UsageType.SUBMISSION}_limit': 5000,
+                    f'{UsageType.STORAGE_BYTES}_limit': 31011593,
+                    f'{UsageType.ASR_SECONDS}_limit': 600,
+                    f'{UsageType.MT_CHARACTERS}_limit': 6000,
+                }
+            }
+            refresh_user_report_snapshots()
+            res = self._get_results(
+                {'q': 'service_usage__balances__submission__balance_value__lte:4999'}
+            )
+            self.assertTrue(any(r['username'] == 'someuser' for r in res['results']))
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_subscriptions_nested_json_filter(self):
+        # Create and add a subscription to someuser
+        from djstripe.enums import BillingScheme
+        from djstripe.models import Customer
+
+        self.customer = baker.make(Customer, subscriber=self.organization)
+        self.subscription = baker.make(
+            'djstripe.Subscription',
+            customer=self.customer,
+            items__price__livemode=False,
+            items__price__billing_scheme=BillingScheme.per_unit,
+            livemode=False,
+            metadata={'organization_id': str(self.organization.id)},
+        )
+        refresh_user_reports_materialized_view(concurrently=False)
+
+        # Filter by subscription ID
+        res = self._get_results(
+            {'q': f'subscriptions[]__id:{self.subscription.id}'}
+        )
+        self.assertTrue(any(r['username'] == 'someuser' for r in res['results']))
+
+        # Filter by subscription status
+        res = self._get_results(
+            {'q': f'subscriptions[]__status:{self.subscription.status}'}
+        )
+        self.assertTrue(any(r['username'] == 'someuser' for r in res['results']))
