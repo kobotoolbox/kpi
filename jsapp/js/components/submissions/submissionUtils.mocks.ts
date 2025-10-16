@@ -1770,6 +1770,7 @@ export const everythingSurveySubmission = {
       download_medium_url:
         'http://kc.kobo.local/media/medium?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2FIMG_3619-13_33_22.MOV',
       question_xpath: 'A_video',
+      media_file_basename: 'IMG_3619-13_33_22.MOV',
     },
     {
       mimetype: 'audio/mpeg',
@@ -1785,6 +1786,7 @@ export const everythingSurveySubmission = {
         'http://kc.kobo.local/media/medium?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2F07.+Crazy+Love-13_32_31.mp3',
       uid: 'aXPSbtQcYDm8mcJuVZTUhQ',
       question_xpath: 'Voice_password',
+      media_file_basename: '07. Crazy Love-13_32_31.mp3',
     },
     {
       mimetype: 'text/plain',
@@ -1800,6 +1802,7 @@ export const everythingSurveySubmission = {
         'http://kc.kobo.local/media/medium?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2Fzamki-13_35_5.txt',
       uid: 'aXPSbtQcYDm8mcJuVZTUhE',
       question_xpath: 'We_need_your_CV',
+      media_file_basename: 'zamki-13_35_5.txt',
     },
     {
       mimetype: 'image/jpeg',
@@ -1815,6 +1818,7 @@ export const everythingSurveySubmission = {
         'http://kc.kobo.local/media/medium?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2F784397e28b5041d59bef15d5d0b2d0bf--cutaway-dio-13_31_48.jpg',
       uid: 'aXPSbtQcYDm8mcJuVZTUhR',
       question_xpath: 'Selfportrait',
+      media_file_basename: '784397e28b5041d59bef15d5d0b2d0bf--cutaway-dio-13_31_48.jpg',
     },
   ],
   Expected_lifespan: '88',
@@ -2360,6 +2364,7 @@ export const submissionWithAttachmentsWithUnicode = {
         'kobo/attachments/45748fd461814880bd9545c8c8827d78/4cfa16e8-f29b-41a9-984c-2bf7fe05064b/Un_ete_au_Quebec_Canada-19_41_32.jpg',
       uid: 'azCy24QgjprZGrdvbHQXrA',
       question_xpath: 'A_picture',
+      media_file_basename: 'Un été au Québec (Canada)-19_41_32.jpg',
     },
   ],
   _geolocation: [null, null],
@@ -3147,6 +3152,7 @@ export const submissionWithSupplementalDetails = {
       filename: 'kobo/attachments/c71e63f6a...b9a05/8BP076-09-rushjet1-unknown_sector-12_42_20.mp3',
       uid: 'aDDywpeYGnvuDLTeiveyxV',
       question_xpath: 'Secret_password_as_an_audio_file',
+      media_file_basename: '8BP076-09-rushjet1-unknown_sector-12_42_20.mp3',
     },
   ],
   _status: 'submitted_via_web',
@@ -3275,6 +3281,7 @@ export const submissionWithNestedSupplementalDetails = {
         'zefir/attachments/54445e08ab6d4011ae648adc6ae8c9bc/64c7fe7c-4542-472d-8eab-6e42f68c7a0b/test-spoken-16_49_36.m4a',
       uid: 'aw6mhS4KnoG5E8EbQp9KgP',
       question_xpath: 'level_a/level_b/level_c/sounds',
+      media_file_basename: 'test-spoken-16_49_36.m4a',
     },
   ],
   _status: 'submitted_via_web',
