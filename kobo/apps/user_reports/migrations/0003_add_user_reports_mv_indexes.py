@@ -4,21 +4,20 @@ from django.db import migrations
 CREATE_PG_TRGM = 'CREATE EXTENSION IF NOT EXISTS pg_trgm;'
 DROP_PG_TRGM = 'DROP EXTENSION IF EXISTS pg_trgm;'
 
-# Btree functional indexes for fast case-insensitive prefix (istartswith) searches
 CREATE_IDX_EMAIL_LOWER = """
-        CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_email_lower_textpat
-        ON user_reports_userreportsmv (lower(email) text_pattern_ops);
+        CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_email_trgm
+        ON user_reports_userreportsmv USING gin (lower(email) gin_trgm_ops);
 """
 DROP_IDX_EMAIL_LOWER = """
-        DROP INDEX IF EXISTS idx_user_reports_email_lower_textpat;
+        DROP INDEX IF EXISTS idx_user_reports_email_trgm;
 """
 
 CREATE_IDX_USERNAME_LOWER = """
-        CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_username_lower_textpat
-        ON user_reports_userreportsmv (lower(username) text_pattern_ops);
+        CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_reports_username_trgm
+        ON user_reports_userreportsmv USING gin (lower(username) gin_trgm_ops);
 """
 DROP_IDX_USERNAME_LOWER = """
-        DROP INDEX IF EXISTS idx_user_reports_username_lower_textpat;
+        DROP INDEX IF EXISTS idx_user_reports_username_trgm;
 """
 
 # GIN index for JSONB subscriptions column
