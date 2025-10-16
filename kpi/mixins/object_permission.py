@@ -230,9 +230,7 @@ class ObjectPermissionMixin:
         for child in children:
             # calc the new ones
             child._recalculate_inherited_perms(
-                parent_effective_perms=effective_perms,
-                stale_already_deleted=True,
-                #return_instead_of_creating=True
+                parent_effective_perms=effective_perms
             )
             # recurse!
             child.recalculate_descendants_perms()
@@ -314,7 +312,8 @@ class ObjectPermissionMixin:
                     'uid').generate_uid()
                 objects_to_return.append(new_permission)
         if return_instead_of_creating:
-            self.permissions.filter(inherited=True).delete()
+            if not stale_already_deleted:
+                self.permissions.filter(inherited=True).delete()
             return objects_to_return
         else:
             existing_objs = self.permissions.filter(inherited=True)
