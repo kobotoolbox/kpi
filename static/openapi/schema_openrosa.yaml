@@ -258,28 +258,7 @@ paths:
                     detail: Authentication credentials were not provided.
                   summary: Not authenticated
           description: ''
-  /formList:
-    get:
-      operationId: form_list_authenticated
-      description: |
-        ## Implement part of the OpenRosa Form List API
-
-        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
-
-        This endpoint is used for adding submissions as authenticated user.
-      tags:
-      - OpenRosa Form List
-      security:
-      - TokenAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/XFormList'
-          description: null
-  /key/{token}/formList:
+  /collector/{token}/formList:
     get:
       operationId: form_list_data_collector
       description: |
@@ -307,7 +286,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/XFormList'
           description: null
-  /key/{token}/submission:
+  /collector/{token}/submission:
     post:
       operationId: submission_data_collector
       description: |+
@@ -385,7 +364,7 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /key/{token}/xformsManifest/{id}:
+  /collector/{token}/xformsManifest/{id}:
     get:
       operationId: manifest_data_collector
       description: |
@@ -431,6 +410,27 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
+  /formList:
+    get:
+      operationId: form_list_authenticated
+      description: |
+        ## Implement part of the OpenRosa Form List API
+
+        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+
+        This endpoint is used for adding submissions as authenticated user.
+      tags:
+      - OpenRosa Form List
+      security:
+      - TokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/XFormList'
+          description: null
   /submission:
     post:
       operationId: submission_authenticated
