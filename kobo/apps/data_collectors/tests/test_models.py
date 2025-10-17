@@ -145,8 +145,10 @@ class TestDataCollector(BaseTestCase):
         with patch.object(
             MockDeploymentBackend, 'remove_data_collector_enketo_links'
         ) as patched_remove_links:
-            url = reverse('api_v2:asset-permission-assignment-bulk-actions',
-                          kwargs={'uid_asset': asset.uid})
+            url = reverse(
+                'api_v2:asset-permission-assignment-bulk-actions',
+                kwargs={'uid_asset': asset.uid},
+            )
             self.client.delete(url, data={'username': 'anotheruser'})
         asset.refresh_from_db()
         assert asset.data_collector_group is None
