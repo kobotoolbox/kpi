@@ -1898,6 +1898,14 @@ add_type('application/geo+json', '.geojson')
 
 KOBOCAT_MEDIA_URL = f'{KOBOCAT_URL}/media/'
 
+MFA_FORMS = {
+    'authenticate': 'kobo.apps.accounts.mfa.forms.MfaTokenForm',
+}
+MFA_ADAPTER = 'kobo.apps.accounts.mfa.adapter.MfaAdapter'
+MFA_TOTP_DIGITS = env.int('MFA_CODE_LENGTH', 6)
+MFA_RECOVERY_CODE_COUNT = 5
+MFA_RECOVERY_CODE_DIGITS = 12
+
 TRENCH_AUTH = {
     'USER_MFA_MODEL': 'accounts_mfa.MfaMethod',
     'USER_ACTIVE_FIELD': 'is_active',
