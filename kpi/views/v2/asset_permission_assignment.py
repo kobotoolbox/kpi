@@ -268,7 +268,6 @@ class AssetPermissionAssignmentViewSet(
             AssetUserPartialPermission.objects.filter(
                 asset=self.asset, user__username=username
             ).delete()
-
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
