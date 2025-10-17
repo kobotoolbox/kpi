@@ -181,7 +181,7 @@ class HookViewSet(
         serializer.save(asset=self.asset)
 
     @action(detail=True, methods=['PATCH'])
-    def retry(self, request, uid=None, *args, **kwargs):
+    def retry(self, request, uid_hook, *args, **kwargs):
         hook = self.get_object()
         response = {'detail': t('Task successfully scheduled')}
         status_code = status.HTTP_200_OK
