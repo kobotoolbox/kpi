@@ -51,6 +51,7 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
     InstanceIdMissingError,
     InstanceInvalidUserError,
     InstanceMultipleNodeError,
+    InvalidXMLCharacterError,
     LockedSubmissionError,
     TemporarilyUnavailableError,
 )
@@ -204,6 +205,7 @@ def create_instance(
         username = username.lower()
 
     xml = smart_str(xml_file.read())
+    validate_xml_chars(xml)
     xml_hash = Instance.get_hash(xml)
     xform = get_xform_from_submission(xml, username, uuid)
     check_submission_permissions(request, xform)
@@ -350,6 +352,33 @@ def dict2xform(submission: dict, xform_id_string: str) -> str:
     return xml_head + dict2xml(submission) + xml_tail
 
 
+def validate_xml_chars(xml: str) -> None:
+    """
+    Validate an XML submission for parser errors and disallowed XML characters
+
+    - Some clients may include a parser error wrapper when they fail to
+      serialise form content that contains control/invisible characters.
+    - If either the wrapper or disallowed characters are present, this
+      function raises `InvalidXMLCharacterError`.
+    """
+    invalid_xml_char_re = re.compile(
+        r'[^\x09\x0A\x0D\x20-\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]'
+    )
+
+    has_parser_error = '<parsererror' in xml or 'PCDATA invalid Char value' in xml
+    has_invalid_chars = invalid_xml_char_re.search(xml)
+
+    if has_parser_error or has_invalid_chars:
+        raise InvalidXMLCharacterError(
+            t(
+                'Submission rejected: '
+                'the form contains unsupported or invisible characters.'
+            )
+        )
+
+    return None
+
+
 @contextlib.contextmanager
 def get_instance_lock(submission_uuid: str, xform_id: int) -> bool:
     """
@@ -473,6 +502,9 @@ def http_open_rosa_error_handler(func, request):
             'The owner of this survey has exceeded their submission limit.'
         )
         result.http_error_response = OpenRosaResponsePaymentRequired(result.error)
+    except InvalidXMLCharacterError as e:
+        result.error = str(e)
+        result.http_error_response = OpenRosaResponseBadRequest(result.error)
     except AccountInactiveError:
         result.error = t('Account is not active')
         result.http_error_response = OpenRosaResponseNotAllowed(result.error)
