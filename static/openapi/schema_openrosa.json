@@ -375,34 +375,7 @@
                 }
             }
         },
-        "/formList": {
-            "get": {
-                "operationId": "form_list_authenticated",
-                "description": "## Implement part of the OpenRosa Form List API\n\n⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as authenticated user.\n",
-                "tags": [
-                    "OpenRosa Form List"
-                ],
-                "security": [
-                    {
-                        "TokenAuth": []
-                    },
-                    {}
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/xml": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/XFormList"
-                                }
-                            }
-                        },
-                        "description": null
-                    }
-                }
-            }
-        },
-        "/key/{token}/formList": {
+        "/collector/{token}/formList": {
             "get": {
                 "operationId": "form_list_data_collector",
                 "description": "## Implement part of the OpenRosa Form List API\n\n⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as a data collector.\n",
@@ -440,7 +413,7 @@
                 }
             }
         },
-        "/key/{token}/submission": {
+        "/collector/{token}/submission": {
             "post": {
                 "operationId": "submission_data_collector",
                 "description": "## Implement the OpenRosa Form Submission API\n\n⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as a data collector.\n\n",
@@ -560,7 +533,7 @@
                 }
             }
         },
-        "/key/{token}/xformsManifest/{id}": {
+        "/collector/{token}/xformsManifest/{id}": {
             "get": {
                 "operationId": "manifest_data_collector",
                 "description": "## Implement part of the OpenRosa Manifest API\n\n⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.\nThis endpoints will also open the form in **creation** mode and is used as an anonymous user.\n",
@@ -621,6 +594,33 @@
                             }
                         },
                         "description": ""
+                    }
+                }
+            }
+        },
+        "/formList": {
+            "get": {
+                "operationId": "form_list_authenticated",
+                "description": "## Implement part of the OpenRosa Form List API\n\n⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as authenticated user.\n",
+                "tags": [
+                    "OpenRosa Form List"
+                ],
+                "security": [
+                    {
+                        "TokenAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/xml": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/XFormList"
+                                }
+                            }
+                        },
+                        "description": null
                     }
                 }
             }
