@@ -312,7 +312,7 @@ export const assetWithImageSubmission: SubmissionResponse = {
         'zefir/attachments/1c0496e69e624ab6a265316eed7127c1/d861c7c7-9c49-42cb-8652-cbe3b6c148ad/the-origin-of-the-world-12_21_57.jpg',
       uid: 'aALUCUEKcgKk28owQo3LrA',
       question_xpath: 'Add_a_picture',
-      media_file_basename: 'the-origin-of-the-world-12_21_57.jpg'
+      media_file_basename: 'the-origin-of-the-world-12_21_57.jpg',
     },
   ],
   _status: 'submitted_via_web',

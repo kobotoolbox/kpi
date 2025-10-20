@@ -37,7 +37,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     OpenRosaTemporarilyUnavailable,
 )
 from kobo.apps.organizations.constants import UsageType
-from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_VIEW_SUBMISSIONS
+from kpi.constants import PERM_ADD_SUBMISSIONS
 from kpi.utils.fuzzy_int import FuzzyInt
 
 
@@ -396,7 +396,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             'transportation',
             'instances',
             'transport_with_attachment',
-            'test narrow.png'
+            'test narrow.png',
         )
 
         with open(media_file_path, 'rb') as media_file:

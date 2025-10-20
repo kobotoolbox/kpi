@@ -7,7 +7,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, permissions, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotAuthenticated
-from rest_framework.parsers import JSONParser, FormParser
+from rest_framework.parsers import FormParser, JSONParser
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 
@@ -188,9 +188,9 @@ class XFormSubmissionApi(
     template_name = 'submission.xml'
     log_type = AuditType.PROJECT_HISTORY
     parser_classes = (
-         JSONParser,
-         FormParser,
-         RawFilenameMultiPartParser,
+        JSONParser,
+        FormParser,
+        RawFilenameMultiPartParser,
     )
 
     def __init__(self, *args, **kwargs):

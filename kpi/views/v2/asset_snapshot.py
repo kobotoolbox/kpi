@@ -10,7 +10,7 @@ from drf_spectacular.utils import (
     extend_schema_view,
 )
 from rest_framework import renderers, serializers, status
-from rest_framework.decorators import action, parser_classes
+from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse

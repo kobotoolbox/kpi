@@ -1,12 +1,12 @@
 import base64
 
 from django.conf import settings
+from django.http.multipartparser import MultiPartParser as DjangoMultiPartParser
+from django.http.multipartparser import MultiPartParserError
 from django.utils.encoding import force_str
 from rest_framework.exceptions import ParseError
 from rest_framework.parsers import DataAndFiles
 from rest_framework.parsers import MultiPartParser as DRFMultiPartParser
-from django.http.multipartparser import MultiPartParser as DjangoMultiPartParser
-from django.http.multipartparser import MultiPartParserError
 
 
 class MultiPartParserWithRawFilenames(DjangoMultiPartParser):
