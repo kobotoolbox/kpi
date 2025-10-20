@@ -5,18 +5,15 @@
   color: var(--mantine-color-gray-1);
 }
 
-.wrapper:focus-within {
+.input:focus-within {
   box-shadow: 0 0 0 2px var(--mantine-color-blue-7);
-  border-radius: var(--mantine-radius-md);
 }
 
-.wrapper {
-  > * {
-    border-color: var(--mantine-color-gray-6);
+.input {
+  border-color: var(--mantine-color-gray-6);
 
-    &::placeholder {
-      color: var(--mantine-color-gray-3);
-      opacity: 1;
-    }
+  &::placeholder {
+    color: var(--mantine-color-gray-3);
+    opacity: 1;
   }
 }

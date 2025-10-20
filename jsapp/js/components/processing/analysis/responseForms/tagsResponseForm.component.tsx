@@ -1,5 +1,6 @@
 import React, { useContext, useState } from 'react'
 
+import { TagsInput } from '@mantine/core'
 // We don't use `KoboTagsInput` here, because we don't want the tags splitting
 // feature it has built in. It's easier for us to use `TagsInput` directly.
 import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
@@ -10,7 +11,6 @@ import {
 } from '#/components/processing/analysis/utils'
 import commonStyles from './common.module.scss'
 import CommonHeader from './commonHeader.component'
-import {TagsInput, TextInput} from '@mantine/core'
 
 interface TagsResponseFormProps {
   uuid: string
@@ -60,14 +60,7 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
       <CommonHeader uuid={props.uuid} />
 
       <section className={commonStyles.content}>
-
-        <TagsInput
-          value={response}
-          onChange={onTagsChange}
-          acceptValueOnBlur
-          disabled={!props.canEdit}
-        />
-        <TextInput/>
+        <TagsInput value={response} onChange={onTagsChange} acceptValueOnBlur disabled={!props.canEdit} />
       </section>
     </>
   )

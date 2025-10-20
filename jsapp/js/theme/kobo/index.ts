@@ -9,8 +9,8 @@ import { MenuThemeKobo } from './Menu'
 import { ModalThemeKobo } from './Modal'
 import { SelectThemeKobo } from './Select'
 import { TableThemeKobo } from './Table'
-import { TooltipThemeKobo } from './Tooltip'
 import { TagsInputThemeKobo } from './TagsInput'
+import { TooltipThemeKobo } from './Tooltip'
 
 export const themeKobo = createTheme({
   primaryColor: 'blue',
