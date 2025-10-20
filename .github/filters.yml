@@ -20,10 +20,12 @@ biome:
   - '.github/workflows/biome.yml'      # ci
 
 openapi:
-  - '{kpi,kobo,hub}/**/*.!(md)'        # backend
-  - 'dependencies/**/*.!(md)'          # pip
-  - 'pyproject.toml'                   # (can affect build/tests)
-  - '.github/workflows/openapi.yml'    # ci
+  - '{kpi,kobo,hub}/**/*.!(md)'           # backend
+  - 'dependencies/**/*.!(md)'             # pip
+  - 'pyproject.toml'                      # (can affect build/tests)
+  - 'static/openapi/*'                    # output
+  - 'jsapp/js/api/{models,react-query}/*' # output
+  - '.github/workflows/openapi.yml'       # ci
 
 pytest:
   - '{kpi,kobo,hub}/**/*.!(md)'    # backend
