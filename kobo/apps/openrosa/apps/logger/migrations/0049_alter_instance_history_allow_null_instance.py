@@ -4,6 +4,27 @@ import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
 
+def manually_set_nullable(apps, schema_editor):
+    print(
+        """
+        !!! ATTENTION !!!
+        If you have existing projects you should run the SQL query below
+        in PostgreSQL directly:
+
+           > ALTER TABLE "logger_instancehistory" ALTER COLUMN "xform_instance_id" DROP NOT NULL;
+        """
+    )
+
+def manually_set_non_nullable(apps, schema_editor):
+    print(
+        """
+        !!! ATTENTION !!!
+        If you have existing projects should run the SQL query below
+        in PostgreSQL directly:
+
+           > ALTER TABLE "logger_instancehistory" ALTER COLUMN "xform_instance_id" SET NOT NULL;
+        """
+    )
 
 class Migration(migrations.Migration):
 
@@ -12,15 +33,23 @@ class Migration(migrations.Migration):
         ('logger', '0048_alter_instancehistory_root_uuid'),
     ]
 
-    operations = [
-        migrations.AlterField(
-            model_name='instancehistory',
-            name='xform_instance',
-            field=models.ForeignKey(
-                null=True,
-                on_delete=django.db.models.deletion.SET_NULL,
-                related_name='submission_history',
-                to='logger.instance',
+    if settings.SKIP_HEAVY_MIGRATIONS:
+        operations = [
+            migrations.RunPython(
+                manually_set_nullable,
+                manually_set_non_nullable,
+            )
+        ]
+    else:
+        operations = [
+            migrations.AlterField(
+                model_name='instancehistory',
+                name='xform_instance',
+                field=models.ForeignKey(
+                    null=True,
+                    on_delete=django.db.models.deletion.SET_NULL,
+                    related_name='submission_history',
+                    to='logger.instance',
+                ),
             ),
-        ),
-    ]
+        ]
