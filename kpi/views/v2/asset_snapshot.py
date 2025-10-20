@@ -10,7 +10,7 @@ from drf_spectacular.utils import (
     extend_schema_view,
 )
 from rest_framework import renderers, serializers, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, parser_classes
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -23,6 +23,7 @@ from kpi.exceptions import SubmissionIntegrityError
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
 from kpi.models import AssetFile, AssetSnapshot, PairedData
+from kpi.parsers import RawFilenameMultiPartParser
 from kpi.permissions import AssetSnapshotPermission, EditSubmissionPermission
 from kpi.renderers import (
     OpenRosaFormListRenderer,
@@ -483,6 +484,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
             EnketoSessionAuthentication,
         ],
         versioning_class=OpenRosaAPIVersioning,
+        parser_classes=[RawFilenameMultiPartParser],
     )
     def submission(self, request, *args, **kwargs):
         """ Implements the OpenRosa Form Submission API """
