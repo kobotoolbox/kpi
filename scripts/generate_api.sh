@@ -12,7 +12,7 @@ WHOAMI=$(whoami)
 OWNER=$(ls -ld . | awk '{print $3}')
 DESTINATION_FOLDER="${KPI_SRC_DIR}/static/openapi"
 
-# For example, `bash -c`` will run on CI, while `gosu` will run in docker.
+# For example, `bash -c` will run on CI, while `gosu` will run in docker.
 function run () { bash -c "$*"; }
 if [ "$WHOAMI" != "$OWNER" ]; then
     echo "FYI: Applied gosu!"
