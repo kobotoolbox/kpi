@@ -1159,10 +1159,10 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             assert attachment['download_url'] == expected_new_download_urls[idx]
             assert attachment['question_xpath'] == expected_question_xpaths[idx]
 
-    def test_inject_root_uuid_if_not_present(self):
+    def test_inject_requires_properties_if_not_present(self):
         """
-        Ensure `meta/rootUUid` is present in API response even if rootUuid was
-        not present (e.g. like old submissions)
+        Ensure `meta/rootUUid` and `_validation_status` are present in API response
+        even if not present (e.g. like old submissions)
         """
         # remove "meta/rootUuid" from MongoDB
         submission = self.submissions_submitted_by_someuser[0]
@@ -1171,7 +1171,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         )
         root_uuid = mongo_document.pop(META_ROOT_UUID)
         settings.MONGO_DB.instances.update_one(
-            {'_id': submission['_id']}, {'$unset': {META_ROOT_UUID: root_uuid}}
+            {'_id': submission['_id']},
+            {'$unset': {META_ROOT_UUID: root_uuid, '_validation_status': None}},
         )
 
         url = reverse(
@@ -1184,7 +1185,9 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         response = self.client.get(url, {'format': 'json'})
         assert response.data['_id'] == submission['_id']
         assert META_ROOT_UUID in response.data
+        assert '_validation_status' in response.data
         assert response.data[META_ROOT_UUID] == root_uuid
+        assert response.data['_validation_status'] == {}
 
 
 class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase):
