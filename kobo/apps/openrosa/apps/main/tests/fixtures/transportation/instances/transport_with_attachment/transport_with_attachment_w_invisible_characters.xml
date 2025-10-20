@@ -1,0 +1,23 @@
+<?xml version='1.0' ?>
+<transportation_with_attachment id="transportation_with_attachment">
+    <transport>
+        <available_transportation_types_to_referral_facility>none
+        </available_transportation_types_to_referral_facility>
+        <loop_over_transport_types_frequency>
+            <ambulance/>
+            <bicycle/>
+            <boat_canoe/>
+            <bus/>
+            <donkey_mule_cart/>
+            <keke_pepe/>
+            <lorry/>
+            <motorbike/>
+            <taxi/>
+            <other/>
+        </loop_over_transport_types_frequency>
+    </transport>
+    <Point_and_shoot>test narrow.png</Point_and_shoot>
+    <meta>
+        <instanceID>uuid:3105b549-0f4e-4f3c-9eb2-470f25febf86</instanceID>
+    </meta>
+</transportation_with_attachment>
