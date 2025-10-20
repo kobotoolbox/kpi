@@ -304,7 +304,7 @@ class ParsedInstance(models.Model):
                 MONGO_STRFTIME),
             TAGS: list(self.instance.tags.names()),
             NOTES: self.get_notes(),
-            VALIDATION_STATUS: self.instance.get_validation_status(),
+            VALIDATION_STATUS: self.instance.get_validation_status() or {},
             SUBMITTED_BY: self.instance.user.username
             if self.instance.user else None
         }
