@@ -66,6 +66,10 @@ jobs:
         run: pip-sync dependencies/pip/dev_requirements.txt
 
       - name: Generate OpenAPI with drf-spectacular
+        # GitHub Actions run without a TTY device. This is a workaround to get one,
+        # based on https://github.com/actions/runner/issues/241#issuecomment-2019042651
+        # and https://github.com/actions/runner/issues/241#issuecomment-842566950
+        shell: 'script --return --quiet --log-out /dev/null --command "bash --noprofile --norc -eo pipefail {0}"'
         run: |
           if ./run.py -cf run --rm kpi ./scripts/generate_api.sh --skip-orval 2>&1 | tee /dev/tty | grep -q "Warning"; then
             echo ""
