@@ -17,18 +17,6 @@ def manually_set_nullable(apps, schema_editor):
     )
 
 
-def manually_set_non_nullable(apps, schema_editor):
-    print(
-        """
-        !!! ATTENTION !!!
-        If you have existing projects should run the SQL query below
-        in PostgreSQL directly:
-
-           > ALTER TABLE "logger_instancehistory" ALTER COLUMN "xform_instance_id" SET NOT NULL;
-        """
-    )
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -40,7 +28,7 @@ class Migration(migrations.Migration):
         operations = [
             migrations.RunPython(
                 manually_set_nullable,
-                manually_set_non_nullable,
+                migrations.RunPython.noop,
             )
         ]
     else:
