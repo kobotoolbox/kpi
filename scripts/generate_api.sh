@@ -25,6 +25,9 @@ if [ ! -d "$DESTINATION_FOLDER" ]; then
     echo "Done!"
 fi
 
+echo "Enabling Stripe for schema generation…"
+export STRIPE_ENABLED=true
+echo "Stripe enabled: $STRIPE_ENABLED"
 echo "Generating v2 OpenAPI JSON schema with drf-spectacular…"
 run python manage.py generate_openapi_schema --file "$DESTINATION_FOLDER/schema_v2.json" --schema="api_v2" --format openapi-json
 echo "Generating v2 OpenAPI YAML schema with drf-spectacular…"
