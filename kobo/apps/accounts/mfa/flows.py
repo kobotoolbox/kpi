@@ -65,6 +65,6 @@ def deactivate_totp(request, name):
         )
     except MfaMethodsWrapper.DoesNotExist:
         raise NotFound
-    delete_and_cleanup(request, mfa.totp)
     mfa.is_active = False
     mfa.save()
+    delete_and_cleanup(request, mfa.totp)
