@@ -113,7 +113,7 @@ jobs:
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
-      topic: "${{ needs.create-current-branch.outputs.current_minor }} release"
+      topic: "${{ needs.version.outputs.current_minor }} release"
       content: |
         :seedling: `${{ needs.version.outputs.current_branch }}` branch created! Checklist:
         - @*QA* & @*product*: the release window is 4 weeks to make a release, otherwise the branch is scrapped and we start over with next release.
