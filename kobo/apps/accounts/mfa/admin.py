@@ -5,10 +5,10 @@ from .models import (
     TrenchMFAMethod,
     MfaAvailableToUser,
     MfaAvailableToUserAdmin,
-    ExtendedTrenchMfaMethod,
+    MfaMethod,
     ExtendedTrenchMfaMethodAdmin,
 )
 
 admin.site.unregister(TrenchMFAMethod)
-admin.site.register(ExtendedTrenchMfaMethod, ExtendedTrenchMfaMethodAdmin)
+admin.site.register(MfaMethod, ExtendedTrenchMfaMethodAdmin)
 admin.site.register(MfaAvailableToUser, MfaAvailableToUserAdmin)

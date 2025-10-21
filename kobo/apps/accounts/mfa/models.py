@@ -16,7 +16,6 @@ class MfaAvailableToUser(models.Model):
     class Meta:
         verbose_name = 'per-user availability'
         verbose_name_plural = 'per-user availabilities'
-        db_table = 'mfa_mfaavailabletouser'
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
@@ -52,9 +51,10 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
 
     name = models.CharField(max_length=255)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    secret = models.ForeignKey(Authenticator, null=True, on_delete=models.SET_NULL, related_name='+')
+    secret = models.CharField(max_length=255) # Leave room for encryption
+    totp = models.ForeignKey(Authenticator, null=True, on_delete=models.SET_NULL, related_name='+')
     recovery_codes = models.ForeignKey(Authenticator, null=True, on_delete=models.SET_NULL, related_name='+')
-    is_active = models.BooleanField()
+    is_active = models.BooleanField(default=False)
     date_disabled = models.DateTimeField(null=True)
 
     def __str__(self):
@@ -82,7 +82,7 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
         )
 
 
-class ExtendedTrenchMfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
+class MfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
     """
     Extend DjangoTrench model to add created, modified and last disabled date
     """
@@ -90,7 +90,6 @@ class ExtendedTrenchMfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
     class Meta:
         verbose_name = 'Trench MFA Method'
         verbose_name_plural = 'Trench MFA Methods'
-        db_table = 'mfa_mfamethod'
 
     date_disabled = models.DateTimeField(null=True)
 

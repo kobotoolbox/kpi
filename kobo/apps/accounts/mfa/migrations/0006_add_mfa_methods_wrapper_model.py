@@ -9,9 +9,7 @@ import kpi.models.abstract_models
 class Migration(migrations.Migration):
 
     dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('mfa', '0003_authenticator_type_uniq'),
-        ('accounts_mfa', '0001_squashed_0004_alter_mfamethod_date_created_and_more'),
+        ('accounts_mfa', '0005_rename_mfa_tables'),
     ]
 
     operations = [
@@ -40,7 +38,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ('name', models.CharField(max_length=255)),
-                ('is_active', models.BooleanField()),
+                ('is_active', models.BooleanField(default=False)),
                 ('date_disabled', models.DateTimeField(null=True)),
                 (
                     'recovery_codes',
@@ -51,8 +49,9 @@ class Migration(migrations.Migration):
                         to='mfa.authenticator',
                     ),
                 ),
+                ('secret', models.CharField(max_length=255)),
                 (
-                    'secret',
+                    'totp',
                     models.ForeignKey(
                         null=True,
                         on_delete=django.db.models.deletion.SET_NULL,
