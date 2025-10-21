@@ -403,7 +403,6 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             context=context,
             require_auth=not bool(kwargs.get('username')),
         )
-
         return Response(serializer.data, headers=self.get_openrosa_headers())
 
     @extend_schema(
