@@ -1270,18 +1270,25 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             }
         metadata_filenames = metadata_files.keys()
 
+        print('metadata_filenames', metadata_files, flush=True)
+
         queryset = self._get_metadata_queryset(file_type=file_type)
+
+        print('queryset', queryset, flush=True)
 
         for media_file in queryset:
 
             backend_media_id = media_file.backend_media_id
-
+            print('backend_media_id', backend_media_id, flush=True)
             # File does not exist in KC
             if backend_media_id not in metadata_filenames:
+                print('NOT IN KC', backend_media_id, flush=True)
                 if media_file.deleted_at is None:
                     # New file
+                    print('\tSave', backend_media_id, flush=True)
                     self._save_openrosa_metadata(media_file)
                 else:
+                    print('\tDelete', backend_media_id, flush=True)
                     # Orphan, delete it
                     media_file.delete(force=True)
                 continue
