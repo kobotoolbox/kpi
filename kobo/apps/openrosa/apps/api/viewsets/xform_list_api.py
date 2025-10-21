@@ -79,7 +79,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         )
 
     def get_renderers(self):
-        if self.action and self.action == 'manifest':
+        if self.action and self.action.startswith('manifest'):
             return [XFormManifestRenderer()]
 
         return super().get_renderers()
@@ -330,7 +330,6 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             context=context,
             require_auth=not bool(kwargs.get('username')),
         )
-
         return Response(serializer.data, headers=self.get_openrosa_headers())
 
     @extend_schema(
