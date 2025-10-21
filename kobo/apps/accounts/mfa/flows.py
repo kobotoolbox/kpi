@@ -4,6 +4,7 @@ from allauth.mfa.recovery_codes.internal.auth import RecoveryCodes
 from allauth.mfa.totp.internal.auth import TOTP
 from allauth.mfa import signals
 from allauth.mfa.recovery_codes.internal.flows import auto_generate_recovery_codes
+from allauth.mfa.base.internal.flows import delete_and_cleanup
 from allauth.mfa.models import Authenticator
 
 from .models import MfaMethodsWrapper
@@ -38,6 +39,7 @@ def activate_totp(request, name):
 
     return totp.wrap(), recovery_codes.wrap()
 
+
 def regenerate_codes(request, name):
     try:
         mfa = MfaMethodsWrapper.objects.get(
@@ -52,3 +54,17 @@ def regenerate_codes(request, name):
     mfa.save()
 
     return mfa.recovery_codes.wrap()
+
+
+def deactivate_totp(request, name):
+    try:
+        mfa = MfaMethodsWrapper.objects.get(
+            user=request.user,
+            name=name,
+            is_active=True,
+        )
+    except MfaMethodsWrapper.DoesNotExist:
+        raise NotFound
+    delete_and_cleanup(request, mfa.totp)
+    mfa.is_active = False
+    mfa.save()

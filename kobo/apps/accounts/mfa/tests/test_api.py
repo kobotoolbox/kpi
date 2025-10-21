@@ -53,10 +53,7 @@ class MfaApiTestCase(BaseTestCase):
             .secret
         )
 
-        self.client.post(
-            reverse('mfa-deactivate', args=(method,))
-        )
-
+        # Since it was never confirmed, it will generate another secret
         second_response = self.client.post(
             reverse('mfa-activate', args=(method,))
         )
@@ -101,5 +98,21 @@ class MfaApiTestCase(BaseTestCase):
         someuser_mfa_activation.delete()
 
     def test_regenerate_codes(self):
-        response = self.client.post(reverse('mfa-regenerate', args=('app',)))
+        response = self.client.post(reverse('mfa-regenerate', args=('app',)), data={'code': '1234567890'})
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        code = get_mfa_code_for_user(self.someuser)
+        response = self.client.post(reverse('mfa-regenerate', args=('app',)), data={'code': code})
+
         assert len(response.data['backup_codes']) == 5
+
+    def test_deactivate(self):
+        response = self.client.post(reverse('mfa-deactivate', args=('app',)), data={'code': '1234567890'})
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        code = get_mfa_code_for_user(self.someuser)
+        response = self.client.post(reverse('mfa-deactivate', args=('app',)), data={'code': code})
+
+        assert response.status_code == status.HTTP_200_OK
+        mfamethods = MfaMethodsWrapper.objects.get(user=self.someuser)
+        assert mfamethods.is_active is False

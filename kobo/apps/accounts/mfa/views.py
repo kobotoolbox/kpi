@@ -27,8 +27,8 @@ from kpi.utils.log import logging
 from .forms import MfaLoginForm, MfaTokenForm
 from .models import MfaMethodsWrapper
 from .permissions import IsMfaEnabled
-from .serializers import UserMfaMethodSerializer
-from .flows import activate_totp, regenerate_codes
+from .serializers import UserMfaMethodSerializer, TOTPCodeSerializer
+from .flows import activate_totp, regenerate_codes, deactivate_totp
 
 class MfaLoginView(LoginView):
     form_class = MfaLoginForm
@@ -119,7 +119,6 @@ class MfaMethodActivationView(APIView):
         return Response(response_data, status=status)
 
 
-
 class MfaMethodConfirmView(APIView):
     permission_classes = (IsAuthenticated, IsMfaEnabled)
 
@@ -136,24 +135,18 @@ class MfaMethodDeactivateView(APIView):
 
     @staticmethod
     def post(request: Request, method: str) -> Response:
-        try:
-            mfa = MfaMethodsWrapper.objects.get(
-                user=request.user,
-                name=method,
-                is_active=True,
-            )
-        except MfaMethodsWrapper.DoesNotExist:
-            raise NotFound
-        authenticator = mfa.totp
-        totp_flows.deactivate_totp(request, authenticator)
-        mfa.is_active = False
-        mfa.save()
+        serializer = TOTPCodeSerializer(data=request.data, context={'user': request.user, 'method': method})
+        serializer.is_valid(raise_exception=True)
+        deactivate_totp(request, method)
+        return Response({})
 
 
 class MfaMethodRegenerateCodesView(APIView):
     permission_classes = (IsAuthenticated, IsMfaEnabled)
     @staticmethod
     def post(request: Request, method: str) -> Response:
+        serializer = TOTPCodeSerializer(data=request.data, context={'user': request.user, 'method': method})
+        serializer.is_valid(raise_exception=True)
         recovery_codes = regenerate_codes(request, method)
         backup_codes = recovery_codes.get_unused_codes()
         return Response({"backup_codes": backup_codes})
