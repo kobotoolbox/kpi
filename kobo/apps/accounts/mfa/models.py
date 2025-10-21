@@ -58,7 +58,7 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
     date_disabled = models.DateTimeField(null=True)
 
     def __str__(self):
-        return f'{self.user.username} #{self.user_id} (MFA Method: {self.name})'
+        return f'{self.user.username}: {self.name=} {self.is_active=}'
 
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None,

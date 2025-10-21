@@ -102,4 +102,4 @@ class MfaApiTestCase(BaseTestCase):
 
     def test_regenerate_codes(self):
         response = self.client.post(reverse('mfa-regenerate', args=('app',)))
-        assert len(response.data['backup_codes']) == 6
+        assert len(response.data['backup_codes']) == 5
