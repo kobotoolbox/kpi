@@ -83,8 +83,7 @@ class SubmissionSupplement(SubmissionExtras):
                     raise InvalidAction from e
 
                 action = action_class(question_xpath, action_params, asset)
-                # TODO REMOVE The comment below
-                # action.check_limits(asset.owner)
+                action.check_limits(asset.owner)
 
                 question_supplemental_data = supplemental_data.setdefault(
                     question_xpath, {}
