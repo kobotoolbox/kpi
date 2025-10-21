@@ -13,7 +13,7 @@ class MfaAdapter(DefaultMFAAdapter):
         """Returns the label used for representing the given user in a TOTP QR
         code.
         """
-        return f'{config.MFA_ISSUER_NAME}:{user.username}'
+        return f'{config.MFA_ISSUER_NAME}-{user.username}'
 
     def get_totp_issuer(self) -> str:
         """Returns the TOTP issuer name that will be contained in the TOTP QR

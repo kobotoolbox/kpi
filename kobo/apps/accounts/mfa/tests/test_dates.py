@@ -1,9 +1,8 @@
-# coding: utf-8
 from django.utils.timezone import now
-from trench.utils import get_mfa_model
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.kpi_test_case import BaseTestCase
+from kobo.apps.accounts.mfa.models import MfaMethodsWrapper
 
 
 class MfaDatesTestCase(BaseTestCase):
@@ -15,13 +14,11 @@ class MfaDatesTestCase(BaseTestCase):
 
     def test_date_disabled_is_none_when_is_active(self):
 
-        mfa_method = get_mfa_model().objects.create(
+        mfa_method = MfaMethodsWrapper.objects.create(
             user=self.someuser,
             secret='dummy_mfa_secret',
             name='app',
-            is_primary=True,
             is_active=True,
-            _backup_codes='dummy_encoded_codes',
         )
         self.assertEqual(mfa_method.date_disabled, None)
         mfa_method.date_disabled = now()
@@ -30,12 +27,11 @@ class MfaDatesTestCase(BaseTestCase):
 
     def test_date_disabled_is_set_when_not_active(self):
 
-        mfa_method = get_mfa_model().objects.create(
+        mfa_method = MfaMethodsWrapper.objects.create(
             user=self.someuser,
             secret='dummy_mfa_secret',
             name='app',
             is_active=False,
-            _backup_codes='dummy_encoded_codes',
         )
         self.assertNotEqual(mfa_method.date_disabled, None)
         mfa_method.date_disabled = None
@@ -44,13 +40,11 @@ class MfaDatesTestCase(BaseTestCase):
 
     def test_date_modified(self):
 
-        mfa_method = get_mfa_model().objects.create(
+        mfa_method = MfaMethodsWrapper.objects.create(
             user=self.someuser,
             secret='dummy_mfa_secret',
             name='app',
-            is_primary=True,
             is_active=True,
-            _backup_codes='dummy_encoded_codes',
         )
         date_modified = mfa_method.date_modified
         mfa_method.save()
