@@ -1919,14 +1919,6 @@ TRENCH_AUTH = {
     'CONFIRM_BACKUP_CODES_REGENERATION_WITH_CODE': True,
     'ALLOW_BACKUP_CODES_REGENERATION': True,
     'MFA_METHODS': {
-        'app': {
-            'VERBOSE_NAME': 'app',
-            'VALIDITY_PERIOD': env.int(
-                'MFA_CODE_VALIDITY_PERIOD', 30  # seconds
-            ),
-            'USES_THIRD_PARTY_CLIENT': True,
-            'HANDLER': 'kobo.apps.accounts.mfa.backends.application.ApplicationBackend',
-        },
     },
     'CODE_LENGTH': env.int('MFA_CODE_LENGTH', 6),
 }
