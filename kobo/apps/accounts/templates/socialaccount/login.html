@@ -39,5 +39,8 @@
     {% trans "or" %} <a href="{% url 'account_login' %}">{% trans "go back" %}</a>
   </p>
   {% include "../legal/registration_legal.html" with config=config %}
+  {% if redirect_field_value %}
+  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+  {% endif %}
 </form>
 {% endblock %}
