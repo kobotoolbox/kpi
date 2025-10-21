@@ -1,4 +1,5 @@
 # coding: utf-8
+from allauth.mfa.models import Authenticator
 from django.conf import settings
 from django.contrib import admin
 from django.db import models
@@ -34,14 +35,61 @@ class MfaAvailableToUserAdmin(admin.ModelAdmin):
     # list_display = ('user',)
 
 
-class MfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
+class MfaMethodsWrapper(AbstractTimeStampedModel):
     """
-    Extend DjangoTrench model to add created, modified and last disabled date
+    MFA Methods is a wrapper table that contains references to a TOTP secret and recovery codes.
     """
 
     class Meta:
         verbose_name = 'MFA Method'
         verbose_name_plural = 'MFA Methods'
+        constraints = (
+            models.UniqueConstraint(
+                fields=("user", "name"),
+                name="unique_user_method_name",
+            ),
+        )
+
+    name = models.CharField(max_length=255)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    secret = models.ForeignKey(Authenticator, null=True, on_delete=models.SET_NULL, related_name='+')
+    recovery_codes = models.ForeignKey(Authenticator, null=True, on_delete=models.SET_NULL, related_name='+')
+    is_active = models.BooleanField()
+    date_disabled = models.DateTimeField(null=True)
+
+    def __str__(self):
+        return f'{self.user.username} #{self.user_id} (MFA Method: {self.name})'
+
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None,
+    ):
+        created = self.pk is None
+
+        if not self.is_active and not self.date_disabled:
+            self.date_disabled = now()
+
+        if self.is_active and self.date_disabled:
+            self.date_disabled = None
+
+        if update_fields:
+            update_fields += ['date_disabled']
+
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
+
+
+class ExtendedTrenchMfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
+    """
+    Extend DjangoTrench model to add created, modified and last disabled date
+    """
+
+    class Meta:
+        verbose_name = 'Trench MFA Method'
+        verbose_name_plural = 'Trench MFA Methods'
         db_table = 'mfa_mfamethod'
 
     date_disabled = models.DateTimeField(null=True)
@@ -87,7 +135,8 @@ class MfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
             UserProfile.set_mfa_status(user_id=user_id, is_active=False)
 
 
-class MfaMethodAdmin(TrenchMFAMethodAdmin):
+
+class ExtendedTrenchMfaMethodAdmin(TrenchMFAMethodAdmin):
 
     search_fields = ('user__username',)
     autocomplete_fields = ['user']

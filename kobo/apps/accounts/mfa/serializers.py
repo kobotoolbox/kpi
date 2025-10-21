@@ -1,6 +1,6 @@
 # coding: utf-8
 from rest_framework import serializers
-from trench.utils import get_mfa_model
+from .models import MfaMethodsWrapper
 
 
 class UserMfaMethodSerializer(serializers.ModelSerializer):
@@ -9,10 +9,9 @@ class UserMfaMethodSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        model = get_mfa_model()
+        model = MfaMethodsWrapper
         fields = (
             'name',
-            'is_primary',
             'is_active',
             'date_created',
             'date_modified',
