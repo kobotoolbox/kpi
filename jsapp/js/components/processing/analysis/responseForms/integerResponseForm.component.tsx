@@ -1,6 +1,5 @@
+import { NumberInput } from '@mantine/core'
 import React, { useContext, useState } from 'react'
-
-import TextBox from '#/components/common/textBox'
 import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import { AUTO_SAVE_TYPING_DELAY } from '#/components/processing/analysis/constants'
 import {
@@ -70,10 +69,9 @@ export default function IntegerResponseForm(props: IntegerResponseFormProps) {
       <CommonHeader uuid={props.uuid} />
 
       <section className={commonStyles.content}>
-        <TextBox
-          type='number'
+        <NumberInput
           value={response}
-          onChange={onInputChange}
+          onChange={(newResponse) => onInputChange(newResponse.toString())}
           placeholder={t('Type your answer')}
           onBlur={saveResponse}
           disabled={!props.canEdit}
