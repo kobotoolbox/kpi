@@ -1,8 +1,8 @@
 from django.utils.timezone import now
 
+from kobo.apps.accounts.mfa.models import MfaMethodsWrapper
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.kpi_test_case import BaseTestCase
-from kobo.apps.accounts.mfa.models import MfaMethodsWrapper
 
 
 class MfaDatesTestCase(BaseTestCase):

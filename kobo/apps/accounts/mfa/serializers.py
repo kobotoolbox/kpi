@@ -25,6 +25,7 @@ class TOTPCodeSerializer(serializers.Serializer):
     """
     Intended to be used for validating TOTP codes
     """
+
     code = serializers.CharField()
 
     def __init__(self, *args, **kwargs):

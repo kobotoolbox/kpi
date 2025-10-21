@@ -1,5 +1,6 @@
-from allauth.mfa.adapter import get_adapter
 import pyotp
+from allauth.mfa.adapter import get_adapter
+
 from ..models import MfaMethodsWrapper
 
 

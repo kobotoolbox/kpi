@@ -2,11 +2,11 @@
 from django.contrib import admin
 
 from .models import (
-    TrenchMFAMethod,
+    ExtendedTrenchMfaMethodAdmin,
     MfaAvailableToUser,
     MfaAvailableToUserAdmin,
     MfaMethod,
-    ExtendedTrenchMfaMethodAdmin,
+    TrenchMFAMethod,
 )
 
 admin.site.unregister(TrenchMFAMethod)

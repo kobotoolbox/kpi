@@ -44,16 +44,20 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
         verbose_name_plural = 'MFA Methods'
         constraints = (
             models.UniqueConstraint(
-                fields=("user", "name"),
-                name="unique_user_method_name",
+                fields=('user', 'name'),
+                name='unique_user_method_name',
             ),
         )
 
     name = models.CharField(max_length=255)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    secret = models.CharField(max_length=255) # Leave room for encryption
-    totp = models.ForeignKey(Authenticator, null=True, on_delete=models.SET_NULL, related_name='+')
-    recovery_codes = models.ForeignKey(Authenticator, null=True, on_delete=models.SET_NULL, related_name='+')
+    secret = models.CharField(max_length=255)  # Leave room for encryption
+    totp = models.ForeignKey(
+        Authenticator, null=True, on_delete=models.SET_NULL, related_name='+'
+    )
+    recovery_codes = models.ForeignKey(
+        Authenticator, null=True, on_delete=models.SET_NULL, related_name='+'
+    )
     is_active = models.BooleanField(default=False)
     date_disabled = models.DateTimeField(null=True)
 
@@ -61,7 +65,11 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
         return f'{self.user.username}: {self.name=} {self.is_active=}'
 
     def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None,
+        self,
+        force_insert=False,
+        force_update=False,
+        using=None,
+        update_fields=None,
     ):
         created = self.pk is None
 
@@ -132,7 +140,6 @@ class MfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
         """
         if not settings.TESTING:
             UserProfile.set_mfa_status(user_id=user_id, is_active=False)
-
 
 
 class ExtendedTrenchMfaMethodAdmin(TrenchMFAMethodAdmin):

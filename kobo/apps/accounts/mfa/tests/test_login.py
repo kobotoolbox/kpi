@@ -1,10 +1,10 @@
+import pyotp
 from allauth.account.models import EmailAddress
 from allauth.mfa.adapter import get_adapter
 from django.conf import settings
 from django.shortcuts import resolve_url
 from django.urls import reverse
 from rest_framework import status
-import pyotp
 
 from kobo.apps.accounts.mfa.models import MfaMethodsWrapper
 from kobo.apps.kobo_auth.shortcuts import User
@@ -35,7 +35,9 @@ class LoginTests(KpiTestCase):
         secret = adapter.decrypt(mfa_method.secret)
         totp = pyotp.TOTP(secret)
         code = totp.now()
-        self.client.post(reverse('mfa-confirm', kwargs={'method': 'app'}), data={'code': str(code)})
+        self.client.post(
+            reverse('mfa-confirm', kwargs={'method': 'app'}), data={'code': str(code)}
+        )
         # Ensure `self.client` is not authenticated
         self.client.logout()
 

@@ -1,34 +1,24 @@
-import constance
-import pyotp
-
 from allauth.account.views import LoginView
 from allauth.mfa.adapter import get_adapter
-from allauth.mfa.recovery_codes.internal.auth import RecoveryCodes
-from allauth.mfa.totp.internal import auth as totp_auth, flows as totp_flows
-
 from allauth.mfa.internal.flows.add import validate_can_add_authenticator
-from allauth.mfa.models import Authenticator
+from allauth.mfa.totp.internal import auth as totp_auth
 from django.contrib.auth.views import LoginView as DjangoLoginView
 from django.db.models import QuerySet
 from django.urls import reverse
 from rest_framework.generics import ListAPIView
-from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.exceptions import NotFound
-from rest_framework.status import (
-    HTTP_200_OK,
-    HTTP_400_BAD_REQUEST,
-    HTTP_404_NOT_FOUND,
-)
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
+from rest_framework.views import APIView
 
 from kpi.permissions import IsAuthenticated
 from kpi.utils.log import logging
+from .flows import activate_totp, deactivate_totp, regenerate_codes
 from .forms import MfaLoginForm, MfaTokenForm
 from .models import MfaMethodsWrapper
 from .permissions import IsMfaEnabled
-from .serializers import UserMfaMethodSerializer, TOTPCodeSerializer
-from .flows import activate_totp, regenerate_codes, deactivate_totp
+from .serializers import TOTPCodeSerializer, UserMfaMethodSerializer
+
 
 class MfaLoginView(LoginView):
     form_class = MfaLoginForm
@@ -103,7 +93,7 @@ class MfaMethodActivationView(APIView):
         status = HTTP_200_OK
         if created or mfa.totp is None:
             try:
-                mfa.is_active = False # Activate until we verify the totp code
+                mfa.is_active = False  # Activate until we verify the totp code
                 mfa.secret = adapter.encrypt(totp_auth.get_totp_secret(regenerate=True))
                 mfa.save()
             except Exception as cause:
@@ -127,7 +117,7 @@ class MfaMethodConfirmView(APIView):
         response_data = {}
         toto, recovery_codes = activate_totp(request, method)
         backup_codes = recovery_codes.get_unused_codes()
-        return Response({"backup_codes": backup_codes})
+        return Response({'backup_codes': backup_codes})
 
 
 class MfaMethodDeactivateView(APIView):
@@ -135,7 +125,9 @@ class MfaMethodDeactivateView(APIView):
 
     @staticmethod
     def post(request: Request, method: str) -> Response:
-        serializer = TOTPCodeSerializer(data=request.data, context={'user': request.user, 'method': method})
+        serializer = TOTPCodeSerializer(
+            data=request.data, context={'user': request.user, 'method': method}
+        )
         serializer.is_valid(raise_exception=True)
         deactivate_totp(request, method)
         return Response({})
@@ -143,10 +135,13 @@ class MfaMethodDeactivateView(APIView):
 
 class MfaMethodRegenerateCodesView(APIView):
     permission_classes = (IsAuthenticated, IsMfaEnabled)
+
     @staticmethod
     def post(request: Request, method: str) -> Response:
-        serializer = TOTPCodeSerializer(data=request.data, context={'user': request.user, 'method': method})
+        serializer = TOTPCodeSerializer(
+            data=request.data, context={'user': request.user, 'method': method}
+        )
         serializer.is_valid(raise_exception=True)
         recovery_codes = regenerate_codes(request, method)
         backup_codes = recovery_codes.get_unused_codes()
-        return Response({"backup_codes": backup_codes})
+        return Response({'backup_codes': backup_codes})

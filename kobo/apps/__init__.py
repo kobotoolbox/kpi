@@ -1,4 +1,3 @@
-import trench
 from django.apps import AppConfig
 from django.core.checks import Tags, register
 

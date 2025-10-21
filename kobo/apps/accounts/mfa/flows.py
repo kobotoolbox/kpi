@@ -1,11 +1,11 @@
-from rest_framework.exceptions import NotFound, ValidationError
 from allauth.headless.mfa.inputs import ActivateTOTPInput
-from allauth.mfa.recovery_codes.internal.auth import RecoveryCodes
-from allauth.mfa.totp.internal.auth import TOTP
 from allauth.mfa import signals
-from allauth.mfa.recovery_codes.internal.flows import auto_generate_recovery_codes
 from allauth.mfa.base.internal.flows import delete_and_cleanup
 from allauth.mfa.models import Authenticator
+from allauth.mfa.recovery_codes.internal.auth import RecoveryCodes
+from allauth.mfa.recovery_codes.internal.flows import auto_generate_recovery_codes
+from allauth.mfa.totp.internal.auth import TOTP
+from rest_framework.exceptions import NotFound, ValidationError
 
 from .models import MfaMethodsWrapper
 

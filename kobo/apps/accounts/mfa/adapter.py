@@ -1,5 +1,6 @@
 from allauth.mfa.adapter import DefaultMFAAdapter
 from constance import config
+
 from .permissions import mfa_allowed_for_user
 
 
