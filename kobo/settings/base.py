@@ -1587,7 +1587,7 @@ STORAGES['import_export_celery'] = {'BACKEND': PRIVATE_STORAGE_CLASS}
 
 # Google Cloud Storage
 # Not fully supported as a generic storage backend
-GS_BUCKET_NAME = env.str('GS_BUCKET_NAME', None)
+GS_BUCKET_NAME = 'kobo-transcription-test' #env.str('GS_BUCKET_NAME', None)
 
 
 """ Django error logging configuration """
