@@ -121,10 +121,10 @@ class InactiveUsersAsOfFilter(SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return (
-            ('90', 'Inactive ≥ 90 days'),
-            ('180', 'Inactive ≥ 180 days'),
-            ('365', 'Inactive ≥ 365 days'),
-            ('730', 'Inactive ≥ 730 days'),
+            ('90', 'Inactive > 90 days'),
+            ('180', 'Inactive > 180 days'),
+            ('365', 'Inactive > 365 days'),
+            ('730', 'Inactive > 730 days'),
         )
 
     def queryset(self, request, queryset):
@@ -197,7 +197,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
             {'fields': ('deployed_forms_count', 'monthly_submission_count')},
         ),
     )
-    actions = ['remove', 'delete']
+    actions = ['remove', 'delete', 'mark_inactive']
 
     class Media:
         css = {'all': ('admin/css/inline_as_fieldset.css',)}
@@ -229,6 +229,18 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         users = list(queryset.values('pk', 'username'))
         self._remove_or_delete(
             request, users=users, grace_period=0, retain_placeholder=False
+        )
+
+    @admin.action(description='Mark selected users inactive')
+    def mark_inactive(self, request, queryset, **kwargs):
+        """
+        Mark selected users as inactive
+        """
+        updated_count = queryset.update(is_active=False)
+        self.message_user(
+            request,
+            f'{updated_count} user(s) marked inactive.',
+            level=messages.SUCCESS,
         )
 
     def deployed_forms_count(self, obj):

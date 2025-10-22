@@ -381,7 +381,7 @@ class AssetViewSet(
 
     @extend_schema(tags=['Form content'])
     @action(detail=True)
-    def content(self, request, uid):
+    def content(self, request, uid_asset):
         asset = self.get_object()
         return Response(
             {
@@ -867,7 +867,7 @@ class AssetViewSet(
 
     @extend_schema(tags=['Form content'])
     @action(detail=True)
-    def valid_content(self, request, uid):
+    def valid_content(self, request, uid_asset):
         asset = self.get_object()
         return Response(
             {
