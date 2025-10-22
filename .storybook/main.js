@@ -9,14 +9,7 @@ module.exports = {
   addons: [
     '@storybook/addon-links',
     '@storybook/addon-a11y',
-    // NB:
-    // 'storybook-addon-swc' may improve build speed in the future.
-    // - At time of writing, the build performance gains are negated because it
-    //   switches to a slower refresh plugin and also causes other compatibility
-    //   issues in Storybook 6.
-    // - Testing with React 16.14.0 and Storybook 7 (beta) seemed to perform
-    //   well.
-    'storybook-dark-mode',
+    '@storybook-community/storybook-dark-mode',
     '@storybook/addon-webpack5-compiler-swc',
     'storybook-addon-remix-react-router',
     '@storybook/addon-docs',
@@ -100,11 +93,6 @@ function applySpeedTweaks(config) {
   // Use swc to make the Terser step faster
   if (config.mode === 'production') {
     const TerserPlugin = require('terser-webpack-plugin')
-    config.optimization.minimizer = [
-      new TerserPlugin({
-        minify: TerserPlugin.swcMinify,
-        terserOptions: {},
-      }),
-    ]
+    config.optimization.minimizer = [new TerserPlugin({ parallel: 1 })]
   }
 }
