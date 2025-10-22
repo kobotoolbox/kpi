@@ -18,6 +18,11 @@ from django.utils.translation import gettext_lazy as t
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
 from kobo.static_lists import COUNTRIES, USER_METADATA_DEFAULT_LABELS
+from .constants import (
+    ACCOUNT_TYPE_CHOICES,
+    ACCOUNT_TYPE_ORGANIZATIONAL,
+    ACCOUNT_TYPE_PERSONAL,
+)
 
 # Only these fields can be controlled by constance.config.USER_METADATA_FIELDS
 CONFIGURABLE_METADATA_FIELDS = (
@@ -107,6 +112,13 @@ class KoboSignupMixin(forms.Form):
     terms_of_service = forms.BooleanField(
         # Label is dynamic; see constructor
         required=True,
+    )
+    account_type = forms.ChoiceField(
+        label=t('Account type'),
+        required=True,
+        widget=forms.RadioSelect,
+        choices=ACCOUNT_TYPE_CHOICES,
+        initial=ACCOUNT_TYPE_PERSONAL,
     )
 
     def __init__(self, *args, **kwargs):
@@ -222,6 +234,10 @@ class KoboSignupMixin(forms.Form):
                     if not self.cleaned_data.get(field_name):
                         self.add_error(field_name, t('This field is required.'))
 
+        account_type = self.cleaned_data.get('account_type')
+        if account_type not in {ACCOUNT_TYPE_PERSONAL, ACCOUNT_TYPE_ORGANIZATIONAL}:
+            self.add_error('account_type', t('Please select an account type.'))
+
         return self.cleaned_data
 
 
@@ -250,6 +266,7 @@ class SocialSignupForm(KoboSignupMixin, BaseSocialSignupForm):
         'name',
         'country',
         'sector',
+        'account_type',
         'organization_type',
         'organization',
         'organization_website',
@@ -277,6 +294,7 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         'email',
         'country',
         'sector',
+        'account_type',
         'organization_type',
         'organization',
         'organization_website',

@@ -1,0 +1,34 @@
+{% extends "account/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="registration registration--register">
+  <div class="registration--logo">
+    <a href="/">
+      {% block logo %}{{ block.super }}{% endblock %}
+    </a>
+  </div>
+  <div class="registration__first-half">
+    <h1>{% trans "Confirm organizational plan" %}</h1>
+    <p class="help">
+      {% trans "To activate your organizational account and unlock every module listed below, please confirm your payment." %}
+    </p>
+    <ul class="registration__features">
+      {% for module_label in module_labels %}
+        <li>{{ module_label }}</li>
+      {% endfor %}
+    </ul>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="kobo-button kobo-button--blue kobo-button--fullwidth">
+        {% trans "Confirm payment" %}
+      </button>
+    </form>
+  </div>
+  <div class="registration__second-half">
+    <p>
+      {% trans "You can return to the application at any time, but organizational features will remain locked until the payment is confirmed." %}
+    </p>
+  </div>
+</div>
+{% endblock %}

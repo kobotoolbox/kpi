@@ -2,12 +2,12 @@ export type OrderDirection = 'ascending' | 'descending'
 
 export const HOME_VIEW = {
   uid: 'kobo_my_projects',
-  name: t('My Projects'),
+  name: t('Form Manager Home'),
 }
 
 export const ORG_VIEW = {
   uid: 'kobo_my_organization_projects',
-  name: t('##organization name## Projects'),
+  name: t('##organization name## Form Manager'),
 }
 
 export interface ProjectsFilterDefinition {

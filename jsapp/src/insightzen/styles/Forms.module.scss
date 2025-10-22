@@ -1,0 +1,126 @@
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(480px, 100%);
+  height: 100%;
+  background: rgba(8, 8, 8, 0.98);
+  box-shadow: -40px 0 80px rgba(0, 0, 0, 0.65);
+  transform: translateX(0);
+  transition: transform 200ms ease;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  z-index: 1000;
+}
+
+.drawerHeader,
+.drawerFooter {
+  padding: 1.25rem 1.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.drawerFooter {
+  border-bottom: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.drawerBody {
+  overflow-y: auto;
+  padding: 1.5rem 1.75rem 2rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.tabList {
+  display: flex;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tabButton {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+  position: relative;
+}
+
+.tabButtonActive {
+  color: #fff;
+}
+
+.tabButtonActive::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.8rem;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: 999px;
+}
+
+.fieldGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.field label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.field input,
+.field select,
+.field textarea {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 0.55rem 0.75rem;
+  color: #f5f5f5;
+  transition: border 120ms ease, box-shadow 120ms ease;
+}
+
+.field textarea {
+  min-height: 120px;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15);
+}
+
+.membershipsList {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.membershipCard {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0.85rem;
+  background: rgba(10, 10, 10, 0.85);
+  display: grid;
+  gap: 0.65rem;
+}
+
+.membershipHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+}

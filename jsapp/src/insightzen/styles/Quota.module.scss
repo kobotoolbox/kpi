@@ -1,0 +1,245 @@
+.quotaWorkspace {
+  background: #000;
+  color: #f6f7f9;
+  min-height: 100%;
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.toolbarSelect,
+.toolbarInput {
+  background: #0b0b0b;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: inherit;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.75rem;
+  min-width: 200px;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.toolbarSelect:focus,
+.toolbarInput:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.toolbarButton {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  padding: 0.65rem 1.4rem;
+  border-radius: 0.9rem;
+  cursor: pointer;
+  transition: transform 180ms ease, background 160ms ease;
+}
+
+.toolbarButton:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.02));
+}
+
+.tableContainer {
+  background: #0b0b0b;
+  border-radius: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow-x: auto;
+}
+
+.schemeTable {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+}
+
+.schemeTable th,
+.schemeTable td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.schemeTable thead th {
+  position: sticky;
+  top: 0;
+  background: #050505;
+  z-index: 2;
+}
+
+.schemeTable tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actionButton {
+  background: transparent;
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.6rem;
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+
+.actionButton:hover,
+.actionButton:focus {
+  background: rgba(255, 255, 255, 0.12);
+  outline: none;
+}
+
+.gridWrapper {
+  background: #050505;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.gridHeader {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  align-items: center;
+}
+
+.gridTabs {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.gridTab {
+  padding: 0.5rem 1.2rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: background 160ms ease, border 160ms ease;
+}
+
+.gridTabActive {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.gridContent {
+  padding: 1.5rem 2rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.pivotContainer {
+  overflow-x: auto;
+  background: #0b0b0b;
+  border-radius: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.pivotTable {
+  min-width: 960px;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.pivotTable th,
+.pivotTable td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pivotTable tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.inlineInput {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: inherit;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.5rem;
+  width: 100%;
+}
+
+.inlineInput:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+.bulkPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0.9rem;
+  padding: 1.25rem;
+}
+
+.bulkPanel button {
+  align-self: flex-start;
+}
+
+.kpiRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.kpiCard {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 0.9rem;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.chartArea {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.chartBlock {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.emptyState {
+  padding: 2rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 1rem;
+}
+
+.notice {
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.07);
+}

@@ -2,6 +2,7 @@ db.sqlite3
 *.pyc
 exported_survey_drafts
 node_modules
+/dependencies/pip/src/
 /src/
 kpi/static/components
 misc

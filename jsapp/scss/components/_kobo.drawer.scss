@@ -57,6 +57,12 @@
   }
 }
 
+.k-drawer__link--disabled {
+  color: colors.$kobo-gray-400;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .k-drawer__secondary-icons {
   left: 0;
   bottom: 0;

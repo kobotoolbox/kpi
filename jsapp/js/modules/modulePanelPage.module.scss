@@ -1,0 +1,19 @@
+.container {
+  padding: 2rem;
+}
+
+.placeholder {
+  min-height: 24rem;
+  border: 2px dashed var(--color-kobo-gray-300, #d0d4d9);
+  border-radius: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.message {
+  margin-top: 1.5rem;
+  max-width: 40rem;
+}
+
+.actions {
+  margin-top: 1rem;
+}

@@ -1,0 +1,234 @@
+.shell {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: calc(100vh - 64px);
+  background: #000;
+  color: #f5f5f5;
+  position: relative;
+}
+
+.sidebar {
+  position: sticky;
+  top: 16vh;
+  align-self: start;
+  padding: 1.5rem 1rem 2.5rem 1.75rem;
+  background: rgba(10, 10, 10, 0.92);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  min-height: 70vh;
+  display: grid;
+  gap: 1.25rem;
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0));
+}
+
+.appName {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: linear-gradient(120deg, #ffffff, rgba(255, 255, 255, 0.35));
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.localeSwitch {
+  display: flex;
+  gap: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 0.35rem;
+}
+
+.localeButton {
+  background: transparent;
+  border: none;
+  color: #f5f5f5;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.localeButtonActive {
+  background: rgba(255, 255, 255, 0.2);
+  color: #000;
+}
+
+.mainContent {
+  padding: 2rem 2.75rem 3rem;
+  display: grid;
+  gap: 1.75rem;
+}
+
+.menuGroup {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.menuHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(20, 20, 20, 0.95);
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  transition: background 180ms ease;
+}
+
+.menuHeader:hover {
+  background: rgba(40, 40, 40, 0.95);
+}
+
+.menuHeader span {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.menuItems {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.85rem 1rem 1.2rem;
+  background: rgba(15, 15, 15, 0.92);
+  transform-origin: top;
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.menuItemsClosed {
+  transform: translateY(-6px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.menuLink {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: rgba(245, 245, 245, 0.75);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.menuLinkActive,
+.menuLink:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.menuLinkDisabled {
+  opacity: 0.3;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.notice {
+  padding: 1rem 1.25rem;
+  border: 1px dashed rgba(255, 255, 255, 0.35);
+  border-radius: 12px;
+  background: rgba(11, 11, 11, 0.75);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.actionsRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.controlGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.controlGroup input,
+.controlGroup select {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  color: #f5f5f5;
+  padding: 0.45rem 1rem;
+  min-width: 9rem;
+  transition: border 120ms ease, box-shadow 120ms ease;
+}
+
+.controlGroup input:focus,
+.controlGroup select:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12);
+}
+
+.primaryButton,
+.secondaryButton {
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+
+.primaryButton {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(120, 120, 120, 0.45));
+  color: #000;
+}
+
+.primaryButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+}
+
+.secondaryButton {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.secondaryButton:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  color: rgba(245, 245, 245, 0.75);
+}
+
+.pagination button {
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  color: #fff;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

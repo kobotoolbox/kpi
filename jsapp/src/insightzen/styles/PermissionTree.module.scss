@@ -1,0 +1,43 @@
+.tree {
+  display: grid;
+  gap: 1rem;
+  color: #f1f1f1;
+}
+
+.group {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 1rem;
+  background: rgba(11, 11, 11, 0.8);
+}
+
+.groupLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.groupLabel input {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.children {
+  display: grid;
+  gap: 0.5rem;
+  padding-inline-start: 1.5rem;
+}
+
+.childLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.childLabel input {
+  width: 1rem;
+  height: 1rem;
+}

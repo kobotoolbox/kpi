@@ -10,9 +10,10 @@ import bem from '#/bem'
 import LibrarySidebar from '#/components/library/librarySidebar'
 import HelpBubble from '#/components/support/helpBubble'
 import envStore from '#/envStore'
+import { MODULE_DEFINITIONS, canAccessModule } from '#/modules/modulesConfig'
 import pageState from '#/pageState.store'
 import RequireAuth from '#/router/requireAuth'
-import { PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
+import { ROUTES } from '#/router/routerConstants'
 import { COMMON_QUERIES, MODAL_TYPES } from '../constants'
 import SidebarFormsList from '../lists/sidebarForms'
 import mixins from '../mixins'
@@ -93,6 +94,10 @@ class DrawerLink extends React.Component {
     autoBind(this)
   }
   onClick(evt) {
+    if (this.props.disabled) {
+      evt.preventDefault()
+      return
+    }
     if (!this.props.href) {
       evt.preventDefault()
     }
@@ -104,10 +109,19 @@ class DrawerLink extends React.Component {
     const icon = <i className={`k-icon-${this.props['k-icon']}`} />
     const classNames = [this.props.class, 'k-drawer__link']
 
+    if (this.props.disabled) {
+      classNames.push('k-drawer__link--disabled')
+      return (
+        <span className={classNames.filter(Boolean).join(' ')} data-tip={this.props.label}>
+          {icon}
+        </span>
+      )
+    }
+
     let link
     if (this.props.linkto) {
       link = (
-        <NavLink to={this.props.linkto} className={classNames.join(' ')} data-tip={this.props.label}>
+        <NavLink to={this.props.linkto} className={classNames.filter(Boolean).join(' ')} data-tip={this.props.label}>
           {icon}
         </NavLink>
       )
@@ -115,7 +129,7 @@ class DrawerLink extends React.Component {
       link = (
         <a
           href={this.props.href || '#'}
-          className={classNames.join(' ')}
+          className={classNames.filter(Boolean).join(' ')}
           onClick={this.onClick}
           data-tip={this.props.label}
         >
@@ -145,11 +159,24 @@ const Drawer = observer(
         return null
       }
 
+      const extraDetails =
+        'extra_details' in sessionStore.currentAccount ? sessionStore.currentAccount.extra_details : undefined
+
       return (
         <bem.KDrawer>
           <bem.KDrawer__primaryIcons>
-            <DrawerLink label={t('Projects')} linkto={PROJECTS_ROUTES.MY_PROJECTS} k-icon='projects' />
-            <DrawerLink label={t('Library')} linkto={ROUTES.LIBRARY} k-icon='library' />
+            {MODULE_DEFINITIONS.map((module) => {
+              const isAccessible = canAccessModule(extraDetails, module.id)
+              return (
+                <DrawerLink
+                  key={module.id}
+                  label={module.label}
+                  linkto={module.baseRoute}
+                  k-icon={module.icon}
+                  disabled={!isAccessible}
+                />
+              )
+            })}
           </bem.KDrawer__primaryIcons>
 
           <bem.KDrawer__sidebar>

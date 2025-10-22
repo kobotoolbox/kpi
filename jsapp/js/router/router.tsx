@@ -9,6 +9,7 @@ import MyLibraryRoute from '#/components/library/myLibraryRoute'
 import PublicCollectionsRoute from '#/components/library/publicCollectionsRoute'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import processingRoutes from '#/components/processing/routes'
+import moduleRoutes from '#/modules/routes'
 import projectsRoutes from '#/projects/routes'
 import PermProtectedRoute from '#/router/permProtectedRoute'
 import { injectRouter } from './legacy'
@@ -30,6 +31,7 @@ export const router = createHashRouter(
       <Route path={ROUTES.ROOT} element={<Navigate to={ROUTES.FORMS} replace />} />
       <Route path={ROUTES.ACCOUNT_ROOT}>{accountRoutes()}</Route>
       {projectsRoutes()}
+      {moduleRoutes()}
       <Route path={ROUTES.LIBRARY}>
         <Route path='' element={<Navigate to={ROUTES.MY_LIBRARY} replace />} />
         <Route

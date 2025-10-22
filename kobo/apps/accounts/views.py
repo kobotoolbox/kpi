@@ -1,5 +1,11 @@
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
+from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import redirect, resolve_url
+from django.urls import reverse_lazy
+from django.utils.translation import gettext as _
+from django.views.generic import TemplateView
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
 from rest_framework.response import Response
@@ -12,6 +18,12 @@ from kpi.utils.schema_extensions.response import (
     open_api_204_empty_response,
 )
 from kpi.versioning import APIV2Versioning
+from .constants import (
+    ACCOUNT_TYPE_ORGANIZATIONAL,
+    ORGANIZATIONAL_ALLOWED_MODULES,
+    PAYMENT_STATUS_CONFIRMED,
+    PAYMENT_STATUS_PENDING,
+)
 from .extend_schemas.api.v2.email.serializers import EmailRequestPayload
 from .mixins import MultipleFieldLookupMixin
 from .serializers import EmailAddressSerializer, SocialAccountSerializer
@@ -128,3 +140,47 @@ class SocialAccountViewSet(
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)
+
+
+class OrganizationalPaymentView(LoginRequiredMixin, TemplateView):
+    template_name = 'account/organizational_payment.html'
+    login_url = reverse_lazy('account_login')
+
+    def get_success_url(self):
+        return resolve_url(settings.LOGIN_REDIRECT_URL)
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            extra_details = request.user.extra_details
+        except request.user.extra_details.RelatedObjectDoesNotExist:
+            return redirect(self.get_success_url())
+
+        data = extra_details.data or {}
+        if data.get('account_type') != ACCOUNT_TYPE_ORGANIZATIONAL:
+            return redirect(self.get_success_url())
+        if data.get('payment_status') not in {PAYMENT_STATUS_PENDING}:
+            return redirect(self.get_success_url())
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['module_labels'] = [
+            _('Form Manager'),
+            _('Library'),
+            _('Management'),
+            _('Collection'),
+            _('Quality Control'),
+            _('MRAnalysis'),
+        ]
+        return context
+
+    def post(self, request, *args, **kwargs):
+        extra_details = request.user.extra_details
+        data = extra_details.data or {}
+        data['payment_status'] = PAYMENT_STATUS_CONFIRMED
+        data['allowed_modules'] = list(ORGANIZATIONAL_ALLOWED_MODULES)
+        data.pop('storage_limit_mb', None)
+        extra_details.data = data
+        extra_details.save(update_fields=['data'])
+        return redirect(self.get_success_url())

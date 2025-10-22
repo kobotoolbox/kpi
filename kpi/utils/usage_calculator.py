@@ -179,7 +179,7 @@ class ServiceUsageCalculator(CachedClass):
         limits = get_organizations_effective_limits([self.organization], True, True)
         org_limits = limits[self.organization.id]
 
-        return {
+        results = {
             UsageType.SUBMISSION: calculate_usage_balance(
                 limit=org_limits[f'{UsageType.SUBMISSION}_limit'],
                 usage=self.get_submission_counters()['current_period'],
@@ -197,6 +197,15 @@ class ServiceUsageCalculator(CachedClass):
                 usage=self.get_nlp_usage_by_type(UsageType.MT_CHARACTERS),
             ),
         }
+
+        personal_storage_limit = self._get_personal_storage_limit_bytes()
+        if personal_storage_limit is not None:
+            results[UsageType.STORAGE_BYTES] = calculate_usage_balance(
+                limit=personal_storage_limit,
+                usage=self.get_storage_usage(),
+            )
+
+        return results
 
     @cached_class_property(
         key='nlp_usage_counters', serializer=dumps, deserializer=loads
@@ -279,3 +288,14 @@ class ServiceUsageCalculator(CachedClass):
             return f'user-{self.user.id}'
         else:
             return f'organization-{self.organization.id}'
+
+    def _get_personal_storage_limit_bytes(self):
+        try:
+            extra_details = self.user.extra_details
+        except self.user.extra_details.RelatedObjectDoesNotExist:
+            return None
+
+        limit_mb = extra_details.data.get('storage_limit_mb') if extra_details.data else None
+        if isinstance(limit_mb, (int, float)):
+            return int(limit_mb * 1024 * 1024)
+        return None

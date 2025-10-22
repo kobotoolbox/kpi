@@ -5,10 +5,20 @@ from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME, login
 from django.db import transaction
 from django.shortcuts import resolve_url
+from django.urls import reverse
 from django.template.response import TemplateResponse
 from django.utils import timezone
 from trench.utils import get_mfa_model, user_token_generator
 
+from .constants import (
+    ACCOUNT_TYPE_ORGANIZATIONAL,
+    ACCOUNT_TYPE_PERSONAL,
+    PAYMENT_STATUS_CONFIRMED,
+    PAYMENT_STATUS_NOT_REQUIRED,
+    PAYMENT_STATUS_PENDING,
+    PERSONAL_ALLOWED_MODULES,
+    PERSONAL_STORAGE_LIMIT_MB,
+)
 from .mfa.forms import MfaTokenForm
 from .mfa.models import MfaAvailableToUser
 from .mfa.permissions import mfa_allowed_for_user
@@ -84,9 +94,41 @@ class AccountAdapter(DefaultAccountAdapter):
                 )
 
             user.extra_details.data.update(extra_data)
+            details_data = user.extra_details.data
+            account_type = details_data.get(
+                'account_type', ACCOUNT_TYPE_PERSONAL
+            )
+
+            if account_type == ACCOUNT_TYPE_ORGANIZATIONAL:
+                if details_data.get('payment_status') != PAYMENT_STATUS_CONFIRMED:
+                    details_data['payment_status'] = PAYMENT_STATUS_PENDING
+                    details_data['allowed_modules'] = list(
+                        PERSONAL_ALLOWED_MODULES
+                    )
+                details_data.pop('storage_limit_mb', None)
+            else:
+                details_data['payment_status'] = PAYMENT_STATUS_NOT_REQUIRED
+                details_data['storage_limit_mb'] = PERSONAL_STORAGE_LIMIT_MB
+                details_data['allowed_modules'] = list(PERSONAL_ALLOWED_MODULES)
             if commit:
                 user.extra_details.save()
         return user
+
+    def get_signup_redirect_url(self, request):
+        user = request.user
+        if user.is_authenticated:
+            try:
+                extra_details = user.extra_details
+            except user.extra_details.RelatedObjectDoesNotExist:
+                pass
+            else:
+                data = extra_details.data or {}
+                if (
+                    data.get('account_type') == ACCOUNT_TYPE_ORGANIZATIONAL
+                    and data.get('payment_status') == PAYMENT_STATUS_PENDING
+                ):
+                    return reverse('account_organizational_payment')
+        return super().get_signup_redirect_url(request)
 
     def set_password(self, user, password):
         with transaction.atomic():
