@@ -1,21 +1,20 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.2.7/schema.json",
   "files": {
-    "ignore": [
-      "node_modules/**",
-      "jsapp/compiled/**",
-      "*.css",
-      // Ignore generated OpenAPI schema.
-      "static/openapi/*",
-      // Ignore minified committed JS files.
-      "*.min.js",
-      "*-min.js",
-      "bootstrap*.js",
-      "jquery*.js",
-      "kobo/apps/openrosa/apps/logger/fixtures/*",
-      "kpi/static/js/swagger/swagger-ui-bundle.js",
-      "kpi/static/js/swagger/swagger-ui-standalone-preset.js",
-      "msw-mocks/*"
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/jsapp/compiled",
+      "!**/*.css",
+      "!**/static/openapi/**/*",
+      "!**/*.min.js",
+      "!**/*-min.js",
+      "!**/bootstrap*.js",
+      "!**/jquery*.js",
+      "!**/kobo/apps/openrosa/apps/logger/fixtures/**/*",
+      "!**/kpi/static/js/swagger/swagger-ui-bundle.js",
+      "!**/kpi/static/js/swagger/swagger-ui-standalone-preset.js",
+      "!**/msw-mocks/**/*"
     ]
   },
   "vcs": {
@@ -26,7 +25,7 @@
   "formatter": {
     "enabled": true, // Default.
     "formatWithErrors": false, // Default.
-    "ignore": [], // Default.
+    "includes": ["**"], // Default.
     "attributePosition": "auto", // Default.
     "indentStyle": "space", // Default is tab, we use space due imho the real standard.
     "indentWidth": 2, // Default.
@@ -47,9 +46,7 @@
       "quoteStyle": "single" // Default is double, we use single for a cleaner look.
     }
   },
-  "organizeImports": {
-    "enabled": true
-  },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {
     "enabled": true,
     "rules": {
@@ -63,7 +60,8 @@
         "noUnsafeOptionalChaining": "off", // Recommended rule. TODO: review 2 cases and enable.
         "noUnusedImports": "error", // Enable all safely fixable rules.
         "useExhaustiveDependencies": "off", // Recommended rule. TODO: review 101 cases and enable.
-        "useJsxKeyInIterable": "off" // Recommended rule. TODO: review 17 cases and enable.
+        "useJsxKeyInIterable": "off", // Recommended rule. TODO: review 17 cases and enable.
+        "useValidTypeof": "off" // Recommended rule. TODO: review 3 cases and enable.
       },
       "suspicious": {
         "noArrayIndexKey": "off", // Recommended rule. TODO: review 40 cases and enable.
@@ -78,10 +76,11 @@
         "noRedeclare": "off", // Recommended rule. TODO: review 1 case and enable.
         "noShadowRestrictedNames": "off", // Recommended rule. TODO: review 2 cases and enable.
         "useIsArray": "off", // Recommended rule. TODO: review 3 cases and enable.
-        "useValidTypeof": "off" // Recommended rule. TODO: review 3 cases and enable.
+        "noVar": "off"
       },
       "security": {
-        "noDangerouslySetInnerHtml": "off" // Recommended rule. TODO: review 11 cases and enable.
+        "noDangerouslySetInnerHtml": "off", // Recommended rule. TODO: review 11 cases and enable.
+        "noBlankTarget": "off"
       },
       "complexity": {
         "noBannedTypes": "off", // Recommended rule. TODO: review 144 cases and enable.
@@ -93,14 +92,16 @@
         "noUselessTernary": "off", // Recommended rule. TODO: review 4 cases and enable.
         "noUselessUndefinedInitialization": "error", // Enable all safely fixable rules.
         "useLiteralKeys": "off", // Recommended rule. TODO: review 28 cases and enable.
-        "useOptionalChain": "off" // Recommended rule. TODO: review 36 cases and enable.
+        "useOptionalChain": "off", // Recommended rule. TODO: review 36 cases and enable.
+        "noArguments": "off",
+        "noCommaOperator": "off",
+        "useWhile": "error" // Enable all safely fixable rules.
       },
       "performance": {
         "noAccumulatingSpread": "off", // Recommended rule. TODO: review 7 cases and enable.
         "noDelete": "off" // Recommended rule. TODO: review 17 cases and enable.
       },
       "a11y": {
-        "noBlankTarget": "off", // Not a problem for modern browsers; see 2021 update, see https://mathiasbynens.github.io/rel-noopener/#recommendations.
         "noLabelWithoutControl": "off", // Recommended rule. TODO: review 63 cases and enable.
         "noNoninteractiveTabindex": "off", // Recommended rule. TODO: review 1 cases and enable.
         "noPositiveTabindex": "off", // Recommended rule. TODO: review 1 cases and enable.
@@ -117,8 +118,6 @@
         "useValidAnchor": "off" // Recommended rule. TODO: review 4 cases and enable.
       },
       "style": {
-        "noArguments": "off", // Recommended rule. TODO: review 6 cases and enable.
-        "noCommaOperator": "off", // Recommended rule. TODO: review 7 cases and enable.
         "noImplicitBoolean": "off", // Enable all safely fixable rules, except this for a cleaner look.
         "noInferrableTypes": "error", // Enable all safely fixable rules.
         "noNegationElse": "error", // Enable all safely fixable rules.
@@ -126,7 +125,6 @@
         "noParameterAssign": "off", // Recommended rule. TODO: review 31 cases and enable.
         "noUnusedTemplateLiteral": "off", // Recommended rule. TODO: review 5 cases and enable.
         "noUselessElse": "off", // Recommended rule. TODO: review 167 cases and enable.
-        "noVar": "off", // Recommended rule. TODO: review 234 cases and enable.
         "noYodaExpression": "error", // Enable all safely fixable rules.
         "useAsConstAssertion": "error", // Enable all safely fixable rules.
         "useCollapsedElseIf": "error", // Enable all safely fixable rules.
@@ -137,8 +135,7 @@
         "useNodejsImportProtocol": "off", // Recommended rule. TODO: review 3 cases and enable.
         "useSelfClosingElements": "error", // Enable all safely fixable rules.
         "useSingleVarDeclarator": "off", // Recommended rule. TODO: review 35 cases and enable.
-        "useTemplate": "off", // Recommended rule. TODO: review 103 cases and enable.
-        "useWhile": "error" // Enable all safely fixable rules.
+        "useTemplate": "off" // Recommended rule. TODO: review 103 cases and enable.
       }
     }
   }
