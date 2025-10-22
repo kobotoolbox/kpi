@@ -28,18 +28,6 @@ export async function getOneTimeAddOns() {
   })
 }
 
-export async function changeSubscription(price_id: string, subscription_id: string) {
-  const params = new URLSearchParams({
-    price_id,
-    subscription_id,
-  })
-  return fetchGet<ChangePlan>(`${endpoints.CHANGE_PLAN_URL}?${params}`, {
-    errorMessageDisplay: t(
-      "We couldn't make the requested change to your plan.\nYour current plan has not been changed.",
-    ),
-  })
-}
-
 /**
  * Start a checkout session for the given price and organization. Response contains the checkout URL.
  */
