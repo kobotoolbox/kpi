@@ -368,7 +368,7 @@ class Instance(AbstractTimeStampedModel):
         # For example:
         # if not self.validation_status:
         #    self.validation_status = self.asset.settings.get("validation_statuses")[0]
-        return self.validation_status
+        return self.validation_status or {}
 
 
 if Instance.XML_HASH_LENGTH / 2 != sha256().digest_size:

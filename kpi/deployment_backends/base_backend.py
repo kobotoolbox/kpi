@@ -823,6 +823,9 @@ class BaseDeploymentBackend(abc.ABC):
             submission, all_attachment_xpaths
         )
         submission = self._inject_root_uuid(submission)
+        submission['_validation_status'] = (
+            submission.get('_validation_status', None) or {}
+        )
         return submission
 
     def _inject_root_uuid(self, submission: dict) -> dict:
