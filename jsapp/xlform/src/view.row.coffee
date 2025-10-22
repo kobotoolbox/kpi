@@ -113,8 +113,7 @@ module.exports = do ->
       return @
 
     _renderRow: ->
-      questionType = @getRawType()
-
+      # For unsupported types we display alternative empty template
       if not @isSupportedByUI()
         @$el.html($viewTemplates.$$render('row.unsupportedRowView', @surveyView))
         return @
@@ -136,6 +135,7 @@ module.exports = do ->
 
       context = {warnings: []}
 
+      questionType = @getRawType()
       if (
         $configs.questionParams[questionType] and
         'getParameters' of @model and
