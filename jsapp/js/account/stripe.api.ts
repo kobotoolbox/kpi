@@ -1,5 +1,5 @@
 import { when } from 'mobx'
-import type { AccountLimit, ChangePlan, Checkout, OneTimeAddOn, Product } from '#/account/stripe.types'
+import type { AccountLimit, Checkout, OneTimeAddOn, Product } from '#/account/stripe.types'
 import { Limits } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
 import { fetchGet, fetchPost } from '#/api'
