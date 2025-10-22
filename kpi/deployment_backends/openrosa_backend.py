@@ -373,7 +373,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         all_attachment_xpaths = self.asset.get_all_attachment_xpaths()
         return self._rewrite_json_attachment_urls(
             self.get_submission(submission_id=instance.pk, user=user),
-            request,
             all_attachment_xpaths,
         )
 
@@ -780,7 +779,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = None,
-        request: Optional['rest_framework.request.Request'] = None,
         **mongo_query_params,
     ) -> Union[Generator[dict, None, None], list]:
         """
@@ -810,7 +808,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         )
 
         if format_type == SUBMISSION_FORMAT_TYPE_JSON:
-            submissions = self.__get_submissions_in_json(request, **params)
+            submissions = self.__get_submissions_in_json(**params)
         elif format_type == SUBMISSION_FORMAT_TYPE_XML:
             submissions = self.__get_submissions_in_xml(**params)
         else:
@@ -1498,9 +1496,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         file_.synced_with_backend = True
         file_.save(update_fields=['synced_with_backend'])
 
-    def __get_submissions_in_json(
-        self, request: Optional['rest_framework.request.Request'] = None, **params
-    ) -> Generator[dict, None, None]:
+    def __get_submissions_in_json(self, **params) -> Generator[dict, None, None]:
         """
         Retrieve submissions directly from Mongo.
         Submissions can be filtered with `params`.
@@ -1530,7 +1526,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         return (
             self._inject_properties(
                 MongoHelper.to_readable_dict(submission),
-                request,
                 all_attachment_xpaths,
             )
             for submission in mongo_cursor

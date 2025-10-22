@@ -1039,9 +1039,6 @@ class SubmissionExportTaskBase(ImportExportTask):
             query=query,
         )
 
-        if source.has_advanced_features:
-            submission_stream = stream_with_extras(submission_stream, source)
-
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions
         )
