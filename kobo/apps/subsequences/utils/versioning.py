@@ -64,3 +64,6 @@ def migrate_submission_supplementals(supplemental_data:dict) -> dict:
                 pass
             if action == 'translation':
                 pass
+
+def get_automated_transcriptions_by_language(action_results:dict) -> dict:
+    pass
