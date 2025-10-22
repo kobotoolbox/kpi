@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import io
 import os
-from typing import Optional
 from uuid import uuid4
 
 from django.conf import settings
