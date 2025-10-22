@@ -4,10 +4,10 @@ import bem from '#/bem'
 import { QUESTION_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { recordKeys } from '#/utils'
-import ReportViewItem from './reportViewItem.component'
 import type { ReportsState } from './reports'
 import { getReportRowTranslatedLabel } from './reports.utils'
 import type { ReportStyle, ReportsResponse } from './reportsConstants'
+import ReportViewItem from './reportViewItem.component'
 
 interface ReportContentsProps {
   triggerQuestionSettings: (questionName: string) => void

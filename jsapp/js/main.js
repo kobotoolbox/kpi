@@ -22,10 +22,9 @@ import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
 import '../scss/main.scss'
 
-import React from 'react'
-
 import * as Sentry from '@sentry/react'
 import moment from 'moment'
+import React from 'react'
 import { Cookies } from 'react-cookie'
 import { createRoot } from 'react-dom/client'
 import Modal from 'react-modal'

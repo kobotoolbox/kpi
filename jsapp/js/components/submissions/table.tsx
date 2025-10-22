@@ -1,13 +1,12 @@
 import './table.scss'
 
-import React from 'react'
-
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
+import React from 'react'
 import { DebounceInput } from 'react-debounce-input'
 import Markdown from 'react-markdown'
-import ReactTable from 'react-table'
 import type { CellInfo } from 'react-table'
+import ReactTable from 'react-table'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
 import type { SurveyFlatPaths } from '#/assetUtils'
@@ -36,13 +35,13 @@ import {
   DATA_TABLE_SETTING,
   DATA_TABLE_SETTINGS,
   DEFAULT_DATA_CELL_WIDTH,
-  SUBMISSION_ACTIONS_ID,
   SortValues,
+  SUBMISSION_ACTIONS_ID,
   TABLE_MEDIA_TYPES,
   VALIDATION_STATUS_ID_PROP,
 } from '#/components/submissions/tableConstants'
-import tableStore from '#/components/submissions/tableStore'
 import type { TableStoreData } from '#/components/submissions/tableStore'
+import tableStore from '#/components/submissions/tableStore'
 import {
   buildFilterQuery,
   getBackgroundAudioQuestionName,
@@ -63,6 +62,7 @@ import {
   ValidationStatusAdditionalName,
 } from '#/components/submissions/validationStatus.constants'
 import ValidationStatusDropdown from '#/components/submissions/validationStatusDropdown'
+import type { AnyRowTypeName } from '#/constants'
 import {
   ADDITIONAL_SUBMISSION_PROPS,
   EnketoActions,
@@ -72,7 +72,6 @@ import {
   QUESTION_TYPES,
   SUPPLEMENTAL_DETAILS_PROP,
 } from '#/constants'
-import type { AnyRowTypeName } from '#/constants'
 import type {
   AssetResponse,
   AssetTableSettings,
@@ -87,15 +86,15 @@ import type {
 } from '#/dataInterface'
 import enketoHandler from '#/enketoHandler'
 import envStore from '#/envStore'
-import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
+import pageState from '#/pageState.store'
 import { stores } from '#/stores'
 import { formatTimeDateShort, recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
-import RepeatGroupCell from './RepeatGroupCell'
 import AudioCell from './audioCell'
 import MediaCell from './mediaCell'
+import RepeatGroupCell from './RepeatGroupCell'
 
 const DEFAULT_PAGE_SIZE = 30
 

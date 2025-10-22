@@ -1,8 +1,7 @@
-import { useState } from 'react'
-
 import type { ModalProps } from '@mantine/core'
 import { Group, Loader, Modal, Stack, Text, TextInput } from '@mantine/core'
 import { useField } from '@mantine/form'
+import { useState } from 'react'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 import subscriptionStore from '#/account/subscriptionStore'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'

@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { IconNames } from '#/k-icons'
 import { recordKeys } from '#/utils'
-import Badge from './badge'
 import type { BadgeColor, BadgeSize } from './badge'
+import Badge from './badge'
 
 const badgeColors: BadgeColor[] = ['light-storm', 'light-amber', 'light-blue', 'light-red', 'light-teal', 'light-green']
 const badgeSizes: BadgeSize[] = ['s', 'm', 'l']

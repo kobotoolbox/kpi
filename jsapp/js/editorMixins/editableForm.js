@@ -1,10 +1,9 @@
-import React from 'react'
-
 import { Text } from '@mantine/core'
 import alertify from 'alertifyjs'
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
 import debounce from 'lodash.debounce'
+import React from 'react'
 import DocumentTitle from 'react-document-title'
 import ReactDOM from 'react-dom'
 import Markdown from 'react-markdown'

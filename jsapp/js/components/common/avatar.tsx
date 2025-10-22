@@ -1,6 +1,5 @@
-import React from 'react'
-
 import cx from 'classnames'
+import React from 'react'
 import styles from './avatar.module.scss'
 
 export type AvatarSize = 's' | 'm'

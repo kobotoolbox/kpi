@@ -1,8 +1,7 @@
 import './accessDenied.scss'
 
-import React from 'react'
-
 import { observer } from 'mobx-react'
+import React from 'react'
 import bem, { makeBem } from '#/bem'
 import envStore from '#/envStore'
 import sessionStore from '#/stores/session'

@@ -1,8 +1,7 @@
-import React from 'react'
-
 import debounce from 'lodash.debounce'
 import { autorun } from 'mobx'
 import { observer } from 'mobx-react'
+import React from 'react'
 import bem from '#/bem'
 import { KEY_CODES } from '#/constants'
 import searchBoxStore from './searchBoxStore'

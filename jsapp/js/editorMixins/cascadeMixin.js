@@ -1,9 +1,8 @@
 // TODO: this shouldn't be a mixin (wtf)
 // See: https://github.com/kobotoolbox/kpi/issues/3923
 
-import React from 'react'
-
 import last from 'lodash.last'
+import React from 'react'
 import ReactDOM from 'react-dom'
 import bem, { makeBem } from '#/bem'
 import Button from '#/components/common/button'

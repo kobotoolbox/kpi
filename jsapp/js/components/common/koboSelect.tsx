@@ -1,16 +1,15 @@
 import './koboSelect.scss'
 
-import React from 'react'
-
 import Fuse from 'fuse.js'
 import $ from 'jquery'
+import React from 'react'
 import bem, { makeBem } from '#/bem'
 import type { ButtonSize } from '#/components/common/button'
 import { ButtonToIconMap } from '#/components/common/button'
 import type { IconSize } from '#/components/common/icon'
 import Icon from '#/components/common/icon'
-import KoboDropdown from '#/components/common/koboDropdown'
 import type { KoboDropdownPlacement } from '#/components/common/koboDropdown'
+import KoboDropdown from '#/components/common/koboDropdown'
 import koboDropdownActions from '#/components/common/koboDropdownActions'
 import { FUSE_OPTIONS } from '#/constants'
 import type { IconName } from '#/k-icons'

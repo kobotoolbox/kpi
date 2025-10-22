@@ -1,6 +1,5 @@
-import React, { useContext, useState } from 'react'
-
 import { TagsInput } from '@mantine/core'
+import React, { useContext, useState } from 'react'
 // We don't use `KoboTagsInput` here, because we don't want the tags splitting
 // feature it has built in. It's easier for us to use `TagsInput` directly.
 import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'

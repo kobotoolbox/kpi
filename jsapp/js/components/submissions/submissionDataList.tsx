@@ -1,9 +1,8 @@
 import './submissionDataList.scss'
 
 import React from 'react'
-
-import { getFlatQuestionsList, getLanguageIndex } from '#/assetUtils'
 import type { FlatQuestion } from '#/assetUtils'
+import { getFlatQuestionsList, getLanguageIndex } from '#/assetUtils'
 import bem, { makeBem } from '#/bem'
 import { getRowData } from '#/components/submissions/submissionUtils'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'

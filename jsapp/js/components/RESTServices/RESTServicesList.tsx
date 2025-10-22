@@ -1,6 +1,5 @@
-import React from 'react'
-
 import alertify from 'alertifyjs'
+import React from 'react'
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'

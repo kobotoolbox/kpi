@@ -1,6 +1,5 @@
-import React, { useState, useContext } from 'react'
-
 import clonedeep from 'lodash.clonedeep'
+import React, { useContext, useState } from 'react'
 import { handleApiFail } from '#/api'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
@@ -8,8 +7,8 @@ import KoboPrompt from '#/components/modals/koboPrompt'
 import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import {
   findQuestion,
-  getQuestionTypeDefinition,
   getQuestionsFromSchema,
+  getQuestionTypeDefinition,
   hasManagePermissionsToCurrentAsset,
   updateSurveyQuestions,
 } from '#/components/processing/analysis/utils'

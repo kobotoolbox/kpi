@@ -1,14 +1,13 @@
-import React, { useContext } from 'react'
-
 import classNames from 'classnames'
+import React, { useContext } from 'react'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import KoboDropdown from '#/components/common/koboDropdown'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import styles from './analysisHeader.module.scss'
 import AnalysisQuestionsContext from './analysisQuestions.context'
-import { ANALYSIS_QUESTION_TYPES } from './constants'
 import type { AnalysisQuestionTypeDefinition } from './constants'
+import { ANALYSIS_QUESTION_TYPES } from './constants'
 import { hasManagePermissionsToCurrentAsset } from './utils'
 
 /**

@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react'
 
-import { Navigate, Route, createHashRouter, createRoutesFromElements } from 'react-router-dom'
+import { createHashRouter, createRoutesFromElements, Navigate, Route } from 'react-router-dom'
 import accountRoutes from '#/account/routes'
 import App from '#/app'
 import { FormPage, LibraryAssetEditor } from '#/components/formEditors'

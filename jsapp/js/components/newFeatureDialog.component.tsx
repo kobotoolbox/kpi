@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react'
-
 import cx from 'classnames'
+import React, { useEffect, useState } from 'react'
 import Icon from '#/components/common/icon'
 import sessionStore from '#/stores/session'
 import { useSafeUsernameStorageKey } from '../hooks/useSafeUsernameStorageKey'

@@ -7,10 +7,9 @@
  * quarter of 2024 AKA The Far Future With Flying Cars :fingers_crossed:).
  */
 
-import React from 'react'
-
 import alertify from 'alertifyjs'
 import escape from 'lodash.escape'
+import React from 'react'
 import toast from 'react-hot-toast'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import pageState from '#/pageState.store'

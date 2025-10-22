@@ -1,7 +1,5 @@
-import React, { useState } from 'react'
-
 import { keepPreviousData } from '@tanstack/react-query'
-import UniversalTable, { DEFAULT_PAGE_SIZE } from '#/UniversalTable'
+import React, { useState } from 'react'
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import type { AccessLogResponse } from '#/api/models/accessLogResponse'
 import type { ErrorDetail } from '#/api/models/errorDetail'
@@ -14,6 +12,7 @@ import Button from '#/components/common/button'
 import ExportToEmailButton from '#/components/exportToEmailButton/exportToEmailButton.component'
 import type { FailResponse } from '#/dataInterface'
 import sessionStore from '#/stores/session'
+import UniversalTable, { DEFAULT_PAGE_SIZE } from '#/UniversalTable'
 import { formatTime } from '#/utils'
 
 export default function AccessLogsSection() {

@@ -1,8 +1,7 @@
 import './columnsHideDropdown.scss'
 
-import React from 'react'
-
 import Fuse from 'fuse.js'
+import React from 'react'
 import { actions } from '#/actions'
 import bem, { makeBem } from '#/bem'
 import Button from '#/components/common/button'

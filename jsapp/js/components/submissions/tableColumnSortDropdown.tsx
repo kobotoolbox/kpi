@@ -1,8 +1,7 @@
 import './tableColumnSortDropdown.scss'
 
-import React from 'react'
-
 import classNames from 'classnames'
+import React from 'react'
 import KoboDropdown from '#/components/common/koboDropdown'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan } from '#/components/permissions/utils'

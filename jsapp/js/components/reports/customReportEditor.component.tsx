@@ -1,6 +1,5 @@
-import React from 'react'
-
 import clonedeep from 'lodash.clonedeep'
+import React from 'react'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
 import bem from '#/bem'

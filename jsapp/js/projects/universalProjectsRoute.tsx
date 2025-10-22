@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react'
-
 import { toJS } from 'mobx'
 import { observer } from 'mobx-react-lite'
+import React, { useEffect, useState } from 'react'
 import Dropzone from 'react-dropzone'
 import OrgInviteAcceptedBanner from '#/account/organization/invites/OrgInviteAcceptedBanner'
 import OrgInviteModalWrapper from '#/account/organization/invites/OrgInviteModalWrapper'
@@ -16,16 +15,15 @@ import ProjectsTable from '#/projects/projectsTable/projectsTable'
 import { useSession } from '#/stores/useSession'
 import { notify, validFileTypes } from '#/utils'
 import customViewStore from './customViewStore'
-import projectViewsStore from './projectViews/projectViewsStore'
-import ProjectsFieldsSelector from './projectViews/projectsFieldsSelector'
-import ProjectsFilter from './projectViews/projectsFilter'
-import ViewSwitcher from './projectViews/viewSwitcher'
 import ProjectBulkActions from './projectsTable/projectBulkActions'
 import ProjectQuickActions from './projectsTable/projectQuickActions'
 import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty'
-
 // Constants and types
 import type { ProjectFieldName, ProjectsFilterDefinition } from './projectViews/constants'
+import ProjectsFieldsSelector from './projectViews/projectsFieldsSelector'
+import ProjectsFilter from './projectViews/projectsFilter'
+import projectViewsStore from './projectViews/projectViewsStore'
+import ViewSwitcher from './projectViews/viewSwitcher'
 
 // Styles
 import styles from './projectViews.module.scss'

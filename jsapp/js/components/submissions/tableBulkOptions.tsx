@@ -1,6 +1,5 @@
-import React from 'react'
-
 import alertify from 'alertifyjs'
+import React from 'react'
 import { actions } from '#/actions'
 import BulkDeleteMediaFiles from '#/attachments/BulkDeleteMediaFiles'
 import bem from '#/bem'
@@ -10,13 +9,13 @@ import Icon from '#/components/common/icon'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanPartially } from '#/components/permissions/utils'
 import type { DataTableSelectedRows, ReactTableStateFilteredItem } from '#/components/submissions/table.types'
-import {
-  VALIDATION_STATUS_OPTIONS,
-  ValidationStatusAdditionalName,
-} from '#/components/submissions/validationStatus.constants'
 import type {
   ValidationStatusName,
   ValidationStatusOptionName,
+} from '#/components/submissions/validationStatus.constants'
+import {
+  VALIDATION_STATUS_OPTIONS,
+  ValidationStatusAdditionalName,
 } from '#/components/submissions/validationStatus.constants'
 import { MODAL_TYPES } from '#/constants'
 import type { AssetResponse, BulkSubmissionsRequest, SubmissionResponse } from '#/dataInterface'

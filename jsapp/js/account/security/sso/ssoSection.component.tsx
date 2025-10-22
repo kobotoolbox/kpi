@@ -1,7 +1,6 @@
-import React, { useCallback } from 'react'
-
 import cx from 'classnames'
 import { observer } from 'mobx-react-lite'
+import React, { useCallback } from 'react'
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import Button from '#/components/common/button'
 import envStore, { type SocialApp } from '#/envStore'

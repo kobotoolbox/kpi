@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
-
 import cx from 'classnames' // `cx()` is just an alias for `classNames()` - see https://github.com/JedWatson/classnames
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import BillingButton from '#/account/plans/billingButton.component'
 import { useDisplayPrice } from '#/account/plans/useDisplayPrice.hook'
 import { changeSubscription } from '#/account/stripe.api'

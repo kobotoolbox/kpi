@@ -11,7 +11,6 @@ import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { QUAL_NOTE_TYPE } from '#/components/processing/analysis/constants'
 import type { AnyRowTypeName, AssetTypeName } from '#/constants'
-import { QuestionTypeName } from '#/constants'
 import {
   ACCESS_TYPES,
   ASSET_TYPES,
@@ -19,6 +18,7 @@ import {
   GROUP_TYPES_END,
   META_QUESTION_TYPES,
   QUESTION_TYPES,
+  QuestionTypeName,
   RANK_LEVEL_TYPE,
   ROOT_URL,
   SCORE_ROW_TYPE,

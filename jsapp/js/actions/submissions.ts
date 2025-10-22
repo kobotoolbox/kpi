@@ -4,7 +4,6 @@
 
 import Reflux from 'reflux'
 import { ROOT_URL } from '#/constants'
-import { dataInterface } from '#/dataInterface'
 import type {
   BulkSubmissionsRequest,
   FailResponse,
@@ -12,6 +11,7 @@ import type {
   PaginatedResponse,
   SubmissionResponse,
 } from '#/dataInterface'
+import { dataInterface } from '#/dataInterface'
 import { addDefaultUuidPrefix, matchUuid, notify } from '#/utils'
 
 const submissionsActions = Reflux.createActions({

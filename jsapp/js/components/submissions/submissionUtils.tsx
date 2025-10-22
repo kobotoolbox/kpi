@@ -5,19 +5,18 @@ import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import type { SubmissionAnalysisResponse } from '#/components/processing/analysis/constants'
 import { QUAL_NOTE_TYPE } from '#/components/processing/analysis/constants'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
-import { getColumnLabel } from '#/components/submissions/tableUtils'
-import { getBackgroundAudioQuestionName } from '#/components/submissions/tableUtils'
+import { getBackgroundAudioQuestionName, getColumnLabel } from '#/components/submissions/tableUtils'
+import type { AnyRowTypeName, QuestionTypeName } from '#/constants'
 import {
   CHOICE_LISTS,
+  createEnum,
   GROUP_TYPES_BEGIN,
   MATRIX_PAIR_PROPS,
   QUESTION_TYPES,
   RANK_LEVEL_TYPE,
   SCORE_ROW_TYPE,
   SUPPLEMENTAL_DETAILS_PROP,
-  createEnum,
 } from '#/constants'
-import type { AnyRowTypeName, QuestionTypeName } from '#/constants'
 import type {
   AnalysisFormJsonField,
   AssetResponse,

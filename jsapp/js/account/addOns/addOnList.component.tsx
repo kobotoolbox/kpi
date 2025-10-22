@@ -49,14 +49,10 @@ const AddOnList = (props: {
     setAddOnProducts(addonProducts)
   }, [props.products])
 
-  useWhen(
-    () => subscriptionStore.isInitialised,
-    () => {
-      setSubscribedAddOns(subscriptionStore.addOnsResponse)
-      setSubscribedPlans(subscriptionStore.planResponse)
-    },
-    [],
-  )
+  useWhen(() => subscriptionStore.isInitialised, () => {
+    setSubscribedAddOns(subscriptionStore.addOnsResponse)
+    setSubscribedPlans(subscriptionStore.planResponse)
+  }, [])
 
   if (!addOnProducts.length) {
     return null

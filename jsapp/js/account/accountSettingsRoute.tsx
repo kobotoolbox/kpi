@@ -13,10 +13,10 @@ import envStore from '#/envStore'
 import { notify, recordKeys } from '#/utils'
 import { dataInterface } from '../dataInterface'
 import { useSession } from '../stores/useSession'
-import DeleteAccountBanner from './DeleteAccountBanner'
 import type { AccountFieldsErrors, AccountFieldsValues } from './account.constants'
 import { getInitialAccountFieldsValues, getProfilePatchData } from './account.utils'
 import AccountFieldsEditor from './accountFieldsEditor.component'
+import DeleteAccountBanner from './DeleteAccountBanner'
 
 bem.AccountSettings = makeBem(null, 'account-settings', 'form')
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left')

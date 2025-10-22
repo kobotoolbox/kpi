@@ -1,8 +1,7 @@
-import React, { useContext, useState } from 'react'
-
 import classNames from 'classnames'
-import Radio from '#/components/common/radio'
+import React, { useContext, useState } from 'react'
 import type { RadioOption } from '#/components/common/radio'
+import Radio from '#/components/common/radio'
 import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import {
   findQuestion,

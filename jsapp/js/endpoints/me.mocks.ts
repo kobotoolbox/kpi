@@ -1,4 +1,4 @@
-import { http, HttpResponse } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { endpoints } from '#/api.endpoints'
 import type { AccountResponse } from '#/dataInterface'
 

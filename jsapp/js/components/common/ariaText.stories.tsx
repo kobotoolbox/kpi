@@ -1,6 +1,5 @@
-import React from 'react'
-
 import type { StoryObj } from '@storybook/react-webpack5'
+import React from 'react'
 import AriaText from '#/components/common/ariaText'
 
 export default {

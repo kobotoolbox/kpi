@@ -6,8 +6,8 @@ import AssetsTable from '#/components/assetsTable/assetsTable'
 import { AssetsTableContextName } from '#/components/assetsTable/assetsTableConstants'
 import { ROOT_BREADCRUMBS } from '#/components/library/libraryConstants'
 import type { OrderDirection } from '#/projects/projectViews/constants'
-import publicCollectionsStore from './publicCollectionsStore'
 import type { PublicCollectionsStoreData } from './publicCollectionsStore'
+import publicCollectionsStore from './publicCollectionsStore'
 
 export default class PublicCollectionsRoute extends React.Component<{}, PublicCollectionsStoreData> {
   private unlisteners: Function[] = []

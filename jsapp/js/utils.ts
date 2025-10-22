@@ -419,7 +419,7 @@ export function generateAutoname(str: string, startIndex = 0, endIndex: number =
   return str
     .toLowerCase()
     .substring(startIndex, endIndex)
-    .replace(/(\ |\.)/g, '_')
+    .replace(/( |\.)/g, '_')
 }
 
 /**

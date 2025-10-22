@@ -1,5 +1,5 @@
 import chai from 'chai'
-import { ProcessingTab, getProcessingRouteParts, isAnyProcessingRoute } from './routes.utils'
+import { getProcessingRouteParts, isAnyProcessingRoute, ProcessingTab } from './routes.utils'
 
 describe('processing routes.utils tests', () => {
   describe('getProcessingRouteParts', () => {

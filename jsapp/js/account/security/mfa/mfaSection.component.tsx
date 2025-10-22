@@ -1,6 +1,5 @@
-import React from 'react'
-
 import cx from 'classnames'
+import React from 'react'
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import type { MfaActivatedResponse, MfaUserMethodsResponse } from '#/actions/mfaActions'
 import mfaActions from '#/actions/mfaActions'

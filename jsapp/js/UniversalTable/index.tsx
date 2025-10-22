@@ -1,8 +1,7 @@
-import React, { useMemo } from 'react'
-
 import type { UseQueryResult } from '@tanstack/react-query'
-import UniversalTableCore from './UniversalTableCore'
+import React, { useMemo } from 'react'
 import type { UniversalTableColumn } from './UniversalTableCore'
+import UniversalTableCore from './UniversalTableCore'
 
 export type { UniversalTableColumn } from './UniversalTableCore'
 

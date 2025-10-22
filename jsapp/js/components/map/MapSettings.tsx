@@ -3,20 +3,15 @@ import cx from 'classnames'
 // Libraries
 import React from 'react'
 import Dropzone, { type FileWithPreview } from 'react-dropzone'
-
+// Stores, hooks and utilities
+import { actions } from '../../../js/actions'
+import { getQuestionOrChoiceDisplayName, getRowName } from '../../../js/assetUtils'
 // Partial components
 import bem from '../../../js/bem'
 import Button from '../../../js/components/common/button'
 import Modal from '../../../js/components/common/modal'
 import MapColorPicker from '../../../js/components/map/MapColorPicker'
-
-// Stores, hooks and utilities
-import { actions } from '../../../js/actions'
-import { getQuestionOrChoiceDisplayName, getRowName } from '../../../js/assetUtils'
 import { userCan } from '../../../js/components/permissions/utils'
-import { dataInterface } from '../../../js/dataInterface'
-import { notify } from '../../../js/utils'
-
 // Constants and types
 import { ASSET_FILE_TYPES, QUERY_LIMIT_DEFAULT } from '../../../js/constants'
 import type {
@@ -28,6 +23,8 @@ import type {
   LabelValuePair,
   PaginatedResponse,
 } from '../../../js/dataInterface'
+import { dataInterface } from '../../../js/dataInterface'
+import { notify } from '../../../js/utils'
 
 enum MapSettingsTabNames {
   colors = 'colors',

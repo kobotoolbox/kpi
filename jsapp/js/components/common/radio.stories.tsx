@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { useState } from 'react'
-import Radio from './radio'
 import type { RadioOption } from './radio'
+import Radio from './radio'
 
 const defaultOptions: RadioOption[] = [
   {

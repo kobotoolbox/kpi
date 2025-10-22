@@ -1,8 +1,7 @@
 import './helpBubble.scss'
 
-import React from 'react'
-
 import { observer } from 'mobx-react'
+import React from 'react'
 import bem, { makeBem } from '#/bem'
 import Icon from '#/components/common/icon'
 import { KEY_CODES } from '#/constants'

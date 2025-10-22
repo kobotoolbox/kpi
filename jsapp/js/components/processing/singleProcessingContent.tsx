@@ -1,6 +1,5 @@
-import React from 'react'
-
 import classNames from 'classnames'
+import React from 'react'
 import AnalysisTab from '#/components/processing/analysis/analysisTab.component'
 import { goToTabRoute, isProcessingRouteActive } from '#/components/processing/routes.utils'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'

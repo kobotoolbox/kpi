@@ -1,8 +1,7 @@
 import './formGallery.component.scss'
 
-import React, { useEffect, useMemo, useReducer } from 'react'
-
 import { Center } from '@mantine/core'
+import React, { useEffect, useMemo, useReducer } from 'react'
 import ReactSelect from 'react-select'
 import { getFlatQuestionsList } from '#/assetUtils'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'

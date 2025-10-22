@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { IconNames } from '#/k-icons'
 import { recordKeys } from '#/utils'
-import TextBox from './textBox'
 import type { TextBoxSize, TextBoxType } from './textBox'
+import TextBox from './textBox'
 
 const textBoxTypes: TextBoxType[] = ['email', 'number', 'password', 'text-multiline', 'text', 'url']
 const textBoxSizes: TextBoxSize[] = ['s', 'm', 'l']

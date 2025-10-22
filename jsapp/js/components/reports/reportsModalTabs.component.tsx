@@ -1,6 +1,5 @@
-import React from 'react'
-
 import cx from 'classnames'
+import React from 'react'
 
 /** These are all possible tabs. */
 export enum ReportsModalTabNames {

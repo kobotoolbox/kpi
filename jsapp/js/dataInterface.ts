@@ -20,7 +20,6 @@ import type { AnyRowTypeName, AssetFileType, AssetTypeName } from '#/constants'
 import type { UserResponse } from '#/users/userExistence.store'
 import type { AccountFieldsValues } from './account/account.constants'
 import { endpoints } from './api.endpoints'
-import type { HookAuthLevelName, HookExportTypeName } from './components/RESTServices/RESTServicesForm'
 import type { Json } from './components/common/common.interfaces'
 import type {
   AnalysisQuestionSchema,
@@ -34,6 +33,7 @@ import type {
   ExportStatusName,
   ExportTypeName,
 } from './components/projectDownloads/exportsConstants'
+import type { HookAuthLevelName, HookExportTypeName } from './components/RESTServices/RESTServicesForm'
 import { COMMON_QUERIES, ROOT_URL } from './constants'
 import type { ProjectViewsSettings } from './projects/customViewStore'
 import { type LangString, recordEntries } from './utils'
@@ -1149,13 +1149,7 @@ export const dataInterface: DataInterface = {
     })
   },
 
-  getCollections(
-    params: {
-      owner?: string
-      pageSize?: number
-      page?: number
-    } = {},
-  ): JQuery.jqXHR<AssetsResponse> {
+  getCollections(params: { owner?: string; pageSize?: number; page?: number } = {}): JQuery.jqXHR<AssetsResponse> {
     let q = COMMON_QUERIES.c
     if (params.owner) {
       q += ` AND owner__username__exact:${params.owner}`
@@ -1792,10 +1786,7 @@ export const dataInterface: DataInterface = {
     })
   },
 
-  setDeploymentActive(params: {
-    asset: AssetResponse
-    active: boolean
-  }): JQuery.jqXHR<DeploymentResponse> {
+  setDeploymentActive(params: { asset: AssetResponse; active: boolean }): JQuery.jqXHR<DeploymentResponse> {
     return $ajax({
       method: 'PATCH',
       url: `${params.asset.url}deployment/`,

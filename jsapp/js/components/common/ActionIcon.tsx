@@ -1,6 +1,5 @@
-import { ActionIcon as ActionIconMantine, Tooltip, createPolymorphicComponent } from '@mantine/core'
-import type { ActionIconProps as ActionIconPropsMantine } from '@mantine/core/lib/components'
-import type { TooltipProps } from '@mantine/core/lib/components'
+import { ActionIcon as ActionIconMantine, createPolymorphicComponent, Tooltip } from '@mantine/core'
+import type { ActionIconProps as ActionIconPropsMantine, TooltipProps } from '@mantine/core/lib/components'
 import { forwardRef } from 'react'
 import type { IconName } from '#/k-icons'
 import Icon, { type IconSize } from './icon'

@@ -1,6 +1,5 @@
-import React from 'react'
-
 import clonedeep from 'lodash.clonedeep'
+import React from 'react'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
 import bem from '#/bem'
@@ -8,14 +7,14 @@ import Button from '#/components/common/button'
 import Modal from '#/components/common/modal'
 import Radio from '#/components/common/radio'
 import ReportsModalTabs, {
-  ReportsModalTabNames,
   DEFAULT_REPORTS_MODAL_TAB,
+  ReportsModalTabNames,
 } from '#/components/reports/reportsModalTabs.component'
 import type { FailResponse, LabelValuePair } from '#/dataInterface'
 import ReportColorsEditor from './reportColorsEditor.component'
-import ReportTypeEditor from './reportTypeEditor.component'
 import type { ReportsState } from './reports'
 import type { ReportStyle, ReportStyleName } from './reportsConstants'
+import ReportTypeEditor from './reportTypeEditor.component'
 
 interface ReportStyleSettingsProps {
   parentState: ReportsState

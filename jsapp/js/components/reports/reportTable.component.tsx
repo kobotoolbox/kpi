@@ -1,8 +1,7 @@
-import React from 'react'
-
 import clonedeep from 'lodash.clonedeep'
-import type { PreparedTable } from './reportViewItem.component'
+import React from 'react'
 import type { ReportsResponseData, ReportsResponseDataValues } from './reportsConstants'
+import type { PreparedTable } from './reportViewItem.component'
 
 interface ReportTableProps {
   type: 'regular' | 'numerical' | 'disaggregated'

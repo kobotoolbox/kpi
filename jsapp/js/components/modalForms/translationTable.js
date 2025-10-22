@@ -1,6 +1,5 @@
-import React from 'react'
-
 import alertify from 'alertifyjs'
+import React from 'react'
 import ReactTable from 'react-table'
 import TextareaAutosize from 'react-textarea-autosize'
 import { actions } from '#/actions'

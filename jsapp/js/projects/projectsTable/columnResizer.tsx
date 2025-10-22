@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect, useRef } from 'react'
+import React, { memo, useEffect, useRef, useState } from 'react'
 
 import { recordKeys } from '#/utils'
 import type { ProjectFieldName } from '../projectViews/constants'
@@ -115,10 +115,7 @@ function ColumnWidthsStyle(props: { columnWidths: ColumnWidths }) {
  *
  * …even if the pointer strays from the resize handle.
  */
-const DraggingStyle = memo(function DraggingStyle(props: {
-  isDragging: boolean
-  draggingFieldname: string
-}) {
+const DraggingStyle = memo(function DraggingStyle(props: { isDragging: boolean; draggingFieldname: string }) {
   return (
     <style>
       {props.isDragging &&

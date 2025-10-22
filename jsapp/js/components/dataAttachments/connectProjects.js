@@ -1,8 +1,7 @@
 import './connect-projects.scss'
 
-import React from 'react'
-
 import alertify from 'alertifyjs'
+import React from 'react'
 import autoBind from 'react-autobind'
 import Select from 'react-select'
 import { actions } from '#/actions'

@@ -1,8 +1,8 @@
 import React from 'react'
 
 import { recordKeys } from '#/utils'
-import languagesStore from './languagesStore'
 import type { LanguageCode } from './languagesStore'
+import languagesStore from './languagesStore'
 
 interface LanguageDisplayLabelProps {
   code: LanguageCode

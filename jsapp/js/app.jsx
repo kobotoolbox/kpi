@@ -4,10 +4,9 @@
 import '#/bemComponents' // importing it so it exists
 import '#/surveyCompanionStore' // importing it so it exists
 
-import React from 'react'
-
 import { MantineProvider } from '@mantine/core'
 import { QueryClientProvider } from '@tanstack/react-query'
+import React from 'react'
 import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
 import { Outlet } from 'react-router-dom'

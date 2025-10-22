@@ -1,7 +1,7 @@
 import { fetchGet } from '#/api'
-import { PROJECT_FIELDS } from '#/projects/projectViews/constants'
-import type { ProjectFieldName } from '#/projects/projectViews/constants'
 import type { ProjectsTableOrder } from '#/projects/projectsTable/projectsTable'
+import type { ProjectFieldName } from '#/projects/projectViews/constants'
+import { PROJECT_FIELDS } from '#/projects/projectViews/constants'
 
 export interface AssetUsage {
   count: string

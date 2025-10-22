@@ -1,10 +1,9 @@
 import './languageSelector.scss'
 
-import React from 'react'
-
 import debounce from 'lodash.debounce'
 import { observer } from 'mobx-react'
 import type { RefObject } from 'react'
+import React from 'react'
 
 import InfiniteScroll from 'react-infinite-scroller'
 import bem, { makeBem } from '#/bem'
@@ -13,8 +12,8 @@ import Icon from '#/components/common/icon'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore from '#/envStore'
 import LanguagesListStore from './languagesListStore'
-import languagesStore from './languagesStore'
 import type { DetailedLanguage, LanguageCode, ListLanguage } from './languagesStore'
+import languagesStore from './languagesStore'
 import { LanguageDisplayLabel } from './languagesUtils'
 
 bem.LanguageSelector = makeBem(null, 'language-selector', 'section')

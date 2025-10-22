@@ -1,7 +1,6 @@
-import React, { useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react'
-
 import classnames from 'classnames'
 import { when } from 'mobx'
+import React, { useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import AddOnList from '#/account/addOns/addOnList.component'
 import type { ConfirmChangeProps } from '#/account/plans/confirmChangeModal.component'
@@ -172,30 +171,26 @@ export default function Plan(props: PlanProps) {
     }
   }, [state.subscribedProduct])
 
-  useWhen(
-    () => envStore.isReady,
-    () => {
-      // If Stripe isn't active, just redirect to the account page
-      if (!envStore.data.stripe_public_key) {
-        navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS)
-        return
-      }
+  useWhen(() => envStore.isReady, () => {
+    // If Stripe isn't active, just redirect to the account page
+    if (!envStore.data.stripe_public_key) {
+      navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS)
+      return
+    }
 
-      if (!subscriptionStore.isInitialised) {
-        subscriptionStore.fetchSubscriptionInfo()
-      }
+    if (!subscriptionStore.isInitialised) {
+      subscriptionStore.fetchSubscriptionInfo()
+    }
 
-      when(() => subscriptionStore.isInitialised).then(() => {
-        dispatch({
-          type: 'initialSub',
-          prodData: subscriptionStore.planResponse,
-        })
-        setActiveSubscriptions(subscriptionStore.activeSubscriptions)
-        setIsBusy(false)
+    when(() => subscriptionStore.isInitialised).then(() => {
+      dispatch({
+        type: 'initialSub',
+        prodData: subscriptionStore.planResponse,
       })
-    },
-    [searchParams, shouldRevalidate],
-  )
+      setActiveSubscriptions(subscriptionStore.activeSubscriptions)
+      setIsBusy(false)
+    })
+  }, [searchParams, shouldRevalidate])
 
   // Re-fetch data from API and re-enable buttons if displaying from back/forward cache
   useEffect(() => {

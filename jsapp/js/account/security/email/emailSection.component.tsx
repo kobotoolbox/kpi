@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react'
-
 import { Group, Text } from '@mantine/core'
 import cx from 'classnames'
+import React, { useEffect, useState } from 'react'
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
@@ -11,8 +10,8 @@ import TextBox from '#/components/common/textBox'
 import type { FailResponse } from '#/dataInterface'
 import sessionStore from '#/stores/session'
 import { formatTime, notify } from '#/utils'
-import { deleteUnverifiedUserEmails, getUserEmails, setUserEmail } from './emailSection.api'
 import type { EmailResponse } from './emailSection.api'
+import { deleteUnverifiedUserEmails, getUserEmails, setUserEmail } from './emailSection.api'
 import styles from './emailSection.module.scss'
 
 interface EmailState {

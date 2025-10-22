@@ -12,7 +12,7 @@ import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import sessionStore from '#/stores/session'
-import { TransferStatuses, cancelInvite, sendInvite } from './transferProjects.api'
+import { cancelInvite, sendInvite, TransferStatuses } from './transferProjects.api'
 import styles from './transferProjects.module.scss'
 
 interface TransferProjectsProps {

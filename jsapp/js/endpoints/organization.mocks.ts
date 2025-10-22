@@ -1,4 +1,4 @@
-import { http, HttpResponse } from 'msw'
+import { HttpResponse, http } from 'msw'
 import type { OrganizationResponse } from '#/api/models/organizationResponse'
 import { getOrganizationsRetrieveUrl } from '#/api/react-query/user-team-organization-usage'
 import { meMockResponse } from './me.mocks'

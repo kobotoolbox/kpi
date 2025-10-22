@@ -1,8 +1,7 @@
-import React from 'react'
-
 import cx from 'classnames'
-import { PROJECT_FIELDS } from '#/projects/projectViews/constants'
+import React from 'react'
 import type { ProjectFieldDefinition, ProjectFieldName } from '#/projects/projectViews/constants'
+import { PROJECT_FIELDS } from '#/projects/projectViews/constants'
 import { recordValues } from '#/utils'
 import ColumnResizer from './columnResizer'
 import type { ProjectsTableOrder } from './projectsTable'

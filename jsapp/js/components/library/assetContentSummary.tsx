@@ -1,7 +1,6 @@
 import React from 'react'
-
-import { getFlatQuestionsList, renderQuestionTypeIcon } from '#/assetUtils'
 import type { FlatQuestion } from '#/assetUtils'
+import { getFlatQuestionsList, renderQuestionTypeIcon } from '#/assetUtils'
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import { ANY_ROW_TYPE_NAMES } from '#/constants'

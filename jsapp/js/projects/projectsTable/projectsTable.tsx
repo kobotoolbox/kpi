@@ -1,6 +1,5 @@
-import React from 'react'
-
 import cx from 'classnames'
+import React from 'react'
 import InfiniteScroll from 'react-infinite-scroller'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'

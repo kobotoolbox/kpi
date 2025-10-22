@@ -36,16 +36,17 @@
   </ul>
 
 */
-import React from 'react'
+
+import type { Argument as ClassnamesArgument } from 'classnames'
 
 import cx from 'classnames'
-import type { Argument as ClassnamesArgument } from 'classnames'
+import React from 'react'
 import { recordEntries } from '#/utils'
 
 const reactCreateBemElement = (base: string, el = 'div') => {
   let elUnwrap
   if (el.match) {
-    elUnwrap = el.match(/\<(\w+)\s?\/?\>/)
+    elUnwrap = el.match(/<(\w+)\s?\/?>/)
     if (elUnwrap) {
       el = elUnwrap[1]
     }
