@@ -6,6 +6,25 @@ echo 'KPI initializing…'
 
 cd "${KPI_SRC_DIR}"
 
+# Handle filesystem permissions early, because other containers (like the
+# Celery `worker`), restart-loop if they cannot write to their log files
+echo 'Setting ownership of logs folder…'
+chown -R "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_LOGS_DIR}"
+# `chown -R` becomes very slow once a fair amount of media has been collected,
+# so reset ownership of the media directory *only* (i.e., non-recursive)
+echo 'Setting ownership of media directories…'
+chown "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_MEDIA_DIR}"
+chown "${UWSGI_USER}:${UWSGI_GROUP}" "${OPENROSA_MEDIA_DIR}"
+echo 'Done.'
+echo '%%%%%%% NOTICE %%%%%%%'
+echo '% To avoid long delays, we no longer reset ownership *recursively*'
+echo '% every time this container starts. If you have trouble with'
+echo '% permissions, please run the following command inside the KPI container:'
+echo "% chown -R \"${UWSGI_USER}:${UWSGI_GROUP}\" \"${KPI_MEDIA_DIR}\""
+echo "% chown -R \"${UWSGI_USER}:${UWSGI_GROUP}\" \"${OPENROSA_MEDIA_DIR}\""
+echo '%%%%%%%%%%%%%%%%%%%%%%'
+
+
 if [[ -z $DATABASE_URL ]]; then
     echo "DATABASE_URL must be configured to run this server"
     echo "example: 'DATABASE_URL=postgres://hostname:5432/dbname'"
@@ -76,23 +95,6 @@ if [[ ! -d "${KPI_SRC_DIR}/locale" ]] || [[ -z "$(ls -A ${KPI_SRC_DIR}/locale)" 
     python manage.py compilemessages
 fi
 
-echo 'Restore permissions on logs folder'
-chown -R "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_LOGS_DIR}"
-
-# `chown -R` becomes very slow once a fair amount of media has been collected,
-# so reset ownership of the media directory *only* (i.e., non-recursive)
-echo 'Resetting ownership of media directories...'
-chown "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_MEDIA_DIR}"
-chown "${UWSGI_USER}:${UWSGI_GROUP}" "${OPENROSA_MEDIA_DIR}"
-echo 'Done.'
-echo '%%%%%%% NOTICE %%%%%%%'
-echo '% To avoid long delays, we no longer reset ownership *recursively*'
-echo '% every time this container starts. If you have trouble with'
-echo '% permissions, please run the following command inside the KPI container:'
-echo "% chown -R \"${UWSGI_USER}:${UWSGI_GROUP}\" \"${KPI_MEDIA_DIR}\""
-echo "% chown -R \"${UWSGI_USER}:${UWSGI_GROUP}\" \"${OPENROSA_MEDIA_DIR}\""
-echo '%%%%%%%%%%%%%%%%%%%%%%'
-
 echo 'KPI initialization completed.'
 
 cd "${KPI_SRC_DIR}"
@@ -102,5 +104,5 @@ if [[ "${WSGI}" == 'uWSGI' ]]; then
     $(command -v uwsgi) --ini ${KPI_SRC_DIR}/docker/uwsgi.ini
 else
     echo "Running \`kpi\` container with \`runserver_plus\` debugging application server."
-    python manage.py runserver_plus 0:8000
+    gosu "${UWSGI_USER}" $(command -v python) manage.py runserver_plus 0:8000
 fi
