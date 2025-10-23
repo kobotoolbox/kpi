@@ -14203,7 +14203,11 @@
                         "readOnly": true
                     },
                     "deployment_status": {
-                        "type": "string",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/DeploymentStatusEnum"
+                            }
+                        ],
                         "readOnly": true
                     }
                 },
@@ -14500,6 +14504,15 @@
                     "backend",
                     "version_id"
                 ]
+            },
+            "DeploymentStatusEnum": {
+                "enum": [
+                    "archived",
+                    "deployed",
+                    "draft"
+                ],
+                "type": "string",
+                "description": "* `archived` - archived\n* `deployed` - deployed\n* `draft` - draft"
             },
             "EmailAddress": {
                 "type": "object",

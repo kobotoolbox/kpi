@@ -10246,7 +10246,8 @@ components:
           type: integer
           readOnly: true
         deployment_status:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/DeploymentStatusEnum'
           readOnly: true
       required:
       - asset
@@ -10460,6 +10461,16 @@ components:
       - asset
       - backend
       - version_id
+    DeploymentStatusEnum:
+      enum:
+      - archived
+      - deployed
+      - draft
+      type: string
+      description: |-
+        * `archived` - archived
+        * `deployed` - deployed
+        * `draft` - draft
     EmailAddress:
       type: object
       properties:

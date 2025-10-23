@@ -5,7 +5,7 @@ from rest_framework.fields import empty
 
 from kobo.apps.organizations.utils import get_billing_dates
 from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
-from kpi.models.asset import Asset
+from kpi.models.asset import Asset, AssetDeploymentStatus
 from kpi.schema_extensions.v2.organizations.fields import UrlField
 from kpi.utils.schema_extensions.fields import HyperlinkedIdentityFieldWithSchemaField
 from kpi.utils.usage_calculator import ServiceUsageCalculator
@@ -94,6 +94,7 @@ class CustomAssetUsageSerializer(AssetUsageSerializer):
     class Meta(AssetUsageSerializer.Meta):
         fields = AssetUsageSerializer.Meta.fields + ('deployment_status',)
 
+    @extend_schema_field(serializers.ChoiceField(choices=AssetDeploymentStatus))
     def get_deployment_status(self, asset):
         return asset.deployment_status
 
