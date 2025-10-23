@@ -4,7 +4,6 @@ import Reflux from 'reflux'
 import { actions } from '#/actions'
 import { destroyConfirm } from '#/alertify'
 import assetStore from '#/assetStore'
-import type { SurveyFlatPaths } from '#/assetUtils'
 import {
   findRowByXpath,
   getAssetAdvancedFeatures,
@@ -16,16 +15,17 @@ import {
   getSurveyFlatPaths,
   isAssetProcessingActivated,
 } from '#/assetUtils'
+import type { SurveyFlatPaths } from '#/assetUtils'
 import type { KoboSelectOption } from '#/components/common/koboSelect'
 import type { LanguageCode } from '#/components/languages/languagesStore'
-import type { ProcessingDataResponse } from '#/components/processing/processingActions'
 import processingActions from '#/components/processing/processingActions'
+import type { ProcessingDataResponse } from '#/components/processing/processingActions'
 import {
+  ProcessingTab,
   getCurrentProcessingRouteParts,
   getProcessingRouteParts,
   isAnyProcessingRoute,
   isAnyProcessingRouteActive,
-  ProcessingTab,
 } from '#/components/processing/routes.utils'
 import { type AnyRowTypeName, QUESTION_TYPES, XML_VALUES_OPTION_VALUE } from '#/constants'
 import type { AssetResponse, FailResponse, GetProcessingSubmissionsResponse, SubmissionResponse } from '#/dataInterface'

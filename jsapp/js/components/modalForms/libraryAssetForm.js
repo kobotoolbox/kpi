@@ -1,6 +1,7 @@
+import React from 'react'
+
 import clonedeep from 'lodash.clonedeep'
 import { when } from 'mobx'
-import React from 'react'
 import autoBind from 'react-autobind'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'

@@ -8,7 +8,7 @@ import {
   QuestionTypeName,
 } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
-import { LOCK_ALL_PROP_NAME, LOCKING_PROFILE_PROP_NAME, LockingRestrictionName } from './lockingConstants'
+import { LOCKING_PROFILE_PROP_NAME, LOCK_ALL_PROP_NAME, LockingRestrictionName } from './lockingConstants'
 
 /**
  * This is a minimal response from asset endpoin. The idea is to make it up

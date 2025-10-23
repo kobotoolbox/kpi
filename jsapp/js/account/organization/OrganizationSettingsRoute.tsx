@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react'
+
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+
 import styles from '#/account/organization/organizationSettingsRoute.module.scss'
 import subscriptionStore from '#/account/subscriptionStore'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
@@ -7,7 +10,6 @@ import {
   getOrganizationsRetrieveQueryKey,
   useOrganizationsPartialUpdate,
 } from '#/api/react-query/user-team-organization-usage'
-import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import KoboSelect from '#/components/common/koboSelect'

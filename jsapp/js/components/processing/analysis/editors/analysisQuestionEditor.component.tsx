@@ -1,13 +1,14 @@
+import React, { useState, useContext } from 'react'
+
 import clonedeep from 'lodash.clonedeep'
-import React, { useContext, useState } from 'react'
 import { handleApiFail } from '#/api'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import TextBox from '#/components/common/textBox'
 import {
   findQuestion,
-  getQuestionsFromSchema,
   getQuestionTypeDefinition,
+  getQuestionsFromSchema,
   updateSurveyQuestions,
 } from '#/components/processing/analysis/utils'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'

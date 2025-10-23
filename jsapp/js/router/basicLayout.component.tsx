@@ -1,6 +1,7 @@
+import React from 'react'
+
 import { MantineProvider } from '@mantine/core'
 import { QueryClientProvider } from '@tanstack/react-query'
-import React from 'react'
 import DocumentTitle from 'react-document-title'
 import bem from '#/bem'
 import AccountMenu from '#/components/header/accountMenu'

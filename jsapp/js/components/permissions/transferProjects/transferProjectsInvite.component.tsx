@@ -1,12 +1,13 @@
+import React, { useState, useEffect } from 'react'
+
 import cx from 'classnames'
-import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import KoboModal from '#/components/modals/koboModal'
 import KoboModalFooter from '#/components/modals/koboModalFooter'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
-import { acceptInvite, declineInvite, getAssetFromInviteUid, TransferStatuses } from './transferProjects.api'
+import { TransferStatuses, acceptInvite, declineInvite, getAssetFromInviteUid } from './transferProjects.api'
 import styles from './transferProjectsInvite.module.scss'
 
 interface DisplayDetails {

@@ -2,16 +2,16 @@ import './validationStatusDropdown.scss'
 
 import React from 'react'
 
-import Select, { components, type DropdownIndicatorProps, type OptionProps, type SingleValueProps } from 'react-select'
+import Select, { components, type OptionProps, type SingleValueProps, type DropdownIndicatorProps } from 'react-select'
 import bem from '#/bem'
-import type {
-  ValidationStatusOption,
-  ValidationStatusOptionName,
-} from '#/components/submissions/validationStatus.constants'
 import {
   VALIDATION_STATUS_OPTIONS,
   VALIDATION_STATUS_OPTIONS_WITH_SHOW_ALL,
   ValidationStatusAdditionalName,
+} from '#/components/submissions/validationStatus.constants'
+import type {
+  ValidationStatusOption,
+  ValidationStatusOptionName,
 } from '#/components/submissions/validationStatus.constants'
 
 interface ValidationStatusDropdownProps {

@@ -1,6 +1,7 @@
+import React from 'react'
+
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
-import React from 'react'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { LanguageCode } from '#/components/languages/languagesStore'

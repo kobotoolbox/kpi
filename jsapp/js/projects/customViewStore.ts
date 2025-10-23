@@ -6,10 +6,10 @@ import searchBoxStore from '#/components/header/searchBoxStore'
 import { COMMON_QUERIES } from '#/constants'
 import type { AssetResponse, FailResponse, PaginatedResponse, ProjectViewAsset } from '#/dataInterface'
 import session from '#/stores/session'
-import type { ProjectsTableOrder } from './projectsTable/projectsTable'
-import type { ProjectFieldName, ProjectsFilterDefinition } from './projectViews/constants'
 import { DEFAULT_VISIBLE_FIELDS, PROJECT_FIELDS } from './projectViews/constants'
+import type { ProjectFieldName, ProjectsFilterDefinition } from './projectViews/constants'
 import { buildQueriesFromFilters } from './projectViews/utils'
+import type { ProjectsTableOrder } from './projectsTable/projectsTable'
 
 const SAVE_DATA_NAME = 'project_views_settings'
 const PAGE_SIZE = 50

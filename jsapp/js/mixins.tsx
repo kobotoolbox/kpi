@@ -1,5 +1,6 @@
-import alertify from 'alertifyjs'
 import React from 'react'
+
+import alertify from 'alertifyjs'
 import type { DropFilesEventHandler } from 'react-dropzone'
 import {
   archiveAsset,
@@ -9,10 +10,10 @@ import {
   removeAssetSharing,
   unarchiveAsset,
 } from '#/assetQuickActions'
-import type { AssetStoreData } from '#/assetStore'
 import assetStore from '#/assetStore'
-import type { AssetResponse, CreateImportRequest, DeploymentResponse, ImportResponse } from '#/dataInterface'
+import type { AssetStoreData } from '#/assetStore'
 import { dataInterface } from '#/dataInterface'
+import type { AssetResponse, CreateImportRequest, DeploymentResponse, ImportResponse } from '#/dataInterface'
 import pageState from '#/pageState.store'
 import { router, routerGetAssetId, routerIsActive } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'

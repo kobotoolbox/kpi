@@ -1,5 +1,6 @@
-import { when } from 'mobx'
 import React from 'react'
+
+import { when } from 'mobx'
 import autoBind from 'react-autobind'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'

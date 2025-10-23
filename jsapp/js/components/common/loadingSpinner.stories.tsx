@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import type { LoadingSpinnerType } from './loadingSpinner'
 import LoadingSpinner from './loadingSpinner'
+import type { LoadingSpinnerType } from './loadingSpinner'
 
 const spinnerTypes: LoadingSpinnerType[] = ['regular', 'big']
 

@@ -1,5 +1,6 @@
-import { Menu } from '@mantine/core'
 import React from 'react'
+
+import { Menu } from '@mantine/core'
 import Button from './ButtonNew'
 
 export default {

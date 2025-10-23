@@ -10,8 +10,8 @@ import type { AssetResponse, MetadataResponse } from '#/dataInterface'
 import PopoverMenu from '#/popoverMenu'
 import type { OrderDirection } from '#/projects/projectViews/constants'
 import { getScrollbarWidth, hasVerticalScrollbar } from '#/utils'
-import type { AssetsTableColumn, AssetsTableContextName } from './assetsTableConstants'
 import { ASSETS_TABLE_COLUMNS, ASSETS_TABLE_CONTEXTS, ORDER_DIRECTIONS } from './assetsTableConstants'
+import type { AssetsTableColumn, AssetsTableContextName } from './assetsTableConstants'
 import AssetsTableRow from './assetsTableRow'
 
 bem.AssetsTable = makeBem(null, 'assets-table')

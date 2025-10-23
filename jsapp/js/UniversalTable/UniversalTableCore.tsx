@@ -1,15 +1,16 @@
+import { type CSSProperties, type default as React, useCallback, useEffect, useRef, useState } from 'react'
+
 import {
   type CellContext,
   type Column,
   type ColumnPinningPosition,
-  flexRender,
-  getCoreRowModel,
   type PaginationState,
   type TableOptions,
+  flexRender,
+  getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
 import cx from 'classnames'
-import { type CSSProperties, type default as React, useCallback, useEffect, useRef, useState } from 'react'
 import Button from '#/components/common/button'
 import KoboSelect from '#/components/common/koboSelect'
 import LoadingSpinner from '#/components/common/loadingSpinner'

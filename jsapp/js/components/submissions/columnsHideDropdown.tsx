@@ -4,8 +4,8 @@ import React from 'react'
 
 import Button from '#/components/common/button'
 import KoboDropdown from '#/components/common/koboDropdown'
-import type { ColumnsHideFormProps } from '#/components/submissions/columnsHideForm'
 import ColumnsHideForm from '#/components/submissions/columnsHideForm'
+import type { ColumnsHideFormProps } from '#/components/submissions/columnsHideForm'
 
 /**
  * A wrapper around KoboDropdown to be used atop table to bulk hide columns.

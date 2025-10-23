@@ -1,7 +1,8 @@
 import './koboModal.scss'
 
-import cx from 'classnames'
 import React from 'react'
+
+import cx from 'classnames'
 import Modal from 'react-modal'
 import bem, { makeBem } from '#/bem'
 

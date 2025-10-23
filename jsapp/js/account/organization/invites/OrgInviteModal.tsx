@@ -1,5 +1,6 @@
-import { Button, FocusTrap, Group, Modal, Stack, Text } from '@mantine/core'
 import React, { useState } from 'react'
+
+import { Button, FocusTrap, Group, Modal, Stack, Text } from '@mantine/core'
 import {
   MemberInviteStatus,
   useOrgMemberInviteQuery,

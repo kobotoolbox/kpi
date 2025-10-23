@@ -1,6 +1,7 @@
+import type { ReactNode } from 'react'
+
 import { Group, LoadingOverlay, Menu, Modal, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import type { ReactNode } from 'react'
 import ButtonNew from '#/components/common/ButtonNew'
 import { notify } from '#/utils'
 import type { MemberInvite } from './membersInviteQuery'
@@ -9,7 +10,13 @@ import { MemberInviteStatus, usePatchMemberInvite, useRemoveMemberInvite } from 
 /**
  * A dropdown with all actions that can be taken towards an organization invitee.
  */
-export default function InviteeActionsDropdown({ target, invite }: { target: ReactNode; invite: MemberInvite }) {
+export default function InviteeActionsDropdown({
+  target,
+  invite,
+}: {
+  target: ReactNode
+  invite: MemberInvite
+}) {
   const [opened, { open, close }] = useDisclosure()
 
   const patchInviteMutation = usePatchMemberInvite(invite.url)

@@ -1,8 +1,3 @@
-// getSubmissionDisplayData() returns objects that have prototype chains, while
-// the simple mock objects do not. Be able to exclude __proto__ when comparing
-// the two
-import chai from 'chai'
-import chaiExclude from 'chai-exclude'
 import {
   getMediaAttachment,
   getSubmissionDisplayData,
@@ -39,6 +34,11 @@ import {
   submissionWithSupplementalDetails,
 } from './submissionUtils.mocks'
 
+// getSubmissionDisplayData() returns objects that have prototype chains, while
+// the simple mock objects do not. Be able to exclude __proto__ when comparing
+// the two
+import chai from 'chai'
+import chaiExclude from 'chai-exclude'
 chai.use(chaiExclude)
 
 // getSubmissionDisplayData might return objects with declared, undefined key:
@@ -49,7 +49,6 @@ chai.use(chaiExclude)
 // fail. Hence, use this looser comparison function.
 import chaiDeepEqualIgnoreUndefined from 'chai-deep-equal-ignore-undefined'
 import type { SubmissionSupplementalDetails } from '#/dataInterface'
-
 chai.use(chaiDeepEqualIgnoreUndefined)
 
 describe('getSubmissionDisplayData', () => {

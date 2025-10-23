@@ -3,8 +3,8 @@ import permConfig from './permConfig'
 import { endpoints } from './permParser.mocks'
 import type { AssignablePermsMap } from './sharingForm.component'
 import {
-  applyValidityRules,
   EMPTY_EDITOR_STATE,
+  applyValidityRules,
   getFormData,
   isPartialByResponsesValid,
   isPartialByUsersValid,

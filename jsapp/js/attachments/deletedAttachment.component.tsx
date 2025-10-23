@@ -1,5 +1,5 @@
-import type { CenterProps, ElementProps } from '@mantine/core'
 import { Center } from '@mantine/core'
+import type { CenterProps, ElementProps } from '@mantine/core'
 
 interface DeletedAttachment extends CenterProps, ElementProps<'div', keyof CenterProps> {}
 

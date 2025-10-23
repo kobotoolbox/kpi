@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { IconNames } from '#/k-icons'
 import { recordKeys } from '#/utils'
-import type { IconColor } from './icon'
 import Icon from './icon'
+import type { IconColor } from './icon'
 
 const iconColors: Array<IconColor | undefined> = [undefined, 'mid-red', 'storm', 'teal', 'amber', 'blue']
 

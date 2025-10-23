@@ -1,9 +1,10 @@
-import cx from 'classnames'
 import React from 'react'
+
+import cx from 'classnames'
 import type { IconName } from '#/k-icons'
 import styles from './badge.module.scss'
-import type { IconSize } from './icon'
 import Icon from './icon'
+import type { IconSize } from './icon'
 
 export type BadgeColor =
   | 'light-storm'

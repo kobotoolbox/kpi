@@ -1,6 +1,7 @@
+import React, { lazy, Suspense } from 'react'
+
 import { Button } from '@mantine/core'
 import { observer } from 'mobx-react'
-import React, { lazy, Suspense } from 'react'
 import autoBind from 'react-autobind'
 import reactMixin from 'react-mixin'
 import { NavLink } from 'react-router-dom'

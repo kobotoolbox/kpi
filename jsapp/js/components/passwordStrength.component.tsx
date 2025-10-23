@@ -1,5 +1,6 @@
-import classNames from 'classnames'
 import React from 'react'
+
+import classNames from 'classnames'
 import zxcvbn from 'zxcvbn'
 import styles from './passwordStrength.module.scss'
 

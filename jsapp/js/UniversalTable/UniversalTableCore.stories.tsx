@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import UniversalTable, { type UniversalTableColumn } from './UniversalTableCore'
 import {
+  type UniversalTableExampleDataItem,
   createUniversalTableExampleDataColumns,
   mockData,
-  type UniversalTableExampleDataItem,
 } from './UniversalTableCore.mocks'
 
 interface CustomArgs {

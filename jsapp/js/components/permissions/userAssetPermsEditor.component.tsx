@@ -1,6 +1,7 @@
+import React from 'react'
+
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
-import React from 'react'
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
 import { getSurveyFlatPaths } from '#/assetUtils'
@@ -8,14 +9,15 @@ import bem from '#/bem'
 import AriaText from '#/components/common/ariaText'
 import Button from '#/components/common/button'
 import Checkbox from '#/components/common/checkbox'
-import type { KoboSelectOption } from '#/components/common/koboSelect'
 import KoboSelect from '#/components/common/koboSelect'
+import type { KoboSelectOption } from '#/components/common/koboSelect'
 import TextBox from '#/components/common/textBox'
 import { KEY_CODES } from '#/constants'
 import type { AssetResponse, PermissionBase, PermissionResponse } from '#/dataInterface'
 import userExistence from '#/users/userExistence.store'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { notify, recordEntries } from '#/utils'
+import { CHECKBOX_DISABLED_SUFFIX, CHECKBOX_NAMES, CHECKBOX_PERM_PAIRS } from './permConstants'
 import type {
   CheckboxNameAll,
   CheckboxNamePartialByResponses,
@@ -23,13 +25,12 @@ import type {
   PartialByUsersListName,
   PermissionCodename,
 } from './permConstants'
-import { CHECKBOX_DISABLED_SUFFIX, CHECKBOX_NAMES, CHECKBOX_PERM_PAIRS } from './permConstants'
-import { buildFormData, type PermsFormData, parseFormData } from './permParser'
+import { type PermsFormData, buildFormData, parseFormData } from './permParser'
 import type { AssignablePermsMap } from './sharingForm.component'
 import styles from './userAssetPermsEditor.module.scss'
 import {
-  applyValidityRules,
   EMPTY_EDITOR_STATE,
+  applyValidityRules,
   getFormData,
   isAssignable,
   isPartialByResponsesValid,

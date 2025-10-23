@@ -257,8 +257,6 @@
   "bugs": "https://github.com/kobotoolbox/kpi/issues",
   "homepage": "https://github.com/kobotoolbox/kpi",
   "msw": {
-    "workerDirectory": [
-      "msw-mocks"
-    ]
+    "workerDirectory": ["msw-mocks"]
   }
 }

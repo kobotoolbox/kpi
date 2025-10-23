@@ -1,5 +1,6 @@
-import { observer } from 'mobx-react'
 import React from 'react'
+
+import { observer } from 'mobx-react'
 import assetStore from '#/assetStore'
 import { getAssetIcon } from '#/assetUtils'
 import bem from '#/bem'
@@ -13,9 +14,9 @@ import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
 import pageState from '#/pageState.store'
-import type { WithRouterProps } from '#/router/legacy'
-import { router, withRouter } from '#/router/legacy'
 import { RequireOrg } from '#/router/RequireOrg'
+import { router, withRouter } from '#/router/legacy'
+import type { WithRouterProps } from '#/router/legacy'
 import {
   getLoginUrl,
   isAnyFormRoute,

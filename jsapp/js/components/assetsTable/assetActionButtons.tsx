@@ -7,8 +7,9 @@
  */
 import './assetActionButtons.scss'
 
-import debounce from 'lodash.debounce'
 import React from 'react'
+
+import debounce from 'lodash.debounce'
 import autoBind from 'react-autobind'
 import { Link } from 'react-router-dom'
 import { actions } from '#/actions'
@@ -27,18 +28,18 @@ import {
 } from '#/assetQuickActions'
 import assetUtils from '#/assetUtils'
 import bem from '#/bem'
-import type { ButtonType } from '#/components/common/button'
 import Button from '#/components/common/button'
-import type { ManagedCollectionsStoreData } from '#/components/library/managedCollectionsStore'
+import type { ButtonType } from '#/components/common/button'
 import managedCollectionsStore from '#/components/library/managedCollectionsStore'
+import type { ManagedCollectionsStoreData } from '#/components/library/managedCollectionsStore'
 import { userCan } from '#/components/permissions/utils'
 import { ACCESS_TYPES, ASSET_TYPES } from '#/constants'
 import type { AssetDownloads, AssetResponse } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
 import mixins from '#/mixins'
 import PopoverMenu from '#/popoverMenu'
-import type { WithRouterProps } from '#/router/legacy'
 import { withRouter } from '#/router/legacy'
+import type { WithRouterProps } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import { getRouteAssetUid, isAnyFormRoute, isAnyLibraryItemRoute } from '#/router/routerUtils'
 

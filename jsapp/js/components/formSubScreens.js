@@ -11,11 +11,11 @@ import { ROUTES } from '#/router/routerConstants'
 import { actions } from '../actions'
 import { PROJECT_SETTINGS_CONTEXTS } from '../constants'
 import mixins from '../mixins'
+import RESTServices from './RESTServices'
 import FormMap from './map'
 import FormMedia from './modalForms/formMedia'
 import ProjectSettings from './modalForms/projectSettings'
 import SharingForm from './permissions/sharingForm.component'
-import RESTServices from './RESTServices'
 import LimitNotifications from './usageLimits/limitNotifications.component'
 
 const ConnectProjects = React.lazy(

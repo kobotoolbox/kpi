@@ -1,5 +1,6 @@
-import alertify from 'alertifyjs'
 import React from 'react'
+
+import alertify from 'alertifyjs'
 import autoBind from 'react-autobind'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'

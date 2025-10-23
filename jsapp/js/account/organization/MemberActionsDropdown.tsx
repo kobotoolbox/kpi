@@ -1,5 +1,6 @@
-import { Menu } from '@mantine/core'
 import { type ReactNode, useState } from 'react'
+
+import { Menu } from '@mantine/core'
 import subscriptionStore from '#/account/subscriptionStore'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import envStore from '#/envStore'

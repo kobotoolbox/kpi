@@ -1,5 +1,6 @@
-import cx from 'classnames'
 import React from 'react'
+
+import cx from 'classnames'
 import Icon from '#/components/common/icon'
 import styles from './loadingSpinner.module.scss'
 

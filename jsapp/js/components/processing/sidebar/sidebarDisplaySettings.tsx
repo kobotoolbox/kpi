@@ -1,9 +1,10 @@
+import React, { useState, useEffect } from 'react'
+
 import cx from 'classnames'
-import React, { useEffect, useState } from 'react'
 import Button from '#/components/common/button'
 import KoboSelect from '#/components/common/koboSelect'
-import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import MultiCheckbox from '#/components/common/multiCheckbox'
+import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import ToggleSwitch from '#/components/common/toggleSwitch'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
@@ -12,8 +13,8 @@ import KoboModalContent from '#/components/modals/koboModalContent'
 import KoboModalFooter from '#/components/modals/koboModalFooter'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
 import { getActiveTab } from '#/components/processing/routes.utils'
-import type { DisplaysList } from '#/components/processing/singleProcessingStore'
 import singleProcessingStore, { StaticDisplays } from '#/components/processing/singleProcessingStore'
+import type { DisplaysList } from '#/components/processing/singleProcessingStore'
 import styles from './sidebarDisplaySettings.module.scss'
 
 export default function SidebarDisplaySettings() {

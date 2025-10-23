@@ -1,5 +1,6 @@
-import { observer } from 'mobx-react'
 import React from 'react'
+
+import { observer } from 'mobx-react'
 import autoBind from 'react-autobind'
 import Dropzone from 'react-dropzone'
 import reactMixin from 'react-mixin'

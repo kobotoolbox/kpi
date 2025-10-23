@@ -1,5 +1,6 @@
-import { observer } from 'mobx-react'
 import React from 'react'
+
+import { observer } from 'mobx-react'
 import autoBind from 'react-autobind'
 import { actions } from '#/actions'
 import bem from '#/bem'

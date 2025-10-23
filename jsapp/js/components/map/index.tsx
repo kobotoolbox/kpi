@@ -13,11 +13,22 @@ import 'leaflet.heat'
 import 'leaflet.markercluster'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import { check } from '@placemarkio/check-geojson'
-import { actions } from '../../../js/actions'
-import { getSurveyFlatPaths } from '../../../js/assetUtils'
+
 import CenteredMessage from '../../../js/components/common/centeredMessage.component'
 import LoadingSpinner from '../../../js/components/common/loadingSpinner'
 import Modal from '../../../js/components/common/modal'
+// Partial components
+import PopoverMenu from '../../../js/popoverMenu'
+import MapSettings from './MapSettings'
+
+import { actions } from '../../../js/actions'
+import { getSurveyFlatPaths } from '../../../js/assetUtils'
+// Stores, hooks and utilities
+import { dataInterface } from '../../../js/dataInterface'
+import pageState from '../../../js/pageState.store'
+import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
+import { checkLatLng, notify, recordKeys } from '../../../js/utils'
+
 // Constants and types
 import { ASSET_FILE_TYPES, MODAL_TYPES, QUERY_LIMIT_DEFAULT, QUESTION_TYPES } from '../../../js/constants'
 import type {
@@ -30,14 +41,6 @@ import type {
   SurveyChoice,
   SurveyRow,
 } from '../../../js/dataInterface'
-// Stores, hooks and utilities
-import { dataInterface } from '../../../js/dataInterface'
-import pageState from '../../../js/pageState.store'
-// Partial components
-import PopoverMenu from '../../../js/popoverMenu'
-import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
-import { checkLatLng, notify, recordKeys } from '../../../js/utils'
-import MapSettings from './MapSettings'
 
 // Styles
 import './map.scss'

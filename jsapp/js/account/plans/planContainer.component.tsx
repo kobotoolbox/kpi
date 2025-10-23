@@ -1,5 +1,6 @@
-import classnames from 'classnames'
 import React, { useCallback, useMemo } from 'react'
+
+import classnames from 'classnames'
 import type { FreeTierOverride, PlanState } from '#/account/plans/plan.component'
 import styles from '#/account/plans/plan.module.scss'
 import { PlanButton } from '#/account/plans/planButton.component'

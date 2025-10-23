@@ -1,21 +1,22 @@
 import '../../../scss/components/_kobo.form-view.scss'
 
+import { useState } from 'react'
+
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import cx from 'classnames'
-import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { QueryKeys } from '#/query/queryKeys'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
+import { QueryKeys } from '#/query/queryKeys'
 import { formatTime } from '#/utils'
 import type { KoboSelectOption } from '../common/koboSelect'
 import KoboSelect from '../common/koboSelect'
 import ExportToEmailButton from '../exportToEmailButton/exportToEmailButton.component'
 import KoboModal from '../modals/koboModal'
 import KoboModalHeader from '../modals/koboModalHeader'
+import styles from './FormActivity.module.scss'
 import type { ActivityLogsItem } from './activity.constants'
 import { getActivityLogs, useActivityLogsFilterOptionsQuery, useExportActivityLogs } from './activityLogs.query'
 import { ActivityMessage } from './activityMessage.component'
-import styles from './FormActivity.module.scss'
 
 /**
  * A component used at Project > Settings > Activity route. Displays a table

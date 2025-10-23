@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import type { AvatarSize } from './avatar'
 import Avatar from './avatar'
+import type { AvatarSize } from './avatar'
 
 const avatarSizes: AvatarSize[] = ['s', 'm']
 

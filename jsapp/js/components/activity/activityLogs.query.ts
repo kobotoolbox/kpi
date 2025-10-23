@@ -3,8 +3,8 @@ import { fetchGet, fetchPost } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import type { FailResponse, LabelValuePair, PaginatedResponse } from '#/dataInterface'
 import { QueryKeys } from '#/query/queryKeys'
-import type { ActivityLogsItem, AssetHistoryActionsResponse } from './activity.constants'
 import { AUDIT_ACTION_TYPES, HIDDEN_AUDIT_ACTIONS } from './activity.constants'
+import type { ActivityLogsItem, AssetHistoryActionsResponse } from './activity.constants'
 
 /**
  * Fetches the activity logs from the server.

@@ -1,8 +1,8 @@
 import React from 'react'
 
 import { EnketoActions } from '#/constants'
-import type { EnketoLinkResponse } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
+import type { EnketoLinkResponse } from '#/dataInterface'
 import { notify } from '#/utils'
 
 /**

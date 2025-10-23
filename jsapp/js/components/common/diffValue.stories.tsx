@@ -1,5 +1,6 @@
-import type { StoryObj } from '@storybook/react-webpack5'
 import React from 'react'
+
+import type { StoryObj } from '@storybook/react-webpack5'
 import DiffValue from '#/components/common/diffValue.component'
 
 export default {

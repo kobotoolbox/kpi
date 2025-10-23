@@ -1,6 +1,7 @@
+import React from 'react'
+
 import alertify from 'alertifyjs'
 import cx from 'classnames'
-import React from 'react'
 import Select from 'react-select'
 import { actions } from '#/actions'
 import { getFlatQuestionsList, getSurveyFlatPaths, injectSupplementalRowsIntoListOfRows } from '#/assetUtils'

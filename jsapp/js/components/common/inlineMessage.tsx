@@ -1,7 +1,8 @@
 import './inlineMessage.scss'
 
-import cx from 'classnames'
 import React from 'react'
+
+import cx from 'classnames'
 import Icon from '#/components/common/icon'
 import type { IconName } from '#/k-icons'
 
