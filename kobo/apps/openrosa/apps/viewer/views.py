@@ -297,6 +297,7 @@ def attachment_url(request, size='medium'):
 
             # Let nginx determine the correct content type
             response['Content-Type'] = ''
+            response['Content-Disposition'] = f'attachment; filename={attachment.media_file_basename}'  # noqa
             response['X-Accel-Redirect'] = protected_url
             return response
 
