@@ -5,8 +5,10 @@ from copy import deepcopy
 import pytest
 from django.conf import settings
 from django.db.models import Q
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
+from kobo.settings.base import KOBOFORM_URL
+from kpi.constants import API_NAMESPACES
 from kpi.exceptions import (
     QueryParserNotSupportedFieldLookup,
     SearchQueryTooShortException,
@@ -21,6 +23,7 @@ from kpi.utils.pyxform_compatibility import allow_choice_duplicates
 from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
 from kpi.utils.strings import split_lines_to_list
+from kpi.utils.urls import versioned_reverse
 from kpi.utils.xml import (
     edit_submission_xml,
     fromstring_preserve_root_xmlns,
@@ -28,6 +31,8 @@ from kpi.utils.xml import (
     strip_nodes,
     xml_tostring,
 )
+from kpi.versioning import APIV2Versioning
+from django.test import RequestFactory
 
 
 class ConvertHierarchicalKeysToNestedDictTestCase(TestCase):
@@ -443,6 +448,91 @@ class UtilsTestCase(TestCase):
         value = '\r\nfoo\r\nbar\n\n'
         expected = ['foo', 'bar']
         assert split_lines_to_list(value) == expected
+
+    @override_settings(KOBOFORM_URL='http://testserver')
+    def test_versioned_reverse_with_no_request(self):
+        # Default behavior: uses default namespace (api_v2)
+        expected = 'http://testserver/api/v2/assets/foo/'
+        got = versioned_reverse('asset-detail', kwargs={'uid_asset': 'foo'})
+        assert got == expected
+
+        # Same result when using args instead of kwargs
+        got = versioned_reverse('asset-detail', args=('foo',))
+        assert got == expected
+
+        # Explicit v2 namespace should match the default behaviour
+        got = versioned_reverse(
+            'asset-detail',
+            url_namespace=API_NAMESPACES['v2'],
+            kwargs={'uid_asset': 'foo'},
+        )
+        assert got == expected
+
+        # Explicit v1 namespace should produce a v1-style URL
+        expected = 'http://testserver/assets/foo/'
+        got = versioned_reverse(
+            'asset-detail',
+            url_namespace=API_NAMESPACES['v1'],
+            kwargs={'uid_asset': 'foo'},
+        )
+        assert got == expected
+
+        # Same result using args instead of kwargs for v1
+        got = versioned_reverse(
+            'asset-detail',
+            url_namespace=API_NAMESPACES['v1'],
+            args=('foo',)
+        )
+        assert got == expected
+
+    @override_settings(KOBOFORM_URL='http://testserver')
+    def test_versioned_reverse_with_request(self):
+
+        # With request + versioning_scheme: uses API v2
+        expected = 'http://testserver/api/v2/assets/foo/'
+        request_factory = RequestFactory()
+        request = request_factory.get(expected)
+        request.versioning_scheme = APIV2Versioning()
+        request.version = API_NAMESPACES['v2']
+
+        # Uses versioned namespace when kwargs are passed
+        got = versioned_reverse(
+            'asset-detail', kwargs={'uid_asset': 'foo'}, request=request
+        )
+        assert got == expected
+
+        # Same behaviour when passing args instead of kwargs
+        got = versioned_reverse('asset-detail', args=('foo',), request=request)
+        assert got == expected
+
+        # Explicit v1 namespace should override request version
+        expected = 'http://testserver/assets/foo/'
+        got = versioned_reverse(
+            'asset-detail',
+            url_namespace=API_NAMESPACES['v1'],
+            args=('foo',),
+            request=request,
+        )
+        assert got == expected
+
+        # No versioning_scheme → should fall back to default (v2)
+        expected = 'http://testserver/api/v2/assets/foo/'
+        request_factory = RequestFactory()
+        request = request_factory.get(expected)
+        got = versioned_reverse(
+            'asset-detail',
+            kwargs={'uid_asset': 'foo'},
+            request=request
+        )
+        assert got == expected
+
+        # Same fallback behaviour with args instead of kwargs
+        got = versioned_reverse(
+            'asset-detail',
+            args=('foo',),
+            request=request
+        )
+        assert got == expected
 
 
 class XmlUtilsTestCase(TestCase):

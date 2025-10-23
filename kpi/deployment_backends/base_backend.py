@@ -38,6 +38,7 @@ from kpi.models.paired_data import PairedData
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from kpi.utils.log import logging
 from kpi.utils.submission import get_attachment_filenames_and_xpaths
+from kpi.utils.urls import versioned_reverse
 from kpi.utils.xml import (
     edit_submission_xml,
     fromstring_preserve_root_xmlns,
@@ -347,7 +348,6 @@ class BaseDeploymentBackend(abc.ABC):
         submission_id: int,
         user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
-        request: Optional['rest_framework.request.Request'] = None,
         **mongo_query_params: dict
     ) -> Union[dict, str, None]:
         """
@@ -372,7 +372,6 @@ class BaseDeploymentBackend(abc.ABC):
                 user,
                 format_type,
                 [int(submission_id)],
-                request,
                 **mongo_query_params
             )
         )
@@ -388,7 +387,6 @@ class BaseDeploymentBackend(abc.ABC):
         user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = [],
-        request: Optional['rest_framework.request.Request'] = None,
         **mongo_query_params
     ) -> Union[Iterator[dict], Iterator[str]]:
         """
@@ -820,11 +818,10 @@ class BaseDeploymentBackend(abc.ABC):
     def _inject_properties(
         self,
         submission: dict,
-        request: 'rest_framework.request.Request',
         all_attachment_xpaths: list[str],
     ) -> dict:
         submission = self._rewrite_json_attachment_urls(
-            submission, request, all_attachment_xpaths
+            submission, all_attachment_xpaths
         )
         submission = self._inject_root_uuid(submission)
         return submission
@@ -843,10 +840,9 @@ class BaseDeploymentBackend(abc.ABC):
     def _rewrite_json_attachment_urls(
         self,
         submission: dict,
-        request: 'rest_framework.request.Request',
         all_attachment_xpaths: list[str],
     ) -> dict:
-        if not request or '_attachments' not in submission:
+        if '_attachments' not in submission:
             return submission
 
         filenames_and_xpaths = get_attachment_filenames_and_xpaths(
@@ -873,20 +869,19 @@ class BaseDeploymentBackend(abc.ABC):
                 # Add uid to attachment data
                 attachment['uid'] = attachment_map.get(attachment['id'])
 
-            kpi_url = reverse(
+            kpi_url = versioned_reverse(
                 'attachment-detail',
                 args=(
                     self.asset.uid,
                     submission['_id'],
                     attachment['uid'],
                 ),
-                request=request,
             )
             key = f'download_url'
             attachment[key] = kpi_url
             if attachment['mimetype'].startswith('image/'):
                 for suffix in settings.THUMB_CONF.keys():
-                    kpi_url = reverse(
+                    kpi_url = versioned_reverse(
                         'attachment-thumb',
                         args=(
                             self.asset.uid,
@@ -894,7 +889,6 @@ class BaseDeploymentBackend(abc.ABC):
                             attachment['uid'],
                             suffix,
                         ),
-                        request=request,
                     )
                     key = f'download_{suffix}_url'
                     attachment[key] = kpi_url

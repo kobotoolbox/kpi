@@ -37,14 +37,13 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
         user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = None,
-        request: Optional['rest_framework.request.Request'] = None,
         **mongo_query_params,
     ) -> list:
         # Overload parent to cast generator to a list. Many tests are expecting
         # a list
         return list(
             super().get_submissions(
-                user, format_type, submission_ids, request, **mongo_query_params
+                user, format_type, submission_ids, **mongo_query_params
             )
         )
 
