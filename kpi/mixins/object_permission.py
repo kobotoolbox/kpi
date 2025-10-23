@@ -229,9 +229,7 @@ class ObjectPermissionMixin:
         effective_perms = self._get_effective_perms(include_calculated=False)
         for child in children:
             # calc the new ones
-            child._recalculate_inherited_perms(
-                parent_effective_perms=effective_perms
-            )
+            child._recalculate_inherited_perms(parent_effective_perms=effective_perms)
             # recurse!
             child.recalculate_descendants_perms()
 

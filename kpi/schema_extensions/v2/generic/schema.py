@@ -27,7 +27,7 @@ BALANCE_FIELDS_SCHEMA = build_object_type(
         'balance_value',
         'balance_percent',
         'exceeded',
-    ]
+    ],
 )
 
 LABEL_VALUE_OBJECT_SCHEMA = build_object_type(
@@ -47,7 +47,7 @@ GENERIC_NLP_OBJECT_SCHEMA = build_object_type(
     required=[
         'total_nlp_asr_seconds',
         'total_nlp_mt_characters',
-    ]
+    ],
 )
 
 GENERIC_NLP_ALL_TIME_OBJECT_SCHEMA = build_object_type(
@@ -62,7 +62,7 @@ GENERIC_NLP_ALL_TIME_OBJECT_SCHEMA = build_object_type(
         'mt_characters_current_period',
         'asr_seconds_all_time',
         'mt_characters_all_time',
-    ]
+    ],
 )
 
 GENERIC_STRING_SCHEMA = build_basic_type(OpenApiTypes.STR)
