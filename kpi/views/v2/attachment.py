@@ -248,7 +248,7 @@ class AttachmentViewSet(
         # Otherwise, let NGINX determine the correct content type and serve
         # the file
         headers = {
-            'Content-Disposition': f'inline; filename={attachment.media_file_basename}',
+            'Content-Disposition': f'attachment; filename={attachment.media_file_basename}',
             'X-Accel-Redirect': protected_path
         }
         response = Response(content_type='', headers=headers)

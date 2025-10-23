@@ -160,8 +160,10 @@ class AttachmentViewSet(OpenRosaReadOnlyModelViewSet):
             and self.object.media_file is not None
         ):
             data = self.object.media_file.read()
-
-            return Response(data, content_type=self.object.mimetype)
+            headers = {
+                'Content-Disposition': f'attachment; filename={self.object.media_file_basename}',  # noqa
+            }
+            return Response(data, content_type=self.object.mimetype, headers=headers)
 
         filename = request.query_params.get('filename')
         serializer = self.get_serializer(self.object)
