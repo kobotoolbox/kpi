@@ -168,13 +168,6 @@ export interface Checkout {
   url: string
 }
 
-export enum ChangePlanStatus {
-  success = 'success',
-  scheduled = 'scheduled',
-  pending = 'pending',
-  error = 'error',
-}
-
 export enum SubscriptionChangeType {
   CANCELLATION = 0,
   RENEWAL = 1,
@@ -182,19 +175,6 @@ export enum SubscriptionChangeType {
   PRICE_CHANGE = 3,
   NO_CHANGE = 5,
 }
-
-export type ChangePlan =
-  | {
-      status: ChangePlanStatus.success | ChangePlanStatus.pending
-      url: string
-      stripe_object: Record<string, string>
-    }
-  | {
-      status: ChangePlanStatus.scheduled
-    }
-  | {
-      status: ChangePlanStatus.error
-    }
 
 export interface OneTimeAddOn {
   id: string
