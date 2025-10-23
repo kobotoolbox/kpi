@@ -1,19 +1,29 @@
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.fields import empty
 
 from kobo.apps.organizations.utils import get_billing_dates
 from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
 from kpi.models.asset import Asset
+from kpi.schema_extensions.v2.organizations.fields import UrlField
+from kpi.utils.schema_extensions.fields import HyperlinkedIdentityFieldWithSchemaField
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 
 
+class NlpUsageSerializer(serializers.Serializer):
+    total_nlp_asr_seconds = serializers.IntegerField()
+    total_nlp_mt_characters = serializers.IntegerField()
+
+
 class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
-    asset = serializers.HyperlinkedIdentityField(
+    asset = HyperlinkedIdentityFieldWithSchemaField(
+        schema_field=UrlField,
         lookup_field='uid',
         lookup_url_kwarg='uid_asset',
         view_name='asset-detail',
     )
-    asset__name = serializers.ReadOnlyField(source='name')
+    asset__name = serializers.CharField(source='name', read_only=True)
     nlp_usage_current_period = serializers.SerializerMethodField()
     nlp_usage_all_time = serializers.SerializerMethodField()
     storage_bytes = serializers.SerializerMethodField()
@@ -38,23 +48,28 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
         organization = self.context.get('organization')
         self._period_start, _ = get_billing_dates(organization)
 
+    @extend_schema_field(NlpUsageSerializer)
     def get_nlp_usage_current_period(self, asset):
         return self._get_nlp_tracking_data(asset, self._period_start)
 
+    @extend_schema_field(NlpUsageSerializer)
     def get_nlp_usage_all_time(self, asset):
         return self._get_nlp_tracking_data(asset)
 
+    @extend_schema_field(OpenApiTypes.INT)
     def get_submission_count_current_period(self, asset):
         if not asset.has_deployment:
             return 0
         return asset.deployment.submission_count_since_date(self._period_start)
 
+    @extend_schema_field(OpenApiTypes.INT)
     def get_submission_count_all_time(self, asset):
         if not asset.has_deployment:
             return 0
 
         return asset.deployment.submission_count_since_date()
 
+    @extend_schema_field(OpenApiTypes.INT)
     def get_storage_bytes(self, asset):
         # Get value from asset deployment (if it has deployment)
         if not asset.has_deployment:

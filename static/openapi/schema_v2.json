@@ -8267,9 +8267,25 @@
         },
         "/api/v2/organizations/{uid_organization}/asset_usage/": {
             "get": {
-                "operationId": "api_v2_organizations_asset_usage_retrieve",
+                "operationId": "api_v2_organizations_asset_usage_list",
                 "description": "## Retrieve organization asset usage tracker\n\nTracks the total usage of each asset for the user in the given organization\n",
                 "parameters": [
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Paginate results with limit parameter"
+                    },
+                    {
+                        "in": "query",
+                        "name": "offset",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Paginate results with offset parameter"
+                    },
                     {
                         "in": "path",
                         "name": "uid_organization",
@@ -8296,7 +8312,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/PaginatedOrganizationAssetUsageResponseList"
+                                    "$ref": "#/components/schemas/PaginatedCustomAssetUsageList"
                                 }
                             }
                         },
@@ -14047,6 +14063,63 @@
                     }
                 ]
             },
+            "CustomAssetUsage": {
+                "type": "object",
+                "properties": {
+                    "asset": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/",
+                        "readOnly": true
+                    },
+                    "asset__name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "nlp_usage_current_period": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/NlpUsage"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "nlp_usage_all_time": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/NlpUsage"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "storage_bytes": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "submission_count_current_period": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "submission_count_all_time": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "deployment_status": {
+                        "type": "string",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "asset",
+                    "asset__name",
+                    "deployment_status",
+                    "nlp_usage_all_time",
+                    "nlp_usage_current_period",
+                    "storage_bytes",
+                    "submission_count_all_time",
+                    "submission_count_current_period"
+                ]
+            },
             "CustomerPortal": {
                 "type": "object",
                 "properties": {
@@ -16074,6 +16147,21 @@
                 "type": "string",
                 "description": "* `admin` - admin\n* `member` - member\n* `owner` - owner"
             },
+            "NlpUsage": {
+                "type": "object",
+                "properties": {
+                    "total_nlp_asr_seconds": {
+                        "type": "integer"
+                    },
+                    "total_nlp_mt_characters": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "total_nlp_asr_seconds",
+                    "total_nlp_mt_characters"
+                ]
+            },
             "NullableServiceUsageBalanceData": {
                 "oneOf": [
                     {
@@ -16189,71 +16277,6 @@
                 },
                 "required": [
                     "html"
-                ]
-            },
-            "OrganizationAssetUsageResponse": {
-                "type": "object",
-                "properties": {
-                    "asset": {
-                        "type": "string",
-                        "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets/"
-                    },
-                    "asset__name": {
-                        "type": "string"
-                    },
-                    "nlp_usage_current_period": {
-                        "type": "object",
-                        "properties": {
-                            "total_nlp_asr_seconds": {
-                                "type": "integer"
-                            },
-                            "total_nlp_mt_characters": {
-                                "type": "integer"
-                            }
-                        },
-                        "required": [
-                            "total_nlp_asr_seconds",
-                            "total_nlp_mt_characters"
-                        ]
-                    },
-                    "nlp_usage_all_time": {
-                        "type": "object",
-                        "properties": {
-                            "total_nlp_asr_seconds": {
-                                "type": "integer"
-                            },
-                            "total_nlp_mt_characters": {
-                                "type": "integer"
-                            }
-                        },
-                        "required": [
-                            "total_nlp_asr_seconds",
-                            "total_nlp_mt_characters"
-                        ]
-                    },
-                    "storage_bytes": {
-                        "type": "integer"
-                    },
-                    "submission_count_current_period": {
-                        "type": "integer"
-                    },
-                    "submission_count_all_time": {
-                        "type": "integer"
-                    },
-                    "deployment_status": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "asset",
-                    "asset__name",
-                    "deployment_status",
-                    "nlp_usage_all_time",
-                    "nlp_usage_current_period",
-                    "storage_bytes",
-                    "submission_count_all_time",
-                    "submission_count_current_period"
                 ]
             },
             "OrganizationResponse": {
@@ -16698,6 +16721,37 @@
                     }
                 }
             },
+            "PaginatedCustomAssetUsageList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CustomAssetUsage"
+                        }
+                    }
+                }
+            },
             "PaginatedDataResponseList": {
                 "type": "object",
                 "required": [
@@ -17097,37 +17151,6 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/OneTimeAddOn"
-                        }
-                    }
-                }
-            },
-            "PaginatedOrganizationAssetUsageResponseList": {
-                "type": "object",
-                "required": [
-                    "count",
-                    "results"
-                ],
-                "properties": {
-                    "count": {
-                        "type": "integer",
-                        "example": 123
-                    },
-                    "next": {
-                        "type": "string",
-                        "nullable": true,
-                        "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
-                    },
-                    "previous": {
-                        "type": "string",
-                        "nullable": true,
-                        "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
-                    },
-                    "results": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/OrganizationAssetUsageResponse"
                         }
                     }
                 }
