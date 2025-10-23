@@ -12,7 +12,6 @@ import {
 import commonStyles from './common.module.scss'
 import CommonHeader from './commonHeader.component'
 import styles from './selectOneResponseForm.module.scss'
-import MultiRadio from '#/components/common/radio2'
 
 interface SelectOneResponseFormProps {
   uuid: string
