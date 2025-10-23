@@ -120,19 +120,15 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         """
         # Create submission counter entries to simulate usage
         DailyXFormSubmissionCounter.objects.create(
-            user_id=self.someuser.id,
-            date=timezone.now().date(),
-            counter=15
+            user_id=self.someuser.id, date=timezone.now().date(), counter=15
         )
         DailyXFormSubmissionCounter.objects.create(
             user_id=self.someuser.id,
             date=timezone.now().date() - timezone.timedelta(days=100),
-            counter=135
+            counter=135,
         )
         NLPUsageCounter.objects.create(
-            user_id=self.someuser.id,
-            date=timezone.now().date(),
-            total_asr_seconds=100
+            user_id=self.someuser.id, date=timezone.now().date(), total_asr_seconds=100
         )
         NLPUsageCounter.objects.create(
             user_id=self.someuser.id,
@@ -154,7 +150,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         }
         with patch(
             'kobo.apps.user_reports.tasks.get_organizations_effective_limits',
-            return_value=mock_limits
+            return_value=mock_limits,
         ):
             cache.clear()
             refresh_user_report_snapshots()
@@ -211,12 +207,8 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
 
         organization_data = someuser_data['organization']
 
-        self.assertEqual(
-            organization_data['name'], self.someuser.organization.name
-        )
-        self.assertEqual(
-            organization_data['uid'], str(self.someuser.organization.id)
-        )
+        self.assertEqual(organization_data['name'], self.someuser.organization.name)
+        self.assertEqual(organization_data['uid'], str(self.someuser.organization.id))
         self.assertEqual(organization_data['role'], 'owner')
 
     def test_account_restricted_field(self):
@@ -235,9 +227,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
 
         # Create a submission counter entry to simulate usage
         DailyXFormSubmissionCounter.objects.create(
-            user_id=self.someuser.id,
-            date=timezone.now().date(),
-            counter=10
+            user_id=self.someuser.id, date=timezone.now().date(), counter=10
         )
 
         # Mock the `get_organizations_effective_limits` function
@@ -252,7 +242,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         }
         with patch(
             'kobo.apps.user_reports.tasks.get_organizations_effective_limits',
-            return_value=mock_limits
+            return_value=mock_limits,
         ):
             cache.clear()
             refresh_user_report_snapshots()
@@ -363,9 +353,7 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
     def test_current_period_submissions_gte_and_lte_filters(self):
         # Create a submission counter entry to simulate usage
         DailyXFormSubmissionCounter.objects.create(
-            user_id=self.someuser.id,
-            date=timezone.now().date(),
-            counter=5
+            user_id=self.someuser.id, date=timezone.now().date(), counter=5
         )
         refresh_user_report_snapshots()
 
@@ -384,9 +372,7 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
         Test filtering by nested balances JSON value
         """
         DailyXFormSubmissionCounter.objects.create(
-            user_id=self.someuser.id,
-            date=timezone.now().date(),
-            counter=1
+            user_id=self.someuser.id, date=timezone.now().date(), counter=1
         )
 
         with patch(
@@ -426,9 +412,7 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
         refresh_user_reports_materialized_view(concurrently=False)
 
         # Filter by subscription ID
-        res = self._get_results(
-            {'q': f'subscriptions[]__id:{self.subscription.id}'}
-        )
+        res = self._get_results({'q': f'subscriptions[]__id:{self.subscription.id}'})
         self.assertTrue(any(r['username'] == 'someuser' for r in res['results']))
 
         # Filter by subscription status
