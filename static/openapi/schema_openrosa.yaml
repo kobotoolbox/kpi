@@ -1,13 +1,11 @@
 openapi: 3.0.3
 info:
-  title: KoboToolbox API
-  version: 2.0.0
+  title: KoboToolbox OpenRosa API
+  version: openrosa
   description: |-
-    This page documents all KoboToolbox API endpoints.
+    Welcome to the documentation for the KoboToolbox OpenRosa API. Data collection clients, including KoboCollect and web forms, use the API endpoints described here to retrieve surveys and upload submissions.
 
-    The endpoints are grouped by area of intended use. Each category contains related endpoints, with detailed documentation on usage and configuration. Use this as a reference to quickly find the right endpoint for managing projects, forms, data, permissions, integrations, logs, and organizational resources.
-
-    **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as assets.
+    Our separate documentation of the primary KoboToolbox API endpoints, used to manage projects and data, can be found [here](/api/v2/docs/).
 paths:
   /{username}/formList:
     get:
@@ -161,28 +159,106 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /formList:
+  /api/v2/asset_snapshots/{uid_asset_snapshot}/formList:
     get:
-      operationId: form_list_authenticated
+      operationId: api_v2_asset_snapshots_formList_retrieve
       description: |
         ## Implement part of the OpenRosa Form List API
 
-        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
-
-        This endpoint is used for adding submissions as authenticated user.
+        This endpoint is used to edit the enketo submission and requires authentication
+      parameters:
+      - in: path
+        name: uid_asset_snapshot
+        schema:
+          type: string
+        description: UID of the asset snapshot
+        required: true
       tags:
       - OpenRosa Form List
       security:
+      - BasicAuth: []
       - TokenAuth: []
-      - {}
       responses:
         '200':
           content:
             application/xml:
               schema:
-                $ref: '#/components/schemas/XFormList'
+                $ref: '#/components/schemas/OpenRosaFormListResponse'
           description: null
-  /key/{token}/formList:
+        '404':
+          description: No response body
+  /api/v2/asset_snapshots/{uid_asset_snapshot}/manifest:
+    get:
+      operationId: api_v2_asset_snapshots_manifest_retrieve
+      description: |
+        ## Implement part of the OpenRosa Form List API
+
+        This endpoint is used by Enketo when loading a form.
+        It returns the URLs of form media files so they can be fetched and displayed as
+        needed during form rendering and will open the form in edit mode.
+      parameters:
+      - in: path
+        name: uid_asset_snapshot
+        schema:
+          type: string
+        description: UID of the asset snapshot
+        required: true
+      tags:
+      - OpenRosa Form Manifest
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaManifestResponse'
+          description: null
+        '404':
+          description: No response body
+  /api/v2/asset_snapshots/{uid_asset_snapshot}/submission:
+    post:
+      operationId: api_v2_asset_snapshots_submission_create
+      description: |
+        ## Implement the OpenRosa Form Submission API
+
+        This endpoint is used only when saving edited submissions in KPI.
+        Note: New submissions are still handled via the legacy v1 submission API.
+      parameters:
+      - in: path
+        name: uid_asset_snapshot
+        schema:
+          type: string
+        description: UID of the asset snapshot
+        required: true
+      tags:
+      - OpenRosa Form Submission
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OpenRosaSubmissionRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaSubmissionResponse'
+          description: null
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+  /collector/{token}/formList:
     get:
       operationId: form_list_data_collector
       description: |
@@ -210,7 +286,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/XFormList'
           description: null
-  /key/{token}/submission:
+  /collector/{token}/submission:
     post:
       operationId: submission_data_collector
       description: |+
@@ -288,7 +364,7 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
-  /key/{token}/xformsManifest/{id}:
+  /collector/{token}/xformsManifest/{id}:
     get:
       operationId: manifest_data_collector
       description: |
@@ -334,6 +410,27 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
+  /formList:
+    get:
+      operationId: form_list_authenticated
+      description: |
+        ## Implement part of the OpenRosa Form List API
+
+        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+
+        This endpoint is used for adding submissions as authenticated user.
+      tags:
+      - OpenRosa Form List
+      security:
+      - TokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/XFormList'
+          description: null
   /submission:
     post:
       operationId: submission_authenticated
@@ -461,6 +558,32 @@ components:
         detail: {}
       required:
       - detail
+    OpenRosaFormListResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          formID:
+            type: string
+          name:
+            type: string
+          hash:
+            type: string
+          descriptionText:
+            type: string
+          downloadUrl:
+            type: string
+            format: uri
+            example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid_asset_snapshot}/xml_with_disclaimer/
+          manifestUrl:
+            type: string
+            format: uri
+            example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid_asset_snapshot}/manifest/
+        xml:
+          name: xform
+      xml:
+        name: xforms
+        wrapped: true
     OpenRosaFormManifestResponse:
       type: array
       items:
@@ -479,6 +602,15 @@ components:
       xml:
         name: xforms
         wrapped: true
+    OpenRosaManifestResponse:
+      type: object
+      properties:
+        manifest:
+          type: string
+          format: uri
+          example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid_asset_snapshot}/manifest/
+      required:
+      - manifest
     OpenRosaPayload:
       type: object
       properties:
@@ -509,6 +641,37 @@ components:
       required:
       - message
       - submissionMetadata
+    OpenRosaSubmissionRequest:
+      type: object
+      properties:
+        xml_submission_file:
+          type: string
+          format: uri
+      required:
+      - xml_submission_file
+    OpenRosaSubmissionResponse:
+      type: object
+      properties:
+        question:
+          type: string
+        meta:
+          type: object
+          properties:
+            instanceID:
+              type: string
+            rootUuid:
+              type: string
+            deprecatedID:
+              type: string
+        formhub:
+          type: object
+          properties:
+            uuid:
+              type: string
+      required:
+      - formhub
+      - meta
+      - question
     XFormList:
       type: array
       items:
@@ -548,27 +711,3 @@ components:
       in: header
       name: Authorization
       description: 'Token-based authentication. Use the format: `Token <your-token>`'
-tags:
-- name: Manage projects and library content
-  description:
-  - Create, organize, and manage projects, assets (projects/library content), and
-    tags
-- name: Form content
-  description: Export and preview assets (projects/library content) in different formats
-- name: Survey data
-  description: View, edit, validate, export, and report collected data
-- name: Survey data - Rest Services
-  description: Configure and manage webhooks for survey data integrations
-- name: Manage permissions
-  description: Assign, clone, and bulk-manage project and asset (projects/library
-    content) permissions
-- name: Logging
-  description: Project history logs, access logs, Rest Service hook logs
-- name: Library collections
-  description: Subscribe to and manage shared library collections
-- name: Audit logs (superusers)
-  description: View server-wide logs
-- name: User / team / organization / usage
-  description: Manage users, orgs, invites, roles, and usage tracking
-- name: Other
-  description: Languages, available permissions, other

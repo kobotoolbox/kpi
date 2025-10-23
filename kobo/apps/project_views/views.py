@@ -187,8 +187,9 @@ class ProjectViewViewSet(
         methods=['GET', 'POST'],
         url_path='(?P<obj_type>(assets|users))/export',
     )
-    def export(self, request, uid, obj_type):
+    def export(self, request, uid_project_view, obj_type):
         user = request.user
+        uid = uid_project_view
 
         if not user_has_view_perms(user, uid):
             raise Http404
@@ -197,35 +198,38 @@ class ProjectViewViewSet(
             export = ProjectViewExportTask.objects.filter(
                 user=user, data__view=uid, data__type=obj_type
             ).last()
-            if not export:
-                return Response({})
+            res = {}
 
-            res = {'status': export.status}
-            if export.result:
-                res['result'] = request.build_absolute_uri(export.result.url)
+            if export:
+                res = {'status': export.status}
+                if export.result:
+                    res['result'] = request.build_absolute_uri(export.result.url)
+
             return Response(res)
-        elif request.method == 'POST':
-            export_task = ProjectViewExportTask.objects.create(
-                user=user,
-                data={
-                    'view': uid,
-                    'type': obj_type,
-                },
-            )
 
-            # Have Celery run the export in the background
-            transaction.on_commit(
-                lambda: export_task_in_background.delay(
-                    export_task_uid=export_task.uid,
-                    username=user.username,
-                    export_task_name='kpi.ProjectViewExportTask',
-                )
-            )
 
-            return Response({'status': export_task.status})
+        export_task = ProjectViewExportTask.objects.create(
+            user=user,
+            data={
+                'view': uid,
+                'type': obj_type,
+            },
+        )
+
+        # Have Celery run the export in the background
+        transaction.on_commit(
+            lambda: export_task_in_background.delay(
+                export_task_uid=export_task.uid,
+                username=user.username,
+                export_task_name='kpi.ProjectViewExportTask',
+            )
+        )
+
+        return Response({'status': export_task.status})
 
     @action(detail=True, methods=['GET'])
-    def users(self, request, uid):
+    def users(self, request, uid_project_view):
+        uid = uid_project_view
         if not user_has_view_perms(request.user, uid):
             raise Http404
         users = User.objects.all()

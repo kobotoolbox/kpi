@@ -4,8 +4,6 @@ import { when } from 'mobx'
 import prettyBytes from 'pretty-bytes'
 import {
   type BaseProduct,
-  type ChangePlan,
-  ChangePlanStatus,
   type Checkout,
   type LimitAmount,
   Limits,
@@ -64,26 +62,6 @@ export function processCheckoutResponse(data: Checkout) {
       duration: 10000,
     })
   }
-}
-
-export async function processChangePlanResponse(data: ChangePlan) {
-  switch (data.status) {
-    case ChangePlanStatus.success:
-    case ChangePlanStatus.scheduled:
-      notify.success(t('Success! Your subscription will change at the end of the current billing period.'), {
-        duration: 10000,
-      })
-      /**
-        Wait a bit for the Stripe webhook to (hopefully) complete and the subscription list to update.
-        We do this for 90% of use cases, since we can't tell on the frontend when the webhook has completed.
-      */
-      await new Promise((resolve) => setTimeout(resolve, 3000))
-      window.location.reload()
-      break
-    default:
-      break
-  }
-  return data.status
 }
 
 /**
