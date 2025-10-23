@@ -5,9 +5,8 @@ from copy import deepcopy
 import pytest
 from django.conf import settings
 from django.db.models import Q
-from django.test import TestCase, override_settings
+from django.test import RequestFactory, TestCase, override_settings
 
-from kobo.settings.base import KOBOFORM_URL
 from kpi.constants import API_NAMESPACES
 from kpi.exceptions import (
     QueryParserNotSupportedFieldLookup,
@@ -32,7 +31,6 @@ from kpi.utils.xml import (
     xml_tostring,
 )
 from kpi.versioning import APIV2Versioning
-from django.test import RequestFactory
 
 
 class ConvertHierarchicalKeysToNestedDictTestCase(TestCase):
@@ -479,9 +477,7 @@ class UtilsTestCase(TestCase):
 
         # Same result using args instead of kwargs for v1
         got = versioned_reverse(
-            'asset-detail',
-            url_namespace=API_NAMESPACES['v1'],
-            args=('foo',)
+            'asset-detail', url_namespace=API_NAMESPACES['v1'], args=('foo',)
         )
         assert got == expected
 
@@ -520,18 +516,12 @@ class UtilsTestCase(TestCase):
         request_factory = RequestFactory()
         request = request_factory.get(expected)
         got = versioned_reverse(
-            'asset-detail',
-            kwargs={'uid_asset': 'foo'},
-            request=request
+            'asset-detail', kwargs={'uid_asset': 'foo'}, request=request
         )
         assert got == expected
 
         # Same fallback behaviour with args instead of kwargs
-        got = versioned_reverse(
-            'asset-detail',
-            args=('foo',),
-            request=request
-        )
+        got = versioned_reverse('asset-detail', args=('foo',), request=request)
         assert got == expected
 
 
