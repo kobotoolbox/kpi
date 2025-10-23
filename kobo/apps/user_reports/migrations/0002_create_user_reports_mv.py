@@ -423,7 +423,9 @@ def manually_create_mv_instructions(apps, schema_editor):
 
         {CREATE_INDEXES_SQL}
 
-        """.replace('CREATE UNIQUE INDEX', 'CREATE UNIQUE INDEX CONCURRENTLY')
+        """.replace(
+            'CREATE UNIQUE INDEX', 'CREATE UNIQUE INDEX CONCURRENTLY'
+        )
     )
 
 
