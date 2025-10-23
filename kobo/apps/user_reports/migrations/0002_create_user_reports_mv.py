@@ -3,7 +3,6 @@
 from django.conf import settings
 from django.db import migrations
 
-
 CREATE_MV_BASE_SQL = f"""
     CREATE MATERIALIZED VIEW user_reports_userreportsmv AS
     WITH user_nlp_usage AS (
@@ -383,7 +382,7 @@ STRIPE_JOINS = """
     LEFT JOIN djstripe_customer cust ON sub.customer_id = cust.id
     """
 
-NO_STRIPE_JOINS = ""
+NO_STRIPE_JOINS = ''
 
 if settings.STRIPE_ENABLED:
     MV_PARAMS = {
