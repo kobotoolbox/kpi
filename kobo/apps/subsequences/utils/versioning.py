@@ -1,9 +1,7 @@
 from django.utils import timezone
 
-from ..actions import ManualTranscriptionAction
 from ...openrosa.libs.utils.model_tools import generate_uuid_for_form
 from ..constants import SCHEMA_VERSIONS
-from ...subsequences__old.actions.automatic_transcription import AutomaticTranscriptionAction
 
 
 class InvalidSupplementalFormat(Exception):
@@ -87,8 +85,8 @@ def migrate_submission_supplementals(supplemental_data:dict) -> dict:
 
         # translation
         # get source
-        tagged_manual_transcripts = [{**transcript, '_actionId': ManualTranscriptionAction.ID} for transcript in manual_transcripts]
-        tagged_automatic_transcripts = [{**transcript, '_actionId': AutomaticTranscriptionAction.ID} for transcript in automatic_transcripts]
+        tagged_manual_transcripts = [{**transcript, '_actionId': 'manual_transcription'} for transcript in manual_transcripts]
+        tagged_automatic_transcripts = [{**transcript, '_actionId': 'manual_translation'} for transcript in automatic_transcripts]
 
         all_tagged_transcripts = [*tagged_manual_transcripts, *tagged_automatic_transcripts]
         all_tagged_transcripts.sort(reverse=True, key=lambda d: d['_dateCreated'])
