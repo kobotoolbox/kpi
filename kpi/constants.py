@@ -153,5 +153,5 @@ PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED = 'removed'
 API_NAMESPACES = {
     'v1': None,
     'v2': 'api_v2',
-    'default': 'api_v2'
+    'default': 'api_v2',
 }

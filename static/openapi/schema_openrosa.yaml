@@ -426,7 +426,7 @@ components:
           manifestUrl:
             type: string
             format: uri
-            example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid_asset_snapshot}/manifest/
+            example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid_asset_snapshot}/manifest
         xml:
           name: xform
       xml:
@@ -456,7 +456,7 @@ components:
         manifest:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid_asset_snapshot}/manifest/
+          example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid_asset_snapshot}/manifest
       required:
       - manifest
     OpenRosaPayload:
