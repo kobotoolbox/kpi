@@ -12,11 +12,19 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
-            sql='ALTER TABLE IF EXISTS mfa_mfaavailabletouser RENAME TO accounts_mfa_mfaavailabletouser;',
-            reverse_sql='ALTER TABLE accounts_mfa_mfaavailabletouser RENAME TO mfa_mfaavailabletouser;',
+            sql="""
+            ALTER TABLE IF EXISTS mfa_mfaavailabletouser
+            RENAME TO accounts_mfa_mfaavailabletouser;
+            """,
+            reverse_sql="""
+            ALTER TABLE accounts_mfa_mfaavailabletouser
+            RENAME TO mfa_mfaavailabletouser;""",
         ),
         migrations.RunSQL(
-            sql='ALTER TABLE IF EXISTS mfa_mfamethod RENAME TO accounts_mfa_mfamethod;',
-            reverse_sql='ALTER TABLE accounts_mfa_mfamethod RENAME TO mfa_mfamethod;',
+            sql="""
+            ALTER TABLE IF EXISTS mfa_mfamethod
+            RENAME TO accounts_mfa_mfamethod;""",
+            reverse_sql="""
+            ALTER TABLE accounts_mfa_mfamethod RENAME TO mfa_mfamethod;""",
         ),
     ]

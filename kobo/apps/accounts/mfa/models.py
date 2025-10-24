@@ -36,7 +36,8 @@ class MfaAvailableToUserAdmin(admin.ModelAdmin):
 
 class MfaMethodsWrapper(AbstractTimeStampedModel):
     """
-    MFA Methods is a wrapper table that contains references to a TOTP secret and recovery codes.
+    MFA Methods is a wrapper table that contains references to a TOTP secret
+    and recovery codes.
     """
 
     class Meta:
