@@ -28,7 +28,8 @@ dict2xml
 defusedxml
 dj-static
 dj-stripe
-django-allauth
+django-allauth>=65.11.2
+django-allauth[mfa]
 django-braces
 django-celery-beat
 django-constance
