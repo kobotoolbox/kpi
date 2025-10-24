@@ -84,26 +84,64 @@ def migrate_submission_supplementals(supplemental_data:dict) -> dict:
         supplemental[question_xpath] = question_results_by_action
 
         # translation
-        # get source
-        tagged_manual_transcripts = [{**transcript, '_actionId': 'manual_transcription'} for transcript in manual_transcripts]
-        tagged_automatic_transcripts = [{**transcript, '_actionId': 'manual_translation'} for transcript in automatic_transcripts]
-
-        all_tagged_transcripts = [*tagged_manual_transcripts, *tagged_automatic_transcripts]
-        all_tagged_transcripts.sort(reverse=True, key=lambda d: d['_dateCreated'])
-
-        most_recent_transcript_uuids_by_language = {}
-        for transcript in all_tagged_transcripts:
-            if most_recent_transcript_uuids_by_language.get(transcript['language']) is None:
-                most_recent_transcript_uuids_by_language[transcript['language']] = {'_uuid': transcript['_uuid'], '_actionId': transcript['_actionId']}
+        # determine what to use as the source transcript
+        most_recent_transcript, most_recent_transcript_by_language = (
+            determine_source_transcripts(manual_transcripts, automatic_transcripts)
+        )
+        (
+            automatic_translation_source_language,
+            automatic_translation_language,
+            automatic_translation_value,
+        ) = get_automatic_translation(action_results)
 
         translations_dict = action_results.get('translation', {})
+        automatic_translations = {}
+        manual_translations = {}
         for language_code, translations in translations_dict.items():
+            automatic_translations_for_language = separate_translations(
+                language_code,
+                automatic_translation_source_language,
+                automatic_translation_language,
+                automatic_translation_value,
+                most_recent_transcript,
+                most_recent_transcript_by_language,
+            )
             pass
 
-
-
-
     return supplemental
+
+
+def determine_source_transcripts(manual_transcripts, automatic_transcripts):
+    # First combine manual and automatic transcripts and sort by dateCreated descending
+    # tag them with the action so we don't lose track
+    tagged_manual_transcripts = [
+        {**transcript, '_actionId': 'manual_transcription'}
+        for transcript in manual_transcripts
+    ]
+    tagged_automatic_transcripts = [
+        {**transcript, '_actionId': 'automatic_translation'}
+        for transcript in automatic_transcripts
+    ]
+
+    all_tagged_transcripts = [*tagged_manual_transcripts, *tagged_automatic_transcripts]
+    all_tagged_transcripts.sort(reverse=True, key=lambda d: d['_dateCreated'])
+
+    # take the most recent transcript, manual or automatic, by language
+    most_recent_transcript_uuids_by_language = {}
+    for transcript in all_tagged_transcripts:
+        if most_recent_transcript_uuids_by_language.get(transcript['language']) is None:
+            most_recent_transcript_uuids_by_language[transcript['language']] = {
+                '_uuid': transcript['_uuid'],
+                '_actionId': transcript['_actionId'],
+            }
+
+    # we don't always know the source language of a translation, so also get the most recent transcript overall
+    most_recent_transcript_overall = all_tagged_transcripts[0]
+    most_recent_transcript_overall = {
+        '_uuid': most_recent_transcript_overall['_uuid'],
+        '_actionId': most_recent_transcript_overall['_actionId'],
+    }
+    return most_recent_transcript_overall, most_recent_transcript_uuids_by_language
 
 
 def get_automatic_transcription(
@@ -114,11 +152,14 @@ def get_automatic_transcription(
 
 def get_automatic_translation(action_results:dict):
     googletx = action_results.get('googletx', {})
-    return googletx.get('source', None), googletx.get('languageCode', None), googletx.get('value', None)
+    return (
+        googletx.get('source', None),
+        googletx.get('languageCode', None),
+        googletx.get('value', None),
+    )
 
 
-
-def new_transcript_revision_from_old(old_transcript_revision_dict: dict) -> dict | None:
+def new_revision_from_old(old_transcript_revision_dict: dict) -> dict | None:
     # ignore bad data
     if (
         'languageCode' not in old_transcript_revision_dict
@@ -133,25 +174,6 @@ def new_transcript_revision_from_old(old_transcript_revision_dict: dict) -> dict
         '_dateAccepted': None,
     }
 
-def new_translation_revision_from_old(old_translation_revision_dict: dict, source_uuid, source_action) -> dict | None:
-    # ignore bad data
-    if (
-        'languageCode' not in old_translation_revision_dict
-        or 'value' not in old_translation_revision_dict
-    ):
-        return None
-    return {
-        '_dateCreated': old_translation_revision_dict.get('dateModified', None),
-        'language': old_translation_revision_dict['languageCode'],
-        'value': old_translation_revision_dict['value'],
-        '_uuid': generate_uuid_for_form(),
-        '_dateAccepted': None,
-        '_dependency': {
-            '_actionId': source_action,
-            '_uuid': source_uuid,
-        }
-    }
-
 
 def separate_transcriptions(
     transcription_dict: dict,
@@ -162,7 +184,7 @@ def separate_transcriptions(
         return [], []
     automatic_transcriptions = []
     manual_transcriptions = []
-    latest_revision = new_transcript_revision_from_old(transcription_dict)
+    latest_revision = new_revision_from_old(transcription_dict)
     if latest_revision:
         if (
             latest_revision['value'] == automatic_transcript_value
@@ -175,7 +197,7 @@ def separate_transcriptions(
             manual_transcriptions.append(latest_revision)
 
     for revision in transcription_dict.get('revisions', []):
-        revision_formatted = new_transcript_revision_from_old(revision)
+        revision_formatted = new_revision_from_old(revision)
         if revision_formatted is None:
             continue
         if (
@@ -189,9 +211,16 @@ def separate_transcriptions(
             manual_transcriptions.append(revision_formatted)
     return manual_transcriptions, automatic_transcriptions
 
-def separate_translations(language, translation_dict,
+
+def separate_translations(
+    language,
+    translation_dict,
+    automatic_translation_source_language: str = None,
     automatic_translation_language: str = None,
-    automatic_translation_value: str = None, source_uuid=None, source_action_id=None):
+    automatic_translation_value: str = None,
+    most_recent_transcript=None,
+    most_recent_transcript_by_language=None,
+):
     """
     {'es': {'dateCreated': '2025-10-22T14:30:38Z',
                                    'dateModified': '2025-10-22T17:10:23Z',
@@ -209,7 +238,7 @@ def separate_translations(language, translation_dict,
     """
     automatic_translations = []
     manual_translations = []
-    latest_revision = new_translation_revision_from_old(translation_dict, source_uuid=source_uuid, source_action=source_action_id)
+    latest_revision = new_revision_from_old(translation_dict)
     if latest_revision:
         if (
             latest_revision['value'] == automatic_translation_value
@@ -217,12 +246,17 @@ def separate_translations(language, translation_dict,
         ):
             latest_revision['status'] = 'complete'
             latest_revision['_dateAccepted'] = timezone.now()
+            source = most_recent_transcript_by_language.get(
+                automatic_translation_source_language, most_recent_transcript
+            )
+            latest_revision['source'] = source
             automatic_translations.append(latest_revision)
         else:
+            latest_revision['source'] = most_recent_transcript
             manual_translations.append(latest_revision)
 
     for revision in translation_dict.get('revisions', []):
-        revision_formatted = new_transcript_revision_from_old(revision)
+        revision_formatted = new_revision_from_old(revision)
         if revision_formatted is None:
             continue
         if (
@@ -231,9 +265,12 @@ def separate_translations(language, translation_dict,
         ):
             revision_formatted['status'] = 'complete'
             revision_formatted['_dateAccepted'] = timezone.now()
+            source = most_recent_transcript_by_language.get(
+                automatic_translation_source_language, most_recent_transcript
+            )
+            revision_formatted['source'] = source
             automatic_translations.append(revision_formatted)
         else:
+            revision_formatted['source'] = most_recent_transcript
             manual_translations.append(revision_formatted)
     return manual_translations, automatic_translations
-
-

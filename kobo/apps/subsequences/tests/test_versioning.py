@@ -1,15 +1,17 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 import pytest
-from mock import patch
 from ddt import data, ddt
 from django.test import TestCase
 from django.utils import timezone
 from freezegun import freeze_time
 
 from kobo.apps.subsequences.utils.versioning import (
-    new_transcript_revision_from_old,
-    separate_transcriptions, migrate_advanced_features, migrate_submission_supplementals,
+    determine_source_transcripts,
+    migrate_submission_supplementals,
+    new_revision_from_old,
+    separate_transcriptions,
 )
 
 
@@ -24,7 +26,7 @@ class TestVersioning(TestCase):
             'value': 'Transcribed new',
         }
         with freeze_time(now):
-            result = new_transcript_revision_from_old(old)
+            result = new_revision_from_old(old)
         assert result['value'] == old['value']
         assert result['language'] == old['languageCode']
         assert result['_dateCreated'] == old['dateModified']
@@ -33,7 +35,7 @@ class TestVersioning(TestCase):
 
     def test_new_transcript_revision_from_old_returns_none_for_bad_data(self):
         old = {'badly': 'formatted'}
-        assert new_transcript_revision_from_old(old) is None
+        assert new_revision_from_old(old) is None
 
     @data(True, False)
     def test_separate_automated_and_manual_transcriptions(self, latest_is_automated):
@@ -131,6 +133,46 @@ class TestVersioning(TestCase):
             }
         }
         assert migrated == expected
+
+    def test_determine_source_transcripts(self):
+        manual_transcripts = []
+        automatic_transcripts = []
+        now = timezone.now()
+        for i in range(5):
+            manual = {
+                '_dateCreated': now - timedelta(days=i),
+                'language': 'en',
+                'value': 'Value',
+                '_uuid': f'uuid-{i}-manual',
+                '_dateAccepted': None,
+            }
+            automatic = {
+                **manual,
+                '_uuid': f'uuid-{i}-automatic',
+                '_dateCreated': now - timedelta(days=i + 1),
+            }
+            manual_transcripts.append(manual)
+            automatic_transcripts.append(automatic)
+        # add an old transcript in a different language
+        manual_transcripts.append(
+            {
+                '_dateCreated': now - timedelta(days=5),
+                'language': 'fr',
+                'value': 'Value',
+                '_uuid': f'uuid-5-manual',
+                '_dateAccepted': None,
+            }
+        )
+        most_recent_overall, most_recent_by_language = determine_source_transcripts(
+            manual_transcripts, automatic_transcripts
+        )
+        assert most_recent_overall['_uuid'] == 'uuid-0-manual'
+        assert most_recent_overall['_actionId'] == 'manual_transcription'
+        assert most_recent_by_language['en']['_uuid'] == 'uuid-0-manual'
+        assert most_recent_by_language['en']['_actionId'] == 'manual_transcription'
+        assert most_recent_by_language['fr']['_uuid'] == 'uuid-5-manual'
+        assert most_recent_by_language['fr']['_actionId'] == 'manual_transcription'
+
 
     @pytest.mark.skip()
     def test_migrate_submission_extra_to_supplemental(self):
