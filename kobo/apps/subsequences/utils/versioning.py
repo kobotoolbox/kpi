@@ -133,6 +133,25 @@ def new_transcript_revision_from_old(old_transcript_revision_dict: dict) -> dict
         '_dateAccepted': None,
     }
 
+def new_translation_revision_from_old(old_translation_revision_dict: dict, source_uuid, source_action) -> dict | None:
+    # ignore bad data
+    if (
+        'languageCode' not in old_translation_revision_dict
+        or 'value' not in old_translation_revision_dict
+    ):
+        return None
+    return {
+        '_dateCreated': old_translation_revision_dict.get('dateModified', None),
+        'language': old_translation_revision_dict['languageCode'],
+        'value': old_translation_revision_dict['value'],
+        '_uuid': generate_uuid_for_form(),
+        '_dateAccepted': None,
+        '_dependency': {
+            '_actionId': source_action,
+            '_uuid': source_uuid,
+        }
+    }
+
 
 def separate_transcriptions(
     transcription_dict: dict,
@@ -170,6 +189,51 @@ def separate_transcriptions(
             manual_transcriptions.append(revision_formatted)
     return manual_transcriptions, automatic_transcriptions
 
-def separate_translations(translation_dict):
-    if not translation_dict:
-        return [],[]
+def separate_translations(language, translation_dict,
+    automatic_translation_language: str = None,
+    automatic_translation_value: str = None, source_uuid=None, source_action_id=None):
+    """
+    {'es': {'dateCreated': '2025-10-22T14:30:38Z',
+                                   'dateModified': '2025-10-22T17:10:23Z',
+                                   'languageCode': 'es',
+                                   'revisions': [{'dateModified': '2025-10-22T14:30:38Z',
+                                                  'languageCode': 'es',
+                                                  'value': 'Este es un '
+                                                           'audio que '
+                                                           'estoy '
+                                                           'intentando '
+                                                           'transcribir.'}],
+                                   'value': 'Este es un audio que '
+                                            'estoy intentando '
+                                            'transcribir pero yo lo edité'}}
+    """
+    automatic_translations = []
+    manual_translations = []
+    latest_revision = new_translation_revision_from_old(translation_dict, source_uuid=source_uuid, source_action=source_action_id)
+    if latest_revision:
+        if (
+            latest_revision['value'] == automatic_translation_value
+            and latest_revision['language'] == automatic_translation_language
+        ):
+            latest_revision['status'] = 'complete'
+            latest_revision['_dateAccepted'] = timezone.now()
+            automatic_translations.append(latest_revision)
+        else:
+            manual_translations.append(latest_revision)
+
+    for revision in translation_dict.get('revisions', []):
+        revision_formatted = new_transcript_revision_from_old(revision)
+        if revision_formatted is None:
+            continue
+        if (
+            revision_formatted['language'] == automatic_translation_language
+            and revision['value'] == automatic_translation_value
+        ):
+            revision_formatted['status'] = 'complete'
+            revision_formatted['_dateAccepted'] = timezone.now()
+            automatic_translations.append(revision_formatted)
+        else:
+            manual_translations.append(revision_formatted)
+    return manual_translations, automatic_translations
+
+
