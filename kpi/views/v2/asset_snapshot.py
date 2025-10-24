@@ -23,6 +23,7 @@ from kpi.exceptions import SubmissionIntegrityError
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
 from kpi.models import AssetFile, AssetSnapshot, PairedData
+from kpi.parsers import RawFilenameMultiPartParser
 from kpi.permissions import AssetSnapshotPermission, EditSubmissionPermission
 from kpi.renderers import (
     OpenRosaFormListRenderer,
@@ -163,6 +164,15 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             error_media_type='text/html',
         ),
         tags=['OpenRosa Form List'],
+        parameters=[
+            OpenApiParameter(
+                name='uid_asset_snapshot',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the asset snapshot',
+            ),
+        ],
     ),
     manifest=extend_schema(
         description=read_md('kpi', 'openrosa/manifest.md'),
@@ -175,6 +185,15 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             error_media_type='text/html',
         ),
         tags=['OpenRosa Form Manifest'],
+        parameters=[
+            OpenApiParameter(
+                name='uid_asset_snapshot',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the asset snapshot',
+            ),
+        ],
     ),
     submission=extend_schema(
         description=read_md('kpi', 'openrosa/submission.md'),
@@ -187,6 +206,15 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
             raise_not_found=False,
         ),
         tags=['OpenRosa Form Submission'],
+        parameters=[
+            OpenApiParameter(
+                name='uid_asset_snapshot',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the asset snapshot',
+            ),
+        ],
     ),
     preview=extend_schema(
         description=read_md('kpi', 'asset_snapshots/preview.md'),
@@ -456,6 +484,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
             EnketoSessionAuthentication,
         ],
         versioning_class=OpenRosaAPIVersioning,
+        parser_classes=[RawFilenameMultiPartParser],
     )
     def submission(self, request, *args, **kwargs):
         """ Implements the OpenRosa Form Submission API """

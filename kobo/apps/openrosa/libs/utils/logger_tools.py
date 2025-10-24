@@ -800,9 +800,12 @@ def save_attachments(
     new_attachments = []
     total_bytes = 0
     has_new_attachments = False
-
     for f in media_files:
-        media_file_basename = os.path.basename(f.name)
+        # It is available, use `_raw_filename` provided by
+        # `MultiPartParserWithRawFilenames` to preserve the original filename
+        # before Django’s sanitizing process.
+        original_name = getattr(f, '_raw_filename', None) or f.name
+        media_file_basename = os.path.basename(original_name)
 
         # The basename of a (non-deleted) attachment must be unique per instance.
         existing_attachment = Attachment.objects.filter(

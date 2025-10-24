@@ -1036,7 +1036,7 @@ class AssetImportTaskTest(BaseTestCase):
         }
         post_url = reverse(self._get_endpoint('importtask-list'))
         response = self.client.post(post_url, task_data)
-        task = ImportTask.objects.get(uid=response.data['uid_import'])
+        task = ImportTask.objects.get(uid=response.data['uid'])
         audit_logs = task.messages['audit_logs']
         self.assertEqual(len(audit_logs), 1)
         audit_log_info = audit_logs[0]
@@ -1067,7 +1067,7 @@ class AssetImportTaskTest(BaseTestCase):
         }
         post_url = reverse(self._get_endpoint('importtask-list'))
         response = self.client.post(post_url, task_data)
-        task = ImportTask.objects.get(uid=response.data['uid_import'])
+        task = ImportTask.objects.get(uid=response.data['uid'])
         audit_logs = task.messages['audit_logs']
         self.assertEqual(len(audit_logs), 1)
         audit_log_info = audit_logs[0]

@@ -7,6 +7,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, permissions, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotAuthenticated
+from rest_framework.parsers import FormParser, JSONParser
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 
@@ -35,6 +36,7 @@ from kpi.authentication import (
     SessionAuthentication,
     TokenAuthentication,
 )
+from kpi.parsers import RawFilenameMultiPartParser
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
@@ -123,7 +125,7 @@ class XFormSubmissionApi(
     Available actions:
     - create        → POST /submission
     - create        → POST /{username}/submission
-    - create        → POST /key/{token}/submission
+    - create        → POST /collector/{token}/submission
 
 
     Documentation:
@@ -185,6 +187,11 @@ class XFormSubmissionApi(
     serializer_class = SubmissionSerializer
     template_name = 'submission.xml'
     log_type = AuditType.PROJECT_HISTORY
+    parser_classes = (
+        JSONParser,
+        FormParser,
+        RawFilenameMultiPartParser,
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

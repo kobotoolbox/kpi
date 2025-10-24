@@ -12,7 +12,7 @@ WHOAMI=$(whoami)
 OWNER=$(ls -ld . | awk '{print $3}')
 DESTINATION_FOLDER="${KPI_SRC_DIR}/static/openapi"
 
-# For example, `bash -c`` will run on CI, while `gosu` will run in docker.
+# For example, `bash -c` will run on CI, while `gosu` will run in docker.
 function run () { bash -c "$*"; }
 if [ "$WHOAMI" != "$OWNER" ]; then
     echo "FYI: Applied gosu!"
@@ -25,6 +25,9 @@ if [ ! -d "$DESTINATION_FOLDER" ]; then
     echo "Done!"
 fi
 
+echo "Enabling Stripe for schema generation…"
+export STRIPE_ENABLED=true
+echo "Stripe enabled: $STRIPE_ENABLED"
 echo "Generating v2 OpenAPI JSON schema with drf-spectacular…"
 run python manage.py generate_openapi_schema --file "$DESTINATION_FOLDER/schema_v2.json" --schema="api_v2" --format openapi-json
 echo "Generating v2 OpenAPI YAML schema with drf-spectacular…"

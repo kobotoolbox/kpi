@@ -4,12 +4,10 @@ import classnames from 'classnames'
 import { when } from 'mobx'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import AddOnList from '#/account/addOns/addOnList.component'
-import type { ConfirmChangeProps } from '#/account/plans/confirmChangeModal.component'
-import ConfirmChangeModal from '#/account/plans/confirmChangeModal.component'
 import { PlanContainer } from '#/account/plans/planContainer.component'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { Price, Product, SinglePricedProduct, SubscriptionInfo } from '#/account/stripe.types'
-import { getSubscriptionsForProductId, isDowngrade, processCheckoutResponse } from '#/account/stripe.utils'
+import { getSubscriptionsForProductId, processCheckoutResponse } from '#/account/stripe.utils'
 import subscriptionStore from '#/account/subscriptionStore'
 import type { OrganizationResponse } from '#/api/models/organizationResponse'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
@@ -95,11 +93,6 @@ export default function Plan(props: PlanProps) {
   const [products, loadProducts, productsStatus] = useContext(ProductsContext)
   useRefreshApiFetcher(loadProducts, productsStatus)
   const [organization] = useOrganizationAssumed()
-  const [confirmModal, setConfirmModal] = useState<ConfirmChangeProps>({
-    newPrice: null,
-    products: [],
-    currentSubscription: null,
-  })
   const [visiblePlanTypes, setVisiblePlanTypes] = useState(['default'])
 
   const [searchParams] = useSearchParams()
@@ -316,35 +309,18 @@ export default function Plan(props: PlanProps) {
     [state.subscribedProduct, state.intervalFilter, products.products],
   )
 
-  const dismissConfirmModal = () => {
-    setConfirmModal((prevState) => {
-      return { ...prevState, newPrice: null, currentSubscription: null }
-    })
-  }
-
   const buySubscription = (price: Price) => {
     if (!price.id) return
     if (isDisabled) return
 
     setIsBusy(true)
     if (activeSubscriptions.length) {
-      if (isDowngrade(activeSubscriptions, price)) {
-        // if the user is downgrading prices, open a confirmation dialog and downgrade from kpi
-        // this will downgrade the subscription at the end of the current billing period
-        setConfirmModal({
-          products: products.products,
-          newPrice: price,
-          currentSubscription: activeSubscriptions[0],
-        })
-      } else {
-        // if the user is upgrading prices, send them to the customer portal
-        // this will immediately change their subscription
-        postCustomerPortal(organization.id, price.id)
-          .then(processCheckoutResponse)
-          .catch(() => setIsBusy(false))
-      }
+      // if the user already has a subscription, send them to the Stripe customer portal
+      postCustomerPortal(organization.id, price.id)
+        .then(processCheckoutResponse)
+        .catch(() => setIsBusy(false))
     } else {
-      // just send the user to the checkout page
+      // just send the user to the Stripe checkout page
       postCheckout(price.id, organization.id)
         .then(processCheckoutResponse)
         .catch(() => setIsBusy(false))
@@ -490,7 +466,6 @@ export default function Plan(props: PlanProps) {
             <i className='k-icon k-icon-arrow-up k-icon--size-m' />
           </button>
         )}
-        <ConfirmChangeModal onRequestClose={dismissConfirmModal} setIsBusy={setIsBusy} {...confirmModal} />
       </div>
     </>
   )
