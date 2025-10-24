@@ -72,7 +72,7 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
         using=None,
         update_fields=None,
     ):
-        created = self.pk is None
+        self.pk is None
 
         if not self.is_active and not self.date_disabled:
             self.date_disabled = now()

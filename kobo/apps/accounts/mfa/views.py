@@ -114,7 +114,6 @@ class MfaMethodConfirmView(APIView):
 
     @staticmethod
     def post(request: Request, method: str) -> Response:
-        response_data = {}
         toto, recovery_codes = activate_totp(request, method)
         backup_codes = recovery_codes.get_unused_codes()
         return Response({'backup_codes': backup_codes})
