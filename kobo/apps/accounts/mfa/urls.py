@@ -25,7 +25,7 @@ urlpatterns = [
         name='mfa-activate',
     ),
     path(
-        'api/v2/auth/<str:method>/activate/confirm',
+        'api/v2/auth/<str:method>/activate/confirm/',
         MfaMethodConfirmView.as_view(),
         name='mfa-confirm',
     ),
