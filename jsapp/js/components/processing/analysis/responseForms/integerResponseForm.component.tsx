@@ -66,9 +66,7 @@ export default function IntegerResponseForm(props: IntegerResponseFormProps) {
 
   return (
     <>
-      <CommonHeader uuid={props.uuid} />
-
-      <section className={commonStyles.content}>
+      <CommonHeader uuid={props.uuid} >
         <NumberInput
           value={response}
           onChange={(newResponse) => onInputChange(newResponse.toString())}
@@ -76,7 +74,7 @@ export default function IntegerResponseForm(props: IntegerResponseFormProps) {
           onBlur={saveResponse}
           disabled={!props.canEdit}
         />
-      </section>
+      </CommonHeader>
     </>
   )
 }

@@ -76,7 +76,7 @@ export default function SelectOneResponseForm(props: SelectOneResponseFormProps)
 
   return (
     <>
-      <CommonHeader uuid={props.uuid} />
+      <CommonHeader uuid={props.uuid}>
 
       <section className={classNames([commonStyles.content, styles.radioWrapper])}>
         <Radio
@@ -88,6 +88,7 @@ export default function SelectOneResponseForm(props: SelectOneResponseFormProps)
           isDisabled={!props.canEdit}
         />
       </section>
+      </CommonHeader>
     </>
   )
 }

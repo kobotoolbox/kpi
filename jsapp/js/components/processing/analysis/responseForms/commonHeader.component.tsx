@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react'
+import React, { useState, useContext, ReactNode } from 'react'
 
 import clonedeep from 'lodash.clonedeep'
 import { handleApiFail } from '#/api'
@@ -17,9 +17,13 @@ import type { FailResponse } from '#/dataInterface'
 import singleProcessingStore from '../../singleProcessingStore'
 import type { AnalysisQuestionInternal } from '../constants'
 import commonStyles from './common.module.scss'
+import {Group, Modal, Stack, Text} from '@mantine/core'
+import ButtonNew from '#/components/common/ButtonNew'
+import {useDisclosure} from '@mantine/hooks'
 
 interface ResponseFormHeaderProps {
   uuid: string
+  children?: React.ReactNode
 }
 
 /**
@@ -27,6 +31,7 @@ interface ResponseFormHeaderProps {
  * has sufficient permissions). Is being used in multiple other components.
  */
 export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
+  const [opened, { open, close }] = useDisclosure(false);
   const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
     return null
@@ -96,30 +101,36 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
   }
 
   return (
-    <header className={commonStyles.header}>
-      <KoboPrompt
-        isOpen={isDeletePromptOpen}
-        onRequestClose={() => setIsDeletePromptOpen(false)}
+    <>
+      <header className={commonStyles.header}>
+      <Modal
+        opened={opened}
+        onClose={close}
         title={t('Delete this question?')}
-        buttons={[
-          {
-            type: 'secondary',
-            label: t('Cancel'),
-            onClick: () => setIsDeletePromptOpen(false),
-          },
-          {
-            type: 'danger',
-            label: t('Delete'),
-            onClick: deleteQuestion,
-          },
-        ]}
+        size={'md'}
       >
-        <p>{t('Are you sure you want to delete this question? This action cannot be undone.')}</p>
-      </KoboPrompt>
+        <Stack>
+          <Text>{t('Are you sure you want to delete this question? This action cannot be undone.')}</Text>
+          <Group align='left'>
+            <ButtonNew size='md' onClick={close} variant='light'>
+              {t('Cancel')}
+            </ButtonNew>
 
-      <div className={commonStyles.headerIcon}>
+            <ButtonNew
+              size='md'
+              onClick={deleteQuestion}
+              variant='danger'
+            >
+              {t('Delete account')}
+            </ButtonNew>
+          </Group>
+        </Stack>
+      </Modal>
+
+
+        <div className={commonStyles.headerIcon}>
         <Icon name={qaDefinition.icon} size='xl' />
-      </div>
+        </div>
 
       <label className={commonStyles.headerLabel}>{question.labels._default}</label>
 
@@ -141,9 +152,16 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
         type='secondary-danger'
         size='s'
         startIcon='trash'
-        onClick={() => setIsDeletePromptOpen(true)}
+        onClick={open}
         isDisabled={!hasManagePermissionsToCurrentAsset() || analysisQuestions.state.isPending}
       />
-    </header>
+      </header>
+
+      {props.children &&
+        <>
+          {props.children}
+        </>
+      }
+    </>
   )
 }
