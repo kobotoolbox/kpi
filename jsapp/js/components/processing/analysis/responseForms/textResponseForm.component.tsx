@@ -66,7 +66,7 @@ export default function TextResponseForm(props: TextResponseFormProps) {
 
   return (
     <>
-      <CommonHeader uuid={props.uuid} />
+      <CommonHeader uuid={props.uuid}>
 
       <section className={commonStyles.content}>
         <Textarea
@@ -79,6 +79,7 @@ export default function TextResponseForm(props: TextResponseFormProps) {
           disabled={!props.canEdit}
         />
       </section>
+      </CommonHeader>
     </>
   )
 }

@@ -80,11 +80,12 @@ export default function SelectMultipleResponseForm(props: SelectMultipleResponse
 
   return (
     <>
-      <CommonHeader uuid={props.uuid} />
+      <CommonHeader uuid={props.uuid}>
 
       <section className={commonStyles.content}>
         <MultiCheckbox type='bare' items={getCheckboxes()} onChange={onCheckboxesChange} disabled={!props.canEdit} />
       </section>
+      </CommonHeader>
     </>
   )
 }

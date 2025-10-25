@@ -94,7 +94,7 @@ export default function KeywordSearchResponseForm(props: KeywordSearchResponseFo
 
   return (
     <>
-      <CommonHeader uuid={props.uuid} />
+      <CommonHeader uuid={props.uuid}>
 
       <section className={commonStyles.content}>
         {(() => {
@@ -137,6 +137,7 @@ export default function KeywordSearchResponseForm(props: KeywordSearchResponseFo
           }
         })()}
       </section>
+      </CommonHeader>
     </>
   )
 }
