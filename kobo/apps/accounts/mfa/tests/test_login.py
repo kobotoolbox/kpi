@@ -1,4 +1,5 @@
 import pyotp
+import pytest
 from allauth.account.models import EmailAddress
 from allauth.mfa.adapter import get_adapter
 from django.conf import settings
