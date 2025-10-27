@@ -14,14 +14,15 @@ from rest_framework.views import APIView
 from kpi.permissions import IsAuthenticated
 from kpi.utils.log import logging
 from .flows import activate_totp, deactivate_totp, regenerate_codes
-from .forms import MfaLoginForm, MfaTokenForm
+from .forms import MfaAuthenticateForm
 from .models import MfaMethodsWrapper
 from .permissions import IsMfaEnabled
 from .serializers import TOTPCodeSerializer, UserMfaMethodSerializer
+from ..forms import LoginForm
 
 
 class MfaLoginView(LoginView):
-    form_class = MfaLoginForm
+    form_class = LoginForm
 
     def get_success_url(self):
         """
@@ -49,18 +50,6 @@ class MfaLoginView(LoginView):
             return ''
 
         return redirect_to
-
-
-class MfaTokenView(DjangoLoginView):
-    """
-    Display the login form and handle the login action.
-    """
-
-    form_class = MfaTokenForm
-    authentication_form = None
-    template_name = 'mfa_token.html'
-    redirect_authenticated_user = False
-    extra_context = None
 
 
 class MfaListUserMethodsView(ListAPIView):

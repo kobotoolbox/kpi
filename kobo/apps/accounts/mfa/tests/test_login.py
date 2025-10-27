@@ -39,7 +39,6 @@ class LoginTests(KpiTestCase):
         # Ensure `self.client` is not authenticated
         self.client.logout()
 
-    @pytest.mark.skip(reason='MFA Forms not replaced yet...')
     def test_login_with_mfa_enabled(self):
         """
         Validate that multi-factor authentication form is displayed after

@@ -8,11 +8,9 @@ from .views import (
     MfaMethodConfirmView,
     MfaMethodDeactivateView,
     MfaMethodRegenerateCodesView,
-    MfaTokenView,
 )
 
 urlpatterns = [
-    path('accounts/login/mfa/', MfaTokenView.as_view(), name='mfa_token'),
     path('accounts/login/', MfaLoginView.as_view(), name='kobo_login'),
     path(
         'api/v2/auth/mfa/user-methods/',

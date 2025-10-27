@@ -12,7 +12,7 @@ from rest_framework import status
 from trench.utils import get_mfa_model
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.accounts.mfa.forms import MfaLoginForm
+from kobo.apps.accounts.forms import LoginForm
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kpi.tests.kpi_test_case import KpiTestCase
@@ -254,7 +254,7 @@ class TestStripeMFALogin(KpiTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIsInstance(response, TemplateResponse)
         self.assertFalse(response.context_data['form'].is_valid())
-        self.assertIsInstance(response.context_data['form'], MfaLoginForm)
+        self.assertIsInstance(response.context_data['form'], LoginForm)
 
     @override_config(MFA_ENABLED=True)
     def test_mfa_login_per_user_availability_no_subscription(self):
