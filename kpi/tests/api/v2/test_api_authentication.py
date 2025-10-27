@@ -27,7 +27,7 @@ class AuthenticationApiTests(BaseAssetTestCase):
         self.client.post(reverse('mfa-activate', kwargs={'method': 'app'}))
         code = get_mfa_code_for_user(self.someuser)
         self.client.post(
-            reverse('mfa-confirm', kwargs={'method': METHOD}), data={'code': str(code)}
+            reverse('mfa-confirm', kwargs={'method': 'app'}), data={'code': str(code)}
         )
 
         # Ensure `self.client` is not authenticated
