@@ -41,9 +41,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0])
 
   // We use `mmoLabel` as fallback until `organization_name` is available at the endpoint
-  // Note that `organization_name` doesn't exist on the OpenAPI schema.
-  // const orgName = (orgInvitesQuery.data?.status === 200 && orgInvitesQuery.data?.data.organization_name) ?? mmoLabel
-  const orgName = mmoLabel
+  const orgName = (orgInvitesQuery.data?.data as InviteResponse)?.organization_name ?? mmoLabel
 
   const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
