@@ -50,7 +50,7 @@ class LoginTests(KpiTestCase):
             'password': 'someuser',
         }
         response = self.client.post(reverse('kobo_login'), data=data)
-        self.assertContains(response, 'verification token')
+        self.assertRedirects(response, reverse('mfa_authenticate'))
 
     def test_login_with_mfa_disabled(self):
         """
