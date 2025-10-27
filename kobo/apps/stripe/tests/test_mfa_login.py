@@ -4,16 +4,15 @@ from constance.test import override_config
 from django.conf import settings
 from django.shortcuts import resolve_url
 from django.template.response import TemplateResponse
-from django.test import override_settings
 from django.urls import reverse
-from djstripe.models import Customer, Price, SubscriptionItem, Subscription
+from djstripe.models import Customer, Price, Subscription, SubscriptionItem
 from model_bakery import baker
 from rest_framework import status
 from trench.utils import get_mfa_model
 
-from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.accounts.forms import LoginForm
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kpi.tests.kpi_test_case import KpiTestCase
 
@@ -24,9 +23,7 @@ class TestStripeMFALogin(KpiTestCase):
         self.anotheruser = User.objects.get(username='anotheruser')
 
         # Confirm someuser's e-mail address as primary and verified
-        email_address, _ = EmailAddress.objects.get_or_create(
-            user=self.someuser
-        )
+        email_address, _ = EmailAddress.objects.get_or_create(user=self.someuser)
         email_address.primary = True
         email_address.verified = True
         email_address.save()
@@ -43,9 +40,7 @@ class TestStripeMFALogin(KpiTestCase):
         # Ensure `self.client` is not authenticated
         self.client.logout()
 
-        self.organization = baker.make(
-            Organization, id='orgSALFMLFMSDGmgdlsgmsd'
-        )
+        self.organization = baker.make(Organization, id='orgSALFMLFMSDGmgdlsgmsd')
         self.organization_user = baker.make(
             OrganizationUser,
             user=self.someuser,
@@ -90,9 +85,7 @@ class TestStripeMFALogin(KpiTestCase):
             'login': 'someuser',
             'password': 'someuser',
         }
-        response = self.client.post(
-            reverse('kobo_login'), data=data, follow=True
-        )
+        response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self._assert_no_mfa_login(response)
 
     @override_config(MFA_ENABLED=True)
@@ -123,9 +116,7 @@ class TestStripeMFALogin(KpiTestCase):
             'login': 'someuser',
             'password': 'someuser',
         }
-        response = self.client.post(
-            reverse('kobo_login'), data=data, follow=True
-        )
+        response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self._assert_mfa_login(response)
 
     @override_config(MFA_ENABLED=True)
@@ -139,9 +130,7 @@ class TestStripeMFALogin(KpiTestCase):
             'login': 'someuser',
             'password': 'someuser',
         }
-        response = self.client.post(
-            reverse('kobo_login'), data=data, follow=True
-        )
+        response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self._assert_mfa_login(response)
 
     @override_config(MFA_ENABLED=True)
@@ -157,9 +146,7 @@ class TestStripeMFALogin(KpiTestCase):
             'login': 'someuser',
             'password': 'someuser',
         }
-        response = self.client.post(
-            reverse('kobo_login'), data=data, follow=True
-        )
+        response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self._assert_no_mfa_login(response)
 
     @override_config(MFA_ENABLED=True)
@@ -175,9 +162,7 @@ class TestStripeMFALogin(KpiTestCase):
             'login': 'someuser',
             'password': 'someuser',
         }
-        response = self.client.post(
-            reverse('kobo_login'), data=data, follow=True
-        )
+        response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self._assert_mfa_login(response)
 
     @override_config(MFA_ENABLED=True)
@@ -193,9 +178,7 @@ class TestStripeMFALogin(KpiTestCase):
             'login': 'someuser',
             'password': 'someuser',
         }
-        response = self.client.post(
-            reverse('kobo_login'), data=data, follow=True
-        )
+        response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self._assert_mfa_login(response)
 
     @override_config(MFA_ENABLED=True)
@@ -212,9 +195,7 @@ class TestStripeMFALogin(KpiTestCase):
             'login': 'someuser',
             'password': 'someuser',
         }
-        response = self.client.post(
-            reverse('kobo_login'), data=data, follow=True
-        )
+        response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self._assert_mfa_login(response)
 
     @override_config(MFA_ENABLED=True)
@@ -231,9 +212,7 @@ class TestStripeMFALogin(KpiTestCase):
             'login': 'someuser',
             'password': 'someuser',
         }
-        response = self.client.post(
-            reverse('kobo_login'), data=data, follow=True
-        )
+        response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self._assert_no_mfa_login(response)
 
     @override_config(MFA_ENABLED=True)
@@ -247,9 +226,7 @@ class TestStripeMFALogin(KpiTestCase):
             'login': 'someuser',
             'password': 'badpassword',
         }
-        response = self.client.post(
-            reverse('kobo_login'), data=data, follow=True
-        )
+        response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self.assertEqual(len(response.redirect_chain), 0)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIsInstance(response, TemplateResponse)
@@ -286,9 +263,7 @@ class TestStripeMFALogin(KpiTestCase):
             'login': 'someuser',
             'password': 'someuser',
         }
-        response = self.client.post(
-            reverse('kobo_login'), data=data, follow=True
-        )
+        response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self.assertEqual(len(response.redirect_chain), 1)
         redirection, status_code = response.redirect_chain[0]
         self.assertEqual(status_code, status.HTTP_302_FOUND)

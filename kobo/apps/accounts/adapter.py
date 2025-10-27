@@ -2,15 +2,8 @@ from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.forms import SignupForm
 from constance import config
 from django.conf import settings
-from django.contrib.auth import REDIRECT_FIELD_NAME, login
 from django.db import transaction
-from django.shortcuts import resolve_url
-from django.template.response import TemplateResponse
 from django.utils import timezone
-from trench.utils import get_mfa_model, user_token_generator
-from .mfa.models import MfaAvailableToUser
-from .mfa.permissions import mfa_allowed_for_user
-from .utils import user_has_inactive_paid_subscription
 
 
 class AccountAdapter(DefaultAccountAdapter):

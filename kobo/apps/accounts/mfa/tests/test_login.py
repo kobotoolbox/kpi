@@ -1,4 +1,3 @@
-import pytest
 from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.shortcuts import resolve_url

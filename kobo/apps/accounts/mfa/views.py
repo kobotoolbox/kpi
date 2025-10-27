@@ -2,7 +2,6 @@ from allauth.account.views import LoginView
 from allauth.mfa.adapter import get_adapter
 from allauth.mfa.internal.flows.add import validate_can_add_authenticator
 from allauth.mfa.totp.internal import auth as totp_auth
-from django.contrib.auth.views import LoginView as DjangoLoginView
 from django.db.models import QuerySet
 from django.urls import reverse
 from rest_framework.generics import ListAPIView
@@ -13,12 +12,11 @@ from rest_framework.views import APIView
 
 from kpi.permissions import IsAuthenticated
 from kpi.utils.log import logging
+from ..forms import LoginForm
 from .flows import activate_totp, deactivate_totp, regenerate_codes
-from .forms import MfaAuthenticateForm
 from .models import MfaMethodsWrapper
 from .permissions import IsMfaEnabled
 from .serializers import TOTPCodeSerializer, UserMfaMethodSerializer
-from ..forms import LoginForm
 
 
 class MfaLoginView(LoginView):
