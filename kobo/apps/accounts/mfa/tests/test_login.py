@@ -1,13 +1,10 @@
-import pyotp
 import pytest
 from allauth.account.models import EmailAddress
-from allauth.mfa.adapter import get_adapter
 from django.conf import settings
 from django.shortcuts import resolve_url
 from django.urls import reverse
 from rest_framework import status
 
-from kobo.apps.accounts.mfa.models import MfaMethodsWrapper
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.kpi_test_case import KpiTestCase
 from .utils import get_mfa_code_for_user
