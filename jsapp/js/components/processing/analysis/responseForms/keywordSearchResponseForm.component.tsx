@@ -95,8 +95,6 @@ export default function KeywordSearchResponseForm(props: KeywordSearchResponseFo
   return (
     <>
       <CommonHeader uuid={props.uuid}>
-
-      <section className={commonStyles.content}>
         {(() => {
           if (question.additionalFields?.isSearching) {
             return <span className={styles.loading}>{t('…keyword search in progress')}</span>
@@ -136,7 +134,6 @@ export default function KeywordSearchResponseForm(props: KeywordSearchResponseFo
             return null
           }
         })()}
-      </section>
       </CommonHeader>
     </>
   )

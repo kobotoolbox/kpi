@@ -68,7 +68,6 @@ export default function TextResponseForm(props: TextResponseFormProps) {
     <>
       <CommonHeader uuid={props.uuid}>
 
-      <section className={commonStyles.content}>
         <Textarea
           autosize
           minRows={2}
@@ -78,7 +77,6 @@ export default function TextResponseForm(props: TextResponseFormProps) {
           onBlur={saveResponse}
           disabled={!props.canEdit}
         />
-      </section>
       </CommonHeader>
     </>
   )
