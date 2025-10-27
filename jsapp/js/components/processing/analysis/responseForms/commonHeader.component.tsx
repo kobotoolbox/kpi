@@ -2,9 +2,7 @@ import React, { useState, useContext, ReactNode } from 'react'
 
 import clonedeep from 'lodash.clonedeep'
 import { handleApiFail } from '#/api'
-import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
-import KoboPrompt from '#/components/modals/koboPrompt'
 import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import {
   findQuestion,
@@ -17,9 +15,11 @@ import type { FailResponse } from '#/dataInterface'
 import singleProcessingStore from '../../singleProcessingStore'
 import type { AnalysisQuestionInternal } from '../constants'
 import commonStyles from './common.module.scss'
-import {Group, Modal, Stack, Text} from '@mantine/core'
+import {Group, Modal, Stack, Text, Title} from '@mantine/core'
+import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
 import {useDisclosure} from '@mantine/hooks'
+import {ThemeIcon, Box} from '@mantine/core'
 
 interface ResponseFormHeaderProps {
   uuid: string
@@ -101,67 +101,68 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
   }
 
   return (
-    <>
-      <header className={commonStyles.header}>
-      <Modal
-        opened={opened}
-        onClose={close}
-        title={t('Delete this question?')}
-        size={'md'}
-      >
-        <Stack>
-          <Text>{t('Are you sure you want to delete this question? This action cannot be undone.')}</Text>
-          <Group align='left'>
-            <ButtonNew size='md' onClick={close} variant='light'>
-              {t('Cancel')}
-            </ButtonNew>
+    <Box>
+      <Group className={commonStyles.header}>
+        <Modal
+          opened={opened}
+          onClose={close}
+          title={t('Delete this question?')}
+          size={'md'}
+        >
+          <Stack>
+            <Text>{t('Are you sure you want to delete this question? This action cannot be undone.')}</Text>
+            <Group align='left'>
+              <ButtonNew size='md' onClick={close} variant='light'>
+                {t('Cancel')}
+              </ButtonNew>
 
-            <ButtonNew
-              size='md'
-              onClick={deleteQuestion}
-              variant='danger'
-            >
-              {t('Delete account')}
-            </ButtonNew>
-          </Group>
-        </Stack>
-      </Modal>
+              <ButtonNew
+                size='md'
+                onClick={deleteQuestion}
+                variant='danger'
+              >
+                {t('Delete account')}
+              </ButtonNew>
+            </Group>
+          </Stack>
+        </Modal>
 
 
-        <div className={commonStyles.headerIcon}>
-        <Icon name={qaDefinition.icon} size='xl' />
-        </div>
+        <ThemeIcon variant='light-teal' >
+          <Icon name={qaDefinition.icon} size='xl' />
+        </ThemeIcon>
 
-      <label className={commonStyles.headerLabel}>{question.labels._default}</label>
+        <Title className={commonStyles.headerLabel}>{question.labels._default}</Title>
 
-      <Button
-        type='secondary'
-        size='s'
-        startIcon='edit'
-        onClick={openQuestionInEditor}
-        // We only allow editing one question at a time, so adding new is not
-        // possible until user stops editing
-        isDisabled={
-          !hasManagePermissionsToCurrentAsset() ||
-          analysisQuestions.state.questionsBeingEdited.length !== 0 ||
-          analysisQuestions.state.isPending
-        }
-      />
+        <ActionIcon
+          variant='light'
+          color=''
+          size='sm'
+          iconName='edit'
+          onClick={openQuestionInEditor}
+          // We only allow editing one question at a time, so adding new is not
+          // possible until user stops editing
+          disabled={
+            !hasManagePermissionsToCurrentAsset() ||
+            analysisQuestions.state.questionsBeingEdited.length !== 0 ||
+            analysisQuestions.state.isPending
+          }
+        />
 
-      <Button
-        type='secondary-danger'
-        size='s'
-        startIcon='trash'
-        onClick={open}
-        isDisabled={!hasManagePermissionsToCurrentAsset() || analysisQuestions.state.isPending}
-      />
-      </header>
+        <ActionIcon
+          variant='danger-secondary'
+          size='sm'
+          iconName='trash'
+          onClick={open}
+          disabled={!hasManagePermissionsToCurrentAsset() || analysisQuestions.state.isPending}
+        />
+      </Group>
 
       {props.children &&
-        <>
+        <Box className={commonStyles.content}>
           {props.children}
-        </>
+        </Box>
       }
-    </>
+    </Box>
   )
 }
