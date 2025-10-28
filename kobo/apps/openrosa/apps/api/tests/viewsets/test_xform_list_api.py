@@ -744,21 +744,10 @@ class TestXFormListAsOrgAdminApiBase(TestXFormListApiBase):
         self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
 
     def test_head_xform_manifest(self):
-<<<<<<< HEAD
-        base_url = reverse(
-            'manifest-url',
-            kwargs={'pk': self.xform.pk},
-        )
-        client = DigestClient()
-        client.set_authorization('alice', 'alicealice', 'Digest')
-
-        response = client.head(base_url)
-=======
         self._load_metadata(self.xform)
         response = self.client.head(self.manifest_url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         response = self.digest_client.head(self.manifest_url)
->>>>>>> 6f143300a (test(xforms): more robust unit tests for xform list)
         self.validate_openrosa_head_response(response)
 
     def test_head_xform_media(self):
