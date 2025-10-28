@@ -11,6 +11,7 @@ from django.utils.http import urlencode
 from kobo.apps.kobo_auth.models import User
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.libs.utils.image_tools import get_optimized_image_path, resize
+from kpi.constants import SAFE_INLINE_MIMETYPES
 from kpi.deployment_backends.kc_access.storage import KobocatFileSystemStorage
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
@@ -125,6 +126,12 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
             return self.media_file.path
 
         return self.media_file.url
+
+    @property
+    def content_disposition(self):
+        if self.mimetype in SAFE_INLINE_MIMETYPES:
+            return 'inline'
+        return 'attachment'
 
     @property
     def filename(self):
