@@ -1,4 +1,4 @@
-import { createTheme, rem, ThemeIcon } from '@mantine/core'
+import { createTheme, rem, } from '@mantine/core'
 import { ActionIconThemeKobo } from './ActionIcon'
 import { AlertThemeKobo } from './Alert'
 import { ButtonThemeKobo } from './Button'
@@ -10,6 +10,7 @@ import { ModalThemeKobo } from './Modal'
 import { SelectThemeKobo } from './Select'
 import { TableThemeKobo } from './Table'
 import { TagsInputThemeKobo } from './TagsInput'
+import { NumberInputThemeKobo } from './NumberInput'
 import { TooltipThemeKobo } from './Tooltip'
 import { ThemeIconThemeKobo } from './ThemeIcon'
 
@@ -121,5 +122,6 @@ export const themeKobo = createTheme({
     Divider: DividerThemeKobo,
     TagsInput: TagsInputThemeKobo,
     ThemeIcon: ThemeIconThemeKobo,
+    NumberInput: NumberInputThemeKobo,
   },
 })

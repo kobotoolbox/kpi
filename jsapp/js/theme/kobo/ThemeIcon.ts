@@ -1,8 +1,6 @@
 import { ThemeIcon, rem } from '@mantine/core'
-import classes from './ActionIcon.module.css'
 
 export const ThemeIconThemeKobo = ThemeIcon.extend({
-  classNames: classes,
   vars: (theme, props) => {
     return {
       root: {
