@@ -8,10 +8,13 @@ from django.urls import reverse
 from djstripe.models import Customer, Price, Subscription, SubscriptionItem
 from model_bakery import baker
 from rest_framework import status
-from trench.utils import get_mfa_model
 
 from kobo.apps.accounts.forms import LoginForm
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
+from kobo.apps.accounts.mfa.tests.utils import (
+    get_mfa_code_for_user,
+    activate_mfa_for_user,
+)
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kpi.tests.kpi_test_case import KpiTestCase
@@ -29,14 +32,7 @@ class TestStripeMFALogin(KpiTestCase):
         email_address.save()
 
         # Activate MFA for someuser
-        self.mfa_object = get_mfa_model().objects.create(
-            user=self.someuser,
-            secret='dummy_mfa_secret',
-            name='app',
-            is_primary=True,
-            is_active=True,
-            _backup_codes='dummy_encoded_codes',
-        )
+        activate_mfa_for_user(self.client, self.someuser)
         # Ensure `self.client` is not authenticated
         self.client.logout()
 
@@ -64,8 +60,7 @@ class TestStripeMFALogin(KpiTestCase):
             MfaAvailableToUser.objects.create(user=user)
 
     def _assert_mfa_login(self, response):
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertContains(response, 'verification token')
+        self.assertRedirects(response, reverse('mfa_authenticate'))
 
     def _assert_no_mfa_login(self, response):
         self.assertEqual(len(response.redirect_chain), 1)
@@ -207,7 +202,7 @@ class TestStripeMFALogin(KpiTestCase):
         """
         self._reset_whitelist([self.anotheruser])
         self._create_subscription(billing_status='canceled')
-        self.mfa_object.delete()
+
         data = {
             'login': 'someuser',
             'password': 'someuser',
@@ -247,8 +242,7 @@ class TestStripeMFALogin(KpiTestCase):
             'password': 'someuser',
         }
         response = self.client.post(reverse('kobo_login'), data=data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertContains(response, 'verification token')
+        self._assert_mfa_login(response)
 
     @override_config(MFA_ENABLED=False)
     def test_mfa_globally_disabled_as_user_with_paid_subscription(self):

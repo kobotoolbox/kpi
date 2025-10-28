@@ -6,7 +6,7 @@ from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.kpi_test_case import KpiTestCase
-from .utils import get_mfa_code_for_user
+from .utils import get_mfa_code_for_user, activate_mfa_for_user
 
 METHOD = 'app'
 
@@ -28,13 +28,7 @@ class LoginTests(KpiTestCase):
         email_address.save()
 
         # Activate MFA for someuser
-        self.client.login(username='someuser', password='someuser')
-        self.client.post(reverse('mfa-activate', kwargs={'method': 'app'}))
-        self.client.post(reverse('mfa-activate', kwargs={'method': METHOD}))
-        code = get_mfa_code_for_user(self.someuser)
-        self.client.post(
-            reverse('mfa-confirm', kwargs={'method': METHOD}), data={'code': str(code)}
-        )
+        activate_mfa_for_user(self.client, self.someuser)
         # Ensure `self.client` is not authenticated
         self.client.logout()
 
