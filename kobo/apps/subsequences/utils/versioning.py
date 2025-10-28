@@ -97,7 +97,7 @@ def migrate_submission_supplementals(supplemental_data:dict) -> dict:
         automatic_translations = {}
         manual_translations = {}
         for language_code, translations in translations_dict.items():
-            automatic_translations_for_language, manual_translations_for_language = separate_translations(
+            manual_translations_for_language, automatic_translations_for_language  = separate_translations(
                 language_code,
                 translations,
                 automatic_translation_source_language,
@@ -106,9 +106,22 @@ def migrate_submission_supplementals(supplemental_data:dict) -> dict:
                 most_recent_transcript,
                 most_recent_transcript_by_language,
             )
-            automatic_translations[language_code] = automatic_translations_for_language
-            manual_translations[language_code] = manual_translations_for_language
-        question_results_by_action['automatic_translation'] = automatic_translations
+            if len(automatic_translations_for_language) > 0:
+                automatic_translations_for_language.sort(reverse=True, key =lambda x: x['_dateCreated'])
+                automatic_translations[language_code] = {
+                    '_dateCreated': automatic_translations_for_language[-1]['_dateCreated'],
+                    '_dateModified': automatic_translations_for_language[0]['_dateCreated']
+                }
+                automatic_translations[language_code]['_versions'] = automatic_translations_for_language
+            if len(manual_translations_for_language) > 0:
+                manual_translations_for_language.sort(reverse=True, key =lambda x: x['_dateCreated'])
+                manual_translations[language_code] = {
+                    '_dateCreated': manual_translations_for_language[-1]['_dateCreated'],
+                    '_dateModified': manual_translations_for_language[0]['_dateCreated']
+                }
+                manual_translations[language_code]['_versions'] = manual_translations_for_language
+        if automatic_translations != {}:
+            question_results_by_action['automatic_translation'] = automatic_translations
         question_results_by_action['manual_translation'] = manual_translations
         supplemental[question_xpath] = question_results_by_action
 
@@ -196,7 +209,7 @@ def separate_transcriptions(
             and latest_revision['language'] == automatic_transcript_language
         ):
             latest_revision['status'] = 'complete'
-            latest_revision['_dateAccepted'] = timezone.now()
+            latest_revision['_dateAccepted'] = timezone.now().isoformat()
             automatic_transcriptions.append(latest_revision)
         else:
             manual_transcriptions.append(latest_revision)
@@ -210,7 +223,7 @@ def separate_transcriptions(
             and revision['value'] == automatic_transcript_value
         ):
             revision_formatted['status'] = 'complete'
-            revision_formatted['_dateAccepted'] = timezone.now()
+            revision_formatted['_dateAccepted'] = timezone.now().isoformat()
             automatic_transcriptions.append(revision_formatted)
         else:
             manual_transcriptions.append(revision_formatted)
@@ -225,7 +238,7 @@ def separate_translations(
     automatic_translation_value: str = None,
     most_recent_transcript=None,
     most_recent_transcript_by_language=None,
-):
+) -> tuple[list, list]:
     """
     {'es': {'dateCreated': '2025-10-22T14:30:38Z',
                                    'dateModified': '2025-10-22T17:10:23Z',
@@ -250,14 +263,14 @@ def separate_translations(
             and language == automatic_translation_language
         ):
             latest_revision['status'] = 'complete'
-            latest_revision['_dateAccepted'] = timezone.now()
+            latest_revision['_dateAccepted'] = timezone.now().isoformat()
             source = most_recent_transcript_by_language.get(
                 automatic_translation_source_language, most_recent_transcript
             )
-            latest_revision['source'] = source
+            latest_revision['_dependency'] = source
             automatic_translations.append(latest_revision)
         else:
-            latest_revision['source'] = most_recent_transcript
+            latest_revision['_dependency'] = most_recent_transcript
             manual_translations.append(latest_revision)
 
     for revision in translation_dict.get('revisions', []):
@@ -269,13 +282,13 @@ def separate_translations(
             and revision['value'] == automatic_translation_value
         ):
             revision_formatted['status'] = 'complete'
-            revision_formatted['_dateAccepted'] = timezone.now()
+            revision_formatted['_dateAccepted'] = timezone.now().isoformat()
             source = most_recent_transcript_by_language.get(
                 automatic_translation_source_language, most_recent_transcript
             )
-            revision_formatted['source'] = source
+            revision_formatted['_dependency'] = source
             automatic_translations.append(revision_formatted)
         else:
-            revision_formatted['source'] = most_recent_transcript
+            revision_formatted['_dependency'] = most_recent_transcript
             manual_translations.append(revision_formatted)
     return manual_translations, automatic_translations

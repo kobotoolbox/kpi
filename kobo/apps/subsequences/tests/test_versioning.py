@@ -177,10 +177,9 @@ class TestVersioning(TestCase):
         pass
 
 
-    @pytest.mark.skip()
     def test_migrate_submission_extra_to_supplemental(self):
         now = timezone.now()
-        one_year_ago = now - timedelta(days=365)
+        one_year_ago = (now - timedelta(days=365)).isoformat()
         old_version = {'Audio_question': {'googlets': {'languageCode': 'en',
                                  'regionCode': None,
                                  'status': 'complete',
@@ -189,10 +188,10 @@ class TestVersioning(TestCase):
                     'googletx': {'languageCode': 'es',
                                  'source': 'en',
                                  'status': 'complete',
-                                 'value': 'Este es un audio que estoy '
-                                          'intentando transcribir.'},
+                                 'value': 'Esto es un audio que estoy '
+                                          'intentando a transcribir.'},
                     'transcript': {'dateCreated': one_year_ago,
-                                   'dateModified': now,
+                                   'dateModified': now.isoformat(),
                                    'languageCode': 'en',
                                    'revisions': [{'dateModified': one_year_ago,
                                                   'languageCode': 'en',
@@ -203,16 +202,16 @@ class TestVersioning(TestCase):
                                    'value': 'This is audio that I am trying to '
                                             'transcribe but i edited it.'},
                     'translation': {'es': {'dateCreated': one_year_ago,
-                                           'dateModified': now,
+                                           'dateModified': now.isoformat(),
                                            'languageCode': 'es',
                                            'revisions': [{'dateModified': one_year_ago,
                                                           'languageCode': 'es',
-                                                          'value': 'Este es un '
+                                                          'value': 'Esto es un '
                                                                    'audio que '
                                                                    'estoy '
-                                                                   'intentando '
+                                                                   'intentando a '
                                                                    'transcribir.'}],
-                                           'value': 'Este es un audio que '
+                                           'value': 'Esto es un audio que '
                                                     'estoy intentando '
                                                     'transcribir pero yo lo edité'}}}}
 
@@ -229,7 +228,7 @@ class TestVersioning(TestCase):
                     '_versions': [
                         {
                             '_dateCreated': one_year_ago,
-                            '_dateAccepted': now,
+                            '_dateAccepted': now.isoformat(),
                             '_uuid':'uuid2',
                             'language': 'en',
                             'value': 'This is audio that I am trying to '
@@ -245,23 +244,23 @@ class TestVersioning(TestCase):
                         '_versions': [
                             {
                                 '_dateCreated': one_year_ago,
-                                '_dateAccepted': now,
+                                '_dateAccepted': now.isoformat(),
                                 '_dependency': {'_actionId': 'manual_transcription',
                                                 '_uuid': 'uuid1'},
                                 '_uuid':'uuid4',
                                 'language': 'es',
-                                'value': 'Esto es un audio que estoy intendando a transcribir',
+                                'value': 'Esto es un audio que estoy intentando a transcribir.',
                                 'status': 'complete'
                             }
                         ]
                     }
                 },
                 'manual_transcription': {
-                    '_dateCreated': now,
-                    '_dateModified': now,
+                    '_dateCreated': now.isoformat(),
+                    '_dateModified': now.isoformat(),
                     '_versions': [
                         {
-                            '_dateCreated': now,
+                            '_dateCreated': now.isoformat(),
                             '_dateAccepted': None,
                             '_uuid':'uuid1',
                             'language': 'en',
@@ -272,18 +271,17 @@ class TestVersioning(TestCase):
                 },
                 'manual_translation': {
                     'es': {
-                        '_dateCreated': now,
-                        '_dateModified': now,
+                        '_dateCreated': now.isoformat(),
+                        '_dateModified': now.isoformat(),
                         '_versions': [
                             {
-                                '_dateCreated': now,
-                                '_dateAccepted': now,
+                                '_dateCreated': now.isoformat(),
+                                '_dateAccepted': None,
                                 '_dependency': {'_actionId': 'manual_transcription',
                                                 '_uuid': 'uuid1'},
                                 '_uuid':'uuid3',
                                 'language': 'es',
-                                'value': 'Esto es un audio que estoy intendando a transcribir pero yo lo edité',
-                                'status': 'complete'
+                                'value': 'Esto es un audio que estoy intentando transcribir pero yo lo edité',
                             }
                         ]
                     }
