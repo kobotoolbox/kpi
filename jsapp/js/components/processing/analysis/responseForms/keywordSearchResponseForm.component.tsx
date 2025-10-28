@@ -4,7 +4,6 @@ import Badge from '#/components/common/badge'
 import Button from '#/components/common/button'
 import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import { findQuestion, getQuestionTypeDefinition } from '#/components/processing/analysis/utils'
-import commonStyles from './common.module.scss'
 import CommonHeader from './commonHeader.component'
 import styles from './keywordSearchResponseForm.module.scss'
 

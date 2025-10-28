@@ -7,7 +7,6 @@ import {
   getQuestionTypeDefinition,
   updateResponseAndReducer,
 } from '#/components/processing/analysis/utils'
-import commonStyles from './common.module.scss'
 import CommonHeader from './commonHeader.component'
 
 interface IntegerResponseFormProps {
@@ -66,7 +65,7 @@ export default function IntegerResponseForm(props: IntegerResponseFormProps) {
 
   return (
     <>
-      <CommonHeader uuid={props.uuid} >
+      <CommonHeader uuid={props.uuid}>
         <NumberInput
           value={response}
           onChange={(newResponse) => onInputChange(newResponse.toString())}

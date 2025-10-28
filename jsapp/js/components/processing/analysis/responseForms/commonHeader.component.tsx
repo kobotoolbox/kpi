@@ -1,7 +1,12 @@
-import React, { useState, useContext, ReactNode } from 'react'
+import React, { useState, useContext } from 'react'
 
+import { Group, Modal, Stack, Text, Title } from '@mantine/core'
+import { Box, ThemeIcon } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
 import clonedeep from 'lodash.clonedeep'
 import { handleApiFail } from '#/api'
+import ActionIcon from '#/components/common/ActionIcon'
+import ButtonNew from '#/components/common/ButtonNew'
 import Icon from '#/components/common/icon'
 import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import {
@@ -15,11 +20,6 @@ import type { FailResponse } from '#/dataInterface'
 import singleProcessingStore from '../../singleProcessingStore'
 import type { AnalysisQuestionInternal } from '../constants'
 import commonStyles from './common.module.scss'
-import {Group, Modal, Stack, Text, Title} from '@mantine/core'
-import ActionIcon from '#/components/common/ActionIcon'
-import ButtonNew from '#/components/common/ButtonNew'
-import {useDisclosure} from '@mantine/hooks'
-import {ThemeIcon, Box} from '@mantine/core'
 
 interface ResponseFormHeaderProps {
   uuid: string
@@ -31,7 +31,7 @@ interface ResponseFormHeaderProps {
  * has sufficient permissions). Is being used in multiple other components.
  */
 export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
-  const [opened, { open, close }] = useDisclosure(false);
+  const [opened, { open, close }] = useDisclosure(false)
   const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
     return null
@@ -103,12 +103,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
   return (
     <Box>
       <Group className={commonStyles.header}>
-        <Modal
-          opened={opened}
-          onClose={close}
-          title={t('Delete this question?')}
-          size={'md'}
-        >
+        <Modal opened={opened} onClose={close} title={t('Delete this question?')} size={'md'}>
           <Stack>
             <Text>{t('Are you sure you want to delete this question? This action cannot be undone.')}</Text>
             <Group align='left'>
@@ -116,19 +111,14 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
                 {t('Cancel')}
               </ButtonNew>
 
-              <ButtonNew
-                size='md'
-                onClick={deleteQuestion}
-                variant='danger'
-              >
+              <ButtonNew size='md' onClick={deleteQuestion} variant='danger'>
                 {t('Delete account')}
               </ButtonNew>
             </Group>
           </Stack>
         </Modal>
 
-
-        <ThemeIcon variant='light-teal' >
+        <ThemeIcon variant='light-teal'>
           <Icon name={qaDefinition.icon} size='xl' />
         </ThemeIcon>
 
@@ -158,11 +148,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
         />
       </Group>
 
-      {props.children &&
-        <Box className={commonStyles.content}>
-          {props.children}
-        </Box>
-      }
+      {props.children && <Box className={commonStyles.content}>{props.children}</Box>}
     </Box>
   )
 }

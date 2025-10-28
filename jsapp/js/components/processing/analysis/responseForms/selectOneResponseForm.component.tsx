@@ -1,6 +1,4 @@
 import React, { useContext, useState } from 'react'
-
-import classNames from 'classnames'
 import Radio from '#/components/common/radio'
 import type { RadioOption } from '#/components/common/radio'
 import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
@@ -9,9 +7,7 @@ import {
   getQuestionTypeDefinition,
   updateResponseAndReducer,
 } from '#/components/processing/analysis/utils'
-import commonStyles from './common.module.scss'
 import CommonHeader from './commonHeader.component'
-import styles from './selectOneResponseForm.module.scss'
 
 interface SelectOneResponseFormProps {
   uuid: string
@@ -77,7 +73,6 @@ export default function SelectOneResponseForm(props: SelectOneResponseFormProps)
   return (
     <>
       <CommonHeader uuid={props.uuid}>
-
         <Radio
           options={getOptions()}
           name={question.labels._default}

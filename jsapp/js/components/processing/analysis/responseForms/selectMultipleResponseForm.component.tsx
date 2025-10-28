@@ -8,7 +8,6 @@ import {
   getQuestionTypeDefinition,
   updateResponseAndReducer,
 } from '#/components/processing/analysis/utils'
-import commonStyles from './common.module.scss'
 import CommonHeader from './commonHeader.component'
 
 interface SelectMultipleResponseFormProps {

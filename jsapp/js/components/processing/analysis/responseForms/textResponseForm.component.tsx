@@ -7,7 +7,6 @@ import {
   getQuestionTypeDefinition,
   updateResponseAndReducer,
 } from '#/components/processing/analysis/utils'
-import commonStyles from './common.module.scss'
 import CommonHeader from './commonHeader.component'
 
 interface TextResponseFormProps {
@@ -67,7 +66,6 @@ export default function TextResponseForm(props: TextResponseFormProps) {
   return (
     <>
       <CommonHeader uuid={props.uuid}>
-
         <Textarea
           autosize
           minRows={2}
