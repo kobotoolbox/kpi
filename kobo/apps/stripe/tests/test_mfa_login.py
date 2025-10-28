@@ -11,10 +11,7 @@ from rest_framework import status
 
 from kobo.apps.accounts.forms import LoginForm
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
-from kobo.apps.accounts.mfa.tests.utils import (
-    get_mfa_code_for_user,
-    activate_mfa_for_user,
-)
+from kobo.apps.accounts.mfa.tests.utils import activate_mfa_for_user
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kpi.tests.kpi_test_case import KpiTestCase

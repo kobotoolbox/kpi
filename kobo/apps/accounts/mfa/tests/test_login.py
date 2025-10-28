@@ -6,7 +6,7 @@ from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.kpi_test_case import KpiTestCase
-from .utils import get_mfa_code_for_user, activate_mfa_for_user
+from .utils import activate_mfa_for_user
 
 METHOD = 'app'
 
