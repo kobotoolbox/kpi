@@ -337,4 +337,3 @@ class SubmissionSupplementTestCase(TestCase):
                     },
                 },
             )
-
