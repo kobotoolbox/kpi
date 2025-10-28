@@ -173,9 +173,14 @@ class TestVersioning(TestCase):
         assert most_recent_by_language['fr']['_uuid'] == 'uuid-5-manual'
         assert most_recent_by_language['fr']['_actionId'] == 'manual_transcription'
 
+    def test_migrate_translations(self):
+        pass
+
 
     @pytest.mark.skip()
     def test_migrate_submission_extra_to_supplemental(self):
+        now = timezone.now()
+        one_year_ago = now - timedelta(days=365)
         old_version = {'Audio_question': {'googlets': {'languageCode': 'en',
                                  'regionCode': None,
                                  'status': 'complete',
@@ -186,11 +191,10 @@ class TestVersioning(TestCase):
                                  'status': 'complete',
                                  'value': 'Este es un audio que estoy '
                                           'intentando transcribir.'},
-                    'transcript': {'dateCreated': None,
-                                   'dateModified': '2025-10-22 17:09:38',
+                    'transcript': {'dateCreated': one_year_ago,
+                                   'dateModified': now,
                                    'languageCode': 'en',
-                                   'revisions': [{'dateModified': '2025-10-22 '
-                                                                  '14:30:24',
+                                   'revisions': [{'dateModified': one_year_ago,
                                                   'languageCode': 'en',
                                                   'value': 'This is audio that '
                                                            'I am trying to '
@@ -198,10 +202,10 @@ class TestVersioning(TestCase):
                                                  {}],
                                    'value': 'This is audio that I am trying to '
                                             'transcribe but i edited it.'},
-                    'translation': {'es': {'dateCreated': '2025-10-22T14:30:38Z',
-                                           'dateModified': '2025-10-22T17:10:23Z',
+                    'translation': {'es': {'dateCreated': one_year_ago,
+                                           'dateModified': now,
                                            'languageCode': 'es',
-                                           'revisions': [{'dateModified': '2025-10-22T14:30:38Z',
+                                           'revisions': [{'dateModified': one_year_ago,
                                                           'languageCode': 'es',
                                                           'value': 'Este es un '
                                                                    'audio que '
@@ -212,17 +216,21 @@ class TestVersioning(TestCase):
                                                     'estoy intentando '
                                                     'transcribir pero yo lo edité'}}}}
 
+        with patch('kobo.apps.subsequences.utils.versioning.generate_uuid_for_form', side_effect=['uuid1', 'uuid2', 'uuid3', 'uuid4']):
+            with freeze_time(now):
+                migrated = migrate_submission_supplementals(old_version)
+
         new_version = {
             '_version': '20250820',
             'Audio_question': {
                 'automatic_transcription': {
-                    '_dateCreated': '',
-                    '_dateModified': '',
+                    '_dateCreated': one_year_ago,
+                    '_dateModified': one_year_ago,
                     '_versions': [
                         {
-                            '_dateCreated': '',
-                            '_dateAccepted': '',
-                            '_uuid':'',
+                            '_dateCreated': one_year_ago,
+                            '_dateAccepted': now,
+                            '_uuid':'uuid2',
                             'language': 'en',
                             'value': 'This is audio that I am trying to '
                                           'transcribe.',
@@ -232,15 +240,15 @@ class TestVersioning(TestCase):
                 },
                 'automatic_translation': {
                     'es': {
-                        '_dateCreated': '',
-                        '_dateModified': '',
+                        '_dateCreated': one_year_ago,
+                        '_dateModified': one_year_ago,
                         '_versions': [
                             {
-                                '_dateCreated': '',
-                                '_dateAccepted': '',
+                                '_dateCreated': one_year_ago,
+                                '_dateAccepted': now,
                                 '_dependency': {'_actionId': 'manual_transcription',
-                                                '_uuid': 'a0030a86-d207-4249-8335-9a767fbd77eb'},
-                                '_uuid':'',
+                                                '_uuid': 'uuid1'},
+                                '_uuid':'uuid4',
                                 'language': 'es',
                                 'value': 'Esto es un audio que estoy intendando a transcribir',
                                 'status': 'complete'
@@ -249,13 +257,13 @@ class TestVersioning(TestCase):
                     }
                 },
                 'manual_transcription': {
-                    '_dateCreated': '',
-                    '_dateModified': '',
+                    '_dateCreated': now,
+                    '_dateModified': now,
                     '_versions': [
                         {
-                            '_dateCreated': '',
-                            '_dateAccepted': '',
-                            '_uuid':'',
+                            '_dateCreated': now,
+                            '_dateAccepted': None,
+                            '_uuid':'uuid1',
                             'language': 'en',
                             'value': 'This is audio that I am trying to '
                                      'transcribe but i edited it.',
@@ -264,15 +272,15 @@ class TestVersioning(TestCase):
                 },
                 'manual_translation': {
                     'es': {
-                        '_dateCreated': '',
-                        '_dateModified': '',
+                        '_dateCreated': now,
+                        '_dateModified': now,
                         '_versions': [
                             {
-                                '_dateCreated': '',
-                                '_dateAccepted': '',
-                                '_dependency': {'_actionId': 'automatic_transcription',
-                                                '_uuid': 'a0030a86-d207-4249-8335-9a767fbd77eb'},
-                                '_uuid':'',
+                                '_dateCreated': now,
+                                '_dateAccepted': now,
+                                '_dependency': {'_actionId': 'manual_transcription',
+                                                '_uuid': 'uuid1'},
+                                '_uuid':'uuid3',
                                 'language': 'es',
                                 'value': 'Esto es un audio que estoy intendando a transcribir pero yo lo edité',
                                 'status': 'complete'
@@ -282,7 +290,5 @@ class TestVersioning(TestCase):
                 },
             }
         }
-
-
-        self.assertEqual(True, False)  # add assertion here
+        assert migrated == new_version  # add assertion here
 

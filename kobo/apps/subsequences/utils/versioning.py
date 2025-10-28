@@ -81,7 +81,6 @@ def migrate_submission_supplementals(supplemental_data:dict) -> dict:
                 '_dateModified': automatic_transcripts[0]['_dateCreated'],
                 '_versions': automatic_transcripts,
             }
-        supplemental[question_xpath] = question_results_by_action
 
         # translation
         # determine what to use as the source transcript
@@ -98,15 +97,21 @@ def migrate_submission_supplementals(supplemental_data:dict) -> dict:
         automatic_translations = {}
         manual_translations = {}
         for language_code, translations in translations_dict.items():
-            automatic_translations_for_language = separate_translations(
+            automatic_translations_for_language, manual_translations_for_language = separate_translations(
                 language_code,
+                translations,
                 automatic_translation_source_language,
                 automatic_translation_language,
                 automatic_translation_value,
                 most_recent_transcript,
                 most_recent_transcript_by_language,
             )
-            pass
+            automatic_translations[language_code] = automatic_translations_for_language
+            manual_translations[language_code] = manual_translations_for_language
+        question_results_by_action['automatic_translation'] = automatic_translations
+        question_results_by_action['manual_translation'] = manual_translations
+        supplemental[question_xpath] = question_results_by_action
+
 
     return supplemental
 
@@ -242,7 +247,7 @@ def separate_translations(
     if latest_revision:
         if (
             latest_revision['value'] == automatic_translation_value
-            and latest_revision['language'] == automatic_translation_language
+            and language == automatic_translation_language
         ):
             latest_revision['status'] = 'complete'
             latest_revision['_dateAccepted'] = timezone.now()
@@ -260,7 +265,7 @@ def separate_translations(
         if revision_formatted is None:
             continue
         if (
-            revision_formatted['language'] == automatic_translation_language
+            language == automatic_translation_language
             and revision['value'] == automatic_translation_value
         ):
             revision_formatted['status'] = 'complete'
