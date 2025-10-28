@@ -110,3 +110,43 @@ class TestAttachment(TestBase):
         attachment.refresh_from_db()
         self.assertEqual(attachment.user_id, user.id)
         self.assertEqual(attachment.xform_id, xform.id)
+
+    def test_set_media_base_name(self):
+        user = User.objects.create_user(username='testuser', password='testpassword')
+        f = open(
+            os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                'Water_Translated_2011_03_10.xml',
+            )
+        )
+        xml = f.read()
+        f.close()
+        xform = XForm.objects.create(xml=xml, user=user)
+        instance = Instance.objects.all()[0]
+        instance.xform = xform
+        instance.save()
+
+        media_file = os.path.join(
+            self.this_directory,
+            'fixtures',
+            'transportation',
+            'instances',
+            self.surveys[0],
+            self.media_file,
+        )
+        with open(media_file, 'rb') as f:
+            attachment = Attachment.objects.create(
+                instance=instance,
+                media_file=ContentFile(f.read(), name=self.media_file),
+                media_file_basename='foo.jpg',
+            )
+
+        assert attachment.media_file_basename == 'foo.jpg'
+
+        attachment.delete()
+        with open(media_file, 'rb') as f:
+            attachment = Attachment.objects.create(
+                instance=instance,
+                media_file=ContentFile(f.read(), name=self.media_file),
+            )
+        assert attachment.media_file_basename == '1335783522563.jpg'
