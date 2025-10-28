@@ -11,16 +11,19 @@
   }
 }
 
-.controls {
+.section {
+  z-index: 0;
+}
+
+.control {
   border-color: var(--mantine-color-gray-6);
 
   &::placeholder {
     color: var(--mantine-color-gray-3);
     opacity: 1;
   }
-  z-index: -1;
 }
 
-.control {
-  color: red;
+.control:hover {
+  background-color: var(--mantine-color-gray-6);
 }
