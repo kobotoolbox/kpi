@@ -222,10 +222,9 @@ class TestVersioning(TestCase):
                         {
                             '_dateCreated': a_year_and_a_day_ago,
                             '_dateAccepted': now.isoformat(),
-                            '_uuid':'uuid2',
+                            '_uuid': 'uuid2',
                             'language': 'en',
-                            'value': 'This is audio that I am trying to '
-                                          'transcribe.',
+                            'value': 'This is audio that I am trying to transcribe.',
                             'status': 'complete',
                         }
                     ]
@@ -258,7 +257,7 @@ class TestVersioning(TestCase):
                         {
                             '_dateCreated': one_day_ago,
                             '_dateAccepted': None,
-                            '_uuid':'uuid1',
+                            '_uuid': 'uuid1',
                             'language': 'en',
                             'value': 'This is audio that I am trying to '
                                      'transcribe but i edited it.',
@@ -275,7 +274,7 @@ class TestVersioning(TestCase):
                                 '_dateAccepted': None,
                                 '_dependency': {'_actionId': 'manual_transcription',
                                                 '_uuid': 'uuid1'},
-                                '_uuid':'uuid3',
+                                '_uuid': 'uuid3',
                                 'language': 'es',
                                 'value': 'Esto es un audio que estoy intentando'
                                 ' transcribir pero yo lo edité',
@@ -286,4 +285,3 @@ class TestVersioning(TestCase):
             }
         }
         assert migrated == new_version
-
