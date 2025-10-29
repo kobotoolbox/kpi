@@ -1,6 +1,6 @@
 import { queryClient } from '#/query/queryClient'
 
-type CommonContext = {
+interface CommonContext {
   keys?: ReadonlyArray<ReadonlyArray<unknown>>
   snapshots?: ReadonlyArray<readonly [ReadonlyArray<unknown>, unknown]>
 }
