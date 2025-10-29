@@ -106,7 +106,7 @@ queryClient.setMutationDefaults(
     /**
      * Good complex example for optimistic update approach.
      * Note that members are placeholded based on invites, thus need to handle list for both invites and members.
-     * When dealing with more than one list and/or item, better name then specifically.
+     * When dealing with more than one list and/or item, better name them specifically.
      */
     mutation: {
       onMutate: async ({ uidOrganization, guid, data }) => {
