@@ -206,7 +206,7 @@ class TestVersioning(TestCase):
         }
 
         with patch(
-            'kobo.apps.subsequences.utils.versioning.generate_uuid_for_form',
+            'kobo.apps.subsequences.utils.versioning.uuid.uuid4',
             side_effect=['uuid1', 'uuid2', 'uuid3', 'uuid4'],
         ):
             with freeze_time(now):

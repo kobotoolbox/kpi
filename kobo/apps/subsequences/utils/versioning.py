@@ -1,6 +1,7 @@
+import uuid
+
 from django.utils import timezone
 
-from ...openrosa.libs.utils.model_tools import generate_uuid_for_form
 from ..constants import SCHEMA_VERSIONS
 
 
@@ -75,7 +76,7 @@ def _new_revision_from_old(old_transcript_revision_dict: dict) -> dict | None:
         '_dateCreated': old_transcript_revision_dict.get('dateModified', None),
         'language': old_transcript_revision_dict['languageCode'],
         'value': old_transcript_revision_dict['value'],
-        '_uuid': generate_uuid_for_form(),
+        '_uuid': uuid.uuid4(),
         '_dateAccepted': None,
     }
 
