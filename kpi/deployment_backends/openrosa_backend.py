@@ -996,7 +996,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             results.append(
                 {
                     'uuid': uuid,
-                    'root_uuid': backend_result['result'].root_uuid,
+                    'root_uuid': getattr(
+                        backend_result.get('result'), 'root_uuid', None
+                    ),
                     'status_code': status_code,
                     'message': message,
                 }
