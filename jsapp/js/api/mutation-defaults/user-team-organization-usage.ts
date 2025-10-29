@@ -14,18 +14,18 @@ import {
   type organizationsInvitesListResponse,
   type organizationsInvitesRetrieveResponse,
   type organizationsMembersListResponse,
-  type organizationsMembersListResponse200,
   type organizationsMembersRetrieveResponse,
 } from '#/api/react-query/user-team-organization-usage'
 import { queryClient } from '#/query/queryClient'
 import session from '#/stores/session'
 import { getAssetUIDFromUrl } from '#/utils'
 import {
-  filterListSnapshots,
   invalidateItem,
   invalidateList,
   onErrorRestoreSnapshots,
   onSettledInvalidateSnapshots,
+  optimisticallyUpdateItem,
+  optimisticallyUpdateList,
 } from './common'
 
 queryClient.setMutationDefaults(
@@ -69,38 +69,29 @@ queryClient.setMutationDefaults(
      */
     mutation: {
       onMutate: async ({ guid, uidOrganization }) => {
-        const listSnapshots = queryClient
-          .getQueriesData<organizationsMembersListResponse>({
-            queryKey: getOrganizationsInvitesListQueryKey(uidOrganization),
-            exact: false,
-          })
-          .filter(filterListSnapshots)
-        for (const [listSnapshotKey] of listSnapshots) {
-          await queryClient.cancelQueries({ queryKey: listSnapshotKey })
-          queryClient.setQueryData<organizationsInvitesListResponse>(
-            listSnapshotKey,
-            (response) =>
-              ({
-                ...response,
-                data: {
-                  ...response?.data,
-                  ...(response?.status === 200
-                    ? {
-                        results: response?.data.results.filter((invite) => getAssetUIDFromUrl(invite.url) !== guid),
-                      }
-                    : {}),
-                },
-              }) as organizationsInvitesListResponse,
-          )
-        }
+        const listSnapshots = await optimisticallyUpdateList<organizationsInvitesListResponse>(
+          getOrganizationsInvitesListQueryKey(uidOrganization),
+          (response) =>
+            ({
+              ...response,
+              data: {
+                ...response?.data,
+                ...(response?.status === 200
+                  ? {
+                      results: response?.data.results.filter((invite) => getAssetUIDFromUrl(invite.url) !== guid),
+                    }
+                  : {}),
+              },
+            }) as organizationsInvitesListResponse,
+        )
 
-        const itemKey = getOrganizationsInvitesRetrieveQueryKey(uidOrganization, guid)
-        const itemSnapshot = queryClient.getQueryData<organizationsInvitesRetrieveResponse>(itemKey)
-        await queryClient.cancelQueries({ queryKey: itemKey })
-        queryClient.removeQueries({ queryKey: itemKey, exact: true })
+        const itemSnapshot = await optimisticallyUpdateItem(
+          getOrganizationsInvitesRetrieveQueryKey(uidOrganization, guid),
+          null,
+        )
 
         return {
-          snapshots: [...listSnapshots, [itemKey, itemSnapshot] as const],
+          snapshots: [...listSnapshots, itemSnapshot],
         }
       },
       onError: onErrorRestoreSnapshots,
@@ -114,58 +105,48 @@ queryClient.setMutationDefaults(
     /**
      * Good complex example for optimistic update approach.
      * Note that members are placeholded based on invites, thus need to handle list and item for both invite and member.
+     * When dealing with more than one list and/or item, better name then specifically.
      */
     mutation: {
       onMutate: async ({ uidOrganization, guid, data }) => {
         if (!('status' in data) && !('role' in data)) return
 
         // Note: `useOrganizationsInvitesList` is unused, skipping optimistically updating it.
+        const invitesSnapshots: [readonly unknown[], unknown][] = []
 
-        const listSnapshots = queryClient
-          .getQueriesData<organizationsMembersListResponse>({
-            queryKey: getOrganizationsMembersListQueryKey(uidOrganization),
-            exact: false,
-          })
-          .filter(filterListSnapshots)
-        for (const [listSnapshotKey] of listSnapshots) {
-          await queryClient.cancelQueries({ queryKey: listSnapshotKey })
-          queryClient.setQueryData<organizationsMembersListResponse>(
-            listSnapshotKey,
-            (response) =>
-              ({
-                ...response,
-                data: {
-                  ...response?.data,
-                  ...(response?.status === 200
-                    ? {
-                        results: response?.data.results.map((member) => ({
-                          ...member,
-                          invite: member.invite
-                            ? {
-                                ...member.invite,
-                                invitee_role:
-                                  'role' in data && getAssetUIDFromUrl(member.invite.url) === guid
-                                    ? data.role
-                                    : member.invite.invitee_role,
-                                status:
-                                  'status' in data && getAssetUIDFromUrl(member.invite.url) === guid
-                                    ? data.status
-                                    : member.invite.status,
-                              }
-                            : member.invite,
-                        })),
-                      }
-                    : {}),
-                },
-              }) as organizationsMembersListResponse,
-          )
-        }
+        const membersSnapshots = await optimisticallyUpdateList<organizationsMembersListResponse>(
+          getOrganizationsMembersListQueryKey(uidOrganization),
+          (response) =>
+            ({
+              ...response,
+              data: {
+                ...response?.data,
+                ...(response?.status === 200
+                  ? {
+                      results: response?.data.results.map((member) => ({
+                        ...member,
+                        invite: member.invite
+                          ? {
+                              ...member.invite,
+                              invitee_role:
+                                'role' in data && getAssetUIDFromUrl(member.invite.url) === guid
+                                  ? data.role
+                                  : member.invite.invitee_role,
+                              status:
+                                'status' in data && getAssetUIDFromUrl(member.invite.url) === guid
+                                  ? data.status
+                                  : member.invite.status,
+                            }
+                          : member.invite,
+                      })),
+                    }
+                  : {}),
+              },
+            }) as organizationsMembersListResponse,
+        )
 
-        const itemKeyInvite = getOrganizationsInvitesRetrieveQueryKey(uidOrganization, guid)
-        const itemSnapshotInvite = queryClient.getQueryData<organizationsInvitesRetrieveResponse>(itemKeyInvite)
-        await queryClient.cancelQueries({ queryKey: itemKeyInvite })
-        queryClient.setQueryData<organizationsInvitesRetrieveResponse>(
-          itemKeyInvite,
+        const inviteSnapshot = await optimisticallyUpdateItem<organizationsInvitesRetrieveResponse>(
+          getOrganizationsInvitesRetrieveQueryKey(uidOrganization, guid),
           (response) =>
             ({
               ...response,
@@ -182,11 +163,8 @@ queryClient.setMutationDefaults(
             }) as organizationsInvitesRetrieveResponse,
         )
 
-        const itemKeyMember = getOrganizationsInvitesRetrieveQueryKey(uidOrganization, guid)
-        const itemSnapshotMember = queryClient.getQueryData<organizationsMembersRetrieveResponse>(itemKeyMember)
-        await queryClient.cancelQueries({ queryKey: itemKeyMember })
-        queryClient.setQueryData<organizationsMembersRetrieveResponse>(
-          itemKeyMember,
+        const memberSnapshot = await optimisticallyUpdateItem<organizationsMembersRetrieveResponse>(
+          getOrganizationsMembersRetrieveQueryKey(uidOrganization, guid),
           (response) =>
             ({
               ...response,
@@ -208,11 +186,7 @@ queryClient.setMutationDefaults(
         )
 
         return {
-          snapshots: [
-            ...listSnapshots,
-            [itemKeyInvite, itemSnapshotInvite] as const,
-            [itemKeyMember, itemSnapshotMember] as const,
-          ],
+          snapshots: [...invitesSnapshots, ...membersSnapshots, inviteSnapshot, memberSnapshot],
         }
       },
       onError: onErrorRestoreSnapshots,
@@ -229,38 +203,29 @@ queryClient.setMutationDefaults(
      */
     mutation: {
       onMutate: async ({ uidOrganization, username }) => {
-        const listSnapshots = queryClient
-          .getQueriesData<organizationsMembersListResponse200>({
-            queryKey: getOrganizationsMembersListQueryKey(uidOrganization),
-            exact: false,
-          })
-          .filter(filterListSnapshots)
-        for (const [listSnapshotKey] of listSnapshots) {
-          await queryClient.cancelQueries({ queryKey: listSnapshotKey })
-          queryClient.setQueryData<organizationsMembersListResponse>(
-            listSnapshotKey,
-            (response) =>
-              ({
-                ...response,
-                data: {
-                  ...response?.data,
-                  ...(response?.status === 200
-                    ? {
-                        results: response?.data.results.filter((member) => member.user__username !== username),
-                      }
-                    : {}),
-                },
-              }) as organizationsMembersListResponse,
-          )
-        }
+        const listSnapshots = await optimisticallyUpdateList<organizationsMembersListResponse>(
+          getOrganizationsMembersListQueryKey(uidOrganization),
+          (response) =>
+            ({
+              ...response,
+              data: {
+                ...response?.data,
+                ...(response?.status === 200
+                  ? {
+                      results: response?.data.results.filter((member) => member.user__username !== username),
+                    }
+                  : {}),
+              },
+            }) as organizationsMembersListResponse,
+        )
 
-        const itemKey = getOrganizationsMembersRetrieveQueryKey(uidOrganization, username)
-        const itemSnapshot = queryClient.getQueryData<organizationsMembersListResponse200>(itemKey)
-        await queryClient.cancelQueries({ queryKey: itemKey })
-        queryClient.removeQueries({ queryKey: itemKey, exact: true })
+        const memberSnapshot = await optimisticallyUpdateItem<organizationsMembersRetrieveResponse>(
+          getOrganizationsMembersRetrieveQueryKey(uidOrganization, username),
+          null,
+        )
 
         return {
-          snapshots: [...listSnapshots, [itemKey, itemSnapshot] as const],
+          snapshots: [...listSnapshots, memberSnapshot],
         }
       },
       onSuccess: (_data, { username }) => {
@@ -282,39 +247,27 @@ queryClient.setMutationDefaults(
       onMutate: async ({ uidOrganization, username, data: { role } }) => {
         if (!role) return
 
-        const listSnapshots = queryClient
-          .getQueriesData<organizationsMembersListResponse>({
-            queryKey: getOrganizationsMembersListQueryKey(uidOrganization),
-            exact: false,
-          })
-          .filter(filterListSnapshots)
-        for (const [listSnapshotKey] of listSnapshots) {
-          await queryClient.cancelQueries({ queryKey: listSnapshotKey })
-          queryClient.setQueryData<organizationsMembersListResponse>(
-            listSnapshotKey,
-            (response) =>
-              ({
-                ...response,
-                data: {
-                  ...response?.data,
-                  ...(response?.status === 200
-                    ? {
-                        results: response?.data.results.map((member) => ({
-                          ...member,
-                          role: member.user__username === username ? role : member.role,
-                        })),
-                      }
-                    : {}),
-                },
-              }) as organizationsMembersListResponse,
-          )
-        }
+        const listSnapshots = await optimisticallyUpdateList<organizationsMembersListResponse>(
+          getOrganizationsMembersListQueryKey(uidOrganization),
+          (response) =>
+            ({
+              ...response,
+              data: {
+                ...response?.data,
+                ...(response?.status === 200
+                  ? {
+                      results: response?.data.results.map((member) => ({
+                        ...member,
+                        role: member.user__username === username ? role : member.role,
+                      })),
+                    }
+                  : {}),
+              },
+            }) as organizationsMembersListResponse,
+        )
 
-        const itemKey = getOrganizationsMembersRetrieveQueryKey(uidOrganization, username)
-        const itemSnapshot = queryClient.getQueryData<organizationsMembersRetrieveResponse>(itemKey)
-        await queryClient.cancelQueries({ queryKey: itemKey })
-        queryClient.setQueryData<organizationsMembersRetrieveResponse>(
-          itemKey,
+        const memberSnapshot = await optimisticallyUpdateItem<organizationsMembersRetrieveResponse>(
+          getOrganizationsMembersRetrieveQueryKey(uidOrganization, username),
           (response) =>
             ({
               ...response,
@@ -326,7 +279,7 @@ queryClient.setMutationDefaults(
         )
 
         return {
-          snapshots: [...listSnapshots, [itemKey, itemSnapshot] as const],
+          snapshots: [...listSnapshots, memberSnapshot],
         }
       },
       onError: onErrorRestoreSnapshots,
