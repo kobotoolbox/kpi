@@ -3,6 +3,7 @@ import { QueryClient } from '@tanstack/react-query'
 interface CommonContext {
   snapshots?: ReadonlyArray<readonly [ReadonlyArray<unknown>, unknown]>
 }
+
 /**
  * After an optimistic update roll it back if server responds with an error.
  *
@@ -15,6 +16,7 @@ const onErrorRestoreSnapshots = (_error: unknown, _variables: unknown, context?:
   for (const [snapshotKey, snapshotData] of (context as CommonContext)?.snapshots ?? [])
     queryClient.setQueryData(snapshotKey, snapshotData)
 }
+
 /**
  * After an optimistic update (rolled back or not), invalidate and thus re-fetch data from server in background.
  * - If server response will match current cache, then not even a re-render will happen. Better be safe and confirm.

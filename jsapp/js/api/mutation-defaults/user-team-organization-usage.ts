@@ -80,7 +80,7 @@ queryClient.setMutationDefaults(
                 ...(response?.status === 200
                   ? {
                       results: response?.data.results.filter(
-                        ({invite}) => !invite?.url || getAssetUIDFromUrl(invite?.url) !== guid,
+                        ({ invite }) => !invite?.url || getAssetUIDFromUrl(invite?.url) !== guid,
                       ),
                     }
                   : {}),

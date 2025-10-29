@@ -15,6 +15,8 @@ import { queryClient } from '../queryClient'
 const filterListSnapshots = ([listSnapshotKey]: [readonly unknown[], unknown]) =>
   typeof listSnapshotKey[listSnapshotKey.length - 1] !== 'string'
 
+//// Helpers for simple invalidation.
+
 /**
  * @see {@link filterListSnapshots}
  */
@@ -22,6 +24,7 @@ export const invalidateList = (queryKey: readonly unknown[]) => {
   const listSnapshots = queryClient.getQueriesData({ queryKey: queryKey }).filter(filterListSnapshots)
   for (const [snapshotKey] of listSnapshots) queryClient.invalidateQueries({ queryKey: snapshotKey })
 }
+
 /**
  * @see {@link filterListSnapshots}
  */
@@ -31,12 +34,15 @@ export const invalidateItems = (queryKey: readonly unknown[]) => {
     .filter((tuple) => !filterListSnapshots(tuple))
   for (const [itemKey] of itemSnapshots) queryClient.invalidateQueries({ queryKey: itemKey })
 }
+
 /**
  * Convenience helper for consistency alongside {@link invalidateItems} and {@link invalidateList}
  */
 export const invalidateItem = (queryKey: readonly unknown[]) => {
   queryClient.invalidateQueries({ queryKey })
 }
+
+//// Helpers for optimistic update + invalidation.
 
 /**
  * Optimistically apply `updater` to all pages of the `queryKey` list in cache.
@@ -62,8 +68,9 @@ export const optimisticallyUpdateList = async <T>(
   }
   return listSnapshots
 }
+
 /**
- * Optimistically apply `updater` to `queryKey` item in cache, or removes the canche if `updater` is `null`.
+ * Optimistically apply `updater` to `queryKey` item in cache, or removes the cache if `updater` is `null`.
  *
  * Also cancels in-flight queries that may race-condition to overwrite the optimistic update.
  *
