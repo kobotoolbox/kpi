@@ -29,7 +29,7 @@ ACTION_PARAMS_SCHEMA = {
 
 
 def validate_submission_supplement(asset: 'kpi.models.Asset', supplement: dict):
-    jsonschema.validate(get_submission_supplement_schema(asset), supplement)
+    jsonschema.validate(supplement, get_submission_supplement_schema(asset))
 
 
 def get_submission_supplement_schema(asset: 'kpi.models.Asset') -> dict:
