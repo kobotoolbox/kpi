@@ -1,9 +1,5 @@
 import subscriptionStore from '#/account/subscriptionStore'
-import { queryClient } from '#/api/queryClient'
-import {
-  getOrganizationsMembersDestroyMutationOptions,
-  useOrganizationsMembersDestroy,
-} from '#/api/react-query/user-team-organization-usage'
+import { useOrganizationsMembersDestroy } from '#/api/react-query/user-team-organization-usage'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
@@ -38,12 +34,7 @@ export default function MemberRemoveModal({
 
   const orgMemberDestroy = useOrganizationsMembersDestroy({
     mutation: {
-      onSettled: async (data, error, variables, context) => {
-        await queryClient
-          .getMutationDefaults(getOrganizationsMembersDestroyMutationOptions().mutationKey!)
-          .onSettled?.(data, error, variables, context)
-        onConfirmDone()
-      },
+      onSettled: () => onConfirmDone(),
     },
     request: {
       errorMessageDisplay: 'Failed to remove member',
