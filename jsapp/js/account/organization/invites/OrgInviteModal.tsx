@@ -94,17 +94,23 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   // Case 2: failed to get the invitation data from API.
   else if (orgInvitesQuery.isError) {
     title = t('Invitation not found')
-    content = <Alert type='error'>{orgInvitesQuery.error.detail ?? t('Could not find invitation ##invite_id## from organization ##org_id##')
-      .replace('##invite_id##', props.inviteId)
-      .replace('##org_id##', props.orgId)}
+    content = (
+      <Alert type='error'>
+        {orgInvitesQuery.error.detail ??
+          t('Could not find invitation ##invite_id## from organization ##org_id##')
+            .replace('##invite_id##', props.inviteId)
+            .replace('##org_id##', props.orgId)}
       </Alert>
+    )
   }
   // Case 3: failed to accept or decline invitation (API response).
   else if (orgInvitesPatch.isError) {
     title = t('Unable to join ##TEAM_OR_ORGANIZATION_NAME##').replace('##TEAM_OR_ORGANIZATION_NAME##', orgName)
     content = (
       <Stack>
-        <Alert type='error'>{(orgInvitesPatch.error as ErrorDetail).detail ?? t('Failed to respond to invitation')}</Alert>
+        <Alert type='error'>
+          {(orgInvitesPatch.error as ErrorDetail).detail ?? t('Failed to respond to invitation')}
+        </Alert>
 
         <Group justify='flex-end'>
           <Button
@@ -187,11 +193,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   }
 
   return (
-    <Modal
-      opened={isModalOpen}
-      onClose={() => setIsModalOpen(false)}
-      title={title}
-    >
+    <Modal opened={isModalOpen} onClose={() => setIsModalOpen(false)} title={title}>
       {/* We don't want "x" button to get focus (see https://mantine.dev/core/modal/#initial-focus) */}
       <FocusTrap.InitialFocus />
       {content}
