@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query'
+import { type Mutation, MutationCache, QueryClient } from '@tanstack/react-query'
 
 interface CommonContext {
   snapshots?: ReadonlyArray<readonly [ReadonlyArray<unknown>, unknown]>
@@ -27,9 +27,6 @@ const onErrorRestoreSnapshots = (
  * - If server response will match current cache, then not even a re-render will happen. Better be safe and confirm.
  * - If server response will NOT match current cache, then it will update cache and re-render accordingly.
  *
- * Note: this helper doesn't handle [concurrent updates](https://tkdodo.eu/blog/concurrent-optimistic-updates-in-react-query),
- * but it's a fine trade-off to keep it simple at cost of not handling few rare flickers.
- *
  * To be used together with {@link optimisticallyUpdateList} and {@link optimisticallyUpdateItem}.
  */
 const onSettledInvalidateSnapshots = (
@@ -37,8 +34,13 @@ const onSettledInvalidateSnapshots = (
   _error: unknown,
   _variables: unknown,
   context: unknown,
-  _mutation: Mutation<unknown, unknown, unknown>,
+  mutation: Mutation<unknown, unknown, unknown>,
 ): void => {
+  // Invalidate only if there are no other duplicate mutations in process, otherwise with unlucky timing
+  // re-fetch of current invalidation may overwrite next mutation's optimistic update with outdated value.
+  // See more at https://tkdodo.eu/blog/concurrent-optimistic-updates-in-react-query.
+  if (queryClient.isMutating({ mutationKey: mutation.options.mutationKey }) !== 1) return
+
   for (const [snapshotKey] of (context as CommonContext)?.snapshots ?? [])
     queryClient.invalidateQueries({ queryKey: snapshotKey })
 }
