@@ -1,19 +1,18 @@
 import { queryClient } from '#/query/queryClient'
 
 interface CommonContext {
-  keys?: ReadonlyArray<ReadonlyArray<unknown>>
   snapshots?: ReadonlyArray<readonly [ReadonlyArray<unknown>, unknown]>
 }
 export const onErrorRestoreSnapshots = (_error: unknown, _variables: unknown, context?: CommonContext): void => {
   for (const [snapshotKey, snapshot] of context?.snapshots ?? []) queryClient.setQueryData(snapshotKey, snapshot)
 }
-export const onSettledInvalidateKeys = (
+export const onSettledInvalidateSnapshots = (
   _data: unknown,
   _error: unknown,
   _variables: unknown,
   context?: CommonContext,
 ): void => {
-  for (const key of context?.keys ?? []) queryClient.invalidateQueries({ queryKey: key })
+  for (const [snapshotKey] of context?.snapshots ?? []) queryClient.invalidateQueries({ queryKey: snapshotKey })
 }
 
 /**
@@ -29,3 +28,30 @@ export const onSettledInvalidateKeys = (
  */
 export const filterListSnapshots = ([listSnapshotKey]: [readonly unknown[], unknown]) =>
   typeof listSnapshotKey[listSnapshotKey.length - 1] !== 'string'
+
+/**
+ * @see {@link filterListSnapshots}
+ */
+export const invalidateList = (queryKey: readonly unknown[]) => {
+  const listSnapshots = queryClient
+    .getQueriesData({ queryKey: queryKey })
+    .filter(filterListSnapshots)
+  for (const [snapshotKey] of listSnapshots) queryClient.invalidateQueries({ queryKey: snapshotKey })
+}
+/**
+ * @see {@link filterListSnapshots}
+ */
+export const invalidateItems = (queryKey: readonly unknown[]) => {
+  const itemSnapshots = queryClient
+    .getQueriesData({ queryKey: queryKey })
+    .filter((tuple) => !filterListSnapshots(tuple))
+  for (const [itemKey] of itemSnapshots) queryClient.invalidateQueries({ queryKey: itemKey })
+}
+/**
+ * Convenience helper for consistency alongside {@link invalidateItems} and {@link invalidateList}
+ */
+export const invalidateItem = (queryKey: readonly unknown[]) => {
+  queryClient.invalidateQueries({ queryKey })
+}
+
+

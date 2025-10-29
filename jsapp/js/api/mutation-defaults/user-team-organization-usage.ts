@@ -20,16 +20,25 @@ import {
 import { queryClient } from '#/query/queryClient'
 import session from '#/stores/session'
 import { getAssetUIDFromUrl } from '#/utils'
-import { filterListSnapshots, onErrorRestoreSnapshots, onSettledInvalidateKeys } from './common'
+import {
+  filterListSnapshots,
+  invalidateItem,
+  invalidateList,
+  onErrorRestoreSnapshots,
+  onSettledInvalidateSnapshots,
+} from './common'
 
 queryClient.setMutationDefaults(
   getOrganizationsPartialUpdateMutationOptions().mutationKey!,
   getOrganizationsPartialUpdateMutationOptions({
+    /**
+     * Good simple example for a "invalidate only" approach.
+     * Note that it's possible to optimistically update both the list and item (like below), but doesn't.
+     */
     mutation: {
       onSettled: (_data, _error, variables) => {
-        queryClient.invalidateQueries({ queryKey: getOrganizationsListQueryKey() })
-        // Note: invalidate ALL members because username isn't available in scope to select the exact member.
-        queryClient.invalidateQueries({ queryKey: getOrganizationsRetrieveQueryKey(variables.uidOrganization) })
+        invalidateList(getOrganizationsListQueryKey())
+        invalidateItem(getOrganizationsRetrieveQueryKey(variables.uidOrganization))
       },
     },
   }),
@@ -38,24 +47,16 @@ queryClient.setMutationDefaults(
 queryClient.setMutationDefaults(
   getOrganizationsInvitesCreateMutationOptions().mutationKey!,
   getOrganizationsInvitesCreateMutationOptions({
+    /**
+     * Good simple example for a "invalidate only" approach.
+     * Note that:
+     * - when creating an item then no need to invalidate any of existing items.
+     * - when creating an item then invalidate member list as well, because KPI placeholds members based on invites.
+     */
     mutation: {
-      onSettled: (data, _error, variables) => {
-        queryClient.invalidateQueries({ queryKey: getOrganizationsInvitesListQueryKey(variables.uidOrganization) })
-        if (data?.status === 201) {
-          for (const invite of data.data) {
-            queryClient.invalidateQueries({
-              queryKey: getOrganizationsInvitesRetrieveQueryKey(
-                variables.uidOrganization,
-                getAssetUIDFromUrl(invite.url)!,
-              ),
-            })
-          }
-        }
-        queryClient.invalidateQueries({ queryKey: getOrganizationsMembersListQueryKey(variables.uidOrganization) })
-        // Note: invalidate ALL members because username isn't available in scope to select the exact member.
-        queryClient.invalidateQueries({
-          queryKey: getOrganizationsMembersRetrieveQueryKey(variables.uidOrganization, 'unknown').slice(0, -1),
-        })
+      onSettled: (_data, _error, variables) => {
+        invalidateList(getOrganizationsInvitesListQueryKey(variables.uidOrganization))
+        invalidateList(getOrganizationsMembersListQueryKey(variables.uidOrganization))
       },
     },
   }),
@@ -63,12 +64,14 @@ queryClient.setMutationDefaults(
 queryClient.setMutationDefaults(
   getOrganizationsInvitesDestroyMutationOptions().mutationKey!,
   getOrganizationsInvitesDestroyMutationOptions({
+    /**
+     * Good simple example for optimistic update approach. Note that usually have to handle 1 list and 1 item.
+     */
     mutation: {
       onMutate: async ({ guid, uidOrganization }) => {
-        const listKey = getOrganizationsInvitesListQueryKey(uidOrganization)
         const listSnapshots = queryClient
           .getQueriesData<organizationsMembersListResponse>({
-            queryKey: listKey,
+            queryKey: getOrganizationsInvitesListQueryKey(uidOrganization),
             exact: false,
           })
           .filter(filterListSnapshots)
@@ -92,35 +95,35 @@ queryClient.setMutationDefaults(
         }
 
         const itemKey = getOrganizationsInvitesRetrieveQueryKey(uidOrganization, guid)
-        await queryClient.cancelQueries({ queryKey: itemKey })
         const itemSnapshot = queryClient.getQueryData<organizationsInvitesRetrieveResponse>(itemKey)
+        await queryClient.cancelQueries({ queryKey: itemKey })
         queryClient.removeQueries({ queryKey: itemKey, exact: true })
 
         return {
-          keys: [listSnapshots.map(([listSnapshotKey]) => listSnapshotKey), itemKey],
           snapshots: [...listSnapshots, [itemKey, itemSnapshot] as const],
         }
       },
       onError: onErrorRestoreSnapshots,
-      onSettled: onSettledInvalidateKeys,
+      onSettled: onSettledInvalidateSnapshots,
     },
   }),
 )
 queryClient.setMutationDefaults(
   getOrganizationsInvitesPartialUpdateMutationOptions().mutationKey!,
   getOrganizationsInvitesPartialUpdateMutationOptions({
+    /**
+     * Good complex example for optimistic update approach.
+     * Note that members are placeholded based on invites, thus need to handle list and item for both invite and member.
+     */
     mutation: {
       onMutate: async ({ uidOrganization, guid, data }) => {
         if (!('status' in data) && !('role' in data)) return
 
         // Note: `useOrganizationsInvitesList` is unused, skipping optimistically updating it.
 
-        // If we are updating the invitee's role, we want to optimistically update their role in queries for
-        // the members table list. So we look for their unique invite url and update the relevant query accordingly
-        const listKey = getOrganizationsMembersListQueryKey(uidOrganization)
         const listSnapshots = queryClient
           .getQueriesData<organizationsMembersListResponse>({
-            queryKey: listKey,
+            queryKey: getOrganizationsMembersListQueryKey(uidOrganization),
             exact: false,
           })
           .filter(filterListSnapshots)
@@ -158,11 +161,32 @@ queryClient.setMutationDefaults(
           )
         }
 
-        const itemKey = getOrganizationsInvitesRetrieveQueryKey(uidOrganization, guid)
-        const itemSnapshot = queryClient.getQueryData<organizationsMembersRetrieveResponse>(itemKey)
-        await queryClient.cancelQueries({ queryKey: itemKey })
+        const itemKeyInvite = getOrganizationsInvitesRetrieveQueryKey(uidOrganization, guid)
+        const itemSnapshotInvite = queryClient.getQueryData<organizationsInvitesRetrieveResponse>(itemKeyInvite)
+        await queryClient.cancelQueries({ queryKey: itemKeyInvite })
+        queryClient.setQueryData<organizationsInvitesRetrieveResponse>(
+          itemKeyInvite,
+          (response) =>
+            ({
+              ...response,
+              data: {
+                ...response?.data,
+                ...(response?.status === 200
+                  ? {
+                      ...response?.data,
+                      ...('role' in data ? { invitee_role: data.role } : null),
+                      ...('status' in data ? { status: data.status } : null),
+                    }
+                  : {}),
+              },
+            }) as organizationsInvitesRetrieveResponse,
+        )
+
+        const itemKeyMember = getOrganizationsInvitesRetrieveQueryKey(uidOrganization, guid)
+        const itemSnapshotMember = queryClient.getQueryData<organizationsMembersRetrieveResponse>(itemKeyMember)
+        await queryClient.cancelQueries({ queryKey: itemKeyMember })
         queryClient.setQueryData<organizationsMembersRetrieveResponse>(
-          itemKey,
+          itemKeyMember,
           (response) =>
             ({
               ...response,
@@ -184,12 +208,15 @@ queryClient.setMutationDefaults(
         )
 
         return {
-          keys: [listSnapshots.map(([listSnapshotKey]) => listSnapshotKey), itemKey],
-          snapshots: [...listSnapshots, [itemKey, itemSnapshot] as const],
+          snapshots: [
+            ...listSnapshots,
+            [itemKeyInvite, itemSnapshotInvite] as const,
+            [itemKeyMember, itemSnapshotMember] as const,
+          ],
         }
       },
       onError: onErrorRestoreSnapshots,
-      onSettled: onSettledInvalidateKeys,
+      onSettled: onSettledInvalidateSnapshots,
     },
   }),
 )
@@ -197,12 +224,14 @@ queryClient.setMutationDefaults(
 queryClient.setMutationDefaults(
   getOrganizationsMembersDestroyMutationOptions().mutationKey!,
   getOrganizationsMembersDestroyMutationOptions({
+    /**
+     * Good simple example for optimistic update approach. Note that usually have to handle 1 list and 1 item.
+     */
     mutation: {
       onMutate: async ({ uidOrganization, username }) => {
-        const listKey = getOrganizationsMembersListQueryKey(uidOrganization)
         const listSnapshots = queryClient
           .getQueriesData<organizationsMembersListResponse200>({
-            queryKey: listKey,
+            queryKey: getOrganizationsMembersListQueryKey(uidOrganization),
             exact: false,
           })
           .filter(filterListSnapshots)
@@ -231,7 +260,6 @@ queryClient.setMutationDefaults(
         queryClient.removeQueries({ queryKey: itemKey, exact: true })
 
         return {
-          keys: [listKey, itemKey],
           snapshots: [...listSnapshots, [itemKey, itemSnapshot] as const],
         }
       },
@@ -240,21 +268,23 @@ queryClient.setMutationDefaults(
         if (username === session.currentAccount?.username) session.refreshAccount()
       },
       onError: onErrorRestoreSnapshots,
-      onSettled: onSettledInvalidateKeys,
+      onSettled: onSettledInvalidateSnapshots,
     },
   }),
 )
 queryClient.setMutationDefaults(
   getOrganizationsMembersPartialUpdateMutationOptions().mutationKey!,
   getOrganizationsMembersPartialUpdateMutationOptions({
+    /**
+     * Good simple example for optimistic update approach. Note that usually have to handle 1 list and 1 item.
+     */
     mutation: {
       onMutate: async ({ uidOrganization, username, data: { role } }) => {
         if (!role) return
 
-        const listKey = getOrganizationsMembersListQueryKey(uidOrganization)
         const listSnapshots = queryClient
           .getQueriesData<organizationsMembersListResponse>({
-            queryKey: listKey,
+            queryKey: getOrganizationsMembersListQueryKey(uidOrganization),
             exact: false,
           })
           .filter(filterListSnapshots)
@@ -296,12 +326,11 @@ queryClient.setMutationDefaults(
         )
 
         return {
-          keys: [listKey, itemKey],
           snapshots: [...listSnapshots, [itemKey, itemSnapshot] as const],
         }
       },
       onError: onErrorRestoreSnapshots,
-      onSettled: onSettledInvalidateKeys,
+      onSettled: onSettledInvalidateSnapshots,
     },
   }),
 )
