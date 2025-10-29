@@ -6,6 +6,7 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django_userforeignkey.request import get_current_request
 
+from kobo.apps.openrosa.libs.utils.common_tags import SUBMITTED_BY
 from kpi.constants import ASSET_TYPE_SURVEY, PERM_PARTIAL_SUBMISSIONS
 from kpi.models import Asset, ImportTask
 from kpi.tasks import import_in_background
@@ -76,14 +77,15 @@ def add_instance_to_request(instance, action):
     request = get_current_request()
     if request is None:
         return
-    if getattr(instance.asset.asset, 'id', None) is None:
+    if getattr(instance.xform.asset, 'id', None) is None:
         # if an XForm doesn't have a real associated Asset, ignore it
         return
     if getattr(request, 'instances', None) is None:
         request.instances = {}
     if getattr(request, 'asset', None) is None:
-        request.asset = instance.asset.asset
-    username = instance.user.username if instance.user else None
+        request.asset = instance.xform.asset
+    username = instance.json.get(SUBMITTED_BY)
+    print('PH ACTIVITY', username, flush=True)
     request.instances.update(
         {
             instance.id: SubmissionUpdate(
