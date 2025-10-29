@@ -87,8 +87,6 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   let content: React.ReactNode = null
   let title: React.ReactNode = null
 
-  // TODO: investigate the error flows!
-
   // Case 1: loading data.
   if (orgInvitesQuery.isLoading) {
     content = <LoadingSpinner />
@@ -96,27 +94,17 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   // Case 2: failed to get the invitation data from API.
   else if (orgInvitesQuery.isError) {
     title = t('Invitation not found')
-    // Fallback message
-    let memberInviteErrorMessage = t('Could not find invitation ##invite_id## from organization ##org_id##')
+    content = <Alert type='error'>{orgInvitesQuery.error.detail ?? t('Could not find invitation ##invite_id## from organization ##org_id##')
       .replace('##invite_id##', props.inviteId)
-      .replace('##org_id##', props.orgId)
-    if (orgInvitesQuery.error?.detail) {
-      memberInviteErrorMessage = orgInvitesQuery.error.detail as string
-    }
-    content = <Alert type='error'>{memberInviteErrorMessage}</Alert>
+      .replace('##org_id##', props.orgId)}
+      </Alert>
   }
   // Case 3: failed to accept or decline invitation (API response).
   else if (orgInvitesPatch.isError) {
     title = t('Unable to join ##TEAM_OR_ORGANIZATION_NAME##').replace('##TEAM_OR_ORGANIZATION_NAME##', orgName)
-    // Fallback message
-    let patchMemberInviteErrorMessage = t('Failed to respond to invitation')
-    // TODO: sort out types
-    if ((orgInvitesPatch.error as ErrorDetail)?.detail) {
-      patchMemberInviteErrorMessage = (orgInvitesPatch.error as ErrorDetail).detail
-    }
     content = (
       <Stack>
-        <Alert type='error'>{patchMemberInviteErrorMessage}</Alert>
+        <Alert type='error'>{(orgInvitesPatch.error as ErrorDetail).detail ?? t('Failed to respond to invitation')}</Alert>
 
         <Group justify='flex-end'>
           <Button
@@ -201,9 +189,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   return (
     <Modal
       opened={isModalOpen}
-      onClose={() => {
-        setIsModalOpen(false)
-      }}
+      onClose={() => setIsModalOpen(false)}
       title={title}
     >
       {/* We don't want "x" button to get focus (see https://mantine.dev/core/modal/#initial-focus) */}
