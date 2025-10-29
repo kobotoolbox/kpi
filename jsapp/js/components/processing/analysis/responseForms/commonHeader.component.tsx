@@ -49,8 +49,6 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
     return null
   }
 
-  const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false)
-
   /**
    * Means that user clicked "Edit" button and wants to start modyfing
    * the question definition.
@@ -68,7 +66,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
       payload: { uuid: props.uuid },
     })
 
-    setIsDeletePromptOpen(false)
+    close()
 
     // Step 1: ensure no mutations happen
     const newQuestions: AnalysisQuestionInternal[] = clonedeep(analysisQuestions?.state.questions) || []
@@ -101,8 +99,8 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
   }
 
   return (
-    <Box>
-      <Group className={commonStyles.header}>
+    <>
+      <Group w={'100%'} preventGrowOverflow align={'flex-start'} gap={'xs'} mb={'xs'} display={'flex'} >
         <Modal opened={opened} onClose={close} title={t('Delete this question?')} size={'md'}>
           <Stack>
             <Text>{t('Are you sure you want to delete this question? This action cannot be undone.')}</Text>
@@ -118,11 +116,12 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
           </Stack>
         </Modal>
 
-        <ThemeIcon variant='light-teal'>
+        <ThemeIcon  ta={'center'} variant='light-teal'>
           <Icon name={qaDefinition.icon} size='xl' />
         </ThemeIcon>
 
-        <Title className={commonStyles.headerLabel}>{question.labels._default}</Title>
+        {/*TODO: font weight is not standardized*/}
+        <Title textWrap='wrap' c={'gray.2'} fw={600} fz={'lg'} flex={1} mih={32} display={'flex'} ta={'left'}>{question.labels._default}</Title>
 
         <ActionIcon
           variant='light'
@@ -149,6 +148,6 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
       </Group>
 
       {props.children && <Box className={commonStyles.content}>{props.children}</Box>}
-    </Box>
+    </>
   )
 }
