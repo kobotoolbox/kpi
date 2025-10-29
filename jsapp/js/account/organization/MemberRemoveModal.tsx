@@ -1,4 +1,5 @@
 import subscriptionStore from '#/account/subscriptionStore'
+import { queryClient } from '#/api/queryClient'
 import {
   getOrganizationsMembersDestroyMutationOptions,
   useOrganizationsMembersDestroy,
@@ -11,7 +12,6 @@ import KoboModalContent from '#/components/modals/koboModalContent'
 import KoboModalFooter from '#/components/modals/koboModalFooter'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
 import envStore from '#/envStore'
-import { queryClient } from '#/query/queryClient'
 import { getSimpleMMOLabel } from './organization.utils'
 
 interface MemberRemoveModalProps {

@@ -1,0 +1,50 @@
+import { QueryClient } from '@tanstack/react-query'
+
+interface CommonContext {
+  snapshots?: ReadonlyArray<readonly [ReadonlyArray<unknown>, unknown]>
+}
+/**
+ * After an optimistic update roll it back if server responds with an error.
+ *
+ * Note that in rare case when client receives error despite the request suceeding (e.g. untimely loss of connection),
+ * then it will be reconciled as part of {@link onSettledInvalidateSnapshots}.
+ *
+ * To be used together with {@link optimisticallyUpdateList} and {@link optimisticallyUpdateItem}.
+ */
+const onErrorRestoreSnapshots = (_error: unknown, _variables: unknown, context?: unknown): void => {
+  for (const [snapshotKey, snapshotData] of (context as CommonContext)?.snapshots ?? [])
+    queryClient.setQueryData(snapshotKey, snapshotData)
+}
+/**
+ * After an optimistic update (rolled back or not), invalidate and thus re-fetch data from server in background.
+ * - If server response will match current cache, then not even a re-render will happen. Better be safe and confirm.
+ * - If server response will NOT match current cache, then it will update cache and re-render accordingly.
+ *
+ * Note: this helper doesn't handle [concurrent updates](https://tkdodo.eu/blog/concurrent-optimistic-updates-in-react-query),
+ * but it's a fine trade-off to keep it simple at cost of not handling few rare flickers.
+ *
+ * To be used together with {@link optimisticallyUpdateList} and {@link optimisticallyUpdateItem}.
+ */
+const onSettledInvalidateSnapshots = (
+  _data: unknown,
+  _error: unknown,
+  _variables: unknown,
+  context?: unknown,
+): void => {
+  for (const [snapshotKey] of (context as CommonContext)?.snapshots ?? [])
+    queryClient.invalidateQueries({ queryKey: snapshotKey })
+}
+
+// Some shared defaults and config can be set here!
+// Docs: https://tanstack.com/query/v5/docs/reference/QueryClient#queryclient
+// See: https://tanstack.com/query/v5/docs/framework/react/guides/important-defaults
+const queryClient = new QueryClient({
+  defaultOptions: {
+    mutations: {
+      onError: onErrorRestoreSnapshots,
+      onSettled: onSettledInvalidateSnapshots,
+    },
+  },
+})
+
+export { queryClient }

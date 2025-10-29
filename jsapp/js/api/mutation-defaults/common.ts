@@ -1,5 +1,5 @@
 import type { Updater } from '@tanstack/react-query'
-import { queryClient } from '#/query/queryClient'
+import { queryClient } from '../queryClient'
 
 /**
  * Beware that `getUsersListQueryKey(undefined)` (and alike) doesn't select all pages for list endpoint as expected!
@@ -38,43 +38,13 @@ export const invalidateItem = (queryKey: readonly unknown[]) => {
   queryClient.invalidateQueries({ queryKey })
 }
 
-interface CommonContext {
-  snapshots?: ReadonlyArray<readonly [ReadonlyArray<unknown>, unknown]>
-}
-/**
- * After an optimistic update roll it back if server responds with an error.
- *
- * Note that in rare case when client receives error despite the request suceeding (e.g. untimely loss of connection),
- * then it will be reconciled as part of {@link onSettledInvalidateSnapshots}.
- *
- * To be used together with {@link optimisticallyUpdateList} and {@link optimisticallyUpdateItem}.
- */
-export const onErrorRestoreSnapshots = (_error: unknown, _variables: unknown, context?: CommonContext): void => {
-  for (const [snapshotKey, snapshotData] of context?.snapshots ?? [])
-    queryClient.setQueryData(snapshotKey, snapshotData)
-}
-/**
- * After an optimistic update (rolled back or not), invalidate and thus re-fetch data from server in background.
- * - If server response will match current cache, then not even a re-render will happen. Better be safe and confirm.
- * - If server response will NOT match current cache, then it will update cache and re-render accordingly.
- *
- * To be used together with {@link optimisticallyUpdateList} and {@link optimisticallyUpdateItem}.
- */
-export const onSettledInvalidateSnapshots = (
-  _data: unknown,
-  _error: unknown,
-  _variables: unknown,
-  context?: CommonContext,
-): void => {
-  for (const [snapshotKey] of context?.snapshots ?? []) queryClient.invalidateQueries({ queryKey: snapshotKey })
-}
 /**
  * Optimistically apply `updater` to all pages of the `queryKey` list in cache.
  *
  * Handles selecting and iterating over pages of list (and not items, see more at {@link filterListSnapshots}),
  * and cancels in-flight queries that may race-condition to overwrite the optimistic update.
  *
- * Returns snapshots, to be consumed by {@link onErrorRestoreSnapshots} and {@link onSettledInvalidateSnapshots}.
+ * Returns snapshots, see global defaults {@link onErrorRestoreSnapshots} and {@link onSettledInvalidateSnapshots}.
  */
 export const optimisticallyUpdateList = async <T>(
   queryKey: readonly unknown[],
@@ -97,7 +67,7 @@ export const optimisticallyUpdateList = async <T>(
  *
  * Also cancels in-flight queries that may race-condition to overwrite the optimistic update.
  *
- * Returns a snapshot, to be consumed by {@link onErrorRestoreSnapshots} and {@link onSettledInvalidateSnapshots}.
+ * Returns a snapshot, see global defaults {@link onErrorRestoreSnapshots} and {@link onSettledInvalidateSnapshots}.
  */
 export const optimisticallyUpdateItem = async <T>(
   queryKey: readonly unknown[],

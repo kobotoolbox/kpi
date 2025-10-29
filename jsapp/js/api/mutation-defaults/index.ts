@@ -6,6 +6,7 @@ export * from './user-team-organization-usage'
 /**
  * Write at least invalidation for every mutation in use.
  * Optimistic updates are optional, requires different UX approach and often is just an overkill.
+ * See when NOT to use optimistic update: https://tkdodo.eu/blog/mastering-mutations-in-react-query#optimistic-updates
  *
  * Generally, when writing invalidation only:
  * - onSettled: invalidate affected queries

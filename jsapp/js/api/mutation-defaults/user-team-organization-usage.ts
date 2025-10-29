@@ -16,17 +16,10 @@ import {
   type organizationsMembersListResponse,
   type organizationsMembersRetrieveResponse,
 } from '#/api/react-query/user-team-organization-usage'
-import { queryClient } from '#/query/queryClient'
 import session from '#/stores/session'
 import { getAssetUIDFromUrl } from '#/utils'
-import {
-  invalidateItem,
-  invalidateList,
-  onErrorRestoreSnapshots,
-  onSettledInvalidateSnapshots,
-  optimisticallyUpdateItem,
-  optimisticallyUpdateList,
-} from './common'
+import { queryClient } from '../queryClient'
+import { invalidateItem, invalidateList, optimisticallyUpdateItem, optimisticallyUpdateList } from './common'
 
 queryClient.setMutationDefaults(
   getOrganizationsPartialUpdateMutationOptions().mutationKey!,
@@ -52,6 +45,10 @@ queryClient.setMutationDefaults(
      * Note that:
      * - when creating an item then no need to invalidate any of existing items.
      * - when creating an item then invalidate member list as well, because KPI placeholds members based on invites.
+     *
+     * Also a good example when NOT to use optimistic updates, because:
+     * - in current UI it would gain nothing to insert the single item cache
+     * - it's impossible to guess the order of items in the lists, so don't even try
      */
     mutation: {
       onSettled: (_data, _error, variables) => {
@@ -94,8 +91,6 @@ queryClient.setMutationDefaults(
           snapshots: [...listSnapshots, itemSnapshot],
         }
       },
-      onError: onErrorRestoreSnapshots,
-      onSettled: onSettledInvalidateSnapshots,
     },
   }),
 )
@@ -189,8 +184,6 @@ queryClient.setMutationDefaults(
           snapshots: [...invitesSnapshots, ...membersSnapshots, inviteSnapshot, memberSnapshot],
         }
       },
-      onError: onErrorRestoreSnapshots,
-      onSettled: onSettledInvalidateSnapshots,
     },
   }),
 )
@@ -232,8 +225,6 @@ queryClient.setMutationDefaults(
         // If user is removing themselves, we need to clear the session
         if (username === session.currentAccount?.username) session.refreshAccount()
       },
-      onError: onErrorRestoreSnapshots,
-      onSettled: onSettledInvalidateSnapshots,
     },
   }),
 )
@@ -282,8 +273,6 @@ queryClient.setMutationDefaults(
           snapshots: [...listSnapshots, memberSnapshot],
         }
       },
-      onError: onErrorRestoreSnapshots,
-      onSettled: onSettledInvalidateSnapshots,
     },
   }),
 )
