@@ -11,7 +11,6 @@ import {
   getOrganizationsMembersRetrieveQueryKey,
   getOrganizationsPartialUpdateMutationOptions,
   getOrganizationsRetrieveQueryKey,
-  type organizationsInvitesListResponse,
   type organizationsInvitesRetrieveResponse,
   type organizationsMembersListResponse,
   type organizationsMembersRetrieveResponse,
@@ -62,12 +61,17 @@ queryClient.setMutationDefaults(
   getOrganizationsInvitesDestroyMutationOptions().mutationKey!,
   getOrganizationsInvitesDestroyMutationOptions({
     /**
-     * Good simple example for optimistic update approach. Note that usually have to handle 1 list and 1 item.
+     * Good complex example for optimistic update approach.
+     * Note that members are placeholded based on invites, thus need to handle list for both invites and members.
+     * When dealing with more than one list and/or item, better name then specifically.
      */
     mutation: {
       onMutate: async ({ guid, uidOrganization }) => {
-        const listSnapshots = await optimisticallyUpdateList<organizationsInvitesListResponse>(
-          getOrganizationsInvitesListQueryKey(uidOrganization),
+        // Note: `useOrganizationsInvitesList` is unused, skipping optimistically updating it.
+        const invitesSnapshots: [readonly unknown[], unknown][] = []
+
+        const membersSnapshots = await optimisticallyUpdateList<organizationsMembersListResponse>(
+          getOrganizationsMembersListQueryKey(uidOrganization),
           (response) =>
             ({
               ...response,
@@ -75,20 +79,22 @@ queryClient.setMutationDefaults(
                 ...response?.data,
                 ...(response?.status === 200
                   ? {
-                      results: response?.data.results.filter((invite) => getAssetUIDFromUrl(invite.url) !== guid),
+                      results: response?.data.results.filter(
+                        ({invite}) => !invite?.url || getAssetUIDFromUrl(invite?.url) !== guid,
+                      ),
                     }
                   : {}),
               },
-            }) as organizationsInvitesListResponse,
+            }) as organizationsMembersListResponse,
         )
 
-        const itemSnapshot = await optimisticallyUpdateItem(
+        const inviteSnapshot = await optimisticallyUpdateItem(
           getOrganizationsInvitesRetrieveQueryKey(uidOrganization, guid),
           null,
         )
 
         return {
-          snapshots: [...listSnapshots, itemSnapshot],
+          snapshots: [...invitesSnapshots, ...membersSnapshots, inviteSnapshot],
         }
       },
     },
@@ -99,13 +105,11 @@ queryClient.setMutationDefaults(
   getOrganizationsInvitesPartialUpdateMutationOptions({
     /**
      * Good complex example for optimistic update approach.
-     * Note that members are placeholded based on invites, thus need to handle list and item for both invite and member.
+     * Note that members are placeholded based on invites, thus need to handle list for both invites and members.
      * When dealing with more than one list and/or item, better name then specifically.
      */
     mutation: {
       onMutate: async ({ uidOrganization, guid, data }) => {
-        if (!('status' in data) && !('role' in data)) return
-
         // Note: `useOrganizationsInvitesList` is unused, skipping optimistically updating it.
         const invitesSnapshots: [readonly unknown[], unknown][] = []
 
@@ -158,30 +162,8 @@ queryClient.setMutationDefaults(
             }) as organizationsInvitesRetrieveResponse,
         )
 
-        const memberSnapshot = await optimisticallyUpdateItem<organizationsMembersRetrieveResponse>(
-          getOrganizationsMembersRetrieveQueryKey(uidOrganization, guid),
-          (response) =>
-            ({
-              ...response,
-              data: {
-                ...response?.data,
-                ...(response?.status === 200
-                  ? {
-                      invite: response?.data.invite
-                        ? {
-                            ...response?.data.invite,
-                            ...('role' in data ? { invitee_role: data.role } : null),
-                            ...('status' in data ? { status: data.status } : null),
-                          }
-                        : response?.data.invite,
-                    }
-                  : {}),
-              },
-            }) as organizationsMembersRetrieveResponse,
-        )
-
         return {
-          snapshots: [...invitesSnapshots, ...membersSnapshots, inviteSnapshot, memberSnapshot],
+          snapshots: [...invitesSnapshots, ...membersSnapshots, inviteSnapshot],
         }
       },
     },
