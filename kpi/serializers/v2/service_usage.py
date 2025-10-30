@@ -7,13 +7,9 @@ from kobo.apps.organizations.utils import get_billing_dates
 from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
 from kpi.models.asset import Asset, AssetDeploymentStatus
 from kpi.schema_extensions.v2.organizations.fields import UrlField
+from kpi.schema_extensions.v2.organizations.serializers import NlpUsageSerializer
 from kpi.utils.schema_extensions.fields import HyperlinkedIdentityFieldWithSchemaField
 from kpi.utils.usage_calculator import ServiceUsageCalculator
-
-
-class NlpUsageSerializer(serializers.Serializer):
-    total_nlp_asr_seconds = serializers.IntegerField()
-    total_nlp_mt_characters = serializers.IntegerField()
 
 
 class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
