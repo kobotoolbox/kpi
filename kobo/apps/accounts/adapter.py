@@ -97,3 +97,10 @@ class AccountAdapter(DefaultAccountAdapter):
             )
             user.set_password(password)
             user.save()
+
+    def get_email_confirmation_url(self, request, emailconfirmation):
+        url = super().get_email_confirmation_url(request, emailconfirmation)
+        next = request._post.get('next')
+        if next is not None:
+            return f'{url}?next={next}'
+        return url
