@@ -215,12 +215,9 @@ class ParsedInstance(models.Model):
         return cls._get_mongo_cursor(query, fields)
 
     def set_submitted_by(self, save=False):
-        print('SET SUBMITTED', flush=True)
         if not self.submitted_by and self.instance and self.instance.user:
-            print('SUBMITTED BY is empty', flush=True)
             self.submitted_by = self.instance.user.username
             if save:
-                print('ON SAVE SUBMITTED BY: ', self.submitted_by, flush=True)
                 self.__class__.objects.filter(pk=self.pk).update(
                     submitted_by=self.submitted_by
                 )
@@ -304,8 +301,6 @@ class ParsedInstance(models.Model):
         # TODO remove this check when `root_uuid` has been backfilled
         #   by long-running migration 0005.
         root_uuid = self.instance.root_uuid or self.instance.uuid
-
-        print('self.submitted_by', self.submitted_by, flush=True)
 
         data = {
             UUID: self.instance.uuid,

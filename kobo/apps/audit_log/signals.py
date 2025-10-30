@@ -85,7 +85,6 @@ def add_instance_to_request(instance, action):
     if getattr(request, 'asset', None) is None:
         request.asset = instance.xform.asset
     username = instance.json.get(SUBMITTED_BY)
-    print('PH ACTIVITY', username, flush=True)
     request.instances.update(
         {
             instance.id: SubmissionUpdate(

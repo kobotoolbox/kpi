@@ -99,12 +99,6 @@ def delete_account(account_trash: AccountTrash):
                     user.delete()
 
                 AuditLog.objects.create(**audit_log_params)
-
-                # Persist submitted_by
-                ParsedInstance.objects.filter(
-                    instance__user_id=user_id, submitted_by__isnull=True
-                ).update(submitted_by=user.username)
-
                 delete_kc_user(user.username)
 
                 if user.username:
