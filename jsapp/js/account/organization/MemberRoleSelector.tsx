@@ -1,13 +1,18 @@
 import { LoadingOverlay } from '@mantine/core'
-import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { InviteeRoleEnum } from '#/api/models/inviteeRoleEnum'
+import type { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import {
+  useOrganizationsInvitesPartialUpdate,
+  useOrganizationsMembersPartialUpdate,
+} from '#/api/react-query/user-team-organization-usage'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Select from '#/components/common/Select'
-import { usePatchMemberInvite } from './membersInviteQuery'
-import { usePatchOrganizationMember } from './membersQuery'
+import { getAssetUIDFromUrl } from '#/utils'
 
 interface MemberRoleSelectorProps {
   username: string
   /** The role of the `username` user - the one we are modifying here. */
-  role: MemberRoleEnum
+  role: InviteeRoleEnum
   /** The role of the currently logged in user. */
   currentUserRole: MemberRoleEnum
   /** URL for patching org member invites. Should only be passed if invite is still open */
@@ -15,31 +20,41 @@ interface MemberRoleSelectorProps {
 }
 
 export default function MemberRoleSelector({ username, role, inviteUrl }: MemberRoleSelectorProps) {
-  const patchMember = usePatchOrganizationMember(username)
-  const patchInvite = usePatchMemberInvite(inviteUrl)
+  const [organization] = useOrganizationAssumed()
 
-  const handleRoleChange = (newRole: MemberRoleEnum | null) => {
-    if (!newRole) return
+  const orgMembersPatch = useOrganizationsMembersPartialUpdate()
+  const orgInvitesPatch = useOrganizationsInvitesPartialUpdate({
+    request: {
+      errorMessageDisplay: t('There was an error updating this invitation.'),
+    },
+  })
+
+  const handleRoleChange = async (role: InviteeRoleEnum | null) => {
+    if (!role) return
 
     if (inviteUrl) {
-      patchInvite.mutateAsync({ role })
+      await orgInvitesPatch.mutateAsync({
+        guid: getAssetUIDFromUrl(inviteUrl)!,
+        uidOrganization: organization.id,
+        data: { role },
+      })
     } else {
-      patchMember.mutateAsync({ role })
+      await orgMembersPatch.mutateAsync({ uidOrganization: organization.id, username: username, data: { role } })
     }
   }
 
   return (
     <>
-      <LoadingOverlay visible={patchMember.isPending || patchInvite.isPending} />
+      <LoadingOverlay visible={orgMembersPatch.isPending || orgInvitesPatch.isPending} />
       <Select
         size='sm'
         data={[
           {
-            value: MemberRoleEnum.admin,
+            value: InviteeRoleEnum.admin,
             label: t('Admin'),
           },
           {
-            value: MemberRoleEnum.member,
+            value: InviteeRoleEnum.member,
             label: t('Member'),
           },
         ]}

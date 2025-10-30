@@ -2,10 +2,15 @@ import type { ReactNode } from 'react'
 
 import { Group, LoadingOverlay, Menu, Modal, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import type { InviteResponse } from '#/api/models/inviteResponse'
+import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
+import {
+  useOrganizationsInvitesDestroy,
+  useOrganizationsInvitesPartialUpdate,
+} from '#/api/react-query/user-team-organization-usage'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import ButtonNew from '#/components/common/ButtonNew'
-import { notify } from '#/utils'
-import type { MemberInvite } from './membersInviteQuery'
-import { MemberInviteStatus, usePatchMemberInvite, useRemoveMemberInvite } from './membersInviteQuery'
+import { getAssetUIDFromUrl, notify } from '#/utils'
 
 /**
  * A dropdown with all actions that can be taken towards an organization invitee.
@@ -15,17 +20,27 @@ export default function InviteeActionsDropdown({
   invite,
 }: {
   target: ReactNode
-  invite: MemberInvite
+  invite: InviteResponse
 }) {
+  const [organization] = useOrganizationAssumed()
+
   const [opened, { open, close }] = useDisclosure()
 
-  const patchInviteMutation = usePatchMemberInvite(invite.url)
-  const removeInviteMutation = useRemoveMemberInvite()
+  const orgInvitesPatch = useOrganizationsInvitesPartialUpdate({
+    request: {
+      errorMessageDisplay: t('There was an error updating this invitation.'),
+    },
+  })
+  const orgInvitesDestroy = useOrganizationsInvitesDestroy()
 
   const resendInvitation = async () => {
     try {
-      await patchInviteMutation.mutateAsync({
-        status: MemberInviteStatus.resent,
+      await orgInvitesPatch.mutateAsync({
+        uidOrganization: organization.id,
+        guid: getAssetUIDFromUrl(invite.url)!,
+        data: {
+          status: InviteStatusChoicesEnum.resent,
+        },
       })
       notify(t('The invitation was resent'), 'success')
     } catch (e: any) {
@@ -50,7 +65,10 @@ export default function InviteeActionsDropdown({
 
   const removeInvitation = async () => {
     try {
-      await removeInviteMutation.mutateAsync(invite.url)
+      await orgInvitesDestroy.mutateAsync({
+        uidOrganization: organization.id,
+        guid: getAssetUIDFromUrl(invite.url)!,
+      })
       notify(t('Invitation removed'), 'success')
     } catch (e) {
       notify(t('An error occurred while removing the invitation'), 'error')
@@ -62,7 +80,7 @@ export default function InviteeActionsDropdown({
   return (
     <>
       <Modal opened={opened} onClose={close} title={t('Remove invitation?')}>
-        <LoadingOverlay visible={removeInviteMutation.isPending} />
+        <LoadingOverlay visible={orgInvitesDestroy.isPending} />
         <Stack>
           <Text>{t("Are you sure you want to remove this user's invitation to join the team?")}</Text>
           <Group justify='flex-end'>
@@ -76,7 +94,7 @@ export default function InviteeActionsDropdown({
         </Stack>
       </Modal>
 
-      <LoadingOverlay visible={patchInviteMutation.isPending} />
+      <LoadingOverlay visible={orgInvitesPatch.isPending} />
       <Menu offset={0} position='bottom-end'>
         <Menu.Target>{target}</Menu.Target>
 
