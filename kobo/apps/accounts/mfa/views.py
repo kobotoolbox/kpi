@@ -2,7 +2,6 @@ from allauth.account.views import LoginView
 from allauth.mfa.adapter import get_adapter
 from allauth.mfa.internal.flows.add import validate_can_add_authenticator
 from allauth.mfa.totp.internal import auth as totp_auth
-from django.contrib.auth.views import LoginView as DjangoLoginView
 from django.db.models import QuerySet
 from django.urls import reverse
 from rest_framework.generics import ListAPIView
@@ -13,15 +12,15 @@ from rest_framework.views import APIView
 
 from kpi.permissions import IsAuthenticated
 from kpi.utils.log import logging
+from ..forms import LoginForm
 from .flows import activate_totp, deactivate_totp, regenerate_codes
-from .forms import MfaLoginForm, MfaTokenForm
 from .models import MfaMethodsWrapper
 from .permissions import IsMfaEnabled
 from .serializers import TOTPCodeSerializer, UserMfaMethodSerializer
 
 
 class MfaLoginView(LoginView):
-    form_class = MfaLoginForm
+    form_class = LoginForm
 
     def get_success_url(self):
         """
@@ -49,18 +48,6 @@ class MfaLoginView(LoginView):
             return ''
 
         return redirect_to
-
-
-class MfaTokenView(DjangoLoginView):
-    """
-    Display the login form and handle the login action.
-    """
-
-    form_class = MfaTokenForm
-    authentication_form = None
-    template_name = 'mfa_token.html'
-    redirect_authenticated_user = False
-    extra_context = None
 
 
 class MfaListUserMethodsView(ListAPIView):

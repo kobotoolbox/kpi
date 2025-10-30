@@ -4,8 +4,8 @@ from django.test.client import Client
 from django.urls import reverse
 from rest_framework import status
 
-from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.accounts.mfa.tests.utils import get_mfa_code_for_user
+from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 
 
 class TestAuthBase(TestBase):

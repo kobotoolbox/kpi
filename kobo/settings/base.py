@@ -99,6 +99,7 @@ INSTALLED_APPS = (
     'private_storage',
     'kobo.apps.KpiConfig',
     'kobo.apps.accounts',
+    'kobo.apps.accounts.mfa.apps.MfaAppConfig',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -130,7 +131,6 @@ INSTALLED_APPS = (
     'markdownx',
     'kobo.apps.help',
     'trench',
-    'kobo.apps.accounts.mfa.apps.MfaAppConfig',
     'kobo.apps.project_views.apps.ProjectViewAppConfig',
     'kobo.apps.languages.apps.LanguageAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
@@ -1545,7 +1545,7 @@ ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
 ACCOUNT_EMAIL_VERIFICATION = env.str('ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
 ACCOUNT_FORMS = {
-    'login': 'kobo.apps.accounts.mfa.forms.MfaLoginForm',
+    'login': 'kobo.apps.accounts.forms.LoginForm',
     'signup': 'kobo.apps.accounts.forms.SignupForm',
 }
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
@@ -1918,9 +1918,7 @@ add_type('application/geo+json', '.geojson')
 
 KOBOCAT_MEDIA_URL = f'{KOBOCAT_URL}/media/'
 
-MFA_FORMS = {
-    'authenticate': 'kobo.apps.accounts.mfa.forms.MfaTokenForm',
-}
+MFA_FORMS = {}
 MFA_ADAPTER = 'kobo.apps.accounts.mfa.adapter.MfaAdapter'
 MFA_TOTP_DIGITS = env.int('MFA_CODE_LENGTH', 6)
 MFA_RECOVERY_CODE_COUNT = 5

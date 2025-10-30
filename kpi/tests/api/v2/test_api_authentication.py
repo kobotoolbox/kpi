@@ -1,15 +1,15 @@
 # coding: utf-8
 import base64
 
-from django.urls import reverse
 from django.test import override_settings
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
+from kobo.apps.accounts.mfa.tests.utils import get_mfa_code_for_user
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from kobo.apps.accounts.mfa.tests.utils import get_mfa_code_for_user
 
 
 class AuthenticationApiTests(BaseAssetTestCase):
