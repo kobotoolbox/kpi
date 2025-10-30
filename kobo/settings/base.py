@@ -105,6 +105,7 @@ INSTALLED_APPS = (
     'allauth.socialaccount.providers.microsoft',
     'allauth.socialaccount.providers.openid_connect',
     'allauth.usersessions',
+    'allauth.mfa',
     'hub.HubAppConfig',
     'import_export',
     'import_export_celery',
@@ -1540,7 +1541,7 @@ CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT = int(
 # User.email should continue to be used instead of the EmailAddress model
 ACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.AccountAdapter'
 ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators'
-ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
 ACCOUNT_EMAIL_VERIFICATION = env.str('ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
 ACCOUNT_FORMS = {
@@ -1917,8 +1918,16 @@ add_type('application/geo+json', '.geojson')
 
 KOBOCAT_MEDIA_URL = f'{KOBOCAT_URL}/media/'
 
+MFA_FORMS = {
+    'authenticate': 'kobo.apps.accounts.mfa.forms.MfaTokenForm',
+}
+MFA_ADAPTER = 'kobo.apps.accounts.mfa.adapter.MfaAdapter'
+MFA_TOTP_DIGITS = env.int('MFA_CODE_LENGTH', 6)
+MFA_RECOVERY_CODE_COUNT = 5
+MFA_RECOVERY_CODE_DIGITS = 12
+
 TRENCH_AUTH = {
-    'USER_MFA_MODEL': 'mfa.MfaMethod',
+    'USER_MFA_MODEL': 'accounts_mfa.MfaMethod',
     'USER_ACTIVE_FIELD': 'is_active',
     'BACKUP_CODES_QUANTITY': 5,
     'BACKUP_CODES_LENGTH': 12,  # keep (quantity * length) under 200
@@ -1930,14 +1939,6 @@ TRENCH_AUTH = {
     'CONFIRM_BACKUP_CODES_REGENERATION_WITH_CODE': True,
     'ALLOW_BACKUP_CODES_REGENERATION': True,
     'MFA_METHODS': {
-        'app': {
-            'VERBOSE_NAME': 'app',
-            'VALIDITY_PERIOD': env.int(
-                'MFA_CODE_VALIDITY_PERIOD', 30  # seconds
-            ),
-            'USES_THIRD_PARTY_CLIENT': True,
-            'HANDLER': 'kobo.apps.accounts.mfa.backends.application.ApplicationBackend',
-        },
     },
     'CODE_LENGTH': env.int('MFA_CODE_LENGTH', 6),
 }
