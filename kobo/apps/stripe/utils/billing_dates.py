@@ -28,15 +28,12 @@ def get_current_billing_period_dates_by_org(
             for org in orgs:
                 results[org.id] = {
                     'start': first_of_this_month,
-                    'end': first_of_next_month
+                    'end': first_of_next_month,
                 }
             return results
 
         for org in Organization.objects.all():
-            results[org.id] = {
-                'start': first_of_this_month,
-                'end': first_of_next_month
-            }
+            results[org.id] = {'start': first_of_this_month, 'end': first_of_next_month}
         return results
 
     # check 1: look for active subscriptions

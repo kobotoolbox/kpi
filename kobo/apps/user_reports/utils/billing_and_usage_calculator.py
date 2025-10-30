@@ -40,9 +40,7 @@ class BillingAndUsageCalculator:
                 ),
                 'total_submission_count_current_period': submission_map.get(
                     uid, {}
-                ).get(
-                    'current_period', 0
-                ),
+                ).get('current_period', 0),
                 'billing_period_start': info['billing_dates'].get('start'),
                 'billing_period_end': info['billing_dates'].get('end'),
             }

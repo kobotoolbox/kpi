@@ -369,16 +369,20 @@ module.exports = do ->
       }
 
   INVALID_TYPES_AT_THIS_STAGE = ['begin_group', 'end_group', 'begin_repeat', 'end_repeat']
+
   _determineConstructorByParams = (obj)->
     formSettingsTypes = do ->
       result = []
       for key, val of $configs.defaultSurveyDetails
         result.push val.name
       return result
+
     type = obj?.type
+
     if type in INVALID_TYPES_AT_THIS_STAGE
       # inputParser should have converted groups and repeats into a structure by this point
       throw new Error("Invalid type at this stage: #{type}")
+      return
 
     if type in formSettingsTypes
       # e.g. "today"

@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import pytest
@@ -120,19 +121,15 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         """
         # Create submission counter entries to simulate usage
         DailyXFormSubmissionCounter.objects.create(
-            user_id=self.someuser.id,
-            date=timezone.now().date(),
-            counter=15
+            user_id=self.someuser.id, date=timezone.now().date(), counter=15
         )
         DailyXFormSubmissionCounter.objects.create(
             user_id=self.someuser.id,
             date=timezone.now().date() - timezone.timedelta(days=100),
-            counter=135
+            counter=135,
         )
         NLPUsageCounter.objects.create(
-            user_id=self.someuser.id,
-            date=timezone.now().date(),
-            total_asr_seconds=100
+            user_id=self.someuser.id, date=timezone.now().date(), total_asr_seconds=100
         )
         NLPUsageCounter.objects.create(
             user_id=self.someuser.id,
@@ -154,7 +151,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         }
         with patch(
             'kobo.apps.user_reports.tasks.get_organizations_effective_limits',
-            return_value=mock_limits
+            return_value=mock_limits,
         ):
             cache.clear()
             refresh_user_report_snapshots()
@@ -211,12 +208,8 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
 
         organization_data = someuser_data['organization']
 
-        self.assertEqual(
-            organization_data['name'], self.someuser.organization.name
-        )
-        self.assertEqual(
-            organization_data['uid'], str(self.someuser.organization.id)
-        )
+        self.assertEqual(organization_data['name'], self.someuser.organization.name)
+        self.assertEqual(organization_data['uid'], str(self.someuser.organization.id))
         self.assertEqual(organization_data['role'], 'owner')
 
     def test_account_restricted_field(self):
@@ -235,9 +228,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
 
         # Create a submission counter entry to simulate usage
         DailyXFormSubmissionCounter.objects.create(
-            user_id=self.someuser.id,
-            date=timezone.now().date(),
-            counter=10
+            user_id=self.someuser.id, date=timezone.now().date(), counter=10
         )
 
         # Mock the `get_organizations_effective_limits` function
@@ -252,7 +243,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         }
         with patch(
             'kobo.apps.user_reports.tasks.get_organizations_effective_limits',
-            return_value=mock_limits
+            return_value=mock_limits,
         ):
             cache.clear()
             refresh_user_report_snapshots()
@@ -284,6 +275,20 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertTrue(results[0]['accepted_tos'])
 
     def test_ordering_by_date_joined(self):
+        base_date = datetime(2023, 1, 1, tzinfo=timezone.utc)
+        adminuser = User.objects.get(username='adminuser')
+        adminuser.date_joined = base_date
+        adminuser.save()
+
+        self.someuser.date_joined = base_date + timedelta(days=1)
+        self.someuser.save()
+
+        anotheruser = User.objects.get(username='anotheruser')
+        anotheruser.date_joined = base_date + timedelta(days=2)
+        anotheruser.save()
+
+        refresh_user_reports_materialized_view(concurrently=False)
+
         response = self.client.get(self.url, {'ordering': 'date_joined'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -363,9 +368,7 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
     def test_current_period_submissions_gte_and_lte_filters(self):
         # Create a submission counter entry to simulate usage
         DailyXFormSubmissionCounter.objects.create(
-            user_id=self.someuser.id,
-            date=timezone.now().date(),
-            counter=5
+            user_id=self.someuser.id, date=timezone.now().date(), counter=5
         )
         refresh_user_report_snapshots()
 
@@ -384,9 +387,7 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
         Test filtering by nested balances JSON value
         """
         DailyXFormSubmissionCounter.objects.create(
-            user_id=self.someuser.id,
-            date=timezone.now().date(),
-            counter=1
+            user_id=self.someuser.id, date=timezone.now().date(), counter=1
         )
 
         with patch(
@@ -426,9 +427,7 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
         refresh_user_reports_materialized_view(concurrently=False)
 
         # Filter by subscription ID
-        res = self._get_results(
-            {'q': f'subscriptions[]__id:{self.subscription.id}'}
-        )
+        res = self._get_results({'q': f'subscriptions[]__id:{self.subscription.id}'})
         self.assertTrue(any(r['username'] == 'someuser' for r in res['results']))
 
         # Filter by subscription status

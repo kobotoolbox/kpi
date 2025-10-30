@@ -2,24 +2,29 @@ import React, { useState } from 'react'
 
 import { Box, Divider, Group, Stack, Text, Title } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData } from '@tanstack/react-query'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import InviteModal from '#/account/organization/InviteModal'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 import subscriptionStore from '#/account/subscriptionStore'
+import type { ErrorObject } from '#/api/models/errorObject'
+import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
+import type { MemberListResponse } from '#/api/models/memberListResponse'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import {
+  getOrganizationsMembersListQueryKey,
+  useOrganizationsMembersList,
+} from '#/api/react-query/user-team-organization-usage'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
 import Avatar from '#/components/common/avatar'
 import Badge from '#/components/common/badge'
 import envStore from '#/envStore'
-import { QueryKeys } from '#/query/queryKeys'
 import { formatDate } from '#/utils'
 import InviteeActionsDropdown from './InviteeActionsDropdown'
 import MemberActionsDropdown from './MemberActionsDropdown'
 import MemberRoleSelector from './MemberRoleSelector'
-import { type OrganizationMember, type OrganizationMemberListItem, getOrganizationMembers } from './membersQuery'
 import styles from './membersRoute.module.scss'
 
 export default function MembersRoute() {
@@ -35,37 +40,44 @@ export default function MembersRoute() {
     offset: 0,
   })
 
-  const queryResult = useQuery({
-    queryKey: [QueryKeys.organizationMembers, pagination.limit, pagination.offset, organization.id],
-    queryFn: () => getOrganizationMembers(pagination.limit, pagination.offset, organization.id),
-    placeholderData: keepPreviousData,
-    // We might want to improve this in future, for now let's not retry
-    retry: false,
-    // The `refetchOnWindowFocus` option is `true` by default, I'm setting it
-    // here so we don't forget about it.
-    refetchOnWindowFocus: true,
+  const membersQuery = useOrganizationsMembersList(organization.id, pagination, {
+    query: {
+      queryKey: getOrganizationsMembersListQueryKey(organization.id, pagination),
+      placeholderData: keepPreviousData,
+      // We might want to improve this in future, for now let's not retry
+      retry: false,
+      // The `refetchOnWindowFocus` option is `true` by default, I'm setting it
+      // here so we don't forget about it.
+      refetchOnWindowFocus: true,
+    },
+    request: {
+      errorMessageDisplay: t('There was an error getting the list.'),
+    },
   })
 
   /**
    * Checks whether object should be treated as organization member or invitee.
    * Returns both an invite and member, but one of these will be null depending on status
    */
-  function getMemberOrInviteDetails(obj: OrganizationMemberListItem) {
-    const invite = obj.invite?.status === 'pending' || obj.invite?.status === 'resent' ? obj.invite : null
-    const member = invite ? null : ({ ...obj } as OrganizationMember)
+  function getMemberOrInviteDetails(obj: MemberListResponse) {
+    const invite =
+      obj.invite?.status === InviteStatusChoicesEnum.pending || obj.invite?.status === InviteStatusChoicesEnum.resent
+        ? obj.invite
+        : null
+    const member = invite ? null : ({ ...obj } as MemberListResponse)
     return { invite, member }
   }
 
-  const columns: Array<UniversalTableColumn<OrganizationMemberListItem>> = [
+  const columns: Array<UniversalTableColumn<MemberListResponse>> = [
     {
       key: 'user__extra_details__name',
       label: t('Name'),
-      cellFormatter: (obj: OrganizationMemberListItem) => {
+      cellFormatter: (obj: MemberListResponse) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
         return (
           <Avatar
             size='m'
-            username={member ? member.user__username : invite!.invitee}
+            username={member ? member.user__username : invite!.invitee!}
             isUsernameVisible
             email={member ? member.user__email : undefined}
             // We pass `undefined` for the case it's an empty string
@@ -80,8 +92,8 @@ export default function MembersRoute() {
       key: 'invite',
       label: t('Status'),
       size: 120,
-      cellFormatter: (obj: OrganizationMemberListItem) => {
-        const { invite, member } = getMemberOrInviteDetails(obj)
+      cellFormatter: (obj: MemberListResponse) => {
+        const { invite } = getMemberOrInviteDetails(obj)
         if (invite) {
           return <Badge color='light-blue' size='s' label={t('Invited')} />
         } else {
@@ -93,16 +105,16 @@ export default function MembersRoute() {
       key: 'date_joined',
       label: t('Date added'),
       size: 140,
-      cellFormatter: (obj: OrganizationMemberListItem) => {
+      cellFormatter: (obj: MemberListResponse) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
-        return invite ? formatDate(invite.date_created) : formatDate(member!.date_joined)
+        return invite ? formatDate(invite.created) : formatDate(member!.date_joined)
       },
     },
     {
       key: 'role',
       label: t('Role'),
       size: 140,
-      cellFormatter: (obj: OrganizationMemberListItem) => {
+      cellFormatter: (obj: MemberListResponse) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
         if (member?.role === MemberRoleEnum.owner || !isUserAdminOrOwner) {
           // If the member is the Owner or
@@ -121,7 +133,7 @@ export default function MembersRoute() {
         if (invite) {
           return (
             <MemberRoleSelector
-              username={invite.invitee}
+              username={invite.invitee!}
               role={invite.invitee_role}
               currentUserRole={organization.request_user_role}
               inviteUrl={invite.url}
@@ -141,7 +153,7 @@ export default function MembersRoute() {
       key: 'user__has_mfa_enabled',
       label: t('2FA'),
       size: 90,
-      cellFormatter: (obj: OrganizationMemberListItem) => {
+      cellFormatter: (obj: MemberListResponse) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
         if (member) {
           if (member.user__has_mfa_enabled) {
@@ -161,7 +173,7 @@ export default function MembersRoute() {
       label: '',
       size: 64,
       isPinned: 'right',
-      cellFormatter: (obj: OrganizationMemberListItem) => {
+      cellFormatter: (obj: MemberListResponse) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
         // There is no action that can be done on an owner
         if (member?.role === MemberRoleEnum.owner) {
@@ -220,9 +232,9 @@ export default function MembersRoute() {
         </Box>
       )}
 
-      <UniversalTable<OrganizationMemberListItem>
+      <UniversalTable<MemberListResponse, ErrorObject>
         columns={columns}
-        queryResult={queryResult}
+        queryResult={membersQuery}
         pagination={pagination}
         setPagination={setPagination}
       />

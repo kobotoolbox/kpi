@@ -14,8 +14,9 @@ from kobo.apps.organizations.views import (
 )
 from kobo.apps.project_ownership.urls import router as project_ownership_router
 from kobo.apps.project_views.views import ProjectViewViewSet
-from kpi.renderers import BasicHTMLRenderer
 from kobo.apps.user_reports.views import UserReportsViewSet
+from kpi.constants import API_NAMESPACES
+from kpi.renderers import BasicHTMLRenderer
 from kpi.views.v2.asset import AssetViewSet
 from kpi.views.v2.asset_counts import AssetCountsViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
@@ -78,7 +79,7 @@ class OpenRosaCompatibleExtendedRouter(ExtendedDefaultRouter):
         return original_urls
 
 
-URL_NAMESPACE = 'api_v2'
+URL_NAMESPACE = API_NAMESPACES['v2']
 
 router_api_v2 = OpenRosaCompatibleExtendedRouter()
 asset_routes = router_api_v2.register(r'assets', AssetViewSet, basename='asset')

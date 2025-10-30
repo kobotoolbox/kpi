@@ -260,6 +260,15 @@ class TestAssetSnapshotList(AssetSnapshotBase):
         response = self.client.post(snapshot_list_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_asset_snapshot_list_handles_anonymous_user(self):
+        """
+        Test that list endpoint safely handles anonymous users
+        """
+        snapshot_list_url = reverse(self._get_endpoint('assetsnapshot-list'))
+        response = self.client.get(snapshot_list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 0)
+
 
 class TestAssetSnapshotDetail(AssetSnapshotBase):
 

@@ -53,9 +53,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         super().__init__(*args, **kwargs)
         # Respect DEFAULT_AUTHENTICATION_CLASSES, but also ensure that the
         # previously hard-coded authentication classes are included first
-        authentication_classes = [
-            DigestAuthentication
-        ]
+        authentication_classes = [DigestAuthentication]
         self.authentication_classes = authentication_classes + [
             auth_class
             for auth_class in self.authentication_classes
@@ -403,7 +401,6 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             context=context,
             require_auth=not bool(kwargs.get('username')),
         )
-
         return Response(serializer.data, headers=self.get_openrosa_headers())
 
     @extend_schema(
