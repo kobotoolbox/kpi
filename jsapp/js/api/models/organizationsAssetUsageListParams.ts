@@ -10,7 +10,13 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type OrganizationAssetUsageResponseNlpUsageAllTime = {
-  total_nlp_asr_seconds: number
-  total_nlp_mt_characters: number
+export type OrganizationsAssetUsageListParams = {
+  /**
+   * Paginate results with limit parameter
+   */
+  limit?: number
+  /**
+   * Paginate results with offset parameter
+   */
+  offset?: number
 }
