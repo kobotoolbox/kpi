@@ -60,7 +60,7 @@ module.exports = do ->
     # All row types are supported by UI by default. If some type has `supportedByUI` override in `model.configs.coffee`
     # we respect that.
     isSupportedByUI: ->
-      if @model.get('type').get('rowType').supportedByUI is false
+      if @model.get('type').get('rowType')?.supportedByUI is false
         return false
       return true
 
