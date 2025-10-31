@@ -21,4 +21,3 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(add_long_running_migration, noop),
     ]
-
