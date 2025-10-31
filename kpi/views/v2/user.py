@@ -78,15 +78,17 @@ class UserViewSet(
         fields = '__all__'
 
     def get_queryset(self, *args, **kwargs):
-        self.queryset = User.objects.exclude(pk=settings.ANONYMOUS_USER_ID)
+        self.queryset = User.objects.all()
 
         if not self.request.user.is_superuser:
             self.queryset = self.queryset.filter(is_active=True)
 
         if self.action == 'list':
-            self.queryset = self.queryset.select_related(
-                'extra_details'
-            ).prefetch_related('assets')
+            self.queryset = (
+                self.queryset.select_related('extra_details')
+                .prefetch_related('assets')
+                .exclude(pk=settings.ANONYMOUS_USER_ID)
+            )
 
         return self.queryset.order_by('id')
 
