@@ -16,6 +16,7 @@ class NLPUsageCounter(models.Model):
     counters = models.JSONField(default=dict)
     total_asr_seconds = models.PositiveIntegerField(default=0)
     total_mt_characters = models.PositiveIntegerField(default=0)
+    total_llm_requests = models.PositiveIntegerField(default=0)
 
     class Meta:
         constraints = [
