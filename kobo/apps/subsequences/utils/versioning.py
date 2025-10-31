@@ -5,6 +5,128 @@ from django.utils import timezone
 from ..constants import SCHEMA_VERSIONS
 
 
+def migrate_advanced_features(advanced_features: dict) -> dict | None:
+
+    if advanced_features.get('_version') == SCHEMA_VERSIONS[0]:
+        return
+
+    migrated_advanced_features = {'_version': SCHEMA_VERSIONS[0], '_actionConfigs': {}}
+
+    actionConfigs = migrated_advanced_features['_actionConfigs']
+    for key, value in advanced_features.items():
+        if (
+            key == 'transcript'
+            and value
+            and 'languages' in value
+            and value['languages']
+        ):
+            actionConfigs['manual_transcription'] = [
+                {'language': language} for language in value['languages']
+            ]
+
+        if (
+            key == 'translation'
+            and value
+            and 'languages' in value
+            and value['languages']
+        ):
+            actionConfigs['manual_translation'] = [
+                {'language': language} for language in value['languages']
+            ]
+
+        if key == 'qual':
+            raise NotImplementedError
+
+    return migrated_advanced_features
+
+
+def migrate_submission_supplementals(supplemental_data: dict) -> dict | None:
+    if supplemental_data.get('_version') == SCHEMA_VERSIONS[0]:
+        return
+    supplemental = {
+        '_version': SCHEMA_VERSIONS[0],
+    }
+    for question_xpath, action_results in supplemental_data.items():
+        question_results_by_action = {}
+
+        # get all the automatic result data
+        automatic_transcript = action_results.get('googlets', {})
+        automatic_transcript_language = automatic_transcript.get('languageCode')
+        automatic_transcript_value = automatic_transcript.get('value')
+        automatic_translation = action_results.get('googletx', {})
+        automatic_translation_language = automatic_translation.get('languageCode')
+        automatic_translation_value = automatic_translation.get('value')
+        automatic_translation_source_language = automatic_translation.get('source')
+
+        # divide transcripts into manual and automatic
+        manual_transcripts, automatic_transcripts = (
+            _separate_manual_and_automatic_versions(
+                action_results.get('transcript'),
+                automatic_transcript_language,
+                automatic_transcript_value,
+            )
+        )
+
+        if len(manual_transcripts) > 0:
+            question_results_by_action['manual_transcription'] = (
+                _version_list_to_summary_dict(manual_transcripts)
+            )
+        if len(automatic_transcripts) > 0:
+            question_results_by_action['automatic_google_transcription'] = (
+                _version_list_to_summary_dict(automatic_transcripts)
+            )
+
+        # process translations
+        translations_dict = action_results.get('translation', {})
+        automatic_translations = {}
+        manual_translations = {}
+
+        # divide translations into manual and automatic by language
+        for language_code, translations in translations_dict.items():
+            manual_translations_for_language, automatic_translations_for_language = (
+                _separate_manual_and_automatic_versions(
+                    translations,
+                    automatic_translation_language,
+                    automatic_translation_value,
+                    language_code,
+                )
+            )
+
+            all_tagged_transcripts = _combine_source_transcripts(
+                manual_transcripts, automatic_transcripts
+            )
+            if len(automatic_translations_for_language) > 0:
+                _add_translation_sources(
+                    automatic_translations_for_language,
+                    all_tagged_transcripts,
+                    automatic_translation_source_language,
+                )
+                automatic_translations[language_code] = _version_list_to_summary_dict(
+                    automatic_translations_for_language
+                )
+            if len(manual_translations_for_language) > 0:
+                _add_translation_sources(
+                    manual_translations_for_language, all_tagged_transcripts
+                )
+                manual_translations[language_code] = _version_list_to_summary_dict(
+                    manual_translations_for_language
+                )
+        if automatic_translations != {}:
+            question_results_by_action['automatic_google_translation'] = (
+                automatic_translations
+            )
+        if manual_translations != {}:
+            question_results_by_action['manual_translation'] = manual_translations
+        supplemental[question_xpath] = question_results_by_action
+
+    return supplemental
+
+
+def set_version(schema: dict) -> dict:
+    schema['_version'] = SCHEMA_VERSIONS[0]
+    return schema
+
+
 def _add_translation_sources(
     version_list, all_tagged_transcripts, automatic_translation_source_language=None
 ):
@@ -73,7 +195,7 @@ def _new_revision_from_old(old_transcript_revision_dict: dict) -> dict | None:
     ):
         return None
     return {
-        '_dateCreated': old_transcript_revision_dict.get('dateModified', None),
+        '_dateCreated': old_transcript_revision_dict.get('dateModified'),
         'language': old_transcript_revision_dict['languageCode'],
         'value': old_transcript_revision_dict['value'],
         '_uuid': str(uuid.uuid4()),
@@ -133,126 +255,3 @@ def _version_list_to_summary_dict(list_of_versions: list[dict]) -> dict:
         '_dateModified': list_of_versions[0]['_dateCreated'],
         '_versions': list_of_versions,
     }
-
-
-def migrate_advanced_features(advanced_features: dict) -> dict | None:
-
-    if advanced_features.get('_version') == SCHEMA_VERSIONS[0]:
-        return
-
-    migrated_advanced_features = {
-        '_version': SCHEMA_VERSIONS[0],
-        '_actionConfigs': {}
-    }
-
-    actionConfigs = migrated_advanced_features['_actionConfigs']
-    for key, value in advanced_features.items():
-        if (
-            key == 'transcript'
-            and value
-            and 'languages' in value
-            and value['languages']
-        ):
-            actionConfigs['manual_transcription'] = [
-                {'language': language} for language in value['languages']
-            ]
-
-        if (
-            key == 'translation'
-            and value
-            and 'languages' in value
-            and value['languages']
-        ):
-            actionConfigs['manual_translation'] = [
-                {'language': language} for language in value['languages']
-            ]
-
-        if key == 'qual':
-            raise NotImplementedError
-
-    return migrated_advanced_features
-
-
-def migrate_submission_supplementals(supplemental_data: dict) -> dict | None:
-    if supplemental_data.get('_version', None) == SCHEMA_VERSIONS[0]:
-        return
-    supplemental = {
-        '_version': SCHEMA_VERSIONS[0],
-    }
-    for question_xpath, action_results in supplemental_data.items():
-        question_results_by_action = {}
-
-        # get all the automatic result data
-        automatic_transcript = action_results.get('googlets', {})
-        automatic_transcript_language = automatic_transcript.get('languageCode', None)
-        automatic_transcript_value = automatic_transcript.get('value', None)
-        automatic_translation = action_results.get('googletx', {})
-        automatic_translation_language = automatic_translation.get('languageCode')
-        automatic_translation_value = automatic_translation.get('value')
-        automatic_translation_source_language = automatic_translation.get('source')
-
-        # divide transcripts into manual and automatic
-        manual_transcripts, automatic_transcripts = (
-            _separate_manual_and_automatic_versions(
-                action_results.get('transcript', None),
-                automatic_transcript_language,
-                automatic_transcript_value,
-            )
-        )
-
-        if len(manual_transcripts) > 0:
-            question_results_by_action['manual_transcription'] = (
-                _version_list_to_summary_dict(manual_transcripts)
-            )
-        if len(automatic_transcripts) > 0:
-            question_results_by_action['automatic_transcription'] = (
-                _version_list_to_summary_dict(automatic_transcripts)
-            )
-
-        # process translations
-        translations_dict = action_results.get('translation', {})
-        automatic_translations = {}
-        manual_translations = {}
-
-        # divide translations into manual and automatic by language
-        for language_code, translations in translations_dict.items():
-            manual_translations_for_language, automatic_translations_for_language = (
-                _separate_manual_and_automatic_versions(
-                    translations,
-                    automatic_translation_language,
-                    automatic_translation_value,
-                    language_code,
-                )
-            )
-
-            all_tagged_transcripts = _combine_source_transcripts(
-                manual_transcripts, automatic_transcripts
-            )
-            if len(automatic_translations_for_language) > 0:
-                _add_translation_sources(
-                    automatic_translations_for_language,
-                    all_tagged_transcripts,
-                    automatic_translation_source_language,
-                )
-                automatic_translations[language_code] = _version_list_to_summary_dict(
-                    automatic_translations_for_language
-                )
-            if len(manual_translations_for_language) > 0:
-                _add_translation_sources(
-                    manual_translations_for_language, all_tagged_transcripts
-                )
-                manual_translations[language_code] = _version_list_to_summary_dict(
-                    manual_translations_for_language
-                )
-        if automatic_translations != {}:
-            question_results_by_action['automatic_translation'] = automatic_translations
-        if manual_translations != {}:
-            question_results_by_action['manual_translation'] = manual_translations
-        supplemental[question_xpath] = question_results_by_action
-
-    return supplemental
-
-
-def set_version(schema: dict) -> dict:
-    schema['_version'] = SCHEMA_VERSIONS[0]
-    return schema
