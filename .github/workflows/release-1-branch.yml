@@ -23,7 +23,7 @@ jobs:
       id: week
       run: |
         set -xe
-        if (( $(date +%V) % 4 == 1 )); then
+        if (( $(date +%V) % 4 == 3 )); then
           echo "is_release_week=true" >> $GITHUB_OUTPUT
           echo $GITHUB_OUTPUT
         else
@@ -39,30 +39,11 @@ jobs:
     outputs:
       current_branch: ${{ steps.branch.outputs.current_branch }}
     steps:
-
-      # TODO: extract as separate workflow_call.
-    - name: Generate a token to trigger a workflow from a workflow
-      id: app-token
-      uses: actions/create-github-app-token@v2
+    - uses: actions/checkout@v5
+    - uses: ./.github/actions/checkout-with-github-app-token
       with:
         app-id: ${{ secrets.KOBO_BOT_APP_ID }}
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
-    - name: Get GitHub App user id
-      id: get-user-id
-      env:
-        GH_TOKEN: ${{ steps.app-token.outputs.token }}
-      run: |
-        echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
-    - name: Set git name and email for the bot
-      run: |
-        git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
-        git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
-
-    - uses: actions/checkout@v4
-      with:
-        token: ${{ steps.app-token.outputs.token }}
-        fetch-depth: "0"
-
     - name: create next RC branch
       id: branch
       run: |
@@ -90,7 +71,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         fetch-depth: "0"
 
@@ -116,23 +97,28 @@ jobs:
 
   notify-prev:
     needs:
+      - version
       - delete-prev-branch
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
-      topic: "${{ needs.create-current-branch.outputs.prev_minor }} release"
+      topic: "${{ needs.version.outputs.prev_minor }} release"
       content: ":skip_forward: release branch deleted, because it wasn't released. Please continue in the next release."
 
 
   notify-current:
     needs:
-      - create-current-branch
+      - version
       - changelog
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
-      topic: "${{ needs.create-current-branch.outputs.current_minor }} release"
-      content: ":seedling: release branch created."
+      topic: "${{ needs.version.outputs.current_minor }} release"
+      content: |
+        :seedling: `${{ needs.version.outputs.current_branch }}` branch created! Checklist:
+        - @*QA* & @*product*: the release window is 4 weeks to make a release, otherwise the branch is scrapped and we start over with next release.
+        - @_**Kalvis Kalniņš**: check Linear cycles whether now-past cycle `v${{ needs.version.outputs.current_minor }}` closed today and the upcoming cycle has started.
+        - @*devs*: if you merge a PR or cherry-pick a commit into `${{ needs.version.outputs.current_branch }}` branch, then please manually set issue's cycle to the `v${{ needs.version.outputs.current_minor }}` cycle (Linear automatically sets for next one).
 
 
   on-failure:
@@ -148,5 +134,5 @@ jobs:
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
-      topic: "${{ needs.create-current-branch.outputs.current_minor }} release"
+      topic: "${{ needs.version.outputs.current_minor }} release"
       content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) something went wrong."

@@ -1,19 +1,125 @@
-# coding: utf-8
 import json
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterator, Generator
 from io import StringIO
+from typing import Any, Optional
 
-import formpack
 from dict2xml import dict2xml
+from django.core.serializers.json import DjangoJSONEncoder
+from django.template.loader import get_template
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers, status
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.request import Request
 from rest_framework.exceptions import ErrorDetail, ParseError
 from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
+import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
 from kpi.utils.xml import add_xml_declaration
+
+
+class BasicHTMLRenderer(renderers.BaseRenderer):
+    media_type = 'text/html'
+    format = 'html'
+    charset = 'utf-8'
+    template_name = 'renderers/basic.html'
+
+    PARAM_REGEXES = [
+        # (?P<uid>[^/.]+) -> {uid}
+        (re.compile(r'\(\?P<(?P<name>\w+)>(?:[^)]+)\)'), r'{\g<name>}'),
+        # <converter:name> or <name> -> {name}
+        (re.compile(r'<(?:\w+:)?(?P<name>\w+)>'), r'{\g<name>}'),
+    ]
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        request = renderer_context.get('request') if renderer_context else None
+        resolver_match = getattr(request, 'resolver_match', None)
+        url_pattern_clean = None
+
+        if resolver_match:
+            url_pattern_clean = self._clean_route(resolver_match.route)
+
+        data = self._materialize_results_preview(data, request=request)
+
+        try:
+            pretty = json.dumps(data, indent=2, cls=DjangoJSONEncoder)
+        except:
+            pretty = str(data)
+
+        context = {
+            'pretty': pretty,
+            'q_param': url_pattern_clean or '',
+            'root': resolver_match.url_name == 'api-root',
+        }
+
+        tpl = get_template(self.template_name)
+        return tpl.render(context)
+
+    @classmethod
+    def _clean_route(cls, raw: str | None) -> str | None:
+        if not raw:
+            return None
+        s = raw.strip()
+        # strip leading ^ and trailing $
+        s = s.lstrip('^').rstrip('$')
+        # Replace named groups and path converters by {name}
+        for rx, repl in cls.PARAM_REGEXES:
+            s = rx.sub(repl, s)
+        # Unescape slashes if a regex had them escaped
+        s = s.replace(r'\/', '/')
+        # Normalize multiple slashes (just in case)
+        s = re.sub(r'/{2,}', '/', s)
+
+        return s
+
+    @staticmethod
+    def _extract_raw_route(resolver) -> str | None:
+        """
+        Try to get the raw route/regex from ResolverMatch across Django versions.
+
+        """
+
+        if not resolver:
+            return None
+
+        return resolver.route
+
+    @staticmethod
+    def _materialize_results_preview(data: Any, request: Request | None) -> Any:
+
+        if not isinstance(data, dict) or 'results' not in data:
+            return data
+
+        results = data['results']
+        if not isinstance(results, (Iterator, Generator)):
+            return data
+
+        default_limit = 20
+
+        try:
+            limit = (
+                int(
+                    request.query_params.get(
+                        LimitOffsetPagination.limit_query_param, default_limit
+                    )
+                )
+                if request
+                else default_limit
+            )
+        except (TypeError, ValueError):
+            limit = default_limit
+
+        items = []
+        for i, x in enumerate(results):
+            if i >= limit:
+                break
+            items.append(x)
+
+        data_copy = dict(data)
+        data_copy['results'] = items
+        return data_copy
 
 
 class MediaFileRenderer(renderers.BaseRenderer):

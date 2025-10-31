@@ -36,7 +36,7 @@ import type {
 } from './components/projectDownloads/exportsConstants'
 import { COMMON_QUERIES, ROOT_URL } from './constants'
 import type { ProjectViewsSettings } from './projects/customViewStore'
-import type { LangString } from './utils'
+import { type LangString, recordEntries } from './utils'
 
 interface AssetsRequestData {
   q?: string
@@ -184,6 +184,7 @@ export interface SubmissionAttachment {
   download_small_url: string
   mimetype: string
   filename: string
+  media_file_basename: string
   question_xpath: string
   uid: string
   /** Marks the attachment as deleted. If `true`, all the `*_url` will return 404. */
@@ -313,9 +314,7 @@ export interface PartialPermissionFilterByUsers {
   _submitted_by?: string | { $in: string[] }
 }
 
-export interface PartialPermissionFilterByResponses {
-  [questionName: string]: string
-}
+export type PartialPermissionFilterByResponses = Record<string, string>
 
 /**
  * Filter can have properties of both of these interfaces, thus we use union
@@ -559,17 +558,16 @@ export interface AssetAdvancedFeatures {
   }
 }
 
-interface AdvancedSubmissionSchemaDefinition {
-  [name: string]: {
-    type?: 'string' | 'object'
-    description?: string
-    properties?: { [name: string]: {} }
-    additionalProperties?: boolean
-    required?: string[]
-    anyOf?: Array<{ $ref: string }>
-    allOf?: Array<{ $ref: string }>
-  }
+interface AdvancedSubmissionSchemaDefinitionValue {
+  type?: 'string' | 'object'
+  description?: string
+  properties?: { [name: string]: {} }
+  additionalProperties?: boolean
+  required?: string[]
+  anyOf?: Array<{ $ref: string }>
+  allOf?: Array<{ $ref: string }>
 }
+type AdvancedSubmissionSchemaDefinition = Record<string, AdvancedSubmissionSchemaDefinitionValue>
 
 export interface TableSortBySetting {
   fieldId: string
@@ -1441,10 +1439,13 @@ export const dataInterface: DataInterface = {
     })
   },
 
-  removeAllPermissions(permUrl: string): JQuery.jqXHR<any> {
+  removeAllPermissions(assetUid: string, username: string): JQuery.jqXHR<any> {
     return $ajax({
-      url: `${permUrl}delete-all/`,
+      url: `${ROOT_URL}/api/v2/assets/${assetUid}/permission-assignments/bulk/`,
       method: 'DELETE',
+      data: {
+        username: username,
+      },
     })
   },
 
@@ -1807,8 +1808,8 @@ export const dataInterface: DataInterface = {
 
   createImport(data: CreateImportRequest): JQuery.jqXHR<any> {
     const formData = new FormData()
-    for (const [key, value] of Object.entries(data)) {
-      formData.append(key, value)
+    for (const [key, value] of recordEntries(data)) {
+      formData.append(key, value as string)
     }
 
     return $ajax({
@@ -1940,8 +1941,8 @@ export const dataInterface: DataInterface = {
 
   uploadAssetFile(uid: string, data: AssetFileRequest): JQuery.jqXHR<any> {
     const formData = new FormData()
-    for (const [key, value] of Object.entries(data)) {
-      formData.append(key, value)
+    for (const [key, value] of recordEntries(data)) {
+      formData.append(key, value as string)
     }
 
     return $ajax({

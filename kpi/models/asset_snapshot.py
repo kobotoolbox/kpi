@@ -1,23 +1,19 @@
-# coding: utf-8
-# 😬
 import copy
 
 from django.conf import settings
 from django.db import models
 from formpack import FormPack
-from rest_framework.reverse import reverse
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
+from kpi.constants import API_NAMESPACES
 from kpi.fields import KpiUidField
 from kpi.interfaces.open_rosa import OpenRosaFormListInterface
-from kpi.mixins import (
-    FormpackXLSFormUtilsMixin,
-    XlsExportableMixin,
-)
+from kpi.mixins import FormpackXLSFormUtilsMixin, XlsExportableMixin
 from kpi.utils.hash import calculate_hash
 from kpi.utils.log import logging
 from kpi.utils.models import DjangoModelABCMetaclass
 from kpi.utils.pyxform_compatibility import allow_choice_duplicates
+from kpi.utils.urls import versioned_reverse
 
 
 class AbstractFormList(
@@ -92,22 +88,25 @@ class AssetSnapshot(
         """
         Implements `OpenRosaFormListInterface.get_download_url()`
         """
-        return reverse(
+
+        return versioned_reverse(
             viewname='assetsnapshot-xml-with-disclaimer',
             format='xml',
-            kwargs={'uid': self.uid},
-            request=request
+            kwargs={'uid_asset_snapshot': self.uid},
+            request=request,
+            url_namespace=API_NAMESPACES['default'],
         )
 
     def get_manifest_url(self, request):
         """
         Implements `OpenRosaFormListInterface.get_manifest_url()`
         """
-        return reverse(
-            viewname='assetsnapshot-manifest',
-            format='xml',
-            kwargs={'uid': self.uid},
-            request=request
+
+        return versioned_reverse(
+            viewname='assetsnapshot-manifest-openrosa',
+            kwargs={'uid_asset_snapshot': self.uid},
+            request=request,
+            url_namespace=API_NAMESPACES['default'],
         )
 
     @property

@@ -21,8 +21,8 @@ export default function AnalysisHeader() {
     return null
   }
 
-  const manualTypes = Object.values(ANALYSIS_QUESTION_TYPES).filter((definition) => !definition.isAutomated)
-  const automatedTypes = Object.values(ANALYSIS_QUESTION_TYPES).filter((definition) => definition.isAutomated)
+  const manualTypes = ANALYSIS_QUESTION_TYPES.filter((definition) => !definition.isAutomated)
+  const automatedTypes = ANALYSIS_QUESTION_TYPES.filter((definition) => definition.isAutomated)
 
   function renderQuestionTypeButton(definition: AnalysisQuestionTypeDefinition) {
     return (

@@ -134,7 +134,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         self.asset.deployment.set_namespace(self.URL_NAMESPACE)
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': self.asset.uid, 'format': 'json'},
         )
 
         self._deployment = self.asset.deployment

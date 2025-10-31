@@ -8,7 +8,8 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter, XForm
+from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import NLPUsage, UsageBalance, UsageBalances
@@ -22,13 +23,13 @@ from kpi.utils.cache import CachedClass, cached_class_property
 
 
 def get_storage_usage_by_user_id(user_ids: list[int] = None) -> dict[int, int]:
-    xforms = XForm.objects.exclude(pending_delete=True)
+    query = UserProfile.objects.values('user_id', 'attachment_storage_bytes')
     if user_ids is not None:
-        xforms = xforms.filter(user_id__in=user_ids)
-    xform_query = xforms.values('user').annotate(
-        bytes_sum=Coalesce(Sum('attachment_storage_bytes'), 0)
-    )
-    return {res['user']: res['bytes_sum'] for res in xform_query}
+        query = query.filter(user_id__in=user_ids)
+    else:
+        query = query.exclude(user_id=settings.ANONYMOUS_USER_ID)
+
+    return {res['user_id']: res['attachment_storage_bytes'] for res in query.iterator()}
 
 
 def get_submission_counts_in_date_range_by_user_id(

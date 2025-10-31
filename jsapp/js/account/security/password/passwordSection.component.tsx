@@ -22,7 +22,7 @@ export default function PasswordSection() {
 
       <div className={styles.options}>
         <a href={PATHS.RESET}>
-          <Button label={t('forgot password')} size='m' type='text' />
+          <Button label={t('Forgot password')} size='m' type='text' />
         </a>
 
         <NavLink to={`${ACCOUNT_ROUTES.CHANGE_PASSWORD}`}>

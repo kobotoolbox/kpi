@@ -10,7 +10,11 @@ from kpi.utils.log import logging
 
 class ExtendedFieldFile(FieldFile):
 
-    def move(self, target_folder: str) -> bool:
+    def __init__(self, instance, field, name):
+        super().__init__(instance, field, name)
+        self._raw_filename = os.path.basename(name) if name else None
+
+    def move(self, target_folder: str, reraise_errors: bool = False) -> bool:
 
         old_path = self.name
         filename = os.path.basename(old_path)
@@ -28,6 +32,8 @@ class ExtendedFieldFile(FieldFile):
                 logging.error(
                     f'Error copying {old_path} to {new_path}: {e}', exc_info=True
                 )
+                if reraise_errors:
+                    raise e
                 return False
 
             self.name = new_path
@@ -45,6 +51,8 @@ class ExtendedFieldFile(FieldFile):
             success = True
         except FileNotFoundError as fe:
             logging.error(fe, exc_info=True)
+            if reraise_errors:
+                raise fe
         finally:
             # Restore `upload_to`
             self.field.upload_to = upload_to

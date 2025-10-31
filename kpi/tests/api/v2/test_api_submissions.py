@@ -31,6 +31,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.project_ownership.utils import create_invite
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
@@ -109,7 +110,7 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.asset.deployment.set_namespace(self.URL_NAMESPACE)
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': self.asset.uid, 'format': 'json'},
         )
         self._deployment = self.asset.deployment
 
@@ -158,12 +159,12 @@ class BulkDeleteSubmissionsApiTests(
         self._add_submissions()
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': self.asset.uid, 'format': 'json'},
         )
         self.submission_bulk_url = reverse(
             self._get_endpoint('submission-bulk'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
             },
         )
 
@@ -431,7 +432,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         with self.assertNumQueries(FuzzyInt(16, 17)):
             # regular
             self.client.get(self.submission_list_url, {'format': 'json'})
-        with self.assertNumQueries(17):
+        with self.assertNumQueries(FuzzyInt(16, 17)):
             # with params
             self.client.get(
                 self.submission_list_url,
@@ -527,7 +528,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         asset.deployment.mock_submissions(submissions)
         submission_list_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'parent_lookup_asset': asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': asset.uid, 'format': 'json'},
         )
 
         # Server-wide limit should apply if no limit specified
@@ -725,7 +726,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -742,7 +743,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_uuid'],
             },
         )
@@ -762,7 +763,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -780,7 +781,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -809,7 +810,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -821,7 +822,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -845,7 +846,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': 9999,
             },
         )
@@ -865,7 +866,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -885,7 +886,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -905,7 +906,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -948,7 +949,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -963,7 +964,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -1121,7 +1122,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': asset.uid,
+                'uid_asset': asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -1158,10 +1159,10 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             assert attachment['download_url'] == expected_new_download_urls[idx]
             assert attachment['question_xpath'] == expected_question_xpaths[idx]
 
-    def test_inject_root_uuid_if_not_present(self):
+    def test_inject_requires_properties_if_not_present(self):
         """
-        Ensure `meta/rootUUid` is present in API response even if rootUuid was
-        not present (e.g. like old submissions)
+        Ensure `meta/rootUUid` and `_validation_status` are present in API response
+        even if not present (e.g. like old submissions)
         """
         # remove "meta/rootUuid" from MongoDB
         submission = self.submissions_submitted_by_someuser[0]
@@ -1170,20 +1171,23 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         )
         root_uuid = mongo_document.pop(META_ROOT_UUID)
         settings.MONGO_DB.instances.update_one(
-            {'_id': submission['_id']}, {'$unset': {META_ROOT_UUID: root_uuid}}
+            {'_id': submission['_id']},
+            {'$unset': {META_ROOT_UUID: root_uuid, '_validation_status': None}},
         )
 
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
         response = self.client.get(url, {'format': 'json'})
         assert response.data['_id'] == submission['_id']
         assert META_ROOT_UUID in response.data
+        assert '_validation_status' in response.data
         assert response.data[META_ROOT_UUID] == root_uuid
+        assert response.data['_validation_status'] == {}
 
 
 class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase):
@@ -1205,21 +1209,21 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         self.submission_url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
         self.submission_url_legacy = reverse(
             self._get_endpoint('submission-enketo-edit-legacy'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
         self.submission_redirect_url = reverse(
             self._get_endpoint('submission-enketo-edit-redirect'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
@@ -1363,7 +1367,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -1375,7 +1379,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -1494,7 +1498,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
             edit_url = reverse(
                 self._get_endpoint('submission-enketo-edit'),
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
+                    'uid_asset': self.asset.uid,
                     'pk': submission['_id'],
                 },
             )
@@ -1596,7 +1600,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         edit_url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -1662,7 +1666,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         edit_url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission_json['_id'],
             },
         )
@@ -1955,6 +1959,27 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         assert 'deprecatedID' in instance.xml
         self._simulate_edit_submission(instance)
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(USAGE_LIMIT_ENFORCEMENT=True)
+    @mock.patch(
+        'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances'  # noqa: E501
+    )
+    def test_edit_submission_ignores_usage_limit_enforcement(self, mock_usage):
+        mock_balances = {
+            UsageType.STORAGE_BYTES: {
+                'exceeded': True,
+            },
+            UsageType.SUBMISSION: {
+                'exceeded': True,
+            },
+        }
+        mock_usage.return_value = mock_balances
+        root_uuid = remove_uuid_prefix(self.submission['_uuid'])
+        instance = Instance.objects.get(root_uuid=root_uuid)
+        self._simulate_edit_submission(instance)
+
 
 class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):
 
@@ -1965,14 +1990,14 @@ class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase
         self.submission_view_link_url = reverse(
             self._get_endpoint('submission-enketo-view'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
         self.submission_view_redirect_url = reverse(
             self._get_endpoint('submission-enketo-view-redirect'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
@@ -2081,7 +2106,7 @@ class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase
         url = reverse(
             self._get_endpoint('submission-enketo-view'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -2094,7 +2119,7 @@ class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase
         url = reverse(
             self._get_endpoint('submission-enketo-view'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -2138,7 +2163,7 @@ class SubmissionDuplicateBaseApiTests(BaseSubmissionTestCase):
         self.submission_url = reverse(
             self._get_endpoint('submission-duplicate'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
@@ -2306,7 +2331,7 @@ class SubmissionDuplicateApiTests(
         url = reverse(
             self._get_endpoint('submission-duplicate'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -2318,7 +2343,7 @@ class SubmissionDuplicateApiTests(
         url = reverse(
             self._get_endpoint('submission-duplicate'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -2399,7 +2424,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         self.submission_url = reverse(
             self._get_endpoint('submission-bulk'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
             },
         )
 
@@ -2451,6 +2476,29 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
                         root_uuid.text
                     )
                     break
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(USAGE_LIMIT_ENFORCEMENT=True)
+    @mock.patch(
+        'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances'  # noqa: E501
+    )
+    def test_bulk_update_submissions_ignores_limit_enforcement(self, mock_usage):
+        mock_balances = {
+            UsageType.STORAGE_BYTES: {
+                'exceeded': True,
+            },
+            UsageType.SUBMISSION: {
+                'exceeded': True,
+            },
+        }
+        mock_usage.return_value = mock_balances
+        response = self.client.patch(
+            self.submission_url, data=self.submitted_payload, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        self._check_bulk_update(response)
 
     @pytest.mark.skip(
         reason=(
@@ -2597,7 +2645,7 @@ class SubmissionValidationStatusApiTests(
         self.validation_status_url = reverse(
             self._get_endpoint('submission-validation-status'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
         )
@@ -2771,7 +2819,7 @@ class SubmissionValidationStatusApiTests(
         url = reverse(
             self._get_endpoint('submission-validation-status'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -2783,7 +2831,7 @@ class SubmissionValidationStatusApiTests(
         url = reverse(
             self._get_endpoint('submission-validation-status'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
             },
         )
@@ -2806,11 +2854,11 @@ class SubmissionValidationStatusesApiTests(
         self._add_submissions()
         self.validation_statuses_url = reverse(
             self._get_endpoint('submission-validation-statuses'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': self.asset.uid, 'format': 'json'},
         )
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': self.asset.uid, 'format': 'json'},
         )
 
         self._validate_statuses(empty=True)
@@ -3256,7 +3304,7 @@ class SubmissionGeoJsonApiTests(BaseTestCase):
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
             kwargs={
-                'parent_lookup_asset': a.uid,
+                'uid_asset': a.uid,
             },
         )
 

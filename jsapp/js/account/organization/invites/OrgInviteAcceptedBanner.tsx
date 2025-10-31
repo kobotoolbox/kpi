@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react'
-
-import { MemberInviteStatus } from '#/account/organization/membersInviteQuery'
-import { useOrganizationMemberDetailQuery } from '#/account/organization/membersQuery'
-import type { Organization } from '#/account/organization/organizationQuery'
+import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
+import type { MemberListResponse } from '#/api/models/memberListResponse'
+import type { OrganizationResponse } from '#/api/models/organizationResponse'
+import {
+  getOrganizationsMembersRetrieveQueryKey,
+  useOrganizationsMembersRetrieve,
+} from '#/api/react-query/user-team-organization-usage'
 import Alert from '#/components/common/alert'
 import { useSafeUsernameStorageKey } from '#/hooks/useSafeUsernameStorageKey'
 
 interface OrgInviteAcceptedBannerProps {
   username: string
-  organization: Organization
+  organization: OrganizationResponse
 }
 
 const BANNER_DISMISSAL_VALUE = 'dismissed'
@@ -19,20 +22,26 @@ const BANNER_DISMISSAL_VALUE = 'dismissed'
  *
  * Note: this is for a user that is part of an organization (and thus has access to it).
  */
-export default function OrgInviteAcceptedBanner(props: OrgInviteAcceptedBannerProps) {
-  const organizationMemberDetailQuery = useOrganizationMemberDetailQuery(props.username, false)
+export default function OrgInviteAcceptedBanner({ username, organization }: OrgInviteAcceptedBannerProps) {
+  const orgMemberQuery = useOrganizationsMembersRetrieve(organization.id, username, {
+    query: {
+      queryKey: getOrganizationsMembersRetrieveQueryKey(organization.id, username),
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  })
   const [isBannerDismissed, setIsBannerDismissed] = useState<boolean | undefined>()
   const [localStorageKeyPrefix, setLocalStorageKeyPrefix] = useState<string | undefined>()
-  const localStorageKey = useSafeUsernameStorageKey(localStorageKeyPrefix, props.username)
+  const localStorageKey = useSafeUsernameStorageKey(localStorageKeyPrefix, username)
 
   // Build local storage prefix when invite data is ready.
   useEffect(() => {
-    if (organizationMemberDetailQuery.data?.invite?.url) {
+    if (orgMemberQuery.data?.status === 200 && orgMemberQuery.data?.data.invite?.url) {
       // For the local storage key we include invite url (it has an id), because otherwise the banner would not appear
       // when user would leave one organization and join another (or rejoin the same one).
-      setLocalStorageKeyPrefix(`kpiOrgInviteAcceptedBanner-${organizationMemberDetailQuery.data?.invite?.url}`)
+      setLocalStorageKeyPrefix(`kpiOrgInviteAcceptedBanner-${orgMemberQuery.data?.data.invite.url}`)
     }
-  }, [organizationMemberDetailQuery.data])
+  }, [orgMemberQuery.data?.status, (orgMemberQuery.data?.data as MemberListResponse)?.invite?.url])
 
   // Get information whether the banner was already dismissed by user. It requires localStorage key to be ready.
   useEffect(() => {
@@ -50,9 +59,10 @@ export default function OrgInviteAcceptedBanner(props: OrgInviteAcceptedBannerPr
 
   if (
     // Only show banner to users who are members of MMO organization
-    !props.organization.is_mmo ||
+    !organization.is_mmo ||
     // Only show banner to users who have accepted the invite
-    organizationMemberDetailQuery.data?.invite?.status !== MemberInviteStatus.accepted ||
+    orgMemberQuery.data?.status !== 200 ||
+    orgMemberQuery.data?.data.invite?.status !== InviteStatusChoicesEnum.accepted ||
     // Wait for local storage information
     isBannerDismissed === undefined ||
     // Respect users who dismissed the banner
@@ -69,7 +79,7 @@ export default function OrgInviteAcceptedBanner(props: OrgInviteAcceptedBannerPr
           'This account is now managed by ##TEAM_OR_ORGANIZATION_NAME##. All projects previously owned by your ' +
             'account are currently being transfered and will be owned by ##TEAM_OR_ORGANIZATION_NAME##. This process ' +
             'can take up to a few minutes to complete.',
-        ).replaceAll('##TEAM_OR_ORGANIZATION_NAME##', props.organization.name)}
+        ).replaceAll('##TEAM_OR_ORGANIZATION_NAME##', organization.name)}
       </Alert>
     </div>
   )

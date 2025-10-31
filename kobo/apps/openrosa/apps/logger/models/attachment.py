@@ -183,8 +183,15 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
         return protected_url
 
     def save(self, *args, **kwargs):
+        if kwargs.get('update_fields', []) == ['user_id']:
+            # if we're just updating the userid don't do all the size calculations
+            super().save(*args, **kwargs)
+            return
+
         if self.media_file:
-            self.media_file_basename = self.filename
+            if not self.media_file_basename:
+                self.media_file_basename = self.filename
+
             if self.mimetype == '':
                 # guess mimetype
                 mimetype, encoding = mimetypes.guess_type(self.media_file.name)

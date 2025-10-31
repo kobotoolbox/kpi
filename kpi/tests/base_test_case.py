@@ -33,7 +33,10 @@ class BaseTestCase(APITestCase):
         if isinstance(obj, ObjectPermission):
             return reverse(
                 self._get_endpoint('asset-permission-assignment-detail'),
-                kwargs={'parent_lookup_asset': obj.asset.uid, 'uid': obj.uid},
+                kwargs={
+                    'uid_asset': obj.asset.uid,
+                    'uid_permission_assignment': obj.uid,
+                },
             )
         if isinstance(obj, Permission):
             return reverse(
@@ -49,13 +52,17 @@ class BaseTestCase(APITestCase):
 
     def url_to_obj(self, url):
         uid = self._url_to_uid(url)
-        if uid.startswith('a'):
-            klass = Asset
-        elif uid.startswith('p'):
+        lookup_field = 'uid'
+        if '/users/' in url:
+            klass = User
+            lookup_field = 'username'
+        elif '/permission-assignments/' in url:
             klass = ObjectPermission
+        elif '/assets/' in url:
+            klass = Asset
         else:
             raise NotImplementedError()
-        obj = klass.objects.get(uid=uid)
+        obj = klass.objects.get(**{lookup_field:uid})
         return obj
 
     @staticmethod

@@ -39,7 +39,7 @@ import { actions } from '../actions'
 import { dataInterface } from '../dataInterface'
 import SurveyScope from '../models/surveyScope'
 import { stores } from '../stores'
-import { escapeHtml } from '../utils'
+import { escapeHtml, recordKeys } from '../utils'
 import AssetNavigator from './assetNavigator'
 import { cascadeMixin } from './cascadeMixin'
 
@@ -440,7 +440,7 @@ export default Object.assign(
       const isEmptySurvey =
         assetContent &&
         assetContent.settings &&
-        Object.keys(assetContent.settings).length === 0 &&
+        recordKeys(assetContent.settings).length === 0 &&
         assetContent.survey.length === 0
 
       let survey = null

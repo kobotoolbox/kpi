@@ -24,10 +24,10 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 @extend_schema(
-    tags=['Exports'],
+    tags=['Survey data'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -52,7 +52,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='uid_export',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -80,7 +80,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='uid_export',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -100,10 +100,10 @@ class ExportTaskViewSet(
 
 
      Available actions:
-     - list           → GET /api/v2/assets/{parent_lookup_asset}/exports/
-     - create         → POST /api/v2/assets/{parent_lookup_asset}/exports/
-     - retrieve       → GET /api/v2/assets/{parent_lookup_asset}/exports/{uid}/
-     - delete         → DELETE /api/v2/assets/{parent_lookup_asset}/exports/{uid}/
+     - list           → GET /api/v2/assets/{uid_asset}/exports/
+     - create         → POST /api/v2/assets/{uid_asset}/exports/
+     - retrieve       → GET /api/v2/assets/{uid_asset}/exports/{uid_export}/
+     - delete         → DELETE /api/v2/assets/{uid_asset}/exports/{uid_export}/
 
      Documentation:
      - docs/api/v2/export_tasks/list.md
@@ -115,6 +115,7 @@ class ExportTaskViewSet(
     model = SubmissionExportTask
     serializer_class = ExportTaskSerializer
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_export'
 
     filter_backends = [
         filters.OrderingFilter,
@@ -133,5 +134,5 @@ class ExportTaskViewSet(
         user = get_database_user(self.request.user)
         return self.model.objects.filter(
             user=user,
-            data__source__icontains=self.kwargs['parent_lookup_asset'],
+            data__source__icontains=self.kwargs['uid_asset'],
         )

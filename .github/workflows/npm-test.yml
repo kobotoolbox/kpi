@@ -8,7 +8,7 @@ jobs:
     outputs:
       playwright-version: ${{ steps.get_playwright_version.outputs.playwright-version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: get_playwright_version
         uses: eviden-actions/get-playwright-version@v1
 
@@ -27,8 +27,8 @@ jobs:
       fail-fast: false # Let each job finish
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           check-latest: true # download newer semver match if available
@@ -70,6 +70,11 @@ jobs:
           Erase and log ./node_modules/.cache
           (before CI tests)
         run: rm -rf --verbose ./node_modules/.cache
+
+      - name: Fail on uncommitted package-lock.json changes
+        run: |
+          git diff
+          git diff-index --exit-code HEAD
 
       # Check for TypeScript errors
       - name: Check TypeScript

@@ -12,7 +12,7 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
 
 
 @extend_schema(
-    tags=['Asset Usage'],
+    tags=['User / team / organization / usage'],
     description=read_md('kpi', 'asset_usage/list.md'),
     responses=open_api_200_ok_response(
         AssetUsageResponse,

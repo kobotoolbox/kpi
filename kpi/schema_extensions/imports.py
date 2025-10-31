@@ -20,5 +20,6 @@ import kpi.schema_extensions.v2.permissions.extensions
 import kpi.schema_extensions.v2.service_usage.extensions
 import kpi.schema_extensions.v2.tags.extensions
 import kpi.schema_extensions.v2.tos.extensions
+import kpi.schema_extensions.v2.user_reports.extensions
 import kpi.schema_extensions.v2.users.extensions
 import kpi.schema_extensions.v2.versions.extensions
