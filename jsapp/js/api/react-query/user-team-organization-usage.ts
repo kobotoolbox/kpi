@@ -2371,6 +2371,17 @@ export function useServiceUsageList<
 
 ⚠️ _Only available to superusers_
 
+Search can be made with `q` parameter.
+
+Allowed fields are:
+
+- `username`
+- `is_active`
+- `email`
+- `date_joined`
+- `last_login`
+- `extra_details__data__<field>`
+
  */
 export type usersListResponse200 = {
   data: PaginatedUserListResponseList
@@ -2455,6 +2466,8 @@ export function useUsersList<TData = Awaited<ReturnType<typeof usersList>>, TErr
 
 /**
  * ## Retrieve a user
+
+⚠️ _Regular users have access to active users only_
 
  */
 export type usersRetrieveResponse200 = {

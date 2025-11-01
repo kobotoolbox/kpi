@@ -28,12 +28,13 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = User
-        fields = ('url',
-                  'username',
-                  'date_joined',
-                  'public_collection_subscribers_count',
-                  'public_collections_count',
-                  )
+        fields = (
+            'url',
+            'username',
+            'date_joined',
+            'public_collection_subscribers_count',
+            'public_collections_count',
+        )
 
     @extend_schema_field(OpenApiTypes.DATETIME)
     def get_date_joined(self, obj):
