@@ -1,4 +1,3 @@
-# coding: utf-8
 from django.http import Http404
 from django.utils.translation import gettext as t
 from rest_framework import renderers
@@ -161,7 +160,10 @@ class AttachmentViewSet(OpenRosaReadOnlyModelViewSet):
         ):
             data = self.object.media_file.read()
             headers = {
-                'Content-Disposition': f'attachment; filename={self.object.media_file_basename}',  # noqa
+                'Content-Disposition': (
+                    f'{self.object.content_disposition}; '
+                    f'filename={self.object.media_file_basename}'
+                ),
             }
             return Response(data, content_type=self.object.mimetype, headers=headers)
 
