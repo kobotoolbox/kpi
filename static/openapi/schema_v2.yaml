@@ -8118,6 +8118,17 @@ paths:
         ## List users
 
         ⚠️ _Only available to superusers_
+
+        Search can be made with `q` parameter.
+
+        Allowed fields are:
+
+        - `username`
+        - `is_active`
+        - `email`
+        - `date_joined`
+        - `last_login`
+        - `extra_details__data__<field>`
       parameters:
       - name: limit
         required: false
@@ -8159,6 +8170,8 @@ paths:
       operationId: api_v2_users_retrieve
       description: |
         ## Retrieve a user
+
+        ⚠️ _Regular users have access to active users only_
       parameters:
       - in: path
         name: username
