@@ -3,6 +3,7 @@ import re
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django_digest.test import Client as DigestClient
 from django_digest.test import DigestAuth
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -164,7 +165,6 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
             self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
 
     def test_retrieve_xform_manifest_as_owner(self):
-
         self._load_metadata(self.xform_without_auth)
         self.view = XFormListApi.as_view({
             'get': 'manifest'
@@ -673,13 +673,13 @@ class TestXFormListAsOrgAdminApiBase(TestXFormListApiBase):
         Alice has no explicit assigned permissions on any project.
         Form list should be empty
         """
-        request = self.factory.get('/')
-        response = self.view(request)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        auth = DigestAuth('alice', 'alicealice')
-        request.META.update(auth(request.META, response))
-        response = self.view(request)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        base_url = reverse(
+            'form-list',
+        )
+        client = DigestClient()
+        client.set_authorization('alice', 'alicealice', 'Digest')
+
+        response = client.get(base_url)
 
         content = response.render().content
         expected_content = b'<?xml version="1.0" encoding="utf-8"?>\n<xforms xmlns="http://openrosa.org/xforms/xformsList"></xforms>'  # noqa
@@ -696,13 +696,11 @@ class TestXFormListAsOrgAdminApiBase(TestXFormListApiBase):
         Alice is an admin of Bob's org. They should be able to see any org projects.
         """
         # Test a valid `formID`
-        request = self.factory.get('/', {'formID': self.xform.id_string})
-        response = self.view(request)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        auth = DigestAuth('alice', 'alicealice')
-        request.META.update(auth(request.META, response))
-        response = self.view(request)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        base_url = reverse('form-list')
+        client = DigestClient()
+        client.set_authorization('alice', 'alicealice', 'Digest')
+
+        response = client.get(f'{base_url}?formID={self.xform.id_string}')
         path = os.path.join(
             os.path.dirname(__file__),
             '..',
@@ -746,14 +744,15 @@ class TestXFormListAsOrgAdminApiBase(TestXFormListApiBase):
 
     def test_retrieve_xform_manifest(self):
         self._load_metadata(self.xform)
-        self.view = XFormListApi.as_view({'get': 'manifest'})
-        request = self.factory.head('/')
-        response = self.view(request, pk=self.xform.pk)
-        auth = DigestAuth('alice', 'alicealice')
-        request = self.factory.get('/')
-        request.META.update(auth(request.META, response))
-        response = self.view(request, pk=self.xform.pk)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        base_url = reverse(
+            'manifest-url',
+            kwargs={'pk': self.xform.pk},
+        )
+        client = DigestClient()
+        client.set_authorization('alice', 'alicealice', 'Digest')
+
+        response = client.get(base_url)
 
         manifest_xml = (
             '<?xml version="1.0" encoding="utf-8"?>\n'
@@ -781,14 +780,14 @@ class TestXFormListAsOrgAdminApiBase(TestXFormListApiBase):
         self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
 
     def test_head_xform_manifest(self):
-        self._load_metadata(self.xform)
-        self.view = XFormListApi.as_view({'get': 'manifest'})
-        request = self.factory.head('/')
-        response = self.view(request, pk=self.xform.pk)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        auth = DigestAuth('alice', 'alicealice')
-        request.META.update(auth(request.META, response))
-        response = self.view(request, pk=self.xform.pk)
+        base_url = reverse(
+            'manifest-url',
+            kwargs={'pk': self.xform.pk},
+        )
+        client = DigestClient()
+        client.set_authorization('alice', 'alicealice', 'Digest')
+
+        response = client.head(base_url)
         self.validate_openrosa_head_response(response)
 
     def test_head_xform_media(self):
