@@ -20,6 +20,7 @@ from ..models import TrashStatus
 from ..models.account import AccountTrash
 from ..models.project import ProjectTrash
 from ..utils.project import delete_asset
+from ...openrosa.apps.viewer.models import ParsedInstance
 
 
 def delete_account(account_trash: AccountTrash):
@@ -98,7 +99,6 @@ def delete_account(account_trash: AccountTrash):
                     user.delete()
 
                 AuditLog.objects.create(**audit_log_params)
-
                 delete_kc_user(user.username)
 
                 if user.username:
