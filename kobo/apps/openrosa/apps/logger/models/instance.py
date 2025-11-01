@@ -71,10 +71,18 @@ class Instance(AbstractTimeStampedModel):
 
     json = JSONField(default={}, null=False)
     xml = models.TextField()
-    xml_hash = models.CharField(max_length=XML_HASH_LENGTH, db_index=True, null=True,
-                                default=DEFAULT_XML_HASH)
-    user = models.ForeignKey(User, related_name='instances', null=True, on_delete=models.CASCADE)
-    xform = models.ForeignKey(XForm, null=True, related_name='instances', on_delete=models.CASCADE)
+    xml_hash = models.CharField(
+        max_length=XML_HASH_LENGTH,
+        db_index=True,
+        null=True,
+        default=DEFAULT_XML_HASH,
+    )
+    user = models.ForeignKey(
+        User, related_name='instances', null=True, blank=True, on_delete=models.SET_NULL
+    )
+    xform = models.ForeignKey(
+        XForm, null=True, related_name='instances', on_delete=models.CASCADE
+    )
     survey_type = models.ForeignKey(SurveyType, on_delete=models.CASCADE)
 
     # this formerly represented "date instance was deleted".
