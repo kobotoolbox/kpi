@@ -64,16 +64,14 @@ export default function IntegerResponseForm(props: IntegerResponseFormProps) {
   }
 
   return (
-    <>
-      <CommonHeader uuid={props.uuid}>
-        <NumberInput
-          value={response}
-          onChange={(newResponse) => onInputChange(newResponse.toString())}
-          placeholder={t('Type your answer')}
-          onBlur={saveResponse}
-          disabled={!props.canEdit}
-        />
-      </CommonHeader>
-    </>
+    <CommonHeader uuid={props.uuid}>
+      <NumberInput
+        value={response}
+        onChange={(newResponse) => onInputChange(newResponse.toString())}
+        placeholder={t('Type your answer')}
+        onBlur={saveResponse}
+        disabled={!props.canEdit}
+      />
+    </CommonHeader>
   )
 }

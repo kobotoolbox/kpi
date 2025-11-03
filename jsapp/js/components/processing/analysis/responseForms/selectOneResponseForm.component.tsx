@@ -71,17 +71,15 @@ export default function SelectOneResponseForm(props: SelectOneResponseFormProps)
   }
 
   return (
-    <>
-      <CommonHeader uuid={props.uuid}>
-        <Radio
-          options={getOptions()}
-          name={question.labels._default}
-          onChange={onRadioChange}
-          selected={response}
-          isClearable
-          isDisabled={!props.canEdit}
-        />
-      </CommonHeader>
-    </>
+    <CommonHeader uuid={props.uuid}>
+      <Radio
+        options={getOptions()}
+        name={question.labels._default}
+        onChange={onRadioChange}
+        selected={response}
+        isClearable
+        isDisabled={!props.canEdit}
+      />
+    </CommonHeader>
   )
 }

@@ -55,10 +55,8 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
   }
 
   return (
-    <>
-      <CommonHeader uuid={props.uuid}>
-        <TagsInput value={response} onChange={onTagsChange} acceptValueOnBlur disabled={!props.canEdit} />
-      </CommonHeader>
-    </>
+    <CommonHeader uuid={props.uuid}>
+      <TagsInput value={response} onChange={onTagsChange} acceptValueOnBlur disabled={!props.canEdit} />
+    </CommonHeader>
   )
 }

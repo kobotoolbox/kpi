@@ -1,6 +1,6 @@
-import React, { useState, useContext } from 'react'
+import React, { useContext } from 'react'
 
-import { Group, Modal, Stack, Text, Title } from '@mantine/core'
+import { Group, Modal, Stack, Text } from '@mantine/core'
 import { Box, ThemeIcon } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import clonedeep from 'lodash.clonedeep'
@@ -99,8 +99,8 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
   }
 
   return (
-    <>
-      <Group w={'100%'} preventGrowOverflow align={'flex-start'} gap={'xs'} mb={'xs'} display={'flex'} >
+    <Stack gap={0}>
+      <Group align={'flex-start'} gap={'xs'} mb={'xs'} display={'flex'}>
         <Modal opened={opened} onClose={close} title={t('Delete this question?')} size={'md'}>
           <Stack>
             <Text>{t('Are you sure you want to delete this question? This action cannot be undone.')}</Text>
@@ -116,12 +116,24 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
           </Stack>
         </Modal>
 
-        <ThemeIcon  ta={'center'} variant='light-teal'>
+        <ThemeIcon ta={'center'} variant='light-teal'>
           <Icon name={qaDefinition.icon} size='xl' />
         </ThemeIcon>
 
         {/*TODO: font weight is not standardized*/}
-        <Title textWrap='wrap' c={'gray.2'} fw={600} fz={'lg'} flex={1} mih={32} display={'flex'} ta={'left'}>{question.labels._default}</Title>
+        <Text
+          style={{ wordBreak: 'break-all' }}
+          span
+          c={'gray.2'}
+          fw={600}
+          fz={'lg'}
+          flex={1}
+          mih={32}
+          display={'flex'}
+          ta={'left'}
+        >
+          {question.labels._default}
+        </Text>
 
         <ActionIcon
           variant='light'
@@ -148,6 +160,6 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
       </Group>
 
       {props.children && <Box className={commonStyles.content}>{props.children}</Box>}
-    </>
+    </Stack>
   )
 }

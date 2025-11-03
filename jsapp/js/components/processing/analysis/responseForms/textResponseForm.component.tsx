@@ -64,18 +64,16 @@ export default function TextResponseForm(props: TextResponseFormProps) {
   }
 
   return (
-    <>
-      <CommonHeader uuid={props.uuid}>
-        <Textarea
-          autosize
-          minRows={2}
-          value={response}
-          onChange={(event) => onInputChange(event.currentTarget.value)}
-          placeholder={t('Type your answer')}
-          onBlur={saveResponse}
-          disabled={!props.canEdit}
-        />
-      </CommonHeader>
-    </>
+    <CommonHeader uuid={props.uuid}>
+      <Textarea
+        autosize
+        minRows={2}
+        value={response}
+        onChange={(event) => onInputChange(event.currentTarget.value)}
+        placeholder={t('Type your answer')}
+        onBlur={saveResponse}
+        disabled={!props.canEdit}
+      />
+    </CommonHeader>
   )
 }
