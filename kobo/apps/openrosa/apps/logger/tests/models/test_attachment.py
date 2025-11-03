@@ -124,7 +124,7 @@ class TestAttachment(TestBase):
         # Random mimetype
         attachment = Attachment(media_file='foo.jpg', mimetype='foo/bar')
         assert attachment.content_disposition == 'attachment'
-    
+
     def test_set_media_base_name(self):
         user = User.objects.create_user(username='testuser', password='testpassword')
         f = open(
