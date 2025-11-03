@@ -19,7 +19,6 @@ import {
 import type { FailResponse } from '#/dataInterface'
 import singleProcessingStore from '../../singleProcessingStore'
 import type { AnalysisQuestionInternal } from '../constants'
-import commonStyles from './common.module.scss'
 
 interface ResponseFormHeaderProps {
   uuid: string
@@ -159,7 +158,8 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
         />
       </Group>
 
-      {props.children && <Box className={commonStyles.content}>{props.children}</Box>}
+      {/* Hard coded left padding to account for the 32px icon size + 8px gap */}
+      {props.children && <Box pl={'40px'}>{props.children}</Box>}
     </Stack>
   )
 }

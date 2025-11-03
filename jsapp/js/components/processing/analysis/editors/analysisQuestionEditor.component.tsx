@@ -16,10 +16,10 @@ import type { FailResponse } from '#/dataInterface'
 import { recordKeys } from '#/utils'
 import AnalysisQuestionsContext from '../analysisQuestions.context'
 import type { AdditionalFields, AnalysisQuestionInternal } from '../constants'
-import commonStyles from '../responseForms/common.module.scss'
 import styles from './analysisQuestionEditor.module.scss'
 import KeywordSearchFieldsEditor from './keywordSearchFieldsEditor.component'
 import SelectXFieldsEditor from './selectXFieldsEditor.component'
+import {Stack, ThemeIcon} from '@mantine/core'
 
 interface AnalysisQuestionEditorProps {
   uuid: string
@@ -161,12 +161,13 @@ export default function AnalysisQuestionEditor(props: AnalysisQuestionEditorProp
   }
 
   return (
+    // TODO: mantineify the rest of this component, it's partially complete to remove dependency on deprecated styles
     <>
       <header className={styles.header}>
         <form className={styles.headerForm} onSubmit={onSubmit}>
-          <div className={commonStyles.headerIcon}>
+          <ThemeIcon ta={'center'} variant='light-teal'>
             <Icon name={qaDefinition.icon} size='xl' />
-          </div>
+          </ThemeIcon>
 
           <TextBox
             value={label}
@@ -198,7 +199,8 @@ export default function AnalysisQuestionEditor(props: AnalysisQuestionEditorProp
       </header>
 
       {qaDefinition.additionalFieldNames && (
-        <section className={commonStyles.content}>
+        // Hard coded left padding to account for the 32px icon size + 8px gap
+        <Stack pl={'40px'}>
           {question.type === 'qual_auto_keyword_count' && (
             <KeywordSearchFieldsEditor
               questionUuid={question.uuid}
@@ -216,7 +218,7 @@ export default function AnalysisQuestionEditor(props: AnalysisQuestionEditorProp
           )}
 
           {additionalFieldsErrorMessage && <p>{additionalFieldsErrorMessage}</p>}
-        </section>
+        </Stack>
       )}
     </>
   )
