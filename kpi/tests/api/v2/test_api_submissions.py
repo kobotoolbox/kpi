@@ -21,6 +21,7 @@ from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
 
+from kobo.apps.audit_log.models import ProjectHistoryLog
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
@@ -29,6 +30,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     remove_uuid_prefix,
 )
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
+from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kobo.apps.organizations.constants import UsageType
@@ -1189,6 +1191,24 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         assert response.data[META_ROOT_UUID] == root_uuid
         assert response.data['_validation_status'] == {}
 
+    def test_submitted_by_persists_after_user_deletion(self):
+        # Simulate old submissions that don't have `submitted_by`
+        ParsedInstance.objects.filter(instance__user=self.anotheruser).update(
+            submitted_by=None
+        )
+        self.anotheruser.delete()
+        for submission in self.submissions_submitted_by_anotheruser:
+            url = reverse(
+                self._get_endpoint('submission-detail'),
+                kwargs={
+                    'uid_asset': self.asset.uid,
+                    'pk': submission['_id'],
+                },
+            )
+            response = self.client.get(url)
+            assert response.status_code == status.HTTP_200_OK
+            assert response.data['_submitted_by'] == 'anotheruser'
+
 
 class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase):
     """
@@ -1979,6 +1999,110 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         root_uuid = remove_uuid_prefix(self.submission['_uuid'])
         instance = Instance.objects.get(root_uuid=root_uuid)
         self._simulate_edit_submission(instance)
+
+    def test_submitted_by_persist_after_edit(self):
+        root_uuid = remove_uuid_prefix(self.submission['_uuid'])
+        instance = Instance.objects.get(root_uuid=root_uuid)
+        original_submitted_by = instance.parsed_instance.submitted_by
+
+        # Edit the submission
+        self._simulate_edit_submission(instance)
+
+        # Ensure the `_submitted_by` field remains unchanged after edit
+        instance.refresh_from_db()
+        assert instance.parsed_instance.submitted_by == original_submitted_by
+
+    def test_submitted_by_persists_for_shared_submitter(self):
+        """
+        Test that the `_submitted_by` field remains correct when:
+
+        1. Share the project with anotheruser
+        2. Make anotheruser submit data to the shared project
+        3. Delete the submitting user
+        4. Edit the submission
+        5. Bulk update the same submission
+        6. Ensure the `_submitted_by` field remains correct throughout
+        the process.
+        """
+        # 1. Share the project with anotheruser
+        self.asset.assign_perm(self.anotheruser, PERM_ADD_SUBMISSIONS)
+
+        # 2. Make anotheruser submit data to the shared project
+        submission_uuid = str(uuid.uuid4())
+        version_uid = self.asset.latest_deployed_version.uid
+        submission = {
+            '__version__': version_uid,
+            'meta/instanceID': add_uuid_prefix(submission_uuid),
+            '_uuid': submission_uuid,
+            '_submitted_by': self.anotheruser.username,
+            'q1': 'initial value',
+        }
+        self.asset.deployment.mock_submissions([submission])
+        root_uuid = remove_uuid_prefix(submission['_uuid'])
+        instance = Instance.objects.get(root_uuid=root_uuid)
+
+        # Simulate old submission that does not have submitted_by stored
+        ParsedInstance.objects.filter(instance=instance).update(submitted_by=None)
+        deleted_username = self.anotheruser.username
+
+        # 3. Delete the submitting user
+        self.anotheruser.delete()
+
+        # After deletion, the submission detail should still show the username
+        detail_url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={'uid_asset': self.asset.uid, 'pk': instance.pk},
+        )
+        response = self.client.get(detail_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['_submitted_by'] == deleted_username
+
+        # 4. Edit the submission
+        self._simulate_edit_submission(instance)
+
+        # Ensure the edited submission still shows the original submitted_by
+        response = self.client.get(detail_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['_submitted_by'] == deleted_username
+
+        # Ensure ProjectHistoryLog has the correct submitted_by
+        ph_edit = (
+            ProjectHistoryLog.objects.filter(
+                metadata__submission__root_uuid=instance.root_uuid,
+            )
+            .order_by('-date_created')
+            .first()
+        )
+        assert ph_edit.metadata['submission']['submitted_by'] == deleted_username
+
+        # 5. Bulk update the same submission
+        bulk_url = reverse(
+            self._get_endpoint('submission-bulk'),
+            kwargs={'uid_asset': self.asset.uid},
+        )
+        payload = {
+            'payload': {
+                'submission_ids': [instance.pk],
+                'data': {'q1': 'bulk-updated value'},
+            }
+        }
+        response = self.client.patch(bulk_url, data=payload, format='json')
+        assert response.status_code == status.HTTP_200_OK
+
+        # Ensure the updated submission still shows the original submitted_by
+        response = self.client.get(detail_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['_submitted_by'] == deleted_username
+
+        # Ensure ProjectHistoryLog has the correct submitted_by
+        ph_bulk = (
+            ProjectHistoryLog.objects.filter(
+                metadata__submission__root_uuid=instance.root_uuid,
+            )
+            .order_by('-date_created')
+            .first()
+        )
+        assert ph_bulk.metadata['submission']['submitted_by'] == deleted_username
 
 
 class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):
@@ -3254,6 +3378,105 @@ class SubmissionValidationStatusesApiTests(
                 )
 
         # TODO Test with `query` when Mockbackend support Mongo queries
+
+    def test_submitted_by_persists_when_validation_status_updated(self):
+        """
+        Test that the `_submitted_by` remains correct when:
+
+        1. share asset with anotheruser
+        2. have anotheruser submit a record
+        3. delete anotheruser
+        4. update submission validation status
+        5. update validation status via bulk update
+        """
+        # 1. Share the project with anotheruser
+        self.asset.assign_perm(self.anotheruser, PERM_ADD_SUBMISSIONS)
+
+        # 2. Make anotheruser submit data to the shared project
+        submission_uuid = str(uuid.uuid4())
+        version_uid = self.asset.latest_deployed_version.uid
+        submission = {
+            '__version__': version_uid,
+            'meta/instanceID': add_uuid_prefix(submission_uuid),
+            '_uuid': submission_uuid,
+            '_submitted_by': self.anotheruser.username,
+            'q1': 'initial value for validation test',
+        }
+        self.asset.deployment.mock_submissions([submission])
+        root_uuid = remove_uuid_prefix(submission['_uuid'])
+        instance = Instance.objects.get(root_uuid=root_uuid)
+
+        # Simulate old submission that does not have submitted_by stored
+        ParsedInstance.objects.filter(instance=instance).update(submitted_by=None)
+        deleted_username = self.anotheruser.username
+
+        # 3. Delete the submitting user
+        self.anotheruser.delete()
+
+        # Ensure submission still shows correct _submitted_by
+        detail_url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={'uid_asset': self.asset.uid, 'pk': instance.pk},
+        )
+        resp = self.client.get(detail_url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data['_submitted_by'] == deleted_username
+
+        # 4. Update validation status for the single submission (owner does update)
+        validation_url = reverse(
+            self._get_endpoint('submission-validation-status'),
+            kwargs={'uid_asset': self.asset.uid, 'pk': instance.pk},
+        )
+        single_update = {'validation_status.uid': 'validation_status_approved'}
+        resp = self.client.patch(validation_url, data=single_update)
+        assert resp.status_code == status.HTTP_200_OK
+
+        # Ensure detail still has original _submitted_by
+        resp = self.client.get(detail_url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data['_submitted_by'] == deleted_username
+        assert resp.data['_validation_status']['uid'] == 'validation_status_approved'
+        assert resp.data['_validation_status']['by_whom'] == self.someuser.username
+
+        # Ensure a ProjectHistoryLog was created with correct submitted_by
+        ph_single = (
+            ProjectHistoryLog.objects.filter(
+                metadata__submission__root_uuid=instance.root_uuid,
+            )
+            .order_by('-date_created')
+            .first()
+        )
+        assert ph_single.metadata['submission']['submitted_by'] == deleted_username
+
+        # 5. Bulk update the validation statuses for that submission id
+        bulk_payload = {
+            'payload': {
+                'validation_status.uid': 'validation_status_not_approved',
+                'submission_ids': [instance.pk],
+            }
+        }
+        resp = self.client.patch(
+            self.validation_statuses_url, data=bulk_payload, format='json'
+        )
+        assert resp.status_code == status.HTTP_200_OK
+
+        # Ensure detail still has original _submitted_by
+        resp = self.client.get(detail_url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data['_submitted_by'] == deleted_username
+        assert (
+            resp.data['_validation_status']['uid'] == 'validation_status_not_approved'
+        )
+
+        # Ensure a ProjectHistoryLog was created with correct submitted_by
+        ph_bulk = (
+            ProjectHistoryLog.objects.filter(
+                metadata__submission__root_uuid=instance.root_uuid,
+            )
+            .order_by('-date_created')
+            .first()
+        )
+        assert ph_bulk.metadata['submission']['submitted_by'] == deleted_username
 
 
 class SubmissionGeoJsonApiTests(BaseTestCase):
