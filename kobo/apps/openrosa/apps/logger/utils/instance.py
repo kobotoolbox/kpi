@@ -133,13 +133,13 @@ def set_instance_validation_statuses(
     if get_current_request() is not None:
         get_current_request().instances = {
             record['id']: SubmissionUpdate(
-                username=record['user__username'],
+                username=record['json'].get('_submitted_by'),
                 action='modify',
                 status=validation_status,
                 id=record['id'],
                 root_uuid=record['root_uuid'],
             )
-            for record in records_queryset.values('user__username', 'id', 'root_uuid')
+            for record in records_queryset.values('id', 'root_uuid', 'json')
         }
     updated_records_count = records_queryset.update(
         validation_status=new_validation_status

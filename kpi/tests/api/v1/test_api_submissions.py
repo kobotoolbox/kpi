@@ -202,6 +202,14 @@ class SubmissionEditApiTests(test_api_submissions.SubmissionEditApiTests):
     def test_edit_submission_ignores_usage_limit_enforcement(self):
         pass
 
+    @pytest.mark.skip(reason='Only usable in v2')
+    def test_submitted_by_persist_after_edit(self):
+        pass
+
+    @pytest.mark.skip(reason='Only usable in v2')
+    def test_submitted_by_persists_for_shared_submitter(self):
+        pass
+
 
 class SubmissionValidationStatusApiTests(
     test_api_submissions.SubmissionValidationStatusApiTests

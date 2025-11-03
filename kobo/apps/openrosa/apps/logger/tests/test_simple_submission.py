@@ -54,12 +54,21 @@ class TestSimpleSubmission(TestCase):
         except DuplicateInstanceError:
             pass
 
-    def _submit_simple_yes(self):
-        create_instance(self.user.username, TempFileProxy(
-            f'<?xml version=\'1.0\' ?><yes_or_no id="yes_or_no"><yesno>Yes<'
-            f'/yesno>'
-            f'<meta><instanceID>uuid:{str(uuid.uuid4())}</instanceID></meta>'
-            f'</yes_or_no>'), [])
+    def _submit_simple_yes(self, request=None):
+        return create_instance(
+            username=self.user.username,
+            xml_file=TempFileProxy(
+                f'<?xml version=\'1.0\' ?>'
+                f'<yes_or_no id="yes_or_no">'
+                f'  <yesno>Yes</yesno>'
+                f'  <meta>'
+                f'      <instanceID>uuid:{str(uuid.uuid4())}</instanceID>'
+                f'  </meta>'
+                f'</yes_or_no>'
+            ),
+            media_files=[],
+            request=request,
+        )
 
     def setUp(self):
         self.user = User.objects.create(username='admin', email='sample@example.com')
@@ -150,3 +159,16 @@ class TestSimpleSubmission(TestCase):
             self._submit_simple_yes()
             patched.assert_any_call(self.user, UsageType.SUBMISSION)
             patched.assert_any_call(self.user, UsageType.STORAGE_BYTES)
+
+    def test_parsed_instance_submitted_by_value(self):
+        class MockRequest:
+            pass
+
+        request = MockRequest()
+        request.user = self.user
+        instance = self._submit_simple_yes(request=request)
+        assert instance.parsed_instance.submitted_by == self.user.username
+
+        instance.delete()
+        instance = self._submit_simple_yes(request=None)
+        assert instance.parsed_instance.submitted_by is None
