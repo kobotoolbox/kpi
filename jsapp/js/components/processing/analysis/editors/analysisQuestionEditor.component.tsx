@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react'
 
+import { Stack, ThemeIcon } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
 import { handleApiFail } from '#/api'
 import Button from '#/components/common/button'
@@ -19,7 +20,6 @@ import type { AdditionalFields, AnalysisQuestionInternal } from '../constants'
 import styles from './analysisQuestionEditor.module.scss'
 import KeywordSearchFieldsEditor from './keywordSearchFieldsEditor.component'
 import SelectXFieldsEditor from './selectXFieldsEditor.component'
-import {Stack, ThemeIcon} from '@mantine/core'
 
 interface AnalysisQuestionEditorProps {
   uuid: string

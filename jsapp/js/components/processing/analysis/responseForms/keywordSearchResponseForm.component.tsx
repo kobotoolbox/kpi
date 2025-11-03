@@ -4,8 +4,8 @@ import Badge from '#/components/common/badge'
 import Button from '#/components/common/button'
 import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import { findQuestion, getQuestionTypeDefinition } from '#/components/processing/analysis/utils'
-import ResponseWrapper from './responseWrapper.component'
 import styles from './keywordSearchResponseForm.module.scss'
+import ResponseWrapper from './responseWrapper.component'
 
 interface KeywordSearchResponseFormProps {
   uuid: string
