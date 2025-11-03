@@ -11,14 +11,10 @@ export const endpoints = {
   ASSETS_URL: '/api/v2/assets/',
   ASSET_URL: '/api/v2/assets/:uid/',
   ORG_ASSETS_URL: '/api/v2/organizations/:organization_id/assets/',
-  ORG_MEMBER_INVITES_URL: '/api/v2/organizations/:organization_id/invites/',
-  ORG_MEMBER_INVITE_DETAIL_URL: '/api/v2/organizations/:organization_id/invites/:invite_id/',
   ME_URL: '/me/',
   PRODUCTS_URL: '/api/v2/stripe/products/',
   SUBSCRIPTION_URL: '/api/v2/stripe/subscriptions/',
   ADD_ONS_URL: '/api/v2/stripe/addons/',
-  ORGANIZATION_MEMBERS_URL: '/api/v2/organizations/:organization_id/members/',
-  ORGANIZATION_MEMBER_URL: '/api/v2/organizations/:organization_id/members/:username/',
   /** Expected parameters: price_id and organization_id **/
   CHECKOUT_URL: '/api/v2/stripe/checkout-link',
   /** Expected parameter: organization_id  **/
