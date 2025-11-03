@@ -58,7 +58,7 @@ class TestSimpleSubmission(TestCase):
         return create_instance(
             username=self.user.username,
             xml_file=TempFileProxy(
-                f'<?xml version=\'1.0\' ?>'
+                f"<?xml version='1.0' ?>"
                 f'<yes_or_no id="yes_or_no">'
                 f'  <yesno>Yes</yesno>'
                 f'  <meta>'
