@@ -1280,13 +1280,3 @@ class AssetMetadataListSerializer(AssetListSerializer):
     def _get_view(self) -> str:
         request = self.context['request']
         return request.parser_context['kwargs']['uid_project_view']
-
-    # FIXME Remove this method, seems to not be used anywhere
-    @cache_for_request
-    def _user_has_asset_perms(self, obj: Asset, perm: str) -> bool:
-        request = self.context.get('request')
-        user = get_database_user(request.user)
-        self._set_asset_ids_cache(obj)
-        if obj.owner == user or obj.has_perm(user, perm):
-            return True
-        return False
