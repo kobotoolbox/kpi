@@ -144,6 +144,7 @@ export enum UsageLimitTypes {
   SUBMISSION = 'submission',
   TRANSCRIPTION = 'automated transcription',
   TRANSLATION = 'machine translation',
+  LLM_REQUEST = 'LLM request',
 }
 
 export enum Limits {

@@ -43,6 +43,7 @@ const usageBalanceKeyMapping = {
   submission: UsageLimitTypes.SUBMISSION,
   asr_seconds: UsageLimitTypes.TRANSCRIPTION,
   mt_characters: UsageLimitTypes.TRANSLATION,
+  llm_requests: undefined,
 }
 
 const transformOrganizationsService = (
@@ -63,10 +64,15 @@ const transformOrganizationsService = (
   const limitWarningList: UsageLimitTypes[] = []
   const limitExceedList: UsageLimitTypes[] = []
   for (const [key, balance] of recordEntries(data.balances)) {
-    if (balance?.exceeded) {
-      limitExceedList.push(usageBalanceKeyMapping[key])
-    } else if (balance?.balance_percent && balance.balance_percent / 100 >= USAGE_WARNING_RATIO) {
-      limitWarningList.push(usageBalanceKeyMapping[key])
+    // TODO: Remove this type safety check when
+    // LLM request usage type is supported in frontend billing code
+    const mappedKey = usageBalanceKeyMapping[key]
+    if (mappedKey) {
+      if (balance?.exceeded) {
+        limitExceedList.push(mappedKey)
+      } else if (balance?.balance_percent && balance.balance_percent / 100 >= USAGE_WARNING_RATIO) {
+        limitWarningList.push(mappedKey)
+      }
     }
   }
 
