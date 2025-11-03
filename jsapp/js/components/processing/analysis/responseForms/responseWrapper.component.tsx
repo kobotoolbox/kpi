@@ -20,7 +20,7 @@ import type { FailResponse } from '#/dataInterface'
 import singleProcessingStore from '../../singleProcessingStore'
 import type { AnalysisQuestionInternal } from '../constants'
 
-interface ResponseFormHeaderProps {
+interface ResponseWrapperProps {
   uuid: string
   children?: React.ReactNode
 }
@@ -29,7 +29,7 @@ interface ResponseFormHeaderProps {
  * Displays question type icon, name, and an edit and delete buttons (if user
  * has sufficient permissions). Is being used in multiple other components.
  */
-export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
+export default function ResponseWrapper(props: ResponseWrapperProps) {
   const [opened, { open, close }] = useDisclosure(false)
   const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {

@@ -7,7 +7,7 @@ import {
   getQuestionTypeDefinition,
   updateResponseAndReducer,
 } from '#/components/processing/analysis/utils'
-import CommonHeader from './commonHeader.component'
+import ResponseWrapper from './responseWrapper.component'
 
 interface IntegerResponseFormProps {
   uuid: string
@@ -64,7 +64,7 @@ export default function IntegerResponseForm(props: IntegerResponseFormProps) {
   }
 
   return (
-    <CommonHeader uuid={props.uuid}>
+    <ResponseWrapper uuid={props.uuid}>
       <NumberInput
         value={response}
         onChange={(newResponse) => onInputChange(newResponse.toString())}
@@ -72,6 +72,6 @@ export default function IntegerResponseForm(props: IntegerResponseFormProps) {
         onBlur={saveResponse}
         disabled={!props.canEdit}
       />
-    </CommonHeader>
+    </ResponseWrapper>
   )
 }

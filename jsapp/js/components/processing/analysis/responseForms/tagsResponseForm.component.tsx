@@ -9,7 +9,7 @@ import {
   getQuestionTypeDefinition,
   updateResponseAndReducer,
 } from '#/components/processing/analysis/utils'
-import CommonHeader from './commonHeader.component'
+import ResponseWrapper from './responseWrapper.component'
 
 interface TagsResponseFormProps {
   uuid: string
@@ -55,8 +55,8 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
   }
 
   return (
-    <CommonHeader uuid={props.uuid}>
+    <ResponseWrapper uuid={props.uuid}>
       <TagsInput value={response} onChange={onTagsChange} acceptValueOnBlur disabled={!props.canEdit} />
-    </CommonHeader>
+    </ResponseWrapper>
   )
 }

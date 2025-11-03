@@ -4,7 +4,7 @@ import Badge from '#/components/common/badge'
 import Button from '#/components/common/button'
 import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import { findQuestion, getQuestionTypeDefinition } from '#/components/processing/analysis/utils'
-import CommonHeader from './commonHeader.component'
+import ResponseWrapper from './responseWrapper.component'
 import styles from './keywordSearchResponseForm.module.scss'
 
 interface KeywordSearchResponseFormProps {
@@ -92,7 +92,7 @@ export default function KeywordSearchResponseForm(props: KeywordSearchResponseFo
   }
 
   return (
-    <CommonHeader uuid={props.uuid}>
+    <ResponseWrapper uuid={props.uuid}>
       {(() => {
         if (question.additionalFields?.isSearching) {
           return <span className={styles.loading}>{t('…keyword search in progress')}</span>
@@ -132,6 +132,6 @@ export default function KeywordSearchResponseForm(props: KeywordSearchResponseFo
           return null
         }
       })()}
-    </CommonHeader>
+    </ResponseWrapper>
   )
 }

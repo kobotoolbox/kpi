@@ -7,7 +7,7 @@ import {
   getQuestionTypeDefinition,
   updateResponseAndReducer,
 } from '#/components/processing/analysis/utils'
-import CommonHeader from './commonHeader.component'
+import ResponseWrapper from './responseWrapper.component'
 
 interface TextResponseFormProps {
   uuid: string
@@ -64,7 +64,7 @@ export default function TextResponseForm(props: TextResponseFormProps) {
   }
 
   return (
-    <CommonHeader uuid={props.uuid}>
+    <ResponseWrapper uuid={props.uuid}>
       <Textarea
         autosize
         minRows={2}
@@ -74,6 +74,6 @@ export default function TextResponseForm(props: TextResponseFormProps) {
         onBlur={saveResponse}
         disabled={!props.canEdit}
       />
-    </CommonHeader>
+    </ResponseWrapper>
   )
 }

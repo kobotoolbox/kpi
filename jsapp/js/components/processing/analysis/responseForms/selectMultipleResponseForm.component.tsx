@@ -8,7 +8,7 @@ import {
   getQuestionTypeDefinition,
   updateResponseAndReducer,
 } from '#/components/processing/analysis/utils'
-import CommonHeader from './commonHeader.component'
+import ResponseWrapper from './responseWrapper.component'
 
 interface SelectMultipleResponseFormProps {
   uuid: string
@@ -78,8 +78,8 @@ export default function SelectMultipleResponseForm(props: SelectMultipleResponse
   }
 
   return (
-    <CommonHeader uuid={props.uuid}>
+    <ResponseWrapper uuid={props.uuid}>
       <MultiCheckbox type='bare' items={getCheckboxes()} onChange={onCheckboxesChange} disabled={!props.canEdit} />
-    </CommonHeader>
+    </ResponseWrapper>
   )
 }
