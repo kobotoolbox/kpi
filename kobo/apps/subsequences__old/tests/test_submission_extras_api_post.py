@@ -332,6 +332,7 @@ class TranscriptFieldRevisionsOnlyTests(BaseSubsequenceTestCase):
                 'values': ['q1'],
             }
         })
+        breakpoint()
         self.act1 = next(self.asset.get_advanced_feature_instances())
 
     def test_simplest(self):

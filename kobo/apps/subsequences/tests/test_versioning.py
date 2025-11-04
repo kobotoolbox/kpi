@@ -215,7 +215,7 @@ class TestVersioning(TestCase):
         new_version = {
             '_version': '20250820',
             'Audio_question': {
-                'automatic_transcription': {
+                'automatic_google_transcription': {
                     '_dateCreated': a_year_and_a_day_ago,
                     '_dateModified': a_year_and_a_day_ago,
                     '_versions': [
@@ -229,7 +229,7 @@ class TestVersioning(TestCase):
                         }
                     ]
                 },
-                'automatic_translation': {
+                'automatic_google_translation': {
                     'es': {
                         '_dateCreated': one_year_ago,
                         '_dateModified': one_year_ago,
@@ -238,7 +238,7 @@ class TestVersioning(TestCase):
                                 '_dateCreated': one_year_ago,
                                 '_dateAccepted': now.isoformat(),
                                 '_dependency': {
-                                    '_actionId': 'automatic_transcription',
+                                    '_actionId': 'automatic_google_transcription',
                                     '_uuid': 'uuid2',
                                 },
                                 '_uuid': 'uuid4',

@@ -151,7 +151,7 @@ def _combine_source_transcripts(manual_transcripts, automatic_transcripts):
         for transcript in manual_transcripts
     ]
     tagged_automatic_transcripts = [
-        {**transcript, '_actionId': 'automatic_transcription'}
+        {**transcript, '_actionId': 'automatic_google_transcription'}
         for transcript in automatic_transcripts
     ]
 
