@@ -1,4 +1,3 @@
-from constance.test import override_config
 from django.urls import reverse
 from rest_framework import status
 
@@ -40,7 +39,6 @@ class MfaApiTestCase(BaseTestCase):
         for field in expected_fields:
             self.assertTrue(field in results[0])
 
-    @override_config(MFA_ENABLED=True)
     def test_mfa_activation_always_creates_new_secret(self):
         self.client.login(username='anotheruser', password='anotheruser')
         first_response = self.client.post(reverse('mfa-activate', args=(METHOD,)))
@@ -56,7 +54,6 @@ class MfaApiTestCase(BaseTestCase):
         assert first_secret != second_secret
         assert first_response.json() != second_response.json()
 
-    @override_config(MFA_ENABLED=True)
     def test_mfa_whitelisting(self):
         anotheruser = User.objects.get(username='anotheruser')
         self.client.login(username='anotheruser', password='anotheruser')

@@ -1,6 +1,5 @@
 # coding: utf-8
 from allauth.account.models import EmailAddress
-from constance.test import override_config
 from django.conf import settings
 from django.shortcuts import resolve_url
 from django.template.response import TemplateResponse
@@ -65,7 +64,6 @@ class TestStripeMFALogin(KpiTestCase):
         self.assertEqual(status_code, status.HTTP_302_FOUND)
         self.assertEqual(resolve_url(settings.LOGIN_REDIRECT_URL), redirection)
 
-    @override_config(MFA_ENABLED=True)
     def test_no_mfa_login_without_subscription(self):
         """
         Validate that multi-factor authentication form is not displayed after
@@ -80,7 +78,6 @@ class TestStripeMFALogin(KpiTestCase):
         response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self._assert_no_mfa_login(response)
 
-    @override_config(MFA_ENABLED=True)
     def test_mfa_login_works_with_paid_subscription(self):
         """
         Validate that multi-factor authentication form is displayed after
@@ -97,7 +94,6 @@ class TestStripeMFALogin(KpiTestCase):
         response = self.client.post(reverse('kobo_login'), data=data)
         self._assert_mfa_login(response)
 
-    @override_config(MFA_ENABLED=True)
     def test_mfa_login_without_subscription_no_whitelist(self):
         """
         Validate MFA form is displayed after login when the user
@@ -111,7 +107,6 @@ class TestStripeMFALogin(KpiTestCase):
         response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self._assert_mfa_login(response)
 
-    @override_config(MFA_ENABLED=True)
     def test_mfa_login_without_subscription_but_whitelisted(self):
         """
         Validate MFA form is displayed after login when the user
@@ -125,7 +120,6 @@ class TestStripeMFALogin(KpiTestCase):
         response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self._assert_mfa_login(response)
 
-    @override_config(MFA_ENABLED=True)
     def test_no_mfa_login_with_free_subscription(self):
         """
         Validate that multi-factor authentication form is not displayed after
@@ -141,7 +135,6 @@ class TestStripeMFALogin(KpiTestCase):
         response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self._assert_no_mfa_login(response)
 
-    @override_config(MFA_ENABLED=True)
     def test_mfa_login_with_free_subscription_and_whitelisted(self):
         """
         Validate MFA form is displayed after login when the user
@@ -157,7 +150,6 @@ class TestStripeMFALogin(KpiTestCase):
         response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self._assert_mfa_login(response)
 
-    @override_config(MFA_ENABLED=True)
     def test_mfa_login_with_free_subscription_no_whitelist(self):
         """
         Validate MFA form is displayed after login when the user
@@ -173,7 +165,6 @@ class TestStripeMFALogin(KpiTestCase):
         response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self._assert_mfa_login(response)
 
-    @override_config(MFA_ENABLED=True)
     def test_mfa_login_with_canceled_subscription_but_previously_set(self):
         """
         Validate that multi-factor authentication form is displayed after
@@ -190,7 +181,6 @@ class TestStripeMFALogin(KpiTestCase):
         response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self._assert_mfa_login(response)
 
-    @override_config(MFA_ENABLED=True)
     def test_no_mfa_login_with_canceled_subscription(self):
         """
         Validate that multi-factor authentication form is not displayed after
@@ -207,7 +197,6 @@ class TestStripeMFALogin(KpiTestCase):
         response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self._assert_no_mfa_login(response)
 
-    @override_config(MFA_ENABLED=True)
     def test_no_mfa_login_with_wrong_password(self):
         """
         Test if MFA by-pass does not create a hole and let the
@@ -225,7 +214,6 @@ class TestStripeMFALogin(KpiTestCase):
         self.assertFalse(response.context_data['form'].is_valid())
         self.assertIsInstance(response.context_data['form'], LoginForm)
 
-    @override_config(MFA_ENABLED=True)
     def test_mfa_login_per_user_availability_no_subscription(self):
         """
         Validate that multi-factor authentication form is displayed after
@@ -241,7 +229,6 @@ class TestStripeMFALogin(KpiTestCase):
         response = self.client.post(reverse('kobo_login'), data=data)
         self._assert_mfa_login(response)
 
-    @override_config(MFA_ENABLED=False)
     def test_mfa_globally_disabled_as_user_with_paid_subscription(self):
         """
         Validate that multi-factor authentication form isn't displayed after
