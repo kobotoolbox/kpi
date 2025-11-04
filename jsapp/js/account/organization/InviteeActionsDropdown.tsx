@@ -2,6 +2,9 @@ import type { ReactNode } from 'react'
 
 import { Group, LoadingOverlay, Menu, Modal, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import { ServerError } from '#/api/ServerError'
+import type { ErrorDetail } from '#/api/models/errorDetail'
+import type { ErrorObject } from '#/api/models/errorObject'
 import type { InviteResponse } from '#/api/models/inviteResponse'
 import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
 import {
@@ -27,54 +30,52 @@ export default function InviteeActionsDropdown({
   const [opened, { open, close }] = useDisclosure()
 
   const orgInvitesPatch = useOrganizationsInvitesPartialUpdate({
-    request: {
-      errorMessageDisplay: t('There was an error updating this invitation.'),
-    },
-  })
-  const orgInvitesDestroy = useOrganizationsInvitesDestroy()
+    mutation: {
+      onSuccess: () => notify(t('The invitation was resent'), 'success'),
+      onError: (error: ErrorObject | ErrorDetail | ServerError) => {
+        const retryAfter =
+          error instanceof ServerError && error.response.status === 429
+            ? error.response.headers?.get('Retry-After')
+            : null
+        if (!retryAfter) return notify(t('There was an error updating this invitation.'), 'error') // TODO: update message in backend (DEV-1218).
 
-  const resendInvitation = async () => {
-    try {
-      await orgInvitesPatch.mutateAsync({
-        uidOrganization: organization.id,
-        guid: getAssetUIDFromUrl(invite.url)!,
-        data: {
-          status: InviteStatusChoicesEnum.resent,
-        },
-      })
-      notify(t('The invitation was resent'), 'success')
-    } catch (e: any) {
-      if (e.status === 429 && e.headers?.get('Retry-After')) {
-        const minutes = Math.ceil(Number.parseInt(e.headers.get('Retry-After')) / 60)
         notify(
           t('Invitation resent too quickly, wait for ##MINUTES## minutes before retrying').replace(
             '##MINUTES##',
-            minutes.toString(),
+            Math.ceil(Number.parseInt(retryAfter) / 60).toString(),
           ),
           'error',
-        )
+        ) // TODO: update message in backend (DEV-1218).
         return
-      }
-      // Generic error handling is done in the api client
-    }
+      },
+    },
+  })
+  const orgInvitesDestroy = useOrganizationsInvitesDestroy({
+    mutation: {
+      onSuccess: () => notify(t('Invitation removed'), 'success'),
+      onError: () => notify(t('An error occurred while removing the invitation'), 'error'), // TODO: update message in backend (DEV-1218).
+    },
+  })
+
+  const resendInvitation = () => {
+    orgInvitesPatch.mutate({
+      uidOrganization: organization.id,
+      guid: getAssetUIDFromUrl(invite.url)!,
+      data: {
+        status: InviteStatusChoicesEnum.resent,
+      },
+    })
   }
 
   const showRemovalConfirmation = () => {
     open()
   }
 
-  const removeInvitation = async () => {
-    try {
-      await orgInvitesDestroy.mutateAsync({
-        uidOrganization: organization.id,
-        guid: getAssetUIDFromUrl(invite.url)!,
-      })
-      notify(t('Invitation removed'), 'success')
-    } catch (e) {
-      notify(t('An error occurred while removing the invitation'), 'error')
-    } finally {
-      close()
-    }
+  const removeInvitation = () => {
+    orgInvitesDestroy.mutate({
+      uidOrganization: organization.id,
+      guid: getAssetUIDFromUrl(invite.url)!,
+    })
   }
 
   return (
