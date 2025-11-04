@@ -4,6 +4,7 @@ $baseView = require './view.pluggedIn.backboneView'
 $viewTemplates = require './view.templates'
 $icons = require './view.icons'
 $configs = require './model.configs'
+writeParameters = require('#/components/formBuilder/formBuilderUtils').writeParameters
 
 module.exports = do ->
   viewRowSelector = {}
@@ -169,11 +170,20 @@ module.exports = do ->
           .addClass("survey-editor__null-top-row--hidden")
       return
 
+    ###
+    # This is the callback for final step of adding new question to Form Builder.
+    # It happens after user chooses question type, and results in new row being added.
+    ###
     onSelectNewQuestionType: (evt)->
       @question_name = @line.find('input').val()
+
+      # Here some unknown cleanup of select2 happens, not sure why at this point given it seems to be related to skip
+      # logic, which is not being available during question creation
       $rowSelect = $('select.skiplogic__rowselect')
       if $rowSelect.data('select2')
         $rowSelect.select2('destroy')
+
+      # Selected row type is being deducted by checking out data attribute of clicked node.
       rowType = $(evt.target).closest('.questiontypelist__item').data("menuItem")
 
       # if question name not provided by user, use default one for type or general one
@@ -184,14 +194,18 @@ module.exports = do ->
       else
         questionLabelValue = $configs.defaultsGeneral.label.value
 
+      # this is the de facto row object that will end up in Backbone Collection of rows
       rowDetails =
         type: rowType
 
+      # For calculate question type we assume that what user wrote in the label input is the calculation value
+      # Otherwise we just go with the label we already came up with above
       if rowType is 'calculate'
         rowDetails.calculation = questionLabelValue
       else
         rowDetails.label = questionLabelValue
 
+      # These options are needed for `addRow` function, so that it knows where to put the rowe we're adding.
       options = {}
       if (rowBefore = @options.spawnedFromView?.model)
         options.after = rowBefore
@@ -200,8 +214,21 @@ module.exports = do ->
         survey = @options.survey
         options.at = 0
 
+      # For some questions we start off with some parameters having default values.
+      # The code was added mostly for `image` to have some initial `max-pixels`.
+      typeConfig = $configs.questionParams[rowType]
+      initialParameters = {}
+      for configName, configValue of typeConfig
+        if (configValue.defaultValue)
+          initialParameters[configName] = configValue.defaultValue
+      if (Object.keys(initialParameters).length > 0)
+        rowDetails.parameters = writeParameters(initialParameters)
+
+      # Here we add the row to the survey
       newRow = survey.addRow(rowDetails, options)
+      # …and link it up (TODO what?)
       newRow.linkUp(warnings: [], errors: [])
+
       @hide()
       return
 
