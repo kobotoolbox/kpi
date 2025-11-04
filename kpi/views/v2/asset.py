@@ -942,7 +942,7 @@ class AssetViewSet(
             'encrypted',
             'last_submission_time',
             'kpi_asset_uid',
-        )
+        ).order_by()
 
         xforms_by_uid = {xf.kpi_asset_uid: xf for xf in xform_qs}
 
