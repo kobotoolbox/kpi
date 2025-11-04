@@ -61,16 +61,18 @@ class MfaAdapter(DefaultMFAAdapter):
         for authenticator in authenticators:
             authenticator.delete()
 
+        encrypted_secret = self.encrypt(mfa_method.secret)
         totp_authenticator = Authenticator.objects.create(
             user_id=mfa_method.user_id,
             type=Authenticator.Type.TOTP,
-            data={'secret': self.encrypt(mfa_method.secret)},
+            data={'secret': encrypted_secret},
         )
         recovery_codes = Authenticator.objects.create(
             user_id=mfa_method.user_id,
             type=Authenticator.Type.RECOVERY_CODES,
             data={
                 'migrated_codes': [self.encrypt(c) for c in mfa_method.backup_codes],
+                'used_mask': 0,
             },
         )
         mfa_method_wrapper = MfaMethodsWrapper.objects.create(
@@ -79,5 +81,6 @@ class MfaAdapter(DefaultMFAAdapter):
             is_active=True,
             totp=totp_authenticator,
             recovery_codes=recovery_codes,
+            secret=encrypted_secret,
         )
         return mfa_method_wrapper

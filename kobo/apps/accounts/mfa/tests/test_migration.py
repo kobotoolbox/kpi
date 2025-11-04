@@ -3,6 +3,9 @@ from allauth.mfa.adapter import get_adapter
 from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
+from trench.command.replace_mfa_method_backup_codes import (
+    regenerate_backup_codes_for_mfa_method_command,
+)
 from trench.utils import get_mfa_model
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -34,28 +37,30 @@ class MfaMigrationTestCase(BaseTestCase):
             is_primary=True,
             is_active=True,
         )
-        mfa_trench.backup_codes = ['abcdefg', '123456']
-        mfa_trench.save()
-
+        backup_codes = list(
+            regenerate_backup_codes_for_mfa_method_command(self.someuser.id, 'app')
+        )
         adapter = get_adapter()
         adapter.migrate_user(self.someuser)
-
-        data = {
+        login_data = {
             'login': 'someuser',
             'password': 'someuser',
         }
-        response = self.client.post(reverse('kobo_login'), data=data, follow=True)
-        self.assertRedirects(response, reverse('mfa_authenticate'))
+        valid_code = get_mfa_code_for_user(self.someuser)
 
-        code = get_mfa_code_for_user(self.someuser)
-        response = self.client.post(
-            reverse('mfa_authenticate'), {'code': 'asdfasdfasdf'}
-        )
-        assert response.status_code == status.HTTP_200_OK
-        assert reverse('mfa_authenticate') == response.request['PATH_INFO']
-
-        code = get_mfa_code_for_user(self.someuser)
-        response = self.client.post(reverse('mfa_authenticate'), {'code': code})
-        breakpoint()
-        assert response.status_code == status.HTTP_200_OK
-        assert reverse(settings.LOGIN_REDIRECT_URL) == response.request['PATH_INFO']
+        for code, should_pass_through in [
+            (valid_code, True),  # TOTP code
+            ('000111', False),  # Invalid code
+            (backup_codes[0], True),  # Backup
+            (backup_codes[0], False),  # Expired code
+            (backup_codes[1], True),  # Backup
+            ('111111', False),  # Invalid code
+        ]:
+            self.client.post(reverse('kobo_login'), data=login_data, follow=True)
+            response = self.client.post(reverse('mfa_authenticate'), {'code': code})
+            if should_pass_through:
+                self.assertRedirects(response, reverse(settings.LOGIN_REDIRECT_URL))
+            else:
+                assert response.status_code == status.HTTP_200_OK
+                assert 'Incorrect code' in response.content.decode()
+            self.client.logout()

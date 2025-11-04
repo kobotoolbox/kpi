@@ -1918,9 +1918,13 @@ add_type('application/geo+json', '.geojson')
 
 KOBOCAT_MEDIA_URL = f'{KOBOCAT_URL}/media/'
 
-MFA_FORMS = {}
+MFA_FORMS = {
+    'authenticate': 'kobo.apps.accounts.mfa.forms.MfaAuthenticateForm',
+    'reauthenticate': 'kobo.apps.accounts.mfa.forms.MfaReauthenticateForm',
+}
 MFA_ADAPTER = 'kobo.apps.accounts.mfa.adapter.MfaAdapter'
 MFA_TOTP_DIGITS = env.int('MFA_CODE_LENGTH', 6)
+MFA_TOTP_PERIOD = env.int('MFA_CODE_VALIDITY_PERIOD', 30)
 MFA_RECOVERY_CODE_COUNT = 5
 MFA_RECOVERY_CODE_DIGITS = 12
 
@@ -1937,9 +1941,18 @@ TRENCH_AUTH = {
     'CONFIRM_BACKUP_CODES_REGENERATION_WITH_CODE': True,
     'ALLOW_BACKUP_CODES_REGENERATION': True,
     'MFA_METHODS': {
+        'app': {
+            'VERBOSE_NAME': 'app',
+            'VALIDITY_PERIOD': env.int(
+                'MFA_CODE_VALIDITY_PERIOD', 30  # seconds
+            ),
+            'USES_THIRD_PARTY_CLIENT': True,
+            'HANDLER': 'kobo.apps.accounts.mfa.backends.application.ApplicationBackend',
+        },
     },
     'CODE_LENGTH': env.int('MFA_CODE_LENGTH', 6),
 }
+
 
 # Session Authentication is supported by default.
 MFA_SUPPORTED_AUTH_CLASSES = [
