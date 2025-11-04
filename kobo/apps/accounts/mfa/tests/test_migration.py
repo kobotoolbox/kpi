@@ -30,7 +30,7 @@ class MfaMigrationTestCase(BaseTestCase):
 
     def test_migrate_trench_data(self):
         # Activate Trench MFA for someuser
-        mfa_trench = get_mfa_model().objects.create(
+        get_mfa_model().objects.create(
             user=self.someuser,
             secret='CPALQQLP4JVV6HZOCPKVARERTFRUULN5',
             name='app',
@@ -40,20 +40,25 @@ class MfaMigrationTestCase(BaseTestCase):
         backup_codes = list(
             regenerate_backup_codes_for_mfa_method_command(self.someuser.id, 'app')
         )
+
+        # Migrate to allauth MFA
         adapter = get_adapter()
         adapter.migrate_user(self.someuser)
         login_data = {
             'login': 'someuser',
             'password': 'someuser',
         }
-        valid_code = get_mfa_code_for_user(self.someuser)
 
+        # Test multiple cases
+        valid_code = get_mfa_code_for_user(self.someuser)
         for code, should_pass_through in [
             (valid_code, True),  # TOTP code
-            ('000111', False),  # Invalid code
             (backup_codes[0], True),  # Backup
             (backup_codes[0], False),  # Expired code
-            (backup_codes[1], True),  # Backup
+            (backup_codes[1], True),
+            (backup_codes[1], False),
+            (backup_codes[2], True),
+            ('000111', False),  # Invalid code
             ('111111', False),  # Invalid code
         ]:
             self.client.post(reverse('kobo_login'), data=login_data, follow=True)
