@@ -51,7 +51,11 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
         )
 
     name = models.CharField(max_length=255)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='mfa_methods_wrapper',
+    )
     secret = models.CharField(max_length=255)  # Leave room for encryption
     totp = models.ForeignKey(
         Authenticator, null=True, on_delete=models.SET_NULL, related_name='+'
