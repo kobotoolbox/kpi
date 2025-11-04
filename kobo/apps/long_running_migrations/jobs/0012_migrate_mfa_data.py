@@ -5,11 +5,7 @@ from django.conf import settings
 from django.db.models.query import QuerySet
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.constants import UsageType
-from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limit
 
-if settings.STRIPE_ENABLED:
-    from kobo.apps.stripe.models import ExceededLimitCounter
 
 CHUNK_SIZE = 1000
 
