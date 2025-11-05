@@ -16484,9 +16484,6 @@
                             "mt_characters_current_period": {
                                 "type": "integer"
                             },
-                            "llm_requests_current_period": {
-                                "type": "integer"
-                            },
                             "asr_seconds_all_time": {
                                 "type": "integer"
                             },
@@ -16495,15 +16492,14 @@
                             },
                             "mt_characters_all_time": {
                                 "type": "integer"
-                            },
-                            "llm_requests_all_time": {
-                                "type": "integer"
                             }
                         },
                         "required": [
                             "asr_seconds_all_time",
                             "asr_seconds_current_period",
                             "llm_requests_all_time",
+                            "llm_requests_all_time",
+                            "llm_requests_current_period",
                             "llm_requests_current_period",
                             "mt_characters_all_time",
                             "mt_characters_current_period"
@@ -19572,9 +19568,6 @@
                             "mt_characters_current_period": {
                                 "type": "integer"
                             },
-                            "llm_requests_current_period": {
-                                "type": "integer"
-                            },
                             "asr_seconds_all_time": {
                                 "type": "integer"
                             },
@@ -19583,15 +19576,14 @@
                             },
                             "mt_characters_all_time": {
                                 "type": "integer"
-                            },
-                            "llm_requests_all_time": {
-                                "type": "integer"
                             }
                         },
                         "required": [
                             "asr_seconds_all_time",
                             "asr_seconds_current_period",
                             "llm_requests_all_time",
+                            "llm_requests_all_time",
+                            "llm_requests_current_period",
                             "llm_requests_current_period",
                             "mt_characters_all_time",
                             "mt_characters_current_period"
