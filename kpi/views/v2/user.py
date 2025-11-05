@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.db.models import Count
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, mixins, status, viewsets
 from rest_framework.decorators import action
@@ -85,12 +86,13 @@ class UserViewSet(
 
         if self.action == 'list':
             self.queryset = (
-                self.queryset.select_related('extra_details')
-                .prefetch_related('assets')
-                .exclude(pk=settings.ANONYMOUS_USER_ID)
+                self.queryset.exclude(pk=settings.ANONYMOUS_USER_ID)
+                .select_related('extra_details')
+                .annotate(assets_count=Count('assets', distinct=True))
+                .order_by('id')
             )
 
-        return self.queryset.order_by('id')
+        return self.queryset
 
     def get_serializer_class(self):
         if self.action == 'list':
