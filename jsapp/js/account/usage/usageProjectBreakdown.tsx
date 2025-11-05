@@ -5,6 +5,7 @@ import prettyBytes from 'pretty-bytes'
 import { Link } from 'react-router-dom'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import type { CustomAssetUsage } from '#/api/models/customAssetUsage'
+import type { ErrorObject } from '#/api/models/errorObject'
 import {
   getOrganizationsAssetUsageListQueryKey,
   useOrganizationsAssetUsageList,
@@ -20,7 +21,6 @@ import { ROUTES } from '#/router/routerConstants'
 import { convertSecondsToMinutes } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
-import {ErrorObject} from '#/api/models/errorObject'
 
 const ProjectBreakdown = () => {
   const [showIntervalBanner, setShowIntervalBanner] = useState(true)
@@ -146,9 +146,7 @@ const ProjectBreakdown = () => {
         />
       ),
       size: 100,
-      cellFormatter: (data: CustomAssetUsage) => (
-        <AssetStatusBadge deploymentStatus={data.deployment_status} />
-      ),
+      cellFormatter: (data: CustomAssetUsage) => <AssetStatusBadge deploymentStatus={data.deployment_status} />,
     },
   ]
 
