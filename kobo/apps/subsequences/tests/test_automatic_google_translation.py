@@ -8,7 +8,6 @@ import pytest
 from ..actions.automatic_google_translation import AutomaticGoogleTranslationAction
 from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 from ..exceptions import TranscriptionNotFound
-from ..tasks import poll_run_external_process
 
 
 def test_valid_params_pass_validation():
@@ -227,8 +226,7 @@ def test_invalid_result_fails_validation():
 
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',
-        # noqa
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService', # noqa
         return_value=mock_service,
     ):
         for data in first, second, third, fourth, fifth, six:
@@ -263,8 +261,7 @@ def test_translation_versions_are_retained_in_supplemental_details():
 
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',
-        # noqa
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
         value = first.pop('value', None)
@@ -327,8 +324,7 @@ def test_latest_version_is_first():
     mock_sup_det = EMPTY_SUPPLEMENT
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',
-        # noqa
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService', # noqa
         return_value=mock_service,
     ):
         for data in first, second, third:
@@ -383,7 +379,6 @@ def test_find_the_most_recent_accepted_transcription():
         '_dateAccepted'
     ] = '2025-07-28T16:18:00Z'
     action.get_action_dependencies(question_supplement_data)
-
 
     action_data = {}  # not really relevant for this test
     expected = {
