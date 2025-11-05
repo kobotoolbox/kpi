@@ -5,7 +5,7 @@ def add_long_running_migration(apps, schema_editor):
     LongRunningMigration = apps.get_model(
         'long_running_migrations', 'LongRunningMigration'
     )
-    LongRunningMigration.objects.create(name='0012_migrate_mfa_data')
+    LongRunningMigration.objects.create(name='0013_migrate_mfa_data')
 
 
 def noop(*args, **kwargs):
@@ -15,7 +15,7 @@ def noop(*args, **kwargs):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('long_running_migrations', '0011_backfill_exceeded_limit_counters'),
+        ('long_running_migrations', '0012_remove_old_versions'),
     ]
 
     operations = [
