@@ -8,7 +8,7 @@ import pytest
 from ..actions.automatic_google_translation import AutomaticGoogleTranslationAction
 from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 from ..exceptions import TranscriptionNotFound
-from ..tasks import poll_run_automatic_process
+from ..tasks import poll_run_external_process
 
 
 def test_valid_params_pass_validation():

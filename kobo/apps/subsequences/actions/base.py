@@ -12,7 +12,7 @@ from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
-from ..tasks import poll_run_automatic_process
+from ..tasks import poll_run_external_process
 from ..type_aliases import NLPExternalServiceClass
 
 """
@@ -394,7 +394,7 @@ class BaseAction:
                     action_data,
                 )
             ):
-                # If the service response is None, the automatic task is still running.
+                # If the service response is None, the external task is still running.
                 # Stop here to avoid processing data and creating redundant revisions.
                 return None
 
@@ -452,7 +452,7 @@ class BaseAction:
         **kwargs,
     ) -> dict | bool:
         """
-        Update action_data with automatic process
+        Update action_data with external process
         """
         raise NotImplementedError
 
@@ -602,7 +602,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
 
     This ensures that both manual and automatic actions share the same
     validation rules for parameters, while automatic actions introduce
-    their own structure for externally-generated results.
+    their own structure with additional system-generated fields.
     """
 
     @property
@@ -823,7 +823,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                     celery_action_data = deepcopy(action_data)
                     celery_action_data.pop(self.DEPENDENCY_FIELD, None)
 
-                    poll_run_automatic_process.apply_async(
+                    poll_run_external_process.apply_async(
                         kwargs={
                             'submission': submission,
                             'action_data': celery_action_data,
