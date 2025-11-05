@@ -135,7 +135,7 @@ class TrackersUtilitiesTestCase(BaseTestCase):
     @pytest.mark.skipif(
         settings.STRIPE_ENABLED, reason='Tests non-stripe functionality'
     )
-    @data('mt_characters', 'asr_seconds')
+    @data('mt_characters', 'asr_seconds', 'llm_requests')
     def test_org_usage_utils_without_stripe(self, usage_type):
         remaining = get_organization_remaining_usage(self.organization, usage_type)
         assert remaining == inf

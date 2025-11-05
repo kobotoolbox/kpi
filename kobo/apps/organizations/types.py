@@ -12,11 +12,13 @@ class UsageLimits(TypedDict):
     submission_limit: float
     asr_seconds_limit: float
     mt_characters_limit: float
+    llm_requests_limit: float
 
 
 class NLPUsage(TypedDict):
     asr_seconds: int
     mt_characters: int
+    llm_requests: int
 
 
 class UsageBalance(TypedDict):
@@ -31,3 +33,4 @@ class UsageBalances(TypedDict):
     submission: UsageBalance | None
     asr_seconds: UsageBalance | None
     mt_characters: UsageBalance | None
+    llm_requests: UsageBalance | None
