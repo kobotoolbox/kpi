@@ -30,7 +30,7 @@ import { withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
-import { formatTime, notify } from '#/utils'
+import { formatTime, notify, recordKeys, recordValues } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
 
@@ -76,7 +76,7 @@ class FormLanding extends React.Component {
       (perm) => perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url,
     )
     if (this.state.anonymousSubmissions) {
-      actions.permissions.removeAssetPermission(this.props.params.uid, permission.url)
+      actions.permissions.removeAssetPermission(this.props.params.uid, permission.url, undefined, undefined, undefined)
     } else {
       actions.permissions.assignAssetPermission(this.props.params.uid, {
         user: buildUserUrl(ANON_USERNAME),
@@ -206,7 +206,7 @@ class FormLanding extends React.Component {
       dataInterface.loadNextPageUrl(urlToLoad).done((data) => {
         this.setState({ nextPageUrl: data.deployed_versions.next })
         const newNextPagesVersions = this.state.nextPagesVersions
-        Object.values(data.deployed_versions.results).forEach((item) => {
+        recordValues(data.deployed_versions.results).forEach((item) => {
           newNextPagesVersions.push(item)
         })
         this.setState({ nextPagesVersions: newNextPagesVersions })
@@ -278,7 +278,7 @@ class FormLanding extends React.Component {
   }
   renderCollectData() {
     const deployment__links_list = []
-    Object.keys(COLLECTION_METHODS).forEach((methodId) => {
+    recordKeys(COLLECTION_METHODS).forEach((methodId) => {
       const methodDef = COLLECTION_METHODS[methodId]
       deployment__links_list.push({
         key: methodDef.id,

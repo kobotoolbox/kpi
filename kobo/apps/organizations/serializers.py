@@ -19,6 +19,7 @@ from kobo.apps.organizations.models import (
     OrganizationInvitation,
     OrganizationInviteStatusChoices,
     OrganizationOwner,
+    OrganizationType,
     OrganizationUser,
     create_organization,
 )
@@ -30,6 +31,7 @@ from kpi.schema_extensions.v2.organizations.fields import (
     MembersField,
     ServiceUsageField,
     UrlField,
+    UserRoleField,
 )
 from kpi.utils.cache import void_cache_for_request
 from kpi.utils.object_permission import get_database_user
@@ -97,8 +99,8 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         return reverse(
             'organization-members-detail',
             kwargs={
-                'organization_id': obj.organization.id,
-                'user__username': obj.user.username
+                'uid_organization': obj.organization.id,
+                'username': obj.user.username
             },
             request=request
         )
@@ -124,7 +126,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         if invite:
             return OrgMembershipInviteSerializer(invite, context=self.context).data
 
-        return {}
+        return None
 
     def to_representation(self, instance):
         """
@@ -179,7 +181,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
     request_user_role = serializers.SerializerMethodField()
     service_usage = serializers.SerializerMethodField()
     url = HyperlinkedIdentityFieldWithSchemaField(
-        schema_field=UrlField, lookup_field='id', view_name='organizations-detail'
+        schema_field=UrlField, lookup_field='id', lookup_url_kwarg='uid_organization', view_name='organizations-detail'
     )
     website = serializers.CharField(required=False, allow_blank=True)
 
@@ -211,7 +213,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
     def get_assets(self, organization: Organization) -> str:
         return reverse(
             'organizations-assets',
-            kwargs={'id': organization.id},
+            kwargs={'uid_organization': organization.id},
             request=self.context['request'],
         )
 
@@ -219,7 +221,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
     def get_asset_usage(self, organization: Organization) -> str:
         return reverse(
             'organizations-asset-usage',
-            kwargs={'id': organization.id},
+            kwargs={'uid_organization': organization.id},
             request=self.context['request'],
         )
 
@@ -227,7 +229,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
     def get_members(self, organization: Organization) -> str:
         return reverse(
             'organization-members-list',
-            kwargs={'organization_id': organization.id},
+            kwargs={'uid_organization': organization.id},
             request=self.context['request'],
         )
 
@@ -235,7 +237,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
     def get_service_usage(self, organization: Organization) -> str:
         return reverse(
             'organizations-service-usage',
-            kwargs={'id': organization.id},
+            kwargs={'uid_organization': organization.id},
             request=self.context['request'],
         )
 
@@ -250,7 +252,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
         return False
 
-    @extend_schema_field(OpenApiTypes.STR)
+    @extend_schema_field(UserRoleField)
     def get_request_user_role(self, organization):
 
         if request := self.context.get('request'):
@@ -258,6 +260,14 @@ class OrganizationSerializer(serializers.ModelSerializer):
             return organization.get_user_role(user)
 
         return ORG_EXTERNAL_ROLE
+
+
+class OrganizationResponseSerializer(OrganizationSerializer):
+    name = serializers.CharField(max_length=200, read_only=True)
+    website = serializers.CharField(max_length=255, read_only=True)
+    organization_type = serializers.ChoiceField(
+        choices=OrganizationType.choices, read_only=True
+    )
 
 
 class OrgMembershipInviteSerializer(serializers.ModelSerializer):
@@ -353,7 +363,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         return reverse(
             'organization-invites-detail',
             kwargs={
-                'organization_id': obj.invited_by.organization.id,
+                'uid_organization': obj.invited_by.organization.id,
                 'guid': obj.guid,
             },
             request=self.context.get('request'),

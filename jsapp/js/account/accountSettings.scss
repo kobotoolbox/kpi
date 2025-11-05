@@ -86,3 +86,9 @@
 .anonymous-submission-notice {
   margin-top: 12px;
 }
+
+.account-settings .form-modal__item--fields {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}

@@ -19,10 +19,9 @@ import { actions } from './actions'
 import { renderJSXMessage } from './alertify'
 import assetUtils from './assetUtils'
 import myLibraryStore from './components/library/myLibraryStore'
-import permConfig from './components/permissions/permConfig'
 import { userCan } from './components/permissions/utils'
 import { ASSET_TYPES, MODAL_TYPES } from './constants'
-import type { AssetResponse, DeploymentResponse, PermissionResponse, ProjectViewAsset } from './dataInterface'
+import type { AssetResponse, DeploymentResponse, ProjectViewAsset } from './dataInterface'
 import { router, routerIsActive } from './router/legacy'
 import { ROUTES } from './router/routerConstants'
 import { stores } from './stores'
@@ -363,21 +362,6 @@ export function cloneAssetAsSurvey(sourceUid: string, sourceName: string) {
 }
 
 export function removeAssetSharing(uid: string) {
-  /**
-   * Extends `removeAllPermissions` from `userPermissionRow.component.tsx`:
-   * Checks for permissions from current user before finding correct
-   * "most basic" permission to remove.
-   */
-  const asset = stores.allAssets.byUid[uid]
-  const userViewAssetPerm = asset.permissions.find((perm: PermissionResponse) => {
-    // Get permissions url related to current user
-    const permUserUrl = perm.user.split('/')
-    return (
-      permUserUrl[permUserUrl.length - 2] === sessionStore.currentAccount.username &&
-      perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset)?.url
-    )
-  })
-
   const dialog = alertify.dialog('confirm')
   const opts = {
     title: t('Remove shared form'),
@@ -387,7 +371,7 @@ export function removeAssetSharing(uid: string) {
       // Only non-owners should have the asset removed from their asset list.
       // This menu option is only open to non-owners so we don't need to check again.
       const isNonOwner = true
-      actions.permissions.removeAssetPermission(uid, userViewAssetPerm.url, true, isNonOwner)
+      actions.permissions.removeAssetPermission(uid, undefined, true, isNonOwner, sessionStore.currentAccount.username)
     },
     oncancel: () => {
       dialog.destroy()

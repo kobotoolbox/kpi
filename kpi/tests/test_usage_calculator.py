@@ -47,6 +47,7 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
         super().setUpTestData()
         cls.anotheruser = User.objects.get(username='anotheruser')
         cls.someuser = User.objects.get(username='someuser')
+        cls.adminuser = User.objects.get(username='adminuser')
 
     def _create_asset(self, user=None):
         owner = user or self.anotheruser
@@ -80,7 +81,7 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
         self.asset = self._create_asset(user)
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
         )
         self._deployment = self.asset.deployment
 
@@ -277,6 +278,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         self.add_submissions(count=2, asset=asset_3, username='someuser')
         results = get_storage_usage_by_user_id()
         assert results == {
+            self.adminuser.id: 0,
             self.someuser.id: 4 * self.expected_file_size(),
             self.anotheruser.id: 5 * self.expected_file_size(),
         }

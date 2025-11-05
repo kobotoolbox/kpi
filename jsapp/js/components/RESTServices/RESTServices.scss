@@ -5,6 +5,7 @@
 .rest-services {
   display: flex;
   flex-direction: column;
+  padding: 20px;
 
   // centers empty content message
   &.rest-services--empty {

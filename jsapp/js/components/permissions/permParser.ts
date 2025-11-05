@@ -2,13 +2,9 @@ import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
 import type { PartialPermission, PartialPermissionFilter, PermissionBase, PermissionResponse } from '#/dataInterface'
 import { ANON_USERNAME, buildUserUrl, getUsernameFromUrl } from '#/users/utils'
+import { recordEntries, recordKeys, recordValues } from '#/utils'
 import permConfig from './permConfig'
-import type {
-  CheckboxNameAll,
-  CheckboxNamePartialByResponses,
-  CheckboxNamePartialByUsers,
-  PermissionCodename,
-} from './permConstants'
+import type { CheckboxNameAll, PermissionCodename } from './permConstants'
 import { CHECKBOX_PERM_PAIRS, PARTIAL_BY_RESPONSES_PERM_PAIRS, PARTIAL_BY_USERS_PERM_PAIRS } from './permConstants'
 import {
   getCheckboxNameByPermission,
@@ -228,10 +224,9 @@ export function parseFormData(data: PermsFormDataPartialWithUsername): Permissio
   const partialPerms: PartialPermission[] = []
 
   // Step 1: Gather all partial "by users" permissions
-  for (const [checkboxName, permCodename] of Object.entries(PARTIAL_BY_USERS_PERM_PAIRS)) {
-    const byUsersCheckboxName = checkboxName as CheckboxNamePartialByUsers
-    if (data[byUsersCheckboxName]) {
-      const listName = getPartialByUsersListName(byUsersCheckboxName)
+  for (const [checkboxName, permCodename] of recordEntries(PARTIAL_BY_USERS_PERM_PAIRS)) {
+    if (data[checkboxName]) {
+      const listName = getPartialByUsersListName(checkboxName)
       const partialUsers = data[listName] || []
 
       // For one user it will be string, for multiple it will be an `$in` object
@@ -245,12 +240,11 @@ export function parseFormData(data: PermsFormDataPartialWithUsername): Permissio
   }
 
   // Step 2: Gather all partial "by responses" permissions
-  for (const [checkboxName, permCodename] of Object.entries(PARTIAL_BY_RESPONSES_PERM_PAIRS)) {
-    const byResponsesCheckboxName = checkboxName as CheckboxNamePartialByResponses
-    if (data[byResponsesCheckboxName]) {
-      const questionProp = getPartialByResponsesQuestionName(byResponsesCheckboxName)
+  for (const [checkboxName, permCodename] of recordEntries(PARTIAL_BY_RESPONSES_PERM_PAIRS)) {
+    if (data[checkboxName]) {
+      const questionProp = getPartialByResponsesQuestionName(checkboxName)
       const question = data[questionProp]
-      const valueProp = getPartialByResponsesValueName(byResponsesCheckboxName)
+      const valueProp = getPartialByResponsesValueName(checkboxName)
       const value = data[valueProp] // this can be empty string (and it's ok)
 
       if (question) {
@@ -287,7 +281,7 @@ export function parseFormData(data: PermsFormDataPartialWithUsername): Permissio
   }
 
   // Step 4: Gather all non-partial permissions
-  for (const [checkboxNameString, permCodename] of Object.entries(CHECKBOX_PERM_PAIRS)) {
+  for (const [checkboxNameString, permCodename] of recordEntries(CHECKBOX_PERM_PAIRS)) {
     const checkboxName = checkboxNameString as CheckboxNameAll
     if (
       data[checkboxName] &&
@@ -381,8 +375,8 @@ export function buildFormData(permissions: PermissionResponse[], username?: stri
             // Step 5A. Set question name
             // Note that there is always one key with one value in this object,
             // so that we can go with `[0]` without risk
-            formData[byResponsesQuestionName] = Object.keys(byResponsesFilter)[0]
-            const value = Object.values(byResponsesFilter)[0]
+            formData[byResponsesQuestionName] = recordKeys(byResponsesFilter)[0]
+            const value = recordValues(byResponsesFilter)[0]
             if (typeof value === 'string') {
               // Step 5B. Set value
               formData[byResponsesValueName] = value
@@ -449,7 +443,7 @@ export function parseBackendData(
 ): UserWithPerms[] {
   const output: UserWithPerms[] = []
 
-  const groupedData: { [userName: string]: PermissionResponse[] } = {}
+  const groupedData: Record<string, PermissionResponse[]> = {}
   perms.forEach((perm) => {
     // anonymous user permissions are our inner way of handling public sharing
     if (getUsernameFromUrl(perm.user) === ANON_USERNAME && !includeAnon) {
@@ -461,7 +455,7 @@ export function parseBackendData(
     groupedData[perm.user].push(perm)
   })
 
-  Object.keys(groupedData).forEach((userUrl) => {
+  recordKeys(groupedData).forEach((userUrl) => {
     output.push({
       user: {
         url: userUrl,

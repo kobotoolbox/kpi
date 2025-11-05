@@ -12,7 +12,7 @@ jobs:
       title: ${{ steps.get-head-commit-title.outputs.title }}
       sha: ${{ steps.get-head-commit-sha.outputs.sha }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           ref: "main"
@@ -31,7 +31,7 @@ jobs:
     outputs:
       should-run: ${{ steps.should-run.outputs.should-run }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: "main"
       - name: Print latest commit
@@ -52,11 +52,11 @@ jobs:
       chromatic-url: ${{ steps.run-chromatic.outputs.url }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           ref: "main"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20.18.1
       - name: Install dependencies

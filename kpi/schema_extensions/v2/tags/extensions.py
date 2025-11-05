@@ -9,7 +9,9 @@ class AssetListFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_array_type(
-            schema=build_url_type('api_v2:asset-detail', uid='a5owyo85mHyFazzgsZK45c')
+            schema=build_url_type(
+                'api_v2:asset-detail', uid_asset='a5owyo85mHyFazzgsZK45c'
+            )
         )
 
 

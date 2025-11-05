@@ -136,7 +136,7 @@ export const fetchDataRaw = async <T>(
   }
 
   // For when it's needed we pass authentication data
-  if (method === 'DELETE' || data) {
+  if (method !== 'GET') {
     // Need to support old token (64 characters - prior to Django 4.1)
     // and new token (32 characters).
     const csrfCookie = document.cookie.match(/csrftoken=(\w{32,64})/)
