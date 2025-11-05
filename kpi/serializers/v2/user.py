@@ -87,7 +87,7 @@ class UserListSerializer(UserSerializer):
 
     @extend_schema_field(OpenApiTypes.INT)
     def get_asset_count(self, user):
-        return user.assets.count()
+        return user.assets_count
 
     @extend_schema_field(MetadataField)
     def get_metadata(self, user):
