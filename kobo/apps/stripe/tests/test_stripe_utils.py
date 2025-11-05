@@ -101,14 +101,12 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             id__in=[self.organization.id, self.second_organization.id]
         )
         for usage_type, _ in UsageType.choices:
-            assert (
-                all_limits[self.organization.id][f'{usage_type}_limit']
-                == float(first_paid_plan_limits[f'{usage_type}_limit'])
+            assert all_limits[self.organization.id][f'{usage_type}_limit'] == float(
+                first_paid_plan_limits[f'{usage_type}_limit']
             )
-            assert (
-                all_limits[self.second_organization.id][f'{usage_type}_limit']
-                == float(second_paid_plan_limits[f'{usage_type}_limit'])
-            )
+            assert all_limits[self.second_organization.id][
+                f'{usage_type}_limit'
+            ] == float(second_paid_plan_limits[f'{usage_type}_limit'])
 
             for org in other_orgs:
                 assert all_limits[org.id][f'{usage_type}_limit'] == float(
@@ -522,7 +520,9 @@ class OrganizationsUtilsTestCase(BaseTestCase):
                 results[self.organization.id][f'{UsageType.MT_CHARACTERS}_limit'] == 16
             )
             assert results[self.organization.id][f'{UsageType.ASR_SECONDS}_limit'] == 21
-            assert results[self.organization.id][f'{UsageType.LLM_REQUESTS}_limit'] == 21
+            assert (
+                results[self.organization.id][f'{UsageType.LLM_REQUESTS}_limit'] == 21
+            )
             assert (
                 results[self.second_organization.id][f'{UsageType.SUBMISSION}_limit']
                 == 12

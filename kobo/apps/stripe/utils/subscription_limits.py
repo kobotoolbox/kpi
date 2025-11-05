@@ -262,9 +262,7 @@ def get_paid_subscription_limits(organization_ids: list[str], **kwargs) -> Query
             mt_characters_limit=Coalesce(
                 F(price_characters_key), F(product_characters_key)
             ),
-            llm_requests_limit=Coalesce(
-                F(price_requests_key), F(product_requests_key)
-            ),
+            llm_requests_limit=Coalesce(F(price_requests_key), F(product_requests_key)),
             sub_start_date=F('start_date'),
             product_type=F('items__price__product__metadata__product_type'),
         )

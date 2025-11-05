@@ -9787,8 +9787,11 @@ components:
               type: integer
             total_nlp_mt_characters:
               type: integer
+            total_nlp_llm_requests:
+              type: integer
           required:
           - total_nlp_asr_seconds
+          - total_nlp_llm_requests
           - total_nlp_mt_characters
         nlp_usage_all_time:
           type: object
@@ -9797,8 +9800,11 @@ components:
               type: integer
             total_nlp_mt_characters:
               type: integer
+            total_nlp_llm_requests:
+              type: integer
           required:
           - total_nlp_asr_seconds
+          - total_nlp_llm_requests
           - total_nlp_mt_characters
         storage_bytes:
           type: integer
@@ -11749,8 +11755,11 @@ components:
               type: integer
             total_nlp_mt_characters:
               type: integer
+            total_nlp_llm_requests:
+              type: integer
           required:
           - total_nlp_asr_seconds
+          - total_nlp_llm_requests
           - total_nlp_mt_characters
         nlp_usage_all_time:
           type: object
@@ -11759,8 +11768,11 @@ components:
               type: integer
             total_nlp_mt_characters:
               type: integer
+            total_nlp_llm_requests:
+              type: integer
           required:
           - total_nlp_asr_seconds
+          - total_nlp_llm_requests
           - total_nlp_mt_characters
         storage_bytes:
           type: integer
@@ -11871,9 +11883,13 @@ components:
               type: integer
             mt_characters_all_time:
               type: integer
+            llm_requests_all_time:
+              type: integer
           required:
           - asr_seconds_all_time
           - asr_seconds_current_period
+          - llm_requests_all_time
+          - llm_requests_current_period
           - mt_characters_all_time
           - mt_characters_current_period
         total_storage_bytes:
@@ -14091,9 +14107,13 @@ components:
               type: integer
             mt_characters_all_time:
               type: integer
+            llm_requests_all_time:
+              type: integer
           required:
           - asr_seconds_all_time
           - asr_seconds_current_period
+          - llm_requests_all_time
+          - llm_requests_current_period
           - mt_characters_all_time
           - mt_characters_current_period
         total_storage_bytes:
