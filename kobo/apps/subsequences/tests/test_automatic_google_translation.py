@@ -405,7 +405,7 @@ def test_action_is_updated_in_background_if_in_progress():
     ):
         mock_service.process_data.return_value = {'status': 'in_progress'}
         with patch(
-            'kobo.apps.subsequences.actions.base.poll_run_automatic_process'
+            'kobo.apps.subsequences.actions.base.poll_run_external_process'
         ) as task_mock:
             action.revise_data(
                 submission, EMPTY_SUPPLEMENT, {'language': 'fr'}
