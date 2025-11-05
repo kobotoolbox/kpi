@@ -135,7 +135,7 @@ class EnvironmentView(APIView):
             user=get_database_user(request.user)
         ).exists()
         data['mfa_has_availability_list'] = MfaAvailableToUser.objects.all().exists()
-        data['mfa_code_length'] = settings.TRENCH_AUTH['CODE_LENGTH']
+        data['mfa_code_length'] = settings.MFA_TOTP_DIGITS
         return data
 
     @staticmethod

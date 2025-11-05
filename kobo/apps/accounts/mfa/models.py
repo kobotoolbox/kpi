@@ -5,7 +5,6 @@ from django.contrib import admin
 from django.db import models
 from django.utils.timezone import now
 from trench.admin import MFAMethod as TrenchMFAMethod
-from trench.admin import MFAMethodAdmin as TrenchMFAMethodAdmin
 
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.models.abstract_models import AbstractTimeStampedModel
@@ -145,12 +144,3 @@ class MfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
         """
         if not settings.TESTING:
             UserProfile.set_mfa_status(user_id=user_id, is_active=False)
-
-
-class ExtendedTrenchMfaMethodAdmin(TrenchMFAMethodAdmin):
-
-    search_fields = ('user__username',)
-    autocomplete_fields = ['user']
-
-    def has_add_permission(self, request, obj=None):
-        return False

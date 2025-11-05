@@ -103,7 +103,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
                     '##support email##', config.SUPPORT_EMAIL
                 )
             ),
-            'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH'],
+            'mfa_code_length': settings.MFA_TOTP_DIGITS,
             # stripe key added below if stripe is enabled
             'stripe_public_key': None,
             'free_tier_thresholds': to_python_object(config.FREE_TIER_THRESHOLDS),
