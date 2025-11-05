@@ -7,7 +7,7 @@ class TranscriptionActionMixin:
     """
     Provides common methods and properties used by all transcription-related actions.
 
-    This mixin centralizes them so that both manual and automated transcription classes
+    This mixin centralizes them so that both manual and automatic transcription classes
     can reuse the same structure consistently.
     """
 
@@ -15,8 +15,8 @@ class TranscriptionActionMixin:
     def result_schema(self):
 
         # Move localized_value_schema definitions to main schema
-        if self.action_class_config.automated:
-            data_schema_defs = self.automated_data_schema.get('$defs', {})
+        if self.action_class_config.automatic:
+            data_schema_defs = self.external_data_schema.get('$defs', {})
         else:
             data_schema_defs = self.data_schema.get('$defs', {})
 
@@ -63,7 +63,7 @@ class TranslationActionMixin:
     """
     Provides common methods and properties used by all translation-related actions.
 
-    This mixin centralizes them so that both manual and automated translation classes
+    This mixin centralizes them so that both manual and automatic translation classes
     can reuse the same structure consistently.
     """
 
@@ -149,13 +149,13 @@ class TranslationActionMixin:
         for this action to run correctly.
         """
 
-        from ..actions.automated_google_transcription import (
-            AutomatedGoogleTranscriptionAction
+        from ..actions.automatic_google_transcription import (
+            AutomaticGoogleTranscriptionAction
         )
         from ..actions.manual_transcription import ManualTranscriptionAction
 
         transcription_action_ids = (
-            AutomatedGoogleTranscriptionAction.ID,
+            AutomaticGoogleTranscriptionAction.ID,
             ManualTranscriptionAction.ID,
         )
 
@@ -186,8 +186,8 @@ class TranslationActionMixin:
         }
 
         # Move localized_value_schema definitions to main schema
-        if self.action_class_config.automated:
-            data_schema_defs = self.automated_data_schema.get('$defs', {})
+        if self.action_class_config.automatic:
+            data_schema_defs = self.external_data_schema.get('$defs', {})
         else:
             data_schema_defs = self.data_schema.get('$defs', {})
 

@@ -25,7 +25,7 @@ from .utils.versioning import set_version
     retry_jitter=False,
     queue='kpi_low_priority_queue',
 )
-def poll_run_automated_process(
+def poll_run_automatic_process(
     asset_id: int,
     submission: dict,
     question_xpath: str,
@@ -49,8 +49,8 @@ def poll_run_automated_process(
         )
 
 
-@task_failure.connect(sender=poll_run_automated_process)
-def poll_run_automated_process_failure(sender=None, **kwargs):
+@task_failure.connect(sender=poll_run_automatic_process)
+def poll_run_automatic_process_failure(sender=None, **kwargs):
 
     # Avoid circular import
     from .actions import ACTION_IDS_TO_CLASSES

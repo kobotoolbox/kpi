@@ -1,17 +1,17 @@
 from kobo.apps.organizations.constants import UsageType
 from ..integrations.google.google_translate import GoogleTranslationService
 from ..type_aliases import NLPExternalServiceClass
-from .base import ActionClassConfig, BaseAutomatedNLPAction
+from .base import ActionClassConfig, BaseAutomaticNLPAction
 from .mixins import TranslationActionMixin
 
 
-class AutomatedGoogleTranslationAction(
-    TranslationActionMixin, BaseAutomatedNLPAction
+class AutomaticGoogleTranslationAction(
+    TranslationActionMixin, BaseAutomaticNLPAction
 ):
 
-    ID = 'automated_google_translation'
+    ID = 'automatic_google_translation'
     action_class_config = ActionClassConfig(
-        allow_multiple=True, automated=True, action_data_key='language'
+        allow_multiple=True, automatic=True, action_data_key='language'
     )
 
     def get_nlp_service_class(self) -> NLPExternalServiceClass:
@@ -20,7 +20,7 @@ class AutomatedGoogleTranslationAction(
     @property
     def result_schema(self):
         """
-        JSON Schema for automated Google translation results.
+        JSON Schema for automatic Google translation results.
 
         The payload is an object where each top-level key is a language code from
         `self.languages` (e.g. "en") mapping to a dataActionKey object. Timestamps
@@ -65,7 +65,7 @@ class AutomatedGoogleTranslationAction(
                 "status": "in_progress",
                 "_dependency": {
                   "_uuid": "16fd2706-8baf-433b-82eb-8c7fada847da",
-                  "_actionId": "automated_google_transcription"
+                  "_actionId": "automatic_google_transcription"
                 }
               }
             ]
@@ -88,7 +88,7 @@ class AutomatedGoogleTranslationAction(
                 "accepted": true,
                 "_dependency": {
                   "_uuid": "16fd2706-8baf-433b-82eb-8c7fada847da",
-                  "_actionId": "automated_google_transcription"
+                  "_actionId": "automatic_google_transcription"
                 }
               }
             ]

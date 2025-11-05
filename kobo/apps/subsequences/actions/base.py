@@ -12,7 +12,7 @@ from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
-from ..tasks import poll_run_automated_process
+from ..tasks import poll_run_automatic_process
 from ..type_aliases import NLPExternalServiceClass
 
 """
@@ -151,12 +151,12 @@ class ActionClassConfig:
     - allow_multiple: Whether multiple items can share the same `action_data_key`.
     - action_data_key: The field in `action_data` used to identify or match an item
       when multiple entries are allowed (e.g., "language").
-    - automated: Indicates whether the action relies on an external service
+    - automatic: Indicates whether the action relies on an external service
       to generate data.
     """
 
     allow_multiple: bool
-    automated: bool
+    automatic: bool
     action_data_key: str | None = None
 
 
@@ -199,7 +199,7 @@ class BaseAction:
             raise UsageLimitExceededException()
 
     @property
-    def automated_data_schema(self):
+    def external_data_schema(self):
         raise NotImplementedError
 
     @property
@@ -270,9 +270,9 @@ class BaseAction:
         ).insert(0, new_version)
 
         # For manual actions, always mark as accepted.
-        # For automated actions, revert the just-created revision (remove it and
+        # For automatic actions, revert the just-created revision (remove it and
         # reapply its dates) to avoid adding extra branching earlier in the method.
-        if self.action_class_config.automated:
+        if self.action_class_config.automatic:
             if accepted is not None:
                 # Remove stale version
                 localized_action_supplemental_data[self.VERSION_FIELD].pop(0)
@@ -320,8 +320,8 @@ class BaseAction:
         # raise NotImplementedError()
         return []
 
-    def validate_automated_data(self, data):
-        jsonschema.validate(data, self.automated_data_schema)
+    def validate_external_data(self, data):
+        jsonschema.validate(data, self.external_data_schema)
 
     def validate_data(self, data):
         jsonschema.validate(data, self.data_schema)
@@ -385,16 +385,16 @@ class BaseAction:
 
         self.attach_action_dependency(action_data)
 
-        if self.action_class_config.automated:
-            # If the action is automated, run the external process first.
+        if self.action_class_config.automatic:
+            # If the action is automatic, run the external process first.
             if not (
-                service_response := self.run_automated_process(
+                service_response := self.run_external_process(
                     submission,
                     current_version,
                     action_data,
                 )
             ):
-                # If the service response is None, the automated task is still running.
+                # If the service response is None, the automatic task is still running.
                 # Stop here to avoid processing data and creating redundant revisions.
                 return None
 
@@ -402,7 +402,7 @@ class BaseAction:
             # the validation process.
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
             action_data.update(service_response)
-            self.validate_automated_data(action_data)
+            self.validate_external_data(action_data)
             accepted = action_data.pop('accepted', None)
         else:
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
@@ -443,7 +443,7 @@ class BaseAction:
             if match:
                 raise Exception('An unexpected key with a leading underscore was found')
 
-    def run_automated_process(
+    def run_external_process(
         self,
         submission: dict,
         action_supplemental_data: dict,
@@ -452,7 +452,7 @@ class BaseAction:
         **kwargs,
     ) -> dict | bool:
         """
-        Update action_data with automated process
+        Update action_data with automatic process
         """
         raise NotImplementedError
 
@@ -464,8 +464,8 @@ class BaseAction:
         """
 
         schema_to_inject = (
-            self.automated_data_schema
-            if self.action_class_config.automated
+            self.external_data_schema
+            if self.action_class_config.automatic
             else self.data_schema
         )
 
@@ -488,11 +488,11 @@ class BaseAction:
         """
         Returns whether an action should check for usage limits.
         """
-        return self.action_class_config.automated
+        return self.action_class_config.automatic
 
     @property
     def _limit_identifier(self):
-        # See AutomatedGoogleTranscriptionAction._limit_identifier() for example
+        # See AutomaticGoogleTranscriptionAction._limit_identifier() for example
         raise NotImplementedError()
 
 
@@ -592,21 +592,21 @@ class BaseManualNLPAction(BaseAction):
         return languages
 
 
-class BaseAutomatedNLPAction(BaseManualNLPAction):
+class BaseAutomaticNLPAction(BaseManualNLPAction):
     """
-    Base class for all automated NLP actions.
+    Base class for all automatic NLP actions.
 
     Extends `BaseManualNLPAction`, reusing its `params_schema` for
-    consistency in language configuration, while adding automated-specific
-    schema definitions (`automated_data_schema` and `data_schema`).
+    consistency in language configuration, while adding automatic-specific
+    schema definitions (`external_data_schema` and `data_schema`).
 
-    This ensures that both manual and automated actions share the same
-    validation rules for parameters, while automated actions introduce
-    their own structure for system-generated results.
+    This ensures that both manual and automatic actions share the same
+    validation rules for parameters, while automatic actions introduce
+    their own structure for externally-generated results.
     """
 
     @property
-    def automated_data_schema(self) -> dict:
+    def external_data_schema(self) -> dict:
         """
         Schema rules:
 
@@ -752,7 +752,7 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
 
         raise NotImplementedError
 
-    def run_automated_process(
+    def run_external_process(
         self,
         submission: dict,
         action_supplemental_data: dict,
@@ -761,7 +761,7 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
         **kwargs,
     ) -> dict | None:
         """
-        Run the automated NLP process using the configured external service
+        Run the automatic NLP process using the configured external service
         (e.g., Google).
         This method is intended to be called by `revise_data()`, which finalizes
         the validation and merging of `action_data`.
@@ -793,7 +793,7 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
 
         # If the client explicitly removed a previously stored result,
         # preserve the deletion by returning a `deleted` status instead
-        # of reprocessing with the automated service.
+        # of reprocessing with the external service.
         # TODO add comment for delete here
         if 'value' in action_data:
             return {
@@ -823,7 +823,7 @@ class BaseAutomatedNLPAction(BaseManualNLPAction):
                     celery_action_data = deepcopy(action_data)
                     celery_action_data.pop(self.DEPENDENCY_FIELD, None)
 
-                    poll_run_automated_process.apply_async(
+                    poll_run_automatic_process.apply_async(
                         kwargs={
                             'submission': submission,
                             'action_data': celery_action_data,

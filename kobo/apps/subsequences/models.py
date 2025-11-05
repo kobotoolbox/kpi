@@ -150,7 +150,6 @@ class SubmissionSupplement(SubmissionExtras):
 
         if not supplemental_data:
             return {}
-
         schema_version = supplemental_data.pop('_version')
 
         if schema_version not in SCHEMA_VERSIONS:

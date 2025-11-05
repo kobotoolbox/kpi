@@ -1,16 +1,16 @@
 from kobo.apps.organizations.constants import UsageType
 from ..integrations.google.google_transcribe import GoogleTranscriptionService
 from ..type_aliases import NLPExternalServiceClass
-from .base import ActionClassConfig, BaseAutomatedNLPAction
+from .base import ActionClassConfig, BaseAutomaticNLPAction
 from .mixins import TranscriptionActionMixin
 
 
-class AutomatedGoogleTranscriptionAction(
-    TranscriptionActionMixin, BaseAutomatedNLPAction
+class AutomaticGoogleTranscriptionAction(
+    TranscriptionActionMixin, BaseAutomaticNLPAction
 ):
 
-    ID = 'automated_google_transcription'
-    action_class_config = ActionClassConfig(allow_multiple=False, automated=True)
+    ID = 'automatic_google_transcription'
+    action_class_config = ActionClassConfig(allow_multiple=False, automatic=True)
 
     def get_nlp_service_class(self) -> NLPExternalServiceClass:
         return GoogleTranscriptionService
@@ -18,7 +18,7 @@ class AutomatedGoogleTranscriptionAction(
     @property
     def result_schema(self):
         """
-        JSON Schema for automated Google transcription results.
+        JSON Schema for automatic Google transcription results.
 
         The payload is a single-language object with:
           - _dateCreated : required string (date-time)
