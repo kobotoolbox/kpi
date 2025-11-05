@@ -7,7 +7,7 @@ import {
 } from '#/api/react-query/user-team-organization-usage'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Select from '#/components/common/Select'
-import { getAssetUIDFromUrl } from '#/utils'
+import { getAssetUIDFromUrl, notify } from '#/utils'
 
 interface MemberRoleSelectorProps {
   username: string
@@ -22,10 +22,10 @@ interface MemberRoleSelectorProps {
 export default function MemberRoleSelector({ username, role, inviteUrl }: MemberRoleSelectorProps) {
   const [organization] = useOrganizationAssumed()
 
-  const orgMembersPatch = useOrganizationsMembersPartialUpdate()
+  const orgMembersPatch = useOrganizationsMembersPartialUpdate({})
   const orgInvitesPatch = useOrganizationsInvitesPartialUpdate({
-    request: {
-      errorMessageDisplay: t('There was an error updating this invitation.'),
+    mutation: {
+      onError: () => notify(t('There was an error updating this invitation.'), 'error'), // TODO: update message in backend (DEV-1218).
     },
   })
 
@@ -33,13 +33,13 @@ export default function MemberRoleSelector({ username, role, inviteUrl }: Member
     if (!role) return
 
     if (inviteUrl) {
-      await orgInvitesPatch.mutateAsync({
-        guid: getAssetUIDFromUrl(inviteUrl)!,
+      orgInvitesPatch.mutate({
         uidOrganization: organization.id,
+        guid: getAssetUIDFromUrl(inviteUrl)!,
         data: { role },
       })
     } else {
-      await orgMembersPatch.mutateAsync({ uidOrganization: organization.id, username: username, data: { role } })
+      orgMembersPatch.mutate({ uidOrganization: organization.id, username: username, data: { role } })
     }
   }
 
