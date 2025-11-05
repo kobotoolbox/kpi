@@ -229,6 +229,7 @@ class TestStripeMFALogin(KpiTestCase):
         response = self.client.post(reverse('kobo_login'), data=data)
         self._assert_mfa_login(response)
 
+    @override_config(MFA_ENABLED=False)
     def test_mfa_globally_disabled_as_user_with_paid_subscription(self):
         """
         Validate that multi-factor authentication form isn't displayed after
