@@ -71,7 +71,7 @@ export default function SelectOneResponseForm(props: SelectOneResponseFormProps)
   }
 
   return (
-    <ResponseWrapper uuid={props.uuid}>
+    <ResponseWrapper uuid={props.uuid} clearable={() => setResponse('')}>
       <Radio
         options={getOptions()}
         name={question.labels._default}
