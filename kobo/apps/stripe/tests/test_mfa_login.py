@@ -1,8 +1,10 @@
 # coding: utf-8
 from allauth.account.models import EmailAddress
+from django.apps import apps
 from django.conf import settings
 from django.shortcuts import resolve_url
 from django.template.response import TemplateResponse
+from django.test.utils import override_settings
 from django.urls import reverse
 from djstripe.models import Customer, Price, Subscription, SubscriptionItem
 from model_bakery import baker
@@ -229,7 +231,11 @@ class TestStripeMFALogin(KpiTestCase):
         response = self.client.post(reverse('kobo_login'), data=data)
         self._assert_mfa_login(response)
 
-    @override_config(MFA_ENABLED=False)
+    @override_settings(
+        INSTALLED_APPS=[
+            app for app in apps.get_app_configs() if app.name != 'allauth.mfa'
+        ]
+    )
     def test_mfa_globally_disabled_as_user_with_paid_subscription(self):
         """
         Validate that multi-factor authentication form isn't displayed after
