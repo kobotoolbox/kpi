@@ -4,7 +4,7 @@ import { keepPreviousData } from '@tanstack/react-query'
 import prettyBytes from 'pretty-bytes'
 import { Link } from 'react-router-dom'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
-import type { OrganizationAssetUsageResponse } from '#/api/models/organizationAssetUsageResponse'
+import type { CustomAssetUsage } from '#/api/models/customAssetUsage'
 import {
   getOrganizationsAssetUsageListQueryKey,
   useOrganizationsAssetUsageList,
@@ -20,6 +20,7 @@ import { ROUTES } from '#/router/routerConstants'
 import { convertSecondsToMinutes } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
+import {ErrorObject} from '#/api/models/errorObject'
 
 const ProjectBreakdown = () => {
   const [showIntervalBanner, setShowIntervalBanner] = useState(true)
@@ -33,8 +34,16 @@ const ProjectBreakdown = () => {
 
   const queryResult = useOrganizationsAssetUsageList(organization.id, pagination, {
     query: {
+      queryKey: getOrganizationsAssetUsageListQueryKey(organization.id, pagination),
       placeholderData: keepPreviousData,
-      queryKey: getOrganizationsAssetUsageListQueryKey(organization.id),
+      // We might want to improve this in future, for now let's not retry
+      retry: false,
+      // The `refetchOnWindowFocus` option is `true` by default, I'm setting it
+      // here so we don't forget about it.
+      refetchOnWindowFocus: true,
+    },
+    request: {
+      errorMessageDisplay: t('There was an error getting the list.'),
     },
   })
 
@@ -69,7 +78,7 @@ const ProjectBreakdown = () => {
     }
   }
 
-  const columns: Array<UniversalTableColumn<OrganizationAssetUsageResponse>> = [
+  const columns: Array<UniversalTableColumn<CustomAssetUsage>> = [
     {
       key: 'asset_name',
       label: (
@@ -82,7 +91,7 @@ const ProjectBreakdown = () => {
         />
       ),
       size: 100,
-      cellFormatter: (data: OrganizationAssetUsageResponse) => {
+      cellFormatter: (data: CustomAssetUsage) => {
         const assetParts = data.asset.split('/')
         const uid = assetParts[assetParts.length - 2]
 
@@ -97,32 +106,32 @@ const ProjectBreakdown = () => {
       key: 'submissions_all',
       label: t('Submissions (Total)'),
       size: 100,
-      cellFormatter: (data: OrganizationAssetUsageResponse) => data.submission_count_all_time,
+      cellFormatter: (data: CustomAssetUsage) => data.submission_count_all_time,
     },
     {
       key: 'submissions_current',
       label: t('Submissions'),
       size: 100,
-      cellFormatter: (data: OrganizationAssetUsageResponse) => data.submission_count_current_period,
+      cellFormatter: (data: CustomAssetUsage) => data.submission_count_current_period,
     },
     {
       key: 'storage',
       label: t('Storage'),
       size: 100,
-      cellFormatter: (data: OrganizationAssetUsageResponse) => prettyBytes(data.storage_bytes),
+      cellFormatter: (data: CustomAssetUsage) => prettyBytes(data.storage_bytes),
     },
     {
       key: 'transcript_minutes',
       label: t('Transcript minutes'),
       size: 100,
-      cellFormatter: (data: OrganizationAssetUsageResponse) =>
+      cellFormatter: (data: CustomAssetUsage) =>
         convertSecondsToMinutes(data.nlp_usage_current_period.total_nlp_asr_seconds).toLocaleString(),
     },
     {
       key: 'translation_characters',
       label: t('Translation characters'),
       size: 100,
-      cellFormatter: (data: OrganizationAssetUsageResponse) =>
+      cellFormatter: (data: CustomAssetUsage) =>
         convertSecondsToMinutes(data.nlp_usage_current_period.total_nlp_mt_characters).toLocaleString(),
     },
     {
@@ -137,7 +146,7 @@ const ProjectBreakdown = () => {
         />
       ),
       size: 100,
-      cellFormatter: (data: OrganizationAssetUsageResponse) => (
+      cellFormatter: (data: CustomAssetUsage) => (
         <AssetStatusBadge deploymentStatus={data.deployment_status} />
       ),
     },
@@ -158,7 +167,7 @@ const ProjectBreakdown = () => {
           <Button size='s' type='text' startIcon='close' onClick={dismissIntervalBanner} />
         </div>
       )}
-      <UniversalTable<OrganizationAssetUsageResponse>
+      <UniversalTable<CustomAssetUsage, ErrorObject>
         pagination={pagination}
         setPagination={setPagination}
         queryResult={queryResult}
