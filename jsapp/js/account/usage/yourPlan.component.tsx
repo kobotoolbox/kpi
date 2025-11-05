@@ -5,11 +5,12 @@ import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import { SubscriptionChangeType } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
 import styles from '#/account/usage/yourPlan.module.scss'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Badge, { type BadgeColor } from '#/components/common/badge'
 import envStore from '#/envStore'
 import sessionStore from '#/stores/session'
 import { formatDate } from '#/utils'
-import { useOrganizationQuery } from '../organization/organizationQuery'
 import { getSubscriptionChangeDetails } from '../stripe.utils'
 import { ProductsContext } from '../useProducts.hook'
 
@@ -18,7 +19,6 @@ const BADGE_COLOR_KEYS: { [key in SubscriptionChangeType]: BadgeColor } = {
   [SubscriptionChangeType.CANCELLATION]: 'light-red',
   [SubscriptionChangeType.PRODUCT_CHANGE]: 'light-amber',
   [SubscriptionChangeType.PRICE_CHANGE]: 'light-amber',
-  [SubscriptionChangeType.QUANTITY_CHANGE]: 'light-amber',
   [SubscriptionChangeType.NO_CHANGE]: 'light-blue',
 }
 
@@ -30,7 +30,7 @@ export const YourPlan = () => {
   const [env] = useState(() => envStore)
   const [session] = useState(() => sessionStore)
   const [productsContext] = useContext(ProductsContext)
-  const orgQuery = useOrganizationQuery()
+  const [organization] = useOrganizationAssumed()
 
   const planName = subscriptions.planName
 
@@ -55,7 +55,7 @@ export const YourPlan = () => {
     }
   }, [env.isReady, subscriptions.isInitialised])
 
-  const showPlanUpdateLink = orgQuery.data?.request_user_role === 'owner'
+  const showPlanUpdateLink = organization.request_user_role === MemberRoleEnum.owner
 
   const subscriptionUpdate = useMemo(
     () => getSubscriptionChangeDetails(currentPlan, productsContext.products),
@@ -83,11 +83,6 @@ export const YourPlan = () => {
                   {[SubscriptionChangeType.CANCELLATION, SubscriptionChangeType.PRODUCT_CHANGE].includes(
                     subscriptionUpdate.type,
                   ) && t('Ends on ##end_date##').replace('##end_date##', formatDate(subscriptionUpdate.date))}
-                  {subscriptionUpdate.type === SubscriptionChangeType.QUANTITY_CHANGE &&
-                    t('Changing usage limits on ##change_date##').replace(
-                      '##change_date##',
-                      formatDate(subscriptionUpdate.date),
-                    )}
                   {subscriptionUpdate.type === SubscriptionChangeType.PRICE_CHANGE &&
                     t('Switching to monthly on ##change_date##').replace(
                       '##change_date##',
@@ -133,20 +128,6 @@ export const YourPlan = () => {
             '##current_plan##',
             planName,
           )}
-        </div>
-      )}
-      {subscriptionUpdate?.type === SubscriptionChangeType.QUANTITY_CHANGE && (
-        <div className={styles.subscriptionChangeNotice}>
-          {t(
-            'Your ##current_plan## plan will change to include up to ##submission_quantity## submissions/month starting from',
-          )
-            .replace('##current_plan##', planName)
-            .replace(
-              '##submission_quantity##',
-              (subscriptions.planResponse[0].schedule.phases?.[1].items[0].quantity || '').toLocaleString(),
-            )}
-          &nbsp;
-          <time dateTime={subscriptionUpdate.date}>{formatDate(subscriptionUpdate.date)}</time>.
         </div>
       )}
       {subscriptionUpdate?.type === SubscriptionChangeType.PRICE_CHANGE && (

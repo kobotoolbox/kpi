@@ -2,6 +2,8 @@
 @use 'scss/_variables';
 @use 'scss/z-indexes';
 @use 'scss/colors';
+@use 'scss/libs/_mdl';
+@use 'sass:color';
 
 // header and navigation styling
 
@@ -9,20 +11,20 @@
 .header-stretch-bg {
   position: absolute;
   width: 100%;
-  background-color: $layout-header-bg-color;
-  min-height: $layout-desktop-header-height;
+  background-color: mdl.$layout-header-bg-color;
+  min-height: mdl.$layout-desktop-header-height;
   z-index: 0;
 }
 
 .mdl-layout__header {
-  background-color: $layout-header-bg-color;
-  min-height: $layout-desktop-header-height;
+  background-color: mdl.$layout-header-bg-color;
+  min-height: mdl.$layout-desktop-header-height;
   margin-left: 0;
   width: 100%;
   z-index: auto;
 
   .mdl-layout__header-row {
-    height: $layout-desktop-header-height;
+    height: mdl.$layout-desktop-header-height;
     padding: 0 12px;
   }
 
@@ -63,7 +65,7 @@
   .account-box__name {
     display: inline-block;
     vertical-align: middle;
-    color: $layout-nav-color;
+    color: mdl.$layout-nav-color;
     cursor: pointer;
     background-color: transparent;
     border: none;
@@ -294,7 +296,7 @@
   .mdl-layout__header .mdl-layout__title {
     // This makes sure the search box is aligned with right side content.
     // We subtract the header bar paddings and the left margin of search box.
-    width: $s-drawer-width - 20px - 6px;
+    width: variables.$s-drawer-width - 20px - 6px;
   }
 
   .mdl-layout__header .header__logo {
@@ -320,7 +322,7 @@
     .git-rev__item {
       color: colors.$kobo-white;
       opacity: 0.85;
-      background: darken(colors.$kobo-teal, 10%);
+      background: color.adjust(colors.$kobo-teal, $lightness: -10%);
       margin-top: 5px;
       padding: 6px 12px;
       display: block;

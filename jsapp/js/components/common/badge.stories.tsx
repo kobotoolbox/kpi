@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { IconNames } from '#/k-icons'
+import { recordKeys } from '#/utils'
 import Badge from './badge'
 import type { BadgeColor, BadgeSize } from './badge'
 
@@ -19,7 +20,7 @@ const meta: Meta<typeof Badge> = {
       control: { type: 'select' },
     },
     icon: {
-      options: Object.keys(IconNames),
+      options: recordKeys(IconNames),
       control: { type: 'select' },
     },
   },

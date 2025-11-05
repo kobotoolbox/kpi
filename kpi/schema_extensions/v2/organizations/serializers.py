@@ -1,14 +1,15 @@
 from rest_framework import serializers
 
+from kobo.apps.organizations.models import OrganizationType
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
     AssetField,
-    BalanceField,
     NlpUsageAllTime,
     NlpUsageCurrentPeriod,
     TotalNlpUsageField,
     TotalSubmissionCountField,
 )
+from ..service_usage.fields import BalancesField
 
 OrganizationAssetUsageResponse = inline_serializer_class(
     name='OrganizationAssetUsageResponse',
@@ -31,7 +32,7 @@ OrganizationServiceUsageResponse = inline_serializer_class(
         'total_nlp_usage': TotalNlpUsageField(),
         'total_storage_bytes': serializers.IntegerField(),
         'total_submission_count': TotalSubmissionCountField(),
-        'balances': BalanceField(),
+        'balances': BalancesField(),
         'current_period_start': serializers.DateTimeField(),
         'current_period_end': serializers.DateTimeField(),
         'last_updated': serializers.DateTimeField(),
@@ -42,8 +43,10 @@ OrganizationServiceUsageResponse = inline_serializer_class(
 OrganizationPatchPayload = inline_serializer_class(
     name='OrganizationPatchPayload',
     fields={
-        'name': serializers.CharField(),
-        'website': serializers.CharField(),
-        'organization_type': serializers.CharField(),
+        'name': serializers.CharField(max_length=200),
+        'website': serializers.CharField(max_length=255),
+        'organization_type': serializers.ChoiceField(
+            choices=OrganizationType.choices,
+        ),
     },
 )

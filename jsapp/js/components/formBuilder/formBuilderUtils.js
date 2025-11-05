@@ -1,5 +1,6 @@
 import clonedeep from 'lodash.clonedeep'
 import { ASSET_TYPES } from '#/constants'
+import { recordKeys } from '#/utils'
 
 /**
  * Asset type could be either the loaded asset type (editing an existing form)
@@ -213,7 +214,7 @@ export function koboMatrixParser(params) {
           content.survey.splice(i, 0, matrix[kuid])
         }
 
-        for (var k of Object.keys(matrix.choices)) {
+        for (var k of recordKeys(matrix.choices)) {
           content.choices.push(matrix.choices[k])
         }
       }
@@ -254,7 +255,7 @@ export function readParameters(str) {
     }
   })
 
-  if (Object.keys(params).length < 1) {
+  if (recordKeys(params).length < 1) {
     return null
   }
   return params
@@ -262,7 +263,7 @@ export function readParameters(str) {
 
 export function writeParameters(obj) {
   const params = []
-  Object.keys(obj).forEach((key) => {
+  recordKeys(obj).forEach((key) => {
     if (obj[key] !== undefined && obj[key] !== null) {
       let value = obj[key]
       if (typeof value === 'object') {

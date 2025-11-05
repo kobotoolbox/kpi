@@ -8,7 +8,7 @@ jobs:
     outputs:
       playwright-version: ${{ steps.get_playwright_version.outputs.playwright-version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: get_playwright_version
         uses: eviden-actions/get-playwright-version@v1
 
@@ -27,8 +27,8 @@ jobs:
       fail-fast: false # Let each job finish
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
           check-latest: true # download newer semver match if available
@@ -64,6 +64,12 @@ jobs:
       - name: Install JavaScript dependencies (npm install)
         if: steps.cache-nodemodules.outputs.cache-hit != 'true'
         run: npm install
+
+      # Ensure node_modules/.cache (used by Storybook) is empty
+      - name: >
+          Erase and log ./node_modules/.cache
+          (before CI tests)
+        run: rm -rf --verbose ./node_modules/.cache
 
       - name: Fail on uncommitted package-lock.json changes
         run: |
@@ -106,6 +112,12 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps webkit
 
-      # Skipped until flaky storybook tests are fixed not to fail main with false-positive failures.
-      # - name: Build and serve Storybook, test stories.
-      #   run: npm run test:storybook
+      # Storybook
+      - name: Build and serve Storybook, test stories.
+        run: npm run test:storybook
+
+      # Erase ./node_modules/.cache (used by Storybook)
+      - name: >
+          Erase and log ./node_modules/.cache
+          (after CI tests, before caching node_modules)
+        run: rm -rf --verbose ./node_modules/.cache

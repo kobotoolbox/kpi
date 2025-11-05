@@ -11,6 +11,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 
 export type OrganizationServiceUsageResponseTotalSubmissionCount = {
-  all_time?: number
-  current_period?: number
+  all_time: number
+  current_period: number
 }

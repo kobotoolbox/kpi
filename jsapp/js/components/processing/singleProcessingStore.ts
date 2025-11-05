@@ -32,7 +32,7 @@ import type { AssetResponse, FailResponse, GetProcessingSubmissionsResponse, Sub
 import envStore from '#/envStore'
 import { router } from '#/router/legacy'
 import { getCurrentPath } from '#/router/routerUtils'
-import { getExponentialDelayTime, removeDefaultUuidPrefix } from '#/utils'
+import { getExponentialDelayTime, recordKeys, recordValues, removeDefaultUuidPrefix } from '#/utils'
 
 export enum StaticDisplays {
   Data = 'Data',
@@ -87,12 +87,13 @@ interface TransxDraft {
  * }
  * ```
  */
-interface SubmissionsEditIds {
-  [xpath: string]: Array<{
+type SubmissionsEditIds = Record<
+  string,
+  Array<{
     editId: string
     hasResponse: boolean
   }>
-}
+>
 
 interface AutoTransxEvent {
   response: ProcessingDataResponse
@@ -472,7 +473,7 @@ class SingleProcessingStore extends Reflux.Store {
 
                 submissionsEditIds[xpath].push({
                   editId: uuid,
-                  hasResponse: Object.keys(result).includes(flatPaths[rowName]),
+                  hasResponse: recordKeys(result).includes(flatPaths[rowName]),
                 })
               }
             }
@@ -519,7 +520,7 @@ class SingleProcessingStore extends Reflux.Store {
     const translationsArray: Transx[] = []
 
     if (translationsResponse) {
-      Object.keys(translationsResponse).forEach((languageCode: LanguageCode) => {
+      recordKeys(translationsResponse).forEach((languageCode: LanguageCode) => {
         const translation = translationsResponse[languageCode]
         if (translation.languageCode) {
           translationsArray.push({
@@ -1031,7 +1032,7 @@ class SingleProcessingStore extends Reflux.Store {
    * translation.
    */
   cleanupDisplays() {
-    Object.values<ProcessingTab>(ProcessingTab).forEach((tab) => {
+    recordValues(ProcessingTab).forEach((tab) => {
       const availableDisplays = this.getAvailableDisplays(tab)
       this.displays[tab].filter((display) => {
         availableDisplays.includes(display)

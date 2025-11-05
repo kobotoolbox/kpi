@@ -20,11 +20,23 @@ export interface PaginatedListResponseData<Datum = never> {
   results: Datum[]
 }
 
-export type PaginatedListResponse<Datum = never> = PaginatedListResponse.Ok<Datum> | PaginatedListResponse.NotFound
+export type PaginatedListResponse<Datum = never> =
+  | PaginatedListResponse.Ok<Datum>
+  | PaginatedListResponse.Unauthorized
+  | PaginatedListResponse.Forbidden
+  | PaginatedListResponse.NotFound
 export namespace PaginatedListResponse {
   export interface Ok<Datum = never> {
     data: PaginatedListResponseData<Datum>
     status: 200
+  }
+  export interface Unauthorized {
+    data: unknown
+    status: 401
+  }
+  export interface Forbidden {
+    data: unknown
+    status: 403
   }
   export interface NotFound {
     data: unknown
@@ -32,12 +44,12 @@ export namespace PaginatedListResponse {
   }
 }
 
-interface UniversalTableProps<Datum> {
+interface UniversalTableProps<Datum, TError = Error> {
   // Below are props from `UniversalTable` that should come from the parent
   // component (these are kind of "configuration" props). The other
   // `UniversalTable` props are being handled here internally.
   columns: Array<UniversalTableColumn<Datum>>
-  queryResult: UseQueryResult<PaginatedListResponse<Datum>>
+  queryResult: UseQueryResult<PaginatedListResponse<Datum>, TError>
   pagination: Pagination
   setPagination: (pagination: Pagination) => unknown
 }
@@ -74,12 +86,12 @@ export const DEFAULT_PAGE_SIZE = PAGE_SIZES[0]
  * }
  * ```
  */
-export default function UniversalTable<Datum>({
+export default function UniversalTable<Datum, TError = Error>({
   columns,
   pagination,
   queryResult,
   setPagination,
-}: UniversalTableProps<Datum>) {
+}: UniversalTableProps<Datum, TError>) {
   const availablePages = useMemo(
     () => (queryResult.data?.status === 200 ? Math.ceil(queryResult.data?.data?.count / pagination.limit) : 0),
     [pagination.limit, queryResult.data?.status, (queryResult.data?.data as PaginatedListResponseData<Datum>)?.count],

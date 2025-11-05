@@ -19,6 +19,7 @@ from kobo.apps.organizations.models import (
     OrganizationInvitation,
     OrganizationInviteStatusChoices,
     OrganizationOwner,
+    OrganizationType,
     OrganizationUser,
     create_organization,
 )
@@ -30,6 +31,7 @@ from kpi.schema_extensions.v2.organizations.fields import (
     MembersField,
     ServiceUsageField,
     UrlField,
+    UserRoleField,
 )
 from kpi.utils.cache import void_cache_for_request
 from kpi.utils.object_permission import get_database_user
@@ -124,7 +126,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         if invite:
             return OrgMembershipInviteSerializer(invite, context=self.context).data
 
-        return {}
+        return None
 
     def to_representation(self, instance):
         """
@@ -250,7 +252,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
         return False
 
-    @extend_schema_field(OpenApiTypes.STR)
+    @extend_schema_field(UserRoleField)
     def get_request_user_role(self, organization):
 
         if request := self.context.get('request'):
@@ -258,6 +260,14 @@ class OrganizationSerializer(serializers.ModelSerializer):
             return organization.get_user_role(user)
 
         return ORG_EXTERNAL_ROLE
+
+
+class OrganizationResponseSerializer(OrganizationSerializer):
+    name = serializers.CharField(max_length=200, read_only=True)
+    website = serializers.CharField(max_length=255, read_only=True)
+    organization_type = serializers.ChoiceField(
+        choices=OrganizationType.choices, read_only=True
+    )
 
 
 class OrgMembershipInviteSerializer(serializers.ModelSerializer):

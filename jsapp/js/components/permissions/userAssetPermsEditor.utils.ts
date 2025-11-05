@@ -1,4 +1,5 @@
 import clonedeep from 'lodash.clonedeep'
+import { recordEntries } from '#/utils'
 import permConfig from './permConfig'
 import {
   CHECKBOX_DISABLED_SUFFIX,
@@ -83,7 +84,7 @@ export const EMPTY_EDITOR_STATE: UserAssetPermsEditorState = {
 function getPermissionCheckboxPairs(permCodename: PermissionCodename) {
   const found: CheckboxNameAll[] = []
 
-  for (const [checkboxName, checkboxPermPair] of Object.entries(CHECKBOX_PERM_PAIRS)) {
+  for (const [checkboxName, checkboxPermPair] of recordEntries(CHECKBOX_PERM_PAIRS)) {
     if (checkboxPermPair === permCodename) {
       found.push(checkboxName as CheckboxNameAll)
     }
@@ -166,14 +167,14 @@ export function applyValidityRules(stateObj: UserAssetPermsEditorState, assignab
 
   // Step 2: Enable all checkboxes (make them not disabled) before applying
   // the rules
-  for (const [, checkboxName] of Object.entries(CHECKBOX_NAMES)) {
+  for (const [, checkboxName] of recordEntries(CHECKBOX_NAMES)) {
     output = Object.assign(output, {
       [checkboxName + CHECKBOX_DISABLED_SUFFIX]: false,
     })
   }
 
   // Step 3: Apply permissions configuration rules to checkboxes
-  for (const [, checkboxName] of Object.entries(CHECKBOX_NAMES)) {
+  for (const [, checkboxName] of recordEntries(CHECKBOX_NAMES)) {
     if (isAssignable(CHECKBOX_PERM_PAIRS[checkboxName], assignablePerms)) {
       // Apply validity rules only for assignable permissions. We don't touch the rest, because they are not present
       // in the UI, and changing them could lead to bugs (e.g. if a checkbox is disabled, because it's blocked by
@@ -187,7 +188,7 @@ export function applyValidityRules(stateObj: UserAssetPermsEditorState, assignab
 
   // Step 4: For each unchecked partial checkbox, clean up the data of related
   // properties
-  for (const [, checkboxName] of Object.entries(CHECKBOX_NAMES)) {
+  for (const [, checkboxName] of recordEntries(CHECKBOX_NAMES)) {
     if (checkboxName in PARTIAL_BY_USERS_PERM_PAIRS && output[checkboxName] === false) {
       const byUsersCheckboxName = checkboxName as CheckboxNamePartialByUsers
       const listName = getPartialByUsersListName(byUsersCheckboxName)
@@ -255,7 +256,7 @@ export function getFormData(stateObj: UserAssetPermsEditorState, assignablePerms
 
   // We loop through all of the checkboxes to see if the permission paired to
   // it is assignable
-  for (const [, checkboxName] of Object.entries(CHECKBOX_NAMES)) {
+  for (const [, checkboxName] of recordEntries(CHECKBOX_NAMES)) {
     if (isAssignable(CHECKBOX_PERM_PAIRS[checkboxName], assignablePerms)) {
       // Add current form data to output
       output[checkboxName] = stateObj[checkboxName]

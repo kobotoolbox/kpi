@@ -1,6 +1,3 @@
-from django.contrib.auth import get_user_model
-from rest_framework.test import APIClient, APITestCase
-
 from kpi.tests.base_test_case import BaseAssetDetailTestCase
 
 

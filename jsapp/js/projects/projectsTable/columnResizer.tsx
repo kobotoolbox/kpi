@@ -1,5 +1,6 @@
 import React, { memo, useState, useEffect, useRef } from 'react'
 
+import { recordKeys } from '#/utils'
 import type { ProjectFieldName } from '../projectViews/constants'
 
 /**
@@ -94,7 +95,7 @@ function clampedColumnWidth(fieldname: ProjectFieldName, width: number) {
 function ColumnWidthsStyle(props: { columnWidths: ColumnWidths }) {
   return (
     <style>
-      {(Object.keys(props.columnWidths) as ProjectFieldName[]).map(
+      {recordKeys(props.columnWidths).map(
         (column) =>
           `
         [data-field="${column}"] {

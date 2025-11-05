@@ -49,7 +49,7 @@ from .serializers import (
 
 
 @extend_schema(
-    tags=['Audit logs (superusers)'],
+    tags=['Server logs (superusers)'],
 )
 @extend_schema_view(
     list=extend_schema(
@@ -94,7 +94,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 @extend_schema_view(
     list=extend_schema(
-        tags=['Audit logs (superusers)'],
+        tags=['Server logs (superusers)'],
         description=read_md('audit_log', 'access_logs/list'),
         responses=open_api_200_ok_response(
             AccessLogResponse,
@@ -157,7 +157,7 @@ class AccessLogViewSet(AuditLogViewSet):
             require_auth=False,
             validate_payload=False,
         ),
-        tags=['Audit logs (superusers)'],
+        tags=['Server logs (superusers)'],
     )
 )
 class AllProjectHistoryLogViewSet(AuditLogViewSet):
@@ -188,7 +188,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
             require_auth=False,
             validate_payload=False,
         ),
-        tags=['Audit logs (superusers)'],
+        tags=['Server logs (superusers)'],
     )
     @extend_schema(
         methods=['POST'],
@@ -201,7 +201,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
             require_auth=False,
             validate_payload=False,
         ),
-        tags=['Audit logs (superusers)'],
+        tags=['Server logs (superusers)'],
     )
     @action(detail=False, methods=['GET', 'POST'])
     def export(self, request, *args, **kwargs):
@@ -469,7 +469,7 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 
 
 @extend_schema(
-    tags=['Audit logs (superusers)'],
+    tags=['Server logs (superusers)'],
 )
 @extend_schema_view(
     list=extend_schema(

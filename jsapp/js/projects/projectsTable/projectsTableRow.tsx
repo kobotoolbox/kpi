@@ -13,7 +13,7 @@ import { PROJECT_FIELDS } from '#/projects/projectViews/constants'
 import type { ProjectFieldDefinition, ProjectFieldName } from '#/projects/projectViews/constants'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
-import { formatTime } from '#/utils'
+import { formatTime, recordValues } from '#/utils'
 import styles from './projectsTableRow.module.scss'
 
 interface ProjectsTableRowProps {
@@ -104,7 +104,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
         <Checkbox checked={props.isSelected} onChange={props.onSelectRequested} />
       </div>
 
-      {Object.values(PROJECT_FIELDS).map((field: ProjectFieldDefinition) => {
+      {recordValues(PROJECT_FIELDS).map((field: ProjectFieldDefinition) => {
         // Hide not visible fields.
         if (!props.visibleFields.includes(field.name)) {
           return null

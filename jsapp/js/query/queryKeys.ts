@@ -7,7 +7,6 @@
  * Keep keys sorted alphabetically.
  */
 export enum QueryKeys {
-  accessLogs = 'accessLogs',
   activityLogs = 'activityLogs',
   activityLogsFilter = 'activityLogsFilter',
   organization = 'organization',
@@ -15,5 +14,4 @@ export enum QueryKeys {
   organizationMemberDetail = 'organizationMemberDetail',
   organizationMemberInviteDetail = 'organizationMemberInviteDetail',
   billingPeriod = 'billingPeriod',
-  serviceUsage = 'serviceUsage',
 }

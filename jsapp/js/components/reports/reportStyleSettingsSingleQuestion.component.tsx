@@ -11,6 +11,7 @@ import ReportsModalTabs, {
   DEFAULT_REPORTS_MODAL_TAB,
 } from '#/components/reports/reportsModalTabs.component'
 import type { FailResponse } from '#/dataInterface'
+import { recordKeys } from '#/utils'
 import ReportColorsEditor from './reportColorsEditor.component'
 import ReportTypeEditor from './reportTypeEditor.component'
 import type { ReportsState } from './reports'
@@ -73,7 +74,7 @@ export default class ReportStyleSettingsSingleQuestion extends React.Component<
       specificSettings &&
       this.props.question in specificSettings &&
       specificSettings?.[this.props.question] &&
-      Object.keys(specificSettings[this.props.question]).length
+      recordKeys(specificSettings[this.props.question]).length
     ) {
       const reportStyle = Object.assign({}, specificSettings[this.props.question])
       this.setState({ reportStyle: reportStyle })

@@ -30,6 +30,7 @@ def check_exceeded_limit(user, usage_type: UsageType, **kwargs):
     ExceededLimitCounter = kwargs['exceeded_limit_counter_model']
     balances = _get_usage_balances(user)
     balance = balances[usage_type]
+    counter = None
 
     if balance and balance['exceeded']:
         counter, created = ExceededLimitCounter.objects.get_or_create(
@@ -43,6 +44,7 @@ def check_exceeded_limit(user, usage_type: UsageType, **kwargs):
             counter.save()
 
     cache.set(cache_key, True, settings.ENDPOINT_CACHE_DURATION)
+    return counter
 
 
 @requires_stripe

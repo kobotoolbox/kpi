@@ -4,7 +4,7 @@ import Button from '#/components/common/button'
 import KoboSelect from '#/components/common/koboSelect'
 import TextBox from '#/components/common/textBox'
 import envStore from '#/envStore'
-import { generateUuid } from '#/utils'
+import { generateUuid, recordValues } from '#/utils'
 import type { FilterConditionName, ProjectFieldName, ProjectsFilterDefinition } from './constants'
 import { FILTER_CONDITIONS, PROJECT_FIELDS } from './constants'
 import styles from './projectsFilterEditor.module.scss'
@@ -64,7 +64,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
   }
 
   const getFieldSelectorOptions = () =>
-    Object.values(PROJECT_FIELDS)
+    recordValues(PROJECT_FIELDS)
       // We don't want to display fields with zero filters available.
       .filter((filterDefinition) => filterDefinition.availableConditions.length >= 1)
       // We don't want to display excluded fields.

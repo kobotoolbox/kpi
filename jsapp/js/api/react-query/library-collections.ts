@@ -25,6 +25,8 @@ import type { AssetSubscriptionResponse } from '../models/assetSubscriptionRespo
 
 import type { AssetSubscriptionsListParams } from '../models/assetSubscriptionsListParams'
 
+import type { ErrorDetail } from '../models/errorDetail'
+
 import type { ErrorObject } from '../models/errorObject'
 
 import type { PaginatedAssetSubscriptionResponseList } from '../models/paginatedAssetSubscriptionResponseList'
@@ -221,7 +223,7 @@ export type assetSubscriptionsRetrieveResponse200 = {
 }
 
 export type assetSubscriptionsRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -253,7 +255,7 @@ export const getAssetSubscriptionsRetrieveQueryKey = (uidAssetSubscription: stri
 
 export const getAssetSubscriptionsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidAssetSubscription: string,
   options?: {
@@ -276,11 +278,11 @@ export const getAssetSubscriptionsRetrieveQueryOptions = <
 }
 
 export type AssetSubscriptionsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>>
-export type AssetSubscriptionsRetrieveQueryError = ErrorObject
+export type AssetSubscriptionsRetrieveQueryError = ErrorDetail
 
 export function useAssetSubscriptionsRetrieve<
   TData = Awaited<ReturnType<typeof assetSubscriptionsRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidAssetSubscription: string,
   options?: {
@@ -309,7 +311,7 @@ export type assetSubscriptionsDestroyResponse204 = {
 }
 
 export type assetSubscriptionsDestroyResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -335,7 +337,7 @@ export const assetSubscriptionsDestroy = async (
   })
 }
 
-export const getAssetSubscriptionsDestroyMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getAssetSubscriptionsDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetSubscriptionsDestroy>>,
     TError,
@@ -370,9 +372,9 @@ export const getAssetSubscriptionsDestroyMutationOptions = <TError = ErrorObject
 
 export type AssetSubscriptionsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetSubscriptionsDestroy>>>
 
-export type AssetSubscriptionsDestroyMutationError = ErrorObject
+export type AssetSubscriptionsDestroyMutationError = ErrorDetail
 
-export const useAssetSubscriptionsDestroy = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useAssetSubscriptionsDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetSubscriptionsDestroy>>,
     TError,

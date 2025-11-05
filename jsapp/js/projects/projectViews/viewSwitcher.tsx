@@ -3,7 +3,8 @@ import React, { useState } from 'react'
 import cx from 'classnames'
 import { observer } from 'mobx-react-lite'
 import { useNavigate } from 'react-router-dom'
-import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Icon from '#/components/common/icon'
 import KoboDropdown from '#/components/common/koboDropdown'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
@@ -25,7 +26,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
   // We track the menu visibility for the trigger icon.
   const [isMenuVisible, setIsMenuVisible] = useState(false)
   const [projectViews] = useState(() => projectViewsStore)
-  const orgQuery = useOrganizationQuery()
+  const [organization] = useOrganizationAssumed()
   const navigate = useNavigate()
 
   const onOptionClick = (viewUid: string) => {
@@ -42,12 +43,12 @@ function ViewSwitcher(props: ViewSwitcherProps) {
   }
 
   const displayMyOrgOption =
-    orgQuery.data?.is_mmo &&
-    [OrganizationUserRole.admin, OrganizationUserRole.owner].includes(orgQuery.data?.request_user_role)
+    organization.is_mmo &&
+    (organization.request_user_role === MemberRoleEnum.admin || organization.request_user_role === MemberRoleEnum.owner)
 
   const hasMultipleOptions = projectViews.views.length !== 0 || displayMyOrgOption
 
-  const organizationName = orgQuery.data?.name || t('Organization')
+  const organizationName = organization.name || t('Organization')
 
   let triggerLabel = HOME_VIEW.name
   if (props.selectedViewUid === ORG_VIEW.uid) {

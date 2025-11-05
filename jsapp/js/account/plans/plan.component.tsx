@@ -4,7 +4,6 @@ import classnames from 'classnames'
 import { when } from 'mobx'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import AddOnList from '#/account/addOns/addOnList.component'
-import { type Organization, useOrganizationQuery } from '#/account/organization/organizationQuery'
 import type { ConfirmChangeProps } from '#/account/plans/confirmChangeModal.component'
 import ConfirmChangeModal from '#/account/plans/confirmChangeModal.component'
 import { PlanContainer } from '#/account/plans/planContainer.component'
@@ -12,6 +11,8 @@ import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { Price, Product, SinglePricedProduct, SubscriptionInfo } from '#/account/stripe.types'
 import { getSubscriptionsForProductId, isDowngrade, processCheckoutResponse } from '#/account/stripe.utils'
 import subscriptionStore from '#/account/subscriptionStore'
+import type { OrganizationResponse } from '#/api/models/organizationResponse'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/ButtonNew'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { ACTIVE_STRIPE_STATUSES } from '#/constants'
@@ -43,7 +44,7 @@ type DataUpdates =
     }
   | {
       type: 'initialOrg'
-      prodData: Organization
+      prodData: OrganizationResponse
     }
   | {
       type: 'month' | 'year'
@@ -93,12 +94,11 @@ export default function Plan(props: PlanProps) {
   const [activeSubscriptions, setActiveSubscriptions] = useState<SubscriptionInfo[]>([])
   const [products, loadProducts, productsStatus] = useContext(ProductsContext)
   useRefreshApiFetcher(loadProducts, productsStatus)
-  const orgQuery = useOrganizationQuery()
+  const [organization] = useOrganizationAssumed()
   const [confirmModal, setConfirmModal] = useState<ConfirmChangeProps>({
     newPrice: null,
     products: [],
     currentSubscription: null,
-    quantity: 1,
   })
   const [visiblePlanTypes, setVisiblePlanTypes] = useState(['default'])
 
@@ -125,8 +125,8 @@ export default function Plan(props: PlanProps) {
   }, [])
 
   const isDataLoading = useMemo(
-    (): boolean => !(products.isLoaded && orgQuery.data && state.subscribedProduct),
-    [products.isLoaded, orgQuery.data, state.subscribedProduct],
+    (): boolean => !(products.isLoaded && state.subscribedProduct),
+    [products.isLoaded, state.subscribedProduct],
   )
 
   const isDisabled = useMemo(() => isBusy, [isBusy])
@@ -298,7 +298,7 @@ export default function Plan(props: PlanProps) {
   const getSubscribedProduct = useCallback(getSubscriptionsForProductId, [])
 
   const isSubscribedProduct = useCallback(
-    (product: SinglePricedProduct, quantity: number | undefined) => {
+    (product: SinglePricedProduct) => {
       if (!product.price?.unit_amount && !hasActiveSubscription) {
         return true
       }
@@ -308,10 +308,7 @@ export default function Plan(props: PlanProps) {
       if (subscriptions && subscriptions.length > 0) {
         return subscriptions.some(
           (subscription: SubscriptionInfo) =>
-            subscription.items[0].price.id === product.price.id &&
-            hasManageableStatus(subscription) &&
-            quantity !== undefined &&
-            quantity === subscription.quantity,
+            subscription.items[0].price.id === product.price.id && hasManageableStatus(subscription),
         )
       }
       return false
@@ -325,31 +322,30 @@ export default function Plan(props: PlanProps) {
     })
   }
 
-  const buySubscription = (price: Price, quantity = 1) => {
-    if (!price.id || isDisabled || !orgQuery.data?.id) {
-      return
-    }
+  const buySubscription = (price: Price) => {
+    if (!price.id) return
+    if (isDisabled) return
+
     setIsBusy(true)
     if (activeSubscriptions.length) {
-      if (isDowngrade(activeSubscriptions, price, quantity)) {
+      if (isDowngrade(activeSubscriptions, price)) {
         // if the user is downgrading prices, open a confirmation dialog and downgrade from kpi
         // this will downgrade the subscription at the end of the current billing period
         setConfirmModal({
           products: products.products,
           newPrice: price,
           currentSubscription: activeSubscriptions[0],
-          quantity: quantity,
         })
       } else {
         // if the user is upgrading prices, send them to the customer portal
         // this will immediately change their subscription
-        postCustomerPortal(orgQuery.data.id, price.id, quantity)
+        postCustomerPortal(organization.id, price.id)
           .then(processCheckoutResponse)
           .catch(() => setIsBusy(false))
       }
     } else {
       // just send the user to the checkout page
-      postCheckout(price.id, orgQuery.data.id, quantity)
+      postCheckout(price.id, organization.id)
         .then(processCheckoutResponse)
         .catch(() => setIsBusy(false))
     }
@@ -392,7 +388,7 @@ export default function Plan(props: PlanProps) {
       </div>
     )
 
-  if (!products.products.length || !orgQuery.data) {
+  if (!products.products.length) {
     return null
   }
 
@@ -485,7 +481,7 @@ export default function Plan(props: PlanProps) {
             isBusy={isBusy}
             setIsBusy={setIsBusy}
             products={products.products}
-            organization={orgQuery.data}
+            organization={organization}
             onClickBuy={buySubscription}
           />
         )}

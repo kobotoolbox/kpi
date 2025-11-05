@@ -1,12 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import KoboRange, { KoboRangeColors } from '#/components/common/koboRange'
+import { recordKeys } from '#/utils'
 
 const meta: Meta<typeof KoboRange> = {
   title: 'Design system old/KoboRange',
   component: KoboRange,
   argTypes: {
     color: {
-      options: Object.keys(KoboRangeColors),
+      options: recordKeys(KoboRangeColors),
       control: { type: 'select' },
     },
     max: { type: 'number' },

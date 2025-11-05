@@ -1,5 +1,6 @@
 import React from 'react'
 
+import { recordEntries } from '#/utils'
 import styles from './reportTypeEditor.module.scss'
 import { CHART_STYLES } from './reportsConstants'
 import type { ReportStyle, ReportStyleName } from './reportsConstants'
@@ -17,7 +18,7 @@ export default function ReportTypeEditor(props: ReportTypeEditorProps) {
 
   return (
     <section className={styles.root}>
-      {Object.entries(CHART_STYLES).map(([, styleDefinition], i) => (
+      {recordEntries(CHART_STYLES).map(([, styleDefinition], i) => (
         <div key={i} className={styles.style} data-name={styleDefinition.value}>
           <input
             className={styles.styleInput}

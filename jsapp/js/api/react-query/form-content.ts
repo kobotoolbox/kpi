@@ -256,15 +256,9 @@ export type assetSnapshotsRetrieveResponse401 = {
   status: 401
 }
 
-export type assetSnapshotsRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type assetSnapshotsRetrieveResponseComposite =
   | assetSnapshotsRetrieveResponse200
   | assetSnapshotsRetrieveResponse401
-  | assetSnapshotsRetrieveResponse404
 
 export type assetSnapshotsRetrieveResponse = assetSnapshotsRetrieveResponseComposite & {
   headers: Headers
@@ -303,7 +297,7 @@ export const getAssetSnapshotsRetrieveQueryKey = (uidAssetSnapshot: string, para
 
 export const getAssetSnapshotsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetSnapshotsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   uidAssetSnapshot: string,
   params?: AssetSnapshotsRetrieveParams,
@@ -327,11 +321,11 @@ export const getAssetSnapshotsRetrieveQueryOptions = <
 }
 
 export type AssetSnapshotsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetSnapshotsRetrieve>>>
-export type AssetSnapshotsRetrieveQueryError = ErrorDetail | ErrorObject
+export type AssetSnapshotsRetrieveQueryError = ErrorDetail
 
 export function useAssetSnapshotsRetrieve<
   TData = Awaited<ReturnType<typeof assetSnapshotsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   uidAssetSnapshot: string,
   params?: AssetSnapshotsRetrieveParams,
@@ -363,15 +357,7 @@ export type assetSnapshotsDestroyResponse401 = {
   status: 401
 }
 
-export type assetSnapshotsDestroyResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
-export type assetSnapshotsDestroyResponseComposite =
-  | assetSnapshotsDestroyResponse204
-  | assetSnapshotsDestroyResponse401
-  | assetSnapshotsDestroyResponse404
+export type assetSnapshotsDestroyResponseComposite = assetSnapshotsDestroyResponse204 | assetSnapshotsDestroyResponse401
 
 export type assetSnapshotsDestroyResponse = assetSnapshotsDestroyResponseComposite & {
   headers: Headers
@@ -391,10 +377,7 @@ export const assetSnapshotsDestroy = async (
   })
 }
 
-export const getAssetSnapshotsDestroyMutationOptions = <
-  TError = ErrorDetail | ErrorObject,
-  TContext = unknown,
->(options?: {
+export const getAssetSnapshotsDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetSnapshotsDestroy>>,
     TError,
@@ -429,9 +412,9 @@ export const getAssetSnapshotsDestroyMutationOptions = <
 
 export type AssetSnapshotsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof assetSnapshotsDestroy>>>
 
-export type AssetSnapshotsDestroyMutationError = ErrorDetail | ErrorObject
+export type AssetSnapshotsDestroyMutationError = ErrorDetail
 
-export const useAssetSnapshotsDestroy = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
+export const useAssetSnapshotsDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetSnapshotsDestroy>>,
     TError,
@@ -456,7 +439,7 @@ export type assetSnapshotsPreviewRetrieveResponse302 = {
 }
 
 export type assetSnapshotsPreviewRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -488,7 +471,7 @@ export const getAssetSnapshotsPreviewRetrieveQueryKey = (uidAssetSnapshot: strin
 
 export const getAssetSnapshotsPreviewRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>,
-  TError = void | ErrorObject,
+  TError = void | ErrorDetail,
 >(
   uidAssetSnapshot: string,
   options?: {
@@ -513,11 +496,11 @@ export const getAssetSnapshotsPreviewRetrieveQueryOptions = <
 export type AssetSnapshotsPreviewRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>
 >
-export type AssetSnapshotsPreviewRetrieveQueryError = void | ErrorObject
+export type AssetSnapshotsPreviewRetrieveQueryError = void | ErrorDetail
 
 export function useAssetSnapshotsPreviewRetrieve<
   TData = Awaited<ReturnType<typeof assetSnapshotsPreviewRetrieve>>,
-  TError = void | ErrorObject,
+  TError = void | ErrorDetail,
 >(
   uidAssetSnapshot: string,
   options?: {
@@ -638,7 +621,7 @@ export type assetSnapshotsXmlWithDisclaimerRetrieveResponse200 = {
 }
 
 export type assetSnapshotsXmlWithDisclaimerRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -674,7 +657,7 @@ export const getAssetSnapshotsXmlWithDisclaimerRetrieveQueryKey = (uidAssetSnaps
 
 export const getAssetSnapshotsXmlWithDisclaimerRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidAssetSnapshot: string,
   options?: {
@@ -699,11 +682,11 @@ export const getAssetSnapshotsXmlWithDisclaimerRetrieveQueryOptions = <
 export type AssetSnapshotsXmlWithDisclaimerRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>
 >
-export type AssetSnapshotsXmlWithDisclaimerRetrieveQueryError = ErrorObject
+export type AssetSnapshotsXmlWithDisclaimerRetrieveQueryError = ErrorDetail
 
 export function useAssetSnapshotsXmlWithDisclaimerRetrieve<
   TData = Awaited<ReturnType<typeof assetSnapshotsXmlWithDisclaimerRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidAssetSnapshot: string,
   options?: {
@@ -730,7 +713,7 @@ export type assetsContentRetrieveResponse200 = {
 }
 
 export type assetsContentRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -760,7 +743,7 @@ export const getAssetsContentRetrieveQueryKey = (uidAsset: string) => {
 
 export const getAssetsContentRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsContentRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidAsset: string,
   options?: {
@@ -783,11 +766,11 @@ export const getAssetsContentRetrieveQueryOptions = <
 }
 
 export type AssetsContentRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsContentRetrieve>>>
-export type AssetsContentRetrieveQueryError = ErrorObject
+export type AssetsContentRetrieveQueryError = ErrorDetail
 
 export function useAssetsContentRetrieve<
   TData = Awaited<ReturnType<typeof assetsContentRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidAsset: string,
   options?: {
@@ -897,7 +880,7 @@ export type assetsValidContentRetrieveResponse200 = {
 }
 
 export type assetsValidContentRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -929,7 +912,7 @@ export const getAssetsValidContentRetrieveQueryKey = (uidAsset: string) => {
 
 export const getAssetsValidContentRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsValidContentRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidAsset: string,
   options?: {
@@ -952,11 +935,11 @@ export const getAssetsValidContentRetrieveQueryOptions = <
 }
 
 export type AssetsValidContentRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsValidContentRetrieve>>>
-export type AssetsValidContentRetrieveQueryError = ErrorObject
+export type AssetsValidContentRetrieveQueryError = ErrorDetail
 
 export function useAssetsValidContentRetrieve<
   TData = Awaited<ReturnType<typeof assetsValidContentRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidAsset: string,
   options?: {

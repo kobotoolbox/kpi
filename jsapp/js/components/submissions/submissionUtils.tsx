@@ -17,7 +17,7 @@ import {
   SUPPLEMENTAL_DETAILS_PROP,
   createEnum,
 } from '#/constants'
-import type { AnyRowTypeName } from '#/constants'
+import type { AnyRowTypeName, QuestionTypeName } from '#/constants'
 import type {
   AnalysisFormJsonField,
   AssetResponse,
@@ -29,6 +29,7 @@ import type {
   SurveyChoice,
   SurveyRow,
 } from '#/dataInterface'
+import { recordEntries, recordKeys } from '#/utils'
 
 export enum DisplayGroupTypeName {
   group_root = 'group_root',
@@ -292,7 +293,7 @@ export function getSubmissionDisplayData(
           traverseSurvey(rowObj, rowData, repeatIndex)
         }
       } else if (
-        Object.keys(QUESTION_TYPES).includes(row.type) ||
+        recordKeys(QUESTION_TYPES).includes(row.type as QuestionTypeName) ||
         row.type === SCORE_ROW_TYPE ||
         row.type === RANK_LEVEL_TYPE
       ) {
@@ -390,7 +391,7 @@ function populateMatrixData(
    * These rows are the questions from the target matrix choice-row, so we find
    * all neccessary pieces of data nd build display data structure for it.
    */
-  Object.keys(flatPaths).forEach((questionName) => {
+  recordKeys(flatPaths).forEach((questionName) => {
     if (flatPaths[questionName].startsWith(`${matrixGroupPath}/`)) {
       const questionSurveyObj = survey.find((row) => getRowName(row) === questionName)
       // We are only interested in going further if object was found.
@@ -455,7 +456,7 @@ export function getRowData(
     }
 
     const rowData = getRegularGroupAnswers(data, path)
-    if (Object.keys(rowData).length >= 1) {
+    if (recordKeys(rowData).length >= 1) {
       return rowData
     }
   }
@@ -483,7 +484,7 @@ const isSubmissionResponseValueObject = (data: any): data is SubmissionResponseV
   if (data === null) return false
   if (typeof data !== 'object') return false
   if (Array.isArray(data)) return false
-  if (Object.keys(data).length === 0) return false
+  if (recordKeys(data).length === 0) return false
 
   return true
 }
@@ -568,8 +569,8 @@ function getRegularGroupAnswers(
 ): { [questionName: string]: SubmissionResponseValue } {
   // The response can be a lot of different things
   const answers: { [questionName: string]: SubmissionResponseValue } = {}
-  Object.keys(data).forEach((objKey) => {
-    if (objKey.startsWith(`${targetKey}/`)) {
+  recordKeys(data).forEach((objKey) => {
+    if (typeof objKey === 'string' && objKey.startsWith(`${targetKey}/`)) {
       answers[objKey] = data[objKey]
     }
   })
@@ -578,16 +579,16 @@ function getRegularGroupAnswers(
 
 function getRowListName(row: SurveyRow | undefined): string | undefined {
   let returnVal
-  if (row && Object.keys(row).includes(CHOICE_LISTS.SELECT)) {
+  if (row && recordKeys(row).includes(CHOICE_LISTS.SELECT)) {
     returnVal = row[CHOICE_LISTS.SELECT as keyof SurveyRow]
   }
-  if (row && Object.keys(row).includes(CHOICE_LISTS.MATRIX)) {
+  if (row && recordKeys(row).includes(CHOICE_LISTS.MATRIX)) {
     returnVal = row[CHOICE_LISTS.MATRIX as keyof SurveyRow]
   }
-  if (row && Object.keys(row).includes(CHOICE_LISTS.SCORE)) {
+  if (row && recordKeys(row).includes(CHOICE_LISTS.SCORE)) {
     returnVal = row[CHOICE_LISTS.SCORE as keyof SurveyRow]
   }
-  if (row && Object.keys(row).includes(CHOICE_LISTS.RANK)) {
+  if (row && recordKeys(row).includes(CHOICE_LISTS.RANK)) {
     returnVal = row[CHOICE_LISTS.RANK as keyof SurveyRow]
   }
   if (typeof returnVal === 'string') {
@@ -788,9 +789,9 @@ export function removeEmptyObjects(originalObj: { [key: string]: any }) {
   for (const key in obj) {
     obj[key] = removeEmptyObjects(obj[key])
     // Remove the property if it is an empty object
-    if (typeof obj[key] === 'object' && obj[key] !== null && Object.keys(obj[key]).length === 0) {
+    if (typeof obj[key] === 'object' && obj[key] !== null && recordKeys(obj[key]).length === 0) {
       // This is a safer way to do `delete obj[key]`:
-      obj = Object.fromEntries(Object.entries(obj).filter(([objKey]) => objKey !== key))
+      obj = Object.fromEntries(recordEntries(obj).filter(([objKey]) => objKey !== key))
     }
   }
   return obj
@@ -806,7 +807,7 @@ export function removeEmptyFromSupplementalDetails(supplementalDetails: Submissi
   // Step 1: Remove responses to qual questions that are:
   // a) "no response" or "response removed", i.e. empty string, `null`, empty array, etc.
   // b) responses to qual questions that are deleted
-  for (const detailsKey of Object.keys(details)) {
+  for (const detailsKey of recordKeys(details)) {
     if (details[detailsKey].qual) {
       details[detailsKey].qual = details[detailsKey].qual.filter(
         (qualResponse) =>
@@ -834,7 +835,7 @@ export function shouldProcessingBeAccessible(
 ) {
   const hasProcessingFeatures =
     typeof submissionData._supplementalDetails !== 'undefined' &&
-    Object.keys(removeEmptyFromSupplementalDetails(submissionData._supplementalDetails)).length > 0
+    recordKeys(removeEmptyFromSupplementalDetails(submissionData._supplementalDetails)).length > 0
 
   return !mediaAttachment.is_deleted || hasProcessingFeatures
 }
@@ -888,7 +889,7 @@ export function getBackgroundAudioAttachment(
 ): undefined | SubmissionAttachment {
   const backgroundAudioName = getBackgroundAudioQuestionName(asset)
 
-  if (backgroundAudioName && submission && Object.keys(submission).includes(backgroundAudioName)) {
+  if (backgroundAudioName && submission && recordKeys(submission).includes(backgroundAudioName)) {
     const response = submission[backgroundAudioName]
     if (typeof response === 'string') {
       const mediaAttachment = getMediaAttachment(submission, response, backgroundAudioName)

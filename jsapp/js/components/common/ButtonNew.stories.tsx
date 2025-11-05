@@ -6,6 +6,7 @@ import Button, { type ButtonProps } from './ButtonNew'
 import '@mantine/core/styles.css'
 import type { ForwardRefExoticComponent } from 'react'
 import type { StoryArgsFromPolymorphic } from '#/storybookUtils'
+import { recordValues } from '#/utils'
 
 const buttonVariants: Array<ButtonProps['variant']> = [
   'filled',
@@ -84,14 +85,14 @@ const meta = {
     },
     leftIcon: {
       description: 'id of an icon',
-      options: [undefined, ...Object.values(IconNames)],
+      options: [undefined, ...recordValues(IconNames)],
       control: {
         type: 'select', // Type 'select' is automatically inferred when 'options' is defined
       },
     },
     rightIcon: {
       description: 'id of an icon',
-      options: [undefined, ...Object.values(IconNames)],
+      options: [undefined, ...recordValues(IconNames)],
       control: {
         type: 'select', // Type 'select' is automatically inferred when 'options' is defined
       },

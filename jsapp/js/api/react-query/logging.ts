@@ -25,8 +25,6 @@ import type { AssetsHistoryListParams } from '../models/assetsHistoryListParams'
 
 import type { ErrorDetail } from '../models/errorDetail'
 
-import type { ErrorObject } from '../models/errorObject'
-
 import type { ExportCreateResponse } from '../models/exportCreateResponse'
 
 import type { ExportListResponse } from '../models/exportListResponse'
@@ -452,15 +450,7 @@ export type assetsHistoryListResponse403 = {
   status: 403
 }
 
-export type assetsHistoryListResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
-export type assetsHistoryListResponseComposite =
-  | assetsHistoryListResponse200
-  | assetsHistoryListResponse403
-  | assetsHistoryListResponse404
+export type assetsHistoryListResponseComposite = assetsHistoryListResponse200 | assetsHistoryListResponse403
 
 export type assetsHistoryListResponse = assetsHistoryListResponseComposite & {
   headers: Headers
@@ -499,7 +489,7 @@ export const getAssetsHistoryListQueryKey = (uidAsset: string, params?: AssetsHi
 
 export const getAssetsHistoryListQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsHistoryList>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   uidAsset: string,
   params?: AssetsHistoryListParams,
@@ -523,12 +513,9 @@ export const getAssetsHistoryListQueryOptions = <
 }
 
 export type AssetsHistoryListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsHistoryList>>>
-export type AssetsHistoryListQueryError = ErrorDetail | ErrorObject
+export type AssetsHistoryListQueryError = ErrorDetail
 
-export function useAssetsHistoryList<
-  TData = Awaited<ReturnType<typeof assetsHistoryList>>,
-  TError = ErrorDetail | ErrorObject,
->(
+export function useAssetsHistoryList<TData = Awaited<ReturnType<typeof assetsHistoryList>>, TError = ErrorDetail>(
   uidAsset: string,
   params?: AssetsHistoryListParams,
   options?: {
@@ -559,15 +546,9 @@ export type assetsHistoryActionsRetrieveResponse403 = {
   status: 403
 }
 
-export type assetsHistoryActionsRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type assetsHistoryActionsRetrieveResponseComposite =
   | assetsHistoryActionsRetrieveResponse200
   | assetsHistoryActionsRetrieveResponse403
-  | assetsHistoryActionsRetrieveResponse404
 
 export type assetsHistoryActionsRetrieveResponse = assetsHistoryActionsRetrieveResponseComposite & {
   headers: Headers
@@ -593,7 +574,7 @@ export const getAssetsHistoryActionsRetrieveQueryKey = (uidAsset: string) => {
 
 export const getAssetsHistoryActionsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   uidAsset: string,
   options?: {
@@ -618,11 +599,11 @@ export const getAssetsHistoryActionsRetrieveQueryOptions = <
 export type AssetsHistoryActionsRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>
 >
-export type AssetsHistoryActionsRetrieveQueryError = ErrorDetail | ErrorObject
+export type AssetsHistoryActionsRetrieveQueryError = ErrorDetail
 
 export function useAssetsHistoryActionsRetrieve<
   TData = Awaited<ReturnType<typeof assetsHistoryActionsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   uidAsset: string,
   options?: {
@@ -655,15 +636,9 @@ export type assetsHistoryExportCreateResponse403 = {
   status: 403
 }
 
-export type assetsHistoryExportCreateResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type assetsHistoryExportCreateResponseComposite =
   | assetsHistoryExportCreateResponse202
   | assetsHistoryExportCreateResponse403
-  | assetsHistoryExportCreateResponse404
 
 export type assetsHistoryExportCreateResponse = assetsHistoryExportCreateResponseComposite & {
   headers: Headers
@@ -683,10 +658,7 @@ export const assetsHistoryExportCreate = async (
   })
 }
 
-export const getAssetsHistoryExportCreateMutationOptions = <
-  TError = ErrorDetail | ErrorObject,
-  TContext = unknown,
->(options?: {
+export const getAssetsHistoryExportCreateMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHistoryExportCreate>>,
     TError,
@@ -720,9 +692,9 @@ export const getAssetsHistoryExportCreateMutationOptions = <
 
 export type AssetsHistoryExportCreateMutationResult = NonNullable<Awaited<ReturnType<typeof assetsHistoryExportCreate>>>
 
-export type AssetsHistoryExportCreateMutationError = ErrorDetail | ErrorObject
+export type AssetsHistoryExportCreateMutationError = ErrorDetail
 
-export const useAssetsHistoryExportCreate = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
+export const useAssetsHistoryExportCreate = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsHistoryExportCreate>>,
     TError,

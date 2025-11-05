@@ -40,6 +40,7 @@ import React from 'react'
 
 import cx from 'classnames'
 import type { Argument as ClassnamesArgument } from 'classnames'
+import { recordEntries } from '#/utils'
 
 const reactCreateBemElement = (base: string, el = 'div') => {
   let elUnwrap
@@ -51,12 +52,12 @@ const reactCreateBemElement = (base: string, el = 'div') => {
   }
 
   const reduceModify = (
-    s: { [key: string]: boolean },
-    modifier: { [key: string]: boolean } | string[] | string | undefined,
+    s: Record<string, boolean>,
+    modifier: Record<string, boolean> | string[] | string | undefined,
   ) => {
     if (typeof modifier === 'object' && !Array.isArray(modifier)) {
-      Object.keys(modifier).forEach((key) => {
-        if (modifier[key]) {
+      recordEntries(modifier).forEach(([key, value]) => {
+        if (value) {
           s[`${base}--${key}`] = true
         }
       })
@@ -93,15 +94,14 @@ const reactCreateBemElement = (base: string, el = 'div') => {
   return c
 }
 
-export function bemComponents(obj: { [key: string]: [string, string?] | string }) {
-  const keys = Object.keys(obj)
+export function bemComponents(record: Record<string, [string, string?] | string>) {
+  const entries = recordEntries(record)
   return Object.freeze(
-    keys.reduce((hsh: any, key) => {
-      const val = obj[key]
-      if (val instanceof Array) {
-        hsh[key] = reactCreateBemElement.apply(null, val)
+    entries.reduce((hsh: any, [key, value]) => {
+      if (value instanceof Array) {
+        hsh[key] = reactCreateBemElement.apply(null, value)
       } else {
-        hsh[key] = reactCreateBemElement(val)
+        hsh[key] = reactCreateBemElement(value)
       }
       return hsh
     }, {}),

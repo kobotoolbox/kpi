@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { type FetchDataOptions, fetchDeleteUrl, fetchGet, fetchPatchUrl, fetchPost } from '#/api'
 import { endpoints } from '#/api.endpoints'
+import type { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import type { Json } from '#/components/common/common.interfaces'
 import type { FailResponse } from '#/dataInterface'
 import { QueryKeys } from '#/query/queryKeys'
 import type { OrganizationMember, OrganizationMemberListItem } from './membersQuery'
-import { type OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
-
 /*
  * NOTE: `invites` - `membersQuery` holds a list of members, each containing
  * an optional `invite` property (i.e. invited users that are not members yet
@@ -45,7 +45,7 @@ export interface MemberInvite {
   /** Username of user being invited. */
   invitee: string
   /** Target role of user being invited. */
-  invitee_role: OrganizationUserRole
+  invitee_role: MemberRoleEnum
   /** Date format `yyyy-mm-dd HH:MM:SS`. */
   date_created: string
   /** Date format: `yyyy-mm-dd HH:MM:SS`. */
@@ -53,14 +53,14 @@ export interface MemberInvite {
 }
 
 interface MemberInviteRequestBase {
-  role: OrganizationUserRole
+  role: MemberRoleEnum
 }
 
 interface SendMemberInviteParams extends MemberInviteRequestBase {
   /** List of usernames. */
   invitees: string[]
   /** Target role for the invitied users. */
-  role: OrganizationUserRole
+  role: MemberRoleEnum
 }
 
 interface MemberInviteUpdate extends MemberInviteRequestBase {
@@ -74,9 +74,8 @@ interface MemberInviteUpdate extends MemberInviteRequestBase {
  */
 export function useSendMemberInvite() {
   const queryClient = useQueryClient()
-  const orgQuery = useOrganizationQuery()
-  const orgId = orgQuery.data?.id
-  const apiPath = endpoints.ORG_MEMBER_INVITES_URL.replace(':organization_id', orgId!)
+  const [organization] = useOrganizationAssumed()
+  const apiPath = endpoints.ORG_MEMBER_INVITES_URL.replace(':organization_id', organization.id)
   return useMutation({
     mutationFn: async (payload: SendMemberInviteParams & Json) => fetchPost<OrganizationMember>(apiPath, payload),
     onSettled: () => {

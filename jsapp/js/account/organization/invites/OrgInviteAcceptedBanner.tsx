@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react'
 
 import { MemberInviteStatus } from '#/account/organization/membersInviteQuery'
 import { useOrganizationMemberDetailQuery } from '#/account/organization/membersQuery'
-import type { Organization } from '#/account/organization/organizationQuery'
+import type { OrganizationResponse } from '#/api/models/organizationResponse'
 import Alert from '#/components/common/alert'
 import { useSafeUsernameStorageKey } from '#/hooks/useSafeUsernameStorageKey'
 
 interface OrgInviteAcceptedBannerProps {
   username: string
-  organization: Organization
+  organization: OrganizationResponse
 }
 
 const BANNER_DISMISSAL_VALUE = 'dismissed'

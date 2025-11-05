@@ -54,7 +54,6 @@ class Command(BaseCommand):
         if not renderer_class:
             raise CommandError(f'Unsupported format: {output_format}')
 
-        api_version = schema_name
         overrides = (
             {
                 'VERSION': '',

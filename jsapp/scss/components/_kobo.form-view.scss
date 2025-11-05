@@ -3,6 +3,7 @@
 @use 'scss/z-indexes';
 @use 'scss/colors';
 @use 'scss/mixins';
+@use 'sass:color';
 
 // TODO: This file is too big and it lost it's original purpose.
 // It was supposed to be a general form view layout (AKA "the content"), but
@@ -403,11 +404,11 @@ $side-tabs-width-mobile: 70px;
   }
 
   10% {
-    background-color: lighten(colors.$kobo-blue, 20%);
+    background-color: color.adjust(colors.$kobo-blue, $lightness: 20%);
   }
 
   100% {
-    background-color: lighten(colors.$kobo-blue, 40%);
+    background-color: color.adjust(colors.$kobo-blue, $lightness: 40%);
   }
 }
 
@@ -446,7 +447,7 @@ $side-tabs-width-mobile: 70px;
     }
 
     &.recent {
-      background-color: lighten(colors.$kobo-blue, 40%);
+      background-color: color.adjust(colors.$kobo-blue, $lightness: 40%);
       animation: recent 5s 1;
     }
   }

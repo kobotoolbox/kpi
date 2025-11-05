@@ -1,17 +1,16 @@
-import { useOrganizationQuery } from '#/account/organization/organizationQuery'
 import BillingButton from '#/account/plans/billingButton.component'
 import { postCustomerPortal } from '#/account/stripe.api'
 import type { Price, SinglePricedProduct } from '#/account/stripe.types'
 import { processCheckoutResponse } from '#/account/stripe.utils'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 
 interface PlanButtonProps {
-  buySubscription: (price: Price, quantity?: number) => void
+  buySubscription: (price: Price) => void
   downgrading: boolean
   isBusy: boolean
   isSubscribedToPlan: boolean
   showManage: boolean
   product: SinglePricedProduct
-  quantity: number
   setIsBusy: (value: boolean) => void
 }
 
@@ -26,18 +25,17 @@ export const PlanButton = ({
   setIsBusy,
   buySubscription,
   showManage,
-  quantity,
   isSubscribedToPlan,
 }: PlanButtonProps) => {
-  const orgQuery = useOrganizationQuery()
+  const [organization] = useOrganizationAssumed()
 
-  if (!product || !orgQuery.data || product.price.unit_amount === 0) {
+  if (!product || product.price.unit_amount === 0) {
     return null
   }
 
   const manageSubscription = (subscriptionPrice?: Price) => {
     setIsBusy(true)
-    postCustomerPortal(orgQuery.data.id, subscriptionPrice?.id, quantity)
+    postCustomerPortal(organization.id, subscriptionPrice?.id)
       .then(processCheckoutResponse)
       .catch(() => setIsBusy(false))
   }
@@ -46,7 +44,7 @@ export const PlanButton = ({
     return (
       <BillingButton
         label={t('Upgrade')}
-        onClick={() => buySubscription(product.price, quantity)}
+        onClick={() => buySubscription(product.price)}
         aria-label={`upgrade to ${product.name}`}
         isDisabled={isBusy}
       />
@@ -67,7 +65,7 @@ export const PlanButton = ({
   return (
     <BillingButton
       label={t('Change plan')}
-      onClick={() => buySubscription(product.price, quantity)}
+      onClick={() => buySubscription(product.price)}
       aria-label={`change your subscription to ${product.name}`}
       isDisabled={isBusy}
     />

@@ -1,4 +1,5 @@
 @use 'scss/colors';
+@use 'sass:color';
 
 // ==========================================================================
 // Groups
@@ -130,17 +131,17 @@ $formbuilder-group-bg: colors.$kobo-gray-200;
 }
 
 .group__rows .group {
-    background: darken($formbuilder-group-bg, 3%);
+    background: color.adjust($formbuilder-group-bg, $lightness: -3%);
     margin-bottom: 12px;
 
     .group__rows .group {
-        background: darken($formbuilder-group-bg, 6%);
+        background: color.adjust($formbuilder-group-bg, $lightness: -6%);
 
         .group__rows .group {
-            background: darken($formbuilder-group-bg, 9%);
+            background: color.adjust($formbuilder-group-bg, $lightness: -9%);
 
             .group__rows .group {
-                background: darken($formbuilder-group-bg, 12%);
+                background: color.adjust($formbuilder-group-bg, $lightness: -12%);
             }
         }
     }

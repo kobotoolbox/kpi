@@ -133,6 +133,25 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
                         result['user__username'], ['someuser', 'anotheruser', 'alice']
                     )
 
+    def test_inactive_user_do_not_show_up_members_list(self):
+
+        self.client.force_login(self.someuser)
+        response = self.client.get(self.list_url)
+
+        assert response.data['count'] == 3
+        usernames = [m['user__username'] for m in response.data['results']]
+        assert 'alice' in usernames
+
+        # Deactivate alice
+        self.alice.is_active = False
+        self.alice.save()
+
+        # Retry, alice should not be there anymore
+        response = self.client.get(self.list_url)
+        assert response.data['count'] == 2
+        usernames = [m['user__username'] for m in response.data['results']]
+        assert 'alice' not in usernames
+
     @data(
         ('owner', status.HTTP_200_OK),
         ('admin', status.HTTP_200_OK),
@@ -236,7 +255,7 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         response = self.client.get(bob_org_members_list_url)
         # The first member should be bob
         assert response.data['results'][0]['user__username'] == 'bob'
-        assert response.data['results'][0]['invite'] == {}
+        assert response.data['results'][0]['invite'] is None
 
         # Look at bob's membership detail endpoint in someother's org,
         # someuser's invite should **BE** there
@@ -292,4 +311,4 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         self.organization = self.registered_invitee_user.organization
         response = self.client.get(self.detail_url(self.registered_invitee_user))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['invite'], {})
+        self.assertEqual(response.data['invite'], None)

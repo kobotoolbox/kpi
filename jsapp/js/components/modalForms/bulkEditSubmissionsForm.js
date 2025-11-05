@@ -12,6 +12,7 @@ import Button from '#/components/common/button'
 import TextBox from '#/components/common/textBox'
 import { FUSE_OPTIONS, QuestionTypeName } from '#/constants'
 import envStore from '#/envStore'
+import { recordKeys } from '#/utils'
 
 // we need a text to display when we need to say "this question has no answer"
 const EMPTY_VALUE_LABEL = t('n/d')
@@ -114,7 +115,7 @@ class BulkEditSubmissionsForm extends React.Component {
     // and we will gladly give them what they want
     const overridesWithPaths = {}
     const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey)
-    Object.keys(this.state.overrides).forEach((questionName) => {
+    recordKeys(this.state.overrides).forEach((questionName) => {
       overridesWithPaths[flatPaths[questionName]] = this.state.overrides[questionName]
     })
 
@@ -368,7 +369,7 @@ class BulkEditSubmissionsForm extends React.Component {
             type='danger'
             size='l'
             onClick={this.onReset.bind(this)}
-            isDisabled={this.state.isPending || Object.keys(this.state.overrides).length === 0}
+            isDisabled={this.state.isPending || recordKeys(this.state.overrides).length === 0}
             label={t('Discard Changes')}
           />
 
@@ -377,7 +378,7 @@ class BulkEditSubmissionsForm extends React.Component {
             size='l'
             isSubmit
             onClick={this.onSubmit.bind(this)}
-            isDisabled={this.state.isPending || Object.keys(this.state.overrides).length === 0}
+            isDisabled={this.state.isPending || recordKeys(this.state.overrides).length === 0}
             label={t('Confirm & close')}
           />
         </bem.Modal__footer>

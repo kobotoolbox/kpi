@@ -20,6 +20,7 @@ from rest_framework.reverse import reverse as drf_reverse
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import ProjectHistoryLog
 from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
+from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kobo.apps.hook.models import Hook
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
@@ -105,10 +106,25 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(metadata_dict['project_owner'], self.asset.owner.username)
 
     def _check_submission_log_metadata(
-        self, metadata, expected_username, expected_root_uuid
+        self, metadata, expected_username, expected_root_uuid, data_collector=None
     ):
         self.assertEqual(metadata['submission']['submitted_by'], expected_username)
         self.assertEqual(metadata['submission']['root_uuid'], expected_root_uuid)
+        if data_collector:
+            self.assertEqual(
+                metadata['submission']['data_collector_uid'], data_collector.uid
+            )
+            self.assertEqual(
+                metadata['submission']['data_collector_name'], data_collector.name
+            )
+            self.assertEqual(
+                metadata['submission']['data_collector_group_uid'],
+                data_collector.group.uid,
+            )
+            self.assertEqual(
+                metadata['submission']['data_collector_group_name'],
+                data_collector.group.name,
+            )
 
     def _base_asset_detail_endpoint_test(
         self,
@@ -1729,13 +1745,14 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
 
     @data(
-        # submit as anonymous?, use v1 endpoint?
-        (True, False),
-        (False, True),
-        (False, False),
+        # user_type, use v1 endpoint?
+        ('anon', False),
+        ('user', True),
+        ('user', False),
+        ('dc', False),
     )
     @unpack
-    def test_add_submission(self, anonymous, v1):
+    def test_add_submission(self, user_type, v1):
         # prepare submission data
         uuid_ = uuid.uuid4()
         self.asset.deploy(backend='mock')
@@ -1755,7 +1772,14 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'version': self.asset.latest_version.uid,
         }
         endpoint = 'submissions-list' if v1 else 'submissions'
-        kwargs = {'username': self.user.username} if not v1 else {}
+        data_collector = None
+        if user_type == 'dc':
+            dcg = DataCollectorGroup.objects.create(name='DCG', owner=self.asset.owner)
+            data_collector = DataCollector.objects.create(name='DC', group=dcg)
+            dcg.assets.add(self.asset)
+            kwargs = {'token': data_collector.token}
+        else:
+            kwargs = {'username': self.user.username} if not v1 else {}
         url = reverse(
             self._get_endpoint(endpoint),
             kwargs=kwargs,
@@ -1764,7 +1788,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # ensure anonymous users are allowed to submit
         self.asset.assign_perm(perm=PERM_ADD_SUBMISSIONS, user_obj=AnonymousUser())
 
-        if not anonymous:
+        if user_type == 'user':
             # the submission endpoints don't allow session authentication, so
             # just force the request to attach the correct user
             self.client.force_authenticate(user=self.user)
@@ -1784,8 +1808,12 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log.object_id, self.asset.id)
         self.assertEqual(log.action, AuditAction.ADD_SUBMISSION)
         self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
-        username = 'AnonymousUser' if anonymous else self.user.username
-        self._check_submission_log_metadata(log.metadata, username, inst.root_uuid)
+        username = (
+            'AnonymousUser' if user_type in ['anon', 'dc'] else self.user.username
+        )
+        self._check_submission_log_metadata(
+            log.metadata, username, inst.root_uuid, data_collector=data_collector
+        )
 
     def test_delete_single_submission(self):
         instance, submission = self._add_submission('adminuser')

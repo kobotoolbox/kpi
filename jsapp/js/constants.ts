@@ -4,9 +4,7 @@ import type { IconName } from '#/k-icons'
  * A list of all shareable constants for the application.
  */
 
-interface IEnum {
-  [val: string]: string
-}
+type IEnum = Record<string, string>
 
 /**
  * Make all fields of a type or interface nullable
@@ -223,9 +221,7 @@ interface QuestionTypeDefinition {
   id: QuestionTypeName
 }
 
-type QuestionTypes = {
-  [P in QuestionTypeName]: QuestionTypeDefinition
-}
+type QuestionTypes = Record<QuestionTypeName, QuestionTypeDefinition>
 
 /*
  * When adding new question type please remember to update those places:

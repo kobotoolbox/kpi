@@ -98,7 +98,7 @@ export interface BaseProduct {
   name: string
   description: string
   type: string
-  metadata: { [p: string]: string }
+  metadata: Record<string, string>
 }
 
 export type RecurringInterval = 'year' | 'month'
@@ -124,11 +124,6 @@ export interface Price {
 
 export interface PriceWithProduct extends Omit<Price, 'product'> {
   product: BaseProduct
-}
-
-export type PriceMetadata = Record<string, string | TransformQuantity | null> & {
-  quantity: string
-  transform_quantity: null | TransformQuantity
 }
 
 export interface TransformQuantity {
@@ -185,7 +180,6 @@ export enum SubscriptionChangeType {
   RENEWAL = 1,
   PRODUCT_CHANGE = 2,
   PRICE_CHANGE = 3,
-  QUANTITY_CHANGE = 4,
   NO_CHANGE = 5,
 }
 

@@ -9,6 +9,7 @@ import { MenuThemeKobo } from './Menu'
 import { ModalThemeKobo } from './Modal'
 import { SelectThemeKobo } from './Select'
 import { TableThemeKobo } from './Table'
+import { TagsInputThemeKobo } from './TagsInput'
 import { TooltipThemeKobo } from './Tooltip'
 
 export const themeKobo = createTheme({
@@ -117,5 +118,6 @@ export const themeKobo = createTheme({
     Tooltip: TooltipThemeKobo,
     Table: TableThemeKobo,
     Divider: DividerThemeKobo,
+    TagsInput: TagsInputThemeKobo,
   },
 })

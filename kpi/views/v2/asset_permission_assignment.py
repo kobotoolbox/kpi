@@ -7,7 +7,7 @@ from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
 )
-from rest_framework import exceptions, status, serializers
+from rest_framework import exceptions, serializers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import (
     CreateModelMixin,
@@ -20,11 +20,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
-from kpi.constants import (
-    CLONE_ARG_NAME,
-    PERM_MANAGE_ASSET,
-    PERM_VIEW_ASSET,
-)
+from kpi.constants import CLONE_ARG_NAME, PERM_MANAGE_ASSET, PERM_VIEW_ASSET
 from kpi.models.asset import Asset, AssetUserPartialPermission
 from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import AssetPermissionAssignmentPermission
@@ -33,8 +29,8 @@ from kpi.schema_extensions.v2.asset_permission_assignments.schema import (
     PERMISSION_URL_SCHEMA,
 )
 from kpi.schema_extensions.v2.asset_permission_assignments.serializers import (
-    PermissionAssignmentBulkRequest,
     PermissionAssignmentBulkDeleteRequest,
+    PermissionAssignmentBulkRequest,
     PermissionAssignmentCloneRequest,
     PermissionAssignmentCreateRequest,
     PermissionAssignmentResponse,
@@ -44,8 +40,10 @@ from kpi.serializers.v2.asset_permission_assignment import (
     AssetBulkInsertPermissionSerializer,
     AssetPermissionAssignmentSerializer,
 )
-from kpi.utils.object_permission import get_user_permission_assignments_queryset, \
-    get_database_user
+from kpi.utils.object_permission import (
+    get_database_user,
+    get_user_permission_assignments_queryset,
+)
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
@@ -255,9 +253,7 @@ class AssetPermissionAssignmentViewSet(
             raise exceptions.PermissionDenied()
 
         if not username:
-            raise serializers.ValidationError(
-                {'username': t('This field is required')}
-            )
+            raise serializers.ValidationError({'username': t('This field is required')})
 
         if user == self.asset.owner and username == self.asset.owner.username:
             return Response(
@@ -272,7 +268,6 @@ class AssetPermissionAssignmentViewSet(
             AssetUserPartialPermission.objects.filter(
                 asset=self.asset, user__username=username
             ).delete()
-
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(

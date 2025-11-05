@@ -1,13 +1,13 @@
 import { when } from 'mobx'
-import type { AccountLimit, ChangePlan, Checkout, OneTimeAddOn, PriceMetadata, Product } from '#/account/stripe.types'
+import type { AccountLimit, ChangePlan, Checkout, OneTimeAddOn, Product } from '#/account/stripe.types'
 import { Limits } from '#/account/stripe.types'
-import { getAdjustedQuantityForPrice } from '#/account/stripe.utils'
 import subscriptionStore from '#/account/subscriptionStore'
 import { fetchGet, fetchPost } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import { ACTIVE_STRIPE_STATUSES } from '#/constants'
 import type { PaginatedResponse } from '#/dataInterface'
 import envStore from '#/envStore'
+import { recordEntries } from '#/utils'
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   submission_limit: Limits.unlimited,
@@ -28,11 +28,10 @@ export async function getOneTimeAddOns() {
   })
 }
 
-export async function changeSubscription(price_id: string, subscription_id: string, quantity = 1) {
+export async function changeSubscription(price_id: string, subscription_id: string) {
   const params = new URLSearchParams({
     price_id,
     subscription_id,
-    quantity: quantity.toString(),
   })
   return fetchGet<ChangePlan>(`${endpoints.CHANGE_PLAN_URL}?${params}`, {
     errorMessageDisplay: t(
@@ -44,9 +43,9 @@ export async function changeSubscription(price_id: string, subscription_id: stri
 /**
  * Start a checkout session for the given price and organization. Response contains the checkout URL.
  */
-export async function postCheckout(priceId: string, organizationId: string, quantity = 1) {
+export async function postCheckout(priceId: string, organizationId: string) {
   return fetchPost<Checkout>(
-    `${endpoints.CHECKOUT_URL}?price_id=${priceId}&organization_id=${organizationId}&quantity=${quantity}`,
+    `${endpoints.CHECKOUT_URL}?price_id=${priceId}&organization_id=${organizationId}`,
     {},
     {
       errorMessageDisplay: 'There was an error creating the checkout session. Please try again later.',
@@ -57,9 +56,9 @@ export async function postCheckout(priceId: string, organizationId: string, quan
 /**
  * Get the URL of the Stripe customer portal for an organization.
  */
-export async function postCustomerPortal(organizationId: string, priceId = '', quantity = 1) {
+export async function postCustomerPortal(organizationId: string, priceId = '') {
   return fetchPost<Checkout>(
-    `${endpoints.PORTAL_URL}?organization_id=${organizationId}&price_id=${priceId}&quantity=${quantity}`,
+    `${endpoints.PORTAL_URL}?organization_id=${organizationId}&price_id=${priceId}`,
     {},
     {
       errorMessageDisplay: 'There was an error sending you to the billing portal. Please try again later.',
@@ -71,10 +70,9 @@ export async function postCustomerPortal(organizationId: string, priceId = '', q
  * Extract the limits from Stripe product/price metadata and convert their values from string to number (if necessary.)
  * Will only return limits that exceed the ones in `limitsToCompare`, or all limits if `limitsToCompare` is not present.
  */
-function getLimitsForMetadata(metadata: PriceMetadata, limitsToCompare: false | AccountLimit = false) {
+function getLimitsForMetadata(metadata: Record<string, string>, limitsToCompare: false | AccountLimit = false) {
   const limits: Partial<AccountLimit> = {}
-  const quantity = getAdjustedQuantityForPrice(Number.parseInt(metadata['quantity']), metadata.transform_quantity)
-  for (const [key, value] of Object.entries(metadata)) {
+  for (const [key, value] of recordEntries(metadata)) {
     // if we need to compare limits, make sure we're not overwriting a higher limit from somewhere else
     if (limitsToCompare) {
       if (!(key in limitsToCompare) || value === null) {
@@ -87,7 +85,7 @@ function getLimitsForMetadata(metadata: PriceMetadata, limitsToCompare: false | 
     // only use metadata needed for limit calculations
     if (key in DEFAULT_LIMITS && value !== null) {
       const numericValue = Number.parseInt(value as string)
-      limits[key as keyof AccountLimit] = value === Limits.unlimited ? Limits.unlimited : numericValue * quantity
+      limits[key as keyof AccountLimit] = value === Limits.unlimited ? Limits.unlimited : numericValue
     }
   }
   return limits
@@ -122,15 +120,13 @@ const getFreeTierLimits = async (limits: AccountLimit) => {
 const getRecurringAddOnLimits = (limits: AccountLimit) => {
   let newLimits = { ...limits }
   let activeAddOns = [...subscriptionStore.addOnsResponse]
-  let metadata: PriceMetadata
+  let metadata: Record<string, string>
   // only check active add-ons
   activeAddOns = activeAddOns.filter((subscription) => ACTIVE_STRIPE_STATUSES.includes(subscription.status))
   activeAddOns.forEach((addOn) => {
     metadata = {
       ...addOn.items[0].price.product.metadata,
       ...addOn.items[0].price.metadata,
-      quantity: activeAddOns[0].quantity.toString(),
-      transform_quantity: activeAddOns[0].items[0].price.transform_quantity,
     }
     newLimits = { ...newLimits, ...getLimitsForMetadata(metadata, newLimits) }
   })
@@ -167,15 +163,13 @@ const getStripeMetadataAndFreeTierStatus = async (products: Product[]) => {
   const plans = [...subscriptionStore.planResponse]
   // only use metadata for active subscriptions
   const activeSubscriptions = plans.filter((subscription) => ACTIVE_STRIPE_STATUSES.includes(subscription.status))
-  let metadata: PriceMetadata
+  let metadata: Record<string, string>
   let hasFreeTier = false
   if (activeSubscriptions.length) {
     // get metadata from the user's subscription (prioritize price metadata over product metadata)
     metadata = {
       ...activeSubscriptions[0].items[0].price.product.metadata,
       ...activeSubscriptions[0].items[0].price.metadata,
-      transform_quantity: activeSubscriptions[0].items[0].price.transform_quantity,
-      quantity: activeSubscriptions[0].quantity.toString(),
     }
   } else {
     await when(() => !!products.length)
@@ -185,8 +179,6 @@ const getStripeMetadataAndFreeTierStatus = async (products: Product[]) => {
     metadata = {
       ...freeProduct.metadata,
       ...freeProduct.prices[0].metadata,
-      transform_quantity: null,
-      quantity: '1',
     }
   }
   return { metadata, hasFreeTier }

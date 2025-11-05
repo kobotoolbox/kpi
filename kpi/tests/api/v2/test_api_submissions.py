@@ -31,6 +31,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.project_ownership.utils import create_invite
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
@@ -1158,10 +1159,10 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             assert attachment['download_url'] == expected_new_download_urls[idx]
             assert attachment['question_xpath'] == expected_question_xpaths[idx]
 
-    def test_inject_root_uuid_if_not_present(self):
+    def test_inject_requires_properties_if_not_present(self):
         """
-        Ensure `meta/rootUUid` is present in API response even if rootUuid was
-        not present (e.g. like old submissions)
+        Ensure `meta/rootUUid` and `_validation_status` are present in API response
+        even if not present (e.g. like old submissions)
         """
         # remove "meta/rootUuid" from MongoDB
         submission = self.submissions_submitted_by_someuser[0]
@@ -1170,7 +1171,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         )
         root_uuid = mongo_document.pop(META_ROOT_UUID)
         settings.MONGO_DB.instances.update_one(
-            {'_id': submission['_id']}, {'$unset': {META_ROOT_UUID: root_uuid}}
+            {'_id': submission['_id']},
+            {'$unset': {META_ROOT_UUID: root_uuid, '_validation_status': None}},
         )
 
         url = reverse(
@@ -1183,7 +1185,9 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         response = self.client.get(url, {'format': 'json'})
         assert response.data['_id'] == submission['_id']
         assert META_ROOT_UUID in response.data
+        assert '_validation_status' in response.data
         assert response.data[META_ROOT_UUID] == root_uuid
+        assert response.data['_validation_status'] == {}
 
 
 class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase):
@@ -1955,6 +1959,27 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         assert 'deprecatedID' in instance.xml
         self._simulate_edit_submission(instance)
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(USAGE_LIMIT_ENFORCEMENT=True)
+    @mock.patch(
+        'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances'  # noqa: E501
+    )
+    def test_edit_submission_ignores_usage_limit_enforcement(self, mock_usage):
+        mock_balances = {
+            UsageType.STORAGE_BYTES: {
+                'exceeded': True,
+            },
+            UsageType.SUBMISSION: {
+                'exceeded': True,
+            },
+        }
+        mock_usage.return_value = mock_balances
+        root_uuid = remove_uuid_prefix(self.submission['_uuid'])
+        instance = Instance.objects.get(root_uuid=root_uuid)
+        self._simulate_edit_submission(instance)
+
 
 class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):
 
@@ -2451,6 +2476,29 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
                         root_uuid.text
                     )
                     break
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(USAGE_LIMIT_ENFORCEMENT=True)
+    @mock.patch(
+        'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances'  # noqa: E501
+    )
+    def test_bulk_update_submissions_ignores_limit_enforcement(self, mock_usage):
+        mock_balances = {
+            UsageType.STORAGE_BYTES: {
+                'exceeded': True,
+            },
+            UsageType.SUBMISSION: {
+                'exceeded': True,
+            },
+        }
+        mock_usage.return_value = mock_balances
+        response = self.client.patch(
+            self.submission_url, data=self.submitted_payload, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        self._check_bulk_update(response)
 
     @pytest.mark.skip(
         reason=(

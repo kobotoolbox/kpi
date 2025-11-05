@@ -1,3 +1,4 @@
+from django.apps import apps
 from django.contrib.auth.models import AnonymousUser
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
@@ -18,16 +19,20 @@ class DataCollectorUser(AnonymousUser):
     def is_anonymous(self):
         return False
 
-    def __init__(self, name=None, assets=None):
+    def __init__(self, name=None, assets=None, uid=None):
         self.name = name
         self.assets = assets
+        self.uid = uid
 
     def has_perm(self, perm, obj=...):
+        Asset = apps.get_model('kpi', 'Asset')
         if perm != PERM_ADD_SUBMISSIONS:
             return False
-        if not isinstance(obj, XForm):
-            return False
-        return obj.kpi_asset_uid in self.assets
+        if isinstance(obj, XForm):
+            return obj.kpi_asset_uid in self.assets
+        if isinstance(obj, Asset):
+            return obj.uid in self.assets
+        return False
 
 
 class DataCollectorTokenAuthentication(BaseAuthentication):
@@ -47,6 +52,9 @@ class DataCollectorTokenAuthentication(BaseAuthentication):
             if group:
                 server_user.assets = list(group.assets.values_list('uid', flat=True))
                 server_user.name = collector.name
+                server_user.uid = collector.uid
+                server_user.group_uid = group.uid
+                server_user.group_name = group.name
             return server_user, key
         except DataCollector.DoesNotExist:
             raise AuthenticationFailed('Invalid token.')

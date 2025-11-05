@@ -7,12 +7,11 @@ import moment from 'moment'
 import { fetchGet, handleApiFail } from '#/api'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { FailResponse } from '#/dataInterface'
-import { formatDate } from '#/utils'
+import { formatDate, recordKeys, recordValues } from '#/utils'
 import styles from './submissionsCountGraph.module.scss'
 
-interface DailySubmissionCounts {
-  [/** YYYY-MM-DD */ date: string]: number
-}
+/** YYYY-MM-DD */
+type DailySubmissionCounts = Record<string, number>
 
 interface AssetCountsResponse {
   daily_submission_counts: DailySubmissionCounts
@@ -139,7 +138,7 @@ export default function SubmissionsCountGraph(props: SubmissionsCountGraphProps)
 
         // Gather all counts from days from current month
         let count = 0
-        Object.keys(dailyCounts).forEach((item) => {
+        recordKeys(dailyCounts).forEach((item) => {
           const itemMonthNumber = item.split('-')[1]
           if (itemMonthNumber === monthNumber) {
             count += dailyCounts[item]
@@ -262,7 +261,7 @@ export default function SubmissionsCountGraph(props: SubmissionsCountGraphProps)
     }
   }, [counts])
 
-  const totalPeriodCount = Object.values(counts.daily_submission_counts).reduce((partialSum, a) => partialSum + a, 0)
+  const totalPeriodCount = recordValues(counts.daily_submission_counts).reduce((partialSum, a) => partialSum + a, 0)
 
   const hasData = !isLoading && totalPeriodCount > 0
 

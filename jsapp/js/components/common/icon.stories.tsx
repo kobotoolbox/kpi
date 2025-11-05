@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { IconNames } from '#/k-icons'
+import { recordKeys } from '#/utils'
 import Icon from './icon'
 import type { IconColor } from './icon'
 
@@ -14,7 +15,7 @@ const meta: Meta<typeof Icon> = {
       control: { type: 'select' },
     },
     name: {
-      options: Object.keys(IconNames),
+      options: recordKeys(IconNames),
       control: { type: 'select' },
     },
   },
@@ -31,7 +32,7 @@ export const Primary: Story = {
 export const AllIcons: Story = {
   render: () => (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-      {(Object.keys(IconNames) as Array<keyof typeof IconNames>).map((iconName) => (
+      {recordKeys(IconNames).map((iconName) => (
         <div key={iconName} style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '5px' }}>
           <Icon name={iconName} size='l' />
           {iconName}

@@ -51,7 +51,8 @@ class EnvironmentView(APIView):
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
         'USE_TEAM_LABEL',
-        'USAGE_LIMIT_ENFORCEMENT'
+        'USAGE_LIMIT_ENFORCEMENT',
+        'ALLOW_SELF_ACCOUNT_DELETION',
     ]
 
     OTHER_CONFIGS = [
