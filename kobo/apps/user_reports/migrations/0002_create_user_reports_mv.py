@@ -112,7 +112,7 @@ CREATE_MV_BASE_SQL = f"""
         ued.validated_password,
         EXISTS (
             SELECT 1
-            FROM trench_mfamethod mfa
+            FROM accounts_mfa_mfamethodswrapper mfa
             WHERE mfa.user_id = au.id
             AND mfa.is_active = true
         ) AS mfa_is_active,
