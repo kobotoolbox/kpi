@@ -8578,6 +8578,17 @@ paths:
         ## List users
 
         ⚠️ _Only available to superusers_
+
+        Search can be made with `q` parameter.
+
+        Allowed fields are:
+
+        - `username`
+        - `is_active`
+        - `email`
+        - `date_joined`
+        - `last_login`
+        - `extra_details__data__<field>`
       parameters:
       - name: limit
         required: false
@@ -8619,6 +8630,8 @@ paths:
       operationId: api_v2_users_retrieve
       description: |
         ## Retrieve a user
+
+        ⚠️ _Regular users have access to active users only_
       parameters:
       - in: path
         name: username
@@ -11875,11 +11888,15 @@ components:
           properties:
             asr_seconds_current_period:
               type: integer
+            llm_requests_current_period:
+              type: integer
             mt_characters_current_period:
               type: integer
             llm_requests_current_period:
               type: integer
             asr_seconds_all_time:
+              type: integer
+            llm_requests_all_time:
               type: integer
             mt_characters_all_time:
               type: integer
@@ -14086,8 +14103,11 @@ components:
           $ref: '#/components/schemas/NullableServiceUsageBalanceData'
         mt_characters:
           $ref: '#/components/schemas/NullableServiceUsageBalanceData'
+        llm_requests:
+          $ref: '#/components/schemas/NullableServiceUsageBalanceData'
       required:
       - asr_seconds
+      - llm_requests
       - mt_characters
       - storage_bytes
       - submission
@@ -14099,11 +14119,15 @@ components:
           properties:
             asr_seconds_current_period:
               type: integer
+            llm_requests_current_period:
+              type: integer
             mt_characters_current_period:
               type: integer
             llm_requests_current_period:
               type: integer
             asr_seconds_all_time:
+              type: integer
+            llm_requests_all_time:
               type: integer
             mt_characters_all_time:
               type: integer

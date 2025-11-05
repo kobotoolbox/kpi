@@ -15,6 +15,7 @@ from kpi.deployment_backends.kc_access.utils import (
 )
 from kpi.models.asset import Asset
 from kpi.utils.storage import rmdir
+from ...openrosa.apps.viewer.models import ParsedInstance
 from ..exceptions import TrashTaskInProgressError
 from ..models import TrashStatus
 from ..models.account import AccountTrash
@@ -98,7 +99,6 @@ def delete_account(account_trash: AccountTrash):
                     user.delete()
 
                 AuditLog.objects.create(**audit_log_params)
-
                 delete_kc_user(user.username)
 
                 if user.username:

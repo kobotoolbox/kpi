@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db.models import F, Max, Q, QuerySet, Window
 from django.db.models.functions import Coalesce
 
-from kobo.apps.organizations.constants import UsageType
+from kobo.apps.organizations.constants import SupportedUsageType, UsageType
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kobo.apps.organizations.types import UsageLimits
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
@@ -115,7 +115,7 @@ def get_organizations_subscription_limits(
         if row['product_type'] == 'plan':
             row_limits = {
                 f'{usage_type}_limit': row[f'{usage_type}_limit']
-                for usage_type, _ in UsageType.choices
+                for usage_type, _ in SupportedUsageType.choices
             }
         elif row['product_type'] == 'addon':
             row_limits['addon_storage_limit'] = row[f'{UsageType.STORAGE_BYTES}_limit']
@@ -139,7 +139,7 @@ def get_organizations_subscription_limits(
         .first()
     ) or {}
     default_plan_limits = {}
-    for usage_type, _ in UsageType.choices:
+    for usage_type, _ in SupportedUsageType.choices:
         limit_key = f'{usage_type}_limit'
         default_limit = default_plan.get(limit_key)
         if default_limit is None:
@@ -150,7 +150,7 @@ def get_organizations_subscription_limits(
     results = {}
     for org_id in all_org_ids:
         all_org_limits = {}
-        for usage_type, _ in UsageType.choices:
+        for usage_type, _ in SupportedUsageType.choices:
             plan_limit = subscription_limits_by_org_id.get(org_id, {}).get(
                 f'{usage_type}_limit'
             )
@@ -208,7 +208,7 @@ def get_organizations_effective_limits(
         PlanAddOn = apps.get_model('stripe', 'PlanAddOn')  # noqa
         addon_limits = PlanAddOn.get_organizations_totals(organizations=organizations)
         for org_id, limits in effective_limits.items():
-            for usage_type, _ in UsageType.choices:
+            for usage_type, _ in SupportedUsageType.choices:
                 addon = addon_limits.get(org_id, {}).get(f'total_{usage_type}_limit', 0)
                 limits[f'{usage_type}_limit'] += addon
     return effective_limits

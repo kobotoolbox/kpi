@@ -187,6 +187,7 @@ class ServiceUsageCalculator(CachedClass):
         limits = get_organizations_effective_limits([self.organization], True, True)
         org_limits = limits[self.organization.id]
 
+        # TODO: Check usage limit for LLM requests when supported by Stripe code
         return {
             UsageType.SUBMISSION: calculate_usage_balance(
                 limit=org_limits[f'{UsageType.SUBMISSION}_limit'],
