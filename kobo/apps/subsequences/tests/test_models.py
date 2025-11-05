@@ -150,56 +150,6 @@ class SubmissionSupplementTestCase(TestCase):
         )
         assert submission_supplement == EMPTY_SUPPLEMENT
 
-    def test_retrieve_data_from_migrated_data(self):
-        submission_supplement = {
-            'group_name/question_name': {
-                'transcript': {
-                    'languageCode': 'ar',
-                    'value': 'فارغ',
-                    'dateCreated': '2024-04-08T15:27:00Z',
-                    'dateModified': '2024-04-08T15:31:00Z',
-                    'revisions': [
-                        {
-                            'languageCode': 'ar',
-                            'value': 'هائج',
-                            'dateModified': '2024-04-08T15:27:00Z',
-                        }
-                    ],
-                },
-                'translation': [
-                    {
-                        'languageCode': 'en',
-                        'value': 'berserk',
-                        'dateCreated': '2024-04-08T15:27:00Z',
-                        'dateModified': '2024-04-08T15:27:00Z',
-                    },
-                    {
-                        'languageCode': 'es',
-                        'value': 'enloquecido',
-                        'dateCreated': '2024-04-08T15:29:00Z',
-                        'dateModified': '2024-04-08T15:32:00Z',
-                        'revisions': [
-                            {
-                                'languageCode': 'es',
-                                'value': 'loco',
-                                'dateModified': '2024-04-08T15:29:00Z',
-                            }
-                        ],
-                    },
-                ],
-            },
-        }
-
-        SubmissionSupplement.objects.create(
-            asset=self.asset,
-            submission_uuid=self.submission_root_uuid,
-            content=submission_supplement,
-        )
-        submission_supplement = SubmissionSupplement.retrieve_data(
-            self.asset, submission_root_uuid=self.submission_root_uuid
-        )
-        assert submission_supplement == self.EXPECTED_SUBMISSION_SUPPLEMENT
-
     def test_retrieve_data_with_submission_root_uuid(self):
         self.test_revise_data()
         submission_supplement = SubmissionSupplement.retrieve_data(

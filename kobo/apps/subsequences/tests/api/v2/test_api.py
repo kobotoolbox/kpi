@@ -2,23 +2,28 @@ import uuid
 from unittest.mock import MagicMock, patch
 
 import pytest
+from constance.test import override_config
+from ddt import data, ddt, unpack
 from django.conf import settings
-from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from freezegun import freeze_time
-from mock import Mock
 from rest_framework import status
-from constance.test import override_config
-
 
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.organizations.constants import UsageType
+from kobo.apps.subsequences.actions.automatic_google_transcription import (
+    AutomaticGoogleTranscriptionAction,
+)
 from kobo.apps.subsequences.models import SubmissionSupplement
 from kobo.apps.subsequences.tests.api.v2.base import SubsequenceBaseTestCase
 from kobo.apps.subsequences.tests.constants import QUESTION_SUPPLEMENT
-from kpi.utils.xml import fromstring_preserve_root_xmlns, edit_submission_xml, xml_tostring
+from kpi.utils.xml import (
+    edit_submission_xml,
+    fromstring_preserve_root_xmlns,
+    xml_tostring,
+)
 
 
 class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
@@ -109,61 +114,40 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
             },
         }
         now = timezone.now()
-        now_iso = now.isoformat().replace('+00:00','Z')
+        now_iso = now.isoformat().replace('+00:00', 'Z')
         with freeze_time(now):
-            with patch('kobo.apps.subsequences.actions.base.uuid.uuid4', return_value='uuid1'):
+            with patch(
+                'kobo.apps.subsequences.actions.base.uuid.uuid4', return_value='uuid1'
+            ):
                 response = self.client.patch(
                     self.supplement_details_url, data=payload, format='json'
                 )
         assert response.status_code == status.HTTP_200_OK
 
-        expected_data = {'_version': '20250820',
-         'q1': {'manual_transcription': {'_dateCreated': now_iso,
-                                         '_dateModified': now_iso,
-                                         '_versions': [{'_dateAccepted': now_iso,
-                                                        '_dateCreated': now_iso,
-                                                        '_uuid': 'uuid1',
-                                                        'language': 'en',
-                                                        'value': 'Hello world'}]}}}
-        assert response.data == expected_data
-
-    def test_change_language_list(self):
-        field = self.txi.revise_field({
-            'tx1': {
-                'value': 'T1',
-                'dateModified': 'A',
-                'dateCreated': 'A',
-                'revisions': []
-            }
-        }, {
-            'tx2': {
-                'value': 'T2',
-            }
-        })
-        self.set_asset_advanced_features({
-            'translation': {
-                'languages': [
-                    'tx1', 'tx3'
-                ]
-            }
-        })
-        resp = self.client.get(self.asset_url)
-        schema = resp.json()['advanced_submission_schema']
-        package = {
-            'submission': self.submission_uuid,
+        expected_data = {
+            '_version': '20250820',
             'q1': {
-                'transcript': {
-                    'value': 'they said hello',
-                },
+                'manual_transcription': {
+                    '_dateCreated': now_iso,
+                    '_dateModified': now_iso,
+                    '_versions': [
+                        {
+                            '_dateAccepted': now_iso,
+                            '_dateCreated': now_iso,
+                            '_uuid': 'uuid1',
+                            'language': 'en',
+                            'value': 'Hello world',
+                        }
+                    ],
+                }
             },
         }
-        # validate(package, schema)
-
+        assert response.data == expected_data
 
 
 class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
 
-    def test_cannot_patch_if_action_is_invalid(self):
+    def test_cannot_patch_if_question_has_no_configured_actions(self):
         payload = {
             '_version': '20250820',
             'q1': {
@@ -174,14 +158,24 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
             },
         }
 
-        # No actions activated at the asset level
+        # No actions activated at the asset level for any questions
         response = self.client.patch(
             self.supplement_details_url, data=payload, format='json'
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Invalid action' in str(response.data)
+        assert 'Invalid question' in str(response.data)
 
-        # Activate manual transcription (even if payload asks for translation)
+    def test_cannot_patch_if_action_is_invalid(self):
+        # Activate manual transcription (even though payload asks for translation)
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                'manual_translation': {
+                    'language': 'es',
+                    'value': 'buenas noches',
+                }
+            },
+        }
         self.set_asset_advanced_features(
             {
                 '_version': '20250820',
@@ -242,17 +236,14 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                     ],
                     'automatic_google_translation': [
                         {'language': 'fr'},
-                    ]
+                    ],
                 }
             },
         }
         self.set_asset_advanced_features(advanced_features)
 
         # Simulate a completed transcription, first.
-        mock_submission_supplement = {
-            '_version': '20250820',
-            'q1': QUESTION_SUPPLEMENT
-        }
+        mock_submission_supplement = {'_version': '20250820', 'q1': QUESTION_SUPPLEMENT}
 
         SubmissionSupplement.objects.create(
             submission_uuid=self.submission_uuid,
@@ -275,7 +266,6 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert 'Invalid payload' in str(response.data)
-
 
     def test_cannot_accept_incomplete_automatic_transcription(self):
         # Set up the asset to allow automatic google transcription
@@ -329,17 +319,14 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                         ],
                         'automatic_google_translation': [
                             {'language': 'fr'},
-                        ]
+                        ],
                     }
                 },
             }
         )
 
         # Simulate a completed transcription, first.
-        mock_submission_supplement = {
-            '_version': '20250820',
-            'q1': QUESTION_SUPPLEMENT
-        }
+        mock_submission_supplement = {'_version': '20250820', 'q1': QUESTION_SUPPLEMENT}
         SubmissionSupplement.objects.create(
             submission_uuid=self.submission_uuid,
             content=mock_submission_supplement,
@@ -383,7 +370,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                         ],
                         'automatic_google_translation': [
                             {'language': 'fr'},
-                        ]
+                        ],
                     }
                 },
             }
@@ -413,6 +400,8 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert 'Cannot translate without transcription' in str(response.data)
 
+
+@ddt
 class SubmissionSupplementAPIUsageLimitsTestCase(SubsequenceBaseTestCase):
     def setUp(self):
         super().setUp()
@@ -426,7 +415,7 @@ class SubmissionSupplementAPIUsageLimitsTestCase(SubsequenceBaseTestCase):
                         ],
                         'automatic_google_translation': [
                             {'language': 'es'},
-                        ]
+                        ],
                     }
                 },
             }
@@ -435,13 +424,19 @@ class SubmissionSupplementAPIUsageLimitsTestCase(SubsequenceBaseTestCase):
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
-    def test_google_services_usage_limit_checks(self):
+    @data(
+        (True, status.HTTP_402_PAYMENT_REQUIRED),
+        (False, status.HTTP_200_OK),
+    )
+    @unpack
+    def test_google_services_usage_limit_checks(
+        self, usage_limit_enforcement, expected_result_code
+    ):
         payload = {
             '_version': '20250820',
             'q1': {
                 'automatic_google_transcription': {
                     'language': 'en',
-                    'status': 'requested',
                 }
             },
         }
@@ -449,11 +444,18 @@ class SubmissionSupplementAPIUsageLimitsTestCase(SubsequenceBaseTestCase):
             UsageType.ASR_SECONDS: {'exceeded': True},
             UsageType.MT_CHARACTERS: {'exceeded': True},
         }
+
         with patch(
-            'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',
+            'kobo.apps.subsequences.actions.base.ServiceUsageCalculator.get_usage_balances',
             return_value=mock_balances,
         ):
-            response = self.client.patch(
-                self.supplement_details_url, data=payload, format='json'
-            )
-        assert response.status_code == status.HTTP_402_PAYMENT_REQUIRED
+            with override_config(USAGE_LIMIT_ENFORCEMENT=usage_limit_enforcement):
+                with patch.object(
+                    AutomaticGoogleTranscriptionAction,
+                    'run_external_process',
+                    return_value=None,  # noqa
+                ):
+                    response = self.client.patch(
+                        self.supplement_details_url, data=payload, format='json'
+                    )
+        assert response.status_code == expected_result_code

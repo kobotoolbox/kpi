@@ -6,8 +6,8 @@ import jsonschema
 import pytest
 
 from ..actions.automatic_google_translation import AutomaticGoogleTranslationAction
-from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 from ..exceptions import TranscriptionNotFound
+from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 
 
 def test_valid_params_pass_validation():
@@ -405,7 +405,7 @@ def test_action_is_updated_in_background_if_in_progress():
     ):
         mock_service.process_data.return_value = {'status': 'in_progress'}
         with patch(
-            'kobo.apps.subsequences.actions.base.poll_run_automatic_process'
+            'kobo.apps.subsequences.actions.base.poll_run_external_process'
         ) as task_mock:
             action.revise_data(
                 submission, EMPTY_SUPPLEMENT, {'language': 'fr'}

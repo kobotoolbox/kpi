@@ -366,7 +366,6 @@ class BaseAction:
         `submission` argument for future use by subclasses
         this method might need to be made more friendly for overriding
         """
-
         self.validate_data(action_data)
         self.raise_for_any_leading_underscore_key(action_data)
 
@@ -611,7 +610,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         Schema rules:
 
         - The field `status` is always required and must be one of:
-          ["requested", "in_progress", "complete", "failed"].
+          ["deleted", "in_progress", "complete", "failed"].
         - If `status` == "complete":
             * The field `value` becomes required and must be a string.
         - If `status` == "failed":
