@@ -4,12 +4,12 @@ import { keepPreviousData } from '@tanstack/react-query'
 import prettyBytes from 'pretty-bytes'
 import { Link } from 'react-router-dom'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
-import { useOrganizationQuery } from '#/account/organization/organizationQuery'
 import type { OrganizationAssetUsageResponse } from '#/api/models/organizationAssetUsageResponse'
 import {
-  getOrganizationsAssetUsageRetrieveQueryKey,
-  useOrganizationsAssetUsageRetrieve,
-} from '#/api/react-query/organizations'
+  getOrganizationsAssetUsageListQueryKey,
+  useOrganizationsAssetUsageList,
+} from '#/api/react-query/user-team-organization-usage'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
@@ -23,7 +23,7 @@ import { useBillingPeriod } from './useBillingPeriod'
 
 const ProjectBreakdown = () => {
   const [showIntervalBanner, setShowIntervalBanner] = useState(true)
-  const orgQuery = useOrganizationQuery()
+  const [organization] = useOrganizationAssumed()
   const { billingPeriod } = useBillingPeriod()
   const [pagination, setPagination] = useState({
     limit: DEFAULT_PAGE_SIZE,
@@ -31,11 +31,10 @@ const ProjectBreakdown = () => {
   })
   const [order, setOrder] = useState({})
 
-  // TODO: wait for schema fixes
-  const queryResult = useOrganizationsAssetUsageRetrieve(orgQuery.data?.id!, {
+  const queryResult = useOrganizationsAssetUsageList(organization.id, pagination, {
     query: {
       placeholderData: keepPreviousData,
-      queryKey: getOrganizationsAssetUsageRetrieveQueryKey(orgQuery.data?.id!),
+      queryKey: getOrganizationsAssetUsageListQueryKey(organization.id),
     },
   })
 
