@@ -19,6 +19,8 @@
     {% if root %}
         <p>This is the root of the API. Please access an endpoint for a meaningful response.</p>
     {% else %}
-        <pre>{{ pretty }}</pre>
+        {% autoescape on %}
+        <pre>{{ pretty|urlize }}</pre>
+        {% endautoescape %}
     {% endif %}
 {% endblock %}
