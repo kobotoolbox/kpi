@@ -1,7 +1,7 @@
 import React, { useContext } from 'react'
 
+import ButtonNew from '#/components/common/ButtonNew'
 import Badge from '#/components/common/badge'
-import Button from '#/components/common/button'
 import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import { findQuestion, getQuestionTypeDefinition } from '#/components/processing/analysis/utils'
 import styles from './keywordSearchResponseForm.module.scss'
@@ -98,13 +98,9 @@ export default function KeywordSearchResponseForm(props: KeywordSearchResponseFo
           return <span className={styles.loading}>{t('…keyword search in progress')}</span>
         } else if (!question.response) {
           return (
-            <Button
-              type='secondary'
-              size='m'
-              label={t('Apply search')}
-              onClick={applySearch}
-              isDisabled={analysisQuestions.state.isPending}
-            />
+            <ButtonNew variant='light' size='m' onClick={applySearch} disabled={analysisQuestions.state.isPending}>
+              {t('Apply search')}
+            </ButtonNew>
           )
         } else if (question.additionalFields?.keywords) {
           return (
