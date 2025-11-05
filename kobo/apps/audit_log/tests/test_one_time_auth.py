@@ -5,7 +5,6 @@ from ddt import data, ddt, unpack
 from django.http import HttpResponse
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
-from trench.utils import get_mfa_model
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog
@@ -38,10 +37,6 @@ class TestOneTimeAuthentication(BaseTestCase):
 
     def setUp(self):
         super().setUp()
-        # always start with no MFA model
-        get_mfa_model().objects.filter(
-            user=TestOneTimeAuthentication.user
-        ).delete()
         # make sure there are no audit logs at the outset to ensure a clean test
         self.assertEqual(AuditLog.objects.count(), 0)
 
