@@ -8,7 +8,7 @@ class ManualTranslationAction(TranslationActionMixin, BaseManualNLPAction):
 
     ID = 'manual_translation'
     action_class_config = ActionClassConfig(
-        allow_multiple=True, automated=False, action_data_key='language'
+        allow_multiple=True, automatic=False, action_data_key='language'
     )
 
     def _get_output_field_name(self, language: str) -> str:

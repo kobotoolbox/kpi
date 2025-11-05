@@ -13,7 +13,7 @@ def get_supplemental_output_fields(asset: 'kpi.models.Asset') -> list[dict]:
     these are the fields added to exports, displayed in the table view, etc.
 
     multiple actions could result in only a single field, such as a manual
-    transcript and an automated transcript for a given language only resulting
+    transcript and an automatic transcript for a given language only resulting
     in one field in the output data
 
     Returns a list of fields contributed by all enabled actions (at the asset
@@ -33,7 +33,7 @@ def get_supplemental_output_fields(asset: 'kpi.models.Asset') -> list[dict]:
         ]
 
     When it's time to get the data, we'll have to arbitrate between the manual
-    and automated transcripts if both are ever present for a particular
+    and automatic transcripts if both are ever present for a particular
     submission. We'll do that by looking at the acceptance dates and letting
     the most recent win
     """

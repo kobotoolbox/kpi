@@ -1,7 +1,7 @@
 EMPTY_SUBMISSION = {}
 EMPTY_SUPPLEMENT = {}
 QUESTION_SUPPLEMENT = {
-    'automated_google_transcription': {
+    'automatic_google_transcription': {
         '_dateCreated': '2024-04-08T15:27:00Z',
         '_dateModified': '2024-04-08T15:27:00Z',
         '_versions': [

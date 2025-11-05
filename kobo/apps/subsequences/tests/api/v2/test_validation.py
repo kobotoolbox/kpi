@@ -77,16 +77,16 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'Invalid action' in str(response.data)
 
-    def test_cannot_set_value_with_automated_actions(self):
-        # First, set up the asset to allow automated actions
+    def test_cannot_set_value_with_automatic_actions(self):
+        # First, set up the asset to allow automatic actions
         advanced_features = {
             '_version': '20250820',
             '_actionConfigs': {
                 'q1': {
-                    'automated_google_transcription': [
+                    'automatic_google_transcription': [
                         {'language': 'en'},
                     ],
-                    'automated_google_translation': [
+                    'automatic_google_translation': [
                         {'language': 'fr'},
                     ]
                 }
@@ -105,12 +105,12 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
             content=mock_submission_supplement,
             asset=self.asset,
         )
-        automated_actions = advanced_features['_actionConfigs']['q1'].keys()
-        for automated_action in automated_actions:
+        automatic_actions = advanced_features['_actionConfigs']['q1'].keys()
+        for automatic_action in automatic_actions:
             payload = {
                 '_version': '20250820',
                 'q1': {
-                    automated_action: {
+                    automatic_action: {
                         'language': 'es',
                         'value': 'some text',  # forbidden field
                     }
@@ -124,13 +124,13 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
 
     def test_cannot_accept_incomplete_automatic_transcription(self):
-        # Set up the asset to allow automated google transcription
+        # Set up the asset to allow automatic google transcription
         self.set_asset_advanced_features(
             {
                 '_version': '20250820',
                 '_actionConfigs': {
                     'q1': {
-                        'automated_google_transcription': [
+                        'automatic_google_transcription': [
                             {'language': 'es'},
                         ]
                     }
@@ -142,7 +142,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         payload = {
             '_version': '20250820',
             'q1': {
-                'automated_google_transcription': {
+                'automatic_google_transcription': {
                     'language': 'es',
                     'accepted': True,
                 }
@@ -154,7 +154,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         mock_service.process_data.return_value = {'status': 'in_progress'}
 
         with patch(
-            'kobo.apps.subsequences.actions.automated_google_transcription.GoogleTranscriptionService',  # noqa
+            'kobo.apps.subsequences.actions.automatic_google_transcription.GoogleTranscriptionService',  # noqa
             return_value=mock_service,
         ):
             response = self.client.patch(
@@ -164,16 +164,16 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
             assert 'Invalid payload' in str(response.data)
 
     def test_cannot_accept_incomplete_automatic_translation(self):
-        # Set up the asset to allow automated google actions
+        # Set up the asset to allow automatic google actions
         self.set_asset_advanced_features(
             {
                 '_version': '20250820',
                 '_actionConfigs': {
                     'q1': {
-                        'automated_google_transcription': [
+                        'automatic_google_transcription': [
                             {'language': 'en'},
                         ],
-                        'automated_google_translation': [
+                        'automatic_google_translation': [
                             {'language': 'fr'},
                         ]
                     }
@@ -196,7 +196,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         payload = {
             '_version': '20250820',
             'q1': {
-                'automated_google_translation': {
+                'automatic_google_translation': {
                     'language': 'fr',
                     'accepted': True,
                 }
@@ -208,7 +208,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         mock_service.process_data.return_value = {'status': 'in_progress'}
 
         with patch(
-            'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',  # noqa
+            'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
             return_value=mock_service,
         ):
             response = self.client.patch(
@@ -218,16 +218,16 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
             assert 'Invalid payload' in str(response.data)
 
     def test_cannot_request_translation_without_transcription(self):
-        # Set up the asset to allow automated google actions
+        # Set up the asset to allow automatic google actions
         self.set_asset_advanced_features(
             {
                 '_version': '20250820',
                 '_actionConfigs': {
                     'q1': {
-                        'automated_google_transcription': [
+                        'automatic_google_transcription': [
                             {'language': 'en'},
                         ],
-                        'automated_google_translation': [
+                        'automatic_google_translation': [
                             {'language': 'fr'},
                         ]
                     }
@@ -239,7 +239,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         payload = {
             '_version': '20250820',
             'q1': {
-                'automated_google_translation': {
+                'automatic_google_translation': {
                     'language': 'fr',
                 }
             },
@@ -250,7 +250,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         mock_service.process_data.return_value = {'status': 'in_progress'}
 
         with patch(
-            'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',  # noqa
+            'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
             return_value=mock_service,
         ):
             response = self.client.patch(

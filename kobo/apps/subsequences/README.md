@@ -1,7 +1,7 @@
 # Subsequence Actions – Supplement Processing Flow
 
 This document explains the full flow when a client submits a **supplement** payload to the API.
-It covers how the payload is validated through the various schemas (`params_schema`, `data_schema`, `automated_data_schema`, `result_schema`), how external NLP services are invoked for automated actions, and how versions are created and persisted.
+It covers how the payload is validated through the various schemas (`params_schema`, `data_schema`, `external_data_schema`, `result_schema`), how external NLP services are invoked for automatic actions, and how versions are created and persisted.
 
 ---
 
@@ -28,12 +28,12 @@ direction TB
 %% ==== Bases ====
 class BaseAction {
   <<abstract>>
-  +automated_data_schema [abstract][property]
+  +external_data_schema [abstract][property]
   +data_schema [abstract][property]
   +result_schema [abstract][property]
   +retrieve_data()
   +revise_data()
-  +run_automated_process() [abstract]
+  +run_external_process() [abstract]
 }
 
 class BaseManualNLPAction {
@@ -41,20 +41,20 @@ class BaseManualNLPAction {
   +data_schema [property]
 }
 
-class BaseAutomatedNLPAction {
+class BaseAutomaticNLPAction {
   +attach_action_dependency() [abstract]
-  +automated_data_schema [property]
+  +external_data_schema [property]
   +data_schema [property]
   +get_action_dependencies() [abstract]
-  +run_automated_process()
+  +run_external_process()
   +get_nlp_service_class() [abstract]
 }
 
 %% ==== Concrete ====
 class ManualTranscription
 class ManualTranslation
-class AutomatedGoogleTranscription
-class AutomatedGoogleTranslation
+class AutomaticGoogleTranscription
+class AutomaticGoogleTranslation
 
 %% ==== Mixins (provide result_schema) ====
 class TranscriptionActionMixin {
@@ -68,19 +68,19 @@ class TranslationActionMixin {
 
 %% ==== Inheritance (bases) ====
 BaseAction <|-- BaseManualNLPAction
-BaseManualNLPAction <|-- BaseAutomatedNLPAction
+BaseManualNLPAction <|-- BaseAutomaticNLPAction
 
 %% ==== Inheritance (concretes) ====
 BaseManualNLPAction <|-- ManualTranscription
 BaseManualNLPAction <|-- ManualTranslation
-BaseAutomatedNLPAction <|-- AutomatedGoogleTranscription
-BaseAutomatedNLPAction <|-- AutomatedGoogleTranslation
+BaseAutomaticNLPAction <|-- AutomaticGoogleTranscription
+BaseAutomaticNLPAction <|-- AutomaticGoogleTranslation
 
 %% ==== Mixins -> Concretes ====
 TranscriptionActionMixin <.. ManualTranscription : mixin
-TranscriptionActionMixin <.. AutomatedGoogleTranscription : mixin
+TranscriptionActionMixin <.. AutomaticGoogleTranscription : mixin
 TranslationActionMixin  <.. ManualTranslation : mixin
-TranslationActionMixin  <.. AutomatedGoogleTranslation : mixin
+TranslationActionMixin  <.. AutomaticGoogleTranslation : mixin
 ```
 
 ---
@@ -172,8 +172,8 @@ autonumber
 actor Client
 participant API as KPI API
 participant SS as SubmissionSupplement
-participant Action as Action (Manual/Automated)
-participant Ext as NLP Service (if automated)
+participant Action as Action (Manual/Automatic)
+participant Ext as NLP Service (if automatic)
 participant Celery as Celery Worker
 participant DB as Database
 
@@ -186,14 +186,14 @@ loop For each action in _actionConfigs
   SS->>Action: action.revise_data(one_action_payload)
   Note right of Action: Validate with data_schema
 
-  alt Action is automated (BaseAutomatedNLPAction)
-    Action->>Action: run_automated_process()
+  alt Action is automatic (BaseAutomaticNLPAction)
+    Action->>Action: run_external_process()
     Action->>Ext: Call external NLP service
     Ext-->>Action: Response (augmented payload)
     alt status == "in_progress"
-      Action->>Celery: enqueue poll_automated_process task
+      Action->>Celery: enqueue poll_external_process task
     end
-    Action->>Action: Validate with automated_data_schema
+    Action->>Action: Validate with external_data_schema
   end
 
   Action->>Action: Build new version
@@ -209,17 +209,17 @@ API-->>Client: 200 OK (or error)
 
 #### 2.3.2 Background Polling with Celery
 
-If run_automated_process receives a response like:
+If run_external_process receives a response like:
 
 ```json
 {"status": "in_progress"}
 ```
 
 
-a Celery task (e.g. poll_automated_process) is queued.
+a Celery task (e.g. poll_external_process) is queued.
 This task will periodically re-invoke the external service until the action’s
 status becomes complete or a maximum retry limit is reached.
-The task uses the same validation chain (automated_data_schema → result_schema)
+The task uses the same validation chain (external_data_schema → result_schema)
 before persisting the final revision.
 
 ---
@@ -232,16 +232,16 @@ before persisting the final revision.
 flowchart TB
   A[Incoming action payload]
   B[Attach action dependency]
-  C{Is automated action?}
+  C{Is automatic action?}
   D[Add dependency supplemental data if any]
   E[Build version]
   F[Validate with result schema]
   G[Save to DB]
   H[Done]
-  I[Run automated process]
+  I[Run external process]
   J[Sanitize dependency supplemental data]
-  K[Validate with automated data schema]
-  L[Enqueue Celery task poll_automated_process]
+  K[Validate with external data schema]
+  L[Enqueue Celery task poll_external_process]
   M[Return 4xx error]
   N{Status in_progress?}
 
@@ -271,7 +271,7 @@ flowchart TB
 Every action relies on a set of schemas to validate its lifecycle:
 - **`params_schema`** – defines how the action is instantiated and configured on the Asset.
 - **`data_schema`** – validates the client payload sent in supplements.
-- **`automated_data_schema`** – extends `data_schema` for automated actions by adding status and system-generated fields.
+- **`external_data_schema`** – extends `data_schema` for automatic actions by adding status and system-generated fields.
 - **`result_schema`** – validates the persisted revision format, including metadata and version history.
 
 ---
@@ -311,7 +311,7 @@ Each action has its own expected format:
   { "language": "en", "value": "My translation" }
   ```
 
-- **Automated Transcription / Automated Translation**
+- **Automatic Transcription / Automatic Translation**
   ```json
   { "language": "en" }
   ```
@@ -323,14 +323,14 @@ Each action has its own expected format:
 
 ---
 
-### 3.3 `automated_data_schema`
+### 3.3 `external_data_schema`
 
-Used only for **automated actions** (`BaseAutomatedNLPAction`).
+Used only for **automatic actions** (`BaseAutomaticNLPAction`).
 It validates the **augmented payload** returned by the external service.
 
 - **Example (complete)**
   ```json
-  { "language": "en", "value": "My automated result", "status": "complete" }
+  { "language": "en", "value": "My automatic result", "status": "complete" }
   ```
 
 - **Example (in progress)**
@@ -353,11 +353,11 @@ It validates the **augmented payload** returned by the external service.
 ### 3.4 `result_schema`
 
 Validates the **revision JSON** persisted in the database.
-The structure is the same for both manual and automated actions:
+The structure is the same for both manual and automatic actions:
 
 - Metadata about the action itself (`_dateCreated`, `_dateModified`).
 - A list of versions under `_versions`, each containing:
-  - The properties defined by `data_schema` (manual) or `automated_data_schema` (automated).
+  - The properties defined by `data_schema` (manual) or `external_data_schema` (automatic).
   - Audit fields (`_dateCreated`, `_dateAccepted`, `_uuid`).
 
 **Generic Example**
@@ -369,7 +369,7 @@ The structure is the same for both manual and automated actions:
   "_versions": [
     {
       "language": "en",
-      "value": "My automated result",
+      "value": "My automatic result",
       "status": "complete",
       "_dateCreated": "2025-08-21T20:57:28Z",
       "_dateAccepted": "2025-08-21T20:57:28Z",
@@ -389,7 +389,7 @@ The structure is the same for both manual and automated actions:
 
 > For manual actions, the inner version objects correspond to `data_schema`.
 >
-> For automated actions, they correspond to `automated_data_schema`.
+> For automatic actions, they correspond to `external_data_schema`.
 
 ---
 
@@ -399,7 +399,7 @@ Some actions depend on the result of other actions.
 For example, a **translation** action requires an existing **transcription**.
 In this case, a `_dependency` property is added to the persisted JSON.
 
-**Example: Automated Translation result depending on an Automated Transcription**
+**Example: Automatic Translation result depending on an Automatic Transcription**
 
 ```json
 {
@@ -414,7 +414,7 @@ In this case, a `_dependency` property is added to the persisted JSON.
       "_uuid": "91ab5f30-0f73-4e2e-b91f-8ad2f67a4729",
       "_dependency": {
         "_uuid": "4dcf9c9f-e503-4e5c-81f5-74250b295001",
-        "_actionId": "automated_google_transcription"
+        "_actionId": "automatic_google_transcription"
       }
     }
   ]
