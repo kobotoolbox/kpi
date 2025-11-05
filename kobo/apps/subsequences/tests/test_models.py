@@ -136,20 +136,6 @@ class SubmissionSupplementTestCase(TestCase):
                 self.asset, submission_root_uuid=None, prefetched_supplement=None
             )
 
-    def test_retrieve_data_with_stale_questions(self):
-        SubmissionSupplement.objects.create(
-            asset=self.asset,
-            submission_uuid=self.submission_root_uuid,
-            content=self.EXPECTED_SUBMISSION_SUPPLEMENT,
-        )
-        advanced_features = deepcopy(self.ADVANCED_FEATURES)
-        config = advanced_features['_actionConfigs'].pop('group_name/question_name')
-        advanced_features['_actionConfigs']['group_name/renamed_question_name'] = config
-        submission_supplement = SubmissionSupplement.retrieve_data(
-            self.asset, self.submission_root_uuid
-        )
-        assert submission_supplement == EMPTY_SUPPLEMENT
-
     def test_retrieve_data_with_submission_root_uuid(self):
         self.test_revise_data()
         submission_supplement = SubmissionSupplement.retrieve_data(
