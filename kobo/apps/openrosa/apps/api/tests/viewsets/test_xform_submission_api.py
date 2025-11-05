@@ -358,6 +358,57 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                     f'http://testserver/{self.user.username}/submission',
                 )
 
+    def test_post_attachments_with_invisible_characters_persist(self):
+
+        data = {
+            'owner': self.user.username,
+            'public': True,
+            'public_data': True,
+            'description': 'transportation_with_attachment',
+            'downloadable': True,
+            'encrypted': False,
+            'id_string': 'transportation_with_attachment',
+            'title': 'transportation_with_attachment',
+        }
+
+        path = os.path.join(
+            settings.OPENROSA_APP_DIR,
+            'apps',
+            'main',
+            'tests',
+            'fixtures',
+            'transportation',
+            'transportation_with_attachment.xls',
+        )
+        self.publish_xls_form(data=data, path=path)
+
+        xml_path = os.path.join(
+            self.main_directory,
+            'fixtures',
+            'transportation',
+            'instances',
+            'transport_with_attachment',
+            'transport_with_attachment_w_invisible_characters.xml',
+        )
+        media_file_path = os.path.join(
+            self.main_directory,
+            'fixtures',
+            'transportation',
+            'instances',
+            'transport_with_attachment',
+            'test narrow.png',
+        )
+
+        with open(media_file_path, 'rb') as media_file:
+            self._make_submission(xml_path, media_file=media_file)
+
+        self.client.force_login(self.user)
+
+        att = Attachment.objects.get(
+            instance__root_uuid='3105b549-0f4e-4f3c-9eb2-470f25febf86'
+        )
+        assert att.media_file_basename == 'test narrow.png'
+
     def test_post_submission_authenticated(self):
         s = self.surveys[0]
         media_file = '1335783522563.jpg'
@@ -867,7 +918,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
                 self.assertEqual(
                     response['Location'],
-                    f'http://testserver/collector/{dc.token}/submission'
+                    f'http://testserver/collector/{dc.token}/submission',
                 )
 
 

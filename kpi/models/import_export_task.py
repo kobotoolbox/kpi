@@ -41,7 +41,6 @@ from rest_framework.reverse import reverse
 from werkzeug.http import parse_options_header
 
 from kobo.apps.reports.report_data import build_formpack
-from kobo.apps.subsequences.utils import stream_with_extras
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
@@ -1038,9 +1037,6 @@ class SubmissionExportTaskBase(ImportExportTask):
             submission_ids=submission_ids,
             query=query,
         )
-
-        if source.has_advanced_features:
-            submission_stream = stream_with_extras(submission_stream, source)
 
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions

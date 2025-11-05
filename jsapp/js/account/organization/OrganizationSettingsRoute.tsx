@@ -6,6 +6,7 @@ import styles from '#/account/organization/organizationSettingsRoute.module.scss
 import subscriptionStore from '#/account/subscriptionStore'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import type { OrganizationTypeEnum } from '#/api/models/organizationTypeEnum'
+import { queryClient } from '#/api/queryClient'
 import {
   getOrganizationsRetrieveQueryKey,
   useOrganizationsPartialUpdate,
@@ -17,7 +18,6 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import TextBox from '#/components/common/textBox'
 import envStore from '#/envStore'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
-import { queryClient } from '#/query/queryClient'
 import { getSimpleMMOLabel } from './organization.utils'
 
 export const ORGANIZATION_TYPES: { [P in OrganizationTypeEnum]: { name: P; label: string } } = {

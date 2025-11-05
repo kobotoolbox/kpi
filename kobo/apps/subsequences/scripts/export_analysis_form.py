@@ -14,10 +14,7 @@ def run():
     latest_xtra = SubmissionExtras.objects.last()
     asset = latest_xtra.asset
     user = asset.owner
-    submission_stream = asset.deployment.get_submissions(
-        user=user,
-    )
-    submission_stream = stream_with_extras(submission_stream, asset)
+    submission_stream = asset.deployment.get_submissions(user=user)
     _fields_from_all_versions = False #?
     pack, submission_stream = build_formpack(
         asset, submission_stream, _fields_from_all_versions

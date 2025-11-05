@@ -1,14 +1,16 @@
-# coding: utf-8
 import json
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterator, Generator
 from io import StringIO
+from typing import Any, Optional
 
 from dict2xml import dict2xml
 from django.core.serializers.json import DjangoJSONEncoder
 from django.template.loader import get_template
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers, status
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.request import Request
 from rest_framework.exceptions import ErrorDetail, ParseError
 from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
@@ -38,6 +40,8 @@ class BasicHTMLRenderer(renderers.BaseRenderer):
 
         if resolver_match:
             url_pattern_clean = self._clean_route(resolver_match.route)
+
+        data = self._materialize_results_preview(data, request=request)
 
         try:
             pretty = json.dumps(data, indent=2, cls=DjangoJSONEncoder)
@@ -81,6 +85,41 @@ class BasicHTMLRenderer(renderers.BaseRenderer):
             return None
 
         return resolver.route
+
+    @staticmethod
+    def _materialize_results_preview(data: Any, request: Request | None) -> Any:
+
+        if not isinstance(data, dict) or 'results' not in data:
+            return data
+
+        results = data['results']
+        if not isinstance(results, (Iterator, Generator)):
+            return data
+
+        default_limit = 20
+
+        try:
+            limit = (
+                int(
+                    request.query_params.get(
+                        LimitOffsetPagination.limit_query_param, default_limit
+                    )
+                )
+                if request
+                else default_limit
+            )
+        except (TypeError, ValueError):
+            limit = default_limit
+
+        items = []
+        for i, x in enumerate(results):
+            if i >= limit:
+                break
+            items.append(x)
+
+        data_copy = dict(data)
+        data_copy['results'] = items
+        return data_copy
 
 
 class MediaFileRenderer(renderers.BaseRenderer):

@@ -20,8 +20,8 @@ class Migration(migrations.Migration):
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID'
-                    )
+                        verbose_name='ID',
+                    ),
                 ),
                 ('uid', kpi.fields.kpi_uid.KpiUidField(_null=False, uid_prefix='busr')),
                 (
@@ -30,11 +30,11 @@ class Migration(migrations.Migration):
                         choices=[
                             ('in_progress', 'In Progress'),
                             ('completed', 'Completed'),
-                            ('aborted', 'Aborted')
+                            ('aborted', 'Aborted'),
                         ],
                         default='in_progress',
-                        max_length=32
-                    )
+                        max_length=32,
+                    ),
                 ),
                 ('last_processed_org_id', models.CharField(blank=True, null=True)),
                 ('details', models.JSONField(blank=True, null=True)),
@@ -65,12 +65,12 @@ class Migration(migrations.Migration):
                         auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        verbose_name='ID'
-                    )
+                        verbose_name='ID',
+                    ),
                 ),
                 (
                     'effective_user_id',
-                    models.IntegerField(blank=True, null=True, db_index=True)
+                    models.IntegerField(blank=True, null=True, db_index=True),
                 ),
                 (
                     'last_snapshot_run',
@@ -91,7 +91,7 @@ class Migration(migrations.Migration):
                 ('total_submission_count_all_time', models.BigIntegerField(default=0)),
                 (
                     'total_submission_count_current_period',
-                    models.BigIntegerField(default=0)
+                    models.BigIntegerField(default=0),
                 ),
                 ('billing_period_start', models.DateTimeField(blank=True, null=True)),
                 ('billing_period_end', models.DateTimeField(blank=True, null=True)),
@@ -125,8 +125,7 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name='billingandusagesnapshotrun',
             index=models.Index(
-                fields=['status', 'date_modified'],
-                name='idx_bau_run_status_expires'
+                fields=['status', 'date_modified'], name='idx_bau_run_status_expires'
             ),
         ),
         migrations.AddConstraint(
@@ -134,14 +133,13 @@ class Migration(migrations.Migration):
             constraint=models.UniqueConstraint(
                 fields=('singleton',),
                 condition=Q(status='in_progress'),
-                name='uniq_run_in_progress'
+                name='uniq_run_in_progress',
             ),
         ),
         migrations.AddConstraint(
             model_name='billingandusagesnapshot',
             constraint=models.UniqueConstraint(
-                fields=('organization',),
-                name='uniq_snapshot_per_org'
+                fields=('organization',), name='uniq_snapshot_per_org'
             ),
         ),
         # Register the materialized-view model state (unmanaged) so Django knows
@@ -154,13 +152,10 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name='UserReports',
                     fields=[
-                        (
-                            'id',
-                            models.CharField(max_length=80, primary_key=True)
-                        ),
+                        ('id', models.CharField(max_length=80, primary_key=True)),
                         (
                             'extra_details_uid',
-                            models.CharField(max_length=255, null=True, blank=True)
+                            models.CharField(max_length=255, null=True, blank=True),
                         ),
                         ('username', models.CharField(max_length=150)),
                         ('first_name', models.CharField(max_length=150)),
@@ -172,7 +167,7 @@ class Migration(migrations.Migration):
                         ('date_joined', models.CharField(max_length=64)),
                         (
                             'last_login',
-                            models.CharField(max_length=64, null=True, blank=True)
+                            models.CharField(max_length=64, null=True, blank=True),
                         ),
                         ('validated_email', models.BooleanField()),
                         ('validated_password', models.BooleanField()),
@@ -187,11 +182,11 @@ class Migration(migrations.Migration):
                         ('deployed_asset_count', models.IntegerField(default=0)),
                         (
                             'current_period_start',
-                            models.DateTimeField(null=True, blank=True)
+                            models.DateTimeField(null=True, blank=True),
                         ),
                         (
                             'current_period_end',
-                            models.DateTimeField(null=True, blank=True)
+                            models.DateTimeField(null=True, blank=True),
                         ),
                         (
                             'service_usage',

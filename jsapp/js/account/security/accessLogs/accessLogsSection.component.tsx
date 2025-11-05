@@ -28,8 +28,8 @@ export default function AccessLogsSection() {
     },
   })
   const accessLogsMeExport = useAccessLogsMeExportCreate({
-    request: {
-      notifyAboutError: false,
+    mutation: {
+      onError: () => null, // supress default toast on error because <ExportToEmailButton/> handles error inline.
     },
   })
 
@@ -42,7 +42,7 @@ export default function AccessLogsSection() {
     } catch (error) {
       const failResponse: FailResponse = {
         status: 500,
-        statusText: (error as Error).message || t('An error occurred while exporting the logs'),
+        statusText: (error as Error).message || t('An error occurred while exporting the logs'), // TODO: update message in backend (DEV-1218).
       }
       throw failResponse
     }

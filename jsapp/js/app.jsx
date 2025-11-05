@@ -12,6 +12,7 @@ import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
 import { Outlet } from 'react-router-dom'
 import Reflux from 'reflux'
+import { queryClient } from '#/api/queryClient'
 import bem from '#/bem'
 import BigModal from '#/components/bigModal/bigModal'
 import Drawer from '#/components/drawer'
@@ -25,11 +26,12 @@ import { RootContextProvider } from '#/rootContextProvider.component'
 import InvalidatedPassword from '#/router/invalidatedPassword.component'
 import { isInvalidatedPasswordRouteBlockerActive, isTOSAgreementRouteBlockerActive } from '#/router/routerUtils'
 import TOSAgreement from '#/router/tosAgreement.component'
-import { queryClient } from './query/queryClient.ts'
 import { router, routerGetAssetId, withRouter } from './router/legacy'
 import { Tracking } from './router/useTracking'
 import { themeKobo } from './theme'
 import ToasterConfig from './toasterConfig'
+
+import './api/mutation-defaults'
 
 class App extends React.Component {
   constructor(props) {

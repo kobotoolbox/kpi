@@ -1,19 +1,20 @@
 import React, { useState } from 'react'
 
 import { Button, FocusTrap, Group, Modal, Stack, Text } from '@mantine/core'
-import {
-  MemberInviteStatus,
-  useOrgMemberInviteQuery,
-  usePatchMemberInvite,
-} from '#/account/organization/membersInviteQuery'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 import subscriptionStore from '#/account/subscriptionStore'
-import { endpoints } from '#/api.endpoints'
+import type { ErrorDetail } from '#/api/models/errorDetail'
+import type { InviteResponse } from '#/api/models/inviteResponse'
+import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
+import {
+  useOrganizationsInvitesPartialUpdate,
+  useOrganizationsInvitesRetrieve,
+} from '#/api/react-query/user-team-organization-usage'
 import Alert from '#/components/common/alert'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore from '#/envStore'
 import { useSession } from '#/stores/useSession'
-import { notify } from '#/utils'
+import { notify, sleep } from '#/utils'
 
 /**
  * Displays a modal to a user that got an invitation for joining an organization. There is a possibility to accept or
@@ -22,59 +23,58 @@ import { notify } from '#/utils'
  * Note: this is for a user that is NOT a part of an organization (and thus has no access to it).
  */
 export default function OrgInviteModal(props: { orgId: string; inviteId: string; onUserResponse: () => void }) {
-  const inviteUrl = endpoints.ORG_MEMBER_INVITE_DETAIL_URL.replace(':organization_id', props.orgId).replace(
-    ':invite_id',
-    props.inviteId,
-  )
-
   const [isModalOpen, setIsModalOpen] = useState(true)
-  const [awaitingDataRefresh, setAwaitingDataRefresh] = useState(false)
-  const [userResponseType, setUserResponseType] = useState<MemberInviteStatus | null>(null)
   const session = useSession()
-  const orgMemberInviteQuery = useOrgMemberInviteQuery(props.orgId, props.inviteId, false)
-  const patchMemberInvite = usePatchMemberInvite(inviteUrl, false)
-  // We handle all the errors through query and BE responses, but for some edge cases we have this:
-  const [miscError, setMiscError] = useState<string | undefined>()
-
-  const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0])
 
   // We use `mmoLabel` as fallback until `organization_name` is available at the endpoint
-  const orgName = orgMemberInviteQuery.data?.organization_name || mmoLabel
+  const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0])
+  const orgInvitesQuery = useOrganizationsInvitesRetrieve(props.orgId, props.inviteId)
+  const orgName = (orgInvitesQuery.data?.data as InviteResponse)?.organization_name ?? mmoLabel
 
-  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+  const [userResponseType, setUserResponseType] = useState<InviteStatusChoicesEnum | null>(null)
+  const [miscError, setMiscError] = useState<string | undefined>()
+  const [awaitingDataRefresh, setAwaitingDataRefresh] = useState(false)
+  const orgInvitesPatch = useOrganizationsInvitesPartialUpdate({
+    mutation: {
+      onMutate: (variables) => {
+        if (!('status' in variables.data)) return // just a typeguard, should never happen.
+        setUserResponseType(variables.data.status)
+      },
+      onSuccess: async (_data, variables, _context) => {
+        if (!('status' in variables.data)) return // just a typeguard, should never happen.
 
-  async function handleSuccessfulInviteResponse(message: string, refreshData = false) {
-    // After a one-second delay to allow for initial backend data transfers,
-    // refresh session to refresh org data and project list
-    if (refreshData) {
-      setAwaitingDataRefresh(true)
-      await wait(1000)
-      session.refreshAccount()
-    }
-    props.onUserResponse()
-    notify(message)
-  }
+        if (variables.data.status === InviteStatusChoicesEnum.accepted) {
+          setAwaitingDataRefresh(true)
+          await sleep(1000) // Give it a second to allow for initial backend data transfers
+          session.refreshAccount() // refresh session to refresh org data and project list
+          notify(t('Invitation successfully accepted'))
+        } else {
+          notify(t('Invitation successfully declined'))
+        }
+        setUserResponseType(null)
+        props.onUserResponse()
+      },
+      onError: (_error) => {
+        setMiscError(t('Unknown error while trying to update an invitation')) // TODO: update message in backend (DEV-1218).
+        setUserResponseType(null)
+      },
+    },
+  })
 
   const handleDeclineInvite = async () => {
-    try {
-      setUserResponseType(MemberInviteStatus.declined)
-      await patchMemberInvite.mutateAsync({ status: MemberInviteStatus.declined })
-      handleSuccessfulInviteResponse(t('Invitation successfully declined'))
-    } catch (error) {
-      setMiscError(t('Unknown error while trying to update an invitation'))
-      setUserResponseType(null)
-    }
+    orgInvitesPatch.mutate({
+      uidOrganization: props.orgId,
+      guid: props.inviteId,
+      data: { status: InviteStatusChoicesEnum.declined },
+    })
   }
 
   const handleAcceptInvite = async () => {
-    try {
-      setUserResponseType(MemberInviteStatus.accepted)
-      await patchMemberInvite.mutateAsync({ status: MemberInviteStatus.accepted })
-      await handleSuccessfulInviteResponse(t('Invitation successfully accepted'), true)
-    } catch (error) {
-      setMiscError(t('Unknown error while trying to update an invitation'))
-      setUserResponseType(null)
-    }
+    orgInvitesPatch.mutate({
+      uidOrganization: props.orgId,
+      guid: props.inviteId,
+      data: { status: InviteStatusChoicesEnum.accepted },
+    })
   }
 
   const handleSignOut = () => {
@@ -85,32 +85,29 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   let title: React.ReactNode = null
 
   // Case 1: loading data.
-  if (orgMemberInviteQuery.isLoading) {
+  if (orgInvitesQuery.isLoading) {
     content = <LoadingSpinner />
   }
   // Case 2: failed to get the invitation data from API.
-  else if (orgMemberInviteQuery.isError) {
+  else if (orgInvitesQuery.isError) {
     title = t('Invitation not found')
-    // Fallback message
-    let memberInviteErrorMessage = t('Could not find invitation ##invite_id## from organization ##org_id##')
-      .replace('##invite_id##', props.inviteId)
-      .replace('##org_id##', props.orgId)
-    if (orgMemberInviteQuery.error?.responseJSON?.detail) {
-      memberInviteErrorMessage = orgMemberInviteQuery.error.responseJSON.detail
-    }
-    content = <Alert type='error'>{memberInviteErrorMessage}</Alert>
+    content = (
+      <Alert type='error'>
+        {orgInvitesQuery.error.detail ??
+          t('Could not find invitation ##invite_id## from organization ##org_id##')
+            .replace('##invite_id##', props.inviteId)
+            .replace('##org_id##', props.orgId)}
+      </Alert>
+    )
   }
   // Case 3: failed to accept or decline invitation (API response).
-  else if (patchMemberInvite.isError) {
+  else if (orgInvitesPatch.isError) {
     title = t('Unable to join ##TEAM_OR_ORGANIZATION_NAME##').replace('##TEAM_OR_ORGANIZATION_NAME##', orgName)
-    // Fallback message
-    let patchMemberInviteErrorMessage = t('Failed to respond to invitation')
-    if (patchMemberInvite.error?.responseJSON?.detail) {
-      patchMemberInviteErrorMessage = patchMemberInvite.error.responseJSON.detail
-    }
     content = (
       <Stack>
-        <Alert type='error'>{patchMemberInviteErrorMessage}</Alert>
+        <Alert type='error'>
+          {(orgInvitesPatch.error as ErrorDetail).detail ?? t('Failed to respond to invitation')}
+        </Alert>
 
         <Group justify='flex-end'>
           <Button
@@ -137,7 +134,10 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   }
   // Case 3: got the invite, its status is pending, so we display form
   // We also continue displaying this content while we wait for data to refresh following acceptance
-  else if (orgMemberInviteQuery.data?.status === MemberInviteStatus.pending || awaitingDataRefresh) {
+  else if (
+    orgInvitesQuery.data?.status === 200 &&
+    (orgInvitesQuery.data?.data.status === InviteStatusChoicesEnum.pending || awaitingDataRefresh)
+  ) {
     title = t('Accept invitation to join ##TEAM_OR_ORGANIZATION_NAME##').replace(
       '##TEAM_OR_ORGANIZATION_NAME##',
       orgName,
@@ -160,7 +160,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
             variant='light'
             size='lg'
             onClick={handleDeclineInvite}
-            loading={userResponseType === MemberInviteStatus.declined}
+            loading={userResponseType === InviteStatusChoicesEnum.declined}
           >
             {t('Decline')}
           </Button>
@@ -171,7 +171,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
             onClick={handleAcceptInvite}
             // We don't use RQ loading state here because we also want spinner to display during
             // timeout while we give backend time for data transfer
-            loading={userResponseType === MemberInviteStatus.accepted}
+            loading={userResponseType === InviteStatusChoicesEnum.accepted}
           >
             {t('Accept')}
           </Button>
@@ -180,7 +180,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
     )
   }
   // Case 4: got the invite, its status is something else, we display error message
-  else if (orgMemberInviteQuery.data?.status) {
+  else if (orgInvitesQuery.data?.status === 200 && orgInvitesQuery.data?.data.status) {
     title = t('Unable to join ##TEAM_OR_ORGANIZATION_NAME##').replace('##TEAM_OR_ORGANIZATION_NAME##', orgName)
     content = <Alert type='error'>{t('This invitation is no longer available for a response')}</Alert>
   }
@@ -190,13 +190,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   }
 
   return (
-    <Modal
-      opened={isModalOpen}
-      onClose={() => {
-        setIsModalOpen(false)
-      }}
-      title={title}
-    >
+    <Modal opened={isModalOpen} onClose={() => setIsModalOpen(false)} title={title}>
       {/* We don't want "x" button to get focus (see https://mantine.dev/core/modal/#initial-focus) */}
       <FocusTrap.InitialFocus />
       {content}

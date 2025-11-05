@@ -6,8 +6,11 @@ from ddt import data, ddt
 from django.contrib.auth.signals import user_logged_in
 from django.test import RequestFactory, override_settings
 from django.urls import reverse
-from trench.utils import get_mfa_model
 
+from kobo.apps.accounts.mfa.tests.utils import (
+    activate_mfa_for_user,
+    get_mfa_code_for_user,
+)
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.audit_log.signals import create_access_log
@@ -101,18 +104,11 @@ class AccessLogsSignalsTestCase(BaseTestCase):
         self.assertEqual(audit_log.action, AuditAction.AUTH)
 
     def test_mfa_login(self):
-        mfa_object = get_mfa_model().objects.create(
-            user=AccessLogsSignalsTestCase.user,
-            secret='dummy_mfa_secret',
-            name='app',
-            is_primary=True,
-            is_active=True,
-            _backup_codes='dummy_encoded_codes',
-        )
-        mfa_object.save()
-        email_address, _ = EmailAddress.objects.get_or_create(
-            user=AccessLogsSignalsTestCase.user
-        )
+        user = AccessLogsSignalsTestCase.user
+        activate_mfa_for_user(self.client, user)
+        # Delete audit logs up to this point to start from scratch
+        AuditLog.objects.all().delete()
+        email_address, _ = EmailAddress.objects.get_or_create(user=user)
         email_address.primary = True
         email_address.verified = True
         email_address.save()
@@ -124,15 +120,8 @@ class AccessLogsSignalsTestCase(BaseTestCase):
         # no audit log should be created yet because the MFA code hasn't been entered
         self.assertEqual(AuditLog.objects.count(), 0)
 
-        with patch(
-            'kobo.apps.accounts.mfa.forms.authenticate_second_step_command',
-            return_value=AccessLogsSignalsTestCase.user,
-        ):
-            self.client.post(
-                reverse('mfa_token'),
-                data={'code': '123456', 'ephemeral_token': 'dummy'},
-                follow=True,
-            )
+        code = get_mfa_code_for_user(user)
+        self.client.post(reverse('mfa_authenticate'), {'code': code})
         self.assertEqual(AuditLog.objects.count(), 1)
         audit_log = AuditLog.objects.first()
         self.assertEqual(audit_log.user.id, AccessLogsSignalsTestCase.user.id)

@@ -1,106 +1,48 @@
-# coding: utf-8
-from django import forms
-from django.conf import settings
-from django.utils.translation import gettext_lazy as t
-from trench.command.authenticate_second_factor import (
-    authenticate_second_step_command,
-)
-from trench.exceptions import MFAValidationError
-from trench.serializers import CodeLoginSerializer
-from trench.utils import get_mfa_model, user_token_generator
-
-from kobo.apps.accounts.forms import LoginForm
+from allauth.mfa.adapter import get_adapter
+from allauth.mfa.base.forms import AuthenticateForm, ReauthenticateForm
+from allauth.mfa.base.internal.flows import check_rate_limit
+from allauth.mfa.models import Authenticator
+from django.contrib.auth.hashers import check_password
 
 
-class MfaLoginForm(LoginForm):
-    """
-    Authenticating users.
-    If 2FA is activated, first step (of two) of the login process.
-    """
+class MfaAuthenticateMixin:
 
-    def __init__(self, *args, **kwargs):
-        self.ephemeral_token_cache = None
-        super().__init__(*args, **kwargs)
+    def clean_code(self):
+        clear_rl = check_rate_limit(self.user)
+        code = self.cleaned_data['code']
+        for auth in Authenticator.objects.filter(user=self.user).exclude(
+            # WebAuthn cannot validate manual codes.
+            type=Authenticator.Type.WEBAUTHN
+        ):
+            if auth.wrap().validate_code(code):
+                self.authenticator = auth
+                clear_rl()
+                return code
+            if auth.type == Authenticator.Type.RECOVERY_CODES:
+                hashed_code = self.validate_migrated_codes(code, auth.wrap())
+                if hashed_code is not None:
+                    self.authenticator = auth
+                    clear_rl()
+                    return code
 
-    def clean(self, *args, **kwargs):
-        cleaned_data = super().clean(*args, **kwargs)
-        # `super().clean()` initialize the object `self.user` with
-        # the user object retrieved from authentication (if any)
-        # Because we only support one 2FA method, we do not filter on
-        # `is_primary` too (as django_trench does).
-        # ToDo Figure out why `is_primary` is False sometimes after reactivating
-        #  2FA
-        if get_mfa_model().objects.filter(is_active=True, user=self.user).exists():
-            self.ephemeral_token_cache = user_token_generator.make_token(
-                self.user
-            )
+        raise get_adapter().validation_error('incorrect_code')
 
-        return cleaned_data
-
-    def get_ephemeral_token(self):
-        return self.ephemeral_token_cache
+    def validate_migrated_codes(self, input_code, recovery_codes):
+        codes = recovery_codes._get_migrated_codes()
+        if codes is None:
+            return
+        if not codes[0].startswith('pbkdf2_sha256$'):
+            return
+        # if codes are sha256 hashes do the recovery codes logic
+        for idx, hashed_code in enumerate(codes):
+            if check_password(input_code, hashed_code):
+                recovery_codes.validate_code(hashed_code)
+                return hashed_code
 
 
-class MfaTokenForm(forms.Form):
-    """
-    Validate 2FA token.
-    Second (and last) step of login process when MFA is activated.
-    """
+class MfaAuthenticateForm(MfaAuthenticateMixin, AuthenticateForm):
+    pass
 
-    code = forms.CharField(
-        label='',
-        strip=True,
-        required=True,
-        widget=forms.TextInput(
-            attrs={
-                'placeholder': t(
-                    'Enter the ##token length##-character token'
-                ).replace(
-                    '##token length##', str(settings.TRENCH_AUTH['CODE_LENGTH'])
-                )
-            }
-        ),
-    )
-    ephemeral_token = forms.CharField(
-        required=True,
-        widget=forms.HiddenInput(),
-    )
 
-    error_messages = {'invalid_code': t('Your token is invalid')}
-
-    def __init__(self, request=None, *args, **kwargs):
-        self.user_cache = None
-        super().__init__(*args, **kwargs)
-
-    def clean(self):
-        code_login_serializer = CodeLoginSerializer(data=self.cleaned_data)
-        if not code_login_serializer.is_valid():
-            raise self.get_invalid_mfa_error()
-
-        try:
-            self.user_cache = authenticate_second_step_command(
-                code=code_login_serializer.validated_data['code'],
-                ephemeral_token=code_login_serializer.validated_data[
-                    'ephemeral_token'
-                ],
-            )
-        except MFAValidationError:
-            raise self.get_invalid_mfa_error()
-
-        # When login is successful, `django.contrib.auth.login()` expects the
-        # authentication backend class to be attached to user object.
-        # See https://github.com/django/django/blob/b87820668e7bd519dbc05f6ee46f551858fb1d6d/django/contrib/auth/__init__.py#L111
-        # Since we do not have a bullet-proof way to detect which authentication
-        # class is the good one, we use the first element of the list
-        self.user_cache.backend = settings.AUTHENTICATION_BACKENDS[0]
-
-        return self.cleaned_data
-
-    def get_invalid_mfa_error(self):
-        return forms.ValidationError(
-            self.error_messages['invalid_code'],
-            code='invalid_code',
-        )
-
-    def get_user(self):
-        return self.user_cache
+class MfaReauthenticateForm(MfaAuthenticateMixin, ReauthenticateForm):
+    pass

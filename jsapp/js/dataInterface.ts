@@ -184,6 +184,7 @@ export interface SubmissionAttachment {
   download_small_url: string
   mimetype: string
   filename: string
+  media_file_basename: string
   question_xpath: string
   uid: string
   /** Marks the attachment as deleted. If `true`, all the `*_url` will return 404. */

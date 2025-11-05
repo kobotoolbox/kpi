@@ -47,7 +47,6 @@ class AdminTestCase(TestCase):
         # make sure we include assets already belonging to the group
         assert self.asset in assets_in_queryset
 
-
     def test_add_assets_to_group(self):
         admin = DataCollectorGroupAdmin(DataCollectorGroup, site)
         add_asset = Asset.objects.filter(owner=self.someuser)[1]

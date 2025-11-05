@@ -3,7 +3,6 @@
 from django.conf import settings
 from django.db import migrations
 
-
 CREATE_MV_BASE_SQL = f"""
     CREATE MATERIALIZED VIEW user_reports_userreportsmv AS
     WITH user_nlp_usage AS (
@@ -383,7 +382,7 @@ STRIPE_JOINS = """
     LEFT JOIN djstripe_customer cust ON sub.customer_id = cust.id
     """
 
-NO_STRIPE_JOINS = ""
+NO_STRIPE_JOINS = ''
 
 if settings.STRIPE_ENABLED:
     MV_PARAMS = {
@@ -424,7 +423,9 @@ def manually_create_mv_instructions(apps, schema_editor):
 
         {CREATE_INDEXES_SQL}
 
-        """.replace('CREATE UNIQUE INDEX', 'CREATE UNIQUE INDEX CONCURRENTLY')
+        """.replace(
+            'CREATE UNIQUE INDEX', 'CREATE UNIQUE INDEX CONCURRENTLY'
+        )
     )
 
 
@@ -446,7 +447,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('user_reports', '0001_initial'),
         ('trackers', '0005_remove_year_and_month'),
-        ('mfa', '0004_alter_mfamethod_date_created_and_more'),
+        ('accounts_mfa', '0001_squashed_0004_alter_mfamethod_date_created_and_more'),
     ]
 
     if settings.SKIP_HEAVY_MIGRATIONS:

@@ -122,12 +122,21 @@ class DataCollectorAdmin(admin.ModelAdmin):
     search_fields = ('group__name', 'name')
     autocomplete_fields = ['group']
     fieldsets = (
-        (None, {
-            'fields': ('name', 'group', 'token', 'uid'),
-        }),
-        ('Collector URLs', {
-            'fields': ('collect_url', 'enketo_urls',),
-        }),
+        (
+            None,
+            {
+                'fields': ('name', 'group', 'token', 'uid'),
+            },
+        ),
+        (
+            'Collector URLs',
+            {
+                'fields': (
+                    'collect_url',
+                    'enketo_urls',
+                ),
+            },
+        ),
     )
     ordering = ['-date_created']
 
@@ -164,6 +173,9 @@ class DataCollectorAdmin(admin.ModelAdmin):
                 f'or:{parsed_url.netloc}/collector/{obj.token},{asset.uid}'
             )
             enketo_url = f'{settings.ENKETO_URL}/x/{enketo_id.decode()}'
-            items = items + f'• <a href="{enketo_url}" target="_blank">{asset.name} (#{asset.uid})</a><br>'  # noqa
+            items = (
+                items
+                + f'• <a href="{enketo_url}" target="_blank">{asset.name} (#{asset.uid})</a><br>'  # noqa
+            )
 
         return mark_safe(items)

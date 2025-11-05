@@ -423,7 +423,7 @@ class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):
 
         user = get_database_user(request.user)
         organization = user.organization
-        if organization.is_admin_only(user):
+        if organization and organization.is_admin_only(user):
             # Admins do not receive explicit permission assignments,
             # but they have the same access to assets as the organization owner.
             org_assets = Asset.objects.filter(owner=organization.owner_user_object)

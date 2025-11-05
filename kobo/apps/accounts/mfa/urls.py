@@ -1,15 +1,16 @@
 # coding: utf-8
-from django.urls import include, path
+from django.urls import path
 
 from .views import (
     MfaListUserMethodsView,
     MfaLoginView,
-    MfaTokenView,
     MfaMethodActivationView,
+    MfaMethodConfirmView,
+    MfaMethodDeactivateView,
+    MfaMethodRegenerateCodesView,
 )
 
 urlpatterns = [
-    path('accounts/login/mfa/', MfaTokenView.as_view(), name='mfa_token'),
     path('accounts/login/', MfaLoginView.as_view(), name='kobo_login'),
     path(
         'api/v2/auth/mfa/user-methods/',
@@ -21,5 +22,19 @@ urlpatterns = [
         MfaMethodActivationView.as_view(),
         name='mfa-activate',
     ),
-    path('api/v2/auth/', include('trench.urls')),
+    path(
+        'api/v2/auth/<str:method>/activate/confirm/',
+        MfaMethodConfirmView.as_view(),
+        name='mfa-confirm',
+    ),
+    path(
+        'api/v2/auth/<str:method>/deactivate/',
+        MfaMethodDeactivateView.as_view(),
+        name='mfa-deactivate',
+    ),
+    path(
+        'api/v2/auth/<str:method>/codes/regenerate/',
+        MfaMethodRegenerateCodesView.as_view(),
+        name='mfa-regenerate',
+    ),
 ]

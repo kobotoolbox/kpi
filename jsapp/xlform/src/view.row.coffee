@@ -57,6 +57,13 @@ module.exports = do ->
     getRawType: ->
       return @model.get('type').get('typeId')
 
+    # All row types are supported by UI by default. If some type has `supportedByUI` override in `model.configs.coffee`
+    # we respect that.
+    isSupportedByUI: ->
+      if @model.get('type').get('rowType')?.supportedByUI is false
+        return false
+      return true
+
     ###
     # This needs to be safeguarded so much, as there is possibility row doesn't
     # have a `name` or doesn't have anything (e.g. newly created row)
@@ -106,6 +113,11 @@ module.exports = do ->
       return @
 
     _renderRow: ->
+      # For unsupported types we display alternative empty template
+      if not @isSupportedByUI()
+        @$el.html($viewTemplates.$$render('row.unsupportedRowView', @surveyView))
+        return @
+
       @$el.html $viewTemplates.$$render('row.xlfRowView', @surveyView)
 
       @$card = @$el.find('> .card').eq(0)
@@ -308,6 +320,10 @@ module.exports = do ->
       if rowName is null
         return
 
+      # no locking for unsupported types
+      if @isSupportedByUI() is false
+        return
+
       @$settings = @$card.find('> .card__settings').eq(0)
       isLockable = @isLockable()
 
@@ -489,6 +505,10 @@ module.exports = do ->
 
       # no point of checking locking for nameless row
       if rowName is null
+        return
+
+      # no locking for unsupported types
+      if @isSupportedByUI() is false
         return
 
       @$settings = @$card.find('> .card__settings')

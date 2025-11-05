@@ -622,3 +622,5 @@ export function createDateQuery(startDate: string, endDate: string): MongoQuery 
 
   return andQuery
 }
+
+export const sleep = (ms: number): Promise<void> => new Promise<void>((resolve) => setTimeout(() => resolve(), ms))

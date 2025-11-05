@@ -1,22 +1,26 @@
-# coding: utf-8
 from allauth.account.views import LoginView
-from django.contrib.auth.views import LoginView as DjangoLoginView
+from allauth.mfa.adapter import get_adapter
+from allauth.mfa.internal.flows.add import validate_can_add_authenticator
+from allauth.mfa.totp.internal import auth as totp_auth
 from django.db.models import QuerySet
 from django.urls import reverse
 from rest_framework.generics import ListAPIView
-from trench.utils import get_mfa_model
-from trench.views import (
-    MFAMethodActivationView as TrenchMFAMethodActivationView,
-)
+from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
+from rest_framework.views import APIView
 
 from kpi.permissions import IsAuthenticated
-from .forms import MfaLoginForm, MfaTokenForm
+from kpi.utils.log import logging
+from ..forms import LoginForm
+from .flows import activate_totp, deactivate_totp, regenerate_codes
+from .models import MfaMethodsWrapper
 from .permissions import IsMfaEnabled
-from .serializers import UserMfaMethodSerializer
+from .serializers import TOTPCodeSerializer, UserMfaMethodSerializer
 
 
 class MfaLoginView(LoginView):
-    form_class = MfaLoginForm
+    form_class = LoginForm
 
     def get_success_url(self):
         """
@@ -46,18 +50,6 @@ class MfaLoginView(LoginView):
         return redirect_to
 
 
-class MfaTokenView(DjangoLoginView):
-    """
-    Display the login form and handle the login action.
-    """
-
-    form_class = MfaTokenForm
-    authentication_form = None
-    template_name = 'mfa_token.html'
-    redirect_authenticated_user = False
-    extra_context = None
-
-
 class MfaListUserMethodsView(ListAPIView):
     """
     Display user's methods with dates
@@ -68,9 +60,74 @@ class MfaListUserMethodsView(ListAPIView):
     pagination_class = None
 
     def get_queryset(self) -> QuerySet:
-        mfa_model = get_mfa_model()
-        return mfa_model.objects.filter(user_id=self.request.user.id)
+        return MfaMethodsWrapper.objects.filter(user_id=self.request.user.id)
 
 
-class MfaMethodActivationView(TrenchMFAMethodActivationView):
+class MfaMethodActivationView(APIView):
     permission_classes = (IsAuthenticated, IsMfaEnabled)
+
+    @staticmethod
+    def post(request: Request, method: str) -> Response:
+        user = request.user
+        adapter = get_adapter()
+        validate_can_add_authenticator(user)
+
+        mfa, created = MfaMethodsWrapper.objects.get_or_create(
+            user_id=user.pk,
+            name=method,
+        )
+        response_data = {}
+        status = HTTP_200_OK
+        if created or mfa.totp is None:
+            try:
+                mfa.is_active = False  # Activate until we verify the totp code
+                mfa.secret = adapter.encrypt(totp_auth.get_totp_secret(regenerate=True))
+                mfa.save()
+            except Exception as cause:
+                status = HTTP_400_BAD_REQUEST
+                logging.error(cause, exc_info=True)
+                response_data['error'] = str(cause)
+
+        if status == HTTP_200_OK:
+            secret = adapter.decrypt(mfa.secret)
+            totp_url = adapter.build_totp_url(user, secret)
+            response_data['details'] = totp_url
+
+        return Response(response_data, status=status)
+
+
+class MfaMethodConfirmView(APIView):
+    permission_classes = (IsAuthenticated, IsMfaEnabled)
+
+    @staticmethod
+    def post(request: Request, method: str) -> Response:
+        toto, recovery_codes = activate_totp(request, method)
+        backup_codes = recovery_codes.get_unused_codes()
+        return Response({'backup_codes': backup_codes})
+
+
+class MfaMethodDeactivateView(APIView):
+    permission_classes = (IsAuthenticated, IsMfaEnabled)
+
+    @staticmethod
+    def post(request: Request, method: str) -> Response:
+        serializer = TOTPCodeSerializer(
+            data=request.data, context={'user': request.user, 'method': method}
+        )
+        serializer.is_valid(raise_exception=True)
+        deactivate_totp(request, method)
+        return Response({})
+
+
+class MfaMethodRegenerateCodesView(APIView):
+    permission_classes = (IsAuthenticated, IsMfaEnabled)
+
+    @staticmethod
+    def post(request: Request, method: str) -> Response:
+        serializer = TOTPCodeSerializer(
+            data=request.data, context={'user': request.user, 'method': method}
+        )
+        serializer.is_valid(raise_exception=True)
+        recovery_codes = regenerate_codes(request, method)
+        backup_codes = recovery_codes.get_unused_codes()
+        return Response({'backup_codes': backup_codes})

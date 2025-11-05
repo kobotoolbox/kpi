@@ -106,6 +106,9 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
 
         <bem.SubmissionDataTable__column m='label'>
           {item.label}
+          {/* `background-geopoint` questions don't have a label, but we don't want to display empty space */}
+          {!item.label && item.type === 'background-geopoint' && QUESTION_TYPES['background-geopoint'].label}
+
           {this.props.showXMLNames && <bem.SubmissionDataTable__XMLName>{item.name}</bem.SubmissionDataTable__XMLName>}
         </bem.SubmissionDataTable__column>
 

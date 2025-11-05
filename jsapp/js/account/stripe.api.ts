@@ -1,5 +1,5 @@
 import { when } from 'mobx'
-import type { AccountLimit, ChangePlan, Checkout, OneTimeAddOn, Product } from '#/account/stripe.types'
+import type { AccountLimit, Checkout, OneTimeAddOn, Product } from '#/account/stripe.types'
 import { Limits } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
 import { fetchGet, fetchPost } from '#/api'
@@ -25,18 +25,6 @@ export async function getProducts() {
 export async function getOneTimeAddOns() {
   return fetchGet<PaginatedResponse<OneTimeAddOn>>(endpoints.ADD_ONS_URL, {
     errorMessageDisplay: t('There was an error getting one-time add-ons.'),
-  })
-}
-
-export async function changeSubscription(price_id: string, subscription_id: string) {
-  const params = new URLSearchParams({
-    price_id,
-    subscription_id,
-  })
-  return fetchGet<ChangePlan>(`${endpoints.CHANGE_PLAN_URL}?${params}`, {
-    errorMessageDisplay: t(
-      "We couldn't make the requested change to your plan.\nYour current plan has not been changed.",
-    ),
   })
 }
 

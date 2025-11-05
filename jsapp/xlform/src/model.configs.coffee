@@ -281,6 +281,7 @@ module.exports = do ->
       ["select_one_from_file", "Select one from file"],
       ["select_multiple_from_file", "Select multiple from file"],
       ["xml-external", "External XML"],
+      ["background-geopoint", "Background geopoint", supportedByUI: false],
     ]
 
     class Type

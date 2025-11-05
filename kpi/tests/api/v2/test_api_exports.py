@@ -505,9 +505,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         exported_submissions = (
             content.decode().strip().split('\r\n')[2:]
         )
-        actual_submissions = self.asset.deployment.get_submissions(
-            user=anotheruser
-        )
+        actual_submissions = self.asset.deployment.get_submissions(user=anotheruser)
         assert len(exported_submissions) == len(actual_submissions)
 
     def test_synchronous_csv_export_bad_user_agent_does_not_redirect(self):

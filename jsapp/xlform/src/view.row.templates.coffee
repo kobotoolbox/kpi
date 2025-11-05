@@ -129,6 +129,13 @@ module.exports = do ->
       #{expandingSpacerHtml}
       """
 
+  # This will be used by row types that are valid XLSForm types but are not yet supported by UI
+  unsupportedRowView = () ->
+    template = """
+    <div style="display: none;">This type of row is not supported by UI yet.</div>
+    """
+    return template
+
   # Empty js-group-icon is only sometimes used, but we need to reserve space for it
   groupView = ()->
     template = """
@@ -408,6 +415,7 @@ module.exports = do ->
 
   return {
     xlfRowView: xlfRowView
+    unsupportedRowView: unsupportedRowView
     expandChoiceList: expandChoiceList
     mandatorySettingSelector: mandatorySettingSelector
     paramsSettingsField: paramsSettingsField

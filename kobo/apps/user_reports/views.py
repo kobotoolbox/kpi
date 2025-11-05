@@ -44,9 +44,7 @@ class UserReportsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = (IsAuthenticated, SuperUserPermission)
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
 
-    search_default_field_lookups = [
-        'username__icontains'
-    ]
+    search_default_field_lookups = ['username__icontains']
 
     ordering_fields = [
         'username',

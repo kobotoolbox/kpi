@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from kobo.apps.organizations.models import OrganizationType
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
+from ..service_usage.fields import BalancesField
 from .fields import (
     AssetField,
     NlpUsageAllTime,
@@ -9,7 +10,6 @@ from .fields import (
     TotalNlpUsageField,
     TotalSubmissionCountField,
 )
-from ..service_usage.fields import BalancesField
 
 OrganizationAssetUsageResponse = inline_serializer_class(
     name='OrganizationAssetUsageResponse',

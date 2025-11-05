@@ -263,7 +263,9 @@ class AssetImportTaskTest(BaseTestCase):
         self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
 
     def test_import_xls_with_default_language_but_no_translations(self):
-        xlsx_io = self.asset.to_xlsx_io(append={"settings": {"default_language": "English (en)"}})
+        xlsx_io = self.asset.to_xlsx_io(
+            append={'settings': {'default_language': 'English (en)'}}
+        )
         task_data = {
             'file': xlsx_io,
             'name': 'I was imported via XLS!',
@@ -277,9 +279,9 @@ class AssetImportTaskTest(BaseTestCase):
 
     def test_import_xls_with_default_language_not_in_translations(self):
         asset = Asset.objects.get(pk=2)
-        xlsx_io = asset.to_xlsx_io(append={
-            "settings": {"default_language": "English (en)"}
-        })
+        xlsx_io = asset.to_xlsx_io(
+            append={'settings': {'default_language': 'English (en)'}}
+        )
         task_data = {
             'file': xlsx_io,
             'name': 'I was imported via XLS!',
@@ -293,7 +295,7 @@ class AssetImportTaskTest(BaseTestCase):
         self.assertEqual(detail_response.data['status'], 'error')
         self.assertTrue(
             detail_response.data['messages']['error'].startswith(
-                "`English (en)` is specified as the default language, "
-                "but only these translations are present in the form:"
+                '`English (en)` is specified as the default language, '
+                'but only these translations are present in the form:'
             )
         )

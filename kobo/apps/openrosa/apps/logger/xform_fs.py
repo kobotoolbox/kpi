@@ -16,8 +16,7 @@ class XFormInstanceFS:
             self._attachments = [
                 entry
                 for entry in os.scandir(dir)
-                if entry.is_file()
-                and entry.path != self.path
+                if entry.is_file() and entry.path != self.path
             ]
         return self._attachments
 

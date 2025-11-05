@@ -848,9 +848,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
               const attachmentIndex: number = row.original._attachments.findIndex(
                 (attachment: SubmissionAttachment) => {
-                  const attachmentFileNameEnd = attachment.filename.split('/').pop()
-                  const normalizedRowValue = row.value.replace(/ /g, '_')
-                  return attachmentFileNameEnd === normalizedRowValue
+                  return attachment.media_file_basename === row.value
                 },
               )
 

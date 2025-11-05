@@ -46,9 +46,9 @@ def iter_org_chunks_after(last_processed_org_id: str) -> QuerySet[Organization]:
     """
     Iterate organizations in key set chunks
     """
-    return Organization.objects.filter(pk__gt=last_processed_org_id).order_by(
-        'pk'
-    )[:CHUNK_SIZE]
+    return Organization.objects.filter(pk__gt=last_processed_org_id).order_by('pk')[
+        :CHUNK_SIZE
+    ]
 
 
 def process_chunk(
@@ -72,22 +72,30 @@ def process_chunk(
         d = usage_map.get(org_id, {})
         org_limits = limits_map.get(org_id, {})
 
-        objs.append(BillingAndUsageSnapshot(
-            organization_id=org_id,
-            effective_user_id=d.get('effective_user_id'),
-            total_storage_bytes=d.get('total_storage_bytes', 0),
-            total_submission_count_all_time=d.get('total_submission_count_all_time', 0),
-            total_submission_count_current_period=d.get(
-                'total_submission_count_current_period', 0
-            ),
-            billing_period_start=d.get('billing_period_start'),
-            billing_period_end=d.get('billing_period_end'),
-            last_snapshot_run_id=run_id,
-            submission_limit=_normalize_limit(org_limits.get('submission_limit')),
-            storage_bytes_limit=_normalize_limit(org_limits.get('storage_bytes_limit')),
-            asr_seconds_limit=_normalize_limit(org_limits.get('asr_seconds_limit')),
-            mt_characters_limit=_normalize_limit(org_limits.get('mt_characters_limit')),
-        ))
+        objs.append(
+            BillingAndUsageSnapshot(
+                organization_id=org_id,
+                effective_user_id=d.get('effective_user_id'),
+                total_storage_bytes=d.get('total_storage_bytes', 0),
+                total_submission_count_all_time=d.get(
+                    'total_submission_count_all_time', 0
+                ),
+                total_submission_count_current_period=d.get(
+                    'total_submission_count_current_period', 0
+                ),
+                billing_period_start=d.get('billing_period_start'),
+                billing_period_end=d.get('billing_period_end'),
+                last_snapshot_run_id=run_id,
+                submission_limit=_normalize_limit(org_limits.get('submission_limit')),
+                storage_bytes_limit=_normalize_limit(
+                    org_limits.get('storage_bytes_limit')
+                ),
+                asr_seconds_limit=_normalize_limit(org_limits.get('asr_seconds_limit')),
+                mt_characters_limit=_normalize_limit(
+                    org_limits.get('mt_characters_limit')
+                ),
+            )
+        )
 
     if objs:
         BillingAndUsageSnapshot.objects.bulk_create(

@@ -6,17 +6,16 @@ from django.conf import settings
 from rest_framework.reverse import reverse
 
 from kpi.constants import (
+    API_NAMESPACES,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import PairedDataException
 from kpi.fields import KpiUidField
-from kpi.interfaces import (
-    OpenRosaManifestInterface,
-    SyncBackendMediaInterface,
-)
+from kpi.interfaces import OpenRosaManifestInterface, SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.utils.hash import calculate_hash
+from kpi.utils.urls import versioned_reverse
 
 
 # FIXME: simplify this by making PairedData a real Django Model ^_^
@@ -153,9 +152,13 @@ class PairedData(OpenRosaManifestInterface,
         """
         Implements `OpenRosaManifestInterface.get_download_url()`
         """
-        return reverse('paired-data-external',
-                       args=(self.asset.uid, self.paired_data_uid, 'xml'),
-                       request=request)
+
+        return versioned_reverse(
+            'paired-data-external',
+            args=(self.asset.uid, self.paired_data_uid, 'xml'),
+            request=request,
+            url_namespace=API_NAMESPACES['default'],
+        )
 
     @property
     def source(self):

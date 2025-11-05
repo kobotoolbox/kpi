@@ -23,6 +23,7 @@ from kpi.exceptions import SubmissionIntegrityError
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
 from kpi.models import AssetFile, AssetSnapshot, PairedData
+from kpi.parsers import RawFilenameMultiPartParser
 from kpi.permissions import AssetSnapshotPermission, EditSubmissionPermission
 from kpi.renderers import (
     OpenRosaFormListRenderer,
@@ -483,6 +484,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
             EnketoSessionAuthentication,
         ],
         versioning_class=OpenRosaAPIVersioning,
+        parser_classes=[RawFilenameMultiPartParser],
     )
     def submission(self, request, *args, **kwargs):
         """ Implements the OpenRosa Form Submission API """

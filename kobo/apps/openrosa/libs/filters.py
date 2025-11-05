@@ -28,8 +28,8 @@ class ObjectPermissionsFilter(BaseFilterBackend):
 
     ORG_ADMIN_EXEMPT_VIEWS = {
         'XFormListApi': [
-            'manifest',
-            'list',
+            'manifest_authenticated',
+            'form_list_authenticated',
             'retrieve',
             'media',
         ]
