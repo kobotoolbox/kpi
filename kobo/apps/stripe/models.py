@@ -9,7 +9,7 @@ from djstripe.enums import PaymentIntentStatus
 from djstripe.models import Charge, Price, Subscription
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.constants import SupportedUsageType, UsageType
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.stripe.utils.subscription_limits import get_default_add_on_limits
@@ -331,6 +331,6 @@ class ExceededLimitCounter(models.Model):
         on_delete=models.CASCADE,
     )
     days = models.PositiveSmallIntegerField(default=0)
-    limit_type = models.CharField(choices=SupportedUsageType.choices, max_length=20)
+    limit_type = models.CharField(choices=UsageType.choices, max_length=20)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
