@@ -14,7 +14,7 @@ import Alert from '#/components/common/alert'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore from '#/envStore'
 import { useSession } from '#/stores/useSession'
-import { notify } from '#/utils'
+import { notify, sleep } from '#/utils'
 
 /**
  * Displays a modal to a user that got an invitation for joining an organization. There is a possibility to accept or
@@ -24,60 +24,57 @@ import { notify } from '#/utils'
  */
 export default function OrgInviteModal(props: { orgId: string; inviteId: string; onUserResponse: () => void }) {
   const [isModalOpen, setIsModalOpen] = useState(true)
-  const [awaitingDataRefresh, setAwaitingDataRefresh] = useState(false)
-  const [userResponseType, setUserResponseType] = useState<InviteStatusChoicesEnum | null>(null)
   const session = useSession()
-  const orgInvitesQuery = useOrganizationsInvitesRetrieve(props.orgId, props.inviteId)
-  const orgInvitesPatch = useOrganizationsInvitesPartialUpdate({
-    request: {
-      notifyAboutError: false,
-    },
-  })
-  const handleOrgInvitesPatch = (status: InviteStatusChoicesEnum) => {
-    return orgInvitesPatch.mutateAsync({ uidOrganization: props.orgId, guid: props.inviteId, data: { status } })
-  }
-  // We handle all the errors through query and BE responses, but for some edge cases we have this:
-  const [miscError, setMiscError] = useState<string | undefined>()
-
-  const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0])
 
   // We use `mmoLabel` as fallback until `organization_name` is available at the endpoint
+  const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0])
+  const orgInvitesQuery = useOrganizationsInvitesRetrieve(props.orgId, props.inviteId)
   const orgName = (orgInvitesQuery.data?.data as InviteResponse)?.organization_name ?? mmoLabel
 
-  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+  const [userResponseType, setUserResponseType] = useState<InviteStatusChoicesEnum | null>(null)
+  const [miscError, setMiscError] = useState<string | undefined>()
+  const [awaitingDataRefresh, setAwaitingDataRefresh] = useState(false)
+  const orgInvitesPatch = useOrganizationsInvitesPartialUpdate({
+    mutation: {
+      onMutate: (variables) => {
+        if (!('status' in variables.data)) return // just a typeguard, should never happen.
+        setUserResponseType(variables.data.status)
+      },
+      onSuccess: async (_data, variables, _context) => {
+        if (!('status' in variables.data)) return // just a typeguard, should never happen.
 
-  async function handleSuccessfulInviteResponse(message: string, refreshData = false) {
-    // After a one-second delay to allow for initial backend data transfers,
-    // refresh session to refresh org data and project list
-    if (refreshData) {
-      setAwaitingDataRefresh(true)
-      await wait(1000)
-      session.refreshAccount()
-    }
-    props.onUserResponse()
-    notify(message)
-  }
+        if (variables.data.status === InviteStatusChoicesEnum.accepted) {
+          setAwaitingDataRefresh(true)
+          await sleep(1000) // Give it a second to allow for initial backend data transfers
+          session.refreshAccount() // refresh session to refresh org data and project list
+          notify(t('Invitation successfully accepted'))
+        } else {
+          notify(t('Invitation successfully declined'))
+        }
+        setUserResponseType(null)
+        props.onUserResponse()
+      },
+      onError: (_error) => {
+        setMiscError(t('Unknown error while trying to update an invitation')) // TODO: update message in backend (DEV-1218).
+        setUserResponseType(null)
+      },
+    },
+  })
 
   const handleDeclineInvite = async () => {
-    try {
-      setUserResponseType(InviteStatusChoicesEnum.declined)
-      await handleOrgInvitesPatch(InviteStatusChoicesEnum.declined)
-      handleSuccessfulInviteResponse(t('Invitation successfully declined'))
-    } catch (error) {
-      setMiscError(t('Unknown error while trying to update an invitation'))
-      setUserResponseType(null)
-    }
+    orgInvitesPatch.mutate({
+      uidOrganization: props.orgId,
+      guid: props.inviteId,
+      data: { status: InviteStatusChoicesEnum.declined },
+    })
   }
 
   const handleAcceptInvite = async () => {
-    try {
-      setUserResponseType(InviteStatusChoicesEnum.accepted)
-      await handleOrgInvitesPatch(InviteStatusChoicesEnum.accepted)
-      await handleSuccessfulInviteResponse(t('Invitation successfully accepted'), true)
-    } catch (error) {
-      setMiscError(t('Unknown error while trying to update an invitation'))
-      setUserResponseType(null)
-    }
+    orgInvitesPatch.mutate({
+      uidOrganization: props.orgId,
+      guid: props.inviteId,
+      data: { status: InviteStatusChoicesEnum.accepted },
+    })
   }
 
   const handleSignOut = () => {

@@ -26,7 +26,7 @@ def update_nlp_counter(
     counter_id: Optional[int] = None,
 ):
     """
-    Update the NLP ASR and MT tracker for various services
+    Update the NLP tracker for various services
         Params:
             service (str): Service tracker to be updated, provider_service_type
                 for example:
@@ -64,6 +64,9 @@ def update_nlp_counter(
         kwargs['total_mt_characters'] = F('total_mt_characters') + amount
         if stripe_enabled and asset_id is not None:
             handle_usage_deduction(organization, UsageType.MT_CHARACTERS, amount)
+    if service.endswith(UsageType.LLM_REQUESTS):
+        kwargs['total_llm_requests'] = F('total_llm_requests') + amount
+    # TODO: run handle_usage_deduction when llm_requests supported by Stripe code
 
     NLPUsageCounter.objects.filter(pk=counter_id).update(
         counters=IncrementValue('counters', keyname=service, increment=amount),
