@@ -1,5 +1,4 @@
 import uuid
-from copy import deepcopy
 from datetime import datetime
 from unittest.mock import patch
 from zoneinfo import ZoneInfo

@@ -64,7 +64,9 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
             self._get_endpoint('submission-supplement'),
             args=[self.asset.uid, 'bad-uuid'],
         )
-        rr = self.client.patch(non_existent_supplement_details_url)
+        rr = self.client.patch(
+            non_existent_supplement_details_url, data=payload, format='json'
+        )
         assert rr.status_code == 404
 
     def test_get_submission_after_edit(self):
@@ -446,7 +448,7 @@ class SubmissionSupplementAPIUsageLimitsTestCase(SubsequenceBaseTestCase):
         }
 
         with patch(
-            'kobo.apps.subsequences.actions.base.ServiceUsageCalculator.get_usage_balances',
+            'kobo.apps.subsequences.actions.base.ServiceUsageCalculator.get_usage_balances',  # noqa
             return_value=mock_balances,
         ):
             with override_config(USAGE_LIMIT_ENFORCEMENT=usage_limit_enforcement):
