@@ -8,6 +8,7 @@ from .fields import TotalNlpUsageField, TotalSubmissionCountField
 
 class NlpUsageSerializer(serializers.Serializer):
     total_nlp_asr_seconds = serializers.IntegerField()
+    total_nlp_llm_requests = serializers.IntegerField()
     total_nlp_mt_characters = serializers.IntegerField()
 
 
