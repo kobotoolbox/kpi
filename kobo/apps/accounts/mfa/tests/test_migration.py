@@ -61,7 +61,7 @@ class MfaMigrationTestCase(BaseTestCase):
             ('000111', False),  # Invalid code
             ('111111', False),  # Invalid code
         ]:
-            self.client.post(reverse('kobo_login'), data=login_data, follow=True)
+            self.client.post(reverse('kobo_login'), data=login_data)
             response = self.client.post(reverse('mfa_authenticate'), {'code': code})
             if should_pass_through:
                 self.assertRedirects(response, reverse(settings.LOGIN_REDIRECT_URL))

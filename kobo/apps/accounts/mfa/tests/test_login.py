@@ -1,4 +1,5 @@
 from allauth.account.models import EmailAddress
+from constance.test import override_config
 from django.conf import settings
 from django.shortcuts import resolve_url
 from django.urls import reverse
@@ -43,6 +44,15 @@ class LoginTests(KpiTestCase):
         }
         response = self.client.post(reverse('kobo_login'), data=data)
         self.assertRedirects(response, reverse('mfa_authenticate'))
+
+    @override_config(MFA_ENABLED=False)
+    def test_mfa_globally_disabled(self):
+        data = {
+            'login': 'someuser',
+            'password': 'someuser',
+        }
+        response = self.client.post(reverse('kobo_login'), data=data)
+        self.assertRedirects(response, reverse(settings.LOGIN_REDIRECT_URL))
 
     def test_login_with_mfa_disabled(self):
         """
