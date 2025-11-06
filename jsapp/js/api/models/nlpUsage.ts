@@ -12,5 +12,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 export interface NlpUsage {
   total_nlp_asr_seconds: number
+  total_nlp_llm_requests: number
   total_nlp_mt_characters: number
 }

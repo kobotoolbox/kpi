@@ -1,10 +1,11 @@
 from django.conf import settings
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
+from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 from kpi.deployment_backends.kc_access.utils import (
     grant_kc_model_level_perms,
     kc_transaction_atomic,
@@ -48,6 +49,16 @@ def default_permissions_post_save(sender, instance, created, raw, **kwargs):
         # created
         return
     grant_default_model_level_perms(instance)
+
+
+@receiver(pre_delete, sender=User)
+def persist_submitted_by(sender, instance, **kwargs):
+    if kwargs.get('using') == settings.OPENROSA_DB_ALIAS:
+        # Give `instance` a better name to avoid confusion
+        deleted_user = instance
+        ParsedInstance.objects.filter(
+            instance__user_id=deleted_user.pk, submitted_by__isnull=True
+        ).update(submitted_by=deleted_user.username)
 
 
 @receiver(post_save, sender=User)

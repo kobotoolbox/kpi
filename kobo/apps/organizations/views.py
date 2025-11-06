@@ -163,6 +163,13 @@ class OrganizationAssetViewSet(AssetViewSet):
                 required=False,
                 description='Paginate results with limit parameter',
             ),
+            OpenApiParameter(
+                name='ordering',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Which field to use when ordering the results.',
+            ),
         ],
         operation_id='api_v2_organizations_asset_usage_list',
     ),
