@@ -1,4 +1,5 @@
 import { type Mutation, MutationCache, QueryClient } from '@tanstack/react-query'
+import { onErrorDefaultHandler } from './onErrorDefaultHandler'
 
 interface CommonContext {
   snapshots?: ReadonlyArray<readonly [ReadonlyArray<unknown>, unknown]>
@@ -49,13 +50,18 @@ const onSettledInvalidateSnapshots = (
 // Docs: https://tanstack.com/query/v5/docs/reference/QueryClient#queryclient
 // See: https://tanstack.com/query/v5/docs/framework/react/guides/important-defaults
 export const queryClient = new QueryClient({
-  // Global callbacks will run in addition to default callbacks before them.
+  // FYI: Global callbacks will run in addition to default callbacks before them.
   mutationCache: new MutationCache({
     onError: onErrorRestoreSnapshots,
     onSettled: onSettledInvalidateSnapshots,
   }),
-  // Default callbacks will run in addition to global callbacks after them, and may be overriden inline.
+  // FYI: Default callbacks will run in addition to global callbacks after them, and may be overriden inline.
   defaultOptions: {
-    mutations: {},
+    queries: {
+      throwOnError: onErrorDefaultHandler,
+    },
+    mutations: {
+      onError: onErrorDefaultHandler,
+    },
   },
 })

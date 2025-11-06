@@ -1,12 +1,11 @@
 import React, { useContext } from 'react'
 
+import ButtonNew from '#/components/common/ButtonNew'
 import Badge from '#/components/common/badge'
-import Button from '#/components/common/button'
 import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import { findQuestion, getQuestionTypeDefinition } from '#/components/processing/analysis/utils'
-import commonStyles from './common.module.scss'
-import CommonHeader from './commonHeader.component'
 import styles from './keywordSearchResponseForm.module.scss'
+import ResponseWrapper from './responseWrapper.component'
 
 interface KeywordSearchResponseFormProps {
   uuid: string
@@ -93,50 +92,42 @@ export default function KeywordSearchResponseForm(props: KeywordSearchResponseFo
   }
 
   return (
-    <>
-      <CommonHeader uuid={props.uuid} />
+    <ResponseWrapper uuid={props.uuid}>
+      {(() => {
+        if (question.additionalFields?.isSearching) {
+          return <span className={styles.loading}>{t('…keyword search in progress')}</span>
+        } else if (!question.response) {
+          return (
+            <ButtonNew variant='light' size='m' onClick={applySearch} disabled={analysisQuestions.state.isPending}>
+              {t('Apply search')}
+            </ButtonNew>
+          )
+        } else if (question.additionalFields?.keywords) {
+          return (
+            <div className={styles.foundInstancesRow}>
+              <span className={styles.keywordsWrapper}>
+                <Badge
+                  color='light-storm'
+                  size='s'
+                  label={t('##number## instances').replace('##number##', String(question.response))}
+                />
+                &nbsp;
+                <span>{t('of the keywords')}</span>
+                &nbsp;
+                <strong className={styles.keywords}>{question.additionalFields.keywords.join(', ')}</strong>
+                &nbsp;
+                <span>{t('from')}</span>
+                &nbsp;
+                <strong>{question.additionalFields.source}</strong>
+              </span>
 
-      <section className={commonStyles.content}>
-        {(() => {
-          if (question.additionalFields?.isSearching) {
-            return <span className={styles.loading}>{t('…keyword search in progress')}</span>
-          } else if (!question.response) {
-            return (
-              <Button
-                type='secondary'
-                size='m'
-                label={t('Apply search')}
-                onClick={applySearch}
-                isDisabled={analysisQuestions.state.isPending}
-              />
-            )
-          } else if (question.additionalFields?.keywords) {
-            return (
-              <div className={styles.foundInstancesRow}>
-                <span className={styles.keywordsWrapper}>
-                  <Badge
-                    color='light-storm'
-                    size='s'
-                    label={t('##number## instances').replace('##number##', String(question.response))}
-                  />
-                  &nbsp;
-                  <span>{t('of the keywords')}</span>
-                  &nbsp;
-                  <strong className={styles.keywords}>{question.additionalFields.keywords.join(', ')}</strong>
-                  &nbsp;
-                  <span>{t('from')}</span>
-                  &nbsp;
-                  <strong>{question.additionalFields.source}</strong>
-                </span>
-
-                <time className={styles.date}>last updated time</time>
-              </div>
-            )
-          } else {
-            return null
-          }
-        })()}
-      </section>
-    </>
+              <time className={styles.date}>last updated time</time>
+            </div>
+          )
+        } else {
+          return null
+        }
+      })()}
+    </ResponseWrapper>
   )
 }

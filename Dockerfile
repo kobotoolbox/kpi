@@ -8,7 +8,8 @@ ENV VIRTUAL_ENV=/opt/venv \
 
 RUN python -m venv "$VIRTUAL_ENV"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-RUN pip install --quiet pip-tools==7.\*
+RUN python -m pip install --upgrade "pip<25.3" \
+    && python -m pip install "pip-tools==7.*"
 COPY ./dependencies/pip/requirements.txt "${TMP_DIR}/pip_dependencies.txt"
 RUN pip-sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null
 

@@ -8,7 +8,7 @@ import {
 } from '#/api/react-query/user-team-organization-usage'
 import { USAGE_WARNING_RATIO } from '#/constants'
 import { useSession } from '#/stores/useSession'
-import { convertSecondsToMinutes, formatRelativeTime, recordEntries } from '#/utils'
+import { convertSecondsToMinutes, formatRelativeTime, notify, recordEntries } from '#/utils'
 import { UsageLimitTypes } from '../stripe.types'
 
 export interface OrganizationsServiceUsageSummary {
@@ -43,6 +43,7 @@ const usageBalanceKeyMapping = {
   submission: UsageLimitTypes.SUBMISSION,
   asr_seconds: UsageLimitTypes.TRANSCRIPTION,
   mt_characters: UsageLimitTypes.TRANSLATION,
+  llm_requests: UsageLimitTypes.LLM_REQUEST,
 }
 
 const transformOrganizationsService = (
@@ -105,10 +106,10 @@ export const useOrganizationsServiceUsageSummary = (
       ...options,
       queryKey: getOrganizationsServiceUsageRetrieveQueryKey(organizationId!), // Note: for `any` see https://github.com/orval-labs/orval/issues/2396
       select: transformOrganizationsService,
-    },
-    request: {
-      includeHeaders: true,
-      errorMessageDisplay: t('There was an error fetching usage data.'),
+      throwOnError(_error, _query) {
+        notify(t('There was an error fetching usage data.'), 'error') // TODO: update message in backend (DEV-1218).
+        return false
+      },
     },
   })
 
