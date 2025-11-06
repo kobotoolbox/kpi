@@ -11,7 +11,6 @@ export type { UniversalTableColumn } from './UniversalTableCore'
 export interface Pagination {
   limit: number
   offset: number
-  ordering?: string,
 }
 
 export interface PaginatedListResponseData<Datum = never> {

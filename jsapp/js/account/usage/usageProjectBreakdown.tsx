@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { keepPreviousData } from '@tanstack/react-query'
 import prettyBytes from 'pretty-bytes'
 import { Link } from 'react-router-dom'
-import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
+import UniversalTable, { DEFAULT_PAGE_SIZE, type Pagination, type UniversalTableColumn } from '#/UniversalTable'
 import type { CustomAssetUsage } from '#/api/models/customAssetUsage'
 import type { ErrorObject } from '#/api/models/errorObject'
 import {
@@ -31,12 +31,19 @@ const ProjectBreakdown = () => {
   const [pagination, setPagination] = useState({
     limit: DEFAULT_PAGE_SIZE,
     offset: 0,
-    ordering: fieldName,
   })
 
-  const queryResult = useOrganizationsAssetUsageList(organization.id, pagination, {
+  function getQueryParams() {
+    const orderPrefix = order.direction === 'descending' ? '-' : ''
+    return {
+      ...pagination,
+      ordering: orderPrefix + order.fieldName,
+    }
+  }
+
+  const queryResult = useOrganizationsAssetUsageList(organization.id, getQueryParams(), {
     query: {
-      queryKey: getOrganizationsAssetUsageListQueryKey(organization.id, pagination),
+      queryKey: getOrganizationsAssetUsageListQueryKey(organization.id, getQueryParams()),
       placeholderData: keepPreviousData,
       // We might want to improve this in future, for now let's not retry
       retry: false,
