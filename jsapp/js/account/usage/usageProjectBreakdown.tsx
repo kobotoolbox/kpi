@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { keepPreviousData } from '@tanstack/react-query'
 import prettyBytes from 'pretty-bytes'
 import { Link } from 'react-router-dom'
-import UniversalTable, { DEFAULT_PAGE_SIZE, type Pagination, type UniversalTableColumn } from '#/UniversalTable'
+import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import type { CustomAssetUsage } from '#/api/models/customAssetUsage'
 import type { ErrorObject } from '#/api/models/errorObject'
 import {
@@ -18,7 +18,7 @@ import type { ProjectFieldDefinition } from '#/projects/projectViews/constants'
 import type { ProjectsTableOrder } from '#/projects/projectsTable/projectsTable'
 import SortableProjectColumnHeader from '#/projects/projectsTable/sortableProjectColumnHeader'
 import { ROUTES } from '#/router/routerConstants'
-import { notify, convertSecondsToMinutes } from '#/utils'
+import { convertSecondsToMinutes, notify } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
 
@@ -27,17 +27,20 @@ const ProjectBreakdown = () => {
   const [organization] = useOrganizationAssumed()
   const { billingPeriod } = useBillingPeriod()
   const [order, setOrder] = useState<ProjectsTableOrder>({})
-  const [fieldName, setFieldName] = useState('')
   const [pagination, setPagination] = useState({
     limit: DEFAULT_PAGE_SIZE,
     offset: 0,
   })
 
   function getQueryParams() {
+    // HACK FIX: a bit of a roundabout way to incorporate what the backend expects without diving too deep into changing
+    // existing types
     const orderPrefix = order.direction === 'descending' ? '-' : ''
+    const fieldName = order.fieldName === 'status' ? '_deployment_status' : order.fieldName
+
     return {
       ...pagination,
-      ordering: orderPrefix + order.fieldName,
+      ordering: orderPrefix + fieldName,
     }
   }
 
@@ -74,9 +77,6 @@ const ProjectBreakdown = () => {
 
   const updateOrder = (newOrder: ProjectsTableOrder) => {
     setOrder(newOrder)
-    if (order.fieldName) {
-      setFieldName(order.fieldName)
-    }
   }
 
   function dismissIntervalBanner() {
