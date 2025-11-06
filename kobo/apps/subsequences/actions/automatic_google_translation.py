@@ -1,17 +1,17 @@
 from kobo.apps.organizations.constants import UsageType
 from ..integrations.google.google_translate import GoogleTranslationService
 from ..type_aliases import NLPExternalServiceClass
-from .base import ActionClassConfig, BaseAutomatedNLPAction
+from .base import ActionClassConfig, BaseAutomaticNLPAction
 from .mixins import TranslationActionMixin
 
 
-class AutomatedGoogleTranslationAction(
-    TranslationActionMixin, BaseAutomatedNLPAction
+class AutomaticGoogleTranslationAction(
+    TranslationActionMixin, BaseAutomaticNLPAction
 ):
 
-    ID = 'automated_google_translation'
+    ID = 'automatic_google_translation'
     action_class_config = ActionClassConfig(
-        allow_multiple=True, automated=True, action_data_key='language'
+        allow_multiple=True, automatic=True, action_data_key='language'
     )
 
     def get_nlp_service_class(self) -> NLPExternalServiceClass:
@@ -20,7 +20,7 @@ class AutomatedGoogleTranslationAction(
     @property
     def result_schema(self):
         """
-        JSON Schema for automated Google translation results.
+        JSON Schema for automatic Google translation results.
 
         The payload is an object where each top-level key is a language code from
         `self.languages` (e.g. "en") mapping to a dataActionKey object. Timestamps
@@ -60,12 +60,14 @@ class AutomatedGoogleTranslationAction(
             "_versions": [
               {
                 "_dateCreated": "2025-09-24T10:45:00Z",
-                "_uuid": "550e8400-e29b-41d4-a716-446655440000",
-                "language": "en",
-                "status": "in_progress",
+                "_data": {
+                    "_uuid": "550e8400-e29b-41d4-a716-446655440000",
+                    "language": "en",
+                    "status": "in_progress"
+                },
                 "_dependency": {
                   "_uuid": "16fd2706-8baf-433b-82eb-8c7fada847da",
-                  "_actionId": "automated_google_transcription"
+                  "_actionId": "automatic_google_transcription"
                 }
               }
             ]
@@ -81,14 +83,16 @@ class AutomatedGoogleTranslationAction(
               {
                 "_dateCreated": "2025-09-24T10:45:00Z",
                 "_uuid": "4c0a0e9c-0f2c-4d8a-9c72-3a8d2f9a2a11",
-                "language": "en",
-                "locale": "en-CA",
-                "status": "complete",
-                "value": "Lunch was great today.",
-                "accepted": true,
+                "_data": {
+                    "language": "en",
+                    "locale": "en-CA",
+                    "status": "complete",
+                    "value": "Lunch was great today.",
+                    "accepted": true
+                },
                 "_dependency": {
                   "_uuid": "16fd2706-8baf-433b-82eb-8c7fada847da",
-                  "_actionId": "automated_google_transcription"
+                  "_actionId": "automatic_google_transcription"
                 }
               }
             ]
@@ -104,9 +108,11 @@ class AutomatedGoogleTranslationAction(
               {
                 "_dateCreated": "2025-09-24T10:45:00Z",
                 "_uuid": "9b1deb4d-5b15-4e8f-9f8b-7b3f5c6e4d21",
-                "language": "en",
-                "status": "failed",
-                "error": "Upstream service timeout."
+                "_data": {
+                    "language": "en",
+                    "status": "failed",
+                    "error": "Upstream service timeout."
+                }
               }
             ]
           }
@@ -121,9 +127,11 @@ class AutomatedGoogleTranslationAction(
               {
                 "_dateCreated": "2025-09-24T10:45:00Z",
                 "_uuid": "7d444840-9dc0-11d1-b245-5ffdce74fad2",
-                "language": "en",
-                "status": "deleted",
-                "value": null
+                "_data": {
+                    "language": "en",
+                    "status": "deleted",
+                    "value": null
+                }
               }
             ]
           }

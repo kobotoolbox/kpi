@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from dateutil import parser
 
 from ..exceptions import TranscriptionNotFound
@@ -7,7 +9,7 @@ class TranscriptionActionMixin:
     """
     Provides common methods and properties used by all transcription-related actions.
 
-    This mixin centralizes them so that both manual and automated transcription classes
+    This mixin centralizes them so that both manual and automatic transcription classes
     can reuse the same structure consistently.
     """
 
@@ -15,10 +17,13 @@ class TranscriptionActionMixin:
     def result_schema(self):
 
         # Move localized_value_schema definitions to main schema
-        if self.action_class_config.automated:
-            data_schema_defs = self.automated_data_schema.get('$defs', {})
+        if self.action_class_config.automatic:
+            data_schema = self.external_data_schema
         else:
-            data_schema_defs = self.data_schema.get('$defs', {})
+            data_schema = self.data_schema
+        data_schema = deepcopy(data_schema)
+        data_schema_defs = data_schema.pop('$defs')
+        data_schema.pop('$schema')  # Also discard this prior to nesting
 
         schema = {
             '$schema': 'https://json-schema.org/draft/2020-12/schema',
@@ -40,6 +45,7 @@ class TranscriptionActionMixin:
                     'type': 'object',
                     'additionalProperties': False,
                     'properties': {
+                        self.VERSION_DATA_FIELD: {'$ref': '#/$defs/dataSchema'},
                         self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
                         self.DATE_ACCEPTED_FIELD: {'$ref': '#/$defs/dateTime'},
                         self.UUID_FIELD: {'$ref': '#/$defs/uuid'},
@@ -47,14 +53,10 @@ class TranscriptionActionMixin:
                     'required': [self.DATE_CREATED_FIELD, self.UUID_FIELD],
                 },
                 'uuid': {'type': 'string', 'format': 'uuid'},
+                'dataSchema': data_schema,
                 **data_schema_defs,  # Copy defs at the root level
             },
         }
-
-        # Also inject data schema in the version definition
-        self._inject_data_schema(
-            schema['$defs']['version'], ['$schema', 'title', '$defs']
-        )
 
         return schema
 
@@ -63,7 +65,7 @@ class TranslationActionMixin:
     """
     Provides common methods and properties used by all translation-related actions.
 
-    This mixin centralizes them so that both manual and automated translation classes
+    This mixin centralizes them so that both manual and automatic translation classes
     can reuse the same structure consistently.
     """
 
@@ -122,14 +124,16 @@ class TranslationActionMixin:
         if latest_version is None:
             raise TranscriptionNotFound
 
+        latest_version_data = latest_version.get(self.VERSION_DATA_FIELD, {})
+
         # Prefer a specific locale when available; otherwise use the base language.
         language_or_locale = (
-            latest_version.get('locale') or latest_version['language']
+            latest_version_data.get('locale') or latest_version_data['language']
         )
 
         # Inject dependency property for translation service
         action_data[self.DEPENDENCY_FIELD] = {
-            'value': latest_version['value'],
+            'value': latest_version_data['value'],
             'language': language_or_locale,
             self.UUID_FIELD: latest_version[self.UUID_FIELD],
             self.ACTION_ID_FIELD: latest_version_action_id
@@ -149,13 +153,13 @@ class TranslationActionMixin:
         for this action to run correctly.
         """
 
-        from ..actions.automated_google_transcription import (
-            AutomatedGoogleTranscriptionAction
+        from ..actions.automatic_google_transcription import (
+            AutomaticGoogleTranscriptionAction
         )
         from ..actions.manual_transcription import ManualTranscriptionAction
 
         transcription_action_ids = (
-            AutomatedGoogleTranscriptionAction.ID,
+            AutomaticGoogleTranscriptionAction.ID,
             ManualTranscriptionAction.ID,
         )
 
@@ -186,10 +190,13 @@ class TranslationActionMixin:
         }
 
         # Move localized_value_schema definitions to main schema
-        if self.action_class_config.automated:
-            data_schema_defs = self.automated_data_schema.get('$defs', {})
+        if self.action_class_config.automatic:
+            data_schema = self.external_data_schema
         else:
-            data_schema_defs = self.data_schema.get('$defs', {})
+            data_schema = self.data_schema
+        data_schema = deepcopy(data_schema)
+        data_schema_defs = data_schema.pop('$defs')
+        data_schema.pop('$schema')  # Also discard this prior to nesting
 
         schema = {
             '$schema': 'https://json-schema.org/draft/2020-12/schema',
@@ -206,6 +213,7 @@ class TranslationActionMixin:
                     'type': 'object',
                     'additionalProperties': False,
                     'properties': {
+                        self.VERSION_DATA_FIELD: {'$ref': '#/$defs/dataSchema'},
                         self.DATE_CREATED_FIELD: {'$ref': '#/$defs/dateTime'},
                         self.DATE_ACCEPTED_FIELD: {'$ref': '#/$defs/dateTime'},
                         self.UUID_FIELD: {'$ref': '#/$defs/uuid'},
@@ -229,8 +237,15 @@ class TranslationActionMixin:
                         {
                         'if': {
                             # If `value` exists and is null…
-                            'properties': {'value': {'type': 'null'}},
-                            'required': ['value']
+                            'properties': {
+                                self.VERSION_DATA_FIELD: {
+                                    'type': 'object',
+                                    'properties': {
+                                        'value': {'type': 'null'},
+                                    },
+                                    'required': ['value'],
+                                }
+                            },
                         },
                         # …then `_dependency` must be absent.
                         'then': {
@@ -245,13 +260,9 @@ class TranslationActionMixin:
                     }]
                 },
                 'uuid': {'type': 'string', 'format': 'uuid'},
+                'dataSchema': data_schema,
                 **data_schema_defs,
             },
         }
-
-        # Also inject data schema in the version definition
-        self._inject_data_schema(
-            schema['$defs']['version'], ['$schema', 'title', '$defs']
-        )
 
         return schema

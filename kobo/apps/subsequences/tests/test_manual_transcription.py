@@ -101,8 +101,8 @@ def test_transcript_versions_are_retained_in_supplemental_details():
 
     assert mock_sup_det['_dateCreated'] == mock_sup_det['_dateModified']
     assert len(mock_sup_det['_versions']) == 1
-    assert mock_sup_det['_versions'][0]['language'] == 'en'
-    assert mock_sup_det['_versions'][0]['value'] == 'No idea'
+    assert mock_sup_det['_versions'][0]['_data']['language'] == 'en'
+    assert mock_sup_det['_versions'][0]['_data']['value'] == 'No idea'
     first_time = mock_sup_det['_dateCreated']
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
@@ -134,11 +134,11 @@ def test_setting_transcript_to_empty_string():
     second = {'language': 'fr', 'value': ''}
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, first)
-    assert mock_sup_det['_versions'][0]['value'] == 'Aucune idée'
+    assert mock_sup_det['_versions'][0]['_data']['value'] == 'Aucune idée'
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
-    assert mock_sup_det['_versions'][0]['value'] == ''
-    assert mock_sup_det['_versions'][1]['value'] == 'Aucune idée'
+    assert mock_sup_det['_versions'][0]['_data']['value'] == ''
+    assert mock_sup_det['_versions'][1]['_data']['value'] == 'Aucune idée'
 
 
 def test_setting_transcript_to_none():
@@ -150,11 +150,11 @@ def test_setting_transcript_to_none():
     second = {'language': 'fr', 'value': None}
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, first)
-    assert mock_sup_det['_versions'][0]['value'] == 'Aucune idée'
+    assert mock_sup_det['_versions'][0]['_data']['value'] == 'Aucune idée'
 
     mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, second)
-    assert mock_sup_det['_versions'][0]['value'] is None
-    assert mock_sup_det['_versions'][1]['value'] == 'Aucune idée'
+    assert mock_sup_det['_versions'][0]['_data']['value'] is None
+    assert mock_sup_det['_versions'][1]['_data']['value'] == 'Aucune idée'
 
 
 def test_latest_revision_is_first():
@@ -170,6 +170,6 @@ def test_latest_revision_is_first():
     for data in first, second, third:
         mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
-    assert mock_sup_det['_versions'][0]['value'] == 'trois'
-    assert mock_sup_det['_versions'][1]['value'] == 'deux'
-    assert mock_sup_det['_versions'][2]['value'] == 'un'
+    assert mock_sup_det['_versions'][0]['_data']['value'] == 'trois'
+    assert mock_sup_det['_versions'][1]['_data']['value'] == 'deux'
+    assert mock_sup_det['_versions'][2]['_data']['value'] == 'un'

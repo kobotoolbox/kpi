@@ -5,21 +5,20 @@ import dateutil
 import jsonschema
 import pytest
 
-from ..actions.automated_google_translation import AutomatedGoogleTranslationAction
+from ..actions.automatic_google_translation import AutomaticGoogleTranslationAction
 from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 from ..exceptions import TranscriptionNotFound
-from ..tasks import poll_run_automated_process
 
 
 def test_valid_params_pass_validation():
     params = [{'language': 'fr'}, {'language': 'es'}]
-    AutomatedGoogleTranslationAction.validate_params(params)
+    AutomaticGoogleTranslationAction.validate_params(params)
 
 
 def test_invalid_params_fail_validation():
     params = [{'language': 123}, {'language': 'es'}]
     with pytest.raises(jsonschema.exceptions.ValidationError):
-        AutomatedGoogleTranslationAction.validate_params(params)
+        AutomaticGoogleTranslationAction.validate_params(params)
 
 
 def test_valid_user_data_passes_validation():
@@ -44,7 +43,7 @@ def test_valid_user_data_passes_validation():
         action.validate_data(data)
 
 
-def test_valid_automated_translation_data_passes_validation():
+def test_valid_automatic_translation_data_passes_validation():
     action = _get_action()
 
     allowed_data = [
@@ -73,7 +72,7 @@ def test_valid_automated_translation_data_passes_validation():
     ]
 
     for data in allowed_data:
-        action.validate_automated_data(data)
+        action.validate_external_data(data)
 
 
 def test_invalid_user_data_fails_validation():
@@ -103,7 +102,7 @@ def test_invalid_user_data_fails_validation():
             action.validate_data(data)
 
 
-def test_invalid_automated_data_fails_validation():
+def test_invalid_automatic_data_fails_validation():
     action = _get_action()
 
     invalid_data = [
@@ -135,7 +134,7 @@ def test_invalid_automated_data_fails_validation():
 
     for data in invalid_data:
         with pytest.raises(jsonschema.exceptions.ValidationError):
-            action.validate_automated_data(data)
+            action.validate_external_data(data)
 
 
 def test_valid_result_passes_validation():
@@ -151,7 +150,7 @@ def test_valid_result_passes_validation():
 
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',  # noqa
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
         for data in first, second, third, fourth, fifth, six:
@@ -170,9 +169,9 @@ def test_valid_result_passes_validation():
         action.validate_result(mock_sup_det)
 
     assert '_dateAccepted' in mock_sup_det['fr']['_versions'][1]
-    assert mock_sup_det['fr']['_versions'][0]['status'] == 'deleted'
-    assert mock_sup_det['es']['_versions'][1]['status'] == 'complete'
-    assert mock_sup_det['fr']['_versions'][-1]['status'] == 'complete'
+    assert mock_sup_det['fr']['_versions'][0]['_data']['status'] == 'deleted'
+    assert mock_sup_det['es']['_versions'][1]['_data']['status'] == 'complete'
+    assert mock_sup_det['fr']['_versions'][-1]['_data']['status'] == 'complete'
 
 
 def test_acceptance_does_not_produce_versions():
@@ -185,7 +184,7 @@ def test_acceptance_does_not_produce_versions():
 
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',  # noqa
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
         for data in first, second, third:
@@ -227,8 +226,7 @@ def test_invalid_result_fails_validation():
 
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',
-        # noqa
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService', # noqa
         return_value=mock_service,
     ):
         for data in first, second, third, fourth, fifth, six:
@@ -263,21 +261,20 @@ def test_translation_versions_are_retained_in_supplemental_details():
 
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',
-        # noqa
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
         value = first.pop('value', None)
         mock_service.process_data.return_value = {'value': value, 'status': 'complete'}
         mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, first)
 
-    assert mock_sup_det['es']['_versions'][0]['language'] == 'es'
-    assert mock_sup_det['es']['_versions'][0]['value'] == 'Ni idea'
+    assert mock_sup_det['es']['_versions'][0]['_data']['language'] == 'es'
+    assert mock_sup_det['es']['_versions'][0]['_data']['value'] == 'Ni idea'
     assert mock_sup_det['es']['_dateCreated'] == mock_sup_det['es']['_dateModified']
     first_time = mock_sup_det['es']['_versions'][0]['_dateCreated']
 
     with patch(
-        'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',  # noqa
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
         value = second.pop('value', None)
@@ -286,12 +283,12 @@ def test_translation_versions_are_retained_in_supplemental_details():
 
     assert len(mock_sup_det.keys()) == 2
 
-    assert mock_sup_det['fr']['_versions'][0]['language'] == 'fr'
-    assert mock_sup_det['fr']['_versions'][0]['value'] == 'Aucune idée'
+    assert mock_sup_det['fr']['_versions'][0]['_data']['language'] == 'fr'
+    assert mock_sup_det['fr']['_versions'][0]['_data']['value'] == 'Aucune idée'
     assert mock_sup_det['fr']['_dateCreated'] == mock_sup_det['fr']['_dateModified']
 
     with patch(
-        'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',  # noqa
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
         value = third.pop('value', None)
@@ -327,8 +324,7 @@ def test_latest_version_is_first():
     mock_sup_det = EMPTY_SUPPLEMENT
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',
-        # noqa
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService', # noqa
         return_value=mock_service,
     ):
         for data in first, second, third:
@@ -339,9 +335,9 @@ def test_latest_version_is_first():
             }
             mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
-    assert mock_sup_det['fr']['_versions'][0]['value'] == 'trois'
-    assert mock_sup_det['fr']['_versions'][1]['value'] == 'deux'
-    assert mock_sup_det['fr']['_versions'][2]['value'] == 'un'
+    assert mock_sup_det['fr']['_versions'][0]['_data']['value'] == 'trois'
+    assert mock_sup_det['fr']['_versions'][1]['_data']['value'] == 'deux'
+    assert mock_sup_det['fr']['_versions'][2]['_data']['value'] == 'un'
 
 
 def test_cannot_revise_data_without_transcription():
@@ -349,7 +345,7 @@ def test_cannot_revise_data_without_transcription():
 
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',  # noqa
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
         mock_service.process_data.return_value = {
@@ -364,14 +360,14 @@ def test_cannot_revise_data_without_transcription():
 def test_find_the_most_recent_accepted_transcription():
     action = _get_action()
 
-    # Automated transcription is the most recent
+    # Automatic transcription is the most recent
     action_data = {}
     expected = {
         '_dependency': {
             'value': 'My audio has been transcribed automatically',
             'language': 'en',
             '_uuid': '4dcf9c9f-e503-4e5c-81f5-74250b295001',
-            '_actionId': 'automated_google_transcription',
+            '_actionId': 'automatic_google_transcription',
         }
     }
     action_data = action.attach_action_dependency(action_data)
@@ -383,7 +379,6 @@ def test_find_the_most_recent_accepted_transcription():
         '_dateAccepted'
     ] = '2025-07-28T16:18:00Z'
     action.get_action_dependencies(question_supplement_data)
-
 
     action_data = {}  # not really relevant for this test
     expected = {
@@ -405,12 +400,12 @@ def test_action_is_updated_in_background_if_in_progress():
     submission = {'meta/rootUuid': '123-abdc'}
 
     with patch(
-        'kobo.apps.subsequences.actions.automated_google_translation.GoogleTranslationService',  # noqa
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
         mock_service.process_data.return_value = {'status': 'in_progress'}
         with patch(
-            'kobo.apps.subsequences.actions.base.poll_run_automated_process'
+            'kobo.apps.subsequences.actions.base.poll_run_external_process'
         ) as task_mock:
             action.revise_data(
                 submission, EMPTY_SUPPLEMENT, {'language': 'fr'}
@@ -425,7 +420,7 @@ def _get_action(fetch_action_dependencies=True):
     mock_asset = MagicMock()
     mock_asset.pk = 1
     mock_asset.owner.pk = 1
-    action = AutomatedGoogleTranslationAction(xpath, params, asset=mock_asset)
+    action = AutomaticGoogleTranslationAction(xpath, params, asset=mock_asset)
     if fetch_action_dependencies:
         action.get_action_dependencies(QUESTION_SUPPLEMENT)
     return action

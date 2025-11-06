@@ -1,12 +1,12 @@
-from .automated_google_transcription import AutomatedGoogleTranscriptionAction
-from .automated_google_translation import AutomatedGoogleTranslationAction
+from .automatic_google_transcription import AutomaticGoogleTranscriptionAction
+from .automatic_google_translation import AutomaticGoogleTranslationAction
 from .manual_transcription import ManualTranscriptionAction
 from .manual_translation import ManualTranslationAction
 
 # TODO, what about using a loader for every class in "actions" folder (except base.py)?
 ACTIONS = (
-    AutomatedGoogleTranscriptionAction,
-    AutomatedGoogleTranslationAction,
+    AutomaticGoogleTranscriptionAction,
+    AutomaticGoogleTranslationAction,
     ManualTranscriptionAction,
     ManualTranslationAction,
 )
