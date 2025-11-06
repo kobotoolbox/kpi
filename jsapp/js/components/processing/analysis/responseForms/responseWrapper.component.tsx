@@ -127,7 +127,7 @@ export default function ResponseWrapper(props: ResponseWrapperProps) {
           <Icon name={qaDefinition.icon} size='xl' />
         </ThemeIcon>
 
-        {/*TODO: font weight is not standardized*/}
+        {/*TODO: font weight is not standardized DEV-1238*/}
         <Text
           style={{ wordBreak: 'break-all' }}
           span
