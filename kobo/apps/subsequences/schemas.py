@@ -1,3 +1,4 @@
+from copy import deepcopy
 import jsonschema
 
 from .actions import ACTION_IDS_TO_CLASSES, ACTIONS
@@ -37,7 +38,9 @@ def get_submission_supplement_schema(asset: 'kpi.models.Asset') -> dict:
     if migrated_schema := migrate_advanced_features(asset.advanced_features):
         asset.advanced_features = migrated_schema
 
+    top_level_defs = {}
     submission_supplement_schema = {
+        '$defs': top_level_defs,
         'additionalProperties': False,
         'properties': {'_version': {'const': SCHEMA_VERSIONS[0]}},
         'type': 'object',
@@ -47,13 +50,25 @@ def get_submission_supplement_schema(asset: 'kpi.models.Asset') -> dict:
         question_xpath,
         action_configs_for_this_question,
     ) in asset.advanced_features['_actionConfigs'].items():
+        per_question_schema = {
+            'additionalProperties': False,
+            'properties': {},
+            'type': 'object',
+        }
+        submission_supplement_schema['properties'][
+            question_xpath
+        ] = per_question_schema
+
         for (
             action_id,
             action_params,
         ) in action_configs_for_this_question.items():
-            action = ACTION_IDS_TO_CLASSES[action_id](question_xpath, action_params)
-            submission_supplement_schema['properties'].setdefault(question_xpath, {})[
-                action_id
-            ] = action.result_schema
+            action = ACTION_IDS_TO_CLASSES[action_id](
+                question_xpath, action_params
+            )
+            action_result_schema = deepcopy(action.result_schema)
+            # Un-nest definitions
+            top_level_defs.update(action_result_schema.pop('$defs', {}))
+            per_question_schema['properties'][action_id] = action_result_schema
 
     return submission_supplement_schema
