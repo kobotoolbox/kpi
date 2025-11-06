@@ -18,7 +18,7 @@ import type { ProjectFieldDefinition } from '#/projects/projectViews/constants'
 import type { ProjectsTableOrder } from '#/projects/projectsTable/projectsTable'
 import SortableProjectColumnHeader from '#/projects/projectsTable/sortableProjectColumnHeader'
 import { ROUTES } from '#/router/routerConstants'
-import { convertSecondsToMinutes } from '#/utils'
+import { notify, convertSecondsToMinutes } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
 
@@ -26,11 +26,13 @@ const ProjectBreakdown = () => {
   const [showIntervalBanner, setShowIntervalBanner] = useState(true)
   const [organization] = useOrganizationAssumed()
   const { billingPeriod } = useBillingPeriod()
+  const [order, setOrder] = useState<ProjectsTableOrder>({})
+  const [fieldName, setFieldName] = useState('')
   const [pagination, setPagination] = useState({
     limit: DEFAULT_PAGE_SIZE,
     offset: 0,
+    ordering: fieldName,
   })
-  const [order, setOrder] = useState({})
 
   const queryResult = useOrganizationsAssetUsageList(organization.id, pagination, {
     query: {
@@ -41,9 +43,10 @@ const ProjectBreakdown = () => {
       // The `refetchOnWindowFocus` option is `true` by default, I'm setting it
       // here so we don't forget about it.
       refetchOnWindowFocus: true,
-    },
-    request: {
-      errorMessageDisplay: t('There was an error getting the list.'),
+      throwOnError: () => {
+        notify(t('There was an error getting the list.'), 'error') // TODO: update message in backend (DEV-1218).
+        return false
+      },
     },
   })
 
@@ -64,6 +67,9 @@ const ProjectBreakdown = () => {
 
   const updateOrder = (newOrder: ProjectsTableOrder) => {
     setOrder(newOrder)
+    if (order.fieldName) {
+      setFieldName(order.fieldName)
+    }
   }
 
   function dismissIntervalBanner() {
