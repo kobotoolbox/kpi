@@ -3,54 +3,82 @@ import './connect-projects.scss'
 import React from 'react'
 
 import alertify from 'alertifyjs'
-import autoBind from 'react-autobind'
 import Select from 'react-select'
 import { actions } from '#/actions'
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import Checkbox from '#/components/common/checkbox'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import MultiCheckbox from '#/components/common/multiCheckbox'
+import MultiCheckbox, { type MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import TextBox from '#/components/common/textBox'
 import ToggleSwitch from '#/components/common/toggleSwitch'
-import dataAttachmentsUtils from '#/components/dataAttachments/dataAttachmentsUtils'
+import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttachments/dataAttachmentsUtils'
 import { MAX_DISPLAYED_STRING_LENGTH, MODAL_TYPES } from '#/constants'
+import type { AssetResponse, AssetsResponse, FailResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import { escapeHtml, generateAutoname } from '#/utils'
 
 const DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL = 'dynamic_data_attachment.html'
 
+interface ConnectProjectsProps {
+  asset: AssetResponse
+}
+
+interface ConnectProjectsState {
+  isInitialised: boolean
+  isLoading: boolean
+  // `data_sharing` is an empty object if never enabled before
+  isShared: boolean
+  isSharingAnyQuestions: boolean
+  attachedSources: AttachedSourceItem[]
+  sharingEnabledAssets: AssetsResponse | null
+  newSource: AssetResponse | null
+  newFilename: string
+  columnsToDisplay: ColumnFilter[]
+  fieldsErrors: any
+}
+
+interface AttachedSourceItem {
+  sourceName: string
+  sourceUrl: string
+  sourceUid: string
+  linkedFields: string[]
+  filename: string
+  attachmentUrl: string
+}
+
 /*
  * Modal for connecting project data
- *
- * @prop {object} asset
  */
-class ConnectProjects extends React.Component {
-  constructor(props) {
+class ConnectProjects extends React.Component<ConnectProjectsProps, ConnectProjectsState> {
+  private unlisteners: Function[] = []
+
+  constructor(props: ConnectProjectsProps) {
     super(props)
+
+    const isShared = props.asset.data_sharing?.enabled || false
+
+    let columnsToDisplay: ColumnFilter[] = []
+    if (isShared) {
+      columnsToDisplay = dataAttachmentsUtils.generateColumnFilters(
+        this.props.asset.data_sharing.fields || [],
+        this.props.asset.content?.survey || [],
+      )
+    }
+
     this.state = {
       isInitialised: false,
       isLoading: false,
-      // `data_sharing` is an empty object if never enabled before
-      isShared: props.asset.data_sharing?.enabled || false,
+      isShared: isShared,
       isSharingAnyQuestions: Boolean(props.asset.data_sharing?.fields?.length) || false,
       attachedSources: [],
       sharingEnabledAssets: null,
       newSource: null,
       newFilename: '',
-      columnsToDisplay: [],
+      columnsToDisplay: columnsToDisplay,
       fieldsErrors: {},
     }
-
-    if (this.state.isShared) {
-      this.state.columnsToDisplay = dataAttachmentsUtils.generateColumnFilters(
-        this.props.asset.data_sharing.fields,
-        this.props.asset.content.survey,
-      )
-    }
-
-    autoBind(this)
 
     this.unlisteners = []
   }
@@ -61,20 +89,20 @@ class ConnectProjects extends React.Component {
 
   componentDidMount() {
     this.unlisteners.push(
-      actions.dataShare.attachToSource.started.listen(this.markComponentAsLoading),
-      actions.dataShare.attachToSource.completed.listen(this.refreshAttachmentList),
-      actions.dataShare.attachToSource.failed.listen(this.onAttachToSourceFailed),
-      actions.dataShare.detachSource.completed.listen(this.refreshAttachmentList),
-      actions.dataShare.patchSource.started.listen(this.markComponentAsLoading),
-      actions.dataShare.patchSource.completed.listen(this.onPatchSourceCompleted),
-      actions.dataShare.getSharingEnabledAssets.completed.listen(this.onGetSharingEnabledAssetsCompleted),
-      actions.dataShare.getAttachedSources.completed.listen(this.onGetAttachedSourcesCompleted),
-      actions.dataShare.toggleDataSharing.completed.listen(this.onToggleDataSharingCompleted),
-      actions.dataShare.updateColumnFilters.completed.listen(this.onUpdateColumnFiltersCompleted),
-      actions.dataShare.updateColumnFilters.failed.listen(this.stopLoading),
-      actions.dataShare.detachSource.failed.listen(this.stopLoading),
-      actions.dataShare.patchSource.completed.listen(this.stopLoading),
-      actions.dataShare.patchSource.failed.listen(this.stopLoading),
+      actions.dataShare.attachToSource.started.listen(this.markComponentAsLoading.bind(this)),
+      actions.dataShare.attachToSource.completed.listen(this.refreshAttachmentList.bind(this)),
+      actions.dataShare.attachToSource.failed.listen(this.onAttachToSourceFailed.bind(this)),
+      actions.dataShare.detachSource.completed.listen(this.refreshAttachmentList.bind(this)),
+      actions.dataShare.patchSource.started.listen(this.markComponentAsLoading.bind(this)),
+      actions.dataShare.patchSource.completed.listen(this.onPatchSourceCompleted.bind(this)),
+      actions.dataShare.getSharingEnabledAssets.completed.listen(this.onGetSharingEnabledAssetsCompleted.bind(this)),
+      actions.dataShare.getAttachedSources.completed.listen(this.onGetAttachedSourcesCompleted.bind(this)),
+      actions.dataShare.toggleDataSharing.completed.listen(this.onToggleDataSharingCompleted.bind(this)),
+      actions.dataShare.updateColumnFilters.completed.listen(this.onUpdateColumnFiltersCompleted.bind(this)),
+      actions.dataShare.updateColumnFilters.failed.listen(this.stopLoading.bind(this)),
+      actions.dataShare.detachSource.failed.listen(this.stopLoading.bind(this)),
+      actions.dataShare.patchSource.completed.listen(this.stopLoading.bind(this)),
+      actions.dataShare.patchSource.failed.listen(this.stopLoading.bind(this)),
     )
 
     this.refreshAttachmentList()
@@ -92,14 +120,14 @@ class ConnectProjects extends React.Component {
    * `actions` Listeners
    */
 
-  onAttachToSourceFailed(response) {
+  onAttachToSourceFailed(response: FailResponse) {
     this.setState({
       isLoading: false,
       fieldsErrors: response?.responseJSON || t('Please check file name'),
     })
   }
 
-  onGetAttachedSourcesCompleted(response) {
+  onGetAttachedSourcesCompleted(response: AttachedSourceItem[]) {
     this.setState({
       isInitialised: true,
       isLoading: false,
@@ -107,27 +135,27 @@ class ConnectProjects extends React.Component {
     })
   }
 
-  onGetSharingEnabledAssetsCompleted(response) {
+  onGetSharingEnabledAssetsCompleted(response: AssetsResponse) {
     // NOTE: it is completely valid to connect a project back to itself, so
     // don't be alarmed about seeing your current project in this list.
     this.setState({ sharingEnabledAssets: response })
   }
 
-  onToggleDataSharingCompleted(response) {
+  onToggleDataSharingCompleted(response: AssetResponse) {
     this.setState({
-      isShared: response.data_sharing.enabled,
+      isShared: response.data_sharing.enabled || false,
       isSharingAnyQuestions: false,
-      columnsToDisplay: dataAttachmentsUtils.generateColumnFilters([], this.props.asset.content.survey),
+      columnsToDisplay: dataAttachmentsUtils.generateColumnFilters([], this.props.asset.content?.survey),
     })
   }
 
   // Safely update state after guaranteed column changes
-  onUpdateColumnFiltersCompleted(response) {
+  onUpdateColumnFiltersCompleted(response: AssetResponse) {
     this.setState({
       isLoading: false,
       columnsToDisplay: dataAttachmentsUtils.generateColumnFilters(
-        response.data_sharing.fields,
-        this.props.asset.content.survey,
+        response.data_sharing.fields || [],
+        this.props.asset.content?.survey,
       ),
     })
   }
@@ -153,22 +181,24 @@ class ConnectProjects extends React.Component {
    * UI Listeners
    */
 
-  onFilenameChange(newVal) {
+  onFilenameChange(newVal: string) {
     this.setState({
       newFilename: newVal,
       fieldsErrors: {},
     })
   }
 
-  onSourceChange(newVal) {
-    this.setState({
-      newSource: newVal,
-      newFilename: generateAutoname(newVal?.name, 0, MAX_DISPLAYED_STRING_LENGTH.connect_projects),
-      fieldsErrors: {},
-    })
+  onSourceChange(newVal: AssetResponse | null) {
+    if (newVal) {
+      this.setState({
+        newSource: newVal,
+        newFilename: generateAutoname(newVal.name, 0, MAX_DISPLAYED_STRING_LENGTH.connect_projects),
+        fieldsErrors: {},
+      })
+    }
   }
 
-  onConfirmAttachment(evt) {
+  onConfirmAttachment(evt: React.TouchEvent<HTMLButtonElement>) {
     evt.preventDefault()
     if (this.state.newFilename !== '' && this.state.newSource?.url) {
       this.setState({
@@ -200,9 +230,9 @@ class ConnectProjects extends React.Component {
     }
   }
 
-  onRemoveAttachment(newVal) {
+  onRemoveAttachment(attachmentUrl: string) {
     this.setState({ isLoading: true })
-    actions.dataShare.detachSource(newVal)
+    actions.dataShare.detachSource(attachmentUrl)
   }
 
   onToggleSharingData() {
@@ -233,10 +263,10 @@ class ConnectProjects extends React.Component {
     }
   }
 
-  onColumnSelected(columnList) {
+  onColumnSelected(columnList: MultiCheckboxItem[]) {
     this.setState({ isLoading: true })
 
-    const fields = []
+    const fields: string[] = []
     columnList.forEach((item) => {
       if (item.checked) {
         fields.push(item.label)
@@ -253,7 +283,7 @@ class ConnectProjects extends React.Component {
     actions.dataShare.updateColumnFilters(this.props.asset.uid, data)
   }
 
-  onSharingCheckboxChange(checked) {
+  onSharingCheckboxChange(checked: boolean) {
     let columnsToDisplay = this.state.columnsToDisplay
     if (!checked) {
       columnsToDisplay = []
@@ -277,16 +307,22 @@ class ConnectProjects extends React.Component {
    */
 
   generateFilteredAssetList() {
-    const attachedSourceUids = []
+    const attachedSourceUids: string[] = []
     this.state.attachedSources.forEach((item) => {
       attachedSourceUids.push(item.sourceUid)
     })
 
     // Filter out attached projects from displayed asset list
-    return this.state.sharingEnabledAssets.results.filter((item) => !attachedSourceUids.includes(item.uid))
+    return this.state.sharingEnabledAssets?.results.filter((item) => !attachedSourceUids.includes(item.uid)) || []
   }
 
-  showColumnFilterModal(asset, source, filename, fields, attachmentUrl) {
+  showColumnFilterModal(
+    asset: AssetResponse,
+    source: Pick<AssetResponse, 'uid' | 'name' | 'url'>,
+    filename: string,
+    fields: string[],
+    attachmentUrl?: string,
+  ) {
     pageState.showModal({
       type: MODAL_TYPES.DATA_ATTACHMENT_COLUMNS,
       asset: asset,
@@ -323,7 +359,7 @@ class ConnectProjects extends React.Component {
             getOptionLabel={(option) => option.name}
             getOptionValue={(option) => option.url}
             noOptionsMessage={() => t('No projects to connect')}
-            onChange={this.onSourceChange}
+            onChange={this.onSourceChange.bind(this)}
             className='kobo-select'
             classNamePrefix='kobo-select'
           />
@@ -334,6 +370,7 @@ class ConnectProjects extends React.Component {
         </bem.KoboSelect__wrapper>
       )
     }
+    return null
   }
 
   renderExports() {
@@ -350,7 +387,7 @@ class ConnectProjects extends React.Component {
             <Checkbox
               name='sharing'
               checked={this.state.isSharingAnyQuestions}
-              onChange={this.onSharingCheckboxChange}
+              onChange={this.onSharingCheckboxChange.bind(this)}
               label={t('Select specific questions to share')}
             />
           </div>
@@ -366,7 +403,7 @@ class ConnectProjects extends React.Component {
                 type='frame'
                 items={this.state.columnsToDisplay}
                 disabled={this.state.isLoading}
-                onChange={this.onColumnSelected}
+                onChange={this.onColumnSelected.bind(this)}
               />
             </div>
           )}
@@ -398,11 +435,11 @@ class ConnectProjects extends React.Component {
             placeholder={t('Give a unique name to the import')}
             value={this.state.newFilename}
             size='m'
-            onChange={this.onFilenameChange}
+            onChange={this.onFilenameChange.bind(this)}
             errors={this.state.fieldsErrors.filename}
           />
 
-          <Button type='primary' size='m' onClick={this.onConfirmAttachment} label={t('Import')} />
+          <Button type='primary' size='m' onClick={this.onConfirmAttachment.bind(this)} label={t('Import')} />
         </div>
 
         {/* Display attached projects */}
