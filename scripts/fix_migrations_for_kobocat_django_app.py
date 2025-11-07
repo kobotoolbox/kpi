@@ -10,6 +10,7 @@ def run():
         # Only run it when custom user model migrations have been fixed
         delete_kobocat_form_disclaimer_app()
 
+    fix_mfa_migrations()
 
 def are_migration_already_applied():
     with connection.cursor() as cursor:
@@ -78,3 +79,12 @@ def migrate_custom_user_model():
                 return False
         else:
             raise Exception('Run `./manage.py migrate auth` first')
+
+
+def fix_internal_migrations():
+    """Fixes conflicts with users_reports dependency in kc db if already applied
+    """
+    with connections[settings.OPENROSA_DB_ALIAS].cursor() as cursor:
+        cursor.execute("""
+            DELETE FROM django_migrations WHERE name = '0002_create_user_reports_mv'
+        """);
