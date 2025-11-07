@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db import models, transaction
+from django.db import transaction
 from django.db.models.signals import post_delete
 from django.utils import timezone
 
@@ -130,21 +130,11 @@ def _replace_user_with_placeholder(
     for field in FIELDS_TO_RETAIN:
         setattr(placeholder_user, field, getattr(user, field))
 
-    audit_log_user_field = AuditLog._meta.get_field('user').remote_field
-    original_audit_log_delete_handler = audit_log_user_field.on_delete
     uid = user.extra_details.uid
     with transaction.atomic():
-        try:
-            if retain_audit_logs:
-                # prevent the delete() call from touching the audit logs
-                audit_log_user_field.on_delete = models.DO_NOTHING
-            # …and cause a FK violation!
-            user.delete()
-            # then resolve the violation by creating the placeholder with the
-            # same PK as the original user
-            placeholder_user.save()
-        finally:
-            audit_log_user_field.on_delete = original_audit_log_delete_handler
+        user.delete()
+        placeholder_user.save()
+
     return placeholder_user, uid
 
 
