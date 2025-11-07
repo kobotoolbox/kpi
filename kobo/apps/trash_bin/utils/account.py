@@ -20,7 +20,6 @@ from ..models import TrashStatus
 from ..models.account import AccountTrash
 from ..models.project import ProjectTrash
 from ..utils.project import delete_asset
-from ...openrosa.apps.viewer.models import ParsedInstance
 
 
 def delete_account(account_trash: AccountTrash):
@@ -130,22 +129,21 @@ def _replace_user_with_placeholder(
     for field in FIELDS_TO_RETAIN:
         setattr(placeholder_user, field, getattr(user, field))
 
-    if not retain_audit_logs:
-        user.delete()
-        placeholder_user.save()
-        return placeholder_user
-
     audit_log_user_field = AuditLog._meta.get_field('user').remote_field
     original_audit_log_delete_handler = audit_log_user_field.on_delete
+    uid = user.extra_details.uid
     with transaction.atomic():
         try:
-            # prevent the delete() call from touching the audit logs
-            audit_log_user_field.on_delete = models.DO_NOTHING
+            if retain_audit_logs:
+                # prevent the delete() call from touching the audit logs
+                audit_log_user_field.on_delete = models.DO_NOTHING
             # …and cause a FK violation!
             user.delete()
             # then resolve the violation by creating the placeholder with the
             # same PK as the original user
             placeholder_user.save()
+            placeholder_user.extra_details.uid = uid
+            placeholder_user.extra_details.save()
         finally:
             audit_log_user_field.on_delete = original_audit_log_delete_handler
 
