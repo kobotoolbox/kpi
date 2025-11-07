@@ -81,10 +81,21 @@ def migrate_custom_user_model():
             raise Exception('Run `./manage.py migrate auth` first')
 
 
-def fix_internal_migrations():
+def fix_mfa_migrations():
     """Fixes conflicts with users_reports dependency in kc db if already applied
     """
     with connections[settings.OPENROSA_DB_ALIAS].cursor() as cursor:
-        cursor.execute("""
-            DELETE FROM django_migrations WHERE name = '0002_create_user_reports_mv'
-        """);
+        user_reports_2 = cursor.execute("""
+            SELECT id FROM django_migrations
+            WHERE app = 'user_reports' AND name = '0002_create_user_reports_mv';
+        """).fetchone()
+
+        accounts_mfa_1_squashed = cursor.execute("""
+            SELECT id FROM django_migrations
+            WHERE app = 'accounts_mfa' AND name = '0001_squashed_0004_alter_mfamethod_date_created_and_more';
+        """).fetchone()
+        if user_reports_2 is not None and accounts_mfa_1_squashed is None:
+            cursor.execute("""
+                DELETE FROM django_migrations WHERE
+                WHERE app = 'user_reports' AND name = '0002_create_user_reports_mv';
+            """);
