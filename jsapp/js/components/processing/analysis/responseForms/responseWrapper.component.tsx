@@ -164,15 +164,9 @@ export default function ResponseWrapper(props: ResponseWrapperProps) {
           disabled={!hasManagePermissionsToCurrentAsset() || analysisQuestions.state.isPending}
         />
 
-        {props.clearable &&
-          <ActionIcon
-            variant='light-gray'
-            color='gray'
-            size='sm'
-            iconName='close'
-            onClick={handleClear}
-          />
-        }
+        {props.clearable && (
+          <ActionIcon variant='light-gray' color='gray' size='sm' iconName='close' onClick={handleClear} />
+        )}
       </Group>
 
       {/* Hard coded left padding to account for the 32px icon size + 8px gap */}
