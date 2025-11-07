@@ -1,6 +1,7 @@
 from django.db import models
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
+from kpi.fields import LazyDefaultJSONBField, KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from .actions import ACTION_IDS_TO_CLASSES
 from .constants import SUBMISSION_UUID_FIELD, SCHEMA_VERSIONS
@@ -34,7 +35,7 @@ class SubmissionSupplement(SubmissionExtras):
     @staticmethod
     def revise_data(asset: 'kpi.Asset', submission: dict, incoming_data: dict) -> dict:
 
-        if not asset.advanced_features:
+        if not asset.advanced_features_set.objects.exists():
             raise InvalidAction
 
         schema_version = incoming_data.get('_version')
@@ -65,12 +66,10 @@ class SubmissionSupplement(SubmissionExtras):
                 # FIXME: what's a better way? skip all leading underscore keys?
                 # pop off the known special keys first?
                 continue
-            try:
-                action_configs_for_this_question = asset.advanced_features[
-                    '_actionConfigs'
-                ][question_xpath]
-            except KeyError as e:
-                raise InvalidXPath from e
+
+            action_configs_for_this_question = asset.advanced_features_set.filter(question_xpath=question_xpath)
+            if not action_configs_for_this_question.exists():
+                raise InvalidXPath
 
             for action_id, action_data in data_for_this_question.items():
                 try:
@@ -78,8 +77,8 @@ class SubmissionSupplement(SubmissionExtras):
                 except KeyError as e:
                     raise InvalidAction from e
                 try:
-                    action_params = action_configs_for_this_question[action_id]
-                except KeyError as e:
+                    action_params = action_configs_for_this_question.get(action=action_id).config
+                except QuestionAdvancedAction.DoesNotExist as e:
                     raise InvalidAction from e
 
                 action = action_class(question_xpath, action_params, asset)
@@ -172,21 +171,8 @@ class SubmissionSupplement(SubmissionExtras):
             processed_data_for_this_question = retrieved_supplemental_data.setdefault(
                 question_xpath, {}
             )
-            action_configs = asset.advanced_features['_actionConfigs']
-            try:
-                action_configs_for_this_question = action_configs[question_xpath]
-            except KeyError:
-                # There's still supplemental data for this question at the
-                # submission level, but the question is no longer configured at the
-                # asset level.
-                # Allow this for now, but maybe forbid later and also forbid
-                # removing things from the asset-level action configuration?
-                # Actions could be disabled or hidden instead of being removed
-
-                # FIXME: divergence between the asset-level configuration and
-                # submission-level supplemental data is going to cause schema
-                # validation failures! We defo need to forbid removal of actions
-                # and instead provide a way to mark them as deleted
+            action_configs_for_this_question = asset.advanced_features_set.filter(question_xpath=question_xpath)
+            if not action_configs_for_this_question.exists():
                 continue
 
             for action_id, action_data in data_for_this_question.items():
@@ -198,8 +184,8 @@ class SubmissionSupplement(SubmissionExtras):
                     # TODO: log an error
                     continue
                 try:
-                    action_params = action_configs_for_this_question[action_id]
-                except KeyError:
+                    action_params = action_configs_for_this_question.get(action=action_id)
+                except QuestionAdvancedAction.DoesNotExist:
                     # An action class present in the submission data is no longer
                     # configured at the asset level for this question
                     # Allow this for now, but maybe forbid later and also forbid
@@ -237,3 +223,31 @@ class SubmissionSupplement(SubmissionExtras):
             return data_for_output
 
         return retrieved_supplemental_data
+
+class Action(models.TextChoices):
+    MANUAL_TRANSCRIPTION = 'manual_transcription'
+    MANUAL_TRANSLATION = 'manual_translation'
+    AUTOMATIC_GOOGLE_TRANSLATION = 'automatic_google_translation'
+    AUTOMATIC_GOOGLE_TRANSCRIPTION = 'automatic_google_transcription'
+    QUAL = 'qual'
+
+class QuestionAdvancedAction(models.Model):
+    uid = KpiUidField(uid_prefix='qaa', primary_key=True)
+    asset = models.ForeignKey('kpi.Asset', related_name='advanced_features_set',
+                               null=False, blank=False, on_delete=models.CASCADE)
+    action = models.CharField(
+        max_length=60,
+        choices=Action.choices,
+        db_index=True,
+        null=False,
+        blank=False,
+    )
+    question_xpath = models.CharField(
+        null=False, blank=False, max_length=2000
+    )
+    config = LazyDefaultJSONBField(default=dict)
+
+    class Meta:
+        unique_together = ('asset_id', 'question_xpath', 'action')
+
+
