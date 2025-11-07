@@ -13,16 +13,12 @@ from kpi.utils.usage_calculator import calculate_usage_balance
 
 
 class UserReportsSerializer(serializers.ModelSerializer):
-    extra_details__uid = serializers.CharField(
-        source='extra_details_uid', read_only=True
-    )
     service_usage = serializers.SerializerMethodField()
     account_restricted = serializers.SerializerMethodField()
 
     class Meta:
         model = UserReports
         fields = [
-            'extra_details__uid',
             'username',
             'first_name',
             'last_name',
@@ -33,13 +29,12 @@ class UserReportsSerializer(serializers.ModelSerializer):
             'date_joined',
             'last_login',
             'validated_email',
-            'validated_password',
             'mfa_is_active',
             'sso_is_active',
             'accepted_tos',
             'social_accounts',
             'organization',
-            'metadata',
+            'extra_details',
             'subscriptions',
             'service_usage',
             'account_restricted',

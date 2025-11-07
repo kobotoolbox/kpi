@@ -9,10 +9,11 @@ Supports partial filtering
 - first_name
 - last_name
 - email
+- extra_details__uid
 - organization__name
 - organization__role (e.g., admin, member, owner)
-- metadata__organization_type
-- `metadata__<field>` (other string fields, e.g., name, sector, country...)
+- extra_details__data__organization_type
+- `extra_details__data__<field>` (other string fields, e.g., name, sector, country...)
 
 ## Filterable fields by int:
 
@@ -55,6 +56,9 @@ Supports exact matching and range operators (e.g., gte, lte)
 
 - date_joined
 - last_login
+- extra_details__date_removal_requested
+- extra_details__date_removed
+- extra_details_password_date_changed
 
 ## Filterable fields by boolean:
 
@@ -62,11 +66,12 @@ Supports exact matching and range operators (e.g., gte, lte)
 - is_staff
 - is_active
 - validated_email
-- validated_password
+- extra_details__validated_password
 - mfa_is_active
 - sso_is_active
 - accepted_tos
-- metadata__newsletter_subscription
+- extra_details__data__newsletter_subscription
+- extra_details__data__done_storage_limits_check
 - service_usage__balances__*metric*__exceeded (metric: submission, asr_seconds, mt_characters, storage_bytes)
 - account_restricted
 

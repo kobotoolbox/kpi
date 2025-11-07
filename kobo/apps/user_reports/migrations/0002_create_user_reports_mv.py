@@ -89,7 +89,6 @@ CREATE_MV_BASE_SQL = f"""
         CONCAT(au.id::text, '-', COALESCE(org.id::text, 'orgnone')) AS id,
         au.id AS user_id,
         org.id AS organization_id,
-        ued.uid AS extra_details_uid,
         au.username,
         au.first_name,
         au.last_name,
@@ -109,7 +108,6 @@ CREATE_MV_BASE_SQL = f"""
             AND aea.primary = true
             AND aea.verified = true
         ) AS validated_email,
-        ued.validated_password,
         EXISTS (
             SELECT 1
             FROM trench_mfamethod mfa
@@ -145,7 +143,29 @@ CREATE_MV_BASE_SQL = f"""
             )
             ELSE NULL
         END AS organization,
-        ued.data::jsonb AS metadata,
+        jsonb_build_object(
+            'uid', ued.uid,
+            'data', ued.data::jsonb,
+            'date_removed',
+                CASE
+                    WHEN ued.date_removed IS NOT NULL
+                    THEN TO_CHAR(ued.date_removed AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+                    ELSE NULL
+                END,
+            'validated_password', COALESCE(ued.validated_password, FALSE),
+            'password_date_changed',
+                CASE
+                    WHEN ued.password_date_changed IS NOT NULL
+                    THEN TO_CHAR(ued.password_date_changed AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+                    ELSE NULL
+                END,
+            'date_removal_requested',
+                CASE
+                    WHEN ued.date_removal_requested IS NOT NULL
+                    THEN TO_CHAR(ued.date_removal_requested AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+                    ELSE NULL
+                END
+        ) AS extra_details,
         COALESCE(ua.total_assets, 0) AS asset_count,
         COALESCE(ua.deployed_assets, 0) AS deployed_asset_count,
         ucpu.current_period_start,
@@ -232,8 +252,11 @@ CREATE_MV_BASE_SQL = f"""
         au.is_staff,
         au.is_active,
         ued.uid,
-        ued.validated_password,
         ued.data,
+        ued.date_removed,
+        ued.validated_password,
+        ued.password_date_changed,
+        ued.date_removal_requested,
         org.id,
         org.name,
         au.date_joined,
