@@ -85,13 +85,14 @@ def delete_account(account_trash: AccountTrash):
 
                 if account_trash.retain_placeholder:
                     audit_log_params['action'] = AuditAction.REMOVE
-                    placeholder_user = _replace_user_with_placeholder(user)
+                    placeholder_user, uid = _replace_user_with_placeholder(user)
                     # Retain removal date information
                     extra_details = placeholder_user.extra_details
                     extra_details.date_removal_requested = date_removal_requested
                     extra_details.date_removed = timezone.now()
+                    extra_details.uid = uid
                     extra_details.save(
-                        update_fields=['date_removal_requested', 'date_removed']
+                        update_fields=['date_removal_requested', 'date_removed', 'uid']
                     )
                 else:
                     audit_log_params['action'] = AuditAction.DELETE
@@ -113,7 +114,7 @@ def delete_account(account_trash: AccountTrash):
 
 def _replace_user_with_placeholder(
     user: settings.AUTH_USER_MODEL, retain_audit_logs: bool = True
-) -> settings.AUTH_USER_MODEL:
+) -> tuple[settings.AUTH_USER_MODEL, str]:
     """
     Replace a user with an inactive placeholder, which prevents others from
     registering a new account with the same username. The placeholder uses the
@@ -142,12 +143,9 @@ def _replace_user_with_placeholder(
             # then resolve the violation by creating the placeholder with the
             # same PK as the original user
             placeholder_user.save()
-            placeholder_user.extra_details.uid = uid
-            placeholder_user.extra_details.save()
         finally:
             audit_log_user_field.on_delete = original_audit_log_delete_handler
-
-    return placeholder_user
+    return placeholder_user, uid
 
 
 def validate_pre_deletion(account_trash: AccountTrash):
