@@ -95,7 +95,7 @@ def fix_mfa_migrations():
             WHERE app = 'accounts_mfa' AND name = '0001_squashed_0004_alter_mfamethod_date_created_and_more';
         """).fetchone()
         if user_reports_2 is not None and accounts_mfa_1_squashed is None:
-            cursor.execute("""
-                DELETE FROM django_migrations WHERE
-                WHERE app = 'user_reports' AND name = '0002_create_user_reports_mv';
+            cursor.execute(f"""
+                DELETE FROM django_migrations
+                WHERE app = 'user_reports' AND id >= '{user_reports_2[0]}';
             """);
