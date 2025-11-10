@@ -4,6 +4,8 @@ $configs = require './model.configs'
 $baseView = require './view.pluggedIn.backboneView'
 $viewTemplates = require './view.templates'
 
+# TODO: allow unsetting a parameter, like max pixels.
+
 module.exports = do ->
   class ParamsView extends $baseView
     initialize: ({@rowView, @parameters={}, @questionType}) ->
@@ -55,6 +57,7 @@ module.exports = do ->
 
     initialize: (@paramName, @paramType, @paramDefault, @paramValue='', @onParamChange) ->
       if @paramValue is '' and typeof @paramDefault isnt 'undefined'
+        # TODO: maybe not?
         # make sure that params without values use default one
         @onParamChange(@paramName, @paramDefault)
       return
