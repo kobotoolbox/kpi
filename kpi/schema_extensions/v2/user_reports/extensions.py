@@ -33,10 +33,10 @@ class ExtraDetailsFieldExtensions(OpenApiSerializerFieldExtension):
                         ),
                     }
                 ),
-                'date_removed': build_basic_type(OpenApiTypes.INT),
+                'date_removed': build_basic_type(OpenApiTypes.DATETIME),
                 'validated_password': build_basic_type(OpenApiTypes.BOOL),
-                'password_date_changed': build_basic_type(OpenApiTypes.INT),
-                'date_removal_requested': build_basic_type(OpenApiTypes.INT),
+                'password_date_changed': build_basic_type(OpenApiTypes.DATETIME),
+                'date_removal_requested': build_basic_type(OpenApiTypes.DATETIME),
             },
         )
 
