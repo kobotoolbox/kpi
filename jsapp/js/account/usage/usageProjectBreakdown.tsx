@@ -101,6 +101,7 @@ const ProjectBreakdown = () => {
           orderableFields={['name', 'status']}
           order={order}
           onChangeOrderRequested={updateOrder}
+          notResizeable
         />
       ),
       size: 100,
@@ -156,6 +157,7 @@ const ProjectBreakdown = () => {
           orderableFields={['name', 'status']}
           order={order}
           onChangeOrderRequested={updateOrder}
+          notResizeable
         />
       ),
       size: 100,
