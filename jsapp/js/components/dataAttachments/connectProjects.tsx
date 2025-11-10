@@ -28,7 +28,6 @@ interface ConnectProjectsProps {
 interface ConnectProjectsState {
   isInitialised: boolean
   isLoading: boolean
-  // `data_sharing` is an empty object if never enabled before
   isShared: boolean
   isSharingAnyQuestions: boolean
   attachedSources: AttachedSourceItem[]
