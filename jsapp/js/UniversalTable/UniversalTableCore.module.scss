@@ -36,6 +36,8 @@ $z-index-spinner: 8;
   overflow-x: auto;
   position: relative;
   border-radius: $universal-table-border-radius-inner;
+  // Hard-coded minimum height that will not cut off dropdowns in header if there are little to no entries in the table
+  min-height: 200px;
 }
 
 // If the footer is displayed, don't round bottom corners
