@@ -1,12 +1,12 @@
 _ = require 'underscore'
 
-choices_templates = require './view.choices.templates'
+choices_templates =        require './view.choices.templates'
 accepted_files_templates = require './view.acceptedFiles.templates'
-params_templates = require './view.params.templates'
-row_templates = require './view.row.templates'
-rowDetail_templates = require './view.rowDetail.templates'
-rowSelector_templates = require './view.rowSelector.templates'
-surveyApp_templates = require './view.surveyApp.templates'
+params_templates =         require './view.params.templates'
+row_templates =            require './view.row.templates'
+rowDetail_templates =      require './view.rowDetail.templates'
+rowSelector_templates =    require './view.rowSelector.templates'
+surveyApp_templates =      require './view.surveyApp.templates'
 
 module.exports = do ->
   templates =
@@ -17,9 +17,9 @@ module.exports = do ->
     rowSelector: rowSelector_templates
     surveyApp: surveyApp_templates
 
-  templates['AcceptedFilesView.input'] = accepted_files_templates.acceptedFilesInput
-  templates['ParamsView.numberParam'] = params_templates.numberParam
-  templates['ParamsView.booleanParam'] = params_templates.booleanParam
+  templates['AcceptedFilesView.input']      = accepted_files_templates.acceptedFilesInput
+  templates['ParamsView.numberParam']       = params_templates.numberParam
+  templates['ParamsView.booleanParam']      = params_templates.booleanParam
   templates['xlfListView.addOptionButton']  = choices_templates.addOptionButton
   templates['row.mandatorySettingSelector'] = row_templates.mandatorySettingSelector
   templates['row.rowErrorView']             = row_templates.rowErrorView
