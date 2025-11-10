@@ -20,6 +20,7 @@ module.exports = do ->
   templates['AcceptedFilesView.input']      = accepted_files_templates.acceptedFilesInput
   templates['ParamsView.numberParam']       = params_templates.numberParam
   templates['ParamsView.booleanParam']      = params_templates.booleanParam
+  templates['ParamsView.maxPixelsParam']    = params_templates.maxPixelsParam
   templates['xlfListView.addOptionButton']  = choices_templates.addOptionButton
   templates['row.mandatorySettingSelector'] = row_templates.mandatorySettingSelector
   templates['row.rowErrorView']             = row_templates.rowErrorView
