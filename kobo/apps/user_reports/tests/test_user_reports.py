@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import pytest
@@ -274,6 +275,20 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertTrue(results[0]['accepted_tos'])
 
     def test_ordering_by_date_joined(self):
+        base_date = datetime(2023, 1, 1, tzinfo=timezone.utc)
+        adminuser = User.objects.get(username='adminuser')
+        adminuser.date_joined = base_date
+        adminuser.save()
+
+        self.someuser.date_joined = base_date + timedelta(days=1)
+        self.someuser.save()
+
+        anotheruser = User.objects.get(username='anotheruser')
+        anotheruser.date_joined = base_date + timedelta(days=2)
+        anotheruser.save()
+
+        refresh_user_reports_materialized_view(concurrently=False)
+
         response = self.client.get(self.url, {'ordering': 'date_joined'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

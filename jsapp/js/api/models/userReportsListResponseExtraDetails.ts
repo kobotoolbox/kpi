@@ -13,8 +13,8 @@ import type { UserReportsListResponseExtraDetailsData } from './userReportsListR
 
 export type UserReportsListResponseExtraDetails = {
   data?: UserReportsListResponseExtraDetailsData
-  date_removed?: boolean
+  date_removed?: number
   validated_password?: boolean
-  password_date_changed?: boolean
-  date_removal_requested?: boolean
+  password_date_changed?: number
+  date_removal_requested?: number
 }

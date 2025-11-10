@@ -20352,16 +20352,16 @@
                                 }
                             },
                             "date_removed": {
-                                "type": "boolean"
+                                "type": "integer"
                             },
                             "validated_password": {
                                 "type": "boolean"
                             },
                             "password_date_changed": {
-                                "type": "boolean"
+                                "type": "integer"
                             },
                             "date_removal_requested": {
-                                "type": "boolean"
+                                "type": "integer"
                             }
                         }
                     },
