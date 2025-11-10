@@ -205,7 +205,10 @@ class ServiceUsageCalculator(CachedClass):
                 limit=org_limits[f'{UsageType.MT_CHARACTERS}_limit'],
                 usage=self.get_nlp_usage_by_type(UsageType.MT_CHARACTERS),
             ),
-            UsageType.LLM_REQUESTS: None,
+            UsageType.LLM_REQUESTS: calculate_usage_balance(
+                limit=org_limits[f'{UsageType.LLM_REQUESTS}_limit'],
+                usage=self.get_nlp_usage_by_type(UsageType.LLM_REQUESTS),
+            ),
         }
 
     @cached_class_property(
