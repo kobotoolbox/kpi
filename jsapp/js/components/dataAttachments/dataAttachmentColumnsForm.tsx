@@ -221,7 +221,7 @@ class DataAttachmentColumnsForm extends React.Component<
         <MultiCheckbox
           type='frame'
           items={this.state.columnsToDisplay}
-          onChange={this.onColumnSelected}
+          onChange={this.onColumnSelected.bind(this)}
           disabled={this.state.isLoading}
           className='data-attachment-columns-multicheckbox'
         />
