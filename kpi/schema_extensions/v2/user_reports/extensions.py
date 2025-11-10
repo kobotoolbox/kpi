@@ -18,7 +18,6 @@ class ExtraDetailsFieldExtensions(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'uid': GENERIC_STRING_SCHEMA,
                 'data': build_object_type(
                     properties={
                         'name': GENERIC_STRING_SCHEMA,

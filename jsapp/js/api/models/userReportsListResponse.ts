@@ -16,6 +16,7 @@ import type { UserReportsListResponseSocialAccountsItem } from './userReportsLis
 import type { UserReportsListResponseSubscriptionsItem } from './userReportsListResponseSubscriptionsItem'
 
 export interface UserReportsListResponse {
+  user_uid: string
   username: string
   first_name: string
   last_name: string

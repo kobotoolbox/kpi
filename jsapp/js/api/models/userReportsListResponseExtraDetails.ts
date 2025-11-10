@@ -12,7 +12,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
 import type { UserReportsListResponseExtraDetailsData } from './userReportsListResponseExtraDetailsData'
 
 export type UserReportsListResponseExtraDetails = {
-  uid?: string
   data?: UserReportsListResponseExtraDetailsData
   date_removed?: string
   validated_password?: string

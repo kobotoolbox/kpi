@@ -153,6 +153,7 @@ class Migration(migrations.Migration):
                     name='UserReports',
                     fields=[
                         ('id', models.CharField(max_length=80, primary_key=True)),
+                        ('user_uid', models.CharField(max_length=255, null=True, blank=True)),
                         ('username', models.CharField(max_length=150)),
                         ('first_name', models.CharField(max_length=150)),
                         ('last_name', models.CharField(max_length=150)),

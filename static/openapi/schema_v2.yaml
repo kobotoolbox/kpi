@@ -8436,7 +8436,7 @@ paths:
         - first_name
         - last_name
         - email
-        - extra_details__uid
+        - user_uid
         - organization__name
         - organization__role (e.g., admin, member, owner)
         - extra_details__data__organization_type
@@ -14704,6 +14704,8 @@ components:
     UserReportsListResponse:
       type: object
       properties:
+        user_uid:
+          type: string
         username:
           type: string
         first_name:
@@ -14765,8 +14767,6 @@ components:
         extra_details:
           type: object
           properties:
-            uid:
-              type: string
             data:
               type: object
               properties:
@@ -15062,6 +15062,7 @@ components:
       - social_accounts
       - sso_is_active
       - subscriptions
+      - user_uid
       - username
       - validated_email
     UserRetrieveResponse:

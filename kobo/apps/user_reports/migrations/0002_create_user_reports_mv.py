@@ -87,6 +87,7 @@ CREATE_MV_BASE_SQL = f"""
     )
     SELECT
         CONCAT(au.id::text, '-', COALESCE(org.id::text, 'orgnone')) AS id,
+        ued.uid AS user_uid,
         au.id AS user_id,
         org.id AS organization_id,
         au.username,
@@ -144,7 +145,6 @@ CREATE_MV_BASE_SQL = f"""
             ELSE NULL
         END AS organization,
         jsonb_build_object(
-            'uid', ued.uid,
             'data', ued.data::jsonb,
             'date_removed',
                 CASE

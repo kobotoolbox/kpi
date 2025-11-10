@@ -96,6 +96,7 @@ class BillingAndUsageSnapshotRun(AbstractTimeStampedModel):
 
 class UserReports(models.Model):
     id = models.CharField(primary_key=True, max_length=80)
+    user_uid = models.CharField(null=True, blank=True)
     username = models.CharField()
     first_name = models.CharField()
     last_name = models.CharField()

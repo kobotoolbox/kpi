@@ -892,7 +892,7 @@ Supports partial filtering
 - first_name
 - last_name
 - email
-- extra_details__uid
+- user_uid
 - organization__name
 - organization__role (e.g., admin, member, owner)
 - extra_details__data__organization_type

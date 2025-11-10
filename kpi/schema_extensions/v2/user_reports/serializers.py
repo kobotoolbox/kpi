@@ -12,6 +12,7 @@ from kpi.utils.schema_extensions.serializers import inline_serializer_class
 UserReportsListResponse = inline_serializer_class(
     name='UserReportsListResponse',
     fields={
+        'user_uid': serializers.CharField(),
         'username': serializers.CharField(),
         'first_name': serializers.CharField(),
         'last_name': serializers.CharField(),

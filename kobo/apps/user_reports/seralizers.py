@@ -19,6 +19,7 @@ class UserReportsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserReports
         fields = [
+            'user_uid',
             'username',
             'first_name',
             'last_name',
