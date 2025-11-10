@@ -33,10 +33,10 @@ class ExtraDetailsFieldExtensions(OpenApiSerializerFieldExtension):
                         ),
                     }
                 ),
-                'date_removed': GENERIC_STRING_SCHEMA,
-                'validated_password': GENERIC_STRING_SCHEMA,
-                'password_date_changed': GENERIC_STRING_SCHEMA,
-                'date_removal_requested': GENERIC_STRING_SCHEMA,
+                'date_removed': build_basic_type(OpenApiTypes.BOOL),
+                'validated_password': build_basic_type(OpenApiTypes.BOOL),
+                'password_date_changed': build_basic_type(OpenApiTypes.BOOL),
+                'date_removal_requested': build_basic_type(OpenApiTypes.BOOL),
             },
         )
 

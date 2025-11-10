@@ -14789,13 +14789,13 @@ components:
                 done_storage_limits_check:
                   type: boolean
             date_removed:
-              type: string
+              type: boolean
             validated_password:
-              type: string
+              type: boolean
             password_date_changed:
-              type: string
+              type: boolean
             date_removal_requested:
-              type: string
+              type: boolean
         subscriptions:
           type: array
           items:
