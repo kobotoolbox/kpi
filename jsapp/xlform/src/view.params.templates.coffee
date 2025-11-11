@@ -74,9 +74,9 @@ module.exports = do ->
 
     hints = [
       _.escape t('Leave empty for no limit.')
-      _.escape t('Default: ##').replace '##',
+      _.escape t('Default: ##').replace('##',
           if defaultValue > 0 then "#{defaultValue}px"
-          else t('No limit')
+          else t('No limit'))
       _.escape t('No limit')
     ]
 
@@ -92,10 +92,11 @@ module.exports = do ->
     suggest_list_id = 'suggest-max-pixels'
     suggestions_list = """
     <datalist id="#{suggest_list_id}">
-      <option value="640"></option>
-      <option value="1024"></option>
-      <option value="2048"></option>
-      <option value="3072"></option>
+      <option value=" " label="#{_.escape t('No limit')}" />
+      <option value="640"  />
+      <option value="1024" />
+      <option value="2048" />
+      <option value="3072" />
     </datalist>
     """
 
@@ -115,13 +116,6 @@ module.exports = do ->
         #{suggestions_list}
       </label>
       """
-    # if typeof defaultValue isnt 'undefined'
-    #   defaultValueAttr = "placeholder='#{defaultValue}'"
-    #
-    # if currentValue isnt ''
-    #   valueAttr = "value='#{currentValue}'"
-    # else if typeof defaultValue isnt 'undefined'
-    #   valueAttr = "value='#{defaultValue}'"
 
 
 
