@@ -940,6 +940,7 @@ Supports exact matching and range operators (e.g., gte, lte)
 
 - date_joined
 - last_login
+- last_updated (Represents the last modified timestamp of the materialized view)
 - extra_details__date_removal_requested
 - extra_details__date_removed
 - extra_details_password_date_changed
