@@ -12,6 +12,7 @@ Supports partial filtering
 - user_uid
 - organization__name
 - organization__role (e.g., admin, member, owner)
+- organization__website
 - extra_details__data__organization_type
 - `extra_details__data__<field>` (other string fields, e.g., name, sector, country...)
 
