@@ -219,7 +219,8 @@ module.exports = do ->
       typeConfig = $configs.questionParams[rowType]
       initialParameters = {}
       for configName, configValue of typeConfig
-        if (configValue.defaultValue)
+        # We need to allow such values as `0` or `false` here, thus a more lengthy check
+        if (configValue.defaultValue isnt null and configValue.defaultValue isnt undefined)
           initialParameters[configName] = configValue.defaultValue
       if (Object.keys(initialParameters).length > 0)
         rowDetails.parameters = writeParameters(initialParameters)
