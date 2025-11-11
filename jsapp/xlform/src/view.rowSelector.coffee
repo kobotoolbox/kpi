@@ -192,6 +192,7 @@ module.exports = do ->
       else
         rowDetails.label = questionLabelValue
 
+      # These options are needed for `addRow` function, so that it knows where to put the row we're adding.
       options = {}
       if (rowBefore = @options.spawnedFromView?.model)
         options.after = rowBefore
