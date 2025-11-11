@@ -126,7 +126,7 @@ export default function FormGallery(props: FormGalleryProps) {
               </Center>
             ) : (
               <a key={attachment.uid} href={attachment.download_url} target='_blank'>
-                <img src={attachment.download_url} alt={attachment.filename} width='150' loading='lazy' />
+                <img src={attachment.download_small_url} alt={attachment.filename} width='150' loading='lazy' />
               </a>
             ),
           )}
