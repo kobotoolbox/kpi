@@ -4,8 +4,6 @@ $configs = require './model.configs'
 $baseView = require './view.pluggedIn.backboneView'
 $viewTemplates = require './view.templates'
 
-# TODO: allow unsetting a parameter, like max pixels.
-
 module.exports = do ->
   class ParamsView extends $baseView
     initialize: ({@rowView, @parameters={}, @questionType}) ->
@@ -53,7 +51,7 @@ module.exports = do ->
 
     initialize: (@paramName, @paramType, @paramDefault, @paramValue='', @onParamChange) ->
       if @paramValue is '' and typeof @paramDefault isnt 'undefined'
-        # TODO: maybe not?
+        # TODO: verify that this doesn't interfere with max-pixels
         # make sure that params without values use default one
         @onParamChange(@paramName, @paramDefault)
       return
@@ -74,8 +72,8 @@ module.exports = do ->
         val = evt.currentTarget.checked
       else if @paramType is $configs.paramTypes.maxPixels
         if evt.currentTarget.value is ' ' then evt.currentTarget.value = ''
-        val = +evt.currentTarget.value # /\d{0,5}/ -> number
-        if !val then val = undefined   # '', ' ' or '0' unsets max-pixels
+        val = +evt.currentTarget.value
+        if !val then val = undefined   # +'', +' ' or +'0' unsets max-pixels
 
       @onParamChange(@paramName, val)
       return
