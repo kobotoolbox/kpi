@@ -154,7 +154,7 @@ class Migration(migrations.Migration):
                     fields=[
                         ('id', models.CharField(max_length=80, primary_key=True)),
                         (
-                            'extra_details_uid',
+                            'user_uid',
                             models.CharField(max_length=255, null=True, blank=True),
                         ),
                         ('username', models.CharField(max_length=150)),
@@ -170,13 +170,12 @@ class Migration(migrations.Migration):
                             models.CharField(max_length=64, null=True, blank=True),
                         ),
                         ('validated_email', models.BooleanField()),
-                        ('validated_password', models.BooleanField()),
                         ('mfa_is_active', models.BooleanField()),
                         ('sso_is_active', models.BooleanField()),
                         ('accepted_tos', models.BooleanField()),
                         ('social_accounts', models.JSONField(null=True, blank=True)),
                         ('organization', models.JSONField(null=True, blank=True)),
-                        ('metadata', models.JSONField(null=True, blank=True)),
+                        ('extra_details', models.JSONField(null=True, blank=True)),
                         ('subscriptions', models.JSONField(null=True, blank=True)),
                         ('asset_count', models.IntegerField(default=0)),
                         ('deployed_asset_count', models.IntegerField(default=0)),

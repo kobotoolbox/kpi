@@ -8436,10 +8436,12 @@ paths:
         - first_name
         - last_name
         - email
+        - user_uid
         - organization__name
         - organization__role (e.g., admin, member, owner)
-        - metadata__organization_type
-        - `metadata__<field>` (other string fields, e.g., name, sector, country...)
+        - organization__website
+        - extra_details__data__organization_type
+        - `extra_details__data__<field>` (other string fields, e.g., name, sector, country...)
 
         ## Filterable fields by int:
 
@@ -8482,6 +8484,9 @@ paths:
 
         - date_joined
         - last_login
+        - extra_details__date_removal_requested
+        - extra_details__date_removed
+        - extra_details_password_date_changed
 
         ## Filterable fields by boolean:
 
@@ -8489,11 +8494,11 @@ paths:
         - is_staff
         - is_active
         - validated_email
-        - validated_password
+        - extra_details__validated_password
         - mfa_is_active
         - sso_is_active
         - accepted_tos
-        - metadata__newsletter_subscription
+        - extra_details__data__newsletter_subscription
         - service_usage__balances__*metric*__exceeded (metric: submission, asr_seconds, mt_characters, storage_bytes)
         - account_restricted
 
@@ -14726,7 +14731,7 @@ components:
     UserReportsListResponse:
       type: object
       properties:
-        extra_details_uid:
+        user_uid:
           type: string
         username:
           type: string
@@ -14750,8 +14755,6 @@ components:
           type: string
           format: date-time
         validated_email:
-          type: boolean
-        validated_password:
           type: boolean
         mfa_is_active:
           type: boolean
@@ -14788,39 +14791,39 @@ components:
               type: string
             role:
               type: string
-        metadata:
+        extra_details:
           type: object
           properties:
-            name:
-              type: string
-            sector:
-              type: string
-            country:
-              type: string
-            organization:
-              type: string
-            last_ui_language:
-              type: string
-            organization_type:
-              type: string
-            organization_website:
-              type: string
-            project_views_settings:
+            data:
               type: object
               properties:
-                kobo_my_project:
-                  type: object
-                  properties:
-                    order:
-                      type: object
-                    fields:
-                      type: array
-                      items:
-                        type: string
-                    filters:
-                      type: array
-                      items:
-                        type: string
+                name:
+                  type: string
+                sector:
+                  type: string
+                country:
+                  type: string
+                organization:
+                  type: string
+                last_ui_language:
+                  type: string
+                organization_type:
+                  type: string
+                organization_website:
+                  type: string
+                newsletter_subscription:
+                  type: boolean
+            date_removed:
+              type: string
+              format: date-time
+            validated_password:
+              type: boolean
+            password_date_changed:
+              type: string
+              format: date-time
+            date_removal_requested:
+              type: string
+              format: date-time
         subscriptions:
           type: array
           items:
@@ -15075,22 +15078,21 @@ components:
       - date_joined
       - deployed_asset_count
       - email
-      - extra_details_uid
+      - extra_details
       - first_name
       - is_active
       - is_staff
       - is_superuser
       - last_login
       - last_name
-      - metadata
       - mfa_is_active
       - organizations
       - social_accounts
       - sso_is_active
       - subscriptions
+      - user_uid
       - username
       - validated_email
-      - validated_password
     UserRetrieveResponse:
       type: object
       properties:
