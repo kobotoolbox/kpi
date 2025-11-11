@@ -3,6 +3,7 @@ from math import inf
 from django.db import connection
 from django.db.models import Q
 from django.db.models.query import QuerySet
+from django.utils import timezone
 
 from kobo.apps.organizations.models import Organization
 from kobo.apps.user_reports.models import (
@@ -94,6 +95,7 @@ def process_chunk(
                 mt_characters_limit=_normalize_limit(
                     org_limits.get('mt_characters_limit')
                 ),
+                date_modified=timezone.now(),
             )
         )
 
@@ -113,6 +115,7 @@ def process_chunk(
                 'storage_bytes_limit',
                 'asr_seconds_limit',
                 'mt_characters_limit',
+                'date_modified',
             ],
             unique_fields=['organization_id'],
         )
