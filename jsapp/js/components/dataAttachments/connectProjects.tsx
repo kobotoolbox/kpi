@@ -17,7 +17,7 @@ import { MAX_DISPLAYED_STRING_LENGTH, MODAL_TYPES } from '#/constants'
 import type { AssetResponse, AssetsResponse, FailResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
-import { escapeHtml, generateAutoname } from '#/utils'
+import { escapeHtml, generateAutoname, recordEntries } from '#/utils'
 
 const DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL = 'dynamic_data_attachment.html'
 
@@ -35,7 +35,7 @@ interface ConnectProjectsState {
   newSource: AssetResponse | null
   newFilename: string
   columnsToDisplay: ColumnFilter[]
-  fieldsErrors: any
+  fieldsErrors: Record<string, string>
 }
 
 interface AttachedSourceItem {
@@ -120,9 +120,20 @@ class ConnectProjects extends React.Component<ConnectProjectsProps, ConnectProje
    */
 
   onAttachToSourceFailed(response: FailResponse) {
+    const newFieldsErrors: Record<string, string> = {}
+    if (!response?.responseJSON || Object.keys(response?.responseJSON).length === 0) {
+      newFieldsErrors.filename = t('Please check file name')
+    } else {
+      for (const [key, value] of recordEntries(response?.responseJSON)) {
+        if (typeof key === 'string' && value !== undefined) {
+          newFieldsErrors[key] = String(value)
+        }
+      }
+    }
+
     this.setState({
       isLoading: false,
-      fieldsErrors: response?.responseJSON || t('Please check file name'),
+      fieldsErrors: newFieldsErrors,
     })
   }
 
