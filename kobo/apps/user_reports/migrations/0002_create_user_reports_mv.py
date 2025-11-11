@@ -145,7 +145,11 @@ CREATE_MV_BASE_SQL = f"""
             ELSE NULL
         END AS organization,
         jsonb_build_object(
-            'data', ued.data::jsonb,
+            'data',
+                CASE
+                    WHEN ued.data IS NULL THEN NULL
+                    ELSE (ued.data::jsonb - 'done_storage_limits_check')
+                END,
             'date_removed',
                 CASE
                     WHEN ued.date_removed IS NOT NULL
