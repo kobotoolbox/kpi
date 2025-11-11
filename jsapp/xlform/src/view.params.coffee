@@ -68,6 +68,7 @@ module.exports = do ->
       return @
 
     onChange: (evt) ->
+      val = undefined
       if @paramType is $configs.paramTypes.number
         val = evt.currentTarget.value
         # make sure that params without removed values keep using default one
@@ -77,10 +78,10 @@ module.exports = do ->
       else if @paramType is $configs.paramTypes.boolean
         val = evt.currentTarget.checked
       else if @paramType is $configs.paramTypes.maxPixels
+        if evt.currentTarget.value is ' ' then evt.currentTarget.value = ''
         val = +evt.currentTarget.value # /\d{0,5}/ -> number
-        if !val
-          val = undefined   # '', ' ' or '0' unsets max-pixels
-          evt.currentTarget.value = evt.currentTarget.value.trim()
+        if !val then val = undefined   # '', ' ' or '0' unsets max-pixels
+
       @onParamChange(@paramName, val)
       return
 
