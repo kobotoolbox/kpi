@@ -895,6 +895,7 @@ Supports partial filtering
 - user_uid
 - organization__name
 - organization__role (e.g., admin, member, owner)
+- organization__website
 - extra_details__data__organization_type
 - `extra_details__data__<field>` (other string fields, e.g., name, sector, country...)
 
@@ -954,7 +955,6 @@ Supports exact matching and range operators (e.g., gte, lte)
 - sso_is_active
 - accepted_tos
 - extra_details__data__newsletter_subscription
-- extra_details__data__done_storage_limits_check
 - service_usage__balances__*metric*__exceeded (metric: submission, asr_seconds, mt_characters, storage_bytes)
 - account_restricted
 
