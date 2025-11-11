@@ -140,7 +140,8 @@ CREATE_MV_BASE_SQL = f"""
             WHEN org.id IS NOT NULL THEN jsonb_build_object(
                 'name', org.name,
                 'uid', org.id::text,
-                'role', ur.user_role
+                'role', ur.user_role,
+                'website', org.website
             )
             ELSE NULL
         END AS organization,
