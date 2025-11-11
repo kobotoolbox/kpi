@@ -230,6 +230,11 @@ export function koboMatrixParser(params) {
   return params
 }
 
+/**
+ * This function (in theory) is reversing what `writeParameters` does.
+ *
+ * For given semicolon-separated (or comma-separated) string of parameters, it returns an object.
+ */
 export function readParameters(str) {
   if (typeof str !== 'string') {
     return null
@@ -261,6 +266,13 @@ export function readParameters(str) {
   return params
 }
 
+/**
+ * This function takes an object of some row parameters, and:
+ * 1. filters out `undefined` and `null` (values) ones
+ * 2. stringifies objects
+ * 3. blacklists "seed" for some reason
+ * …and finally returns a single string of semicolon-separated parameters.
+ */
 export function writeParameters(obj) {
   const params = []
   recordKeys(obj).forEach((key) => {

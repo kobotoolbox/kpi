@@ -29,6 +29,10 @@ module.exports = do ->
         ).render().$el.appendTo(@$paramsViewEl)
       return @
 
+    ###
+    # This is being used both for initialization of all parameters (and their existing values) and for handling changes
+    # to them.
+    ###
     onParamChange: (paramName, paramValue) ->
       @parameters[paramName] = paramValue
       @rowView.model.setParameters(@parameters)
@@ -64,6 +68,7 @@ module.exports = do ->
       if @paramType is $configs.paramTypes.number
         val = evt.currentTarget.value
         # make sure that params without removed values keep using default one
+        # TODO: is this the behaviour we want to have?
         if val is '' and typeof @paramDefault isnt 'undefined'
           val = "#{@paramDefault}"
       else if @paramType is $configs.paramTypes.boolean
