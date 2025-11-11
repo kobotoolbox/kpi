@@ -76,6 +76,11 @@ module.exports = do ->
           val = "#{@paramDefault}"
       else if @paramType is $configs.paramTypes.boolean
         val = evt.currentTarget.checked
+      else if @paramType is $configs.paramTypes.maxPixels
+        val = +evt.currentTarget.value # /\d{0,5}/ -> number
+        if !val
+          val = undefined   # '', ' ' or '0' unsets max-pixels
+          evt.currentTarget.value = evt.currentTarget.value.trim()
       @onParamChange(@paramName, val)
       return
 
