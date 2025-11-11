@@ -954,7 +954,6 @@ Supports exact matching and range operators (e.g., gte, lte)
 - sso_is_active
 - accepted_tos
 - extra_details__data__newsletter_subscription
-- extra_details__data__done_storage_limits_check
 - service_usage__balances__*metric*__exceeded (metric: submission, asr_seconds, mt_characters, storage_bytes)
 - account_restricted
 
