@@ -122,7 +122,7 @@ class UserReports(models.Model):
     current_period_end = models.DateTimeField(null=True, blank=True)
     service_usage = models.JSONField(null=True, blank=True)
 
-    last_update = models.CharField()
+    last_updated = models.CharField()
 
     class Meta:
         managed = False

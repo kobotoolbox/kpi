@@ -41,7 +41,7 @@ class UserReportsSerializer(serializers.ModelSerializer):
             'account_restricted',
             'asset_count',
             'deployed_asset_count',
-            'last_update',
+            'last_updated',
         ]
 
     def get_account_restricted(self, obj) -> bool:

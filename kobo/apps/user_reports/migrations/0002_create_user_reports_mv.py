@@ -99,7 +99,7 @@ CREATE_MV_BASE_SQL = f"""
         au.is_staff,
         au.is_active,
         TO_CHAR(au.date_joined AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS date_joined,
-        TO_CHAR(ubau.date_modified AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_update,
+        TO_CHAR(ubau.date_modified AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_updated,
         CASE
             WHEN au.last_login IS NOT NULL THEN TO_CHAR(au.last_login AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
             ELSE NULL
