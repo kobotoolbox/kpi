@@ -23,7 +23,7 @@ import type { AnalysisQuestionInternal } from '../constants'
 interface ResponseWrapperProps {
   uuid: string
   /** Adds a clear button with the given logic */
-  clearable?: Function
+  onClear?: () => unknown
   children?: React.ReactNode
 }
 
@@ -100,8 +100,8 @@ export default function ResponseWrapper(props: ResponseWrapperProps) {
   }
 
   function handleClear() {
-    if (typeof props.clearable === 'function') {
-      props.clearable()
+    if (props?.onClear) {
+      props.onClear()
     }
   }
 
@@ -156,6 +156,8 @@ export default function ResponseWrapper(props: ResponseWrapperProps) {
           }
         />
 
+        {props.onClear && <ActionIcon variant='light' size='sm' iconName='close' onClick={handleClear} />}
+
         <ActionIcon
           variant='danger-secondary'
           size='sm'
@@ -163,10 +165,6 @@ export default function ResponseWrapper(props: ResponseWrapperProps) {
           onClick={open}
           disabled={!hasManagePermissionsToCurrentAsset() || analysisQuestions.state.isPending}
         />
-
-        {props.clearable && (
-          <ActionIcon variant='light-gray' color='gray' size='sm' iconName='close' onClick={handleClear} />
-        )}
       </Group>
 
       {/* Hard coded left padding to account for the 32px icon size + 8px gap */}
