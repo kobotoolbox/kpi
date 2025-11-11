@@ -122,6 +122,8 @@ class UserReports(models.Model):
     current_period_end = models.DateTimeField(null=True, blank=True)
     service_usage = models.JSONField(null=True, blank=True)
 
+    last_updated = models.CharField()
+
     class Meta:
         managed = False
         db_table = 'user_reports_userreportsmv'
