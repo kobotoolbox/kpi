@@ -6,8 +6,8 @@ import jsonschema
 import pytest
 
 from ..actions.automatic_google_translation import AutomaticGoogleTranslationAction
-from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 from ..exceptions import TranscriptionNotFound
+from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 
 
 def test_valid_params_pass_validation():

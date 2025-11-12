@@ -1,9 +1,10 @@
+from constance import config
 from django.db import models
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from .actions import ACTION_IDS_TO_CLASSES
-from .constants import SUBMISSION_UUID_FIELD, SCHEMA_VERSIONS
+from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD
 from .exceptions import InvalidAction, InvalidXPath
 from .schemas import validate_submission_supplement
 
@@ -83,7 +84,9 @@ class SubmissionSupplement(SubmissionExtras):
                     raise InvalidAction from e
 
                 action = action_class(question_xpath, action_params, asset)
-                action.check_limits(asset.owner)
+
+                if config.USAGE_LIMIT_ENFORCEMENT:
+                    action.check_limits(asset.owner)
 
                 question_supplemental_data = supplemental_data.setdefault(
                     question_xpath, {}
