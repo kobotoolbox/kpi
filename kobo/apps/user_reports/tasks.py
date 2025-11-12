@@ -1,3 +1,5 @@
+import time
+
 from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
@@ -17,7 +19,7 @@ from kobo.apps.user_reports.utils.snapshot_refresh_helpers import (
     cleanup_stale_snapshots_and_refresh_mv,
     get_or_create_run,
     iter_org_chunks_after,
-    process_chunk,
+    process_chunk, refresh_user_reports_materialized_view,
 )
 from kobo.celery import celery_app
 from kpi.utils.log import logging
@@ -71,34 +73,58 @@ def refresh_user_report_snapshots(**kwargs):
     if not lock.acquire(blocking=False, blocking_timeout=0):
         logging.info('Nothing to do, task is already running!')
         return
+    else:
+        logging.info('Starting process, refreshing materialized view!')
 
     # Claim the existing snapshot run or create a new one
     run = get_or_create_run()
+
+    # Update last heart-beat
+    BillingAndUsageSnapshotRun.objects.filter(pk=run.pk).update(
+        date_modified=timezone.now()
+    )
+
     last_processed_org_id = run.last_processed_org_id or ''
+    last_time = time.time()
+
     try:
         while chunk_qs := iter_org_chunks_after(last_processed_org_id):
+            logging.info(
+                f'Processing queue, last_processed_org_id: {last_processed_org_id}'
+            )
             billing_map = get_current_billing_period_dates_by_org(chunk_qs)
+            logging.info('\tBilling map retrieved')
             limits_map = get_organizations_effective_limits(chunk_qs, True, True)
+            logging.info('\tLimits map retrieved')
             usage_map = calc.calculate_usage_batch(chunk_qs, billing_map)
+            logging.info('\tUsage map retrieved')
             last_processed_org_id = process_chunk(
                 chunk_qs, usage_map, limits_map, run.pk
             )
 
             # Update the run progress
+            logging.info(
+                f'\tUpdating hearbeat, '
+                f'new last_processed_org_id: {last_processed_org_id}'
+            )
             BillingAndUsageSnapshotRun.objects.filter(pk=run.pk).update(
                 last_processed_org_id=last_processed_org_id,
                 date_modified=timezone.now(),
             )
 
+            if time.time() - last_time >= 15 * 60:
+                logging.info('\tRefreshing the materialized view…')
+                last_time = time.time()
+                refresh_user_reports_materialized_view()
+
         # All orgs processed: cleanup stale, refresh MV and mark run as completed
+        logging.info('Clean-up')
         cleanup_stale_snapshots_and_refresh_mv(run.pk)
+        logging.info('Mark run as complete')
         BillingAndUsageSnapshotRun.objects.filter(pk=run.pk).update(
             status=BillingAndUsageSnapshotStatus.COMPLETED,
             date_modified=timezone.now(),
         )
-
-        # Release the lock
-        lock.release()
 
     except Exception as ex:
         run = BillingAndUsageSnapshotRun.objects.get(pk=run.pk)
@@ -106,3 +132,7 @@ def refresh_user_report_snapshots(**kwargs):
         details.update({'last_error': str(ex), 'ts': timezone.now().isoformat()})
         run.details = details
         run.save(update_fields=['details', 'date_modified'])
+    finally:
+        # Release the lock
+        lock.release()
+        logging.info('Lock released!')
