@@ -32,7 +32,6 @@ from kpi.schema_extensions.v2.members.serializers import (
     MemberPatchRequest,
 )
 from kpi.schema_extensions.v2.organizations.serializers import (
-    OrganizationAssetUsageResponse,
     OrganizationPatchPayload,
     OrganizationServiceUsageResponse,
 )
@@ -144,11 +143,35 @@ class OrganizationAssetViewSet(AssetViewSet):
     asset_usage=extend_schema(
         description=read_md('kpi', 'organizations/org_asset_usage.md'),
         responses=open_api_200_ok_response(
-            OrganizationAssetUsageResponse(many=True),
+            CustomAssetUsageSerializer(many=True),
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='offset',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Paginate results with offset parameter',
+            ),
+            OpenApiParameter(
+                name='limit',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Paginate results with limit parameter',
+            ),
+            OpenApiParameter(
+                name='ordering',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Which field to use when ordering the results.',
+            ),
+        ],
+        operation_id='api_v2_organizations_asset_usage_list',
     ),
     assets=extend_schema(
         description=read_md('kpi', 'organizations/org_assets.md'),

@@ -3,7 +3,6 @@ from rest_framework import viewsets
 from rest_framework.mixins import ListModelMixin
 
 from kpi.models.asset import Asset
-from kpi.paginators import AssetUsagePagination
 from kpi.permissions import IsAuthenticated
 from kpi.schema_extensions.v2.asset_usage.serializers import AssetUsageResponse
 from kpi.serializers.v2.service_usage import AssetUsageSerializer
@@ -35,7 +34,6 @@ class AssetUsageViewSet(ListModelMixin, viewsets.GenericViewSet):
 
     permission_classes = (IsAuthenticated,)
     serializer_class = AssetUsageSerializer
-    pagination_class = AssetUsagePagination
 
     def get_queryset(self):
         return Asset.objects.defer('content').filter(owner=self.request.user)

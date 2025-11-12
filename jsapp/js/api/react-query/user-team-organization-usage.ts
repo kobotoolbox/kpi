@@ -47,6 +47,8 @@ import type { OrganizationResponse } from '../models/organizationResponse'
 
 import type { OrganizationServiceUsageResponse } from '../models/organizationServiceUsageResponse'
 
+import type { OrganizationsAssetUsageListParams } from '../models/organizationsAssetUsageListParams'
+
 import type { OrganizationsInvitesListParams } from '../models/organizationsInvitesListParams'
 
 import type { OrganizationsListParams } from '../models/organizationsListParams'
@@ -57,13 +59,13 @@ import type { PaginatedAssetList } from '../models/paginatedAssetList'
 
 import type { PaginatedAssetUsageResponseList } from '../models/paginatedAssetUsageResponseList'
 
+import type { PaginatedCustomAssetUsageList } from '../models/paginatedCustomAssetUsageList'
+
 import type { PaginatedEmailAddressList } from '../models/paginatedEmailAddressList'
 
 import type { PaginatedInviteResponseList } from '../models/paginatedInviteResponseList'
 
 import type { PaginatedMemberListResponseList } from '../models/paginatedMemberListResponseList'
-
-import type { PaginatedOrganizationAssetUsageResponseList } from '../models/paginatedOrganizationAssetUsageResponseList'
 
 import type { PaginatedOrganizationResponseList } from '../models/paginatedOrganizationResponseList'
 
@@ -495,34 +497,50 @@ export const useOrganizationsPartialUpdate = <TError = ErrorObject | ErrorDetail
 Tracks the total usage of each asset for the user in the given organization
 
  */
-export type organizationsAssetUsageRetrieveResponse200 = {
-  data: PaginatedOrganizationAssetUsageResponseList
+export type organizationsAssetUsageListResponse200 = {
+  data: PaginatedCustomAssetUsageList
   status: 200
 }
 
-export type organizationsAssetUsageRetrieveResponse404 = {
+export type organizationsAssetUsageListResponse404 = {
   data: ErrorDetail
   status: 404
 }
 
-export type organizationsAssetUsageRetrieveResponseComposite =
-  | organizationsAssetUsageRetrieveResponse200
-  | organizationsAssetUsageRetrieveResponse404
+export type organizationsAssetUsageListResponseComposite =
+  | organizationsAssetUsageListResponse200
+  | organizationsAssetUsageListResponse404
 
-export type organizationsAssetUsageRetrieveResponse = organizationsAssetUsageRetrieveResponseComposite & {
+export type organizationsAssetUsageListResponse = organizationsAssetUsageListResponseComposite & {
   headers: Headers
 }
 
-export const getOrganizationsAssetUsageRetrieveUrl = (uidOrganization: string) => {
-  return `/api/v2/organizations/${uidOrganization}/asset_usage/`
+export const getOrganizationsAssetUsageListUrl = (
+  uidOrganization: string,
+  params?: OrganizationsAssetUsageListParams,
+) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/v2/organizations/${uidOrganization}/asset_usage/?${stringifiedParams}`
+    : `/api/v2/organizations/${uidOrganization}/asset_usage/`
 }
 
-export const organizationsAssetUsageRetrieve = async (
+export const organizationsAssetUsageList = async (
   uidOrganization: string,
+  params?: OrganizationsAssetUsageListParams,
   options?: RequestInit,
-): Promise<organizationsAssetUsageRetrieveResponse> => {
-  return fetchWithAuth<organizationsAssetUsageRetrieveResponse>(
-    getOrganizationsAssetUsageRetrieveUrl(uidOrganization),
+): Promise<organizationsAssetUsageListResponse> => {
+  return fetchWithAuth<organizationsAssetUsageListResponse>(
+    getOrganizationsAssetUsageListUrl(uidOrganization, params),
     {
       ...options,
       method: 'GET',
@@ -530,50 +548,55 @@ export const organizationsAssetUsageRetrieve = async (
   )
 }
 
-export const getOrganizationsAssetUsageRetrieveQueryKey = (uidOrganization: string) => {
-  return ['api', 'v2', 'organizations', uidOrganization, 'asset_usage'] as const
+export const getOrganizationsAssetUsageListQueryKey = (
+  uidOrganization: string,
+  params?: OrganizationsAssetUsageListParams,
+) => {
+  return ['api', 'v2', 'organizations', uidOrganization, 'asset_usage', ...(params ? [params] : [])] as const
 }
 
-export const getOrganizationsAssetUsageRetrieveQueryOptions = <
-  TData = Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>,
+export const getOrganizationsAssetUsageListQueryOptions = <
+  TData = Awaited<ReturnType<typeof organizationsAssetUsageList>>,
   TError = ErrorDetail,
 >(
   uidOrganization: string,
+  params?: OrganizationsAssetUsageListParams,
   options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>, TError, TData>
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetUsageList>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getOrganizationsAssetUsageRetrieveQueryKey(uidOrganization)
+  const queryKey = queryOptions?.queryKey ?? getOrganizationsAssetUsageListQueryKey(uidOrganization, params)
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>> = ({ signal }) =>
-    organizationsAssetUsageRetrieve(uidOrganization, { signal, ...requestOptions })
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsAssetUsageList>>> = ({ signal }) =>
+    organizationsAssetUsageList(uidOrganization, params, { signal, ...requestOptions })
 
   return { queryKey, queryFn, enabled: !!uidOrganization, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>,
+    Awaited<ReturnType<typeof organizationsAssetUsageList>>,
     TError,
     TData
   > & { queryKey: QueryKey }
 }
 
-export type OrganizationsAssetUsageRetrieveQueryResult = NonNullable<
-  Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>
+export type OrganizationsAssetUsageListQueryResult = NonNullable<
+  Awaited<ReturnType<typeof organizationsAssetUsageList>>
 >
-export type OrganizationsAssetUsageRetrieveQueryError = ErrorDetail
+export type OrganizationsAssetUsageListQueryError = ErrorDetail
 
-export function useOrganizationsAssetUsageRetrieve<
-  TData = Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>,
+export function useOrganizationsAssetUsageList<
+  TData = Awaited<ReturnType<typeof organizationsAssetUsageList>>,
   TError = ErrorDetail,
 >(
   uidOrganization: string,
+  params?: OrganizationsAssetUsageListParams,
   options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>, TError, TData>
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetUsageList>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getOrganizationsAssetUsageRetrieveQueryOptions(uidOrganization, options)
+  const queryOptions = getOrganizationsAssetUsageListQueryOptions(uidOrganization, params, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
