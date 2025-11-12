@@ -246,6 +246,9 @@ class FormLanding extends React.Component {
                       <bem.FormView__label>
                         <ActionIcon
                           variant='transparent'
+                          onClick={() => {
+                            this.saveCloneAs(item.uid)
+                          }}
                           tooltip={t('Clone this version as a new project')}
                           iconName='duplicate'
                           size='md'
