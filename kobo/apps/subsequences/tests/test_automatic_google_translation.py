@@ -6,8 +6,8 @@ import jsonschema
 import pytest
 
 from ..actions.automatic_google_translation import AutomaticGoogleTranslationAction
-from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 from ..exceptions import TranscriptionNotFound
+from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 
 
 def test_valid_params_pass_validation():
@@ -412,6 +412,24 @@ def test_action_is_updated_in_background_if_in_progress():
             )
 
         task_mock.apply_async.assert_called_once()
+
+
+def test_update_params_only_adds_new_languages():
+    xpath = 'group_name/question_name'
+    params = [{'language': 'fr'}, {'language': 'en'}]
+    action = AutomaticGoogleTranslationAction(xpath, params)
+    incoming_params = [{'language': 'en'}, {'language': 'es'}]
+    action.update_params(incoming_params)
+    assert sorted(action.languages) == ['en', 'es', 'fr']
+
+
+def test_update_params_fails_if_new_params_invalid():
+    xpath = 'group_name/question_name'
+    params = [{'language': 'fr'}, {'language': 'en'}]
+    action = AutomaticGoogleTranslationAction(xpath, params)
+    incoming_params = [{'bad': 'things'}]
+    with pytest.raises(jsonschema.exceptions.ValidationError):
+        action.update_params(incoming_params)
 
 
 def _get_action(fetch_action_dependencies=True):

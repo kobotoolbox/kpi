@@ -2,8 +2,8 @@ import dateutil
 import jsonschema
 import pytest
 
-from ..exceptions import TranscriptionNotFound
 from ..actions.manual_translation import ManualTranslationAction
+from ..exceptions import TranscriptionNotFound
 from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 
 
@@ -177,6 +177,22 @@ def test_cannot_revise_data_without_transcription():
         )
 
 
+def test_update_params_only_adds_new_languages():
+    xpath = 'group_name/question_name'
+    params = [{'language': 'fr'}, {'language': 'en'}]
+    action = ManualTranslationAction(xpath, params)
+    incoming_params = [{'language': 'en'}, {'language': 'es'}]
+    action.update_params(incoming_params)
+    assert sorted(action.languages) == ['en', 'es', 'fr']
+
+
+def test_update_params_fails_if_new_params_invalid():
+    xpath = 'group_name/question_name'
+    params = [{'language': 'fr'}, {'language': 'en'}]
+    action = ManualTranslationAction(xpath, params)
+    incoming_params = [{'bad': 'things'}]
+    with pytest.raises(jsonschema.exceptions.ValidationError):
+        action.update_params(incoming_params)
 
 
 def _get_action(fetch_action_dependencies=True):
