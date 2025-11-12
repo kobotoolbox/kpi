@@ -169,6 +169,7 @@ class BaseAction:
     DEPENDENCY_FIELD = '_dependency'
     UUID_FIELD = '_uuid'
     VERSION_FIELD = '_versions'
+    VERSION_DATA_FIELD = '_data'
 
     action_class_config: ActionClassConfig | None = None
 
@@ -179,6 +180,7 @@ class BaseAction:
         asset: Optional['kpi.models.Asset'] = None,
     ):
         self.source_question_xpath = source_question_xpath
+        self.validate_params(params)
         self.params = params
         self.asset = asset
         self._action_dependencies = {}
@@ -255,7 +257,7 @@ class BaseAction:
             )
         )
 
-        new_version = deepcopy(action_data)
+        new_version = {self.VERSION_DATA_FIELD: deepcopy(action_data)}
         new_version[self.DATE_CREATED_FIELD] = now_str
         new_version[self.UUID_FIELD] = str(uuid.uuid4())
         if dependency_supplemental_data:
@@ -456,6 +458,7 @@ class BaseAction:
         raise NotImplementedError
 
     def _inject_data_schema(self, destination_schema: dict, skipped_keys: list):
+        raise Exception('This method is going away')
         """
         Utility function to inject data schema into another schema to
         avoid repeating the same schema.

@@ -178,7 +178,7 @@ def test_valid_result_passes_validation():
         action.validate_result(mock_sup_det)
 
     assert '_dateAccepted' in mock_sup_det['_versions'][2]
-    assert mock_sup_det['_versions'][1]['status'] == 'deleted'
+    assert mock_sup_det['_versions'][1]['_data']['status'] == 'deleted'
 
 
 def test_acceptance_does_not_produce_versions():
@@ -276,8 +276,8 @@ def test_transcription_versions_are_retained_in_supplemental_details():
         mock_service.process_data.return_value = {'value': value, 'status': 'complete'}
         mock_sup_det = action.revise_data(EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, first)
 
-    assert mock_sup_det['_versions'][0]['language'] == 'es'
-    assert mock_sup_det['_versions'][0]['value'] == 'Ni idea'
+    assert mock_sup_det['_versions'][0]['_data']['language'] == 'es'
+    assert mock_sup_det['_versions'][0]['_data']['value'] == 'Ni idea'
     assert mock_sup_det['_dateCreated'] == mock_sup_det['_dateModified']
     assert 'value' not in mock_sup_det
     assert 'language' not in mock_sup_det
@@ -333,6 +333,6 @@ def test_latest_version_is_first():
             }
             mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
 
-    assert mock_sup_det['_versions'][0]['value'] == 'trois'
-    assert mock_sup_det['_versions'][1]['value'] == 'deux'
-    assert mock_sup_det['_versions'][2]['value'] == 'un'
+    assert mock_sup_det['_versions'][0]['_data']['value'] == 'trois'
+    assert mock_sup_det['_versions'][1]['_data']['value'] == 'deux'
+    assert mock_sup_det['_versions'][2]['_data']['value'] == 'un'

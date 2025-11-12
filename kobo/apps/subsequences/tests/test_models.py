@@ -38,15 +38,19 @@ class SubmissionSupplementTestCase(TestCase):
                 '_dateModified': '2024-04-08T15:31:00Z',
                 '_versions': [
                     {
-                        'language': 'ar',
-                        'value': 'مجنون',
+                        '_data': {
+                            'language': 'ar',
+                            'value': 'مجنون',
+                        },
                         '_dateCreated': '2024-04-08T15:31:00Z',
                         '_dateAccepted': '2024-04-08T15:31:00Z',
                         '_uuid': '51ff33a5-62d6-48ec-94b2-2dfb406e1dee',
                     },
                     {
-                        'language': 'ar',
-                        'value': 'هائج',
+                        '_data': {
+                            'language': 'ar',
+                            'value': 'هائج',
+                        },
                         '_dateCreated': '2024-04-08T15:27:00Z',
                         '_dateAccepted': '2024-04-08T15:27:00Z',
                         '_uuid': '123e4567-e89b-12d3-a456-426614174000',
@@ -58,8 +62,10 @@ class SubmissionSupplementTestCase(TestCase):
                     '_dateCreated': '2024-04-08T15:27:00Z',
                     '_dateModified': '2024-04-08T15:27:00Z',
                     '_versions': [{
-                        'language': 'en',
-                        'value': 'berserk',
+                        '_data': {
+                            'language': 'en',
+                            'value': 'berserk',
+                        },
                         '_dateCreated': '2024-04-08T15:27:00Z',
                         '_dateAccepted': '2024-04-08T15:27:00Z',
                         '_uuid': '22b04ce8-61c2-4383-836f-5d5f0ad73645',
@@ -74,8 +80,10 @@ class SubmissionSupplementTestCase(TestCase):
                     '_dateModified': '2024-04-08T15:32:00Z',
                     '_versions': [
                         {
-                            'language': 'es',
-                            'value': 'enloquecido',
+                            '_data': {
+                                'language': 'es',
+                                'value': 'enloquecido',
+                            },
                             '_dateCreated': '2024-04-08T15:32:00Z',
                             '_dateAccepted': '2024-04-08T15:32:00Z',
                             '_uuid': 'd69b9263-04fd-45b4-b011-2e166cfefd4a',
@@ -85,8 +93,10 @@ class SubmissionSupplementTestCase(TestCase):
                             }
                         },
                         {
-                            'language': 'es',
-                            'value': 'loco',
+                            '_data': {
+                                'language': 'es',
+                                'value': 'loco',
+                            },
                             '_dateCreated': '2024-04-08T15:29:00Z',
                             '_dateAccepted': '2024-04-08T15:29:00Z',
                             '_uuid': '30d0f39c-a1dd-43fe-999a-844f12f83d31',
