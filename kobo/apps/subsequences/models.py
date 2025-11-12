@@ -1,10 +1,11 @@
 from django.db import models
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
-from kpi.fields import LazyDefaultJSONBField, KpiUidField
+from kpi.fields import KpiUidField, LazyDefaultJSONBField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from .actions import ACTION_IDS_TO_CLASSES
-from .constants import SUBMISSION_UUID_FIELD, SCHEMA_VERSIONS
+from .actions.base import BaseAction
+from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD
 from .exceptions import InvalidAction, InvalidXPath
 from .schemas import validate_submission_supplement
 
@@ -250,4 +251,10 @@ class QuestionAdvancedAction(models.Model):
     class Meta:
         unique_together = ('asset_id', 'question_xpath', 'action')
 
-
+    def to_action(self) -> BaseAction:
+        action_class = ACTION_IDS_TO_CLASSES[self.action]
+        return action_class(
+            source_question_xpath=self.question_xpath,
+            params=self.config,
+            asset=self.asset,
+        )
