@@ -54,8 +54,11 @@ module.exports = do ->
     }
 
     initialize: (@paramName, @paramType, @paramDefault, @paramValue='', @onParamChange) ->
-      if @paramValue is '' and typeof @paramDefault isnt 'undefined'
-        # make sure that params without values use default one
+      # if a parameter is unset, initialize it to the parameter's default, if there is one
+      if  @paramValue is '' and
+          typeof @paramDefault isnt 'undefined' and
+          # exception: for max-pixels, a blank value should be preserved as unset
+          @paramType isnt 'maxPixels'
         @onParamChange(@paramName, @paramDefault)
       return
 
@@ -65,6 +68,7 @@ module.exports = do ->
       return @
 
     onChange: (evt) ->
+      val = undefined
       if @paramType is $configs.paramTypes.number
         val = evt.currentTarget.value
         # make sure that params without removed values keep using default one
@@ -73,6 +77,11 @@ module.exports = do ->
           val = "#{@paramDefault}"
       else if @paramType is $configs.paramTypes.boolean
         val = evt.currentTarget.checked
+      else if @paramType is $configs.paramTypes.maxPixels
+        if evt.currentTarget.value is ' ' then evt.currentTarget.value = ''
+        val = +evt.currentTarget.value
+        if !val then val = undefined   # +'', +' ' or +'0' unsets max-pixels
+
       @onParamChange(@paramName, val)
       return
 
