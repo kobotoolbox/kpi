@@ -322,6 +322,17 @@ class BaseAction:
         # raise NotImplementedError()
         return []
 
+    def update_params(self, incoming_params):
+        """
+        Returns the result of updating current params with incoming ones from
+        a request. May be overridden, eg, to prevent deletion of existing lanugages
+        for transcriptions/translations
+        Defaults to replacing the existing params with the new ones.
+        Should raise an error if the incoming params are not well-formatted
+        """
+        self.validate_params(incoming_params)
+        self.params = incoming_params
+
     def validate_external_data(self, data):
         jsonschema.validate(data, self.external_data_schema)
 
@@ -593,6 +604,13 @@ class BaseManualNLPAction(BaseAction):
         for individual_params in self.params:
             languages.append(individual_params['language'])
         return languages
+
+    def update_params(self, incoming_params):
+        self.validate_params(incoming_params)
+        current_languages = self.languages
+        for language_obj in incoming_params:
+            if language_obj['language'] not in current_languages:
+                self.params.append(language_obj)
 
 
 class BaseAutomaticNLPAction(BaseManualNLPAction):
