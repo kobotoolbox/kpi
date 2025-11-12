@@ -54,9 +54,11 @@ module.exports = do ->
     }
 
     initialize: (@paramName, @paramType, @paramDefault, @paramValue='', @onParamChange) ->
-      if @paramValue is '' and typeof @paramDefault isnt 'undefined'
-        # TODO: verify that this doesn't interfere with max-pixels
-        # make sure that params without values use default one
+      # if a parameter is unset, initialize it to the parameter's default, if there is one
+      if  @paramValue is '' and
+          typeof @paramDefault isnt 'undefined' and
+          # exception: for max-pixels, a blank value should be preserved as unset
+          @paramType isnt 'maxPixels'
         @onParamChange(@paramName, @paramDefault)
       return
 
