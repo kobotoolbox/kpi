@@ -49,7 +49,7 @@ class TestVersioning(TestCase):
         assert result['language'] == old['languageCode']
         assert result['_dateCreated'] == old['dateModified']
         assert result['_uuid'] is not None
-        assert result['_dateAccepted'] is None
+        assert result['_dateAccepted'] == now.isoformat()
 
     def test_new_transcript_revision_from_old_returns_none_for_bad_data(self):
         old = {'badly': 'formatted'}
@@ -256,7 +256,7 @@ class TestVersioning(TestCase):
                     '_versions': [
                         {
                             '_dateCreated': one_day_ago,
-                            '_dateAccepted': None,
+                            '_dateAccepted': now.isoformat(),
                             '_uuid': 'uuid1',
                             'language': 'en',
                             'value': 'This is audio that I am trying to '
@@ -271,7 +271,7 @@ class TestVersioning(TestCase):
                         '_versions': [
                             {
                                 '_dateCreated': now.isoformat(),
-                                '_dateAccepted': None,
+                                '_dateAccepted': now.isoformat(),
                                 '_dependency': {'_actionId': 'manual_transcription',
                                                 '_uuid': 'uuid1'},
                                 '_uuid': 'uuid3',

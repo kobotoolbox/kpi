@@ -188,6 +188,7 @@ def _determine_source_transcript(
 
 
 def _new_revision_from_old(old_transcript_revision_dict: dict) -> dict | None:
+    now = timezone.now().isoformat()
     # ignore bad data
     if (
         'languageCode' not in old_transcript_revision_dict
@@ -199,7 +200,8 @@ def _new_revision_from_old(old_transcript_revision_dict: dict) -> dict | None:
         'language': old_transcript_revision_dict['languageCode'],
         'value': old_transcript_revision_dict['value'],
         '_uuid': str(uuid.uuid4()),
-        '_dateAccepted': None,
+        # all preexisting translations/transcripts are considered accepted
+        '_dateAccepted': now,
     }
 
 
@@ -236,9 +238,8 @@ def _separate_manual_and_automatic_versions(
             automatic_versions if matches_automatic_result else manual_versions
         )
         if matches_automatic_result:
-            # automatic versions also need a status and a date accepted
+            # automatic versions also need a status
             revision_formatted['status'] = 'complete'
-            revision_formatted['_dateAccepted'] = timezone.now().isoformat()
         correct_version_list_to_append.append(revision_formatted)
 
     # they should be sorted anyway, but just make sure in case the input values
