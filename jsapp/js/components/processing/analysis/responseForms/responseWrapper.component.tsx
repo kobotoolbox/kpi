@@ -156,7 +156,7 @@ export default function ResponseWrapper(props: ResponseWrapperProps) {
           }
         />
 
-        {props.onClear && <ActionIcon variant='light' size='sm' iconName='close' onClick={handleClear} />}
+        {props.onClear && <ActionIcon variant='light' size='sm' iconName='close' onClick={props.onClear} />}
 
         <ActionIcon
           variant='danger-secondary'
