@@ -4,15 +4,22 @@
 #
 #    pip-compile dependencies/pip/dev_requirements.in
 #
--e git+https://github.com/kobotoolbox/django-digest@3995226ed8e5bd1cb32c640aae970f8c104f6156#egg=django_digest
+# and then edited manually to
+#    * remove -e (editable git repositories)
+#
+# In the future, it can be generated with:
+#    uv pip compile dependencies/pip/requirements.in
+#  (this will update more packages)
+#
+git+https://github.com/kobotoolbox/django-digest@3995226ed8e5bd1cb32c640aae970f8c104f6156#egg=django_digest
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
+git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@efddba5933955bc00dda538b305fd93a1482aa1d#egg=formpack
+git+https://github.com/kobotoolbox/formpack.git@efddba5933955bc00dda538b305fd93a1482aa1d#egg=formpack
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
+git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
+git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
     # via -r dependencies/pip/requirements.in
 aiohttp==3.9.3
     # via
