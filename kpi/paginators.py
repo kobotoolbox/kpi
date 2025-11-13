@@ -12,6 +12,7 @@ from rest_framework.pagination import (
 from rest_framework.response import Response
 from rest_framework.reverse import reverse_lazy
 from rest_framework.serializers import SerializerMethodField
+from rest_framework.utils.urls import replace_query_param
 
 
 class Paginated(LimitOffsetPagination):
@@ -156,3 +157,41 @@ class TinyPaginated(PageNumberPagination):
     Same as Paginated with a small page size
     """
     page_size = 50
+
+
+class NoCountPaginated(Paginated):
+    """
+    Omits the 'count' field to avoid expensive COUNT(*) queries.
+    """
+
+    def get_paginated_response(self, data):
+        return Response({
+            # Look ma, no count!
+            'next': self.get_next_link(),
+            'previous': self.get_previous_link(),
+            'results': data
+        })
+
+    def paginate_queryset(self, queryset, request, view=None):
+        self.request = request
+
+        self.limit = self.get_limit(request)
+        if self.limit is None:
+            return None
+
+        self.offset = self.get_offset(request)
+
+        # Peek one item beyond the current page to see if a next page exists
+        items = list(queryset[self.offset:self.offset + self.limit + 1])
+        self.has_next = len(items) > self.limit
+        return items[:self.limit]
+
+    def get_next_link(self):
+        if not self.has_next:
+            return None
+
+        url = self.request.build_absolute_uri()
+        url = replace_query_param(url, self.limit_query_param, self.limit)
+
+        offset = self.offset + self.limit
+        return replace_query_param(url, self.offset_query_param, offset)

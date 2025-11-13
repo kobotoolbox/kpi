@@ -13,7 +13,7 @@ from kpi.models.import_export_task import (
     ImportExportStatusChoices,
     ProjectHistoryLogExportTask,
 )
-from kpi.paginators import FastPagination, Paginated
+from kpi.paginators import NoCountPaginated, Paginated
 from kpi.permissions import IsAuthenticated
 from kpi.renderers import BasicHTMLRenderer
 from kpi.tasks import export_task_in_background
@@ -89,7 +89,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         'model_name__icontains',
         'metadata__icontains',
     ]
-    pagination_class = FastPagination
+    pagination_class = NoCountPaginated
 
 
 @extend_schema_view(
@@ -116,7 +116,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
     """
     queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     serializer_class = AccessLogSerializer
-    pagination_class = Paginated
+    pagination_class = NoCountPaginated
 
 
 @extend_schema_view(
