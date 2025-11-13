@@ -60,7 +60,7 @@ jobs:
           gcc libc-dev build-essential
 
       - name: Install Python dev dependencies
-        run: uv pip sync dependencies/pip/dev_requirements.txt
+        run: uv pip sync --system dependencies/pip/dev_requirements.txt
 
       - name: Generate OpenAPI with drf-spectacular
         # GitHub Actions run without a TTY device. This is a workaround to get one,
