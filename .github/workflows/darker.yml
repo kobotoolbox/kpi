@@ -18,8 +18,11 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
       - name: Install pip dependencies
-        run: python -m pip install darker[isort]==2.1.1 flake8 flake8-quotes isort --quiet
+        run: uv pip install darker[isort]==2.1.1 flake8 flake8-quotes isort --quiet
 
       - name: Run Darker, comparing '${{github.ref_name}}' with the latest in '${{github.event.pull_request.base.ref}}'
         run: |
