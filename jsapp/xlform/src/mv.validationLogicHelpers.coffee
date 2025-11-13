@@ -60,6 +60,8 @@ module.exports = do ->
       # Note: Leszek: seems like a dead code, can't figure out how to setup a test to trigger it.
       if !typeId
         return console.error('no type id found for question', @helper_factory.current_question)
+      # TODO: check if question_type typeId exists
+      console.log $skipLogicHelpers.question_types[typeId]
       operators = $skipLogicHelpers.question_types[typeId]?.operators
       if !operators
         operators = $skipLogicHelpers.question_types['default'].operators
