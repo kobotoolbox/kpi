@@ -21,7 +21,7 @@ echo "current_branch=${current_branch}" >> $GITHUB_OUTPUT
 current_minor=`echo "${current_branch}" | cut -d '/' -f 2`
 echo "current_minor=${current_minor}" >> $GITHUB_OUTPUT
 
-current_patch="$(git tag -l $current_minor* | tail -1)"
+current_patch="$(git tag -l "$current_minor*" | grep -E "^$current_minor.?$" | tail -1 || true)"
 if [[ $current_patch == "" ]]; then
     current_patch=$current_minor
 elif [[ $current_patch == $current_minor ]]; then
@@ -71,7 +71,7 @@ do
 done
 
 echo "prev_minor=${prev_minor}" >> $GITHUB_OUTPUT
-prev_patch="$(git tag -l $prev_minor* | tail -1)"
+prev_patch="$(git tag -l $prev_minor* | grep -E "^$prev_minor.?$" | tail -1 || true)"
 echo "prev_patch=${prev_patch}" >> $GITHUB_OUTPUT
 echo "prev_branch=${prev_branch}" >> $GITHUB_OUTPUT
 echo "Previous release branch: '${prev_branch}'"
@@ -116,7 +116,7 @@ do
 done
 
 echo "next_minor=${next_minor}" >> $GITHUB_OUTPUT
-next_patch="$(git tag -l $next_minor* | tail -1)"
+next_patch="$(git tag -l $next_minor* | grep -E "^$next_minor.?$" | tail -1 || true)"
 echo "next_patch=${next_patch}" >> $GITHUB_OUTPUT
 echo "next_branch=${next_branch}" >> $GITHUB_OUTPUT
 echo "Next release branch: '${next_branch}'"
