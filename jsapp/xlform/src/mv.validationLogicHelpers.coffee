@@ -46,8 +46,12 @@ module.exports = do ->
 
   class validationLogicHelpers.ValidationLogicHelperContext extends $skipLogicHelpers.SkipLogicHelperContext
     use_mode_selector_helper: () ->
-      @state = new validationLogicHelpers.ValidationLogicModeSelectorHelper @view_factory, @
-      @render @destination
+      if @questionTypeHasNoValidationOperators()
+        @use_hand_code_helper()
+      else
+        @state = new validationLogicHelpers.ValidationLogicModeSelectorHelper @view_factory, @
+        @render @destination
+      return
     use_hand_code_helper: () ->
       @state = new validationLogicHelpers.ValidationLogicHandCodeHelper(@state.serialize(), @builder, @view_factory, @)
       if @questionTypeHasNoValidationOperators()
