@@ -54,7 +54,8 @@ CREATE_MV_BASE_SQL = f"""
             bus.mt_characters_limit,
             COALESCE(bus.total_storage_bytes, 0) as total_storage_bytes,
             COALESCE(bus.total_submission_count_all_time, 0) as total_submission_count_all_time,
-            COALESCE(bus.total_submission_count_current_period, 0) as total_submission_count_current_period
+            COALESCE(bus.total_submission_count_current_period, 0) as total_submission_count_current_period,
+            bus.date_modified
         FROM auth_user au
         LEFT JOIN organizations_organizationuser ou ON au.id = ou.user_id
         LEFT JOIN user_reports_billingandusagesnapshot bus ON ou.organization_id = bus.organization_id
@@ -98,6 +99,7 @@ CREATE_MV_BASE_SQL = f"""
         au.is_staff,
         au.is_active,
         TO_CHAR(au.date_joined AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS date_joined,
+        TO_CHAR(ubau.date_modified AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_updated,
         CASE
             WHEN au.last_login IS NOT NULL THEN TO_CHAR(au.last_login AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
             ELSE NULL
@@ -140,12 +142,17 @@ CREATE_MV_BASE_SQL = f"""
             WHEN org.id IS NOT NULL THEN jsonb_build_object(
                 'name', org.name,
                 'uid', org.id::text,
-                'role', ur.user_role
+                'role', ur.user_role,
+                'website', org.website
             )
             ELSE NULL
         END AS organization,
         jsonb_build_object(
-            'data', ued.data::jsonb,
+            'data',
+                CASE
+                    WHEN ued.data IS NULL THEN NULL
+                    ELSE (ued.data::jsonb - 'done_storage_limits_check')
+                END,
             'date_removed',
                 CASE
                     WHEN ued.date_removed IS NOT NULL
@@ -276,7 +283,8 @@ CREATE_MV_BASE_SQL = f"""
         ubau.mt_characters_limit,
         ubau.total_storage_bytes,
         ubau.total_submission_count_all_time,
-        ubau.total_submission_count_current_period;
+        ubau.total_submission_count_current_period,
+        ubau.date_modified;
     """
 
 STRIPE_SUBSCRIPTIONS = """

@@ -28,9 +28,6 @@ class ExtraDetailsFieldExtensions(OpenApiSerializerFieldExtension):
                         'organization_type': GENERIC_STRING_SCHEMA,
                         'organization_website': GENERIC_STRING_SCHEMA,
                         'newsletter_subscription': build_basic_type(OpenApiTypes.BOOL),
-                        'done_storage_limits_check': build_basic_type(
-                            OpenApiTypes.BOOL
-                        ),
                     }
                 ),
                 'date_removed': build_basic_type(OpenApiTypes.DATETIME),
