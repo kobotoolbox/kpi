@@ -38,7 +38,7 @@ jobs:
 
       - uses: alexellis/arkade-get@master # https://github.com/alexellis/arkade-get?tab=readme-ov-file#why-do-we-use-use-master
         with:
-          kubectl: latest
+          kubectl: v1.33.3
           helm: latest
 
       - name: Update kubeconfig
