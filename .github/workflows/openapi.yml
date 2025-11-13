@@ -48,6 +48,7 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
+        with: { cache-suffix: 'dev_requirements' }
 
       - name: Update Debian package lists
         run: sudo DEBIAN_FRONTEND=noninteractive apt-get -y update
