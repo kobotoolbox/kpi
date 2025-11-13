@@ -32,10 +32,3 @@ def fix_internal_mfa_app_label():
         )
         """)
         print(f'Fixing accounts_mfa app migration records. Modified {cursor.rowcount} records in django_migrations')
-
-
-def fix_internal_migrations():
-    with connections[settings.OPENROSA_DB_ALIAS].cursor() as cursor:
-        cursor.execute("""
-            DELETE FROM django_migrations WHERE name = '0002_create_user_reports_mv'
-        """);
