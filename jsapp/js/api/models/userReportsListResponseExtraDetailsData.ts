@@ -19,5 +19,4 @@ export type UserReportsListResponseExtraDetailsData = {
   organization_type?: string
   organization_website?: string
   newsletter_subscription?: boolean
-  done_storage_limits_check?: boolean
 }
