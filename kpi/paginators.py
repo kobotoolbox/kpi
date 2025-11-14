@@ -131,7 +131,7 @@ class DataPagination(LimitOffsetPagination):
     """
     Pagination class for submissions.
     """
-    default_limit = settings.SUBMISSION_LIST_LIMIT
+    default_limit = 100
     offset_query_param = 'start'
     max_limit = settings.SUBMISSION_LIST_LIMIT
 
