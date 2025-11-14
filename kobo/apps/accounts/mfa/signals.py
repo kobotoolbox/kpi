@@ -2,7 +2,7 @@
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 
-from .models import MfaAvailableToUser, MfaMethod
+from .models import MfaAvailableToUser, MfaMethodsWrapper
 
 
 @receiver(pre_delete, sender=MfaAvailableToUser)
@@ -20,7 +20,7 @@ def deactivate_mfa_method_for_user(**kwargs):
         # Use `.get()` + `.save()` (from model `MfaMethod`) instead of
         # `.update()` to run some logic inside `.save()`. It makes an extra
         # query to DB but avoid duplicated code.
-        mfa_method = MfaMethod.objects.get(user=mfa_available_to_user.user)
+        mfa_method = MfaMethodsWrapper.objects.get(user=mfa_available_to_user.user)
     except MfaMethod.DoesNotExist:
         pass
     else:
