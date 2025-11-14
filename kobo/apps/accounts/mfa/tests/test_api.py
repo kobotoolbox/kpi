@@ -5,7 +5,7 @@ from rest_framework import status
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.kpi_test_case import BaseTestCase
 from ..models import MfaAvailableToUser, MfaMethodsWrapper
-from .utils import get_mfa_code_for_user
+from .utils import activate_mfa_for_user, get_mfa_code_for_user
 
 METHOD = 'app'
 
@@ -22,14 +22,10 @@ class MfaApiTestCase(BaseTestCase):
         self.someuser = User.objects.get(username='someuser')
 
         # Activate MFA for someuser
-        self.client.login(username='someuser', password='someuser')
-        self.client.post(
-            reverse('mfa-activate', kwargs={'method': METHOD})
-        )
-        code = get_mfa_code_for_user(self.someuser)
-        self.client.post(
-            reverse('mfa-confirm', kwargs={'method': METHOD}), data={'code': str(code)}
-        )
+        activate_mfa_for_user(self.client, self.someuser)
+
+        # Log in
+        self.client.force_login(self.someuser)
 
     def test_user_methods_with_date(self):
 
