@@ -35,14 +35,14 @@ export const useOrganizationAssumed = (
 
   // React-query guards to assert `query.data`
   if (query.isPending) {
-    throw new Error('useOrganizationAssumed() must be descendant of <RequireOrg />.')
+    throw new Error('useOrganizationAssumed() must be descendant of <RequireOrg /> (query is pending).')
   }
   if (query.error) {
-    throw new Error('useOrganizationAssumed() must be descendant of <RequireOrg />.')
+    throw new Error('useOrganizationAssumed() must be descendant of <RequireOrg /> (query has error).')
   }
   // Orval guards to assert `query.data.data`
   if (query.data?.status !== 200) {
-    throw new Error('useOrganizationAssumed() must be descendant of <RequireOrg />.')
+    throw new Error('useOrganizationAssumed() must be descendant of <RequireOrg /> (query data status is not 200).')
   }
 
   return [query.data.data, query] as const
