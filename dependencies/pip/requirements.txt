@@ -99,6 +99,7 @@ cron-descriptor==1.4.3
 cryptography==42.0.5
     # via
     #   azure-storage-blob
+    #   fido2
     #   jwcrypto
     #   pyopenssl
 cssselect==1.2.0
@@ -147,7 +148,7 @@ django==4.2.24
     #   djangorestframework
     #   drf-spectacular
     #   jsonfield
-django-allauth==65.11.2
+django-allauth[mfa]==65.11.2
     # via -r dependencies/pip/requirements.in
 django-amazon-ses==4.0.1
     # via -r dependencies/pip/requirements.in
@@ -237,6 +238,8 @@ drf-spectacular==0.28.0
     # via -r dependencies/pip/requirements.in
 et-xmlfile==1.1.0
     # via openpyxl
+fido2==2.0.0
+    # via django-allauth
 flower==2.0.1
     # via -r dependencies/pip/requirements.in
 frozenlist==1.4.1
@@ -437,6 +440,8 @@ pyyaml==6.0.1
     # via
     #   drf-spectacular
     #   responses
+qrcode==8.2
+    # via django-allauth
 redis==5.0.3
     # via
     #   celery

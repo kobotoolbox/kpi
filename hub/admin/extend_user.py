@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
-from kobo.apps.accounts.mfa.models import MfaMethod
+from kobo.apps.accounts.mfa.models import MfaMethodsWrapper
 from kobo.apps.accounts.validators import (
     USERNAME_INVALID_MESSAGE,
     USERNAME_MAX_LENGTH,
@@ -27,7 +27,6 @@ from kobo.apps.trash_bin.exceptions import TrashIntegrityError
 from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.models.asset import AssetDeploymentStatus
-
 from .filters import UserAdvancedSearchFilter
 from .mixins import AdvancedSearchMixin
 
@@ -37,7 +36,7 @@ def validate_superuser_auth(obj) -> bool:
         obj.is_superuser
         and config.SUPERUSER_AUTH_ENFORCEMENT
         and obj.has_usable_password()
-        and not MfaMethod.objects.filter(user=obj, is_active=True).exists()
+        and not MfaMethodsWrapper.objects.filter(user=obj, is_active=True).exists()
     ):
         return False
     return True

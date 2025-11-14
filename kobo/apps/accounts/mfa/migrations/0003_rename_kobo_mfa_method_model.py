@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('trench', '0003_auto_20190213_2330'),
-        ('mfa', '0002_add_mfa_available_to_user_model'),
+        ('accounts_mfa', '0002_add_mfa_available_to_user_model'),
     ]
 
     operations = [

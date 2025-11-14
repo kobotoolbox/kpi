@@ -99,12 +99,14 @@ INSTALLED_APPS = (
     'private_storage',
     'kobo.apps.KpiConfig',
     'kobo.apps.accounts',
+    'kobo.apps.accounts.mfa.apps.MfaAppConfig',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.microsoft',
     'allauth.socialaccount.providers.openid_connect',
     'allauth.usersessions',
+    'allauth.mfa',
     'hub.HubAppConfig',
     'import_export',
     'import_export_celery',
@@ -129,7 +131,6 @@ INSTALLED_APPS = (
     'markdownx',
     'kobo.apps.help',
     'trench',
-    'kobo.apps.accounts.mfa.apps.MfaAppConfig',
     'kobo.apps.project_views.apps.ProjectViewAppConfig',
     'kobo.apps.languages.apps.LanguageAppConfig',
     'kobo.apps.audit_log.AuditLogAppConfig',
@@ -1540,11 +1541,11 @@ CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT = int(
 # User.email should continue to be used instead of the EmailAddress model
 ACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.AccountAdapter'
 ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators'
-ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
 ACCOUNT_EMAIL_VERIFICATION = env.str('ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
 ACCOUNT_FORMS = {
-    'login': 'kobo.apps.accounts.mfa.forms.MfaLoginForm',
+    'login': 'kobo.apps.accounts.forms.LoginForm',
     'signup': 'kobo.apps.accounts.forms.SignupForm',
 }
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
@@ -1917,8 +1918,18 @@ add_type('application/geo+json', '.geojson')
 
 KOBOCAT_MEDIA_URL = f'{KOBOCAT_URL}/media/'
 
+MFA_FORMS = {
+    'authenticate': 'kobo.apps.accounts.mfa.forms.MfaAuthenticateForm',
+    'reauthenticate': 'kobo.apps.accounts.mfa.forms.MfaReauthenticateForm',
+}
+MFA_ADAPTER = 'kobo.apps.accounts.mfa.adapter.MfaAdapter'
+MFA_TOTP_DIGITS = env.int('MFA_CODE_LENGTH', 6)
+MFA_TOTP_PERIOD = env.int('MFA_CODE_VALIDITY_PERIOD', 30)
+MFA_RECOVERY_CODE_COUNT = 5
+MFA_RECOVERY_CODE_DIGITS = 12
+
 TRENCH_AUTH = {
-    'USER_MFA_MODEL': 'mfa.MfaMethod',
+    'USER_MFA_MODEL': 'accounts_mfa.MfaMethod',
     'USER_ACTIVE_FIELD': 'is_active',
     'BACKUP_CODES_QUANTITY': 5,
     'BACKUP_CODES_LENGTH': 12,  # keep (quantity * length) under 200
@@ -1941,6 +1952,7 @@ TRENCH_AUTH = {
     },
     'CODE_LENGTH': env.int('MFA_CODE_LENGTH', 6),
 }
+
 
 # Session Authentication is supported by default.
 MFA_SUPPORTED_AUTH_CLASSES = [
