@@ -7,8 +7,7 @@ import {
   getQuestionTypeDefinition,
   updateResponseAndReducer,
 } from '#/components/processing/analysis/utils'
-import commonStyles from './common.module.scss'
-import CommonHeader from './commonHeader.component'
+import ResponseWrapper from './responseWrapper.component'
 
 interface TextResponseFormProps {
   uuid: string
@@ -65,20 +64,16 @@ export default function TextResponseForm(props: TextResponseFormProps) {
   }
 
   return (
-    <>
-      <CommonHeader uuid={props.uuid} />
-
-      <section className={commonStyles.content}>
-        <Textarea
-          autosize
-          minRows={2}
-          value={response}
-          onChange={(event) => onInputChange(event.currentTarget.value)}
-          placeholder={t('Type your answer')}
-          onBlur={saveResponse}
-          disabled={!props.canEdit}
-        />
-      </section>
-    </>
+    <ResponseWrapper uuid={props.uuid}>
+      <Textarea
+        autosize
+        minRows={2}
+        value={response}
+        onChange={(event) => onInputChange(event.currentTarget.value)}
+        placeholder={t('Type your answer')}
+        onBlur={saveResponse}
+        disabled={!props.canEdit}
+      />
+    </ResponseWrapper>
   )
 }

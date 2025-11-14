@@ -1,12 +1,12 @@
 import React from 'react'
 
-import autoBind from 'react-autobind'
 import { actions } from '#/actions'
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import MultiCheckbox from '#/components/common/multiCheckbox'
-import dataAttachmentsUtils from '#/components/dataAttachments/dataAttachmentsUtils'
+import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttachments/dataAttachmentsUtils'
+import type { AssetResponse, PairedDataItem } from '#/dataInterface'
 
 /**
  * Attributes from source needed to generate `columnsToDisplay`
@@ -16,6 +16,27 @@ import dataAttachmentsUtils from '#/components/dataAttachments/dataAttachmentsUt
  * @prop {string} name
  * @prop {string} url
  */
+interface SourceAttributes {
+  uid: string
+  name: string
+  url: string
+}
+
+interface DataAttachmentColumnsFormProps {
+  onSetModalTitle: (newTitle: string) => void
+  onModalClose: () => void
+  asset: AssetResponse
+  source: Pick<AssetResponse, 'uid' | 'name' | 'url'>
+  filename: string
+  fields: string[]
+  attachmentUrl: string
+}
+
+interface DataAttachmentColumnsFormState {
+  isInitialised: boolean
+  isLoading: boolean
+  columnsToDisplay: ColumnFilter[]
+}
 
 /**
  * The content of the DATA_ATTACHMENT_COLUMNS modal
@@ -24,20 +45,24 @@ import dataAttachmentsUtils from '#/components/dataAttachments/dataAttachmentsUt
  * @prop {function} onModalClose - causes the modal to close
  * @prop {object} asset - current asset
  * @prop {sourceAttributes} source
- * @prop {string} fileName
+ * @prop {string} filename
  * @prop {string[]} fields - selected fields to retrieve from source
  * @prop {string} attachmentUrl - if exists, we are patching an existing attachment
                                   otherwise, this is a new import
  */
-class DataAttachmentColumnsForm extends React.Component {
-  constructor(props) {
+class DataAttachmentColumnsForm extends React.Component<
+  DataAttachmentColumnsFormProps,
+  DataAttachmentColumnsFormState
+> {
+  private unlisteners: Function[] = []
+
+  constructor(props: DataAttachmentColumnsFormProps) {
     super(props)
     this.state = {
-      isInitalised: false,
+      isInitialised: false,
       isLoading: false,
       columnsToDisplay: [],
     }
-    autoBind(this)
     this.unlisteners = []
   }
 
@@ -51,14 +76,14 @@ class DataAttachmentColumnsForm extends React.Component {
     actions.resources.loadAsset({ id: this.props.source.uid }, true)
 
     this.unlisteners.push(
-      actions.dataShare.attachToSource.started.listen(this.markComponentAsLoading),
-      actions.dataShare.attachToSource.completed.listen(this.onAttachToSourceCompleted),
-      actions.dataShare.attachToSource.failed.listen(this.stopLoading),
-      actions.dataShare.patchSource.started.listen(this.markComponentAsLoading),
-      actions.dataShare.patchSource.completed.listen(this.onPatchSourceCompleted),
-      actions.dataShare.patchSource.failed.listen(this.stopLoading),
-      actions.resources.loadAsset.completed.listen(this.onLoadAssetContentCompleted),
-      actions.resources.loadAsset.failed.listen(this.stopLoading),
+      actions.dataShare.attachToSource.started.listen(this.markComponentAsLoading.bind(this)),
+      actions.dataShare.attachToSource.completed.listen(this.onAttachToSourceCompleted.bind(this)),
+      actions.dataShare.attachToSource.failed.listen(this.stopLoading.bind(this)),
+      actions.dataShare.patchSource.started.listen(this.markComponentAsLoading.bind(this)),
+      actions.dataShare.patchSource.completed.listen(this.onPatchSourceCompleted.bind(this)),
+      actions.dataShare.patchSource.failed.listen(this.stopLoading.bind(this)),
+      actions.resources.loadAsset.completed.listen(this.onLoadAssetContentCompleted.bind(this)),
+      actions.resources.loadAsset.failed.listen(this.stopLoading.bind(this)),
     )
     this.setModalTitle()
   }
@@ -76,7 +101,8 @@ class DataAttachmentColumnsForm extends React.Component {
   onAttachToSourceCompleted() {
     this.props.onModalClose()
   }
-  onBulkSelect(evt) {
+
+  onBulkSelect(evt: React.TouchEvent<HTMLButtonElement>) {
     evt.preventDefault()
 
     const newList = this.state.columnsToDisplay.map((item) => {
@@ -84,7 +110,8 @@ class DataAttachmentColumnsForm extends React.Component {
     })
     this.setState({ columnsToDisplay: newList })
   }
-  onBulkDeselect(evt) {
+
+  onBulkDeselect(evt: React.TouchEvent<HTMLButtonElement>) {
     evt.preventDefault()
 
     const newList = this.state.columnsToDisplay.map((item) => {
@@ -92,8 +119,9 @@ class DataAttachmentColumnsForm extends React.Component {
     })
     this.setState({ columnsToDisplay: newList })
   }
-  onLoadAssetContentCompleted(response) {
-    if (response.data_sharing?.fields?.length > 0) {
+
+  onLoadAssetContentCompleted(response: AssetResponse) {
+    if (Array.isArray(response.data_sharing?.fields) && response.data_sharing?.fields.length > 0) {
       this.setState({
         isInitialised: true,
         columnsToDisplay: dataAttachmentsUtils.generateColumnFilters(this.props.fields, response.data_sharing.fields),
@@ -102,31 +130,40 @@ class DataAttachmentColumnsForm extends React.Component {
       // empty `fields` implies all source questions are exposed
       this.setState({
         isInitialised: true,
-        columnsToDisplay: dataAttachmentsUtils.generateColumnFilters(this.props.fields, response.content.survey),
+        columnsToDisplay: dataAttachmentsUtils.generateColumnFilters(this.props.fields, response.content?.survey),
       })
     }
   }
-  onPatchSourceCompleted(response) {
+
+  onPatchSourceCompleted(response: PairedDataItem) {
     this.setState({
       isLoading: false,
       columnsToDisplay: dataAttachmentsUtils.generateColumnFilters(this.props.fields, response.fields),
     })
     this.props.onModalClose()
   }
+
   // Actions take care of the error handling for this modal
   stopLoading() {
     this.setState({ isLoading: false })
   }
 
-  onColumnSelected(newList) {
+  onColumnSelected(newList: ColumnFilter[]) {
     this.setState({ columnsToDisplay: newList })
   }
 
-  onSubmit(evt) {
+  onSubmit(evt: React.TouchEvent<HTMLButtonElement>) {
     evt.preventDefault()
 
-    const fields = []
-    let data = ''
+    const fields: string[] = []
+    let data: {
+      source?: string
+      fields: string[]
+      filename: string
+    } = {
+      fields: [],
+      filename: '',
+    }
 
     this.state.columnsToDisplay.forEach((item) => {
       if (item.checked) {
@@ -184,7 +221,7 @@ class DataAttachmentColumnsForm extends React.Component {
         <MultiCheckbox
           type='frame'
           items={this.state.columnsToDisplay}
-          onChange={this.onColumnSelected}
+          onChange={this.onColumnSelected.bind(this)}
           disabled={this.state.isLoading}
           className='data-attachment-columns-multicheckbox'
         />

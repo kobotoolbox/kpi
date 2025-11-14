@@ -43,6 +43,7 @@ const usageBalanceKeyMapping = {
   submission: UsageLimitTypes.SUBMISSION,
   asr_seconds: UsageLimitTypes.TRANSCRIPTION,
   mt_characters: UsageLimitTypes.TRANSLATION,
+  llm_requests: UsageLimitTypes.LLM_REQUEST,
 }
 
 const transformOrganizationsService = (

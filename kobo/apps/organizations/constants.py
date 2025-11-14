@@ -6,6 +6,7 @@ class UsageType(models.TextChoices):
     STORAGE_BYTES = 'storage_bytes'
     MT_CHARACTERS = 'mt_characters'
     ASR_SECONDS = 'asr_seconds'
+    LLM_REQUESTS = 'llm_requests'
 
 
 INVITE_OWNER_ERROR = (

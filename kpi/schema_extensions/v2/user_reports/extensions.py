@@ -12,6 +12,32 @@ from kpi.schema_extensions.v2.generic.schema import (
 )
 
 
+class ExtraDetailsFieldExtensions(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.user_reports.fields.ExtraDetailsField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'data': build_object_type(
+                    properties={
+                        'name': GENERIC_STRING_SCHEMA,
+                        'sector': GENERIC_STRING_SCHEMA,
+                        'country': GENERIC_STRING_SCHEMA,
+                        'organization': GENERIC_STRING_SCHEMA,
+                        'last_ui_language': GENERIC_STRING_SCHEMA,
+                        'organization_type': GENERIC_STRING_SCHEMA,
+                        'organization_website': GENERIC_STRING_SCHEMA,
+                        'newsletter_subscription': build_basic_type(OpenApiTypes.BOOL),
+                    }
+                ),
+                'date_removed': build_basic_type(OpenApiTypes.DATETIME),
+                'validated_password': build_basic_type(OpenApiTypes.BOOL),
+                'password_date_changed': build_basic_type(OpenApiTypes.DATETIME),
+                'date_removal_requested': build_basic_type(OpenApiTypes.DATETIME),
+            },
+        )
+
+
 class OrganizationsFieldExtensions(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.user_reports.fields.OrganizationsField'
 

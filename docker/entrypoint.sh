@@ -38,14 +38,14 @@ if [[ "${WSGI}" == 'uWSGI' ]]; then
     if ! diff -q "${KPI_SRC_DIR}/dependencies/pip/requirements.txt" "${TMP_DIR}/pip_dependencies.txt"
     then
         echo "Syncing production pip dependencies…"
-        pip-sync dependencies/pip/requirements.txt 1>/dev/null
+        uv pip sync dependencies/pip/requirements.txt 1>/dev/null
         cp "dependencies/pip/requirements.txt" "${TMP_DIR}/pip_dependencies.txt"
     fi
 else
     if ! diff -q "${KPI_SRC_DIR}/dependencies/pip/dev_requirements.txt" "${TMP_DIR}/pip_dependencies.txt"
     then
         echo "Syncing development pip dependencies…"
-        pip-sync dependencies/pip/dev_requirements.txt 1>/dev/null
+        uv pip sync dependencies/pip/dev_requirements.txt 1>/dev/null
         cp "dependencies/pip/dev_requirements.txt" "${TMP_DIR}/pip_dependencies.txt"
     fi
 fi

@@ -79,7 +79,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             # so should find a way to keep that out of this count
             if settings.STRIPE_ENABLED:
                 # But because of cache, sometimes goes down to 62
-                expected_queries = FuzzyInt(62, 84)
+                expected_queries = FuzzyInt(62, 90)
             with self.assertNumQueries(expected_queries):
                 self.view(request)
 

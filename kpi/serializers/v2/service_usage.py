@@ -66,6 +66,7 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
         if not asset.has_deployment:
             return {
                 'total_nlp_asr_seconds': 0,
+                'total_nlp_llm_requests': 0,
                 'total_nlp_mt_characters': 0,
             }
         return OpenRosaDeploymentBackend.nlp_tracking_data(

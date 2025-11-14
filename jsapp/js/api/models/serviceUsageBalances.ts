@@ -16,4 +16,5 @@ export interface ServiceUsageBalances {
   storage_bytes: NullableServiceUsageBalanceData
   asr_seconds: NullableServiceUsageBalanceData
   mt_characters: NullableServiceUsageBalanceData
+  llm_requests: NullableServiceUsageBalanceData
 }

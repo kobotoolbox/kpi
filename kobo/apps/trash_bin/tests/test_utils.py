@@ -3,10 +3,10 @@ from unittest.mock import patch
 
 from constance import config
 from ddt import data, ddt, unpack
-from django.db.models.signals import pre_delete
-from django.core.management import call_command
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.management import call_command
+from django.db.models.signals import pre_delete
 from django.test import TestCase
 from django.utils import timezone
 from django_celery_beat.models import PeriodicTask
@@ -16,13 +16,12 @@ from kobo.apps.audit_log.models import (
     AuditAction,
     AuditLog,
     AuditType,
-    ProjectHistoryLog
+    ProjectHistoryLog,
 )
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.logger.signals import pre_delete_attachment
-
 from kpi.models import Asset
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
@@ -30,12 +29,7 @@ from ..models import TrashStatus
 from ..models.account import AccountTrash
 from ..models.attachment import AttachmentTrash
 from ..models.project import ProjectTrash
-from ..tasks import (
-    empty_account,
-    empty_attachment,
-    empty_project,
-    task_restarter,
-)
+from ..tasks import empty_account, empty_attachment, empty_project, task_restarter
 from ..utils import move_to_trash, put_back, trash_bin_task_failure
 
 
@@ -174,6 +168,7 @@ class AccountTrashTestCase(TestCase):
         everything from their account is deleted except their username
         """
         someuser = get_user_model().objects.get(username='someuser')
+        uid = someuser.extra_details.uid
         admin = get_user_model().objects.get(username='adminuser')
         someuser.extra_details.data['name'] = 'someuser'
         someuser.extra_details.save(update_fields=['data'])
@@ -207,6 +202,7 @@ class AccountTrashTestCase(TestCase):
 
         assert not AccountTrash.objects.filter(user=someuser).exists()
         assert before <= someuser.extra_details.date_removed <= after
+        assert someuser.extra_details.uid == uid
 
         # Ensure action is logged
         assert AuditLog.objects.filter(

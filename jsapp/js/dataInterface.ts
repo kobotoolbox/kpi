@@ -623,7 +623,11 @@ interface AssetRequestObject {
   name: string
   permissions: PermissionResponse[]
   export_settings: ExportSetting[]
-  data_sharing: {}
+  /** `data_sharing` is an empty object if never enabled before */
+  data_sharing: {
+    enabled?: boolean
+    fields?: string[]
+  }
   paired_data?: string
   advanced_features?: AssetAdvancedFeatures
   advanced_submission_schema?: AdvancedSubmissionSchema
@@ -1096,6 +1100,14 @@ export interface AssetMapStyles {
   selectedQuestion?: string
 }
 
+export interface PairedDataItem {
+  source: string
+  source__name: string
+  fields: string[]
+  filename: string
+  url: string
+}
+
 const $ajax = (o: {}) => $.ajax(Object.assign({}, { dataType: 'json', method: 'GET' }, o))
 
 export const dataInterface: DataInterface = {
@@ -1351,7 +1363,7 @@ export const dataInterface: DataInterface = {
       fields: string
       filename: string
     },
-  ): JQuery.jqXHR<any> {
+  ): JQuery.jqXHR<PairedDataItem> {
     return $ajax({
       url: attachmentUrl,
       method: 'PATCH',
@@ -1360,7 +1372,7 @@ export const dataInterface: DataInterface = {
     })
   },
 
-  getAttachedSources(assetUid: string): JQuery.jqXHR<any> {
+  getAttachedSources(assetUid: string): JQuery.jqXHR<PaginatedResponse<PairedDataItem>> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
       method: 'GET',
@@ -1382,7 +1394,7 @@ export const dataInterface: DataInterface = {
         fields: string[]
       }
     },
-  ): JQuery.jqXHR<any> {
+  ): JQuery.jqXHR<AssetResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/`,
       method: 'PATCH',

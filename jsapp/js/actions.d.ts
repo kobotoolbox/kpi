@@ -365,5 +365,13 @@ export namespace actions {
     createExportSetting: GenericDefinition
     deleteExportSetting: GenericDefinition
   }
-  const dataShare: object
+  const dataShare: {
+    attachToSource: GenericDefinition
+    detachSource: GenericDefinition
+    getAttachedSources: GenericDefinition
+    getSharingEnabledAssets: GenericDefinition
+    patchSource: GenericDefinition
+    toggleDataSharing: GenericDefinition
+    updateColumnFilters: GenericDefinition
+  }
 }

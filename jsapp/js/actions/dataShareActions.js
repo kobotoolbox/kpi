@@ -25,7 +25,12 @@ dataShareActions.attachToSource.listen((assetUid, data) => {
   dataShareActions.attachToSource.started()
 })
 dataShareActions.attachToSource.failed.listen((response) => {
-  notify.error(response?.responseJSON?.filename?.[0] || response?.responseJSON || t('Failed to attach to source'))
+  notify.error(
+    response?.responseJSON?.detail ||
+      response?.responseJSON?.data_sharing?.fields ||
+      response?.responseJSON?.filename?.[0] ||
+      t('Failed to attach to source'),
+  )
 })
 
 dataShareActions.detachSource.listen((attachmentUrl) => {
@@ -104,7 +109,9 @@ dataShareActions.toggleDataSharing.listen((uid, data) => {
     .fail(dataShareActions.toggleDataSharing.failed)
 })
 dataShareActions.toggleDataSharing.failed.listen((response) => {
-  notify.error(response?.responseJSON?.detail || t('Failed to toggle sharing'))
+  notify.error(
+    response?.responseJSON?.detail || response?.responseJSON?.data_sharing?.fields || t('Failed to toggle sharing'),
+  )
 })
 
 dataShareActions.updateColumnFilters.listen((uid, data) => {
@@ -114,7 +121,12 @@ dataShareActions.updateColumnFilters.listen((uid, data) => {
     .fail(dataShareActions.updateColumnFilters.failed)
 })
 dataShareActions.updateColumnFilters.failed.listen((response) => {
-  notify.error(response?.responseJSON || t('Failed to update column filters'))
+  // Note: the response object is not a regular `FailResponse`, it is a custom object {data_sharing: {fields: string}}
+  notify.error(
+    response?.responseJSON?.detail ||
+      response?.responseJSON?.data_sharing?.fields ||
+      t('Failed to update column filters'),
+  )
 })
 
 export default dataShareActions

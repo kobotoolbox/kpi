@@ -320,6 +320,7 @@ module.exports = do ->
   class viewRowDetailSkipLogic.SkipLogicDropDownResponse extends $viewWidgets.DropDown
     tagName: 'select'
     className: 'skiplogic__responseval'
+    model: new $viewWidgets.DropDownModel()
 
     attach_to: (target) ->
       target.find('.skiplogic__responseval').remove()
@@ -341,7 +342,7 @@ module.exports = do ->
       @model.on 'change:cid', handle_model_cid_change
       return
 
-    constructor: (responses, model) ->
+    constructor: (responses) ->
       super(_.map responses.models, (response) ->
         return {
           text: response.get('label')
@@ -349,7 +350,6 @@ module.exports = do ->
         }
       )
       @responses = responses
-      @model = model
 
   ###----------------------------------------------------------------------------------------------------------###
   #-- Factories.RowDetail.SkipLogic.coffee

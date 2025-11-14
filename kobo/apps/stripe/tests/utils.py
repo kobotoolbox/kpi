@@ -23,6 +23,7 @@ def generate_free_plan():
         'product_type': 'plan',
         f'{UsageType.SUBMISSION}_limit': '5000',
         f'{UsageType.ASR_SECONDS}_limit': '600',
+        f'{UsageType.LLM_REQUESTS}_limit': '20',
         f'{UsageType.MT_CHARACTERS}_limit': '6000',
         f'{UsageType.STORAGE_BYTES}_limit': '1000',
         'default_free_plan': 'true',
