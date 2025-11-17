@@ -109,7 +109,7 @@ export default function ResponseWrapper(props: ResponseWrapperProps) {
               </ButtonNew>
 
               <ButtonNew size='md' onClick={deleteQuestion} variant='danger'>
-                {t('Delete account')}
+                {t('Delete')}
               </ButtonNew>
             </Group>
           </Stack>
