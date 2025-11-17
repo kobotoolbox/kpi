@@ -478,7 +478,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('user_reports', '0001_initial'),
         ('trackers', '0005_remove_year_and_month'),
-        ('mfa', '0004_alter_mfamethod_date_created_and_more'),
+        ('accounts_mfa', '0001_squashed_0004_alter_mfamethod_date_created_and_more'),
     ]
 
     if settings.SKIP_HEAVY_MIGRATIONS:

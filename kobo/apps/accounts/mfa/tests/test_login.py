@@ -1,13 +1,15 @@
-# coding: utf-8
 from allauth.account.models import EmailAddress
+from constance.test import override_config
 from django.conf import settings
 from django.shortcuts import resolve_url
 from django.urls import reverse
 from rest_framework import status
-from trench.utils import get_mfa_model
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.kpi_test_case import KpiTestCase
+from .utils import activate_mfa_for_user
+
+METHOD = 'app'
 
 
 class LoginTests(KpiTestCase):
@@ -27,14 +29,7 @@ class LoginTests(KpiTestCase):
         email_address.save()
 
         # Activate MFA for someuser
-        get_mfa_model().objects.create(
-            user=self.someuser,
-            secret='dummy_mfa_secret',
-            name='app',
-            is_primary=True,
-            is_active=True,
-            _backup_codes='dummy_encoded_codes',
-        )
+        activate_mfa_for_user(self.client, self.someuser)
         # Ensure `self.client` is not authenticated
         self.client.logout()
 
@@ -48,7 +43,16 @@ class LoginTests(KpiTestCase):
             'password': 'someuser',
         }
         response = self.client.post(reverse('kobo_login'), data=data)
-        self.assertContains(response, 'verification token')
+        self.assertRedirects(response, reverse('mfa_authenticate'))
+
+    @override_config(MFA_ENABLED=False)
+    def test_mfa_globally_disabled(self):
+        data = {
+            'login': 'someuser',
+            'password': 'someuser',
+        }
+        response = self.client.post(reverse('kobo_login'), data=data)
+        self.assertRedirects(response, reverse(settings.LOGIN_REDIRECT_URL))
 
     def test_login_with_mfa_disabled(self):
         """
@@ -59,9 +63,7 @@ class LoginTests(KpiTestCase):
             'login': 'anotheruser',
             'password': 'anotheruser',
         }
-        response = self.client.post(
-            reverse('kobo_login'), data=data, follow=True
-        )
+        response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self.assertEqual(len(response.redirect_chain), 1)
         redirection, status_code = response.redirect_chain[0]
         self.assertEqual(status_code, status.HTTP_302_FOUND)

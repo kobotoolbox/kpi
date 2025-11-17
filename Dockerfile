@@ -1,6 +1,6 @@
 # If you update this base image, make sure to update the base runners
 # in .github/workflows/ to the corresponding Ubuntu version
-FROM python:3.10-bookworm AS build-python
+FROM ghcr.io/astral-sh/uv:python3.10-bookworm AS build-python
 
 
 ENV VIRTUAL_ENV=/opt/venv \
@@ -8,13 +8,11 @@ ENV VIRTUAL_ENV=/opt/venv \
 
 RUN python -m venv "$VIRTUAL_ENV"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-RUN python -m pip install --upgrade "pip<25.3" \
-    && python -m pip install "pip-tools==7.*"
 COPY ./dependencies/pip/requirements.txt "${TMP_DIR}/pip_dependencies.txt"
-RUN pip-sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null
+RUN uv pip sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null
 
 
-FROM python:3.10-slim-bookworm
+FROM ghcr.io/astral-sh/uv:python3.10-bookworm-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=en_US.UTF-8
