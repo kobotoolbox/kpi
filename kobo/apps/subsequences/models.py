@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kpi.fields import LazyDefaultJSONBField, KpiUidField
@@ -221,3 +221,50 @@ class QuestionAdvancedAction(models.Model):
 
     class Meta:
         unique_together = ('asset_id', 'question_xpath', 'action')
+
+def migrate_advanced_features(asset: 'kpi.models.Asset') -> dict | None:
+    advanced_features = asset.advanced_features
+    known_cols = set([col.split(":")[0] for col in asset.known_cols])
+
+    if advanced_features == {}:
+        return
+
+    with transaction.atomic():
+        for key, value in advanced_features.items():
+            if (
+                key == 'transcript'
+                and value
+                and 'languages' in value
+                and value['languages']
+            ):
+                for q in known_cols:
+                    QuestionAdvancedAction.objects.create(
+                        question_xpath=q,
+                        asset=asset,
+                        action=Action.MANUAL_TRANSCRIPTION,
+                        params=[
+                            {'language': language} for language in value['languages']
+                        ]
+                    )
+
+            if (
+                key == 'translation'
+                and value
+                and 'languages' in value
+                and value['languages']
+            ):
+                for q in known_cols:
+                    QuestionAdvancedAction.objects.create(
+                        question_xpath=q,
+                        asset=asset,
+                        action=Action.MANUAL_TRANSCRIPTION,
+                        params=[
+                            {'language': language} for language in value['languages']
+                        ]
+                    )
+            if key == 'qual':
+                # TODO: DEV-1295
+                pass
+        asset.advanced_features = {}
+        asset.save(update_fields=['advanced_features'], adjust_content=False)
+

@@ -2,6 +2,8 @@ import jsonschema
 
 from .actions import ACTION_IDS_TO_CLASSES, ACTIONS
 from .constants import SCHEMA_VERSIONS
+from .models import migrate_advanced_features
+from .utils.action_conversion import question_advanced_action_to_action
 
 # not the full complexity of XPath, but a slash-delimited path of valid XML tag
 # names to convey group hierarchy
@@ -32,25 +34,18 @@ def validate_submission_supplement(asset: 'kpi.models.Asset', supplement: dict):
 
 
 def get_submission_supplement_schema(asset: 'kpi.models.Asset') -> dict:
-
+    if asset.advanced_features != {}:
+        migrate_advanced_features(asset)
 
     submission_supplement_schema = {
         'additionalProperties': False,
         'properties': {'_version': {'const': SCHEMA_VERSIONS[0]}},
         'type': 'object',
     }
-
-    for (
-        question_xpath,
-        action_configs_for_this_question,
-    ) in asset.advanced_features['_actionConfigs'].items():
-        for (
-            action_id,
-            action_params,
-        ) in action_configs_for_this_question.items():
-            action = ACTION_IDS_TO_CLASSES[action_id](question_xpath, action_params)
-            submission_supplement_schema['properties'].setdefault(question_xpath, {})[
-                action_id
-            ] = action.result_schema
+    for question_advanced_action in asset.advanced_features_set.all():
+        action = question_advanced_action_to_action(question_advanced_action)
+        submission_supplement_schema['properties'].setdefault(question_advanced_action.question_xpath, {})[
+            question_advanced_action.action
+        ] = action.result_schema
 
     return submission_supplement_schema
