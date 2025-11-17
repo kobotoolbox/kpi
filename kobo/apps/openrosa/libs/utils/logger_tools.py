@@ -198,8 +198,6 @@ def create_instance(
                                         processed.
         PermissionDenied: If the submission fails permission checks.
     """
-    if not xml_file:
-        raise InstanceEmptyError()
     if username:
         username = username.lower()
 
