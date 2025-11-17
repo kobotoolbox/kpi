@@ -15360,8 +15360,6 @@
                     "logs_url",
                     "name",
                     "pending_count",
-                    "settings",
-                    "subset_fields",
                     "success_count",
                     "uid",
                     "url"
