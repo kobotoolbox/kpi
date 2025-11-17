@@ -53,6 +53,7 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import (
+    PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
@@ -77,7 +78,7 @@ from kpi.models.paired_data import PairedData
 from kpi.utils.files import ExtendedContentFile
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
-from kpi.utils.object_permission import get_database_user
+from kpi.utils.object_permission import get_anonymous_user, get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
@@ -134,8 +135,16 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         self._xform = publish_xls_form(xlsx_file, self.asset.owner)
         self._xform.downloadable = active
         self._xform.kpi_asset_uid = self.asset.uid
+        self._xform.require_auth = not self.asset.has_perm(
+            get_anonymous_user(), PERM_ADD_SUBMISSIONS
+        )
         self._xform.save(
-            update_fields=['downloadable', 'kpi_asset_uid', 'date_modified']
+            update_fields=[
+                'downloadable',
+                'kpi_asset_uid',
+                'date_modified',
+                'require_auth',
+            ]
         )
 
         self.store_data(
@@ -469,6 +478,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             xml_file=xml_submission_file,
             media_files=attachments,
             request=request,
+            check_usage_limits=False,
         )
 
     @property
@@ -1206,6 +1216,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             media_files=media_files,
             uuid=submission_uuid,
             request=kwargs.get('request'),
+            check_usage_limits=False,
         )
 
     @property

@@ -228,14 +228,8 @@ class ObjectPermissionMixin:
             return
         effective_perms = self._get_effective_perms(include_calculated=False)
         for child in children:
-            # remove stale inherited perms
-            child.permissions.filter(inherited=True).delete()
             # calc the new ones
-            child._recalculate_inherited_perms(
-                parent_effective_perms=effective_perms,
-                stale_already_deleted=True,
-                #return_instead_of_creating=True
-            )
+            child._recalculate_inherited_perms(parent_effective_perms=effective_perms)
             # recurse!
             child.recalculate_descendants_perms()
 
@@ -252,13 +246,9 @@ class ObjectPermissionMixin:
         also made explicit as "inherited" permissions.
         """
         # Start with a clean slate
-        if not stale_already_deleted:
-            self.permissions.filter(inherited=True).delete()
         content_type = ContentType.objects.get_for_model(self)
-        if return_instead_of_creating:
-            # Conditionally create this so that Python will raise an exception
-            # if we use it when we're not supposed to
-            objects_to_return = []
+
+        objects_to_return = []
         # The owner gets every assignable permission
         if self.owner_id is not None:
             for perm in Permission.objects.filter(
@@ -276,10 +266,8 @@ class ObjectPermissionMixin:
                 new_permission.inherited = True
                 new_permission.uid = new_permission._meta.get_field(
                     'uid').generate_uid()
-                if return_instead_of_creating:
-                    objects_to_return.append(new_permission)
-                else:
-                    new_permission.save()
+                objects_to_return.append(new_permission)
+
         # Is there anything to inherit?
         if self.parent is not None:
             # Get our parent's effective permissions from the database if they
@@ -320,12 +308,21 @@ class ObjectPermissionMixin:
                 new_permission.inherited = True
                 new_permission.uid = new_permission._meta.get_field(
                     'uid').generate_uid()
-                if return_instead_of_creating:
-                    objects_to_return.append(new_permission)
-                else:
-                    new_permission.save()
+                objects_to_return.append(new_permission)
         if return_instead_of_creating:
+            if not stale_already_deleted:
+                self.permissions.filter(inherited=True).delete()
             return objects_to_return
+        else:
+            existing_objs = self.permissions.filter(inherited=True)
+            for perm in objects_to_return:
+                existing_objs = existing_objs.exclude(
+                    permission_id=perm.permission_id, user_id=perm.user_id
+                )
+            existing_objs.delete()
+            ObjectPermission.objects.bulk_create(
+                objects_to_return, ignore_conflicts=True
+            )
 
     @classmethod
     def get_implied_perms(

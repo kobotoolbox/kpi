@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.db.models import Count
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, mixins, status, viewsets
 from rest_framework.decorators import action
@@ -45,7 +47,9 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
         exclude=True,
     ),
 )
-class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+class UserViewSet(
+    viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin
+):
     """
     This viewset provides only the `detail` action; `list` is *not* provided to
     avoid disclosing every username in the database
@@ -61,7 +65,6 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     - docs/api/v2/users/migrate.md
     """
 
-    queryset = User.objects.filter(is_active=True)
     filter_backends = (SearchFilter,)
     serializer_class = UserSerializer
     lookup_field = 'username'
@@ -75,6 +78,21 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         model = Asset
         fields = '__all__'
 
+    def get_queryset(self, *args, **kwargs):
+        self.queryset = User.objects.all()
+
+        if not self.request.user.is_superuser:
+            self.queryset = self.queryset.filter(is_active=True)
+
+        if self.action == 'list':
+            self.queryset = (
+                self.queryset.exclude(pk=settings.ANONYMOUS_USER_ID)
+                .select_related('extra_details')
+                .order_by('id')
+            )
+
+        return self.queryset
+
     def get_serializer_class(self):
         if self.action == 'list':
             return UserListSerializer
@@ -85,11 +103,29 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         if not request.user.is_superuser:
             raise exceptions.PermissionDenied()
 
-        filtered_queryset = self.filter_queryset(self.queryset).order_by('id')
-        page = self.paginate_queryset(filtered_queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+        return super().list(request, *args, **kwargs)
+
+    def paginate_queryset(self, queryset):
+        if not (page := super().paginate_queryset(queryset)):
+            return None
+
+        user_ids = (user.pk for user in page)
+        counts_map = {
+            asset['owner_id']: asset['assets_count']
+            for asset in (
+                Asset.objects.filter(owner_id__in=user_ids)
+                .values('owner_id')
+                .annotate(assets_count=Count('id'))
+            )
+        }
+
+        def _page_generator():
+            # Inject and yield on-the-fly assets count
+            for user in page:
+                user.assets_count = counts_map.get(user.pk, 0)
+                yield user
+
+        return _page_generator()
 
     @action(detail=True, methods=['GET'],
             url_path=r'migrate(?:/(?P<task_id>[\d\w\-]+))?')

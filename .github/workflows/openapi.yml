@@ -23,9 +23,6 @@ jobs:
       KOBOFORM_URL: http://kpi
       SKIP_TESTS_WITH_CONCURRENCY: 'True'
       KPI_SRC_DIR: '.'
-    strategy:
-      matrix:
-        python-version: ['3.10']
     services:
       postgres:
         image: postgis/postgis:14-3.4
@@ -42,15 +39,15 @@ jobs:
           - 6379:6379
     steps:
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v6
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.10'
 
       - name: Install pip-tools
-        run: python -m pip install pip-tools==7.\*
+        run: python -m pip install --no-cache-dir --upgrade "pip<25.3" "pip-tools==7.*"
 
       - name: Update Debian package lists
         run: sudo DEBIAN_FRONTEND=noninteractive apt-get -y update
@@ -66,7 +63,17 @@ jobs:
         run: pip-sync dependencies/pip/dev_requirements.txt
 
       - name: Generate OpenAPI with drf-spectacular
-        run: ./scripts/generate_api.sh --skip-orval
+        # GitHub Actions run without a TTY device. This is a workaround to get one,
+        # based on https://github.com/actions/runner/issues/241#issuecomment-2019042651
+        # and https://github.com/actions/runner/issues/241#issuecomment-842566950
+        shell: 'script --return --quiet --log-out /dev/null --command "bash --noprofile --norc -eo pipefail {0}"'
+        run: |
+          if ./scripts/generate_api.sh --skip-orval 2>&1 | tee /dev/tty | grep -q "Warning"; then
+            echo ""
+            echo "A warning found, aborted! Please treat drf-spectacular warnings as errors and resolve them."
+            echo "P.S. This is only the first warning. You may want to run the script locally to see all warnings at once."
+            exit 2
+          fi
 
       - name: Fail on uncommitted OpenAPI changes
         run: |
@@ -78,8 +85,8 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20.18.1  # version that's pinned in Dockerfile for kpi release. FYI v22 doesn't work out of box.
           check-latest: true # download newer semver match if available

@@ -2,9 +2,9 @@ import { type AnchorHTMLAttributes, useEffect, useState } from 'react'
 
 import Markdown from 'react-markdown'
 import { useNavigate } from 'react-router-dom'
-import { useOrganizationQuery } from '#/account/organization/organizationQuery'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { UsageLimitTypes } from '#/account/stripe.types'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/button'
 import KoboModalFooter from '#/components/modals/koboModalFooter'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
@@ -18,7 +18,6 @@ interface OverLimitModalProps {
   show: boolean
   limits: UsageLimitTypes[]
   dismissed: () => void
-  interval: 'month' | 'year'
 }
 
 function getLimitReachedMessage(isMmo: boolean, isTeamLabelActive: boolean, limits: string) {
@@ -80,13 +79,13 @@ function OverLimitModal(props: OverLimitModalProps) {
     setShow(props.show)
   }, [props.show])
 
-  const orgQuery = useOrganizationQuery()
+  const [organization] = useOrganizationAssumed()
 
-  if (!orgQuery.data || !envStore.isReady || !props.limits.length) {
+  if (!envStore.isReady || !props.limits.length) {
     return null
   }
 
-  const { is_mmo: isMmo } = orgQuery.data
+  const { is_mmo: isMmo } = organization
   const shouldUseTeamLabel = !!envStore.data?.use_team_label
   const allLimitsText = getAllLimitsText(props.limits)
   const greetingMessage = t('Dear ##ACCOUNT_NAME##,').replace('##ACCOUNT_NAME##', accountName)

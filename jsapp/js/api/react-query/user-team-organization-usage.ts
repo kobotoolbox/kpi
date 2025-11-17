@@ -43,7 +43,7 @@ import type { MeSocialAccountsListParams } from '../models/meSocialAccountsListP
 
 import type { MemberListResponse } from '../models/memberListResponse'
 
-import type { Organization } from '../models/organization'
+import type { OrganizationResponse } from '../models/organizationResponse'
 
 import type { OrganizationServiceUsageResponse } from '../models/organizationServiceUsageResponse'
 
@@ -65,7 +65,7 @@ import type { PaginatedMemberListResponseList } from '../models/paginatedMemberL
 
 import type { PaginatedOrganizationAssetUsageResponseList } from '../models/paginatedOrganizationAssetUsageResponseList'
 
-import type { PaginatedOrganizationList } from '../models/paginatedOrganizationList'
+import type { PaginatedOrganizationResponseList } from '../models/paginatedOrganizationResponseList'
 
 import type { PaginatedProjectViewAssetResponseList } from '../models/paginatedProjectViewAssetResponseList'
 
@@ -219,12 +219,12 @@ export function useAssetUsageList<TData = Awaited<ReturnType<typeof assetUsageLi
 
  */
 export type organizationsListResponse200 = {
-  data: PaginatedOrganizationList
+  data: PaginatedOrganizationResponseList
   status: 200
 }
 
 export type organizationsListResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -264,7 +264,7 @@ export const getOrganizationsListQueryKey = (params?: OrganizationsListParams) =
 
 export const getOrganizationsListQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsList>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   params?: OrganizationsListParams,
   options?: {
@@ -287,9 +287,9 @@ export const getOrganizationsListQueryOptions = <
 }
 
 export type OrganizationsListQueryResult = NonNullable<Awaited<ReturnType<typeof organizationsList>>>
-export type OrganizationsListQueryError = ErrorObject
+export type OrganizationsListQueryError = ErrorDetail
 
-export function useOrganizationsList<TData = Awaited<ReturnType<typeof organizationsList>>, TError = ErrorObject>(
+export function useOrganizationsList<TData = Awaited<ReturnType<typeof organizationsList>>, TError = ErrorDetail>(
   params?: OrganizationsListParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsList>>, TError, TData>
@@ -310,12 +310,12 @@ export function useOrganizationsList<TData = Awaited<ReturnType<typeof organizat
 
  */
 export type organizationsRetrieveResponse200 = {
-  data: Organization
+  data: OrganizationResponse
   status: 200
 }
 
 export type organizationsRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -345,7 +345,7 @@ export const getOrganizationsRetrieveQueryKey = (uidOrganization: string) => {
 
 export const getOrganizationsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   options?: {
@@ -368,11 +368,11 @@ export const getOrganizationsRetrieveQueryOptions = <
 }
 
 export type OrganizationsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof organizationsRetrieve>>>
-export type OrganizationsRetrieveQueryError = ErrorObject
+export type OrganizationsRetrieveQueryError = ErrorDetail
 
 export function useOrganizationsRetrieve<
   TData = Awaited<ReturnType<typeof organizationsRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   options?: {
@@ -394,7 +394,7 @@ export function useOrganizationsRetrieve<
 
  */
 export type organizationsPartialUpdateResponse200 = {
-  data: Organization
+  data: OrganizationResponse
   status: 200
 }
 
@@ -403,9 +403,15 @@ export type organizationsPartialUpdateResponse400 = {
   status: 400
 }
 
+export type organizationsPartialUpdateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
 export type organizationsPartialUpdateResponseComposite =
   | organizationsPartialUpdateResponse200
   | organizationsPartialUpdateResponse400
+  | organizationsPartialUpdateResponse404
 
 export type organizationsPartialUpdateResponse = organizationsPartialUpdateResponseComposite & {
   headers: Headers
@@ -428,7 +434,10 @@ export const organizationsPartialUpdate = async (
   })
 }
 
-export const getOrganizationsPartialUpdateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getOrganizationsPartialUpdateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsPartialUpdate>>,
     TError,
@@ -465,9 +474,9 @@ export type OrganizationsPartialUpdateMutationResult = NonNullable<
   Awaited<ReturnType<typeof organizationsPartialUpdate>>
 >
 export type OrganizationsPartialUpdateMutationBody = PatchedOrganizationPatchPayload
-export type OrganizationsPartialUpdateMutationError = ErrorObject
+export type OrganizationsPartialUpdateMutationError = ErrorObject | ErrorDetail
 
-export const useOrganizationsPartialUpdate = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useOrganizationsPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsPartialUpdate>>,
     TError,
@@ -492,7 +501,7 @@ export type organizationsAssetUsageRetrieveResponse200 = {
 }
 
 export type organizationsAssetUsageRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -527,7 +536,7 @@ export const getOrganizationsAssetUsageRetrieveQueryKey = (uidOrganization: stri
 
 export const getOrganizationsAssetUsageRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   options?: {
@@ -552,11 +561,11 @@ export const getOrganizationsAssetUsageRetrieveQueryOptions = <
 export type OrganizationsAssetUsageRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>
 >
-export type OrganizationsAssetUsageRetrieveQueryError = ErrorObject
+export type OrganizationsAssetUsageRetrieveQueryError = ErrorDetail
 
 export function useOrganizationsAssetUsageRetrieve<
   TData = Awaited<ReturnType<typeof organizationsAssetUsageRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   options?: {
@@ -592,7 +601,7 @@ export type organizationsAssetsRetrieveResponse200 = {
 }
 
 export type organizationsAssetsRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -624,7 +633,7 @@ export const getOrganizationsAssetsRetrieveQueryKey = (uidOrganization: string) 
 
 export const getOrganizationsAssetsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsAssetsRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   options?: {
@@ -649,11 +658,11 @@ export const getOrganizationsAssetsRetrieveQueryOptions = <
 export type OrganizationsAssetsRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof organizationsAssetsRetrieve>>
 >
-export type OrganizationsAssetsRetrieveQueryError = ErrorObject
+export type OrganizationsAssetsRetrieveQueryError = ErrorDetail
 
 export function useOrganizationsAssetsRetrieve<
   TData = Awaited<ReturnType<typeof organizationsAssetsRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   options?: {
@@ -680,7 +689,7 @@ export type organizationsInvitesListResponse200 = {
 }
 
 export type organizationsInvitesListResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -728,7 +737,7 @@ export const getOrganizationsInvitesListQueryKey = (
 
 export const getOrganizationsInvitesListQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsInvitesList>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   params?: OrganizationsInvitesListParams,
@@ -752,11 +761,11 @@ export const getOrganizationsInvitesListQueryOptions = <
 }
 
 export type OrganizationsInvitesListQueryResult = NonNullable<Awaited<ReturnType<typeof organizationsInvitesList>>>
-export type OrganizationsInvitesListQueryError = ErrorObject
+export type OrganizationsInvitesListQueryError = ErrorDetail
 
 export function useOrganizationsInvitesList<
   TData = Awaited<ReturnType<typeof organizationsInvitesList>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   params?: OrganizationsInvitesListParams,
@@ -792,9 +801,15 @@ export type organizationsInvitesCreateResponse400 = {
   status: 400
 }
 
+export type organizationsInvitesCreateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
 export type organizationsInvitesCreateResponseComposite =
   | organizationsInvitesCreateResponse201
   | organizationsInvitesCreateResponse400
+  | organizationsInvitesCreateResponse404
 
 export type organizationsInvitesCreateResponse = organizationsInvitesCreateResponseComposite & {
   headers: Headers
@@ -817,7 +832,10 @@ export const organizationsInvitesCreate = async (
   })
 }
 
-export const getOrganizationsInvitesCreateMutationOptions = <TError = ErrorObject, TContext = unknown>(options?: {
+export const getOrganizationsInvitesCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsInvitesCreate>>,
     TError,
@@ -854,9 +872,9 @@ export type OrganizationsInvitesCreateMutationResult = NonNullable<
   Awaited<ReturnType<typeof organizationsInvitesCreate>>
 >
 export type OrganizationsInvitesCreateMutationBody = InviteCreatePayload
-export type OrganizationsInvitesCreateMutationError = ErrorObject
+export type OrganizationsInvitesCreateMutationError = ErrorObject | ErrorDetail
 
-export const useOrganizationsInvitesCreate = <TError = ErrorObject, TContext = unknown>(options?: {
+export const useOrganizationsInvitesCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsInvitesCreate>>,
     TError,
@@ -879,7 +897,7 @@ export type organizationsInvitesRetrieveResponse200 = {
 }
 
 export type organizationsInvitesRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -915,7 +933,7 @@ export const getOrganizationsInvitesRetrieveQueryKey = (uidOrganization: string,
 
 export const getOrganizationsInvitesRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsInvitesRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   guid: string,
@@ -941,11 +959,11 @@ export const getOrganizationsInvitesRetrieveQueryOptions = <
 export type OrganizationsInvitesRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof organizationsInvitesRetrieve>>
 >
-export type OrganizationsInvitesRetrieveQueryError = ErrorObject
+export type OrganizationsInvitesRetrieveQueryError = ErrorDetail
 
 export function useOrganizationsInvitesRetrieve<
   TData = Awaited<ReturnType<typeof organizationsInvitesRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   guid: string,
@@ -1087,15 +1105,9 @@ export type organizationsInvitesDestroyResponse403 = {
   status: 403
 }
 
-export type organizationsInvitesDestroyResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type organizationsInvitesDestroyResponseComposite =
   | organizationsInvitesDestroyResponse204
   | organizationsInvitesDestroyResponse403
-  | organizationsInvitesDestroyResponse404
 
 export type organizationsInvitesDestroyResponse = organizationsInvitesDestroyResponseComposite & {
   headers: Headers
@@ -1116,10 +1128,7 @@ export const organizationsInvitesDestroy = async (
   })
 }
 
-export const getOrganizationsInvitesDestroyMutationOptions = <
-  TError = ErrorDetail | ErrorObject,
-  TContext = unknown,
->(options?: {
+export const getOrganizationsInvitesDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsInvitesDestroy>>,
     TError,
@@ -1156,9 +1165,9 @@ export type OrganizationsInvitesDestroyMutationResult = NonNullable<
   Awaited<ReturnType<typeof organizationsInvitesDestroy>>
 >
 
-export type OrganizationsInvitesDestroyMutationError = ErrorDetail | ErrorObject
+export type OrganizationsInvitesDestroyMutationError = ErrorDetail
 
-export const useOrganizationsInvitesDestroy = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
+export const useOrganizationsInvitesDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsInvitesDestroy>>,
     TError,
@@ -1183,7 +1192,7 @@ export type organizationsMembersListResponse200 = {
 }
 
 export type organizationsMembersListResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -1231,7 +1240,7 @@ export const getOrganizationsMembersListQueryKey = (
 
 export const getOrganizationsMembersListQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsMembersList>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   params?: OrganizationsMembersListParams,
@@ -1255,11 +1264,11 @@ export const getOrganizationsMembersListQueryOptions = <
 }
 
 export type OrganizationsMembersListQueryResult = NonNullable<Awaited<ReturnType<typeof organizationsMembersList>>>
-export type OrganizationsMembersListQueryError = ErrorObject
+export type OrganizationsMembersListQueryError = ErrorDetail
 
 export function useOrganizationsMembersList<
   TData = Awaited<ReturnType<typeof organizationsMembersList>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   params?: OrganizationsMembersListParams,
@@ -1289,7 +1298,7 @@ export type organizationsMembersRetrieveResponse200 = {
 }
 
 export type organizationsMembersRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -1325,7 +1334,7 @@ export const getOrganizationsMembersRetrieveQueryKey = (uidOrganization: string,
 
 export const getOrganizationsMembersRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsMembersRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   username: string,
@@ -1351,11 +1360,11 @@ export const getOrganizationsMembersRetrieveQueryOptions = <
 export type OrganizationsMembersRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof organizationsMembersRetrieve>>
 >
-export type OrganizationsMembersRetrieveQueryError = ErrorObject
+export type OrganizationsMembersRetrieveQueryError = ErrorDetail
 
 export function useOrganizationsMembersRetrieve<
   TData = Awaited<ReturnType<typeof organizationsMembersRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   username: string,
@@ -1499,15 +1508,9 @@ export type organizationsMembersDestroyResponse403 = {
   status: 403
 }
 
-export type organizationsMembersDestroyResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type organizationsMembersDestroyResponseComposite =
   | organizationsMembersDestroyResponse204
   | organizationsMembersDestroyResponse403
-  | organizationsMembersDestroyResponse404
 
 export type organizationsMembersDestroyResponse = organizationsMembersDestroyResponseComposite & {
   headers: Headers
@@ -1531,10 +1534,7 @@ export const organizationsMembersDestroy = async (
   )
 }
 
-export const getOrganizationsMembersDestroyMutationOptions = <
-  TError = ErrorDetail | ErrorObject,
-  TContext = unknown,
->(options?: {
+export const getOrganizationsMembersDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsMembersDestroy>>,
     TError,
@@ -1571,9 +1571,9 @@ export type OrganizationsMembersDestroyMutationResult = NonNullable<
   Awaited<ReturnType<typeof organizationsMembersDestroy>>
 >
 
-export type OrganizationsMembersDestroyMutationError = ErrorDetail | ErrorObject
+export type OrganizationsMembersDestroyMutationError = ErrorDetail
 
-export const useOrganizationsMembersDestroy = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
+export const useOrganizationsMembersDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsMembersDestroy>>,
     TError,
@@ -1604,7 +1604,7 @@ export type organizationsServiceUsageRetrieveResponse200 = {
 }
 
 export type organizationsServiceUsageRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -1639,7 +1639,7 @@ export const getOrganizationsServiceUsageRetrieveQueryKey = (uidOrganization: st
 
 export const getOrganizationsServiceUsageRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   options?: {
@@ -1664,11 +1664,11 @@ export const getOrganizationsServiceUsageRetrieveQueryOptions = <
 export type OrganizationsServiceUsageRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>
 >
-export type OrganizationsServiceUsageRetrieveQueryError = ErrorObject
+export type OrganizationsServiceUsageRetrieveQueryError = ErrorDetail
 
 export function useOrganizationsServiceUsageRetrieve<
   TData = Awaited<ReturnType<typeof organizationsServiceUsageRetrieve>>,
-  TError = ErrorObject,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   options?: {
@@ -1790,15 +1790,7 @@ export type projectViewsRetrieveResponse403 = {
   status: 403
 }
 
-export type projectViewsRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
-export type projectViewsRetrieveResponseComposite =
-  | projectViewsRetrieveResponse200
-  | projectViewsRetrieveResponse403
-  | projectViewsRetrieveResponse404
+export type projectViewsRetrieveResponseComposite = projectViewsRetrieveResponse200 | projectViewsRetrieveResponse403
 
 export type projectViewsRetrieveResponse = projectViewsRetrieveResponseComposite & {
   headers: Headers
@@ -1824,7 +1816,7 @@ export const getProjectViewsRetrieveQueryKey = (uidProjectView: string) => {
 
 export const getProjectViewsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectViewsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   uidProjectView: string,
   options?: {
@@ -1847,12 +1839,9 @@ export const getProjectViewsRetrieveQueryOptions = <
 }
 
 export type ProjectViewsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsRetrieve>>>
-export type ProjectViewsRetrieveQueryError = ErrorDetail | ErrorObject
+export type ProjectViewsRetrieveQueryError = ErrorDetail
 
-export function useProjectViewsRetrieve<
-  TData = Awaited<ReturnType<typeof projectViewsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
->(
+export function useProjectViewsRetrieve<TData = Awaited<ReturnType<typeof projectViewsRetrieve>>, TError = ErrorDetail>(
   uidProjectView: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsRetrieve>>, TError, TData>
@@ -2188,15 +2177,9 @@ export type projectViewsUsersRetrieveResponse403 = {
   status: 403
 }
 
-export type projectViewsUsersRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type projectViewsUsersRetrieveResponseComposite =
   | projectViewsUsersRetrieveResponse200
   | projectViewsUsersRetrieveResponse403
-  | projectViewsUsersRetrieveResponse404
 
 export type projectViewsUsersRetrieveResponse = projectViewsUsersRetrieveResponseComposite & {
   headers: Headers
@@ -2238,7 +2221,7 @@ export const getProjectViewsUsersRetrieveQueryKey = (
 
 export const getProjectViewsUsersRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   uidProjectView: string,
   params?: ProjectViewsUsersRetrieveParams,
@@ -2262,11 +2245,11 @@ export const getProjectViewsUsersRetrieveQueryOptions = <
 }
 
 export type ProjectViewsUsersRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsUsersRetrieve>>>
-export type ProjectViewsUsersRetrieveQueryError = ErrorDetail | ErrorObject
+export type ProjectViewsUsersRetrieveQueryError = ErrorDetail
 
 export function useProjectViewsUsersRetrieve<
   TData = Awaited<ReturnType<typeof projectViewsUsersRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   uidProjectView: string,
   params?: ProjectViewsUsersRetrieveParams,
@@ -2371,6 +2354,17 @@ export function useServiceUsageList<
 
 ⚠️ _Only available to superusers_
 
+Search can be made with `q` parameter.
+
+Allowed fields are:
+
+- `username`
+- `is_active`
+- `email`
+- `date_joined`
+- `last_login`
+- `extra_details__data__<field>`
+
  */
 export type usersListResponse200 = {
   data: PaginatedUserListResponseList
@@ -2456,6 +2450,8 @@ export function useUsersList<TData = Awaited<ReturnType<typeof usersList>>, TErr
 /**
  * ## Retrieve a user
 
+⚠️ _Regular users have access to active users only_
+
  */
 export type usersRetrieveResponse200 = {
   data: UserRetrieveResponse
@@ -2463,7 +2459,7 @@ export type usersRetrieveResponse200 = {
 }
 
 export type usersRetrieveResponse404 = {
-  data: ErrorObject
+  data: ErrorDetail
   status: 404
 }
 
@@ -2488,7 +2484,7 @@ export const getUsersRetrieveQueryKey = (username: string) => {
   return ['api', 'v2', 'users', username] as const
 }
 
-export const getUsersRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof usersRetrieve>>, TError = ErrorObject>(
+export const getUsersRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof usersRetrieve>>, TError = ErrorDetail>(
   username: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof usersRetrieve>>, TError, TData>
@@ -2510,9 +2506,9 @@ export const getUsersRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof u
 }
 
 export type UsersRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof usersRetrieve>>>
-export type UsersRetrieveQueryError = ErrorObject
+export type UsersRetrieveQueryError = ErrorDetail
 
-export function useUsersRetrieve<TData = Awaited<ReturnType<typeof usersRetrieve>>, TError = ErrorObject>(
+export function useUsersRetrieve<TData = Awaited<ReturnType<typeof usersRetrieve>>, TError = ErrorDetail>(
   username: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof usersRetrieve>>, TError, TData>
@@ -3053,15 +3049,9 @@ export type meSocialAccountsRetrieveResponse401 = {
   status: 401
 }
 
-export type meSocialAccountsRetrieveResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type meSocialAccountsRetrieveResponseComposite =
   | meSocialAccountsRetrieveResponse200
   | meSocialAccountsRetrieveResponse401
-  | meSocialAccountsRetrieveResponse404
 
 export type meSocialAccountsRetrieveResponse = meSocialAccountsRetrieveResponseComposite & {
   headers: Headers
@@ -3088,7 +3078,7 @@ export const getMeSocialAccountsRetrieveQueryKey = (provider: string, uidSocialA
 
 export const getMeSocialAccountsRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   provider: string,
   uidSocialAccount: string,
@@ -3112,11 +3102,11 @@ export const getMeSocialAccountsRetrieveQueryOptions = <
 }
 
 export type MeSocialAccountsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof meSocialAccountsRetrieve>>>
-export type MeSocialAccountsRetrieveQueryError = ErrorDetail | ErrorObject
+export type MeSocialAccountsRetrieveQueryError = ErrorDetail
 
 export function useMeSocialAccountsRetrieve<
   TData = Awaited<ReturnType<typeof meSocialAccountsRetrieve>>,
-  TError = ErrorDetail | ErrorObject,
+  TError = ErrorDetail,
 >(
   provider: string,
   uidSocialAccount: string,
@@ -3148,15 +3138,9 @@ export type meSocialAccountsDestroyResponse401 = {
   status: 401
 }
 
-export type meSocialAccountsDestroyResponse404 = {
-  data: ErrorObject
-  status: 404
-}
-
 export type meSocialAccountsDestroyResponseComposite =
   | meSocialAccountsDestroyResponse204
   | meSocialAccountsDestroyResponse401
-  | meSocialAccountsDestroyResponse404
 
 export type meSocialAccountsDestroyResponse = meSocialAccountsDestroyResponseComposite & {
   headers: Headers
@@ -3177,10 +3161,7 @@ export const meSocialAccountsDestroy = async (
   })
 }
 
-export const getMeSocialAccountsDestroyMutationOptions = <
-  TError = ErrorDetail | ErrorObject,
-  TContext = unknown,
->(options?: {
+export const getMeSocialAccountsDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
     TError,
@@ -3215,9 +3196,9 @@ export const getMeSocialAccountsDestroyMutationOptions = <
 
 export type MeSocialAccountsDestroyMutationResult = NonNullable<Awaited<ReturnType<typeof meSocialAccountsDestroy>>>
 
-export type MeSocialAccountsDestroyMutationError = ErrorDetail | ErrorObject
+export type MeSocialAccountsDestroyMutationError = ErrorDetail
 
-export const useMeSocialAccountsDestroy = <TError = ErrorDetail | ErrorObject, TContext = unknown>(options?: {
+export const useMeSocialAccountsDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meSocialAccountsDestroy>>,
     TError,

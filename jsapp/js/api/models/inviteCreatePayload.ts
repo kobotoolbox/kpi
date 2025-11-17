@@ -12,6 +12,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
 import type { InviteeRoleEnum } from './inviteeRoleEnum'
 
 export interface InviteCreatePayload {
-  invitees: string[]
   role: InviteeRoleEnum
+  invitees: string[]
 }

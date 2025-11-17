@@ -11,7 +11,7 @@ from pymongo import UpdateOne
 from pymongo.errors import PyMongoError
 
 from kobo.apps.hook.utils.services import call_services
-from kobo.apps.openrosa.apps.logger.models import Instance, Note, XForm, Attachment
+from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, Note, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.openrosa.libs.utils.common_tags import (
@@ -81,6 +81,7 @@ class ParsedInstance(models.Model):
     # TODO: decide if decimal field is better than float field.
     lat = models.FloatField(null=True)
     lng = models.FloatField(null=True)
+    submitted_by = models.CharField(max_length=255, null=True, blank=True)
 
     @property
     def mongo_dict_override(self):
@@ -213,6 +214,14 @@ class ParsedInstance(models.Model):
 
         return cls._get_mongo_cursor(query, fields)
 
+    def set_submitted_by(self, save=False):
+        if not self.submitted_by and self.instance and self.instance.user:
+            self.submitted_by = self.instance.user.username
+            if save:
+                self.__class__.objects.filter(pk=self.pk).update(
+                    submitted_by=self.submitted_by
+                )
+
     @classmethod
     def _get_mongo_cursor(cls, query, fields):
         """
@@ -305,8 +314,7 @@ class ParsedInstance(models.Model):
             TAGS: list(self.instance.tags.names()),
             NOTES: self.get_notes(),
             VALIDATION_STATUS: self.instance.get_validation_status(),
-            SUBMITTED_BY: self.instance.user.username
-            if self.instance.user else None
+            SUBMITTED_BY: self.submitted_by,
         }
 
         xform = self.instance.xform
@@ -325,6 +333,7 @@ class ParsedInstance(models.Model):
         return MongoHelper.to_safe_dict(d)
 
     def update_mongo(self, asynchronous=True):
+        self.set_submitted_by(save=True)
         d = self.to_dict_for_mongo()
         if d.get('_xform_id_string') is None:
             # if _xform_id_string, Instance could not be parsed.
@@ -406,6 +415,8 @@ class ParsedInstance(models.Model):
         self.start_time = None
         self.end_time = None
         self._set_geopoint()
+        if created:
+            self.set_submitted_by()
         super().save(*args, **kwargs)
 
         # insert into Mongo.

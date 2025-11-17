@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react'
 
 import styles from '#/account/addOns/addOnList.module.scss'
-import type { Organization } from '#/account/organization/organizationQuery'
 import { useDisplayPrice } from '#/account/plans/useDisplayPrice.hook'
 import { postCheckout, postCustomerPortal } from '#/account/stripe.api'
 import type { Product, SubscriptionInfo } from '#/account/stripe.types'
+import type { OrganizationResponse } from '#/api/models/organizationResponse'
 import Button from '#/components/common/ButtonNew'
 import Select from '#/components/common/Select'
 
@@ -13,7 +13,7 @@ interface AddOnProductRowProps {
   isBusy: boolean
   setIsBusy: (value: boolean) => void
   subscribedAddOns: SubscriptionInfo[]
-  organization: Organization
+  organization: OrganizationResponse
   isRecurring?: boolean
 }
 
@@ -121,7 +121,7 @@ export const AddOnProductRow = ({
             data={products.map((product) => {
               return { value: product.id, label: product.name }
             })}
-            onChange={(productId: string | null) => onChangeProduct(productId)}
+            onChange={onChangeProduct}
             value={selectedProduct.id}
           />
           {isRecurring && (

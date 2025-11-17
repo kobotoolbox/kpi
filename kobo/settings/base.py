@@ -147,6 +147,7 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
     'kobo.apps.long_running_migrations.app.LongRunningMigrationAppConfig',
+    'kobo.apps.user_reports.apps.UserReportsConfig',
     'drf_spectacular',
 )
 
@@ -653,6 +654,10 @@ CONSTANCE_CONFIG = {
         'List (one per line) users who will be sent test emails when using the \n'
         '"test_users" query for MassEmailConfigs',
     ),
+    'ALLOW_SELF_ACCOUNT_DELETION': (
+        False,
+        'Allow users to delete their own account.',
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -782,6 +787,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'PROJECT_TRASH_GRACE_PERIOD',
         'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD',
         'AUTO_DELETE_ATTACHMENTS',
+        'ALLOW_SELF_ACCOUNT_DELETION',
     ),
     'Regular maintenance settings': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
@@ -1033,6 +1039,11 @@ SPECTACULAR_SETTINGS = {
     'ENUM_NAME_OVERRIDES': {
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
         'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
+        'MemberRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_ENUM',
+        'StripeProductType': 'kpi.schema_extensions.v2.stripe.schema.PRODUCT_TYPE_ENUM',
+        'StripePriceType': 'kpi.schema_extensions.v2.stripe.schema.PRICE_TYPE_ENUM',
+        'StripeIntervalEnum': 'kpi.schema_extensions.v2.stripe.schema.INTERVAL_ENUM',
+        'StripeUsageType': 'kpi.schema_extensions.v2.stripe.schema.USAGE_TYPE_ENUM',
     },
     # We only want to blacklist BasicHTMLRenderer, but nothing like RENDERER_WHITELIST
     # exists 🤦
@@ -1058,7 +1069,7 @@ SPECTACULAR_SETTINGS = {
         'kobo.apps.openrosa.libs.renderers.renderers.XLSXRenderer',
         'kobo.apps.openrosa.libs.renderers.renderers.CSVRenderer',
         'kobo.apps.openrosa.libs.renderers.renderers.RawXMLRenderer',
-        'kobo.apps.openrosa.libs.renderers.renderers.TemplateXMLRenderer'
+        'kobo.apps.openrosa.libs.renderers.renderers.TemplateXMLRenderer',
     ],
     'TAGS': [
         {
@@ -1099,7 +1110,7 @@ SPECTACULAR_SETTINGS = {
             'description': 'Subscribe to and manage shared library collections',
         },
         {
-            'name': 'Audit logs (superusers)',
+            'name': 'Server logs (superusers)',
             'description': 'View server-wide logs',
         },
         {
@@ -1433,6 +1444,12 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    # Schedule every 15 minutes
+    'refresh-user-report-snapshot': {
+        'task': 'kobo.apps.user_reports.tasks.refresh_user_report_snapshots',
+        'schedule': crontab(minute='*/15'),
+        'options': {'queue': 'kpi_long_running_tasks_queue'},
+    },
     # Schedule every day at midnight UTC
     'project-ownership-garbage-collector': {
         'task': 'kobo.apps.project_ownership.tasks.garbage_collector',
@@ -1472,11 +1489,6 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'kobo.apps.mass_emails.tasks.generate_mass_email_user_lists',
         'schedule': crontab(minute=0),
         'options': {'queue': 'kpi_queue'},
-    },
-    'remove-reversion-versions': {
-        'task': 'kpi.tasks.remove_old_versions',
-        'schedule': crontab(minute=0),
-        'options': {'queue': 'kpi_low_priority_queue'},
     },
 }
 
@@ -1529,6 +1541,7 @@ CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT = int(
 ACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.AccountAdapter'
 ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators'
 ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
 ACCOUNT_EMAIL_VERIFICATION = env.str('ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
 ACCOUNT_FORMS = {
     'login': 'kobo.apps.accounts.mfa.forms.MfaLoginForm',

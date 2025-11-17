@@ -14,15 +14,18 @@ darker:
 
 biome:
   - './**/*.(js|jsx|ts|tsx)'           # js or ts files.
+  - 'tsconfig.json'                    # non-source files.
   - 'biome.jsonc'                      # configuration.
   - '{package*.json,patches/*.patch}'  # npm + postinstall
   - '.github/workflows/biome.yml'      # ci
 
 openapi:
-  - '{kpi,kobo,hub}/**/*.!(md)'        # backend
-  - 'dependencies/**/*.!(md)'          # pip
-  - 'pyproject.toml'                   # (can affect build/tests)
-  - '.github/workflows/openapi.yml'    # ci
+  - '{kpi,kobo,hub}/**/*.!(md)'           # backend
+  - 'dependencies/**/*.!(md)'             # pip
+  - 'pyproject.toml'                      # (can affect build/tests)
+  - 'static/openapi/*'                    # output
+  - 'jsapp/js/api/{models,react-query}/*' # output
+  - '.github/workflows/openapi.yml'       # ci
 
 pytest:
   - '{kpi,kobo,hub}/**/*.!(md)'    # backend
@@ -31,13 +34,14 @@ pytest:
   - '.github/workflows/pytest.yml' # ci
 
 npm-test:
-  - '{jsapp,test,webpack,static,scripts}/**/*.!(md|py|sh|bash)'               # frontend
-  - 'static/openapi/*'                                                        # API
-  - '{package*.json,patches/*.patch,scripts/copy_fonts.py}'                   # npm + postinstall
-  - '{tsconfig.json,.swcrc,.babelrc*,.browserslistrc}'                        # compilers
-  - '{.editorconfig,.stylelint*,.eslint*,coffeelint*}'                        # linters
-  - '.gitignore'                                                              # (can affect tools)
-  - '.github/workflows/{npm-test,chromatic}.yml'                              # ci
+  - '{jsapp,test,webpack,static,scripts}/**/*.!(md|py|sh|bash)' # frontend
+  - '.storybook/**/*.!(md)'                                     # storybook
+  - 'static/openapi/*'                                          # API
+  - '{package*.json,patches/*.patch,scripts/copy_fonts.py}'     # npm + postinstall
+  - '{tsconfig.json,.swcrc,.babelrc*,.browserslistrc}'          # compilers
+  - '{.editorconfig,.stylelint*,.eslint*,coffeelint*}'          # linters
+  - '.gitignore'                                                # (can affect tools)
+  - '.github/workflows/{npm-test,chromatic}.yml'                # ci
 
 # Notably, not included:
 # - '.github/workflows/release-*.yml'               # not running on a PR anyways.

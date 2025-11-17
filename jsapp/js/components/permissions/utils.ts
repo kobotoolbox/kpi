@@ -13,6 +13,7 @@ import type {
 } from '#/dataInterface'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME_URL, buildUserUrl } from '#/users/utils'
+import { recordEntries, recordKeys } from '#/utils'
 import permConfig from './permConfig'
 import type {
   CheckboxNameAll,
@@ -195,7 +196,7 @@ export function hasPartialByUsers(perm: PermissionResponse) {
 
 /** Detects if given filter is of "by responses" kind. */
 export function isPartialByResponsesFilter(filter: PartialPermissionFilter) {
-  const filterKeys = Object.keys(filter)
+  const filterKeys = recordKeys(filter)
   // We are looking for an object that has some props other thane the one for
   // "by users" filter (at least one other)
   return filterKeys.some((key) => key !== '_submitted_by')
@@ -305,7 +306,7 @@ export function userHasPermForSubmission(
     // questions)
 
     // There can be only one
-    const questionPath = Object.keys(byResponsesFilter)[0]
+    const questionPath = recordKeys(byResponsesFilter)[0]
     if (!questionPath) {
       return false
     }
@@ -423,11 +424,9 @@ export function getPartialByResponsesValueName(
  */
 export function getCheckboxNameByPermission(permName: PermissionCodename): CheckboxNameAll | undefined {
   let found: CheckboxNameAll | undefined
-  for (const [checkboxName, permissionName] of Object.entries(CHECKBOX_PERM_PAIRS)) {
-    // We cast it here because for..of doesn't keep the type of the keys
-    const checkboxNameCast = checkboxName as CheckboxNameAll
+  for (const [checkboxName, permissionName] of recordEntries(CHECKBOX_PERM_PAIRS)) {
     if (permName === permissionName) {
-      found = checkboxNameCast
+      found = checkboxName
     }
   }
   return found

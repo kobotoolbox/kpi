@@ -1,19 +1,20 @@
 import React from 'react'
 
 import cx from 'classnames'
-import { ORGANIZATION_TYPES, type OrganizationTypeName } from '#/account/organization/organizationQuery'
+import Select from '#/components/common/Select'
 import { addRequiredToLabel } from '#/textUtils'
-import Select from '../components/common/Select'
+import { recordValues } from '#/utils'
 import Checkbox from '../components/common/checkbox'
 import TextBox from '../components/common/textBox'
 import envStore from '../envStore'
 import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from './account.constants'
 import styles from './accountFieldsEditor.module.scss'
+import { ORGANIZATION_TYPES } from './organization/OrganizationSettingsRoute'
 
-const ORGANIZATION_TYPE_SELECT_OPTIONS = Object.keys(ORGANIZATION_TYPES).map((typeName) => {
+const ORGANIZATION_TYPE_SELECT_OPTIONS = recordValues(ORGANIZATION_TYPES).map(({ name, label }) => {
   return {
-    value: typeName,
-    label: ORGANIZATION_TYPES[typeName as OrganizationTypeName].label,
+    value: name,
+    label: label,
   }
 })
 
@@ -105,7 +106,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
 
   function onWebsiteKeydown(event: string) {
     if (event === 'Enter') {
-      updateWebsiteAddress(props.values.organization_website)
+      updateWebsiteAddress(props.values.organization_website || '')
     }
   }
 
@@ -220,7 +221,8 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 name='gender'
                 clearable={!isFieldRequired('gender')}
                 value={props.values.gender}
-                onChange={(value: string | null) => onAnyFieldChange('gender', value || '')}
+                onChange={(value) => onAnyFieldChange('gender', value || '')}
+                onClear={() => onAnyFieldChange('gender', '')}
                 data={GENDER_SELECT_OPTIONS}
                 error={props.errors?.gender}
               />
@@ -247,7 +249,8 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 name='country'
                 clearable={!isFieldRequired('country')}
                 value={props.values.country}
-                onChange={(value: string | null) => onAnyFieldChange('country', value || '')}
+                onChange={(value) => onAnyFieldChange('country', value || '')}
+                onClear={() => onAnyFieldChange('country', '')}
                 data={envStore.data.country_choices}
                 error={props.errors?.country}
               />
@@ -262,7 +265,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               <TextBox
                 label={getLabel('city')}
                 required={isRequired('city')}
-                value={props.values.city}
+                value={props.values.city || ''}
                 onChange={onAnyFieldChange.bind(onAnyFieldChange, 'city')}
                 errors={props.errors?.city}
               />
@@ -280,7 +283,8 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 name='sector'
                 clearable={!isFieldRequired('sector')}
                 value={props.values.sector}
-                onChange={(value: string | null) => onAnyFieldChange('sector', value || '')}
+                onChange={(value) => onAnyFieldChange('sector', value || '')}
+                onClear={() => onAnyFieldChange('sector', '')}
                 data={envStore.data.sector_choices}
                 error={props.errors?.sector}
               />
@@ -299,7 +303,8 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 name='organization_type'
                 clearable={!isFieldRequired('organization_type')}
                 value={props.values.organization_type}
-                onChange={(value: string | null) => onAnyFieldChange('organization_type', value || '')}
+                onChange={(value) => onAnyFieldChange('organization_type', value || '')}
+                onClear={() => onAnyFieldChange('organization_type', '')}
                 data={ORGANIZATION_TYPE_SELECT_OPTIONS}
                 error={props.errors?.organization_type}
               />
@@ -337,7 +342,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             <TextBox
               label={getLabel('organization_website')}
               type='url'
-              value={props.values.organization_website}
+              value={props.values.organization_website || ''}
               required={isRequired('organization_website')}
               onChange={onAnyFieldChange.bind(onAnyFieldChange, 'organization_website')}
               onBlur={updateWebsiteAddress}
@@ -356,7 +361,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               type='text-multiline'
               label={getLabel('bio')}
               required={isRequired('bio')}
-              value={props.values.bio}
+              value={props.values.bio || ''}
               onChange={onAnyFieldChange.bind(onAnyFieldChange, 'bio')}
               errors={props.errors?.bio}
             />
@@ -376,7 +381,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 <TextBox
                   startIcon='logo-twitter'
                   placeholder={getLabelWithRequired('twitter')}
-                  value={props.values.twitter}
+                  value={props.values.twitter || ''}
                   onChange={onAnyFieldChange.bind(onAnyFieldChange, 'twitter')}
                   errors={props.errors?.twitter}
                 />
@@ -389,7 +394,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 <TextBox
                   startIcon='logo-linkedin'
                   placeholder={getLabelWithRequired('linkedin')}
-                  value={props.values.linkedin}
+                  value={props.values.linkedin || ''}
                   onChange={onAnyFieldChange.bind(onAnyFieldChange, 'linkedin')}
                   errors={props.errors?.linkedin}
                 />
@@ -402,7 +407,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 <TextBox
                   startIcon='logo-instagram'
                   placeholder={getLabelWithRequired('instagram')}
-                  value={props.values.instagram}
+                  value={props.values.instagram || ''}
                   onChange={onAnyFieldChange.bind(onAnyFieldChange, 'instagram')}
                   errors={props.errors?.instagram}
                 />
@@ -419,7 +424,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
             <div className={styles.field}>
               <label className={styles.checkboxLabel}>{t('Newsletter')}</label>
               <Checkbox
-                checked={props.values.newsletter_subscription}
+                checked={props.values.newsletter_subscription || false}
                 onChange={(isChecked: boolean) => onAnyFieldChange('newsletter_subscription', isChecked)}
                 label={getLabel('newsletter_subscription')}
               />

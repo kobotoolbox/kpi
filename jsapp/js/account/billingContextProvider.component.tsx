@@ -1,13 +1,9 @@
 import React, { type ReactNode } from 'react'
-
-import { useOrganizationQuery } from '#/account/organization/organizationQuery'
 import { ProductsContext, useProducts } from '#/account/useProducts.hook'
 import sessionStore from '#/stores/session'
 import { OneTimeAddOnsContext, useOneTimeAddOns } from './useOneTimeAddonList.hook'
 
 export const BillingContextProvider = (props: { children: ReactNode }) => {
-  const orgQuery = useOrganizationQuery()
-
   if (!sessionStore.isLoggedIn) {
     return <>{props.children}</>
   }

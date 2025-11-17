@@ -14,6 +14,7 @@ from kobo.apps.organizations.views import (
 )
 from kobo.apps.project_ownership.urls import router as project_ownership_router
 from kobo.apps.project_views.views import ProjectViewViewSet
+from kobo.apps.user_reports.views import UserReportsViewSet
 from kpi.constants import API_NAMESPACES
 from kpi.renderers import BasicHTMLRenderer
 from kpi.views.v2.asset import AssetViewSet
@@ -187,7 +188,7 @@ router_api_v2.register(r'project-views', ProjectViewViewSet)
 router_api_v2.register(r'service_usage',
                        ServiceUsageViewSet, basename='service-usage')
 router_api_v2.register(r'users', UserViewSet, basename='user-kpi')
-
+router_api_v2.register(r'user-reports', UserReportsViewSet, basename='user-reports')
 router_api_v2.register(r'tags', TagViewSet, basename='tags')
 router_api_v2.register(
     r'terms-of-service', TermsOfServiceViewSet, basename='terms-of-service'
@@ -220,16 +221,12 @@ enketo_url_aliases = [
     ),
     path(
         'assets/<uid_asset>/data/<pk>/enketo/redirect/edit/',
-        DataViewSet.as_view(
-            {'get': 'enketo_edit'}, renderer_classes=[JSONRenderer]
-        ),
+        DataViewSet.as_view({'get': 'enketo_edit'}, renderer_classes=[JSONRenderer]),
         name='submission-enketo-edit-redirect',
     ),
     path(
         'assets/<uid_asset>/data/<pk>/enketo/redirect/view/',
-        DataViewSet.as_view(
-            {'get': 'enketo_view'}, renderer_classes=[JSONRenderer]
-        ),
+        DataViewSet.as_view({'get': 'enketo_view'}, renderer_classes=[JSONRenderer]),
         name='submission-enketo-view-redirect',
     ),
 ]

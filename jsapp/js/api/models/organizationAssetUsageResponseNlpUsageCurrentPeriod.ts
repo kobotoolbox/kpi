@@ -11,6 +11,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 
 export type OrganizationAssetUsageResponseNlpUsageCurrentPeriod = {
-  total_nlp_asr_seconds?: number
-  total_nlp_mt_characters?: number
+  total_nlp_asr_seconds: number
+  total_nlp_mt_characters: number
 }

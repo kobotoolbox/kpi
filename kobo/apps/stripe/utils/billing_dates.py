@@ -3,6 +3,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.db.models import F, Max, Q, Window
 from django.utils import timezone
 
@@ -10,16 +11,30 @@ from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import BillingDates
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.stripe.utils.import_management import requires_stripe
+from kobo.apps.user_reports.typing_aliases import OrganizationIterator
 
 
-@requires_stripe
 def get_current_billing_period_dates_by_org(
-    orgs: list[Organization] = None, **kwargs
+    orgs: OrganizationIterator = None, **kwargs
 ) -> dict[str, BillingDates]:
 
     now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
     first_of_this_month = datetime(now.year, now.month, 1, tzinfo=ZoneInfo('UTC'))
     first_of_next_month = first_of_this_month + relativedelta(months=1)
+
+    if not settings.STRIPE_ENABLED:
+        results = {}
+        if orgs is not None:
+            for org in orgs:
+                results[org.id] = {
+                    'start': first_of_this_month,
+                    'end': first_of_next_month,
+                }
+            return results
+
+        for org in Organization.objects.all():
+            results[org.id] = {'start': first_of_this_month, 'end': first_of_next_month}
+        return results
 
     # check 1: look for active subscriptions
     all_active_billing_dates = get_current_billing_period_dates_for_active_plans(orgs)

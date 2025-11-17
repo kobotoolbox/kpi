@@ -39,6 +39,7 @@ from pyxform.errors import PyXFormError
 from pyxform.xform2json import create_survey_element_from_xml
 from rest_framework.exceptions import NotAuthenticated
 
+from kobo.apps.data_collectors.authentication import DataCollectorUser
 from kobo.apps.openrosa.apps.logger.exceptions import (
     AccountInactiveError,
     ConflictingAttachmentBasenameError,
@@ -122,7 +123,6 @@ def check_submission_permissions(
     if not xform.require_auth:
         # Anonymous submissions are allowed!
         return
-
     if request and request.user.is_anonymous:
         raise NotAuthenticated
 
@@ -184,10 +184,8 @@ def create_instance(
         date_created_override (datetime, optional): Override for the submission's
                                                     creation date.
         request (Optional[Request]): Request object used for permission checks.
-        check_usage_limits (bool, optional): For testing purposes, bypasses
-                                             checking whether asset owner
-                                             is over allowed submission/storage
-                                             limit.
+        check_usage_limits (bool, optional): Bypasses enforcement of limits for
+                                             submissions/storage.
 
     Returns:
         Instance: The updated or newly created submission instance
@@ -221,7 +219,8 @@ def create_instance(
             if balance and balance['exceeded']:
                 check_exceeded_limit(xform.user, UsageType.SUBMISSION)
                 check_exceeded_limit(xform.user, UsageType.STORAGE_BYTES)
-                raise ExceededUsageLimitError()
+
+                raise ExceededUsageLimitError({'type': usage_type})
 
     # get root uuid
     root_uuid, fallback_on_uuid = get_root_uuid_from_xml(xml)
@@ -470,10 +469,17 @@ def http_open_rosa_error_handler(func, request):
     except TemporarilyUnavailableError:
         result.error = t('Temporarily unavailable')
         result.http_error_response = OpenRosaTemporarilyUnavailable(result.error)
-    except ExceededUsageLimitError:
-        result.error = t(
-            'The owner of this survey has exceeded their submission limit.'
-        )
+    except ExceededUsageLimitError as e:
+        type = e.args[0].get('type', '')
+        if type == UsageType.SUBMISSION:
+            result.error = t(
+                'The owner of this survey has exceeded their submission limit.'
+            )
+        elif type == UsageType.STORAGE_BYTES:
+            result.error = t(
+                'The owner of this survey has exceeded their storage limit.'
+            )
+
         result.http_error_response = OpenRosaResponsePaymentRequired(result.error)
     except AccountInactiveError:
         result.error = t('Account is not active')
@@ -796,9 +802,12 @@ def save_attachments(
     new_attachments = []
     total_bytes = 0
     has_new_attachments = False
-
     for f in media_files:
-        media_file_basename = os.path.basename(f.name)
+        # It is available, use `_raw_filename` provided by
+        # `MultiPartParserWithRawFilenames` to preserve the original filename
+        # before Django’s sanitizing process.
+        original_name = getattr(f, '_raw_filename', None) or f.name
+        media_file_basename = os.path.basename(original_name)
 
         # The basename of a (non-deleted) attachment must be unique per instance.
         existing_attachment = Attachment.objects.filter(
@@ -956,11 +965,12 @@ def _get_instance(
         instance.xml = xml
         instance.uuid = new_uuid
     else:
-        submitted_by = (
-            get_database_user(request.user)
-            if request and request.user.is_authenticated
-            else None
+        get_user = (
+            request
+            and request.user.is_authenticated
+            and not isinstance(request.user, DataCollectorUser)
         )
+        submitted_by = get_database_user(request.user) if get_user else None
 
         if not date_created_override:
             date_created_override = get_submission_date_from_xml(xml)
