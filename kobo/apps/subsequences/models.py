@@ -169,15 +169,7 @@ class SubmissionSupplement(SubmissionExtras):
                 continue
 
             for action_id, action_data in data_for_this_question.items():
-                try:
-                    question_advanced_action = action_configs_for_this_question.get(action=action_id)
-                except QuestionAdvancedAction.DoesNotExist:
-                    # An action class present in the submission data is no longer
-                    # configured at the asset level for this question
-                    # Allow this for now, but maybe forbid later and also forbid
-                    # removing things from the asset-level action configuration?
-                    # Actions could be disabled or hidden instead of being removed
-                    continue
+                question_advanced_action = action_configs_for_this_question.get(action=action_id)
 
                 action = question_advanced_action_to_action(question_advanced_action)
 

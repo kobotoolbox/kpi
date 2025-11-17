@@ -8,13 +8,13 @@ from ...openrosa.apps.logger.xform_instance_parser import get_abbreviated_xpath
 
 def migrate_advanced_features(asset: 'kpi.models.Asset') -> dict | None:
     advanced_features = asset.advanced_features
+    known_cols = set([col.split(":")[0] for col in asset.known_cols])
+
     if advanced_features == {}:
         return
 
     xform = XForm.objects.get(kpi_asset_uid=asset.uid)
-    data_dict = xform.data_dictionary()
 
-    audio_questions = data_dict.get_survey_elements_of_type('audio')
     with transaction.atomic():
         for key, value in advanced_features.items():
             if (
@@ -23,7 +23,7 @@ def migrate_advanced_features(asset: 'kpi.models.Asset') -> dict | None:
                 and 'languages' in value
                 and value['languages']
             ):
-                for q in audio_questions:
+                for q in known_cols:
                     QuestionAdvancedAction.objects.create(
                         question_xpath=get_abbreviated_xpath(q),
                         asset=asset,
@@ -39,7 +39,7 @@ def migrate_advanced_features(asset: 'kpi.models.Asset') -> dict | None:
                 and 'languages' in value
                 and value['languages']
             ):
-                for q in audio_questions:
+                for q in known_cols:
                     QuestionAdvancedAction.objects.create(
                         question_xpath=get_abbreviated_xpath(q),
                         asset=asset,
