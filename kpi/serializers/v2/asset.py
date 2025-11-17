@@ -343,9 +343,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     map_custom = WriteableJsonWithSchemaField(
         schema_field=MapCustomField, required=False
     )
-    advanced_features = WriteableJsonWithSchemaField(
-        schema_field=AdvancedFeatureField, required=False
-    )
     files = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
     summary = ReadOnlyFieldWithSchemaField(schema_field=SummaryField)
@@ -403,6 +400,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     paired_data = serializers.SerializerMethodField()
     project_ownership = serializers.SerializerMethodField()
     kind = serializers.SerializerMethodField()
+    advanced_features = ''
 
     class Meta:
         model = Asset
@@ -435,7 +433,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             'deployment_status',
             'report_styles',
             'report_custom',
-            'advanced_features',
             'supplemental_output_fields',
             'map_styles',
             'map_custom',

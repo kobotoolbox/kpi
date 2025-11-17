@@ -28,6 +28,8 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     remove_uuid_prefix,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
+from kobo.apps.subsequences.models import QuestionAdvancedAction
+from kobo.apps.subsequences.constants import Action
 from kpi.constants import (
     ASSET_TYPE_TEMPLATE,
     CLONE_ARG_NAME,
@@ -559,37 +561,35 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             use_v2=use_v2,
         )
 
+    def test_add_qa_creates_log(self):
+        request_data = {"action":"qual", "question_xpath":"Audio", "params": [{"labels": {"_default":"wherefore?"},"uuid":"12345", "type":"qualText"}]}
+        metadata = self._base_project_history_log_test(
+            self.client.post,
+            reverse('api_v2:advanced-features-list', args=[self.asset.uid]),
+            request_data = request_data,
+            expected_action = AuditAction.UPDATE_QA,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE
+        )
+        self.assertEqual(metadata['qa']['new'], request_data['params'])
+
     def test_update_qa_creates_log(self):
-        request_data = {
-            'advanced_features': {
-                'qual': {
-                    'qual_survey': [
-                        {
-                            'type': 'qual_note',
-                            'uuid': '12345',
-                            'scope': 'by_question#survey',
-                            'xpath': 'q1',
-                            'labels': {'_default': 'QA Question'},
-                            # requests to remove a question just add this
-                            # option rather than actually deleting anything
-                            'options': {'deleted': True},
-                        }
-                    ]
-                }
-            }
-        }
-
-        log_metadata = self._base_asset_detail_endpoint_test(
-            patch=True,
-            url_name=self.detail_url,
-            request_data=request_data,
-            expected_action=AuditAction.UPDATE_QA,
+        question_qual_action = QuestionAdvancedAction.objects.create(
+            asset=self.asset,
+            action=Action.QUAL,
+            question_xpath='q1',
+            params=[{"labels": {"_default": "why?"}, "uuid":"12345", "type":"qualText"}]
         )
-
-        self.assertEqual(
-            log_metadata['qa'][PROJECT_HISTORY_LOG_METADATA_FIELD_NEW],
-            request_data['advanced_features']['qual']['qual_survey'],
+        request_data = {"params": [{"labels": {"_default":"wherefore?"},"uuid":"12345", "type":"qualText"}]}
+        metadata = self._base_project_history_log_test(
+            self.client.patch,
+            reverse('api_v2:advanced-features-detail', args=[self.asset.uid, question_qual_action.uid]),
+            request_data = request_data,
+            expected_action = AuditAction.UPDATE_QA,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE
         )
+        self.assertEqual(metadata['qa']['new'], request_data['params'])
+
+
 
     def test_failed_qa_update_does_not_create_log(self):
         # badly formatted QA dict should result in an error before update

@@ -2,32 +2,34 @@ import jsonschema.exceptions
 from rest_framework import serializers
 
 from kobo.apps.subsequences.models import QuestionAdvancedAction
+from kobo.apps.subsequences.utils.action_conversion import question_advanced_action_to_action
 
 
 class QuestionAdvancedActionUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuestionAdvancedAction
-        fields = ['config']
-        read_only_fields = ['question_xpath', 'action', 'asset']
+        fields = ['params', 'question_xpath', 'action', 'asset', 'uid']
+        read_only_fields = ['question_xpath', 'action', 'asset', 'uid']
 
     def validate(self, attrs):
         data = super().validate(attrs)
-        action = self.instance.to_action()
+        action = question_advanced_action_to_action(instance)
         try:
-            action.__class__.validate_params(attrs['config'])
+            action.__class__.validate_params(attrs['params'])
         except jsonschema.exceptions.ValidationError as ve:
             raise serializers.ValidationError(ve)
         return data
 
     def update(self, instance, validated_data):
-        action = instance.to_action()
-        action.update_params(validated_data['config'])
-        instance.config = action.params
-        instance.save(update_fields=['config'])
+        action = question_advanced_action_to_action(instance)
+        action.update_params(validated_data['params'])
+        instance.params = action.params
+        instance.save(update_fields=['params'])
         return instance
 
 
 class QuestionAdvancedActionSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuestionAdvancedAction
-        fields = ['question_xpath', 'action', 'config']
+        fields = ['question_xpath', 'action', 'params', 'uid']
+        read_only_fields = ['uid']

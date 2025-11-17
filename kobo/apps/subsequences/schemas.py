@@ -2,7 +2,6 @@ import jsonschema
 
 from .actions import ACTION_IDS_TO_CLASSES, ACTIONS
 from .constants import SCHEMA_VERSIONS
-from .utils.versioning import migrate_advanced_features
 
 # not the full complexity of XPath, but a slash-delimited path of valid XML tag
 # names to convey group hierarchy
@@ -34,8 +33,6 @@ def validate_submission_supplement(asset: 'kpi.models.Asset', supplement: dict):
 
 def get_submission_supplement_schema(asset: 'kpi.models.Asset') -> dict:
 
-    if migrated_schema := migrate_advanced_features(asset.advanced_features):
-        asset.advanced_features = migrated_schema
 
     submission_supplement_schema = {
         'additionalProperties': False,

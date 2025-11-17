@@ -1,13 +1,13 @@
 from django.db import models
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
-from kpi.fields import KpiUidField, LazyDefaultJSONBField
+from kpi.fields import LazyDefaultJSONBField, KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
-from .actions import ACTION_IDS_TO_CLASSES
-from .actions.base import BaseAction
-from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD
+
+from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD, Action
 from .exceptions import InvalidAction, InvalidXPath
 from .schemas import validate_submission_supplement
+from .utils.action_conversion import question_advanced_action_to_action
 
 
 class SubmissionExtras(AbstractTimeStampedModel):
@@ -36,7 +36,7 @@ class SubmissionSupplement(SubmissionExtras):
     @staticmethod
     def revise_data(asset: 'kpi.Asset', submission: dict, incoming_data: dict) -> dict:
 
-        if not asset.advanced_features_set.objects.exists():
+        if not asset.advanced_features_set.exists():
             raise InvalidAction
 
         schema_version = incoming_data.get('_version')
@@ -47,10 +47,6 @@ class SubmissionSupplement(SubmissionExtras):
 
         if schema_version != SCHEMA_VERSIONS[0]:
             # TODO: migrate from old per-submission schema
-            raise NotImplementedError
-
-        if asset.advanced_features.get('_version') != schema_version:
-            # TODO: migrate from old per-asset schema
             raise NotImplementedError
 
         submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])  # constant?
@@ -74,15 +70,11 @@ class SubmissionSupplement(SubmissionExtras):
 
             for action_id, action_data in data_for_this_question.items():
                 try:
-                    action_class = ACTION_IDS_TO_CLASSES[action_id]
-                except KeyError as e:
-                    raise InvalidAction from e
-                try:
-                    action_params = action_configs_for_this_question.get(action=action_id).config
+                    question_advanced_action = action_configs_for_this_question.get(action=action_id)
                 except QuestionAdvancedAction.DoesNotExist as e:
                     raise InvalidAction from e
 
-                action = action_class(question_xpath, action_params, asset)
+                action = question_advanced_action_to_action(question_advanced_action)
                 action.check_limits(asset.owner)
 
                 question_supplemental_data = supplemental_data.setdefault(
@@ -161,7 +153,7 @@ class SubmissionSupplement(SubmissionExtras):
             # TODO: migrate from old per-submission schema
             raise NotImplementedError
 
-        if asset.advanced_features.get('_version') != schema_version:
+        if not asset.advanced_features_set.exists():
             # TODO: migrate from old per-asset schema
             raise NotImplementedError
 
@@ -178,14 +170,7 @@ class SubmissionSupplement(SubmissionExtras):
 
             for action_id, action_data in data_for_this_question.items():
                 try:
-                    action_class = ACTION_IDS_TO_CLASSES[action_id]
-                except KeyError:
-                    # An action class present in the submission data no longer
-                    # exists in the application code
-                    # TODO: log an error
-                    continue
-                try:
-                    action_params = action_configs_for_this_question.get(action=action_id)
+                    question_advanced_action = action_configs_for_this_question.get(action=action_id)
                 except QuestionAdvancedAction.DoesNotExist:
                     # An action class present in the submission data is no longer
                     # configured at the asset level for this question
@@ -194,7 +179,7 @@ class SubmissionSupplement(SubmissionExtras):
                     # Actions could be disabled or hidden instead of being removed
                     continue
 
-                action = action_class(question_xpath, action_params)
+                action = question_advanced_action_to_action(question_advanced_action)
 
                 retrieved_data = action.retrieve_data(action_data)
                 processed_data_for_this_question[action_id] = retrieved_data
@@ -225,12 +210,6 @@ class SubmissionSupplement(SubmissionExtras):
 
         return retrieved_supplemental_data
 
-class Action(models.TextChoices):
-    MANUAL_TRANSCRIPTION = 'manual_transcription'
-    MANUAL_TRANSLATION = 'manual_translation'
-    AUTOMATIC_GOOGLE_TRANSLATION = 'automatic_google_translation'
-    AUTOMATIC_GOOGLE_TRANSCRIPTION = 'automatic_google_transcription'
-    QUAL = 'qual'
 
 class QuestionAdvancedAction(models.Model):
     uid = KpiUidField(uid_prefix='qaa', primary_key=True)
@@ -246,15 +225,7 @@ class QuestionAdvancedAction(models.Model):
     question_xpath = models.CharField(
         null=False, blank=False, max_length=2000
     )
-    config = LazyDefaultJSONBField(default=dict)
+    params = LazyDefaultJSONBField(default=dict)
 
     class Meta:
         unique_together = ('asset_id', 'question_xpath', 'action')
-
-    def to_action(self) -> BaseAction:
-        action_class = ACTION_IDS_TO_CLASSES[self.action]
-        return action_class(
-            source_question_xpath=self.question_xpath,
-            params=self.config,
-            asset=self.asset,
-        )

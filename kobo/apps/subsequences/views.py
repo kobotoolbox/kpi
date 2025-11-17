@@ -1,6 +1,8 @@
 from rest_framework import mixins, viewsets
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kobo.apps.audit_log.base_views import AuditLoggedViewSet
+from kobo.apps.audit_log.models import AuditType
 from kobo.apps.subsequences.models import QuestionAdvancedAction
 from kobo.apps.subsequences.serializers import (
     QuestionAdvancedActionSerializer,
@@ -10,7 +12,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 class QuestionAdvancedActionViewSet(
-    viewsets.GenericViewSet,
+    AuditLoggedViewSet,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
@@ -18,9 +20,13 @@ class QuestionAdvancedActionViewSet(
     AssetNestedObjectViewsetMixin,
     NestedViewSetMixin,
 ):
+    log_type = AuditType.PROJECT_HISTORY
+    logged_fields = ['asset.owner.username', 'action', 'params',('object_id', 'asset.id'),]
+    pagination_class = None
     def get_queryset(self):
         return QuestionAdvancedAction.objects.filter(asset=self.asset)
-    def perform_create(self, serializer):
+    def perform_create_override(self, serializer):
+
         serializer.save(asset=self.asset)
     def get_serializer_class(self):
         if self.action in ['update', 'partial_update']:

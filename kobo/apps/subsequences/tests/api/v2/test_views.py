@@ -23,7 +23,7 @@ class QuestionAdvancedActionViewSetTestCase(BaseTestCase):
             asset=self.asset,
             question_xpath='q1',
             action='manual_transcription',
-            config=[{'language': 'en'}],
+            params=[{'language': 'en'}],
         )
         self.list_actions_url = reverse(
             'api_v2:advanced-features-list',
@@ -43,28 +43,28 @@ class QuestionAdvancedActionViewSetTestCase(BaseTestCase):
         res = self.client.patch(
             self.action_detail_url,
             content_type='application/json',
-            data=json.dumps({'config': [{'language': 'es'}]}),
+            data=json.dumps({'question_xpath': 'bad'}),
         )
         assert res.status_code == status.HTTP_200_OK
         self.action.refresh_from_db()
-        assert self.action.config == [{'language': 'en'}, {'language': 'es'}]
+        assert self.action.params == [{'language': 'en'}, {'language': 'es'}]
 
     def test_cannot_update_action_with_invalid_params(self):
         res = self.client.patch(
             self.action_detail_url,
             content_type='application/json',
-            data=json.dumps({'config': [{'bad': 'stuff'}]}),
+            data=json.dumps({'params': [{'bad': 'stuff'}]}),
         )
         assert res.status_code == status.HTTP_400_BAD_REQUEST
         self.action.refresh_from_db()
-        assert self.action.config == [{'language': 'en'}]
+        assert self.action.params == [{'language': 'en'}]
 
     def test_create_action(self):
         res = self.client.post(
             self.list_actions_url,
             data={
                 'action': 'manual_translation',
-                'config': json.dumps([{'language': 'de'}]),
+                'params': json.dumps([{'language': 'de'}]),
                 'question_xpath': 'q1',
             },
         )
@@ -72,7 +72,7 @@ class QuestionAdvancedActionViewSetTestCase(BaseTestCase):
         new_action = QuestionAdvancedAction.objects.get(
             asset=self.asset, action='manual_translation'
         )
-        assert new_action.config == [{'language': 'de'}]
+        assert new_action.params == [{'language': 'de'}]
         assert new_action.question_xpath == 'q1'
 
     def test_cannot_delete_actions(self):

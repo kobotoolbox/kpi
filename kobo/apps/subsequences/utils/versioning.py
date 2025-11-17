@@ -1,44 +1,58 @@
-from ..constants import SCHEMA_VERSIONS
+from django.db import transaction
+
+from ..constants import SCHEMA_VERSIONS, Action
+from ..models import QuestionAdvancedAction
+from ...openrosa.apps.logger.models import XForm
+from ...openrosa.apps.logger.xform_instance_parser import get_abbreviated_xpath
 
 
-def migrate_advanced_features(advanced_features: dict) -> dict | None:
-
-    if advanced_features.get('_version') == SCHEMA_VERSIONS[0]:
+def migrate_advanced_features(asset: 'kpi.models.Asset') -> dict | None:
+    advanced_features = asset.advanced_features
+    if advanced_features == {}:
         return
 
-    migrated_advanced_features = {
-        '_version': SCHEMA_VERSIONS[0],
-        '_actionConfigs': {}
-    }
+    xform = XForm.objects.get(kpi_asset_uid=asset.uid)
+    data_dict = xform.data_dictionary()
 
-    actionConfigs = migrated_advanced_features['_actionConfigs']
-    for key, value in advanced_features.items():
-        if (
-            key == 'transcript'
-            and value
-            and 'languages' in value
-            and value['languages']
-        ):
-            actionConfigs['manual_transcription'] = [
-                {'language': language} for language in value['languages']
-            ]
+    audio_questions = data_dict.get_survey_elements_of_type('audio')
+    with transaction.atomic():
+        for key, value in advanced_features.items():
+            if (
+                key == 'transcript'
+                and value
+                and 'languages' in value
+                and value['languages']
+            ):
+                for q in audio_questions:
+                    QuestionAdvancedAction.objects.create(
+                        question_xpath=get_abbreviated_xpath(q),
+                        asset=asset,
+                        action=Action.MANUAL_TRANSCRIPTION,
+                        params=[
+                            {'language': language} for language in value['languages']
+                        ]
+                    )
 
-        if (
-            key == 'translation'
-            and value
-            and 'languages' in value
-            and value['languages']
-        ):
-            actionConfigs['manual_translation'] = [
-                {'language': language} for language in value['languages']
-            ]
+            if (
+                key == 'translation'
+                and value
+                and 'languages' in value
+                and value['languages']
+            ):
+                for q in audio_questions:
+                    QuestionAdvancedAction.objects.create(
+                        question_xpath=get_abbreviated_xpath(q),
+                        asset=asset,
+                        action=Action.MANUAL_TRANSCRIPTION,
+                        params=[
+                            {'language': language} for language in value['languages']
+                        ]
+                    )
+            if key == 'qual':
+                # TODO: DEV-1295
+                pass
+        asset.advanced_features = {}
+        asset.save(update_fields=['advanced_features'], adjust_content=False)
 
-        if key == 'qual':
-            raise NotImplementedError
-
-    return migrated_advanced_features
 
 
-def set_version(schema: dict) -> dict:
-    schema['_version'] = SCHEMA_VERSIONS[0]
-    return schema

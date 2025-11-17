@@ -2,9 +2,9 @@ from typing import Generator
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
-from kobo.apps.subsequences.constants import SUBMISSION_UUID_FIELD, SUPPLEMENT_KEY, \
-    SCHEMA_VERSIONS
+from kobo.apps.subsequences.constants import SUBMISSION_UUID_FIELD, SUPPLEMENT_KEY
 from kobo.apps.subsequences.models import SubmissionSupplement
+from kobo.apps.subsequences.utils.action_conversion import question_advanced_action_to_action
 from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
 
 
@@ -37,21 +37,13 @@ def get_supplemental_output_fields(asset: 'kpi.models.Asset') -> list[dict]:
     submission. We'll do that by looking at the acceptance dates and letting
     the most recent win
     """
-    advanced_features = asset.advanced_features
-
-    if migrated_schema := migrate_advanced_features(advanced_features):
-        asset.advanced_features = migrated_schema
+    advanced_features = asset.advanced_features_set.all()
 
     output_fields_by_name = {}
     # FIXME: `_actionConfigs` is 👎 and should be dropped in favor of top-level configs, eh?
     # data already exists at the top level alongisde leading-underscore metadata like _version
-    for source_question_xpath, per_question_actions in advanced_features[
-        '_actionConfigs'
-    ].items():
-        for action_id, action_config in per_question_actions.items():
-            action = ACTION_IDS_TO_CLASSES[action_id](
-                source_question_xpath, action_config
-            )
+    for question_advanced_action in advanced_features:
+            action = question_advanced_action_to_action(question_advanced_action)
             for field in action.get_output_fields():
                 try:
                     existing = output_fields_by_name[field['name']]
@@ -98,3 +90,4 @@ def stream_with_supplements(
             prefetched_supplement=extras.get(submission_uuid, {}),
         )
         yield submission
+
