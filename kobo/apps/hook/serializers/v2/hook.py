@@ -23,11 +23,12 @@ from kpi.utils.schema_extensions.fields import (
 
 class HookSerializer(serializers.ModelSerializer):
 
-    payload_template = serializers.CharField(required=False, allow_blank=True,
-                                             allow_null=True)
+    payload_template = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True
+    )
 
-    settings = JSONFieldWithSchemaField(SettingsField)
-    subset_fields = ListFieldWithSchemaField(SubsetFieldsField)
+    settings = JSONFieldWithSchemaField(SettingsField, required=False)
+    subset_fields = ListFieldWithSchemaField(SubsetFieldsField, required=False)
 
     class Meta:
         model = Hook
