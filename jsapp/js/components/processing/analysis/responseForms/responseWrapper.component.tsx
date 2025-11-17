@@ -99,12 +99,6 @@ export default function ResponseWrapper(props: ResponseWrapperProps) {
     }
   }
 
-  function handleClear() {
-    if (props?.onClear) {
-      props.onClear()
-    }
-  }
-
   return (
     <Stack gap={0}>
       <Group align={'flex-start'} gap={'xs'} mb={'xs'} display={'flex'}>
