@@ -8,7 +8,7 @@ AdvancedFeatureResponse = inline_serializer_class(
     fields={
         'question_xpath': serializers.CharField(),
         'action': serializers.CharField(),
-        'params': AdvancedFeatureParamsField,
+        'params': AdvancedFeatureParamsField(),
         'asset': serializers.CharField(),
     },
 )

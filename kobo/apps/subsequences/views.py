@@ -11,6 +11,7 @@ from kobo.apps.subsequences.serializers import (
     QuestionAdvancedActionSerializer,
     QuestionAdvancedActionUpdateSerializer,
 )
+from kpi.permissions import AssetNestedObjectPermission, AssetPermission
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
@@ -69,7 +70,7 @@ from kpi.utils.schema_extensions.response import (
     retrieve=extend_schema(
         description=read_md('subsequences', 'subsequences/retrieve.md'),
         responses=open_api_200_ok_response(
-            QuestionAdvancedActionSerializer,
+            AdvancedFeatureResponse,
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
@@ -100,6 +101,7 @@ class QuestionAdvancedActionViewSet(
     log_type = AuditType.PROJECT_HISTORY
     logged_fields = ['asset.owner.username', 'action', 'params',('object_id', 'asset.id'),]
     pagination_class = None
+    permission_classes = (AssetPermission,)
     def get_queryset(self):
         return QuestionAdvancedAction.objects.filter(asset=self.asset)
     def perform_create_override(self, serializer):
