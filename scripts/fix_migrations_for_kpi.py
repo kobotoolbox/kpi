@@ -1,8 +1,13 @@
-from django.conf import settings
-from django.db import connection, connections
+from django.db import connection
+
+from .fix_migrations_for_kobocat import are_migration_already_applied
 
 
 def run():
+
+    if not are_migration_already_applied():
+        return
+
     if should_fix_internal_mfa_app_label():
         fix_internal_mfa_app_label()
 
