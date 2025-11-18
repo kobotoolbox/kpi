@@ -8,6 +8,7 @@ from freezegun import freeze_time
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.subsequences.models import QuestionAdvancedAction
 from kobo.apps.subsequences.tests.api.v2.base import SubsequenceBaseTestCase
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
@@ -137,17 +138,11 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
             self.client.force_login(user)
 
         # Activate advanced features for the project
-        self.set_asset_advanced_features(
-            {
-                '_version': '20250820',
-                '_actionConfigs': {
-                    'q1': {
-                        'manual_transcription': [
-                            {'language': 'es'},
-                        ]
-                    }
-                },
-            }
+        QuestionAdvancedAction.objects.create(
+            question_xpath='q1',
+            action='manual_transcription',
+            params=[{'language': 'es'}],
+            asset=self.asset,
         )
 
         if shared:
@@ -172,10 +167,12 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
                         '_dateModified': '2024-04-08T15:27:00Z',
                         '_versions': [
                             {
+                                '_data': {
+                                    'language': 'es',
+                                    'value': 'buenas noches',
+                                },
                                 '_dateCreated': '2024-04-08T15:27:00Z',
                                 '_dateAccepted': '2024-04-08T15:27:00Z',
-                                'language': 'es',
-                                'value': 'buenas noches',
                                 '_uuid': '11111111-2222-3333-4444-555555555555',
                             }
                         ],

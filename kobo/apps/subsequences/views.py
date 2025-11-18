@@ -1,4 +1,4 @@
-from rest_framework import mixins, viewsets
+from rest_framework import mixins
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
@@ -26,7 +26,6 @@ class QuestionAdvancedActionViewSet(
     def get_queryset(self):
         return QuestionAdvancedAction.objects.filter(asset=self.asset)
     def perform_create_override(self, serializer):
-
         serializer.save(asset=self.asset)
     def get_serializer_class(self):
         if self.action in ['update', 'partial_update']:

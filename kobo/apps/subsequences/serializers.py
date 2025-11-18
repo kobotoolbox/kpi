@@ -2,7 +2,9 @@ import jsonschema.exceptions
 from rest_framework import serializers
 
 from kobo.apps.subsequences.models import QuestionAdvancedAction
-from kobo.apps.subsequences.utils.action_conversion import question_advanced_action_to_action
+from kobo.apps.subsequences.utils.action_conversion import (
+    question_advanced_action_to_action,
+)
 
 
 class QuestionAdvancedActionUpdateSerializer(serializers.ModelSerializer):
@@ -13,9 +15,9 @@ class QuestionAdvancedActionUpdateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         data = super().validate(attrs)
-        action = question_advanced_action_to_action(instance)
+        action = question_advanced_action_to_action(self.instance)
         try:
-            action.__class__.validate_params(attrs['params'])
+            action.__class__.validate_params(attrs.get('params'))
         except jsonschema.exceptions.ValidationError as ve:
             raise serializers.ValidationError(ve)
         return data

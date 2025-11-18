@@ -2,8 +2,13 @@ from typing import Generator
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kobo.apps.subsequences.constants import SUBMISSION_UUID_FIELD, SUPPLEMENT_KEY
-from kobo.apps.subsequences.models import SubmissionSupplement
-from kobo.apps.subsequences.utils.action_conversion import question_advanced_action_to_action
+from kobo.apps.subsequences.models import (
+    SubmissionSupplement,
+    migrate_advanced_features,
+)
+from kobo.apps.subsequences.utils.action_conversion import (
+    question_advanced_action_to_action,
+)
 
 
 def get_supplemental_output_fields(asset: 'kpi.models.Asset') -> list[dict]:
@@ -35,6 +40,8 @@ def get_supplemental_output_fields(asset: 'kpi.models.Asset') -> list[dict]:
     submission. We'll do that by looking at the acceptance dates and letting
     the most recent win
     """
+    if asset.advanced_features != {}:
+        migrate_advanced_features(asset)
     advanced_features = asset.advanced_features_set.all()
 
     output_fields_by_name = {}

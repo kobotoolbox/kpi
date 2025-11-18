@@ -606,6 +606,7 @@ class BaseManualNLPAction(BaseAction):
         return languages
 
     def update_params(self, incoming_params):
+        self.validate_params(incoming_params)
         current_languages = self.languages
         for language_obj in incoming_params:
             if language_obj['language'] not in current_languages:

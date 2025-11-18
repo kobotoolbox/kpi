@@ -43,7 +43,7 @@ class QuestionAdvancedActionViewSetTestCase(BaseTestCase):
         res = self.client.patch(
             self.action_detail_url,
             content_type='application/json',
-            data=json.dumps({'question_xpath': 'bad'}),
+            data=json.dumps({'params': [{'language': 'es'}]}),
         )
         assert res.status_code == status.HTTP_200_OK
         self.action.refresh_from_db()

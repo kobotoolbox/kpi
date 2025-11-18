@@ -1,12 +1,11 @@
+import jsonschema
 from django.db import models, transaction
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
-from kpi.fields import LazyDefaultJSONBField, KpiUidField
+from kpi.fields import KpiUidField, LazyDefaultJSONBField
 from kpi.models.abstract_models import AbstractTimeStampedModel
-
 from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD, Action
 from .exceptions import InvalidAction, InvalidXPath
-from .schemas import validate_submission_supplement
 from .utils.action_conversion import question_advanced_action_to_action
 
 
@@ -37,7 +36,7 @@ class SubmissionSupplement(SubmissionExtras):
     def revise_data(asset: 'kpi.Asset', submission: dict, incoming_data: dict) -> dict:
 
         if not asset.advanced_features_set.exists():
-            raise InvalidAction
+            migrate_advanced_features(asset)
 
         schema_version = incoming_data.get('_version')
 
@@ -63,7 +62,6 @@ class SubmissionSupplement(SubmissionExtras):
                 # FIXME: what's a better way? skip all leading underscore keys?
                 # pop off the known special keys first?
                 continue
-
             action_configs_for_this_question = asset.advanced_features_set.filter(question_xpath=question_xpath)
             if not action_configs_for_this_question.exists():
                 raise InvalidXPath
@@ -155,7 +153,7 @@ class SubmissionSupplement(SubmissionExtras):
 
         if not asset.advanced_features_set.exists():
             # TODO: migrate from old per-asset schema
-            raise NotImplementedError
+            migrate_advanced_features(asset)
 
         retrieved_supplemental_data = {}
         data_for_output = {}
@@ -224,7 +222,7 @@ class QuestionAdvancedAction(models.Model):
 
 def migrate_advanced_features(asset: 'kpi.models.Asset') -> dict | None:
     advanced_features = asset.advanced_features
-    known_cols = set([col.split(":")[0] for col in asset.known_cols])
+    known_cols = set([col.split(':')[0] for col in asset.known_cols])
 
     if advanced_features == {}:
         return
@@ -238,6 +236,7 @@ def migrate_advanced_features(asset: 'kpi.models.Asset') -> dict | None:
                 and value['languages']
             ):
                 for q in known_cols:
+                    print(f'{q=}')
                     QuestionAdvancedAction.objects.create(
                         question_xpath=q,
                         asset=asset,
@@ -268,3 +267,23 @@ def migrate_advanced_features(asset: 'kpi.models.Asset') -> dict | None:
         asset.advanced_features = {}
         asset.save(update_fields=['advanced_features'], adjust_content=False)
 
+def validate_submission_supplement(asset: 'kpi.models.Asset', supplement: dict):
+    jsonschema.validate(get_submission_supplement_schema(asset), supplement)
+
+
+def get_submission_supplement_schema(asset: 'kpi.models.Asset') -> dict:
+    if asset.advanced_features != {}:
+        migrate_advanced_features(asset)
+
+    submission_supplement_schema = {
+        'additionalProperties': False,
+        'properties': {'_version': {'const': SCHEMA_VERSIONS[0]}},
+        'type': 'object',
+    }
+    for question_advanced_action in asset.advanced_features_set.all():
+        action = question_advanced_action_to_action(question_advanced_action)
+        submission_supplement_schema['properties'].setdefault(
+            question_advanced_action.question_xpath, {}
+        )[question_advanced_action.action] = action.result_schema
+
+    return submission_supplement_schema
