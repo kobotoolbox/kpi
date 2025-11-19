@@ -1,5 +1,6 @@
 # coding: utf-8
 from io import BytesIO
+from mimetypes import guess_type
 from tempfile import NamedTemporaryFile
 
 import requests
@@ -10,7 +11,7 @@ from PIL import Image
 from pillow_heif import register_heif_opener
 
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_optimized_image_path
-from kpi.constants import THUMBNAIL_JPEG_CONVERT
+from kpi.constants import UNSUPPORTED_INLINE_MIMETYPES
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
@@ -43,8 +44,9 @@ def get_dimensions(size_, longest_side):
 def _save_thumbnails(image, original_path, size, suffix):
     img_format = image.format
 
-    # Convert unsupported browser formats to JPEG for thumbnails
-    if img_format.upper() in THUMBNAIL_JPEG_CONVERT['formats']:
+    # Change format to JPEG for unsupported inline mimetypes
+    mimetype, _ = guess_type(original_path)
+    if mimetype in UNSUPPORTED_INLINE_MIMETYPES:
         img_format = 'JPEG'
 
     # Thumbnail format will be set by original file extension.

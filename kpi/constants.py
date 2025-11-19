@@ -199,8 +199,8 @@ SAFE_INLINE_MIMETYPES = {
     'video/x-ms-wmv',
 }
 
-# Convert these formats/extensions to JPEG for better browser compatibility
-THUMBNAIL_JPEG_CONVERT = {
-    'formats': {'HEIC', 'HEIF'},
-    'extensions': {'.heic', '.heif'},
-}
+# MIME types not supported inline by browsers, fallback to JPEG conversion
+UNSUPPORTED_INLINE_MIMETYPES = [
+    'image/heic',
+    'image/heif',
+]
