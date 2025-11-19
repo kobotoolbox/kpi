@@ -15,8 +15,12 @@ class AccessLogMetadataFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'test': GENERIC_STRING_SCHEMA,
-            }
+                'source': GENERIC_STRING_SCHEMA,
+                'auth_type': GENERIC_STRING_SCHEMA,
+                'ip_address': GENERIC_STRING_SCHEMA,
+                'initial_user_uid': GENERIC_STRING_SCHEMA,
+                'initial_user_username': GENERIC_STRING_SCHEMA,
+                'authorized_app_name': GENERIC_STRING_SCHEMA,            }
         )
 
 
