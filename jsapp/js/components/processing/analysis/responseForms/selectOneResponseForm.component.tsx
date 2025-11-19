@@ -71,7 +71,7 @@ export default function SelectOneResponseForm(props: SelectOneResponseFormProps)
   }
 
   return (
-    <ResponseWrapper uuid={props.uuid}>
+    <ResponseWrapper uuid={props.uuid} onClear={() => onRadioChange('')}>
       <Radio
         options={getOptions()}
         name={question.labels._default}
