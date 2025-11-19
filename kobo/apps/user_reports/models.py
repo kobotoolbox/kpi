@@ -96,7 +96,7 @@ class BillingAndUsageSnapshotRun(AbstractTimeStampedModel):
 
 class UserReports(models.Model):
     id = models.CharField(primary_key=True, max_length=80)
-    extra_details_uid = models.CharField(null=True, blank=True)
+    user_uid = models.CharField(null=True, blank=True)
     username = models.CharField()
     first_name = models.CharField()
     last_name = models.CharField()
@@ -107,13 +107,12 @@ class UserReports(models.Model):
     date_joined = models.CharField()
     last_login = models.CharField(null=True, blank=True)
     validated_email = models.BooleanField()
-    validated_password = models.BooleanField()
     mfa_is_active = models.BooleanField()
     sso_is_active = models.BooleanField()
     accepted_tos = models.BooleanField()
     social_accounts = models.JSONField(default=list)
     organization = models.JSONField(null=True, blank=True)
-    metadata = models.JSONField(null=True, blank=True)
+    extra_details = models.JSONField(null=True, blank=True)
     subscriptions = models.JSONField(default=list)
 
     asset_count = models.IntegerField(default=0)
@@ -122,6 +121,8 @@ class UserReports(models.Model):
     current_period_start = models.DateTimeField(null=True, blank=True)
     current_period_end = models.DateTimeField(null=True, blank=True)
     service_usage = models.JSONField(null=True, blank=True)
+
+    last_updated = models.CharField()
 
     class Meta:
         managed = False

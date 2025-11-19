@@ -11647,7 +11647,7 @@
         "/api/v2/user-reports/": {
             "get": {
                 "operationId": "api_v2_user_reports_list",
-                "description": "# List user reports\n\n⚠️ _Only available to superusers_\n\n## Filterable fields by string:\n\nSupports partial filtering\n- username\n- first_name\n- last_name\n- email\n- organization__name\n- organization__role (e.g., admin, member, owner)\n- metadata__organization_type\n- `metadata__<field>` (other string fields, e.g., name, sector, country...)\n\n## Filterable fields by int:\n\nSupports exact matching and range operators (e.g., gte, lte)\n\n**Total NLP Usage**\n- service_usage__total_nlp_usage__asr_seconds_all_time\n- service_usage__total_nlp_usage__mt_characters_all_time\n- service_usage__total_nlp_usage__asr_seconds_current_period\n- service_usage__total_nlp_usage__mt_characters_current_period\n\n**Total Storage/Submissions**\n- service_usage__total_storage_bytes\n- service_usage__total_submission_count__all_time\n- service_usage__total_submission_count__current_period\n\n**Service Usage Balances**\n\nPrefix: `service_usage__balances__<metric>__<value>`\n\nMetric:\n- submission\n- asr_seconds\n- mt_characters\n- storage_bytes\n\nValue:\n- balance_value\n- balance_percent\n- effective_limit\n\nEx: `service_usage__balances__submission__balance_value`\n\n**Asset Count**\n- asset_count\n- deployed_asset_count\n\n## Filterable fields by date:\nSupports exact matching and range operators (e.g., gte, lte)\n\n- date_joined\n- last_login\n\n## Filterable fields by boolean:\n\n- is_superuser\n- is_staff\n- is_active\n- validated_email\n- validated_password\n- mfa_is_active\n- sso_is_active\n- accepted_tos\n- metadata__newsletter_subscription\n- service_usage__balances__*metric*__exceeded (metric: submission, asr_seconds, mt_characters, storage_bytes)\n- account_restricted\n\n## Filterable fields by list:\n\nSubscription filtering:\n\nHas subscriptions\n\n`?q=subscriptions__0__id__isnull:False`\n\nNo subscriptions\n\n`?q=subscriptions__0__id__isnull:True`\n\nSubscription id\n\n`?q=subscriptions[]__id:sub_1QwPItAR39rDI89stzLJ040p`\n\nActive subscriptions\n\n`?q=subscriptions[]__status:active`\n",
+                "description": "# List user reports\n\n⚠️ _Only available to superusers_\n\n## Filterable fields by string:\n\nSupports partial filtering\n- username\n- first_name\n- last_name\n- email\n- user_uid\n- organization__name\n- organization__role (e.g., admin, member, owner)\n- organization__website\n- extra_details__data__organization_type\n- `extra_details__data__<field>` (other string fields, e.g., name, sector, country...)\n\n## Filterable fields by int:\n\nSupports exact matching and range operators (e.g., gte, lte)\n\n**Total NLP Usage**\n- service_usage__total_nlp_usage__asr_seconds_all_time\n- service_usage__total_nlp_usage__mt_characters_all_time\n- service_usage__total_nlp_usage__asr_seconds_current_period\n- service_usage__total_nlp_usage__mt_characters_current_period\n\n**Total Storage/Submissions**\n- service_usage__total_storage_bytes\n- service_usage__total_submission_count__all_time\n- service_usage__total_submission_count__current_period\n\n**Service Usage Balances**\n\nPrefix: `service_usage__balances__<metric>__<value>`\n\nMetric:\n- submission\n- asr_seconds\n- mt_characters\n- storage_bytes\n\nValue:\n- balance_value\n- balance_percent\n- effective_limit\n\nEx: `service_usage__balances__submission__balance_value`\n\n**Asset Count**\n- asset_count\n- deployed_asset_count\n\n## Filterable fields by date:\nSupports exact matching and range operators (e.g., gte, lte)\n\n- date_joined\n- last_login\n- last_updated (Represents the last modified timestamp of the materialized view)\n- extra_details__date_removal_requested\n- extra_details__date_removed\n- extra_details_password_date_changed\n\n## Filterable fields by boolean:\n\n- is_superuser\n- is_staff\n- is_active\n- validated_email\n- extra_details__validated_password\n- mfa_is_active\n- sso_is_active\n- accepted_tos\n- extra_details__data__newsletter_subscription\n- service_usage__balances__*metric*__exceeded (metric: submission, asr_seconds, mt_characters, storage_bytes)\n- account_restricted\n\n## Filterable fields by list:\n\nSubscription filtering:\n\nHas subscriptions\n\n`?q=subscriptions__0__id__isnull:False`\n\nNo subscriptions\n\n`?q=subscriptions__0__id__isnull:True`\n\nSubscription id\n\n`?q=subscriptions[]__id:sub_1QwPItAR39rDI89stzLJ040p`\n\nActive subscriptions\n\n`?q=subscriptions[]__status:active`\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -15360,8 +15360,6 @@
                     "logs_url",
                     "name",
                     "pending_count",
-                    "settings",
-                    "subset_fields",
                     "success_count",
                     "uid",
                     "url"
@@ -20228,7 +20226,7 @@
             "UserReportsListResponse": {
                 "type": "object",
                 "properties": {
-                    "extra_details_uid": {
+                    "user_uid": {
                         "type": "string"
                     },
                     "username": {
@@ -20262,9 +20260,6 @@
                         "format": "date-time"
                     },
                     "validated_email": {
-                        "type": "boolean"
-                    },
-                    "validated_password": {
                         "type": "boolean"
                     },
                     "mfa_is_active": {
@@ -20319,54 +20314,52 @@
                             }
                         }
                     },
-                    "metadata": {
+                    "extra_details": {
                         "type": "object",
                         "properties": {
-                            "name": {
-                                "type": "string"
-                            },
-                            "sector": {
-                                "type": "string"
-                            },
-                            "country": {
-                                "type": "string"
-                            },
-                            "organization": {
-                                "type": "string"
-                            },
-                            "last_ui_language": {
-                                "type": "string"
-                            },
-                            "organization_type": {
-                                "type": "string"
-                            },
-                            "organization_website": {
-                                "type": "string"
-                            },
-                            "project_views_settings": {
+                            "data": {
                                 "type": "object",
                                 "properties": {
-                                    "kobo_my_project": {
-                                        "type": "object",
-                                        "properties": {
-                                            "order": {
-                                                "type": "object"
-                                            },
-                                            "fields": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "string"
-                                                }
-                                            },
-                                            "filters": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "sector": {
+                                        "type": "string"
+                                    },
+                                    "country": {
+                                        "type": "string"
+                                    },
+                                    "organization": {
+                                        "type": "string"
+                                    },
+                                    "last_ui_language": {
+                                        "type": "string"
+                                    },
+                                    "organization_type": {
+                                        "type": "string"
+                                    },
+                                    "organization_website": {
+                                        "type": "string"
+                                    },
+                                    "newsletter_subscription": {
+                                        "type": "boolean"
                                     }
                                 }
+                            },
+                            "date_removed": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "validated_password": {
+                                "type": "boolean"
+                            },
+                            "password_date_changed": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "date_removal_requested": {
+                                "type": "string",
+                                "format": "date-time"
                             }
                         }
                     },
@@ -20750,22 +20743,21 @@
                     "date_joined",
                     "deployed_asset_count",
                     "email",
-                    "extra_details_uid",
+                    "extra_details",
                     "first_name",
                     "is_active",
                     "is_staff",
                     "is_superuser",
                     "last_login",
                     "last_name",
-                    "metadata",
                     "mfa_is_active",
                     "organizations",
                     "social_accounts",
                     "sso_is_active",
                     "subscriptions",
+                    "user_uid",
                     "username",
-                    "validated_email",
-                    "validated_password"
+                    "validated_email"
                 ]
             },
             "UserRetrieveResponse": {

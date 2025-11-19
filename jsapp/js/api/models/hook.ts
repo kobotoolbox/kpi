@@ -29,8 +29,8 @@ export interface Hook {
   /** @nullable */
   payload_template?: string | null
   readonly pending_count: number
-  settings: HookSettings
-  subset_fields: string[]
+  settings?: HookSettings
+  subset_fields?: string[]
   readonly success_count: number
   readonly uid: string
   readonly url: string

@@ -28,17 +28,22 @@ class HookTestCaseMixin:
         self._add_submissions()
 
         url = reverse('hook-list', args=(self.asset.uid,))
+
         data = {
             'name': kwargs.get('name', 'some external service with token'),
             'endpoint': kwargs.get('endpoint', 'http://external.service.local/'),
-            'settings': kwargs.get(
-                'settings', {'custom_headers': {'X-Token': '1234abcd'}}
-            ),
-            'export_type': format_type,
-            'active': kwargs.get('active', True),
-            'subset_fields': kwargs.get('subset_fields', []),
-            'payload_template': kwargs.get('payload_template', None),
         }
+
+        if not kwargs.get('minimal', False):
+            data.update({
+                'settings': kwargs.get(
+                    'settings', {'custom_headers': {'X-Token': '1234abcd'}}
+                ),
+                'active': kwargs.get('active', True),
+                'export_type': format_type,
+                'subset_fields': kwargs.get('subset_fields', []),
+                'payload_template': kwargs.get('payload_template', None),
+            })
 
         response = self.client.post(url, data, format='json')
         if return_response_only:

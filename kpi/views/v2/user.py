@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.db.models import Count
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, mixins, status, viewsets
 from rest_framework.decorators import action
@@ -85,12 +86,12 @@ class UserViewSet(
 
         if self.action == 'list':
             self.queryset = (
-                self.queryset.select_related('extra_details')
-                .prefetch_related('assets')
-                .exclude(pk=settings.ANONYMOUS_USER_ID)
+                self.queryset.exclude(pk=settings.ANONYMOUS_USER_ID)
+                .select_related('extra_details')
+                .order_by('id')
             )
 
-        return self.queryset.order_by('id')
+        return self.queryset
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -103,6 +104,28 @@ class UserViewSet(
             raise exceptions.PermissionDenied()
 
         return super().list(request, *args, **kwargs)
+
+    def paginate_queryset(self, queryset):
+        if not (page := super().paginate_queryset(queryset)):
+            return None
+
+        user_ids = (user.pk for user in page)
+        counts_map = {
+            asset['owner_id']: asset['assets_count']
+            for asset in (
+                Asset.objects.filter(owner_id__in=user_ids)
+                .values('owner_id')
+                .annotate(assets_count=Count('id'))
+            )
+        }
+
+        def _page_generator():
+            # Inject and yield on-the-fly assets count
+            for user in page:
+                user.assets_count = counts_map.get(user.pk, 0)
+                yield user
+
+        return _page_generator()
 
     @action(detail=True, methods=['GET'],
             url_path=r'migrate(?:/(?P<task_id>[\d\w\-]+))?')
