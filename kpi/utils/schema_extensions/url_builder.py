@@ -28,6 +28,8 @@ def build_url_type(viewname: str, **kwargs) -> dict:
         _, viewname = viewname.split(':')
 
     urls_pattern_mapping = {
+        'advanced-features-list': '/api/v2/assets/{parent_lookup_asset}/advanced-features',
+        'advanced-features-detail': '/api/v2/assets/{parent_lookup_asset}/advanced-features/{uid}',
         'asset-detail': '/api/v2/assets/{uid}/',
         'asset-permission-assignment-detail': '/api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/',  # noqa
         'permission-detail': '/api/v2/permissions/{codename}/',
