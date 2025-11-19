@@ -452,7 +452,11 @@ pathspec==0.12.1
 pexpect==4.9.0
     # via ipython
 pillow==10.3.0
-    # via django-markdownx
+    # via
+    #   django-markdownx
+    #   pillow-heif
+pillow-heif==0.22.0
+    # via -r dependencies/pip/requirements.in
 platformdirs==4.3.2
     # via black
 pluggy==1.4.0
