@@ -169,8 +169,6 @@ SAFE_INLINE_MIMETYPES = {
     'image/jp2',
     'image/x-icon',
     'image/vnd.wap.wbmp',
-    'image/heic',
-    'image/heif',
     # audio
     'audio/mpeg',
     'audio/mp3',
@@ -199,4 +197,10 @@ SAFE_INLINE_MIMETYPES = {
     'video/3gpp',
     'video/x-msvideo',
     'video/x-ms-wmv',
+}
+
+# Convert these formats/extensions to JPEG for better browser compatibility
+THUMBNAIL_JPEG_CONVERT = {
+    'formats': {'HEIC', 'HEIF'},
+    'extensions': {'.heic', '.heif'},
 }

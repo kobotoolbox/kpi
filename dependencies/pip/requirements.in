@@ -74,6 +74,7 @@ oauthlib
 objgraph
 openpyxl
 #py-gfm # Incompatible with markdown 3.x
+pillow-heif
 psycopg
 pymongo
 python-dateutil

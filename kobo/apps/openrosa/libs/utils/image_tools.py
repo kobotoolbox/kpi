@@ -7,8 +7,10 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage
 from PIL import Image
+from pillow_heif import register_heif_opener
 
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_optimized_image_path
+from kpi.constants import THUMBNAIL_JPEG_CONVERT
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
@@ -39,9 +41,15 @@ def get_dimensions(size_, longest_side):
 
 
 def _save_thumbnails(image, original_path, size, suffix):
+    img_format = image.format
+
+    # Convert unsupported browser formats to JPEG for thumbnails
+    if img_format.upper() in THUMBNAIL_JPEG_CONVERT['formats']:
+        img_format = 'JPEG'
+
     # Thumbnail format will be set by original file extension.
     # Use same format to keep transparency of GIF/PNG
-    nm = NamedTemporaryFile(suffix='.%s' % image.format)
+    nm = NamedTemporaryFile(suffix='.%s' % img_format)
     try:
         # Ensure conversion to float in operations
         image.thumbnail(get_dimensions(image.size, float(size)), Image.LANCZOS)
@@ -71,6 +79,7 @@ def _save_thumbnails(image, original_path, size, suffix):
 
 def resize(filename):
     image = None
+    register_heif_opener()
     if isinstance(default_storage, FileSystemStorage):
         path = default_storage.path(filename)
         image = Image.open(path)
