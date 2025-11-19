@@ -1145,6 +1145,7 @@ class Asset(
         self.save(update_fields=['summary'])
 
     def validate_advanced_features(self):
+        # TODO: remove this once subsequences__old is deleted
         pass
 
     @property
