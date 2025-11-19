@@ -12,6 +12,7 @@ MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
 
 
 def show_toolbar(request):
+    return True
     return env.bool('DEBUG_TOOLBAR', False)
 
 
