@@ -20,7 +20,8 @@ class AccessLogMetadataFieldExtension(OpenApiSerializerFieldExtension):
                 'ip_address': GENERIC_STRING_SCHEMA,
                 'initial_user_uid': GENERIC_STRING_SCHEMA,
                 'initial_user_username': GENERIC_STRING_SCHEMA,
-                'authorized_app_name': GENERIC_STRING_SCHEMA,            }
+                'authorized_app_name': GENERIC_STRING_SCHEMA,
+            }
         )
 
 
