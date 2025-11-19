@@ -11,7 +11,7 @@ from kobo.apps.subsequences.serializers import (
     QuestionAdvancedActionSerializer,
     QuestionAdvancedActionUpdateSerializer,
 )
-from kpi.permissions import AssetNestedObjectPermission, AssetPermission
+from kpi.permissions import AssetNestedObjectPermission, AssetPermission, AssetAdvancedFeaturesPermission
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
@@ -101,7 +101,7 @@ class QuestionAdvancedActionViewSet(
     log_type = AuditType.PROJECT_HISTORY
     logged_fields = ['asset.owner.username', 'action', 'params',('object_id', 'asset.id'),]
     pagination_class = None
-    permission_classes = (AssetPermission,)
+    permission_classes = (AssetAdvancedFeaturesPermission,)
     def get_queryset(self):
         return QuestionAdvancedAction.objects.filter(asset=self.asset)
     def perform_create_override(self, serializer):
