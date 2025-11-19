@@ -227,11 +227,11 @@ class AssetAdvancedFeaturesPermission(AssetNestedObjectPermission):
     Owner, managers and editors can write.
     i.e.:
         - Reads need 'view_asset' permission
-        - Writes need 'change_asset' permission
+        - Writes need 'change_submissions' permission
     """
 
     perms_map = deepcopy(AssetNestedObjectPermission.perms_map)
-    perms_map['POST'] = ['%(app_label)s.change_metadata_asset']
+    perms_map['POST'] = ['%(app_label)s.change_submissions']
     perms_map['PUT'] = perms_map['POST']
     perms_map['PATCH'] = perms_map['POST']
     perms_map['DELETE'] = perms_map['POST']

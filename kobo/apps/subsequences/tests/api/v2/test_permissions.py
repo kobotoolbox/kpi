@@ -358,7 +358,7 @@ class AdvancedFeaturesPermissionTestCase(SubsequenceBaseTestCase):
             self.client.force_login(user)
 
         if shared:
-            self.asset.assign_perm(user, PERM_MANAGE_ASSET)
+            self.asset.assign_perm(user, PERM_CHANGE_SUBMISSIONS)
 
         frozen_datetime_now = datetime(2024, 4, 8, 15, 27, 0, tzinfo=ZoneInfo('UTC'))
         with freeze_time(frozen_datetime_now):
