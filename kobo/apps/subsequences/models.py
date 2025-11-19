@@ -236,7 +236,6 @@ def migrate_advanced_features(asset: 'kpi.models.Asset') -> dict | None:
                 and value['languages']
             ):
                 for q in known_cols:
-                    print(f'{q=}')
                     QuestionAdvancedAction.objects.create(
                         question_xpath=q,
                         asset=asset,

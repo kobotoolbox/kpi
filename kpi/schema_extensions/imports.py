@@ -1,4 +1,5 @@
 # flake8: noqa: F401
+import kobo.apps.subsequences.schema_extensions.v2.subsequences.extensions
 import kpi.schema_extensions.v2.asset_attachments.extensions
 import kpi.schema_extensions.v2.asset_permission_assignments.extensions
 import kpi.schema_extensions.v2.asset_snapshots.extensions

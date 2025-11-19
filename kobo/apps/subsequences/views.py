@@ -1,24 +1,28 @@
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
-
 from rest_framework import mixins
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
-from kobo.apps.subsequences.models import QuestionAdvancedAction
-from kobo.apps.subsequences.schema_extensions.v2.subsequences.serializers import AdvancedFeatureResponse
+from kobo.apps.subsequences.models import (
+    QuestionAdvancedAction,
+    migrate_advanced_features,
+)
+from kobo.apps.subsequences.schema_extensions.v2.subsequences.serializers import (
+    AdvancedFeatureResponse,
+)
 from kobo.apps.subsequences.serializers import (
     QuestionAdvancedActionSerializer,
     QuestionAdvancedActionUpdateSerializer,
 )
-from kpi.permissions import AssetNestedObjectPermission, AssetPermission, AssetAdvancedFeaturesPermission
-from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+from kpi.permissions import AssetAdvancedFeaturesPermission
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
     open_api_201_created_response,
-    open_api_204_empty_response,
 )
+from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+
 
 @extend_schema(
     tags=['Advanced Features'],
@@ -103,6 +107,8 @@ class QuestionAdvancedActionViewSet(
     pagination_class = None
     permission_classes = (AssetAdvancedFeaturesPermission,)
     def get_queryset(self):
+        if self.asset.advanced_features != {}:
+            migrate_advanced_features(self.asset)
         return QuestionAdvancedAction.objects.filter(asset=self.asset)
     def perform_create_override(self, serializer):
         serializer.save(asset=self.asset)

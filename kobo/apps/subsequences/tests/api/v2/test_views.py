@@ -34,10 +34,19 @@ class QuestionAdvancedActionViewSetTestCase(BaseTestCase):
             kwargs={'parent_lookup_asset': self.asset.uid, 'pk': self.action.uid},
         )
         self.client = Client(raise_request_exception=False)
+        self.client.force_login(user)
 
     def test_list_advanced_features(self):
         res = self.client.get(self.list_actions_url)
         assert res.status_code == status.HTTP_200_OK
+        assert res.json() == [
+            {
+                'action': 'manual_transcription',
+                'question_xpath': 'q1',
+                'params': [{'language': 'en'}],
+                'uid': self.action.uid,
+            }
+        ]
 
     def test_update_action(self):
         res = self.client.patch(
@@ -81,3 +90,24 @@ class QuestionAdvancedActionViewSetTestCase(BaseTestCase):
         assert QuestionAdvancedAction.objects.filter(
             asset=self.asset, action=self.action.action
         ).exists()
+
+    def test_on_the_fly_migration(self):
+        self.action.delete()
+        self.asset.advanced_features = {'transcript': {'languages': ['en']}}
+        self.asset.known_cols = ['q1']
+        self.asset.save()
+        res = self.client.get(self.list_actions_url)
+        assert QuestionAdvancedAction.objects.filter(
+            asset=self.asset, action=self.action.action
+        ).exists()
+        action = QuestionAdvancedAction.objects.get(
+            asset=self.asset, action=self.action.action, question_xpath='q1'
+        )
+        assert res.json() == [
+            {
+                'action': 'manual_transcription',
+                'question_xpath': 'q1',
+                'params': [{'language': 'en'}],
+                'uid': action.uid,
+            }
+        ]
