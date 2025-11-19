@@ -33,8 +33,7 @@ const ProjectBreakdown = () => {
   })
 
   function getQueryParams() {
-    // HACK FIX: a bit of a roundabout way to incorporate what the backend expects without diving too deep into changing
-    // existing types
+    // TODO: align props with backend pagination params to simplify away this helper
     const orderPrefix = order.direction === 'descending' ? '-' : ''
     const fieldName = order.fieldName === 'status' ? '_deployment_status' : order.fieldName
 
@@ -48,11 +47,6 @@ const ProjectBreakdown = () => {
     query: {
       queryKey: getOrganizationsAssetUsageListQueryKey(organization.id, getQueryParams()),
       placeholderData: keepPreviousData,
-      // We might want to improve this in future, for now let's not retry
-      retry: false,
-      // The `refetchOnWindowFocus` option is `true` by default, I'm setting it
-      // here so we don't forget about it.
-      refetchOnWindowFocus: true,
       throwOnError: () => {
         notify(t('There was an error getting the list.'), 'error') // TODO: update message in backend (DEV-1218).
         return false
@@ -62,7 +56,10 @@ const ProjectBreakdown = () => {
 
   const usageName: ProjectFieldDefinition = {
     name: 'name',
-    label: getUsageNameLabel(),
+    label:
+      queryResult.data && queryResult.data.status === 200
+        ? t('##count## Projects').replace('##count##', queryResult.data.data.count.toString())
+        : t('Projects'),
     apiFilteringName: 'name',
     apiOrderingName: 'name',
     availableConditions: [],
@@ -83,14 +80,6 @@ const ProjectBreakdown = () => {
     setShowIntervalBanner(false)
   }
 
-  function getUsageNameLabel() {
-    if (queryResult.data) {
-      return t('##count## Projects').replace('##count##', '') // FIXME: `count` doens't exist, seems related to the error type mismatch stuff queryResult.data.data.count.toString())
-    } else {
-      return t('Projects')
-    }
-  }
-
   const columns: Array<UniversalTableColumn<CustomAssetUsage>> = [
     {
       key: 'asset_name',
@@ -101,7 +90,7 @@ const ProjectBreakdown = () => {
           orderableFields={['name', 'status']}
           order={order}
           onChangeOrderRequested={updateOrder}
-          notResizeable
+          fixedWidth
         />
       ),
       size: 100,
@@ -145,8 +134,7 @@ const ProjectBreakdown = () => {
       key: 'translation_characters',
       label: t('Translation characters'),
       size: 100,
-      cellFormatter: (data: CustomAssetUsage) =>
-        convertSecondsToMinutes(data.nlp_usage_current_period.total_nlp_mt_characters).toLocaleString(),
+      cellFormatter: (data: CustomAssetUsage) => data.nlp_usage_current_period.total_nlp_mt_characters.toLocaleString(),
     },
     {
       key: 'staus',
@@ -157,7 +145,7 @@ const ProjectBreakdown = () => {
           orderableFields={['name', 'status']}
           order={order}
           onChangeOrderRequested={updateOrder}
-          notResizeable
+          fixedWidth
         />
       ),
       size: 100,
