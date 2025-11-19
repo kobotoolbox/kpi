@@ -21,6 +21,7 @@ import { ROUTES } from '#/router/routerConstants'
 import { convertSecondsToMinutes, notify } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
+import type { OrganizationsAssetUsageListParams } from '#/api/models/organizationsAssetUsageListParams'
 
 const ProjectBreakdown = () => {
   const [showIntervalBanner, setShowIntervalBanner] = useState(true)
@@ -34,13 +35,13 @@ const ProjectBreakdown = () => {
 
   function getQueryParams() {
     // TODO: align props with backend pagination params to simplify away this helper
-    const orderPrefix = order.direction === 'descending' ? '-' : ''
-    const fieldName = order.fieldName === 'status' ? '_deployment_status' : order.fieldName
-
-    return {
-      ...pagination,
-      ordering: orderPrefix + fieldName,
+    const queryParams: OrganizationsAssetUsageListParams = { ...pagination }
+    if (order.direction && order.fieldName) {
+      const orderPrefix = order.direction === 'descending' ? '-' : ''
+      const fieldName = order.fieldName === 'status' ? '_deployment_status' : order.fieldName
+      queryParams.ordering = orderPrefix + fieldName
     }
+    return queryParams
   }
 
   const queryResult = useOrganizationsAssetUsageList(organization.id, getQueryParams(), {
