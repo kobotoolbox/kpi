@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react'
 
+import { Stack, ThemeIcon } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
 import { handleApiFail } from '#/api'
 import Button from '#/components/common/button'
@@ -16,7 +17,6 @@ import type { FailResponse } from '#/dataInterface'
 import { recordKeys } from '#/utils'
 import AnalysisQuestionsContext from '../analysisQuestions.context'
 import type { AdditionalFields, AnalysisQuestionInternal } from '../constants'
-import commonStyles from '../responseForms/common.module.scss'
 import styles from './analysisQuestionEditor.module.scss'
 import KeywordSearchFieldsEditor from './keywordSearchFieldsEditor.component'
 import SelectXFieldsEditor from './selectXFieldsEditor.component'
@@ -161,12 +161,14 @@ export default function AnalysisQuestionEditor(props: AnalysisQuestionEditorProp
   }
 
   return (
+    // TODO: mantineify the rest of this component, it's partially complete to remove dependency on deprecated styles
+    // DEV-1237
     <>
       <header className={styles.header}>
         <form className={styles.headerForm} onSubmit={onSubmit}>
-          <div className={commonStyles.headerIcon}>
+          <ThemeIcon ta={'center'} variant='light-teal'>
             <Icon name={qaDefinition.icon} size='xl' />
-          </div>
+          </ThemeIcon>
 
           <TextBox
             value={label}
@@ -198,7 +200,9 @@ export default function AnalysisQuestionEditor(props: AnalysisQuestionEditorProp
       </header>
 
       {qaDefinition.additionalFieldNames && (
-        <section className={commonStyles.content}>
+        // Hard coded left padding to account for the 32px icon size + 8px gap
+        // 0px gap because the children still did not get a mantine refactor so we must respect existing styles
+        <Stack pl={'40px'} gap={'0px'}>
           {question.type === 'qual_auto_keyword_count' && (
             <KeywordSearchFieldsEditor
               questionUuid={question.uuid}
@@ -216,7 +220,7 @@ export default function AnalysisQuestionEditor(props: AnalysisQuestionEditorProp
           )}
 
           {additionalFieldsErrorMessage && <p>{additionalFieldsErrorMessage}</p>}
-        </section>
+        </Stack>
       )}
     </>
   )

@@ -10,6 +10,7 @@ def run():
         # Only run it when custom user model migrations have been fixed
         delete_kobocat_form_disclaimer_app()
 
+    fix_mfa_migrations()
 
 def are_migration_already_applied():
     with connection.cursor() as cursor:
@@ -78,3 +79,23 @@ def migrate_custom_user_model():
                 return False
         else:
             raise Exception('Run `./manage.py migrate auth` first')
+
+
+def fix_mfa_migrations():
+    """Fixes conflicts with users_reports dependency in kc db if already applied
+    """
+    with connections[settings.OPENROSA_DB_ALIAS].cursor() as cursor:
+        user_reports_2 = cursor.execute("""
+            SELECT id FROM django_migrations
+            WHERE app = 'user_reports' AND name = '0002_create_user_reports_mv';
+        """).fetchone()
+
+        accounts_mfa_1_squashed = cursor.execute("""
+            SELECT id FROM django_migrations
+            WHERE app = 'accounts_mfa' AND name = '0001_squashed_0004_alter_mfamethod_date_created_and_more';
+        """).fetchone()
+        if user_reports_2 is not None and accounts_mfa_1_squashed is None:
+            cursor.execute(f"""
+                DELETE FROM django_migrations
+                WHERE app = 'user_reports' AND id >= '{user_reports_2[0]}';
+            """);

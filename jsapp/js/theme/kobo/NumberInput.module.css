@@ -1,0 +1,29 @@
+.input:focus-within {
+  box-shadow: 0 0 0 2px var(--mantine-color-blue-7);
+}
+
+.input {
+  border-color: var(--mantine-color-gray-6);
+
+  &::placeholder {
+    color: var(--mantine-color-gray-3);
+    opacity: 1;
+  }
+}
+
+.section {
+  z-index: 0;
+}
+
+.control {
+  border-color: var(--mantine-color-gray-6);
+
+  &::placeholder {
+    color: var(--mantine-color-gray-3);
+    opacity: 1;
+  }
+}
+
+.control:hover {
+  background-color: var(--mantine-color-gray-6);
+}

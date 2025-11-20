@@ -176,6 +176,26 @@ class PlanAddOn(models.Model):
                     ),
                     0,
                 ),
+                llm_requests_remaining=Coalesce(
+                    Sum(
+                        Cast(
+                            PlanAddOn.get_limits_remaining_field(
+                                UsageType.LLM_REQUESTS
+                            ),
+                            output_field=IntegerField(),
+                        )
+                    ),
+                    0,
+                ),
+                total_llm_requests_limit=Coalesce(
+                    Sum(
+                        Cast(
+                            PlanAddOn.get_usage_limits_field(UsageType.LLM_REQUESTS),
+                            output_field=IntegerField(),
+                        )
+                    ),
+                    0,
+                ),
                 submission_remaining=Coalesce(
                     Sum(
                         Cast(

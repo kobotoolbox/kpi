@@ -1,10 +1,13 @@
-import React, { useState, useContext } from 'react'
+import React, { useContext } from 'react'
 
+import { Group, Modal, Stack, Text } from '@mantine/core'
+import { Box, ThemeIcon } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
 import clonedeep from 'lodash.clonedeep'
 import { handleApiFail } from '#/api'
-import Button from '#/components/common/button'
+import ActionIcon from '#/components/common/ActionIcon'
+import ButtonNew from '#/components/common/ButtonNew'
 import Icon from '#/components/common/icon'
-import KoboPrompt from '#/components/modals/koboPrompt'
 import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import {
   findQuestion,
@@ -16,17 +19,18 @@ import {
 import type { FailResponse } from '#/dataInterface'
 import singleProcessingStore from '../../singleProcessingStore'
 import type { AnalysisQuestionInternal } from '../constants'
-import commonStyles from './common.module.scss'
 
-interface ResponseFormHeaderProps {
+interface ResponseWrapperProps {
   uuid: string
+  children?: React.ReactNode
 }
 
 /**
  * Displays question type icon, name, and an edit and delete buttons (if user
  * has sufficient permissions). Is being used in multiple other components.
  */
-export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
+export default function ResponseWrapper(props: ResponseWrapperProps) {
+  const [opened, { open, close }] = useDisclosure(false)
   const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
     return null
@@ -43,8 +47,6 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
   if (!qaDefinition) {
     return null
   }
-
-  const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false)
 
   /**
    * Means that user clicked "Edit" button and wants to start modyfing
@@ -63,7 +65,7 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
       payload: { uuid: props.uuid },
     })
 
-    setIsDeletePromptOpen(false)
+    close()
 
     // Step 1: ensure no mutations happen
     const newQuestions: AnalysisQuestionInternal[] = clonedeep(analysisQuestions?.state.questions) || []
@@ -96,54 +98,68 @@ export default function ResponseFormHeader(props: ResponseFormHeaderProps) {
   }
 
   return (
-    <header className={commonStyles.header}>
-      <KoboPrompt
-        isOpen={isDeletePromptOpen}
-        onRequestClose={() => setIsDeletePromptOpen(false)}
-        title={t('Delete this question?')}
-        buttons={[
-          {
-            type: 'secondary',
-            label: t('Cancel'),
-            onClick: () => setIsDeletePromptOpen(false),
-          },
-          {
-            type: 'danger',
-            label: t('Delete'),
-            onClick: deleteQuestion,
-          },
-        ]}
-      >
-        <p>{t('Are you sure you want to delete this question? This action cannot be undone.')}</p>
-      </KoboPrompt>
+    <Stack gap={0}>
+      <Group align={'flex-start'} gap={'xs'} mb={'xs'} display={'flex'}>
+        <Modal opened={opened} onClose={close} title={t('Delete this question?')} size={'md'}>
+          <Stack>
+            <Text>{t('Are you sure you want to delete this question? This action cannot be undone.')}</Text>
+            <Group align='left'>
+              <ButtonNew size='md' onClick={close} variant='light'>
+                {t('Cancel')}
+              </ButtonNew>
 
-      <div className={commonStyles.headerIcon}>
-        <Icon name={qaDefinition.icon} size='xl' />
-      </div>
+              <ButtonNew size='md' onClick={deleteQuestion} variant='danger'>
+                {t('Delete')}
+              </ButtonNew>
+            </Group>
+          </Stack>
+        </Modal>
 
-      <label className={commonStyles.headerLabel}>{question.labels._default}</label>
+        <ThemeIcon ta={'center'} variant='light-teal'>
+          <Icon name={qaDefinition.icon} size='xl' />
+        </ThemeIcon>
 
-      <Button
-        type='secondary'
-        size='s'
-        startIcon='edit'
-        onClick={openQuestionInEditor}
-        // We only allow editing one question at a time, so adding new is not
-        // possible until user stops editing
-        isDisabled={
-          !hasManagePermissionsToCurrentAsset() ||
-          analysisQuestions.state.questionsBeingEdited.length !== 0 ||
-          analysisQuestions.state.isPending
-        }
-      />
+        {/*TODO: font weight is not standardized DEV-1238*/}
+        <Text
+          style={{ wordBreak: 'break-all' }}
+          span
+          c={'gray.2'}
+          fw={600}
+          fz={'lg'}
+          flex={1}
+          mih={32}
+          display={'flex'}
+          ta={'left'}
+        >
+          {question.labels._default}
+        </Text>
 
-      <Button
-        type='secondary-danger'
-        size='s'
-        startIcon='trash'
-        onClick={() => setIsDeletePromptOpen(true)}
-        isDisabled={!hasManagePermissionsToCurrentAsset() || analysisQuestions.state.isPending}
-      />
-    </header>
+        <ActionIcon
+          variant='light'
+          color=''
+          size='sm'
+          iconName='edit'
+          onClick={openQuestionInEditor}
+          // We only allow editing one question at a time, so adding new is not
+          // possible until user stops editing
+          disabled={
+            !hasManagePermissionsToCurrentAsset() ||
+            analysisQuestions.state.questionsBeingEdited.length !== 0 ||
+            analysisQuestions.state.isPending
+          }
+        />
+
+        <ActionIcon
+          variant='danger-secondary'
+          size='sm'
+          iconName='trash'
+          onClick={open}
+          disabled={!hasManagePermissionsToCurrentAsset() || analysisQuestions.state.isPending}
+        />
+      </Group>
+
+      {/* Hard coded left padding to account for the 32px icon size + 8px gap */}
+      {props.children && <Box pl={'40px'}>{props.children}</Box>}
+    </Stack>
   )
 }

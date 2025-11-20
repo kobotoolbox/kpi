@@ -50,7 +50,7 @@ from kpi.utils.schema_extensions.response import (
     open_api_204_empty_response,
 )
 from kpi.views.v2.asset import AssetViewSet
-from ..accounts.mfa.models import MfaMethod
+from ..accounts.mfa.models import MfaMethodsWrapper
 from .models import (
     Organization,
     OrganizationInvitation,
@@ -407,7 +407,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         organization_id = self.kwargs['uid_organization']
 
         # Subquery to check if the user has an active MFA method
-        mfa_subquery = MfaMethod.objects.filter(
+        mfa_subquery = MfaMethodsWrapper.objects.filter(
             user=OuterRef('user_id'),
             is_active=True
         ).values('pk')

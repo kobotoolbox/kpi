@@ -878,12 +878,14 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 .aggregate(
                     total_nlp_asr_seconds=Coalesce(Sum('total_asr_seconds'), 0),
                     total_nlp_mt_characters=Coalesce(Sum('total_mt_characters'), 0),
+                    total_nlp_llm_requests=Coalesce(Sum('total_llm_requests'), 0),
                 )
             )
         except NLPUsageCounter.DoesNotExist:
             return {
                 'total_nlp_asr_seconds': 0,
                 'total_nlp_mt_characters': 0,
+                'total_nlp_llm_requests': 0,
             }
         else:
             return nlp_tracking

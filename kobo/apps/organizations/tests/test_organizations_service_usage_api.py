@@ -84,6 +84,8 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         assert response.data['total_nlp_usage']['asr_seconds_all_time'] == 4728
         assert response.data['total_nlp_usage']['mt_characters_current_period'] == 5473
         assert response.data['total_nlp_usage']['mt_characters_all_time'] == 6726
+        assert response.data['total_nlp_usage']['llm_requests_current_period'] == 30
+        assert response.data['total_nlp_usage']['llm_requests_all_time'] == 80
         assert response.data['total_storage_bytes'] == self.expected_file_size()
 
         # Without stripe, there are no usage limits and
