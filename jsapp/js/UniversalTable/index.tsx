@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react'
 
 import type { UseQueryResult } from '@tanstack/react-query'
+import type { ErrorObject } from 'schema-utils/declarations/validate'
+import type { ErrorDetail } from '#/api/models/errorDetail'
 import UniversalTableCore from './UniversalTableCore'
 import type { UniversalTableColumn } from './UniversalTableCore'
 
@@ -44,7 +46,7 @@ export namespace PaginatedListResponse {
   }
 }
 
-interface UniversalTableProps<Datum, TError = Error> {
+interface UniversalTableProps<Datum, TError = Error | ErrorDetail | ErrorObject> {
   // Below are props from `UniversalTable` that should come from the parent
   // component (these are kind of "configuration" props). The other
   // `UniversalTable` props are being handled here internally.
