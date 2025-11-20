@@ -44,8 +44,7 @@ def pre_delete_attachment(instance, **kwargs):
     attachment = instance
     file_size = attachment.media_file_size
     only_update_counters = kwargs.pop('only_update_counters', False)
-    # TODO use deserialized XForm from Attachment model
-    xform = attachment.instance.xform
+    xform = attachment.xform
     user_id = xform.user_id
 
     if file_size and attachment.delete_status is None:
@@ -100,8 +99,7 @@ def post_save_attachment(instance, created, **kwargs):
     if not file_size:
         return
 
-    # TODO use deserialized XForm from Attachment model
-    xform = attachment.instance.xform
+    xform = attachment.xform
     user_id = xform.user_id
 
     update_storage_counters(xform.pk, user_id, file_size)
